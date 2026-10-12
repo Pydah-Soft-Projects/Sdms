@@ -138,11 +138,27 @@ const formatDobDdMmYyyy = (raw) => {
 };
 
 /**
+ * Clean up raw address text
+ */
+const cleanAddressString = (raw) => {
+  if (!raw) return '';
+  const text = Array.isArray(raw)
+    ? raw.filter(Boolean).join(', ')
+    : String(raw);
+
+  return text
+    .replace(/\s+/g, ' ')
+    .replace(/\s*,\s*/g, ', ')
+    .trim()
+    .replace(/[,;.\s]+$/, '');
+};
+
+/**
  * Truncate text cleanly at a word/comma boundary within maxLen
  */
-const truncateAtBoundary = (text, maxLen = 140) => {
-  if (!text) return '';
-  const cleaned = String(text).replace(/\s+/g, ' ').trim();
+export const truncateAddress = (rawAddress, maxLen = 175) => {
+  const cleaned = cleanAddressString(rawAddress);
+  if (!cleaned) return 'D.No. XX-XX, Komaripalem, Kakinada, A.P.';
   if (cleaned.length <= maxLen) return cleaned;
 
   const target = Math.max(10, maxLen - 3);
@@ -151,9 +167,9 @@ const truncateAtBoundary = (text, maxLen = 140) => {
   const lastSpace = slice.lastIndexOf(' ');
 
   let cut = target;
-  if (lastComma > target * 0.6) {
+  if (lastComma > target * 0.55) {
     cut = lastComma;
-  } else if (lastSpace > target * 0.6) {
+  } else if (lastSpace > target * 0.55) {
     cut = lastSpace;
   }
 
@@ -162,116 +178,15 @@ const truncateAtBoundary = (text, maxLen = 140) => {
 };
 
 /**
- * Dynamically computes typography for student address so it scales
- * and fits gracefully inside the ID card space above the break line.
+ * Backwards compatible address helpers
  */
-const getAddressTypography = (len, lineCount) => {
-  if (len <= 50 && lineCount <= 2) {
-    return { fontSize: '7.0pt', lineHeight: '1.35' };
-  }
-  if (len <= 80 && lineCount <= 3) {
-    return { fontSize: '6.6pt', lineHeight: '1.3' };
-  }
-  if (len <= 110 && lineCount <= 4) {
-    return { fontSize: '6.1pt', lineHeight: '1.25' };
-  }
-  if (len <= 140) {
-    return { fontSize: '5.6pt', lineHeight: '1.2' };
-  }
-  return { fontSize: '5.2pt', lineHeight: '1.15' };
-};
-
-/**
- * Format address into structured lines that dynamically fit the card space.
- * Intelligently packages comma parts and words across lines.
- */
-export const formatDynamicAddressLines = (rawAddress, maxTotalChars = 140) => {
-  if (!rawAddress) {
-    return {
-      lines: ['D.No. XX-XX,', 'Komaripalem,', 'Kakinada, Andhra Pradesh.'],
-      fullText: 'D.No. XX-XX, Komaripalem, Kakinada, Andhra Pradesh.',
-    };
-  }
-
-  const fullText = Array.isArray(rawAddress)
-    ? rawAddress.filter(Boolean).join(', ')
-    : String(rawAddress);
-
-  const cleanText = fullText.replace(/\s+/g, ' ').trim();
-  if (!cleanText) {
-    return {
-      lines: ['D.No. XX-XX,', 'Komaripalem,', 'Kakinada, Andhra Pradesh.'],
-      fullText: '',
-    };
-  }
-
-  const limitedText = truncateAtBoundary(cleanText, maxTotalChars);
-
-  // Line length budget scales slightly with total text length
-  const maxLineLen = limitedText.length > 90 ? 28 : (limitedText.length > 60 ? 25 : 22);
-  const maxAllowedLines = 6;
-
-  const commaParts = limitedText
-    .split(',')
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  const lines = [];
-
-  if (commaParts.length >= 2) {
-    let current = '';
-    for (let i = 0; i < commaParts.length; i++) {
-      const part = commaParts[i];
-      const isLastPart = i === commaParts.length - 1;
-      const partWithComma =
-        isLastPart || part.endsWith('.') || part.endsWith('...')
-          ? part
-          : `${part},`;
-
-      if (!current) {
-        current = partWithComma;
-      } else if ((current + ' ' + partWithComma).length <= maxLineLen) {
-        current = `${current} ${partWithComma}`;
-      } else {
-        lines.push(current);
-        current = partWithComma;
-        if (lines.length === maxAllowedLines - 1) {
-          const remaining = commaParts.slice(i).join(', ');
-          current = truncateAtBoundary(remaining, maxLineLen + 6);
-          break;
-        }
-      }
-    }
-    if (current && lines.length < maxAllowedLines) {
-      lines.push(current);
-    }
-  } else {
-    const words = limitedText.split(' ').filter(Boolean);
-    let current = '';
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
-      if (!current) {
-        current = word;
-      } else if ((current + ' ' + word).length <= maxLineLen) {
-        current = `${current} ${word}`;
-      } else {
-        lines.push(current);
-        current = word;
-        if (lines.length === maxAllowedLines - 1) {
-          const remaining = words.slice(i).join(' ');
-          current = truncateAtBoundary(remaining, maxLineLen + 6);
-          break;
-        }
-      }
-    }
-    if (current && lines.length < maxAllowedLines) {
-      lines.push(current);
-    }
-  }
-
+export const formatDynamicAddressLines = (rawAddress, maxTotalChars = 175) => {
+  const fullText = cleanAddressString(rawAddress) || 'D.No. XX-XX, Komaripalem, Kakinada, A.P.';
+  const truncatedText = truncateAddress(fullText, maxTotalChars);
   return {
-    lines: lines.length > 0 ? lines.slice(0, maxAllowedLines) : [cleanText],
-    fullText: cleanText,
+    lines: [truncatedText],
+    fullText,
+    truncatedText,
   };
 };
 
@@ -359,13 +274,10 @@ const DigitalIdCardBack = ({
     get('address') ||
     null;
 
-  const { lines: addressLines, fullText: addressFullText } =
-    formatDynamicAddressLines(rawAddress);
-
-  const addressTypography = getAddressTypography(
-    addressFullText.length,
-    addressLines.length
-  );
+  const addressFullText = cleanAddressString(rawAddress) || 'D.No. XX-XX, Komaripalem, Kakinada, A.P.';
+  const displayAddress = truncateAddress(addressFullText, 175);
+  const addressFontSize = addressFullText.length > 80 ? '5.7pt' : '6.0pt';
+  const addressLineHeight = '1.22';
 
   return (
     <div
@@ -389,98 +301,108 @@ const DigitalIdCardBack = ({
       {/* 1. TOP HEADER WAVE WITH DUAL ACCENT RIBBON */}
       <BackTopWaveSVG />
 
-      {/* 2. DETAILS CONTENT — fills full height between waves */}
+      {/* 2. DETAILS CONTENT — fills height between waves */}
       <div
-        className="absolute z-10 flex flex-col"
+        className="absolute z-10 flex flex-col justify-between"
         style={{
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '45.6mm',
-          top: '15.5mm',
-          bottom: '13.5mm',         /* just above the bottom wave */
-          fontSize: '7.0pt',
-          lineHeight: '1.42',
-          justifyContent: 'space-around',
+          width: '46.6mm',
+          top: '15.0mm',
+          bottom: '13.0mm',
+          boxSizing: 'border-box',
         }}
       >
-        {/* ── Upper block: personal details ── */}
-        <div>
+        {/* ── Upper block: personal details in a unified grid for perfect colon alignment ── */}
+        <div
+          className="w-full"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '24.0mm 2.0mm 1fr',
+            rowGap: '1.8mm',
+            alignItems: 'start',
+          }}
+        >
           {/* Date of Birth */}
-          <div className="grid grid-cols-[23.5mm_1.8mm_1fr] items-center mb-[1.8mm]">
-            <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.8pt]">Date of Birth</span>
-            <span className="font-extrabold text-[#000000] text-center text-[6.8pt]">:</span>
-            <span className="font-extrabold text-[#000000] text-[7.3pt]">{dateOfBirth}</span>
-          </div>
+          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.5pt] leading-[1.3]">
+            Date of Birth
+          </span>
+          <span className="font-extrabold text-[#000000] text-center text-[6.5pt] leading-[1.3] select-none">
+            :
+          </span>
+          <span className="font-extrabold text-[#000000] text-[7.0pt] leading-[1.3]">
+            {dateOfBirth}
+          </span>
 
           {/* Parent/Guardian */}
-          <div className="grid grid-cols-[23.5mm_1.8mm_1fr] items-start mb-[1.8mm]">
-            <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.8pt]">Parent/Guardian</span>
-            <span className="font-extrabold text-[#000000] text-center text-[6.8pt]">:</span>
-            <span
-              className="font-extrabold text-[#000000] text-[7.3pt] leading-tight line-clamp-2"
-              title={parentGuardian}
-            >
-              {parentGuardian}
-            </span>
-          </div>
+          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.5pt] leading-[1.3]">
+            Parent/Guardian
+          </span>
+          <span className="font-extrabold text-[#000000] text-center text-[6.5pt] leading-[1.3] select-none">
+            :
+          </span>
+          <span
+            className="font-extrabold text-[#000000] text-[7.0pt] leading-[1.3] line-clamp-2"
+            title={parentGuardian}
+          >
+            {parentGuardian}
+          </span>
 
           {/* Emergency Contact */}
-          <div className="grid grid-cols-[23.5mm_1.8mm_1fr] items-center mb-[1.8mm]">
-            <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.8pt]">Emergency Contact</span>
-            <span className="font-extrabold text-[#000000] text-center text-[6.8pt]">:</span>
-            <span className="font-extrabold text-[#000000] text-[7.3pt] font-mono">{emergencyContact}</span>
-          </div>
+          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.5pt] leading-[1.3]">
+            Emergency Contact
+          </span>
+          <span className="font-extrabold text-[#000000] text-center text-[6.5pt] leading-[1.3] select-none">
+            :
+          </span>
+          <span className="font-extrabold text-[#000000] text-[7.0pt] leading-[1.3] font-mono tracking-tight">
+            {emergencyContact}
+          </span>
 
-          {/* Student Address — dynamically scaled to fit card space up to break line */}
-          <div className="grid grid-cols-[23.5mm_1.8mm_1fr] items-start mb-[3.2mm]">
-            <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.8pt]">Student Address</span>
-            <span className="font-extrabold text-[#000000] text-center text-[6.8pt]">:</span>
-            <div
-              className="flex flex-col text-[#000000] font-extrabold"
-              style={{
-                fontSize: addressTypography.fontSize,
-                lineHeight: addressTypography.lineHeight,
-                maxHeight: '22mm',
-                overflow: 'hidden',
-                wordBreak: 'break-word',
-              }}
-              title={addressFullText || undefined}
-            >
-              {addressLines.map((line, idx) => (
-                <span
-                  key={idx}
-                  className="block"
-                  style={{
-                    lineHeight: addressTypography.lineHeight,
-                    wordBreak: 'break-word',
-                  }}
-                >
-                  {line}
-                </span>
-              ))}
-            </div>
+          {/* Student Address */}
+          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.5pt] leading-[1.3]">
+            Student Address
+          </span>
+          <span className="font-extrabold text-[#000000] text-center text-[6.5pt] leading-[1.3] select-none">
+            :
+          </span>
+          <div
+            className="font-extrabold text-[#000000]"
+            style={{
+              fontSize: addressFontSize,
+              lineHeight: addressLineHeight,
+              display: '-webkit-box',
+              WebkitLineClamp: 6,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              wordBreak: 'break-word',
+              minWidth: 0,
+            }}
+            title={addressFullText || undefined}
+          >
+            {displayAddress}
           </div>
-
         </div>
 
-        {/* ── Lower block: separator + return info ── */}
-        <div>
+        {/* ── Lower block: separator + return info (sticky to the bottom right above the red wave) ── */}
+        <div className="w-full flex flex-col">
           {/* Separator Line */}
-          <div className="w-full h-[0.5px] bg-[#CBD5E1] mt-[1.5mm] mb-[2.2mm]" />
+          <div className="w-full h-[0.5px] bg-[#CBD5E1] mb-[2.0mm]" />
 
           {/* Return Information */}
-          <div className="flex flex-col gap-[1mm]">
-            <span className="text-[#64748B] font-semibold text-[5.8pt]">
+          <div className="flex flex-col gap-[0.8mm]">
+            <span className="text-[#64748B] font-semibold text-[5.8pt] leading-tight">
               If found, please return to:
             </span>
-            <h3 className="text-[#111827] font-extrabold text-[8.5pt] leading-tight m-0 line-clamp-2">
+            <h3 className="text-[#111827] font-extrabold text-[8.2pt] leading-tight m-0 line-clamp-2">
               {collegeName}
             </h3>
-            <span className="text-[#334155] font-medium text-[6.0pt] leading-tight line-clamp-2">
+            <span className="text-[#334155] font-medium text-[5.8pt] leading-tight line-clamp-2">
               {collegeAddress}
             </span>
             {collegeContact ? (
-              <span className="text-[#334155] font-medium text-[6.0pt]">
+              <span className="text-[#334155] font-semibold text-[5.8pt] leading-tight">
                 College Contact: {collegeContact}
               </span>
             ) : null}

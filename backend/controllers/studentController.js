@@ -3618,12 +3618,15 @@ exports.getAllStudents = async (req, res) => {
       const set = new Set();
       if (admissionNumbers.length > 0) {
         try {
-          const adNumPlaceholders = admissionNumbers.map(() => '?').join(',');
-          const [transReqs] = await masterPool.query(
-            `SELECT admission_number FROM transport_requests WHERE status = 'approved' AND admission_number IN (${adNumPlaceholders})`,
-            [...admissionNumbers]
-          );
-          transReqs.forEach(req => set.add(req.admission_number));
+          for (let i = 0; i < admissionNumbers.length; i += 500) {
+            const chunk = admissionNumbers.slice(i, i + 500);
+            const adNumPlaceholders = chunk.map(() => '?').join(',');
+            const [transReqs] = await masterPool.query(
+              `SELECT admission_number FROM transport_requests WHERE status = 'approved' AND admission_number IN (${adNumPlaceholders})`,
+              chunk
+            );
+            transReqs.forEach(req => set.add(req.admission_number));
+          }
         } catch (err) {
           console.error('Error fetching transport requests:', err);
         }
@@ -3638,18 +3641,24 @@ exports.getAllStudents = async (req, res) => {
         const hostelDb = hostelConn && hostelConn.readyState === 1 ? hostelConn.db : null;
         if (hostelDb && (admissionNumbers.length > 0 || pinNumbers.length > 0)) {
           const collection = hostelDb.collection('users');
-          const query = {
-            $or: [
-              { admissionNumber: { $in: admissionNumbers } },
-              { rollNumber: { $in: pinNumbers } }
-            ],
-            hostelStatus: 'Active'
-          };
-          const hostelUsers = await collection.find(query).toArray();
-          hostelUsers.forEach(user => {
-            if (user.admissionNumber) set.add(user.admissionNumber);
-            if (user.rollNumber) set.add(user.rollNumber);
-          });
+          const maxLen = Math.max(admissionNumbers.length, pinNumbers.length);
+          for (let i = 0; i < maxLen; i += 500) {
+            const adChunk = admissionNumbers.slice(i, i + 500);
+            const pinChunk = pinNumbers.slice(i, i + 500);
+            const orConditions = [];
+            if (adChunk.length > 0) orConditions.push({ admissionNumber: { $in: adChunk } });
+            if (pinChunk.length > 0) orConditions.push({ rollNumber: { $in: pinChunk } });
+            if (orConditions.length > 0) {
+              const hostelUsers = await collection.find({
+                $or: orConditions,
+                hostelStatus: 'Active'
+              }).toArray();
+              hostelUsers.forEach(user => {
+                if (user.admissionNumber) set.add(user.admissionNumber);
+                if (user.rollNumber) set.add(user.rollNumber);
+              });
+            }
+          }
         }
       } catch (err) {
         console.error('Error fetching hostel users:', err);
@@ -6454,6 +6463,10 @@ exports.getQuickFilterOptions = async (req, res) => {
     if (semester) {
       whereClause += ' AND current_semester = ?';
       params.push(parseInt(semester, 10));
+    }
+    if (req.query.student_status) {
+      whereClause += ' AND student_status = ?';
+      params.push(req.query.student_status);
     }
 
     // Fetch distinct values for each filter (only colleges that exist in colleges table, to exclude orphan names)

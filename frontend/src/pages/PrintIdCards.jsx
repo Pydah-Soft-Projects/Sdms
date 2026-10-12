@@ -10,6 +10,7 @@ import {
   X,
   Users,
   Lock,
+  CheckSquare,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../config/api';
@@ -30,6 +31,7 @@ const emptyFilters = {
   batch: '',
   year: '',
   section: '',
+  student_status: 'Regular', // Always filter to Regular students only
 };
 
 /** Quick-filter API returns strings or { id, name } — never render raw objects. */
@@ -65,7 +67,13 @@ const PrintIdCards = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(25);
+  const [pageSize, setPageSize] = useState(25);
+
+  const handlePageSizeChange = (val) => {
+    const nextVal = val === 'all' ? 'all' : Number(val);
+    setPageSize(nextVal);
+    setPage(1);
+  };
   const [colleges, setColleges] = useState([]);
   const [quickFilters, setQuickFilters] = useState({
     levels: [],
@@ -134,6 +142,7 @@ const PrintIdCards = () => {
     setLoadingFilters(true);
     try {
       const params = new URLSearchParams();
+      params.append('student_status', 'Regular');
       Object.entries(current).forEach(([k, v]) => {
         if (v) params.append(k, v);
       });
@@ -172,10 +181,11 @@ const PrintIdCards = () => {
   ]);
 
   const activeFilters = useMemo(() => {
-    const f = {};
+    const f = { student_status: 'Regular' };
     Object.entries(filters).forEach(([k, v]) => {
       if (v) f[k] = v;
     });
+    f.student_status = 'Regular'; // ID cards are strictly for Regular active students
     return f;
   }, [filters]);
 
@@ -189,7 +199,10 @@ const PrintIdCards = () => {
 
   const students = data?.students || [];
   const total = data?.pagination?.total || 0;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const totalPages =
+    pageSize === 'all'
+      ? 1
+      : Math.max(1, Math.ceil(total / (Number(pageSize) || 25)));
 
   const selectedStudents = useMemo(
     () => Object.values(selectedMap),
@@ -326,9 +339,87 @@ const PrintIdCards = () => {
     });
   };
 
+  const pageSelectedCount = useMemo(() => {
+    return students.filter((s) => Boolean(selectedMap[studentKey(s)])).length;
+  }, [students, selectedMap]);
+
   const pageAllSelected =
-    students.length > 0 &&
-    students.every((s) => Boolean(selectedMap[studentKey(s)]));
+    students.length > 0 && pageSelectedCount === students.length;
+
+  const pageSomeSelected =
+    pageSelectedCount > 0 && pageSelectedCount < students.length;
+
+  const [loadingAllSelection, setLoadingAllSelection] = useState(false);
+
+  const allFilteredSelected =
+    total > 0 && selectedCount >= total;
+
+  const toggleSelectAllFiltered = async () => {
+    if (allFilteredSelected) {
+      clearSelection();
+      toast.success('Deselected all students');
+      return;
+    }
+
+    // If students on screen already cover the entire filtered dataset
+    if (students.length >= total && students.length > 0) {
+      setSelectedMap((prev) => {
+        const next = { ...prev };
+        students.forEach((s) => {
+          const key = studentKey(s);
+          if (key) next[key] = s;
+        });
+        return next;
+      });
+      if (students[0]) {
+        setPreviewKey(studentKey(students[0]));
+        setShowPreview(true);
+      }
+      toast.success(`Selected all ${students.length} regular students`);
+      return;
+    }
+
+    // Fetch all matching regular students across pages
+    setLoadingAllSelection(true);
+    try {
+      const queryParams = new URLSearchParams();
+      Object.entries(activeFilters).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') {
+          if (k.startsWith('filter_')) queryParams.append(k, v);
+          else queryParams.append(`filter_${k}`, v);
+        }
+      });
+      if (debouncedSearch && debouncedSearch.trim()) {
+        queryParams.append('search', debouncedSearch.trim());
+      }
+      queryParams.append('limit', 'all');
+
+      const response = await api.get(`/students?${queryParams.toString()}`);
+      const fetched = response.data?.data || [];
+      if (fetched.length === 0) {
+        toast.error('No matching regular students found');
+        return;
+      }
+      setSelectedMap((prev) => {
+        const next = { ...prev };
+        fetched.forEach((s) => {
+          const key = studentKey(s);
+          if (key) next[key] = s;
+        });
+        return next;
+      });
+      if (fetched[0]) {
+        setPreviewKey(studentKey(fetched[0]));
+        setShowPreview(true);
+      }
+      toast.success(`Selected all ${fetched.length} regular students for print`);
+    } catch (err) {
+      console.error('Failed to select all students:', err);
+      toast.error('Failed to fetch all students for selection');
+    } finally {
+      setLoadingAllSelection(false);
+    }
+  };
 
   const toggleSelectAllPage = () => {
     if (pageAllSelected) {
@@ -564,33 +655,97 @@ const PrintIdCards = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 flex-1 min-h-0 xl:items-stretch">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 flex-1 min-h-0 xl:items-start">
         {/* Student list */}
         <div className="xl:col-span-7 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[55vh] xl:min-h-[calc(100vh-14rem)]">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-2 flex-wrap shrink-0">
-            <div className="flex items-center gap-2">
+          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap shrink-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <Users size={16} className="text-gray-500" />
               <span className="text-sm font-bold text-gray-900">Students</span>
-              <span className="text-xs text-gray-400 font-semibold">{total} found</span>
+              <span className="text-xs text-gray-400 font-semibold">({total} Regular)</span>
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">
+                Regular Only
+              </span>
               {selectedCount > 0 && (
                 <span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-lg">
-                  {selectedCount} selected
+                  {selectedCount} selected for print
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Select All Matching Regular Students (across pages) */}
+              {total > 0 && (
+                <button
+                  type="button"
+                  disabled={loadingAllSelection}
+                  onClick={toggleSelectAllFiltered}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all inline-flex items-center gap-1.5 ${
+                    allFilteredSelected
+                      ? 'bg-red-700 text-white border-red-700 hover:bg-red-800 shadow-sm'
+                      : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                  }`}
+                  title={allFilteredSelected ? 'Deselect all regular students' : `Select all ${total} regular students`}
+                >
+                  {loadingAllSelection ? (
+                    <Loader2 size={13} className="animate-spin" />
+                  ) : allFilteredSelected ? (
+                    <CheckSquare size={13} />
+                  ) : (
+                    <Users size={13} />
+                  )}
+                  <span>
+                    {loadingAllSelection
+                      ? 'Selecting all…'
+                      : allFilteredSelected
+                      ? `Deselect All (${total})`
+                      : `Select All (${total})`}
+                  </span>
+                </button>
+              )}
+
+              {/* Select / Deselect Visible Page */}
+              {students.length > 0 && total > students.length && (
+                <button
+                  type="button"
+                  onClick={toggleSelectAllPage}
+                  className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border transition-all ${
+                    pageAllSelected
+                      ? 'bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200'
+                      : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                  }`}
+                  title={pageAllSelected ? 'Deselect all rows on this page' : `Select all ${students.length} rows on this page`}
+                >
+                  {pageAllSelected
+                    ? `Deselect Page (${students.length})`
+                    : `Select Page (${students.length})`}
+                </button>
+              )}
+
               {selectedCount > 0 && (
                 <button
                   type="button"
                   onClick={clearSelection}
-                  className="text-[11px] font-bold text-gray-500 hover:text-gray-800"
+                  className="text-xs font-bold text-gray-500 hover:text-gray-800 px-2 py-1"
                 >
-                  Clear selection
+                  Clear all
                 </button>
               )}
-              <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400">
-                Checklist multi-select
-              </span>
+              <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-xs">
+                <span className="text-gray-500 font-semibold text-[11px]">Rows:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => handlePageSizeChange(e.target.value)}
+                  className="bg-transparent font-bold text-gray-800 focus:outline-none cursor-pointer"
+                  aria-label="Select number of rows per page"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={200}>200</option>
+                  <option value="all">All ({total})</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -611,10 +766,13 @@ const PrintIdCards = () => {
                       <input
                         type="checkbox"
                         checked={pageAllSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = pageSomeSelected;
+                        }}
                         onChange={toggleSelectAllPage}
-                        className="h-4 w-4 rounded border-gray-300 text-red-700 focus:ring-red-500"
-                        title="Select all on this page"
-                        aria-label="Select all on this page"
+                        className="h-4 w-4 rounded border-gray-300 text-red-700 focus:ring-red-500 cursor-pointer"
+                        title={pageAllSelected ? 'Deselect all on this page' : `Select all ${students.length} on this page`}
+                        aria-label={`Select all ${students.length} on this page`}
                       />
                     </th>
                     <th className="px-3 py-2.5 font-bold">Student</th>
@@ -684,35 +842,60 @@ const PrintIdCards = () => {
             )}
           </div>
 
-          {totalPages > 1 && (
-            <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 shrink-0">
-              <span>
-                Page {page} of {totalPages}
+          <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 flex-wrap gap-2 shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 font-medium">Rows per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => handlePageSizeChange(e.target.value)}
+                className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500/30 cursor-pointer"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={200}>200</option>
+                <option value="all">All ({total})</option>
+              </select>
+              <span className="text-gray-500 font-semibold ml-2">
+                {total === 0
+                  ? '0 regular students'
+                  : pageSize === 'all'
+                  ? `Showing all ${total} regular students`
+                  : `Showing ${Math.min((page - 1) * Number(pageSize) + 1, total)}–${Math.min(page * Number(pageSize), total)} of ${total} regular students`}
               </span>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 font-semibold disabled:opacity-40"
-                >
-                  Prev
-                </button>
-                <button
-                  type="button"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 font-semibold disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
             </div>
-          )}
+
+            {pageSize !== 'all' && totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <span>
+                  Page {page} of {totalPages}
+                </span>
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    disabled={page <= 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="px-2.5 py-1 rounded-lg border border-gray-200 font-semibold hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    type="button"
+                    disabled={page >= totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className="px-2.5 py-1 rounded-lg border border-gray-200 font-semibold hover:bg-gray-50 disabled:opacity-40"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Preview + print */}
-        <div className="xl:col-span-5 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 flex flex-col gap-4 min-h-[55vh] xl:min-h-[calc(100vh-14rem)]">
+        <div className="xl:col-span-5 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 flex flex-col gap-4 xl:sticky xl:top-4 xl:self-start xl:max-h-[calc(100vh-2rem)] overflow-hidden">
           <div className="flex items-center justify-between gap-2 shrink-0">
             <div>
               <h2 className="text-sm font-bold text-gray-900">Card preview</h2>
@@ -739,23 +922,82 @@ const PrintIdCards = () => {
               <p className="text-xs text-gray-400">Use the checklist to select one or many, then print</p>
             </div>
           ) : !showPreview ? (
-            <div className="flex-1 min-h-[280px] rounded-2xl border border-dashed border-red-100 bg-red-50/40 flex flex-col items-center justify-center text-center px-6 gap-3">
-              <p className="text-sm font-bold text-gray-800">
-                {previewStudent.student_name || previewStudent.name}
-              </p>
-              <p className="text-xs text-gray-500 font-mono">
-                {previewStudent.pin_no || previewStudent.admission_number}
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowPreview(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-700 text-white text-sm font-bold hover:bg-red-800"
-              >
-                <Eye size={16} /> Preview ID Card
-              </button>
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
+              <div className="rounded-2xl border border-dashed border-red-100 bg-red-50/40 flex flex-col items-center justify-center text-center p-6 gap-3">
+                <p className="text-sm font-bold text-gray-800">
+                  {previewStudent.student_name || previewStudent.name}
+                </p>
+                <p className="text-xs text-gray-500 font-mono">
+                  {previewStudent.pin_no || previewStudent.admission_number}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(true)}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-700 text-white text-sm font-bold hover:bg-red-800"
+                >
+                  <Eye size={16} /> Preview ID Card
+                </button>
+              </div>
+
+              {/* Print controls attached directly below */}
+              <div className="space-y-3 pt-1">
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-2.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-800">Back Side Flip Edge</span>
+                    <span className="text-[10px] text-gray-500 font-semibold">
+                      {backOrientation === 'straight' ? 'Straight (Upright)' : 'Rotate 180° (Flipped)'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOrientationChange('straight')}
+                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        backOrientation === 'straight'
+                          ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      <span>Straight (0°)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOrientationChange('rotate180')}
+                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        backOrientation === 'rotate180'
+                          ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      <span>Rotate 180°</span>
+                    </button>
+                  </div>
+
+                  <p className="text-[10px] text-gray-500 leading-normal">
+                    <strong>Straight (Default):</strong> Card back prints upright. In system print dialog (under More settings → Two-sided), choose <strong>&apos;Flip on long edge&apos;</strong>. Use <strong>Rotate 180°</strong> only if your printer flipper reverses the card.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={!selectedCount || printing}
+                  onClick={handlePrintSelected}
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                >
+                  {printing ? <Loader2 size={16} className="animate-spin" /> : <Printer size={16} />}
+                  {selectedCount > 1
+                    ? `Generate Print (${selectedCount} Students · ${selectedCount * 2} Pages · Back: ${backOrientation === 'rotate180' ? '180°' : 'Straight'})`
+                    : `Generate Print (Front + Back · Back: ${backOrientation === 'rotate180' ? '180°' : 'Straight'})`}
+                </button>
+                <p className="text-[10px] text-gray-500 text-center leading-relaxed">
+                  Print dialog lists {selectedCount || 0} × 2 CR80 pages with crisp high-contrast dark text.<br />
+                  Evolis · CR80 · Margins: None · Background graphics: On.
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto space-y-6 pr-1">
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-5 pr-1">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2">Front Side</p>
                 <div className="id-card-preview-scaler-box">
@@ -791,63 +1033,66 @@ const PrintIdCards = () => {
                   </div>
                 </div>
               </div>
+
+              {/* ── Stick right on the ID cards' bottom! ── */}
+              <div className="pt-2 space-y-3">
+                {/* Back Side Flip Orientation Selector */}
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-2.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-gray-800">Back Side Flip Edge</span>
+                    <span className="text-[10px] text-gray-500 font-semibold">
+                      {backOrientation === 'straight' ? 'Straight (Upright)' : 'Rotate 180° (Flipped)'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleOrientationChange('straight')}
+                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        backOrientation === 'straight'
+                          ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      <span>Straight (0°)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOrientationChange('rotate180')}
+                      className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                        backOrientation === 'rotate180'
+                          ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                      }`}
+                    >
+                      <span>Rotate 180°</span>
+                    </button>
+                  </div>
+
+                  <p className="text-[10px] text-gray-500 leading-normal">
+                    <strong>Straight (Default):</strong> Card back prints upright. In system print dialog (under More settings → Two-sided), choose <strong>&apos;Flip on long edge&apos;</strong>. Use <strong>Rotate 180°</strong> only if your printer flipper reverses the card.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={!selectedCount || printing}
+                  onClick={handlePrintSelected}
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                >
+                  {printing ? <Loader2 size={16} className="animate-spin" /> : <Printer size={16} />}
+                  {selectedCount > 1
+                    ? `Generate Print (${selectedCount} Students · ${selectedCount * 2} Pages · Back: ${backOrientation === 'rotate180' ? '180°' : 'Straight'})`
+                    : `Generate Print (Front + Back · Back: ${backOrientation === 'rotate180' ? '180°' : 'Straight'})`}
+                </button>
+                <p className="text-[10px] text-gray-500 text-center leading-relaxed">
+                  Print dialog lists {selectedCount || 0} × 2 CR80 pages with crisp high-contrast dark text.<br />
+                  Evolis · CR80 · Margins: None · Background graphics: On.
+                </p>
+              </div>
             </div>
           )}
-
-          {/* Back Side Flip Orientation Selector */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-2.5 shrink-0 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-gray-800">Back Side Flip Edge</span>
-              <span className="text-[10px] text-gray-500 font-semibold">
-                {backOrientation === 'straight' ? 'Straight (Upright)' : 'Rotate 180° (Flipped)'}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleOrientationChange('straight')}
-                className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                  backOrientation === 'straight'
-                    ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                <span>Straight (0°)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleOrientationChange('rotate180')}
-                className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                  backOrientation === 'rotate180'
-                    ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                }`}
-              >
-                <span>Rotate 180°</span>
-              </button>
-            </div>
-
-            <p className="text-[10px] text-gray-500 leading-normal">
-              <strong>Straight (Default):</strong> Card back prints upright. In system print dialog (under More settings → Two-sided), choose <strong>&apos;Flip on long edge&apos;</strong>. Use <strong>Rotate 180°</strong> only if your printer flipper reverses the card.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            disabled={!selectedCount || printing}
-            onClick={handlePrintSelected}
-            className="w-full shrink-0 inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-          >
-            {printing ? <Loader2 size={16} className="animate-spin" /> : <Printer size={16} />}
-            {selectedCount > 1
-              ? `Generate Print (${selectedCount} Students · ${selectedCount * 2} Pages · Back: ${backOrientation === 'rotate180' ? '180°' : 'Straight'})`
-              : `Generate Print (Front + Back · Back: ${backOrientation === 'rotate180' ? '180°' : 'Straight'})`}
-          </button>
-          <p className="text-[10px] text-gray-500 text-center leading-relaxed shrink-0">
-            Print dialog lists {selectedCount || 0} × 2 CR80 pages with crisp high-contrast dark text.<br />
-            Evolis · CR80 · Margins: None · Background graphics: On.
-          </p>
         </div>
       </div>
 

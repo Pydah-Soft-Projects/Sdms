@@ -717,7 +717,10 @@ const DigitalStudentCard = ({
 
   const collegeName = collegeDetails.name;
   const website = collegeDetails.website;
-  const collegeLogo = collegeDetails.logo;
+  const collegeLogo =
+    collegeDetails.logo && collegeDetails.logo !== '/logo.png' && !String(collegeDetails.logo).endsWith('/logo.png')
+      ? collegeDetails.logo
+      : '/Pydah_logo_whitebg.avif';
   const signatureUrl =
     principalSignatureUrl ||
     (collegeDetails.principalSignatureUrl ? resolvePhotoUrl(collegeDetails.principalSignatureUrl) : null) ||
@@ -1113,8 +1116,13 @@ const DigitalStudentCard = ({
           }}
         >
           <img
-            src={collegeLogo}
+            src={collegeLogo || '/Pydah_logo_whitebg.avif'}
             alt={collegeName}
+            onError={(e) => {
+              if (e.currentTarget.src !== '/Pydah_logo_whitebg.avif') {
+                e.currentTarget.src = '/Pydah_logo_whitebg.avif';
+              }
+            }}
             style={{
               width: '100%',
               height: '100%',

@@ -84,7 +84,16 @@ import useStudentQuotas from '../hooks/useStudentQuotas';
 import useAuthStore from '../store/authStore';
 import { BACKEND_MODULES, hasPermission as hasModulePermission, USER_ROLES, hasModuleAccess, FRONTEND_MODULES } from '../constants/rbac';
 import { formatMeritStatusDisplay, MERIT_STATUS_FILTER_OPTIONS } from '../config/studentProgramYears';
-import { certificateConfig as sharedCertificateConfig, getCourseType, getCertificatesForCourse, getCertificateValue, isCertificatePresent, getCertificateBadgeClass } from '../config/certificateConfig';
+import {
+  certificateConfig as sharedCertificateConfig,
+  getCourseType,
+  getCertificatesForCourse,
+  getCertificateValue,
+  isCertificatePresent,
+  getCertificateBadgeClass,
+  formatCertificateCell,
+  computeOverallCertificateStatus
+} from '../config/certificateConfig';
 import {
   SCHOLARSHIP_ELIGIBLE_OPTIONS,
   SCHOLARSHIP_STATUS_FILTER_OPTIONS,
@@ -2237,6 +2246,7 @@ const Students = () => {
       ...(student.previous_college && { previous_college: student.previous_college }),
       // Always include certificates_status even if null, so it can be edited
       certificates_status: student.certificates_status || null,
+      merit_status: student.merit_status || '',
       ...(student.student_photo && { student_photo: student.student_photo }),
       ...(student.remarks && { remarks: student.remarks, 'Remarks': student.remarks }),
       ...(student.admission_date && { admission_date: student.admission_date, 'Admission Date': student.admission_date }),
@@ -2337,7 +2347,8 @@ const Students = () => {
       caste: selectedStudent?.caste || linked.categoryName || '',
       Caste: selectedStudent?.caste || linked.categoryName || '',
       category_id: selectedStudent?.category_id ?? byCategoryId?.id ?? null,
-      nested_caste: linked.linked ? (linked.casteName || '') : ''
+      nested_caste: linked.linked ? (linked.casteName || '') : '',
+      merit_status: selectedStudent?.merit_status || ''
     }));
     setEditMode(true);
   };
@@ -2473,18 +2484,36 @@ const Students = () => {
         }
       );
 
-      if (Object.keys(partialStudentData).length === 0 && !shouldUpdateFeeStatus) {
+      const meritStatusChanged = canEditMeritStatus &&
+        editData.merit_status !== undefined &&
+        editData.merit_status !== (selectedStudent?.merit_status || '');
+
+      if (Object.keys(partialStudentData).length === 0 && !shouldUpdateFeeStatus && !meritStatusChanged) {
         toast.success('No changes to save');
         setSavingEdit(false);
         return;
       }
 
-      await updateStudentMutation.mutateAsync({
-        admissionNumber: selectedStudent.admission_number,
-        data: {
-          studentData: partialStudentData
+      if (Object.keys(partialStudentData).length > 0) {
+        await updateStudentMutation.mutateAsync({
+          admissionNumber: selectedStudent.admission_number,
+          data: {
+            studentData: partialStudentData
+          }
+        });
+      }
+
+      if (meritStatusChanged) {
+        try {
+          const curYear = Math.max(1, Number(synchronizedData.current_year || selectedStudent.current_year) || 1);
+          await api.put(`/student-merit-status/${encodeURIComponent(selectedStudent.admission_number)}`, {
+            years: [{ student_year: curYear, merit_status: editData.merit_status }]
+          });
+          setSelectedStudent((prev) => (prev ? { ...prev, merit_status: editData.merit_status } : prev));
+        } catch (meritErr) {
+          console.warn('Failed to update merit status:', meritErr);
         }
-      });
+      }
 
       setEditBaseline(cloneStudentFormSnapshot(synchronizedData));
 
@@ -2826,56 +2855,32 @@ const Students = () => {
     return value; // Return the specific dropdown value like "Original"
   };
 
-  // Update certificate status
+  // Update certificate status and auto-evaluate overall certificate status
   const updateCertificateStatus = (certKey, value) => {
-    const newEditData = { ...editData };
-    newEditData[certKey] = value;
+    setEditData((prev) => {
+      const newEditData = { ...prev, [certKey]: value };
 
-    // Auto-update certificates_status based on all certificates
-    const courseType = getCourseType(editData.course || selectedStudent?.course || '');
+      // Auto-update certificates_status based on all configured certificates
+      const courseLevel = getCourseType(newEditData.course || selectedStudent?.course) || 'UG';
+      const typeKey = (courseLevel || 'UG').toLowerCase();
+      const certItems = (certificateConfig && certificateConfig[typeKey]) || sharedCertificateConfig[typeKey] || [];
+      const certList = certItems.map(c => ({
+        key: c.id || c.key,
+        id: c.id || c.key,
+        name: c.name || c.label,
+        label: c.name || c.label,
+        required: c.required !== false,
+        options: c.options || []
+      }));
 
-    if (courseType) {
-      const certificates = getCertificatesForCourse(courseType);
-      const type = courseType.toLowerCase();
-
-      let allFilled = true;
-      let hasTemporary = false;
-
-      certificates.forEach(cert => {
-        const certValue = cert.key === certKey ? value : newEditData[cert.key];
-        const isPresent = certValue === true || certValue === 'Yes' || certValue === 'yes' ||
-          (typeof certValue === 'string' && certValue.trim() !== '' && certValue.toLowerCase() !== 'no' && certValue.toLowerCase() !== 'pending');
-
-        if (!isPresent) {
-          allFilled = false;
-        } else if (typeof certValue === 'string' && certValue.trim() !== '' && certValue !== 'Yes' && certValue !== 'yes') {
-          // Look up the option type from certificate config
-          const configCert = certificateConfig[type]?.find(c => c.id === cert.key);
-          if (configCert && configCert.options && configCert.options.length > 0) {
-            const matchedOption = configCert.options.find(opt => {
-              const optVal = typeof opt === 'object' ? opt.value : opt;
-              return optVal === certValue;
-            });
-            if (matchedOption && typeof matchedOption === 'object' && matchedOption.type === 'temporary') {
-              hasTemporary = true;
-            }
-          }
-        }
-      });
-
-      if (allFilled && certificates.length > 0) {
-        if (hasTemporary) {
-          newEditData.certificates_status = 'Temporary';
-          newEditData.registration_status = 'Temporary';
-        } else {
-          newEditData.certificates_status = 'Verified';
-        }
-      } else {
-        newEditData.certificates_status = 'Unverified';
+      const newCertStatus = computeOverallCertificateStatus(newEditData, certList);
+      newEditData.certificates_status = newCertStatus;
+      if (newCertStatus === 'Temporary') {
+        newEditData.registration_status = 'Temporary';
       }
-    }
 
-    setEditData(newEditData);
+      return newEditData;
+    });
   };
 
   // Calculate overall statistics
@@ -4413,6 +4418,20 @@ const Students = () => {
                   </button>
                 )}
 
+                {canViewMeritStatus && (
+                  <button
+                    onClick={() => setActiveStudentTab('merit_status')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                      activeStudentTab === 'merit_status'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    <Award size={15} />
+                    <span>Merit Status</span>
+                  </button>
+                )}
+
                 <button
                   onClick={() => setActiveStudentTab('transport_hostel')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
@@ -4778,7 +4797,32 @@ const Students = () => {
 
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500 font-semibold">Merit Status</span>
-                            <span className="text-gray-400 font-bold">{formatMeritStatusDisplay(selectedStudent?.merit_status)}</span>
+                            {editMode && canEditMeritStatus ? (
+                              <select
+                                value={(editData?.merit_status ?? selectedStudent?.merit_status ?? '').toLowerCase()}
+                                onChange={(e) => updateEditField('merit_status', e.target.value)}
+                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold bg-white focus:ring-1 focus:ring-blue-500 outline-none"
+                              >
+                                <option value="">Not Set</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                              </select>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => canViewMeritStatus && setActiveStudentTab('merit_status')}
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
+                                  selectedStudent?.merit_status === 'yes'
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                    : selectedStudent?.merit_status === 'no'
+                                      ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                                } ${canViewMeritStatus ? 'cursor-pointer' : 'cursor-default'}`}
+                                title={canViewMeritStatus ? 'Click to view yearly merit details' : undefined}
+                              >
+                                {formatMeritStatusDisplay(selectedStudent?.merit_status)}
+                              </button>
+                            )}
                           </div>
 
                           <div className="flex justify-between items-center">
@@ -5100,11 +5144,17 @@ const Students = () => {
                                 <option value="Originals Returned">Originals Returned</option>
                                 <option value="Not Required">Not Required</option>
                               </select>
-                            ) : (
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black border ${getCertificateBadgeClass(editData.certificates_status || selectedStudent?.certificates_status)}`}>
-                                {editData.certificates_status || selectedStudent?.certificates_status || 'Pending'}
-                              </span>
-                            )}
+                            ) : (() => {
+                              const courseLevel = getCourseType(selectedStudent?.course || selectedStudent?.student_data?.course) || 'UG';
+                              const typeKey = (courseLevel || 'UG').toLowerCase();
+                              const certItems = (certificateConfig && certificateConfig[typeKey]) || sharedCertificateConfig[typeKey] || [];
+                              const statusToShow = editData.certificates_status || computeOverallCertificateStatus(selectedStudent, certItems);
+                              return (
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black border ${getCertificateBadgeClass(statusToShow)}`}>
+                                  {statusToShow}
+                                </span>
+                              );
+                            })()}
                           </div>
 
                           <div className="flex justify-between items-center">
@@ -5177,8 +5227,17 @@ const Students = () => {
 
                         <div className="space-y-2 text-[11px]">
                           {(() => {
-                            const courseLvl = getCourseType(selectedStudent?.course || selectedStudent?.student_data?.course) || 'UG';
-                            const certList = getCertificatesForCourse(courseLvl);
+                            const courseLvl = getCourseType((editMode ? editData?.course : null) || selectedStudent?.course || selectedStudent?.student_data?.course) || 'UG';
+                            const typeKey = (courseLvl || 'UG').toLowerCase();
+                            const certItems = (certificateConfig && certificateConfig[typeKey]) || sharedCertificateConfig[typeKey] || [];
+                            const certList = certItems.map(c => ({
+                              key: c.id || c.key,
+                              id: c.id || c.key,
+                              label: c.name || c.label,
+                              name: c.name || c.label,
+                              required: c.required !== false,
+                              options: c.options || []
+                            }));
 
                             if (!certList || certList.length === 0) {
                               return (
@@ -5189,56 +5248,55 @@ const Students = () => {
                             }
 
                             return certList.map((cert) => {
-                              const rawVal = getCertificateValue(editMode ? editData : selectedStudent, cert);
-                              const isSubmitted = isCertificatePresent(rawVal);
+                              const rawVal = editData[cert.key] !== undefined
+                                ? editData[cert.key]
+                                : getCertificateValue(editMode ? editData : selectedStudent, cert);
+                              const cellInfo = formatCertificateCell(rawVal);
+                              const currentCertVal = cellInfo.text;
 
-                              let selectedCertVal = editData[cert.key] !== undefined ? editData[cert.key] : rawVal;
+                              // Extract configured options from Settings
+                              const configuredOptions = (cert.options || [])
+                                .map(opt => (typeof opt === 'object' ? opt.value : opt))
+                                .map(opt => typeof opt === 'string' ? opt.split(/[\u0001\x01]/)[0].trim() : opt)
+                                .filter(Boolean);
 
-                              // Normalize value to standard options
-                              let currentCertVal = 'No';
-                              if (selectedCertVal === true || selectedCertVal === 'true' || selectedCertVal === 'yes' || selectedCertVal === 'Yes' || selectedCertVal === 'Submitted' || selectedCertVal === 'Verified') {
-                                currentCertVal = 'Yes';
-                              } else if (typeof selectedCertVal === 'string' && selectedCertVal.toLowerCase() === 'original') {
-                                currentCertVal = 'Original';
-                              } else if (typeof selectedCertVal === 'string' && selectedCertVal.toLowerCase() === 'temporary') {
-                                currentCertVal = 'Temporary';
-                              } else if (selectedCertVal === false || selectedCertVal === 'false' || selectedCertVal === 'no' || selectedCertVal === 'No' || selectedCertVal === 'Pending') {
-                                currentCertVal = 'No';
-                              } else if (selectedCertVal) {
-                                currentCertVal = String(selectedCertVal);
-                              } else if (isSubmitted) {
-                                currentCertVal = 'Yes';
-                              }
+                              const baseOptions = configuredOptions.length > 0
+                                ? ['No', ...configuredOptions]
+                                : ['No', 'Yes'];
 
-                              const standardOptions = ['Yes', 'No', 'Original', 'Temporary'];
-                              const showExtraOption = !standardOptions.includes(currentCertVal);
+                              const selectOptions = Array.from(new Set(
+                                currentCertVal && !baseOptions.includes(currentCertVal)
+                                  ? [...baseOptions, currentCertVal]
+                                  : baseOptions
+                              ));
 
                               return (
                                 <div
                                   key={cert.key}
                                   className="flex items-center justify-between gap-1 py-1 border-b border-gray-100 last:border-0"
                                 >
-                                  <span className="font-semibold text-gray-700 truncate max-w-[120px]" title={cert.label}>
-                                    {cert.label}
-                                  </span>
+                                  <div className="flex items-center gap-1 min-w-0">
+                                    <span className="font-semibold text-gray-700 truncate max-w-[140px]" title={cert.label}>
+                                      {cert.label}
+                                    </span>
+                                    {cert.required && (
+                                      <span className="text-[9px] text-red-500 font-bold" title="Required">*</span>
+                                    )}
+                                  </div>
 
                                   {editMode ? (
                                     <select
                                       value={currentCertVal}
-                                      onChange={(e) => updateEditField(cert.key, e.target.value)}
+                                      onChange={(e) => updateCertificateStatus(cert.key, e.target.value)}
                                       className="text-[10px] font-bold border border-gray-300 rounded px-1.5 py-0.5 bg-white focus:ring-1 focus:ring-emerald-500 outline-none shrink-0"
                                     >
-                                      <option value="Yes">Yes</option>
-                                      <option value="No">No</option>
-                                      <option value="Original">Original</option>
-                                      <option value="Temporary">Temporary</option>
-                                      {showExtraOption && (
-                                        <option value={currentCertVal}>{currentCertVal}</option>
-                                      )}
+                                      {selectOptions.map((opt) => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                      ))}
                                     </select>
                                   ) : (
                                     <span
-                                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 border ${getCertificateBadgeClass(currentCertVal)}`}
+                                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 border ${cellInfo.badgeClass}`}
                                     >
                                       {currentCertVal}
                                     </span>

@@ -281,8 +281,17 @@ exports.saveMeritStatus = async (req, res) => {
       /* ignore cache clear failures */
     }
 
+    // Resync student merit status and documents to admissions portal
+    try {
+      const { syncStudentToAdmissions } = require('../services/admissionsSyncService');
+      await syncStudentToAdmissions(admissionNumber);
+    } catch (syncErr) {
+      console.warn(`[AdmissionsSync] Failed to sync merit status to admissions DB for ${admissionNumber}:`, syncErr.message);
+    }
+
     const data = await buildMeritStatusPayload(student);
     res.json({ success: true, data, message: 'Merit status saved successfully' });
+
   } catch (error) {
     await connection.rollback();
     console.error('Save merit status error:', error);

@@ -999,12 +999,16 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
                         {(() => {
                           const configuredOptions = (cert.options || [])
                             .map(opt => (typeof opt === 'object' ? opt.value : opt))
+                            .map(opt => typeof opt === 'string' ? opt.split(/[\u0001\x01]/)[0].trim() : opt)
                             .filter(Boolean);
-                          const baseOptions = ['Pending', 'Submitted', 'Original', 'Memo', ...configuredOptions, 'Verified', 'Original Returned', 'Not Required'];
-                          if (val && !baseOptions.includes(val)) {
-                            baseOptions.push(val);
-                          }
-                          const uniqueOptions = Array.from(new Set(baseOptions));
+                          const baseOptions = configuredOptions.length > 0
+                            ? ['No', ...configuredOptions]
+                            : ['No', 'Yes'];
+                          const uniqueOptions = Array.from(new Set(
+                            val && !baseOptions.includes(val)
+                              ? [...baseOptions, val]
+                              : baseOptions
+                          ));
 
                           return (
                             <select

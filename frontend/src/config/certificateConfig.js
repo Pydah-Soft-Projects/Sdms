@@ -93,6 +93,55 @@ const CERT_ALIASES = {
   'inter_diploma_original': ['inter_diploma_original', 'custom_1771672108925', 'inter_original']
 };
 
+export const normalizeCertificateValue = (rawVal) => {
+  if (rawVal === null || rawVal === undefined) return null;
+  if (typeof rawVal === 'boolean') return rawVal ? 'Yes' : 'No';
+  if (typeof rawVal === 'number') return rawVal > 0 ? 'Yes' : 'No';
+
+  let str = '';
+  if (typeof rawVal === 'object') {
+    const status = String(rawVal.status || '').trim().toLowerCase();
+    if (status === 'pending') return 'No';
+    if (rawVal.option) {
+      str = String(rawVal.option);
+    } else if (rawVal.value) {
+      str = String(rawVal.value);
+    } else if (rawVal.status) {
+      str = String(rawVal.status);
+    } else {
+      str = JSON.stringify(rawVal);
+    }
+  } else {
+    str = String(rawVal);
+  }
+
+  const cleaned = str.split(/[\u0001\x01]/)[0].trim();
+  const lower = cleaned.toLowerCase();
+
+  if (!lower || lower === 'no' || lower === 'pending' || lower === 'unverified' || lower === 'false' || lower === '0' || lower === 'none' || lower === 'n/a') {
+    return 'No';
+  }
+  if (lower === 'memo') return 'Memo';
+  if (lower === 'original') return 'Original';
+  if (lower === 'temporary') return 'Temporary';
+  if (lower === 'pc') return 'PC';
+  if (lower === 'od') return 'OD';
+  if (lower === 'originals returned' || lower === 'original returned' || lower === 'returned') return 'Original Returned';
+  if (lower === 'not required') return 'Not Required';
+  if (lower === 'yes' || lower === 'submitted' || lower === 'received' || lower === 'verified' || lower === 'true') {
+    return 'Yes';
+  }
+
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+};
+
+export const isSpecificSubmittedType = (val) => {
+  if (!val || typeof val !== 'string') return false;
+  const n = val.toLowerCase().trim();
+  const generics = ['yes', 'no', 'true', 'false', 'pending', 'unverified', 'received', 'submitted', 'verified', '0', 'none', 'n/a', ''];
+  return !generics.includes(n);
+};
+
 export const getCertificateValue = (student, certCol) => {
   if (!student) return null;
   const certKey = typeof certCol === 'object' && certCol !== null ? (certCol.key || certCol.id) : certCol;
@@ -125,10 +174,14 @@ export const getCertificateValue = (student, certCol) => {
 
   keysToTry = Array.from(new Set(keysToTry));
 
+  let genericTruthyFound = false;
+  let genericFalsyFound = false;
+
   for (const k of keysToTry) {
-    if (student[k] !== undefined && student[k] !== null) return student[k];
+    const rawCandidates = [];
+    if (student[k] !== undefined && student[k] !== null) rawCandidates.push(student[k]);
     if (student.certificates && student.certificates[k] !== undefined && student.certificates[k] !== null) {
-      return student.certificates[k];
+      rawCandidates.push(student.certificates[k]);
     }
 
     const sd = student.student_data;
@@ -143,31 +196,43 @@ export const getCertificateValue = (student, certCol) => {
       }
 
       if (parsedSd && typeof parsedSd === 'object') {
-        if (parsedSd[k] !== undefined && parsedSd[k] !== null) return parsedSd[k];
+        if (parsedSd[k] !== undefined && parsedSd[k] !== null) rawCandidates.push(parsedSd[k]);
         if (parsedSd.certificates && parsedSd.certificates[k] !== undefined && parsedSd.certificates[k] !== null) {
-          return parsedSd.certificates[k];
+          rawCandidates.push(parsedSd.certificates[k]);
         }
 
         const checklist = parsedSd.registrationFormData?.certificate_checklist;
         if (checklist && checklist[k] !== undefined && checklist[k] !== null) {
-          const item = checklist[k];
-          if (typeof item === 'object' && item !== null) {
-            return item.status || item.option || item;
-          }
-          return item;
+          rawCandidates.push(checklist[k]);
         }
 
         if (parsedSd.registrationFormData && parsedSd.registrationFormData[k] !== undefined && parsedSd.registrationFormData[k] !== null) {
-          return parsedSd.registrationFormData[k];
+          rawCandidates.push(parsedSd.registrationFormData[k]);
         }
 
         if (parsedSd.documents && parsedSd.documents[k] !== undefined && parsedSd.documents[k] !== null) {
-          return parsedSd.documents[k];
+          rawCandidates.push(parsedSd.documents[k]);
+        }
+      }
+    }
+
+    for (const raw of rawCandidates) {
+      const normalized = normalizeCertificateValue(raw);
+      if (normalized) {
+        if (isSpecificSubmittedType(normalized)) {
+          return normalized;
+        }
+        if (normalized === 'Yes') {
+          genericTruthyFound = true;
+        } else if (normalized === 'No') {
+          genericFalsyFound = true;
         }
       }
     }
   }
 
+  if (genericTruthyFound) return 'Yes';
+  if (genericFalsyFound) return 'No';
   return null;
 };
 
@@ -183,16 +248,113 @@ export const isCertificatePresent = (val) => {
   return true;
 };
 
+export const formatCertificateCell = (val) => {
+  if (val === null || val === undefined || val === '') {
+    return { text: 'No', badgeClass: 'bg-red-100 text-red-600 border-red-200' };
+  }
+  if (val === false) {
+    return { text: 'No', badgeClass: 'bg-red-100 text-red-600 border-red-200' };
+  }
+  if (val === true) {
+    return { text: 'Yes', badgeClass: 'bg-green-100 text-green-700 border-green-200' };
+  }
+
+  const rawStr = typeof val === 'object' ? (val.option || val.value || val.status || JSON.stringify(val)) : String(val);
+  const cleaned = rawStr.split(/[\u0001\x01]/)[0].trim();
+  const norm = cleaned.toLowerCase();
+
+  if (!norm || norm === 'no' || norm === 'pending' || norm === 'unverified' || norm === 'false' || norm === '0' || norm === 'none' || norm === 'n/a') {
+    return { text: 'No', badgeClass: 'bg-red-100 text-red-600 border-red-200' };
+  }
+  if (norm === 'yes' || norm === 'submitted' || norm === 'received' || norm === 'verified' || norm === 'true') {
+    return { text: 'Yes', badgeClass: 'bg-green-100 text-green-700 border-green-200' };
+  }
+  if (norm === 'memo') {
+    return { text: 'Memo', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300' };
+  }
+  if (norm === 'original') {
+    return { text: 'Original', badgeClass: 'bg-teal-100 text-teal-800 border-teal-300' };
+  }
+  if (norm === 'temporary') {
+    return { text: 'Temporary', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300' };
+  }
+  if (norm === 'pc') {
+    return { text: 'PC', badgeClass: 'bg-sky-100 text-sky-800 border-sky-300' };
+  }
+  if (norm === 'od') {
+    return { text: 'OD', badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-300' };
+  }
+  if (norm === 'original returned' || norm === 'originals returned' || norm === 'returned') {
+    return { text: 'Original Returned', badgeClass: 'bg-purple-100 text-purple-800 border-purple-200' };
+  }
+  if (norm === 'not required') {
+    return { text: 'Not Required', badgeClass: 'bg-gray-100 text-gray-700 border-gray-200' };
+  }
+
+  const displayText = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  return { text: displayText, badgeClass: 'bg-blue-100 text-blue-800 border-blue-200' };
+};
+
 export const getCertificateBadgeClass = (status) => {
   const norm = String(status || '').trim().toLowerCase();
   if (norm === 'verified') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
   if (norm === 'original') return 'bg-teal-100 text-teal-800 border-teal-200';
-  if (norm === 'temporary') return 'bg-amber-100 text-amber-800 border-amber-200';
+  if (norm === 'temporary' || norm === 'memo') return 'bg-amber-100 text-amber-800 border-amber-200';
+  if (norm === 'pc') return 'bg-sky-100 text-sky-800 border-sky-200';
+  if (norm === 'od') return 'bg-indigo-100 text-indigo-800 border-indigo-200';
   if (norm === 'submitted' || norm === 'yes') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
   if (norm === 'unverified') return 'bg-orange-100 text-orange-800 border-orange-200';
   if (norm === 'partial') return 'bg-purple-100 text-purple-800 border-purple-200';
   if (norm === 'originals returned' || norm === 'original returned' || norm === 'returned') return 'bg-purple-100 text-purple-800 border-purple-200';
-  if (norm === 'not required' || norm === 'n/a') return 'bg-gray-100 text-gray-700 border-gray-200';
   if (norm === 'no' || norm === 'pending') return 'bg-rose-100 text-rose-700 border-rose-200';
   return 'bg-amber-100 text-amber-800 border-amber-200';
 };
+
+export const computeOverallCertificateStatus = (student, reqCerts = []) => {
+  if (!student) return 'Pending';
+
+  const storedStatus = typeof student.certificates_status === 'object'
+    ? (student.certificates_status?.name || '')
+    : String(student.certificates_status || '');
+
+  const normStored = storedStatus.trim().toLowerCase();
+
+  // Special explicit administrative statuses preserved
+  if (normStored === 'originals returned' || normStored === 'not required' || normStored === 'original returned' || normStored === 'returned') {
+    return storedStatus;
+  }
+
+  // If no certificate requirements configured, fallback to stored status
+  if (!Array.isArray(reqCerts) || reqCerts.length === 0) {
+    return storedStatus || 'Pending';
+  }
+
+  let allSubmitted = true;
+  let hasTemporary = false;
+  let hasSubmittedAny = false;
+
+  for (const certCol of reqCerts) {
+    const val = getCertificateValue(student, certCol);
+    const cellInfo = formatCertificateCell(val);
+
+    if (cellInfo.text === 'No') {
+      allSubmitted = false;
+    } else {
+      hasSubmittedAny = true;
+      if (cellInfo.text === 'Memo' || cellInfo.text === 'Temporary') {
+        hasTemporary = true;
+      }
+    }
+  }
+
+  if (allSubmitted) {
+    return hasTemporary ? 'Temporary' : 'Verified';
+  }
+
+  if (hasSubmittedAny) {
+    return 'Not Verified';
+  }
+
+  return storedStatus || 'Pending';
+};
+

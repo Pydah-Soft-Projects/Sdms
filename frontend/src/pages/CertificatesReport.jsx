@@ -27,7 +27,15 @@ import api from '../config/api';
 import useAuthStore from '../store/authStore';
 import { BACKEND_MODULES, hasPermission, isFullAccessRole } from '../constants/rbac';
 import { useStudents } from '../hooks/useStudents';
-import { getCourseType, getCertificatesForCourse, certificateConfig as defaultCertificateConfig } from '../config/certificateConfig';
+import {
+  getCourseType,
+  getCertificatesForCourse,
+  certificateConfig as defaultCertificateConfig,
+  getCertificateValue,
+  isCertificatePresent,
+  formatCertificateCell,
+  computeOverallCertificateStatus
+} from '../config/certificateConfig';
 
 const CERTIFICATE_STATUS_OPTIONS = [
   'Verified',
@@ -39,8 +47,13 @@ const getCertificateBadgeClass = (status) => {
   const norm = String(status || '').trim().toLowerCase();
   if (norm === 'verified') return 'bg-green-100 text-green-800 border-green-200';
   if (norm === 'temporary') return 'bg-sky-100 text-sky-800 border-sky-200';
-  if (norm === 'submitted') return 'bg-blue-100 text-blue-800 border-blue-200';
+  if (norm === 'memo') return 'bg-amber-100 text-amber-800 border-amber-300';
+  if (norm === 'original') return 'bg-teal-100 text-teal-800 border-teal-300';
+  if (norm === 'pc') return 'bg-sky-100 text-sky-800 border-sky-300';
+  if (norm === 'od') return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+  if (norm === 'submitted' || norm === 'yes') return 'bg-green-100 text-green-800 border-green-200';
   if (norm === 'unverified' || norm === 'not verified') return 'bg-amber-100 text-amber-800 border-amber-200';
+  if (norm === 'no' || norm === 'pending') return 'bg-red-100 text-red-600 border-red-200';
   if (norm === 'partial') return 'bg-purple-100 text-purple-800 border-purple-200';
   if (norm === 'originals returned') return 'bg-teal-100 text-teal-800 border-teal-200';
   if (norm === 'not required') return 'bg-gray-100 text-gray-700 border-gray-200';
@@ -57,111 +70,6 @@ const getOptionLabel = (item) => {
   if (!item) return '';
   if (typeof item === 'object') return item.name || item.label || item.value || String(item.id || '');
   return String(item);
-};
-
-const CERT_ALIASES = {
-  'custom_1771671980118': ['custom_1771671980118', '10th_original', 'ssc_certificate', '10th_cert', '10th_study', 'ssc'],
-  'custom_1771672088118': ['custom_1771672088118', '10th_original', 'ssc_certificate', '10th_cert', '10th_study', 'ssc'],
-  'custom_1771672142110': ['custom_1771672142110', '10th_cert', '10th_original', 'ssc_certificate', 'ssc'],
-  'custom_1771672108925': ['custom_1771672108925', 'inter_diploma_original', 'inter_diploma_cert', 'inter_diploma_study'],
-  '10th_study': ['10th_study', 'ssc_study', 'studyCertificate'],
-  '10th_tc': ['10th_tc', 'ssc_tc', 'transferCertificate'],
-  '10th_cert': ['10th_cert', '10th_original', 'ssc_certificate', 'ssc', 'custom_1771672142110'],
-  '10th_original': ['10th_original', 'custom_1771671980118', 'custom_1771672088118', '10th_cert', 'ssc_certificate', 'ssc'],
-  'inter_diploma_study': ['inter_diploma_study', 'inter_diploma_cert', 'inter_study', 'diploma_study'],
-  'inter_diploma_tc': ['inter_diploma_tc', 'inter_tc', 'diploma_tc'],
-  'inter_diploma_cert': ['inter_diploma_cert', 'inter_diploma_study', 'inter_cert', 'inter', 'diploma_cert'],
-  'inter_diploma_original': ['inter_diploma_original', 'custom_1771672108925', 'inter_original']
-};
-
-const getCertificateValue = (student, certCol) => {
-  if (!student) return null;
-  const certKey = typeof certCol === 'object' && certCol !== null ? certCol.key : certCol;
-  const certName = (typeof certCol === 'object' && certCol !== null ? certCol.name : '') || '';
-
-  let keysToTry = [...(CERT_ALIASES[certKey] || [certKey])];
-
-  const normName = certName.toLowerCase();
-  if (normName.includes('10') || normName.includes('ssc')) {
-    if (normName.includes('original')) {
-      keysToTry.push('10th_original', 'ssc_certificate', '10th_cert', 'custom_1771671980118', 'custom_1771672088118');
-    } else if (normName.includes('tc') || normName.includes('transfer')) {
-      keysToTry.push('10th_tc', 'ssc_tc');
-    } else if (normName.includes('study')) {
-      keysToTry.push('10th_study', 'ssc_study');
-    } else {
-      keysToTry.push('10th_cert', '10th_original', 'ssc_certificate', 'custom_1771672142110');
-    }
-  } else if (normName.includes('inter') || normName.includes('diploma')) {
-    if (normName.includes('original')) {
-      keysToTry.push('inter_diploma_original', 'custom_1771672108925');
-    } else if (normName.includes('tc') || normName.includes('transfer')) {
-      keysToTry.push('inter_diploma_tc', 'inter_tc');
-    } else if (normName.includes('study')) {
-      keysToTry.push('inter_diploma_study', 'inter_study');
-    } else if (normName.includes('cert')) {
-      keysToTry.push('inter_diploma_cert', 'inter_diploma_study', 'inter_cert');
-    }
-  }
-
-  keysToTry = Array.from(new Set(keysToTry));
-
-  for (const k of keysToTry) {
-    if (student[k] !== undefined && student[k] !== null) return student[k];
-    if (student.certificates && student.certificates[k] !== undefined && student.certificates[k] !== null) {
-      return student.certificates[k];
-    }
-
-    const sd = student.student_data;
-    if (sd) {
-      let parsedSd = sd;
-      if (typeof sd === 'string') {
-        try {
-          parsedSd = JSON.parse(sd);
-        } catch (e) {
-          parsedSd = {};
-        }
-      }
-
-      if (parsedSd && typeof parsedSd === 'object') {
-        if (parsedSd[k] !== undefined && parsedSd[k] !== null) return parsedSd[k];
-        if (parsedSd.certificates && parsedSd.certificates[k] !== undefined && parsedSd.certificates[k] !== null) {
-          return parsedSd.certificates[k];
-        }
-
-        const checklist = parsedSd.registrationFormData?.certificate_checklist;
-        if (checklist && checklist[k] !== undefined && checklist[k] !== null) {
-          const item = checklist[k];
-          if (typeof item === 'object' && item !== null) {
-            return item.status || item.option || item;
-          }
-          return item;
-        }
-
-        if (parsedSd.registrationFormData && parsedSd.registrationFormData[k] !== undefined && parsedSd.registrationFormData[k] !== null) {
-          return parsedSd.registrationFormData[k];
-        }
-
-        if (parsedSd.documents && parsedSd.documents[k] !== undefined && parsedSd.documents[k] !== null) {
-          return parsedSd.documents[k];
-        }
-      }
-    }
-  }
-
-  return null;
-};
-
-const isCertificatePresent = (val) => {
-  if (val === true) return true;
-  if (val === false || val === null || val === undefined) return false;
-  if (typeof val === 'number') return val > 0;
-
-  const norm = String(val).trim().toLowerCase();
-  if (!norm || norm === 'no' || norm === 'pending' || norm === 'unverified' || norm === 'false' || norm === '0' || norm === 'none' || norm === 'n/a') {
-    return false;
-  }
-  return true;
 };
 
 const CertificatesReport = () => {
@@ -402,23 +310,20 @@ const CertificatesReport = () => {
           ? (s.student_mobile?.name || s.mobile_number?.name || '')
           : (s.student_mobile || s.mobile_number || s.mobile || s.phone || s.student_phone || '');
         const batch = typeof s.batch === 'object' ? (s.batch?.name || '') : (s.batch || '');
-        const certStatus = typeof s.certificates_status === 'object'
-          ? (s.certificates_status?.name || 'Pending')
-          : (s.certificates_status || 'Pending');
-
         const p = s.course_name || s.program || s.course || '';
         const courseLvl = getCourseType(p) || 'UG';
         const typeKey = courseLvl.toLowerCase();
         const activeConfig = settingsCertConfig || defaultCertificateConfig;
         const reqCerts = activeConfig[typeKey] || defaultCertificateConfig[typeKey] || [];
+        const certStatus = computeOverallCertificateStatus(s, reqCerts);
 
         const certValues = allCertColumns.map(certCol => {
           const isApplicable = reqCerts.some(c => (c.id || c.key) === certCol.key);
           if (!isApplicable) return 'N/A';
 
           const val = getCertificateValue(s, certCol);
-          const isYes = isCertificatePresent(val);
-          return isYes ? 'Yes' : 'No';
+          const cellInfo = formatCertificateCell(val);
+          return cellInfo.text;
         });
 
         return [
@@ -764,14 +669,11 @@ const CertificatesReport = () => {
                   const program = typeof (student.course_name || student.program || student.course) === 'object'
                     ? (student.course_name?.name || student.program?.name || student.course?.name || '—')
                     : (student.course_name || student.program || student.course || '—');
-                  const certStatus = typeof student.certificates_status === 'object'
-                    ? (student.certificates_status?.name || 'Pending')
-                    : (student.certificates_status || 'Pending');
-
                   const courseLvl = getCourseType(program) || 'UG';
                   const typeKey = courseLvl.toLowerCase();
                   const activeConfig = settingsCertConfig || defaultCertificateConfig;
                   const reqCerts = activeConfig[typeKey] || defaultCertificateConfig[typeKey] || [];
+                  const certStatus = computeOverallCertificateStatus(student, reqCerts);
 
                   return (
                     <tr key={student.id || idx} className="hover:bg-gray-50/80 transition-colors">
@@ -815,19 +717,13 @@ const CertificatesReport = () => {
                         }
 
                         const val = getCertificateValue(student, certCol);
-                        const isYes = isCertificatePresent(val);
+                        const cellInfo = formatCertificateCell(val);
 
                         return (
                           <td key={certCol.key} className="py-3.5 px-3 align-middle text-center border-r border-gray-100 last:border-r-0">
-                            {isYes ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-bold bg-green-100 text-green-700 border border-green-200">
-                                Yes
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-bold bg-red-100 text-red-600 border border-red-200">
-                                No
-                              </span>
-                            )}
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-bold border ${cellInfo.badgeClass}`}>
+                              {cellInfo.text}
+                            </span>
                           </td>
                         );
                       })}
@@ -896,11 +792,6 @@ const CertificatesReport = () => {
 
 /* --- Sub-component: Student Certificate Modal --- */
 const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdateStatus }) => {
-  const [currentCertStatus, setCurrentCertStatus] = useState(
-    typeof student?.certificates_status === 'object'
-      ? (student.certificates_status?.name || 'Pending')
-      : (student?.certificates_status || 'Pending')
-  );
   const [updating, setUpdating] = useState(false);
 
   const studentName = typeof (student?.student_name || student?.name) === 'object'
@@ -936,34 +827,47 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
       id: c.id || c.key,
       key: c.id || c.key,
       name: c.name || c.label,
-      required: c.required !== false
+      required: c.required !== false,
+      options: c.options || []
     }));
   }, [settingsCertConfig, typeKey]);
+
+  const [currentCertStatus, setCurrentCertStatus] = useState(() =>
+    computeOverallCertificateStatus(student, levelCertList)
+  );
 
   // State for individual certificate fields
   const [certFields, setCertFields] = useState(() => {
     const initial = {};
     levelCertList.forEach(cert => {
       const val = getCertificateValue(student, cert);
-      if (val === true || val === 'Submitted' || val === 'yes' || val === 'Yes') {
-        initial[cert.key] = 'Submitted';
-      } else if (val === 'Verified') {
-        initial[cert.key] = 'Verified';
-      } else if (val === 'Original Returned' || val === 'Originals Returned') {
-        initial[cert.key] = 'Original Returned';
-      } else if (val === 'Not Required') {
-        initial[cert.key] = 'Not Required';
-      } else if (isCertificatePresent(val)) {
-        initial[cert.key] = typeof val === 'string' && val ? val : 'Submitted';
-      } else {
-        initial[cert.key] = typeof val === 'string' && val ? val : 'Pending';
-      }
+      const cellInfo = formatCertificateCell(val);
+      initial[cert.key] = cellInfo.text;
     });
     return initial;
   });
 
   const handleCertFieldChange = (certKey, value) => {
-    setCertFields(prev => ({ ...prev, [certKey]: value }));
+    setCertFields(prev => {
+      const next = { ...prev, [certKey]: value };
+      let allFilled = true;
+      let hasTemp = false;
+      levelCertList.forEach(cert => {
+        const v = next[cert.key];
+        const cell = formatCertificateCell(v);
+        if (cell.text === 'No') {
+          allFilled = false;
+        } else if (cell.text === 'Memo' || cell.text === 'Temporary') {
+          hasTemp = true;
+        }
+      });
+      if (allFilled && levelCertList.length > 0) {
+        setCurrentCertStatus(hasTemp ? 'Temporary' : 'Verified');
+      } else {
+        setCurrentCertStatus('Not Verified');
+      }
+      return next;
+    });
   };
 
   const handleSaveCertStatus = async () => {
@@ -1092,17 +996,28 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <select
-                          value={val}
-                          onChange={(e) => handleCertFieldChange(cert.key, e.target.value)}
-                          className="w-full text-xs border border-gray-300 rounded p-1.5 bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none"
-                        >
-                          <option value="Pending">Pending</option>
-                          <option value="Submitted">Submitted</option>
-                          <option value="Verified">Verified</option>
-                          <option value="Original Returned">Original Returned</option>
-                          <option value="Not Required">Not Required</option>
-                        </select>
+                        {(() => {
+                          const configuredOptions = (cert.options || [])
+                            .map(opt => (typeof opt === 'object' ? opt.value : opt))
+                            .filter(Boolean);
+                          const baseOptions = ['Pending', 'Submitted', 'Original', 'Memo', ...configuredOptions, 'Verified', 'Original Returned', 'Not Required'];
+                          if (val && !baseOptions.includes(val)) {
+                            baseOptions.push(val);
+                          }
+                          const uniqueOptions = Array.from(new Set(baseOptions));
+
+                          return (
+                            <select
+                              value={val}
+                              onChange={(e) => handleCertFieldChange(cert.key, e.target.value)}
+                              className="w-full text-xs border border-gray-300 rounded p-1.5 bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none"
+                            >
+                              {uniqueOptions.map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          );
+                        })()}
                       </div>
                     </div>
                   );

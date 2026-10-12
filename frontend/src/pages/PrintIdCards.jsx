@@ -75,6 +75,7 @@ const PrintIdCards = () => {
     setPage(1);
   };
   const [colleges, setColleges] = useState([]);
+  const [coursesWithLevels, setCoursesWithLevels] = useState([]);
   const [quickFilters, setQuickFilters] = useState({
     levels: [],
     courses: [],
@@ -113,28 +114,52 @@ const PrintIdCards = () => {
 
   useEffect(() => {
     let cancelled = false;
-    const loadColleges = async () => {
+    const loadCollegesAndCourses = async () => {
+      // 1. Fetch Colleges
       try {
         const res = await api.get('/colleges');
         if (!cancelled && res.data?.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
           setColleges(res.data.data);
-          return;
+        } else {
+          const pubRes = await api.get('/colleges/public');
+          if (!cancelled && pubRes.data?.success && Array.isArray(pubRes.data.data) && pubRes.data.data.length > 0) {
+            setColleges(pubRes.data.data);
+          }
         }
       } catch (err) {
         console.warn('Failed to load /colleges, trying /colleges/public:', err);
+        try {
+          const pubRes = await api.get('/colleges/public');
+          if (!cancelled && pubRes.data?.success && Array.isArray(pubRes.data.data) && pubRes.data.data.length > 0) {
+            setColleges(pubRes.data.data);
+          }
+        } catch (pubErr) {
+          console.warn('Failed to load /colleges/public:', pubErr);
+        }
+      }
+
+      // 2. Fetch Courses with Levels & Branches
+      try {
+        const courseRes = await api.get('/courses?includeInactive=false');
+        if (!cancelled && courseRes.data?.success && Array.isArray(courseRes.data.data) && courseRes.data.data.length > 0) {
+          setCoursesWithLevels(courseRes.data.data);
+          return;
+        }
+      } catch (cErr) {
+        console.warn('Failed to load /courses, trying /courses/options:', cErr);
       }
 
       try {
-        const pubRes = await api.get('/colleges/public');
-        if (!cancelled && pubRes.data?.success && Array.isArray(pubRes.data.data) && pubRes.data.data.length > 0) {
-          setColleges(pubRes.data.data);
+        const optRes = await api.get('/courses/options');
+        if (!cancelled && optRes.data?.success && Array.isArray(optRes.data.data) && optRes.data.data.length > 0) {
+          setCoursesWithLevels(optRes.data.data);
         }
-      } catch (err) {
-        console.warn('Failed to load /colleges/public:', err);
+      } catch (optErr) {
+        console.warn('Failed to load /courses/options:', optErr);
       }
     };
 
-    loadColleges();
+    loadCollegesAndCourses();
     return () => { cancelled = true; };
   }, []);
 
@@ -143,20 +168,24 @@ const PrintIdCards = () => {
     try {
       const params = new URLSearchParams();
       params.append('student_status', 'Regular');
-      Object.entries(current).forEach(([k, v]) => {
-        if (v) params.append(k, v);
-      });
+      // Pass college, level, batch, year for cascading, but do NOT pass course
+      // so available courses are not filtered down to just the selected single course
+      if (current.college) params.append('college', current.college);
+      if (current.level) params.append('level', current.level);
+      if (current.batch) params.append('batch', current.batch);
+      if (current.year) params.append('year', current.year);
+
       const res = await api.get(`/students/quick-filters?${params.toString()}`);
       if (res.data?.success) {
         const d = res.data.data || {};
-        setQuickFilters({
-          levels: d.levels || [],
-          courses: d.courses || [],
-          branches: d.branches || [],
-          batches: d.batches || [],
-          years: d.years || [],
-          sections: d.sections || [],
-        });
+        setQuickFilters((prev) => ({
+          levels: d.levels || prev.levels || [],
+          courses: Array.isArray(d.courses) && d.courses.length > 0 ? d.courses : prev.courses,
+          branches: Array.isArray(d.branches) && d.branches.length > 0 ? d.branches : prev.branches,
+          batches: d.batches || prev.batches || [],
+          years: d.years || prev.years || [],
+          sections: d.sections || prev.sections || [],
+        }));
         if (Array.isArray(d.colleges) && d.colleges.length > 0) {
           setColleges((prev) => (prev && prev.length > 0 ? prev : d.colleges));
         }
@@ -173,12 +202,76 @@ const PrintIdCards = () => {
   }, [
     filters.college,
     filters.level,
-    filters.course,
-    filters.branch,
     filters.batch,
     filters.year,
     fetchQuickFilters,
   ]);
+
+  // Derived available courses based on selected College and Level
+  const availableCourses = useMemo(() => {
+    let list = [];
+
+    if (coursesWithLevels.length > 0) {
+      list = coursesWithLevels.map((c) => ({
+        id: c.name || c.id,
+        name: c.name,
+        level: c.level || 'ug',
+        collegeId: c.collegeId || c.college_id,
+        branches: c.branches || [],
+      }));
+    }
+
+    // Merge any unique course names from quickFilters
+    (quickFilters.courses || []).forEach((qc) => {
+      const name = typeof qc === 'string' ? qc : (qc.name || qc.id);
+      if (name && !list.some((item) => item.name?.toLowerCase() === name.toLowerCase())) {
+        list.push({ id: name, name, level: qc.level, collegeId: qc.collegeId, branches: [] });
+      }
+    });
+
+    // Filter by college if selected
+    if (filters.college) {
+      const col = colleges.find(
+        (c) =>
+          String(c.id) === String(filters.college) ||
+          c.name?.trim().toLowerCase() === String(filters.college).trim().toLowerCase() ||
+          c.code?.trim().toLowerCase() === String(filters.college).trim().toLowerCase()
+      );
+      if (col) {
+        list = list.filter((c) => !c.collegeId || c.collegeId === col.id);
+      }
+    }
+
+    // Filter by level if selected
+    if (filters.level) {
+      const lvl = filters.level.trim().toLowerCase();
+      list = list.filter((c) => !c.level || c.level.toLowerCase() === lvl);
+    }
+
+    return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  }, [coursesWithLevels, quickFilters.courses, filters.college, filters.level, colleges]);
+
+  // Derived available branches based on selected Course
+  const availableBranches = useMemo(() => {
+    if (filters.course) {
+      const courseObj = coursesWithLevels.find(
+        (c) =>
+          c.name?.toLowerCase() === filters.course.toLowerCase() ||
+          String(c.id) === String(filters.course)
+      );
+      if (courseObj && Array.isArray(courseObj.branches) && courseObj.branches.length > 0) {
+        return courseObj.branches.map((b) => ({
+          id: typeof b === 'string' ? b : (b.name || b.id),
+          name: typeof b === 'string' ? b : (b.name || b.id),
+        }));
+      }
+    }
+
+    return (quickFilters.branches || []).map((b) => ({
+      id: typeof b === 'string' ? b : (b.name || b.id),
+      name: typeof b === 'string' ? b : (b.name || b.id),
+    }));
+  }, [filters.course, coursesWithLevels, quickFilters.branches]);
 
   const activeFilters = useMemo(() => {
     const f = { student_status: 'Regular' };
@@ -572,7 +665,7 @@ const PrintIdCards = () => {
               onChange={(e) => handleFilterChange('course', e.target.value)}
             >
               <option value="">All</option>
-              {quickFilters.courses.map((v, idx) => (
+              {availableCourses.map((v, idx) => (
                 <option key={optionKey(v, idx)} value={optionValue(v)}>{optionLabel(v)}</option>
               ))}
             </select>
@@ -585,7 +678,7 @@ const PrintIdCards = () => {
               onChange={(e) => handleFilterChange('branch', e.target.value)}
             >
               <option value="">All</option>
-              {quickFilters.branches.map((v, idx) => (
+              {availableBranches.map((v, idx) => (
                 <option key={optionKey(v, idx)} value={optionValue(v)}>{optionLabel(v)}</option>
               ))}
             </select>

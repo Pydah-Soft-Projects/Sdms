@@ -6470,10 +6470,23 @@ exports.getQuickFilterOptions = async (req, res) => {
     }
 
     // Fetch distinct values for each filter (only colleges that exist in colleges table, to exclude orphan names)
-    const [collegeRows] = await masterPool.query(
-      `SELECT college AS id, college AS name FROM students ${whereClause} AND college IS NOT NULL AND college <> '' AND college COLLATE utf8mb4_unicode_ci IN (SELECT name FROM colleges WHERE is_active = 1) GROUP BY college ORDER BY college ASC`,
-      params
-    );
+    let collegeRows = [];
+    try {
+      [collegeRows] = await masterPool.query(
+        `SELECT college AS id, college AS name FROM students ${whereClause} AND college IS NOT NULL AND college <> '' AND college COLLATE utf8mb4_unicode_ci IN (SELECT name FROM colleges WHERE is_active = 1) GROUP BY college ORDER BY college ASC`,
+        params
+      );
+    } catch (colErr) {
+      try {
+        const [fallbackRows] = await masterPool.query(
+          `SELECT DISTINCT college AS id, college AS name FROM students ${whereClause} AND college IS NOT NULL AND college <> '' ORDER BY college ASC`,
+          params
+        );
+        collegeRows = fallbackRows;
+      } catch (fbErr) {
+        collegeRows = [];
+      }
+    }
 
     // For batches, if level is selected, filter batches that have students with courses of that level
     let batchRows;

@@ -454,6 +454,7 @@ const Students = () => {
   const [resettingPassword, setResettingPassword] = useState(false);
   const [completionPercentages, setCompletionPercentages] = useState({});
   const [profileCompletion, setProfileCompletion] = useState({ percentage: 0, filledCount: 0, totalCount: 0 });
+  const [profileCompletionFields, setProfileCompletionFields] = useState(null);
   const [showIdCardPreview, setShowIdCardPreview] = useState(false);
   const [idCardColleges, setIdCardColleges] = useState([]);
   const [idCardBackOrientation, setIdCardBackOrientation] = useState(() => {
@@ -1045,13 +1046,13 @@ const Students = () => {
   };
 
   /**
-   * Calculate student profile completion percentage
+   * Calculate student profile completion percentage using the registration form's required fields
    * @param {Object} student - Student object with all fields
    * @param {Object} studentData - Parsed student_data object
+   * @param {Array} formFields - Fields from the student's registration form
    * @returns {Object} { percentage, filledCount, totalCount }
    */
-  const calculateProfileCompletion = useCallback((student, studentData = {}) => {
-    // Helper to parse student_data if it's a string
+  const calculateProfileCompletion = useCallback((student, studentData = {}, formFields = []) => {
     let parsedData = studentData;
     if (typeof studentData === 'string') {
       try {
@@ -1061,105 +1062,43 @@ const Students = () => {
       }
     }
 
-    // Also check if student has student_data that needs parsing
     if (student.student_data && typeof student.student_data === 'string') {
       try {
         const parsed = JSON.parse(student.student_data || '{}');
         parsedData = { ...parsedData, ...parsed };
       } catch (e) {
-        // Ignore parse errors
+        parsedData = { ...parsedData };
       }
     } else if (student.student_data && typeof student.student_data === 'object') {
       parsedData = { ...parsedData, ...student.student_data };
     }
 
-    // Helper to check if a value is valid (not empty, null, undefined, "N/A", "-")
     const isValidValue = (value) => {
-      if (value === null || value === undefined) return false;
+      if (value === null || value === undefined || value === false) return false;
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === 'object') return Object.keys(value).length > 0;
       const str = String(value).trim().toLowerCase();
       return str !== '' && str !== 'n/a' && str !== '-' && str !== '{}' && str !== 'null' && str !== 'undefined';
     };
 
-    // Helper to get field value from student object or studentData
-    const getFieldValue = (fieldKey, altKeys = []) => {
-      // Check individual database columns first
-      if (student[fieldKey] !== undefined && student[fieldKey] !== null && student[fieldKey] !== '') {
-        return student[fieldKey];
-      }
-      // Check parsedData JSON
-      if (parsedData[fieldKey] !== undefined && parsedData[fieldKey] !== null && parsedData[fieldKey] !== '') {
-        return parsedData[fieldKey];
-      }
-      // Check alternative keys
-      for (const altKey of altKeys) {
-        if (student[altKey] !== undefined && student[altKey] !== null && student[altKey] !== '') {
-          return student[altKey];
-        }
-        if (parsedData[altKey] !== undefined && parsedData[altKey] !== null && parsedData[altKey] !== '') {
-          return parsedData[altKey];
-        }
-      }
-      return null;
-    };
-
-    // Define all fields that count towards completion
-    const profileFields = [
-      // Identity Fields
-      { key: 'student_name', label: 'Student Name', altKeys: ['Student Name', 'studentname'] },
-      { key: 'pin_no', label: 'PIN Number', altKeys: ['Pin Number', 'PIN Number', 'pin_no'] },
-      { key: 'dob', label: 'Date of Birth', altKeys: ['DOB (Date of Birth - DD-MM-YYYY)', 'DOB (Date-Month-Year) Ex: 09-Sep-2003)', 'date_of_birth'] },
-      { key: 'adhar_no', label: 'Aadhaar Number', altKeys: ['ADHAR No', 'aadhar_no', 'aadhaar_no'] },
-      { key: 'apaar_id', label: 'APAAR ID', altKeys: ['APAAR ID', 'apaar id'] },
-      { key: 'father_name', label: 'Father Name', altKeys: ['Father Name', 'fathername'] },
-      { key: 'gender', label: 'Gender', altKeys: ['M/F', 'Gender'] },
-      { key: 'category_id', label: 'Category', altKeys: ['Category'] },
-
-      // Academic Fields
-      { key: 'admission_number', label: 'Admission Number', altKeys: ['Admission Number', 'Admission No', 'admission_no'] },
-      { key: 'course', label: 'Program', altKeys: ['Program', 'Program Name'] },
-      { key: 'branch', label: 'Branch', altKeys: ['Branch', 'Branch Name'] },
-      { key: 'batch', label: 'Batch', altKeys: ['Batch'] },
-      { key: 'college', label: 'College', altKeys: ['College', 'College Name'] },
-      { key: 'stud_type', label: 'Quota', altKeys: ['StudType', 'Student Type', 'student_type'] },
-      { key: 'current_year', label: 'Current Year', altKeys: ['Current Academic Year', 'Current Year', 'Year'] },
-      { key: 'current_semester', label: 'Current Semester', altKeys: ['Current Semester', 'Semester', 'Semister'] },
-      { key: 'admission_date', label: 'Admission Date', altKeys: ['Admission Date', 'admission_date'] },
-
-      // Parent Information
-      { key: 'parent_mobile1', label: 'Parent Mobile 1', altKeys: ['Parent Mobile Number 1', 'Parent Mobile 1', 'parent_mobile_1'] },
-      { key: 'parent_mobile2', label: 'Parent Mobile 2', altKeys: ['Parent Mobile Number 2', 'Parent Mobile 2', 'parent_mobile_2'] },
-
-      // Address Fields
-      { key: 'student_address', label: 'Permanent Address', altKeys: ['Student Address (D.No, Str name, Village, Mandal, Dist)', 'Student Address', 'address'] },
-      { key: 'city_village', label: 'City/Village', altKeys: ['City/Village', 'City/Village Name', 'city_village_name'] },
-      { key: 'mandal_name', label: 'Mandal', altKeys: ['Mandal Name', 'Mandal', 'mandal'] },
-      { key: 'district', label: 'District', altKeys: ['District', 'District Name'] },
-
-      // Administrative Fields
-      { key: 'student_status', label: 'Student Status', altKeys: ['Student Status', 'studentstatus'] },
-      { key: 'scholar_status', label: 'Scholar Status', altKeys: ['Scholar Status', 'scholarstatus'] },
-      { key: 'certificates_status', label: 'Certificate Status', altKeys: ['Certificates Status', 'Certificate Status', 'certificatesstatus'] },
-      { key: 'previous_college', label: 'Previous College', altKeys: ['Previous College Name', 'Previous College', 'previouscollege'] },
-
-      // Photo
-      { key: 'student_photo', label: 'Student Photo', altKeys: ['Student Photo', 'photo', 'studentphoto'] }
-    ];
+    const requiredFields = formFields.filter(field =>
+      field?.key && field.required === true && field.isEnabled !== false
+    );
 
     let filledCount = 0;
     const missingFields = [];
-    const totalCount = profileFields.length;
+    const totalCount = requiredFields.length;
 
-    // Count filled fields
-    profileFields.forEach(field => {
-      const value = getFieldValue(field.key, field.altKeys);
+    requiredFields.forEach(field => {
+      const value = [student[field.key], parsedData[field.key], student[field.label], parsedData[field.label]]
+        .find(isValidValue);
       if (isValidValue(value)) {
         filledCount++;
       } else {
-        missingFields.push(field.label);
+        missingFields.push(field.label || field.key);
       }
     });
 
-    // Calculate percentage
     const percentage = totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0;
 
     return {
@@ -1234,16 +1173,43 @@ const Students = () => {
     }
   }, [showModal]);
 
+  useEffect(() => {
+    const admissionNumber = selectedStudent?.admission_number || selectedStudent?.admission_no;
+    if (!showModal || !admissionNumber) {
+      setProfileCompletionFields(null);
+      return undefined;
+    }
+
+    let active = true;
+    setProfileCompletionFields(null);
+    api.get(`/submissions/student/${encodeURIComponent(admissionNumber)}/completion-status`)
+      .then(response => {
+        if (active) {
+          const fields = response.data?.data?.fieldStatus;
+          setProfileCompletionFields(Array.isArray(fields) ? fields : []);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to load required registration fields for profile completion:', error);
+        if (active) {
+          setProfileCompletionFields([]);
+          toast.error('Failed to load profile completion requirements');
+        }
+      });
+
+    return () => { active = false; };
+  }, [showModal, selectedStudent?.admission_number]);
+
   // Recalculate profile completion when editData changes (in edit mode)
   useEffect(() => {
-    if (showModal && selectedStudent && editData) {
+    if (showModal && selectedStudent && editData && Array.isArray(profileCompletionFields)) {
       const parsedStudentData = typeof editData === 'string'
         ? JSON.parse(editData || '{}')
         : editData;
-      const completion = calculateProfileCompletion(selectedStudent, parsedStudentData);
+      const completion = calculateProfileCompletion(selectedStudent, parsedStudentData, profileCompletionFields);
       setProfileCompletion(completion);
     }
-  }, [editData, showModal, selectedStudent, calculateProfileCompletion]);
+  }, [editData, showModal, selectedStudent, profileCompletionFields, calculateProfileCompletion]);
 
   // Sync dialog category from category_id, nested caste_id, or students.caste text
   useEffect(() => {
@@ -2280,7 +2246,7 @@ const Students = () => {
       ? JSON.parse(stageSyncedFields || '{}')
       : stageSyncedFields;
 
-    const completion = calculateProfileCompletion(stageSyncedStudent, parsedStudentData);
+    const completion = calculateProfileCompletion(stageSyncedStudent, parsedStudentData, profileCompletionFields || []);
     setProfileCompletion(completion);
     console.log('Profile completion calculated:', completion);
 
@@ -2552,7 +2518,7 @@ const Students = () => {
       const parsedStudentData = typeof synchronizedData === 'string'
         ? JSON.parse(synchronizedData || '{}')
         : synchronizedData;
-      const updatedCompletion = calculateProfileCompletion(updatedStudent, parsedStudentData);
+      const updatedCompletion = calculateProfileCompletion(updatedStudent, parsedStudentData, profileCompletionFields || []);
       setProfileCompletion(updatedCompletion);
       console.log('Profile completion updated after save:', updatedCompletion);
 

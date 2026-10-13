@@ -66,24 +66,53 @@ async function ensureStudentInScope(connection, admissionNumber, userScope, res)
     return { allowed: true, student: rows[0] };
 }
 
-const PROFILE_REPORT_REQUIRED_FIELDS = [
-    { key: 'admission_number', label: 'Admission Number', altKeys: ['admission_no', 'Admission Number', 'Admission No'] },
-    { key: 'student_name', label: 'Student Name', altKeys: ['Student Name', 'studentname'] },
-    { key: 'father_name', label: 'Father Name', altKeys: ['Father Name', 'fathername'] },
-    { key: 'gender', label: 'Gender', altKeys: ['M/F'] },
-    { key: 'college', label: 'College', altKeys: ['College Name'] },
-    { key: 'batch', label: 'Batch', altKeys: [] },
-    { key: 'course', label: 'Program', altKeys: ['Program Name', 'Course', 'Course Name'] },
-    { key: 'branch', label: 'Branch', altKeys: ['Branch Name'] },
-    { key: 'current_year', label: 'Current Year', altKeys: ['Current Academic Year', 'Year'] },
-    { key: 'current_semester', label: 'Current Semester', altKeys: ['Semester', 'Semister'] },
-    { key: 'stud_type', label: 'Quota', altKeys: ['StudType', 'Student Type', 'student_type'] },
-    { key: 'student_status', label: 'Student Status', altKeys: ['Student Status', 'studentstatus'] },
-    { key: 'student_mobile', label: 'Student Mobile Number', altKeys: ['Student Mobile number', 'Mobile Number'] },
-    { key: 'parent_mobile1', label: 'Parent Mobile Number 1', altKeys: ['Parent Mobile 1', 'parent_mobile_1'] },
-    { key: 'dob', label: 'Date of Birth', altKeys: ['DOB (Date of Birth - DD-MM-YYYY)', 'DOB (Date-Month-Year) Ex: 09-Sep-2003)', 'date_of_birth'] },
-    { key: 'caste', label: 'Category', altKeys: ['category', 'category_name', 'category_id', 'caste_id'] }
-];
+const PROFILE_REPORT_FIELD_KEY_ALIASES = {
+    admission_number: ['admission_no', 'Admission Number', 'Admission No'],
+    student_name: ['Student Name', 'studentname'],
+    father_name: ['Father Name', 'fathername'],
+    gender: ['M/F'],
+    college: ['College Name'],
+    course: ['Program', 'Program Name', 'Course', 'Course Name'],
+    branch: ['Branch Name'],
+    current_year: ['Current Academic Year', 'Year'],
+    current_semester: ['Semester', 'Semister'],
+    stud_type: ['StudType', 'Student Type', 'student_type'],
+    student_status: ['Student Status', 'studentstatus'],
+    student_mobile: ['Student Mobile number', 'Mobile Number'],
+    parent_mobile1: ['Parent Mobile 1', 'parent_mobile_1'],
+    dob: ['DOB (Date of Birth - DD-MM-YYYY)', 'DOB (Date-Month-Year) Ex: 09-Sep-2003)', 'date_of_birth'],
+    caste: ['Category', 'category', 'category_name', 'category_id', 'caste_id']
+};
+
+const parseJsonObject = value => {
+    if (typeof value === 'string') {
+        try {
+            value = JSON.parse(value);
+        } catch {
+            return {};
+        }
+    }
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+};
+
+const isValidProfileValue = value => {
+    if (value === null || value === undefined || value === false) return false;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object') return Object.keys(value).length > 0;
+    const normalized = String(value).trim().toLowerCase();
+    return !['', 'n/a', '-', '{}', 'null', 'undefined'].includes(normalized);
+};
+
+const getProfileFieldKeys = field => {
+    const keys = [field.key, field.label].filter(Boolean);
+    const normalizedFieldKeys = new Set(keys.map(key => String(key).trim().toLowerCase()));
+    for (const [key, aliases] of Object.entries(PROFILE_REPORT_FIELD_KEY_ALIASES)) {
+        if ([key, ...aliases].some(alias => normalizedFieldKeys.has(alias.toLowerCase()))) {
+            keys.push(key, ...aliases);
+        }
+    }
+    return [...new Set(keys)];
+};
 
 async function insertPendingRequest(admissionNumber, requested_changes) {
     const [existing] = await masterPool.query(
@@ -267,8 +296,8 @@ exports.getProfileCompletionReport = async (req, res) => {
             'current_semester',
             'student_data'
         ]);
-        for (const field of PROFILE_REPORT_REQUIRED_FIELDS) {
-            for (const key of [field.key, ...(field.altKeys || [])]) {
+        for (const [fieldKey, aliases] of Object.entries(PROFILE_REPORT_FIELD_KEY_ALIASES)) {
+            for (const key of [fieldKey, ...aliases]) {
                 if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key) && availableStudentColumns.has(key)) {
                     selectedColumns.add(key);
                 }
@@ -302,41 +331,106 @@ exports.getProfileCompletionReport = async (req, res) => {
         query += ' ORDER BY s.student_name ASC, s.admission_number ASC';
 
         const [students] = await masterPool.query(query, params);
-        const reportRows = students.map(student => {
-            let studentData = student.student_data;
-            if (typeof studentData === 'string') {
-                try { studentData = JSON.parse(studentData); } catch { studentData = {}; }
+        const studentDataById = new Map();
+        const formIdByAdmission = new Map();
+        for (const student of students) {
+            const studentData = parseJsonObject(student.student_data);
+            studentDataById.set(student.id, studentData);
+            if (studentData.form_id) {
+                formIdByAdmission.set(String(student.admission_number || student.admission_no), String(studentData.form_id));
             }
-            if (!studentData || typeof studentData !== 'object') studentData = {};
-            Object.assign(studentData, student.student_data && typeof student.student_data === 'object'
-                ? student.student_data
-                : {});
+        }
+
+        const admissionsMissingFormId = [...new Set(students
+            .filter(student => !studentDataById.get(student.id).form_id)
+            .flatMap(student => [student.admission_number, student.admission_no])
+            .filter(Boolean)
+            .map(String))];
+        for (let offset = 0; offset < admissionsMissingFormId.length; offset += 500) {
+            const admissions = admissionsMissingFormId.slice(offset, offset + 500);
+            const [submissions] = await masterPool.query(
+                `SELECT admission_number, form_id FROM form_submissions
+                 WHERE admission_number IN (${admissions.map(() => '?').join(', ')})
+                 ORDER BY created_at DESC`,
+                admissions
+            );
+            for (const submission of submissions) {
+                const admission = String(submission.admission_number || '');
+                if (admission && submission.form_id && !formIdByAdmission.has(admission)) {
+                    formIdByAdmission.set(admission, String(submission.form_id));
+                }
+            }
+        }
+
+        const formIds = [...new Set(students
+            .map(student => {
+                const studentData = studentDataById.get(student.id);
+                return studentData.form_id || formIdByAdmission.get(String(student.admission_number || student.admission_no));
+            })
+            .filter(Boolean)
+            .map(String))];
+        const formFieldsById = new Map();
+        for (let offset = 0; offset < formIds.length; offset += 500) {
+            const ids = formIds.slice(offset, offset + 500);
+            const [forms] = await masterPool.query(
+                `SELECT form_id, form_fields FROM forms
+                 WHERE form_id IN (${ids.map(() => '?').join(', ')})`,
+                ids
+            );
+            for (const form of forms) {
+                let formFields = form.form_fields;
+                if (typeof formFields === 'string') {
+                    try { formFields = JSON.parse(formFields); } catch { formFields = []; }
+                }
+                formFieldsById.set(String(form.form_id), Array.isArray(formFields) ? formFields : []);
+            }
+        }
+
+        if (students.some(student => {
+            const studentData = studentDataById.get(student.id);
+            const formId = studentData.form_id || formIdByAdmission.get(String(student.admission_number || student.admission_no));
+            return !formFieldsById.has(String(formId));
+        })) {
+            const [registrationForms] = await masterPool.query(
+                `SELECT form_id, form_fields FROM forms
+                 WHERE form_category = 'registration' AND is_active = 1
+                 ORDER BY updated_at DESC
+                 LIMIT 1`
+            );
+            if (registrationForms.length > 0) {
+                let formFields = registrationForms[0].form_fields;
+                if (typeof formFields === 'string') {
+                    try { formFields = JSON.parse(formFields); } catch { formFields = []; }
+                }
+                formFieldsById.set('__active_registration_form__', Array.isArray(formFields) ? formFields : []);
+            }
+        }
+
+        const reportRows = students.map(student => {
+            const studentData = studentDataById.get(student.id);
+            const admissionNumber = String(student.admission_number || student.admission_no || '');
+            const formId = studentData.form_id || formIdByAdmission.get(admissionNumber);
+            const formFields = formFieldsById.get(String(formId)) ||
+                formFieldsById.get('__active_registration_form__') || [];
+            const requiredFields = formFields
+                .filter(field => field && typeof field.key === 'string' && field.key && field.required === true && field.isEnabled !== false);
             const completionStudent = {
                 ...student,
                 college: student.resolved_college,
                 course: student.resolved_course,
                 branch: student.resolved_branch
             };
-            const isValidValue = value => {
-                if (value === null || value === undefined) return false;
-                const normalized = String(value).trim().toLowerCase();
-                return !['', 'n/a', '-', '{}', 'null', 'undefined'].includes(normalized);
-            };
             const missingFields = [];
             let completedFields = 0;
-            for (const field of PROFILE_REPORT_REQUIRED_FIELDS) {
-                const fieldKeys = [...new Set([
-                    field.key,
-                    field.label,
-                    ...(field.altKeys || [])
-                ].filter(Boolean))];
+            for (const field of requiredFields) {
+                const fieldKeys = getProfileFieldKeys(field);
                 const value = fieldKeys
                     .flatMap(key => [completionStudent[key], studentData[key]])
-                    .find(isValidValue);
-                if (isValidValue(value)) completedFields += 1;
+                    .find(isValidProfileValue);
+                if (isValidProfileValue(value)) completedFields += 1;
                 else missingFields.push(field.label || field.key);
             }
-            const totalFields = PROFILE_REPORT_REQUIRED_FIELDS.length;
+            const totalFields = requiredFields.length;
             const completionPercentage = totalFields > 0
                 ? Math.round((completedFields / totalFields) * 100)
                 : 0;

@@ -329,46 +329,46 @@ const ProfileRequestsReport = () => {
       </section>
 
       <section className="bg-white border border-gray-200 rounded-xl p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3">
-          <label className="relative xl:col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-3">
+          <label className="relative min-w-0 xl:col-span-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input
               value={filters.search}
               onChange={event => updateFilter('search', event.target.value)}
               placeholder="Search name, admission no..."
-              className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full min-w-0 rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </label>
-          <select value={filters.status} onChange={event => updateFilter('status', event.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.status} onChange={event => updateFilter('status', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <option value="all">All Profile Statuses</option>
             <option value="pending">Pending Profile</option>
             <option value="completed">Completed Profile</option>
           </select>
-          <select value={filters.college} onChange={event => updateFilter('college', event.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.college} onChange={event => updateFilter('college', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <option value="">All Colleges</option>
             {(options.colleges || []).map(item => (
               <option key={item.id || item.name || item} value={item.id || item.name || item}>{item.name || item}</option>
             ))}
           </select>
-          <select value={filters.batch} onChange={event => updateFilter('batch', event.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.batch} onChange={event => updateFilter('batch', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <option value="">All Batches</option>
             {(options.batches || []).map(item => (
               <option key={item.id || item.name || item} value={item.id || item.name || item}>{item.name || item}</option>
             ))}
           </select>
-          <select value={filters.course} onChange={event => updateFilter('course', event.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.course} onChange={event => updateFilter('course', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <option value="">All Programs</option>
             {courses.map(course => <option key={course} value={course}>{course}</option>)}
           </select>
-          <select value={filters.branch} onChange={event => updateFilter('branch', event.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.branch} onChange={event => updateFilter('branch', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <option value="">All Branches</option>
             {branches.map(branch => <option key={branch} value={branch}>{branch}</option>)}
           </select>
-          <select value={filters.year} onChange={event => updateFilter('year', event.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.year} onChange={event => updateFilter('year', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <option value="">All Years</option>
             {(options.years || []).map(year => <option key={year} value={year}>Year {year}</option>)}
           </select>
-          <select value={filters.semester} onChange={event => updateFilter('semester', event.target.value)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.semester} onChange={event => updateFilter('semester', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
             <option value="">All Semesters</option>
             {(options.semesters || []).map(semester => <option key={semester} value={semester}>Semester {semester}</option>)}
           </select>

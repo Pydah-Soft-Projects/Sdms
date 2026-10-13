@@ -66,35 +66,23 @@ async function ensureStudentInScope(connection, admissionNumber, userScope, res)
     return { allowed: true, student: rows[0] };
 }
 
-const PROFILE_COMPLETION_FIELDS = [
+const PROFILE_REPORT_REQUIRED_FIELDS = [
+    { key: 'admission_number', label: 'Admission Number', altKeys: ['admission_no', 'Admission Number', 'Admission No'] },
     { key: 'student_name', label: 'Student Name', altKeys: ['Student Name', 'studentname'] },
-    { key: 'pin_no', label: 'PIN Number', altKeys: ['Pin Number', 'PIN Number', 'pin_no'] },
-    { key: 'dob', label: 'Date of Birth', altKeys: ['DOB (Date of Birth - DD-MM-YYYY)', 'DOB (Date-Month-Year) Ex: 09-Sep-2003)', 'date_of_birth'] },
-    { key: 'adhar_no', label: 'Aadhaar Number', altKeys: ['ADHAR No', 'aadhar_no', 'aadhaar_no'] },
-    { key: 'apaar_id', label: 'APAAR ID', altKeys: ['APAAR ID', 'apaar id'] },
     { key: 'father_name', label: 'Father Name', altKeys: ['Father Name', 'fathername'] },
-    { key: 'gender', label: 'Gender', altKeys: ['M/F', 'Gender'] },
-    { key: 'category_id', label: 'Category', altKeys: ['Category'] },
-    { key: 'admission_number', label: 'Admission Number', altKeys: ['Admission Number', 'Admission No', 'admission_no'] },
-    { key: 'course', label: 'Program', altKeys: ['Program', 'Program Name'] },
-    { key: 'branch', label: 'Branch', altKeys: ['Branch', 'Branch Name'] },
-    { key: 'batch', label: 'Batch', altKeys: ['Batch'] },
-    { key: 'college', label: 'College', altKeys: ['College', 'College Name'] },
+    { key: 'gender', label: 'Gender', altKeys: ['M/F'] },
+    { key: 'college', label: 'College', altKeys: ['College Name'] },
+    { key: 'batch', label: 'Batch', altKeys: [] },
+    { key: 'course', label: 'Program', altKeys: ['Program Name', 'Course', 'Course Name'] },
+    { key: 'branch', label: 'Branch', altKeys: ['Branch Name'] },
+    { key: 'current_year', label: 'Current Year', altKeys: ['Current Academic Year', 'Year'] },
+    { key: 'current_semester', label: 'Current Semester', altKeys: ['Semester', 'Semister'] },
     { key: 'stud_type', label: 'Quota', altKeys: ['StudType', 'Student Type', 'student_type'] },
-    { key: 'current_year', label: 'Current Year', altKeys: ['Current Academic Year', 'Current Year', 'Year'] },
-    { key: 'current_semester', label: 'Current Semester', altKeys: ['Current Semester', 'Semester', 'Semister'] },
-    { key: 'admission_date', label: 'Admission Date', altKeys: ['Admission Date', 'admission_date'] },
-    { key: 'parent_mobile1', label: 'Parent Mobile 1', altKeys: ['Parent Mobile Number 1', 'Parent Mobile 1', 'parent_mobile_1'] },
-    { key: 'parent_mobile2', label: 'Parent Mobile 2', altKeys: ['Parent Mobile Number 2', 'Parent Mobile 2', 'parent_mobile_2'] },
-    { key: 'student_address', label: 'Permanent Address', altKeys: ['Student Address (D.No, Str name, Village, Mandal, Dist)', 'Student Address', 'address'] },
-    { key: 'city_village', label: 'City/Village', altKeys: ['City/Village', 'City/Village Name', 'city_village_name'] },
-    { key: 'mandal_name', label: 'Mandal', altKeys: ['Mandal Name', 'Mandal', 'mandal'] },
-    { key: 'district', label: 'District', altKeys: ['District', 'District Name'] },
     { key: 'student_status', label: 'Student Status', altKeys: ['Student Status', 'studentstatus'] },
-    { key: 'scholar_status', label: 'Scholar Status', altKeys: ['Scholar Status', 'scholarstatus'] },
-    { key: 'certificates_status', label: 'Certificate Status', altKeys: ['Certificates Status', 'Certificate Status', 'certificatesstatus'] },
-    { key: 'previous_college', label: 'Previous College', altKeys: ['Previous College Name', 'Previous College', 'previouscollege'] },
-    { key: 'student_photo', label: 'Student Photo', altKeys: ['Student Photo', 'photo', 'studentphoto'] }
+    { key: 'student_mobile', label: 'Student Mobile Number', altKeys: ['Student Mobile number', 'Mobile Number'] },
+    { key: 'parent_mobile1', label: 'Parent Mobile Number 1', altKeys: ['Parent Mobile 1', 'parent_mobile_1'] },
+    { key: 'dob', label: 'Date of Birth', altKeys: ['DOB (Date of Birth - DD-MM-YYYY)', 'DOB (Date-Month-Year) Ex: 09-Sep-2003)', 'date_of_birth'] },
+    { key: 'caste', label: 'Category', altKeys: ['category', 'category_name', 'category_id', 'caste_id'] }
 ];
 
 async function insertPendingRequest(admissionNumber, requested_changes) {
@@ -195,7 +183,7 @@ exports.getStudentRequests = async (req, res) => {
     }
 };
 
-// Report profile completion using the same fields and value rules as the Students page.
+// Report profile completion based on required fields in each student's profile form.
 exports.getProfileCompletionReport = async (req, res) => {
     try {
         const { status, college, batch, course, branch, year, semester, search } = req.query;
@@ -279,13 +267,10 @@ exports.getProfileCompletionReport = async (req, res) => {
             'current_semester',
             'student_data'
         ]);
-        for (const field of PROFILE_COMPLETION_FIELDS) {
-            if (availableStudentColumns.has(field.key) && field.key !== 'student_photo') {
-                selectedColumns.add(field.key);
-            }
-            for (const alias of field.altKeys || []) {
-                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(alias) && availableStudentColumns.has(alias)) {
-                    selectedColumns.add(alias);
+        for (const field of PROFILE_REPORT_REQUIRED_FIELDS) {
+            for (const key of [field.key, ...(field.altKeys || [])]) {
+                if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key) && availableStudentColumns.has(key)) {
+                    selectedColumns.add(key);
                 }
             }
         }
@@ -332,21 +317,6 @@ exports.getProfileCompletionReport = async (req, res) => {
                 course: student.resolved_course,
                 branch: student.resolved_branch
             };
-            const getFieldValue = (key, altKeys) => {
-                const directValue = completionStudent[key];
-                if (directValue !== undefined && directValue !== null && directValue !== '') return directValue;
-                const jsonValue = studentData[key];
-                if (jsonValue !== undefined && jsonValue !== null && jsonValue !== '') return jsonValue;
-                for (const altKey of altKeys) {
-                    const studentValue = completionStudent[altKey];
-                    if (studentValue !== undefined && studentValue !== null && studentValue !== '') return studentValue;
-                    const alternateJsonValue = studentData[altKey];
-                    if (alternateJsonValue !== undefined && alternateJsonValue !== null && alternateJsonValue !== '') {
-                        return alternateJsonValue;
-                    }
-                }
-                return null;
-            };
             const isValidValue = value => {
                 if (value === null || value === undefined) return false;
                 const normalized = String(value).trim().toLowerCase();
@@ -354,12 +324,19 @@ exports.getProfileCompletionReport = async (req, res) => {
             };
             const missingFields = [];
             let completedFields = 0;
-            for (const field of PROFILE_COMPLETION_FIELDS) {
-                const value = getFieldValue(field.key, field.altKeys || []);
+            for (const field of PROFILE_REPORT_REQUIRED_FIELDS) {
+                const fieldKeys = [...new Set([
+                    field.key,
+                    field.label,
+                    ...(field.altKeys || [])
+                ].filter(Boolean))];
+                const value = fieldKeys
+                    .flatMap(key => [completionStudent[key], studentData[key]])
+                    .find(isValidValue);
                 if (isValidValue(value)) completedFields += 1;
-                else missingFields.push(field.label);
+                else missingFields.push(field.label || field.key);
             }
-            const totalFields = PROFILE_COMPLETION_FIELDS.length;
+            const totalFields = PROFILE_REPORT_REQUIRED_FIELDS.length;
             const completionPercentage = totalFields > 0
                 ? Math.round((completedFields / totalFields) * 100)
                 : 0;

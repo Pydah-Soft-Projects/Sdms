@@ -117,7 +117,7 @@ const Login = () => {
     setIsVerifying(true);
     setSsoError(null);
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
     try {
       const verifyRes = await fetch(`${CRM_BACKEND_URL}/auth/verify-token`, {
         method: 'POST',

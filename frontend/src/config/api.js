@@ -17,8 +17,10 @@ if (rawApiUrl) {
 export const API_URL = API_BASE_URL;
 
 // CRM SSO: backend (verify-token) and frontend (return link)
-export const CRM_BACKEND_URL = import.meta.env.VITE_CRM_BACKEND_URL || 'http://192.168.1.102:8000';
-export const CRM_FRONTEND_URL = import.meta.env.VITE_CRM_FRONTEND_URL || 'http://192.168.1.102:5174';
+const rawCrmBackendUrl = import.meta.env.VITE_CRM_BACKEND_URL || 'https://pydah-crm-backend.pydah.edu.in';
+export const CRM_BACKEND_URL = rawCrmBackendUrl.replace(/\/$/, '');
+const rawCrmFrontendUrl = import.meta.env.VITE_CRM_FRONTEND_URL || 'https://crm.pydah.edu.in';
+export const CRM_FRONTEND_URL = rawCrmFrontendUrl.replace(/\/$/, '');
 
 // Also create a base URL for static files (without /api)
 export const STATIC_BASE_URL = rawApiUrl ? rawApiUrl.replace(/\/api$/, '') : '';

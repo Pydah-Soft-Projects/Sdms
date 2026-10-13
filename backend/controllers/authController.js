@@ -510,7 +510,7 @@ exports.unifiedLogin = async (req, res) => {
 exports.login = exports.unifiedLogin;
 
 // CRM Backend URL for SSO token verification (Portal receives SSO from CRM)
-const CRM_BACKEND_URL = process.env.CRM_BACKEND_URL || 'http://localhost:8000';
+const getCrmBackendUrl = () => (process.env.CRM_BACKEND_URL || 'https://pydah-crm-backend.pydah.edu.in').trim().replace(/\/$/, '');
 
 /**
  * Create SSO session from CRM token (Portal SSO flow).
@@ -534,11 +534,12 @@ exports.createSSOSession = async (req, res) => {
 
     // 1) Optional: verify token with CRM backend
     try {
-      const verifyRes = await fetch(`${CRM_BACKEND_URL}/auth/verify-token`, {
+      const crmBackendUrl = getCrmBackendUrl();
+      const verifyRes = await fetch(`${crmBackendUrl}/auth/verify-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ encryptedToken: ssoToken }),
-        signal: AbortSignal.timeout(4000)
+        signal: AbortSignal.timeout(8000)
       });
       const text = await verifyRes.text();
       if (!text || !text.trim()) {

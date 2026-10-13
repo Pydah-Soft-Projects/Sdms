@@ -43,6 +43,28 @@ const CERTIFICATE_STATUS_OPTIONS = [
   'Temporary'
 ];
 
+const STUDENT_STATUS_OPTIONS = [
+  'Regular',
+  'Admission Cancelled',
+  'Course Completed',
+  'Detained',
+  'Discontinued',
+  'Long Absent',
+  'Re-Joined',
+  'Rejoined'
+];
+
+const getStudentStatusBadgeClass = (status) => {
+  const norm = String(status || '').trim().toLowerCase();
+  if (norm === 'regular') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+  if (norm === 'course completed') return 'bg-blue-100 text-blue-800 border-blue-200';
+  if (norm.includes('rejoined') || norm.includes('re-joined')) return 'bg-purple-100 text-purple-800 border-purple-200';
+  if (norm === 'detained') return 'bg-orange-100 text-orange-800 border-orange-200';
+  if (norm === 'discontinued' || norm === 'admission cancelled') return 'bg-red-100 text-red-800 border-red-200';
+  if (norm === 'long absent') return 'bg-amber-100 text-amber-800 border-amber-200';
+  return 'bg-gray-100 text-gray-800 border-gray-200';
+};
+
 const getCertificateBadgeClass = (status) => {
   const norm = String(status || '').trim().toLowerCase();
   if (norm === 'verified') return 'bg-green-100 text-green-800 border-green-200';
@@ -89,6 +111,7 @@ const CertificatesReport = () => {
     course: '',
     branch: '',
     section: '',
+    student_status: ['Regular'],
     certificates_status: []
   });
 
@@ -107,17 +130,31 @@ const CertificatesReport = () => {
     batches: [],
     courses: [],
     branches: [],
-    sections: ['A', 'B', 'C', 'D', 'E']
+    sections: ['A', 'B', 'C', 'D', 'E'],
+    student_statuses: STUDENT_STATUS_OPTIONS
   });
 
-  // Fetch quick filter options and Settings certificate config
+  // Fetch quick filter options, Settings certificate config, and dropdown filter options
   useEffect(() => {
     const fetchInitialOptions = async () => {
       try {
-        const [quickRes, certsRes] = await Promise.allSettled([
+        const [quickRes, certsRes, filterOptionsRes] = await Promise.allSettled([
           api.get('/students/quick-filters?applyExclusions=true'),
-          api.get('/settings/certificates')
+          api.get('/settings/certificates'),
+          api.get('/students/filter-options')
         ]);
+
+        let dynamicStatuses = STUDENT_STATUS_OPTIONS;
+        if (filterOptionsRes.status === 'fulfilled' && filterOptionsRes.value.data?.success) {
+          const apiStatuses = filterOptionsRes.value.data.data?.student_status || [];
+          if (Array.isArray(apiStatuses) && apiStatuses.length > 0) {
+            const merged = Array.from(new Set([
+              ...STUDENT_STATUS_OPTIONS,
+              ...apiStatuses.map(s => (typeof s === 'object' ? s.name || s.id || s : s)).filter(Boolean)
+            ]));
+            dynamicStatuses = merged;
+          }
+        }
 
         if (quickRes.status === 'fulfilled' && quickRes.value.data?.success) {
           const d = quickRes.value.data.data || {};
@@ -126,7 +163,13 @@ const CertificatesReport = () => {
             colleges: d.colleges || [],
             batches: d.batches || [],
             courses: d.courses || [],
-            branches: d.branches || []
+            branches: d.branches || [],
+            student_statuses: dynamicStatuses
+          }));
+        } else {
+          setFilterOptions(prev => ({
+            ...prev,
+            student_statuses: dynamicStatuses
           }));
         }
 
@@ -209,6 +252,7 @@ const CertificatesReport = () => {
       course: '',
       branch: '',
       section: '',
+      student_status: ['Regular'],
       certificates_status: []
     });
     setSearchTerm('');
@@ -264,13 +308,15 @@ const CertificatesReport = () => {
 
       const queryParams = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-          if (key === 'batch') queryParams.append('filter_batch', value);
-          else if (key === 'course') queryParams.append('filter_course', value);
-          else if (key === 'branch') queryParams.append('filter_branch', value);
-          else if (key === 'section') queryParams.append('filter_section', value);
-          else if (key.startsWith('filter_')) queryParams.append(key, value);
-          else queryParams.append(`filter_${key}`, value);
+        if (value !== undefined && value !== null && value !== '' && !(Array.isArray(value) && value.length === 0)) {
+          const formattedVal = Array.isArray(value) ? value.join(',') : value;
+          if (key === 'batch') queryParams.append('filter_batch', formattedVal);
+          else if (key === 'course') queryParams.append('filter_course', formattedVal);
+          else if (key === 'branch') queryParams.append('filter_branch', formattedVal);
+          else if (key === 'section') queryParams.append('filter_section', formattedVal);
+          else if (key === 'student_status') queryParams.append('filter_student_status', formattedVal);
+          else if (key.startsWith('filter_')) queryParams.append(key, formattedVal);
+          else queryParams.append(`filter_${key}`, formattedVal);
         }
       });
       if (searchTerm && searchTerm.trim()) {
@@ -292,6 +338,7 @@ const CertificatesReport = () => {
         'Adm No',
         'Student Mobile',
         'Batch',
+        'Student Status',
         'Overall Certificates Status',
         ...allCertColumns.map(c => `${c.name} (${c.level})`)
       ];
@@ -310,6 +357,7 @@ const CertificatesReport = () => {
           ? (s.student_mobile?.name || s.mobile_number?.name || '')
           : (s.student_mobile || s.mobile_number || s.mobile || s.phone || s.student_phone || '');
         const batch = typeof s.batch === 'object' ? (s.batch?.name || '') : (s.batch || '');
+        const studentStatus = typeof s.student_status === 'object' ? (s.student_status?.name || 'Regular') : (s.student_status || 'Regular');
         const p = s.course_name || s.program || s.course || '';
         const courseLvl = getCourseType(p) || 'UG';
         const typeKey = courseLvl.toLowerCase();
@@ -332,6 +380,7 @@ const CertificatesReport = () => {
           `"${String(admNo).replace(/"/g, '""')}"`,
           `"${String(studentMobile).replace(/"/g, '""')}"`,
           `"${String(batch).replace(/"/g, '""')}"`,
+          `"${String(studentStatus).replace(/"/g, '""')}"`,
           `"${String(certStatus).replace(/"/g, '""')}"`,
           ...certValues.map(v => `"${v}"`)
         ];
@@ -369,11 +418,11 @@ const CertificatesReport = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 w-full">
-      {/* Unified Header & Filter Card */}
-      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-5">
+    <div className="w-full space-y-5">
+      {/* Header & Filter Controls Section */}
+      <div className="space-y-4">
         {/* Top Header & Search Controls Row */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 border-b border-gray-100 pb-4">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-1">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
               <FileCheck size={24} />
@@ -439,7 +488,7 @@ const CertificatesReport = () => {
               {isExporting ? 'Exporting...' : 'Export Report'}
             </button>
 
-            {(filters.college || filters.level || filters.batch || filters.course || filters.branch || filters.section || (Array.isArray(filters.certificates_status) ? filters.certificates_status.length > 0 : !!filters.certificates_status) || searchTerm) && (
+            {(filters.college || filters.level || filters.batch || filters.course || filters.branch || filters.section || (Array.isArray(filters.student_status) ? (filters.student_status.length !== 1 || filters.student_status[0] !== 'Regular') : (filters.student_status && filters.student_status !== 'Regular')) || (Array.isArray(filters.certificates_status) ? filters.certificates_status.length > 0 : !!filters.certificates_status) || searchTerm) && (
               <button
                 onClick={handleClearFilters}
                 className="flex items-center gap-1 px-2.5 py-2 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 whitespace-nowrap"
@@ -452,7 +501,7 @@ const CertificatesReport = () => {
         </div>
 
         {/* Dropdown Filters */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {/* Level Filter */}
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">
@@ -555,6 +604,15 @@ const CertificatesReport = () => {
             </select>
           </div>
 
+          {/* Student Status Filter (Multi-Check Dropdown) */}
+          <div>
+            <MultiSelectStudentStatusDropdown
+              options={filterOptions.student_statuses || STUDENT_STATUS_OPTIONS}
+              selectedStatuses={filters.student_status}
+              onChange={(selected) => handleFilterChange('student_status', selected)}
+            />
+          </div>
+
           {/* Certificates Status Filter (Multi-Check Dropdown) */}
           <div>
             <MultiSelectStatusDropdown
@@ -617,6 +675,7 @@ const CertificatesReport = () => {
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Adm No</th>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Student Mobile</th>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Batch</th>
+                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Status</th>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Overall Status</th>
                 <th colSpan={allCertColumns.length || 1} className="py-2.5 px-4 text-center bg-blue-50/80 text-blue-900 font-bold text-xs uppercase tracking-wider border-b border-blue-200">
                   Certificate Breakdown
@@ -634,20 +693,20 @@ const CertificatesReport = () => {
             <tbody className="divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6 + (allCertColumns.length || 1)} className="text-center py-12 text-gray-500">
+                  <td colSpan={7 + (allCertColumns.length || 1)} className="text-center py-12 text-gray-500">
                     <RefreshCw className="animate-spin mx-auto mb-2 text-blue-500" size={24} />
                     Loading student certificate records...
                   </td>
                 </tr>
               ) : isError ? (
                 <tr>
-                  <td colSpan={6 + (allCertColumns.length || 1)} className="text-center py-12 text-red-500">
+                  <td colSpan={7 + (allCertColumns.length || 1)} className="text-center py-12 text-red-500">
                     Failed to fetch student data. Please select Level and click Refresh to try again.
                   </td>
                 </tr>
               ) : students.length === 0 ? (
                 <tr>
-                  <td colSpan={6 + (allCertColumns.length || 1)} className="text-center py-12 text-gray-500">
+                  <td colSpan={7 + (allCertColumns.length || 1)} className="text-center py-12 text-gray-500">
                     No student certificate records found matching the criteria.
                   </td>
                 </tr>
@@ -699,6 +758,11 @@ const CertificatesReport = () => {
                       </td>
                       <td className="py-3.5 px-4 align-middle text-xs font-medium text-gray-700 whitespace-nowrap border-r border-gray-100">
                         {batch}
+                      </td>
+                      <td className="py-3.5 px-4 align-middle whitespace-nowrap border-r border-gray-100">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${getStudentStatusBadgeClass(student.student_status || 'Regular')}`}>
+                          {student.student_status || 'Regular'}
+                        </span>
                       </td>
                       <td className="py-3.5 px-4 align-middle whitespace-nowrap border-r border-gray-100">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCertificateBadgeClass(certStatus)}`}>
@@ -1035,10 +1099,16 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
               Academic & Institution Details
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
               <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
                 <span className="text-gray-400 block mb-1">Batch</span>
                 <span className="font-semibold text-gray-800">{batch}</span>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                <span className="text-gray-400 block mb-1">Status</span>
+                <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold border ${getStudentStatusBadgeClass(student?.student_status || 'Regular')}`}>
+                  {student?.student_status || 'Regular'}
+                </span>
               </div>
               <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
                 <span className="text-gray-400 block mb-1">College</span>
@@ -1217,6 +1287,131 @@ const MultiSelectStatusDropdown = ({ selectedStatuses = [], onChange }) => {
                     <span className="text-xs font-medium text-gray-700">{st}</span>
                   </div>
                   <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded border ${getCertificateBadgeClass(st)}`}>
+                    {st}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* --- Sub-component: Multi-Select Student Status Dropdown --- */
+const MultiSelectStudentStatusDropdown = ({
+  options = STUDENT_STATUS_OPTIONS,
+  selectedStatuses = ['Regular'],
+  onChange
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = React.useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedArray = Array.isArray(selectedStatuses)
+    ? selectedStatuses
+    : (selectedStatuses ? String(selectedStatuses).split(',').filter(Boolean) : []);
+
+  const toggleOption = (opt) => {
+    let next;
+    if (selectedArray.includes(opt)) {
+      next = selectedArray.filter(item => item !== opt);
+    } else {
+      next = [...selectedArray, opt];
+    }
+    onChange(next);
+  };
+
+  const handleSelectAll = () => {
+    onChange([...options]);
+  };
+
+  const handleClearAll = () => {
+    onChange([]);
+  };
+
+  const displayText = () => {
+    if (selectedArray.length === 0 || selectedArray.length === options.length) {
+      return 'All Statuses';
+    }
+    if (selectedArray.length === 1) return selectedArray[0];
+    return `${selectedArray.length} Selected (${selectedArray.slice(0, 2).join(', ')}${selectedArray.length > 2 ? '...' : ''})`;
+  };
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <label className="block text-xs font-semibold text-gray-600 mb-1">
+        Status
+      </label>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full text-xs border rounded-lg p-2 bg-white flex justify-between items-center hover:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${selectedArray.length > 0 && selectedArray.length < options.length ? 'border-blue-500 bg-blue-50/20' : 'border-gray-300'}`}
+      >
+        <span className="truncate font-medium text-gray-700">
+          {displayText()}
+        </span>
+        <div className="flex items-center gap-1 shrink-0 ml-1">
+          {selectedArray.length > 0 && selectedArray.length < options.length && (
+            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-600 text-white rounded-full">
+              {selectedArray.length}
+            </span>
+          )}
+          <ChevronDown size={14} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 left-0 sm:left-auto sm:w-64 z-30 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2.5 space-y-2 text-xs animate-fade-in max-h-72 overflow-y-auto">
+          <div className="flex justify-between items-center border-b border-gray-100 pb-1.5 px-1">
+            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Select Status</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                Select All
+              </button>
+              <span className="text-gray-300">|</span>
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="text-[11px] font-semibold text-red-500 hover:text-red-700 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            {options.map((st) => {
+              const isChecked = selectedArray.includes(st);
+              return (
+                <label
+                  key={st}
+                  className={`flex items-center justify-between px-2 py-1.5 hover:bg-blue-50/60 rounded cursor-pointer transition-colors ${isChecked ? 'bg-blue-50/40' : ''}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => toggleOption(st)}
+                      className="w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                    />
+                    <span className="text-xs font-medium text-gray-700">{st}</span>
+                  </div>
+                  <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded border ${getStudentStatusBadgeClass(st)}`}>
                     {st}
                   </span>
                 </label>

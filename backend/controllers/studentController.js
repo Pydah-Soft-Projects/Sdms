@@ -3362,8 +3362,15 @@ exports.getAllStudents = async (req, res) => {
           query += ` AND LOWER(TRIM(s.${field})) = LOWER(?)`;
           params.push(filterValue.trim());
         } else if (exactMatchStudentFilterFields.has(field)) {
-          query += ` AND s.${field} = ?`;
-          params.push(filterValue.trim());
+          const vals = filterValue.split(',').map(v => v.trim()).filter(Boolean);
+          if (vals.length > 1) {
+            const placeholders = vals.map(() => '?').join(',');
+            query += ` AND s.${field} IN (${placeholders})`;
+            params.push(...vals);
+          } else {
+            query += ` AND s.${field} = ?`;
+            params.push(filterValue.trim());
+          }
         } else {
           query += ` AND s.${field} LIKE ?`;
           params.push(`%${filterValue.trim()}%`);
@@ -3554,8 +3561,15 @@ exports.getAllStudents = async (req, res) => {
           countQuery += ` AND LOWER(TRIM(${field})) = LOWER(?)`;
           countParams.push(filterValue.trim());
         } else if (exactMatchStudentFilterFields.has(field)) {
-          countQuery += ` AND ${field} = ?`;
-          countParams.push(filterValue.trim());
+          const vals = filterValue.split(',').map(v => v.trim()).filter(Boolean);
+          if (vals.length > 1) {
+            const placeholders = vals.map(() => '?').join(',');
+            countQuery += ` AND ${field} IN (${placeholders})`;
+            countParams.push(...vals);
+          } else {
+            countQuery += ` AND ${field} = ?`;
+            countParams.push(filterValue.trim());
+          }
         } else {
           countQuery += ` AND ${field} LIKE ?`;
           countParams.push(`%${filterValue.trim()}%`);

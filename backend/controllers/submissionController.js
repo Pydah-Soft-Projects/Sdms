@@ -1528,9 +1528,13 @@ exports.approveSubmission = async (req, res) => {
       );
 
       if (columns[0].count === 0) {
-        await masterConn.query(
-          `ALTER TABLE ${destinationTable} ADD COLUMN ${col} VARCHAR(1024) NULL`
-        );
+        try {
+          await masterConn.query(
+            `ALTER TABLE ${destinationTable} ADD COLUMN ${col} TEXT NULL`
+          );
+        } catch (colErr) {
+          console.error(`⚠️ Failed to add column ${col} to ${destinationTable}:`, colErr.message);
+        }
       }
     }
 
@@ -3675,9 +3679,13 @@ const approveSingleSubmission = async (submission, submissionData, admissionNumb
     );
 
     if (columns[0].count === 0) {
-      await masterConn.query(
-        `ALTER TABLE ${destinationTable} ADD COLUMN ${col} VARCHAR(1024) NULL`
-      );
+      try {
+        await masterConn.query(
+          `ALTER TABLE ${destinationTable} ADD COLUMN ${col} TEXT NULL`
+        );
+      } catch (colErr) {
+        console.error(`⚠️ Failed to add column ${col} to ${destinationTable}:`, colErr.message);
+      }
     }
   }
 

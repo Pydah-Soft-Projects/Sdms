@@ -248,9 +248,13 @@ exports.updateForm = async (req, res) => {
         );
 
         if (columns[0].count === 0) {
-          await conn.query(
-            `ALTER TABLE ${destinationTable} ADD COLUMN ${col} VARCHAR(1024) NULL`
-          );
+          try {
+            await conn.query(
+              `ALTER TABLE ${destinationTable} ADD COLUMN ${col} TEXT NULL`
+            );
+          } catch (colErr) {
+            console.error(`⚠️ Failed to add column ${col} to ${destinationTable}:`, colErr.message);
+          }
         }
       }
       console.log(`✅ Synced schema for dynamic table ${destinationTable}`);

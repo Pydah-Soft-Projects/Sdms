@@ -322,7 +322,14 @@ exports.getProfileCompletionReport = async (req, res) => {
             params.push(searchTerm, searchTerm, searchTerm);
         }
 
-        const availableStudentColumns = await getProfileReportStudentColumns();
+        const [availableStudentColumns, activeRegistrationForm] = await Promise.all([
+            getProfileReportStudentColumns(),
+            getActiveRegistrationForm()
+        ]);
+
+        const precomputedFields = activeRegistrationForm.precomputed || [];
+        const totalFields = precomputedFields.length;
+
         const baseColumns = [
             'id',
             'admission_number',
@@ -337,8 +344,7 @@ exports.getProfileCompletionReport = async (req, res) => {
             'branch',
             'batch',
             'current_year',
-            'current_semester',
-            'student_data'
+            'current_semester'
         ];
 
         const selectedColumns = new Set();
@@ -389,64 +395,10 @@ exports.getProfileCompletionReport = async (req, res) => {
 
         const [students] = await masterPool.query(query, params);
 
-        const studentDataById = new Map();
-        const formIdByAdmission = new Map();
-        const admissionsMissingFormId = [];
-
-        for (let i = 0; i < students.length; i++) {
-            const student = students[i];
-            const rawData = parseJsonObject(student.student_data);
-            studentDataById.set(student.id, rawData);
-            const admission = String(student.admission_number || student.admission_no || '');
-            if (rawData.form_id) {
-                if (admission) formIdByAdmission.set(admission, String(rawData.form_id));
-            } else if (admission) {
-                admissionsMissingFormId.push(admission);
-            }
-        }
-
-        if (admissionsMissingFormId.length > 0) {
-            const uniqueAdmissions = [...new Set(admissionsMissingFormId)];
-            const chunks = [];
-            for (let offset = 0; offset < uniqueAdmissions.length; offset += 500) {
-                chunks.push(uniqueAdmissions.slice(offset, offset + 500));
-            }
-            const chunkResults = await Promise.all(
-                chunks.map(chunk =>
-                    masterPool.query(
-                        `SELECT admission_number, form_id FROM form_submissions
-                         WHERE admission_number IN (${chunk.map(() => '?').join(', ')})
-                         ORDER BY created_at DESC`,
-                        chunk
-                    ).then(([rows]) => rows)
-                )
-            );
-            for (const rows of chunkResults) {
-                for (const submission of rows) {
-                    const admission = String(submission.admission_number || '');
-                    if (admission && submission.form_id && !formIdByAdmission.has(admission)) {
-                        formIdByAdmission.set(admission, String(submission.form_id));
-                    }
-                }
-            }
-        }
-
-        const formIds = [...new Set([...formIdByAdmission.values()].filter(Boolean))];
-        const [formCacheMap, activeRegistrationForm] = await Promise.all([
-            getFormsByIds(formIds),
-            getActiveRegistrationForm()
-        ]);
+        const candidateIds = [];
+        const candidateIdSet = new Set();
 
         const reportRows = students.map(student => {
-            const rawStudentData = studentDataById.get(student.id) || {};
-            const flattenedData = flattenStudentData(rawStudentData);
-            const admissionNumber = String(student.admission_number || student.admission_no || '');
-            const formId = rawStudentData.form_id || formIdByAdmission.get(admissionNumber);
-
-            const formEntry = (formId && formCacheMap.get(String(formId))) || activeRegistrationForm;
-            const precomputedFields = formEntry ? formEntry.precomputed : [];
-            const totalFields = precomputedFields.length;
-
             const completionStudent = {
                 ...student,
                 college: student.resolved_college || student.college,
@@ -463,16 +415,7 @@ exports.getProfileCompletionReport = async (req, res) => {
                 let found = false;
 
                 for (let k = 0; k < keys.length; k++) {
-                    const key = keys[k];
-                    if (isValidProfileValue(completionStudent[key])) {
-                        found = true;
-                        break;
-                    }
-                    if (isValidProfileValue(rawStudentData[key])) {
-                        found = true;
-                        break;
-                    }
-                    if (isValidProfileValue(flattenedData[key])) {
+                    if (isValidProfileValue(completionStudent[keys[k]])) {
                         found = true;
                         break;
                     }
@@ -488,6 +431,12 @@ exports.getProfileCompletionReport = async (req, res) => {
             const completionPercentage = totalFields > 0
                 ? Math.round((completedFields / totalFields) * 100)
                 : 0;
+
+            // Students with photo present and <= 4 missing fields might be 100% completed via JSON fallback
+            if (missingFields.length > 0 && !missingFields.includes('Student Photo') && missingFields.length <= 4) {
+                candidateIds.push(student.id);
+                candidateIdSet.add(student.id);
+            }
 
             return {
                 id: student.id,
@@ -507,11 +456,51 @@ exports.getProfileCompletionReport = async (req, res) => {
             };
         });
 
+        // Targeted fetch of student_data for candidate students that can achieve 100% completion
+        if (candidateIds.length > 0) {
+            const [candRows] = await masterPool.query(
+                `SELECT id, student_data FROM students WHERE id IN (${candidateIds.map(() => '?').join(',')})`,
+                candidateIds
+            );
+            const candDataMap = new Map();
+            for (const r of candRows) {
+                const raw = parseJsonObject(r.student_data);
+                candDataMap.set(r.id, { raw, flat: flattenStudentData(raw) });
+            }
+            for (const row of reportRows) {
+                const cand = candDataMap.get(row.id);
+                if (!cand) continue;
+                let newlyCompleted = 0;
+                const updatedMissing = [];
+                for (const missingLabel of row.pending_fields) {
+                    const pf = precomputedFields.find(f => f.label === missingLabel);
+                    let found = false;
+                    if (pf) {
+                        for (const k of pf.keys) {
+                            if (isValidProfileValue(cand.raw[k]) || isValidProfileValue(cand.flat[k])) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (found) newlyCompleted++;
+                    else updatedMissing.push(missingLabel);
+                }
+                if (newlyCompleted > 0) {
+                    row.completed_fields += newlyCompleted;
+                    row.pending_fields = updatedMissing;
+                    row.completion_percentage = Math.round((row.completed_fields / totalFields) * 100);
+                    row.profile_status = row.completion_percentage === 100 ? 'completed' : 'pending';
+                }
+            }
+        }
+
         const summary = reportRows.reduce((totals, student) => {
             totals.total += 1;
             totals[student.profile_status] += 1;
             return totals;
         }, { total: 0, completed: 0, pending: 0 });
+
         const filteredRows = status && status !== 'all'
             ? reportRows.filter(student => student.profile_status === status)
             : reportRows;
@@ -520,6 +509,50 @@ exports.getProfileCompletionReport = async (req, res) => {
         const paginatedRows = pageSize === null
             ? filteredRows
             : filteredRows.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+        // For the paginated slice of students, ensure any with pending fields have full JSON fallback checked
+        const pageIdsNeedingData = paginatedRows
+            .filter(r => r.pending_fields.length > 0 && !candidateIdSet.has(r.id))
+            .map(r => r.id);
+
+        if (pageIdsNeedingData.length > 0) {
+            const [pageDataRows] = await masterPool.query(
+                `SELECT id, student_data FROM students WHERE id IN (${pageIdsNeedingData.map(() => '?').join(',')})`,
+                pageIdsNeedingData
+            );
+            const pageDataMap = new Map();
+            for (const r of pageDataRows) {
+                const raw = parseJsonObject(r.student_data);
+                pageDataMap.set(r.id, { raw, flat: flattenStudentData(raw) });
+            }
+            for (const row of paginatedRows) {
+                const pdata = pageDataMap.get(row.id);
+                if (!pdata) continue;
+                let newlyCompleted = 0;
+                const updatedMissing = [];
+                for (const missingLabel of row.pending_fields) {
+                    const pf = precomputedFields.find(f => f.label === missingLabel);
+                    let found = false;
+                    if (pf) {
+                        for (const k of pf.keys) {
+                            if (isValidProfileValue(pdata.raw[k]) || isValidProfileValue(pdata.flat[k])) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (found) newlyCompleted++;
+                    else updatedMissing.push(missingLabel);
+                }
+                if (newlyCompleted > 0) {
+                    row.completed_fields += newlyCompleted;
+                    row.pending_fields = updatedMissing;
+                    row.completion_percentage = Math.round((row.completed_fields / totalFields) * 100);
+                    row.profile_status = row.completion_percentage === 100 ? 'completed' : 'pending';
+                }
+            }
+        }
+
 
         res.json({
             success: true,

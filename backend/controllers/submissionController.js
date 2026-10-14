@@ -7,6 +7,7 @@ const xlsx = require('xlsx');
 const fs = require('fs');
 const path = require('path');
 const { writeAuditLog } = require('../services/auditLogService');
+const { flattenStudentData, isValidProfileValue, getProfileFieldKeys } = require('../utils/profileCompletionHelper');
 
 // Configure multer for file uploads
 const upload = multer({
@@ -3060,38 +3061,53 @@ exports.getStudentCompletionStatus = async (req, res) => {
 
     const totalFields = completionFields.length;
     let completedFields = 0;
-    const studentData = parseJSON(student.student_data) || {};
-    const isValidValue = value => {
-      if (value === null || value === undefined || value === false) return false;
-      if (Array.isArray(value)) return value.length > 0;
-      if (typeof value === 'object') return Object.keys(value).length > 0;
-      const normalized = String(value).trim().toLowerCase();
-      return !['', 'n/a', '-', '{}', 'null', 'undefined'].includes(normalized);
-    };
+    const rawStudentData = parseJSON(student.student_data) || {};
+    const flattenedData = flattenStudentData(rawStudentData);
 
     const fieldStatus = allFields.map(field => {
       const key = field.key;
       const isPinField = key.toLowerCase().includes('pin') || key === 'pin_no';
+      const fieldKeys = getProfileFieldKeys(field);
 
       let value = null;
       let completed = false;
       let source = 'none';
 
-      if (isValidValue(student[key])) {
-        value = student[key];
-        source = 'database_column';
-      } else if (isValidValue(studentData[key])) {
-        value = studentData[key];
-        source = 'json_data';
-      } else {
+      for (const k of fieldKeys) {
+        if (isValidProfileValue(student[k])) {
+          value = student[k];
+          source = 'database_column';
+          break;
+        }
+      }
+      if (value === null) {
+        for (const k of fieldKeys) {
+          if (isValidProfileValue(rawStudentData[k])) {
+            value = rawStudentData[k];
+            source = 'json_data';
+            break;
+          }
+        }
+      }
+      if (value === null) {
+        for (const k of fieldKeys) {
+          if (isValidProfileValue(flattenedData[k])) {
+            value = flattenedData[k];
+            source = 'crm_data';
+            break;
+          }
+        }
+      }
+      if (value === null) {
         source = student.student_data ? 'json_empty' : 'no_data';
       }
-      completed = isValidValue(value);
+
+      completed = isValidProfileValue(value);
       if (completed && completionFieldKeys.has(key)) completedFields++;
 
       const status = completed ? '✅' : '❌';
       const sourceInfo = source !== 'none' ? `(${source})` : '';
-      const valuePreview = value ? `"${value.substring ? value.substring(0, 30) + (value.length > 30 ? '...' : '') : value}"` : '""';
+      const valuePreview = value ? `"${String(value).substring(0, 30)}${String(value).length > 30 ? '...' : ''}"` : '""';
 
       console.log(`   ${status} ${key.padEnd(25)} ${valuePreview.padEnd(35)} ${sourceInfo}`);
 

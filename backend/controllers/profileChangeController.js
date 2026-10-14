@@ -19,6 +19,89 @@ const getProfileReportStudentColumns = async () => {
     }
 };
 
+const formCache = new Map();
+let activeRegistrationFormCache = null;
+const FORM_CACHE_TTL = 60 * 1000; // 60 seconds
+
+const parseFormFields = (rawFields) => {
+    let fields = rawFields;
+    if (typeof fields === 'string') {
+        try { fields = JSON.parse(fields); } catch { fields = []; }
+    }
+    return Array.isArray(fields) ? fields : [];
+};
+
+const precomputeRequiredFields = (fields) => {
+    return fields
+        .filter(f => f && typeof f.key === 'string' && f.key && f.required === true && f.isEnabled !== false)
+        .map(f => ({
+            label: f.label || f.key,
+            keys: getProfileFieldKeys(f)
+        }));
+};
+
+const getActiveRegistrationForm = async () => {
+    const now = Date.now();
+    if (activeRegistrationFormCache && activeRegistrationFormCache.expiry > now) {
+        return activeRegistrationFormCache;
+    }
+    const [registrationForms] = await masterPool.query(
+        `SELECT form_id, form_fields FROM forms
+         WHERE form_category = 'registration' AND is_active = 1
+         ORDER BY updated_at DESC
+         LIMIT 1`
+    );
+    let fields = [];
+    if (registrationForms.length > 0) {
+        fields = parseFormFields(registrationForms[0].form_fields);
+    }
+    const precomputed = precomputeRequiredFields(fields);
+    activeRegistrationFormCache = {
+        formId: registrationForms[0]?.form_id ? String(registrationForms[0].form_id) : '__active_registration_form__',
+        fields,
+        precomputed,
+        expiry: now + FORM_CACHE_TTL
+    };
+    return activeRegistrationFormCache;
+};
+
+const getFormsByIds = async (formIds) => {
+    const now = Date.now();
+    const result = new Map();
+    const missingIds = [];
+
+    for (const id of formIds) {
+        const cached = formCache.get(id);
+        if (cached && cached.expiry > now) {
+            result.set(id, cached);
+        } else {
+            missingIds.push(id);
+        }
+    }
+
+    if (missingIds.length > 0) {
+        for (let offset = 0; offset < missingIds.length; offset += 500) {
+            const chunk = missingIds.slice(offset, offset + 500);
+            const [forms] = await masterPool.query(
+                `SELECT form_id, form_fields FROM forms
+                 WHERE form_id IN (${chunk.map(() => '?').join(', ')})`,
+                chunk
+            );
+            for (const form of forms) {
+                const idStr = String(form.form_id);
+                const fields = parseFormFields(form.form_fields);
+                const precomputed = precomputeRequiredFields(fields);
+                const item = { formId: idStr, fields, precomputed, expiry: now + FORM_CACHE_TTL };
+                formCache.set(idStr, item);
+                result.set(idStr, item);
+            }
+        }
+    }
+
+    return result;
+};
+
+
 /** Admission number from student JWT only — never from request body (prevents IDOR). */
 function getStudentAdmissionFromToken(user) {
     if (!user || user.role !== 'student') return null;
@@ -66,53 +149,14 @@ async function ensureStudentInScope(connection, admissionNumber, userScope, res)
     return { allowed: true, student: rows[0] };
 }
 
-const PROFILE_REPORT_FIELD_KEY_ALIASES = {
-    admission_number: ['admission_no', 'Admission Number', 'Admission No'],
-    student_name: ['Student Name', 'studentname'],
-    father_name: ['Father Name', 'fathername'],
-    gender: ['M/F'],
-    college: ['College Name'],
-    course: ['Program', 'Program Name', 'Course', 'Course Name'],
-    branch: ['Branch Name'],
-    current_year: ['Current Academic Year', 'Year'],
-    current_semester: ['Semester', 'Semister'],
-    stud_type: ['StudType', 'Student Type', 'student_type'],
-    student_status: ['Student Status', 'studentstatus'],
-    student_mobile: ['Student Mobile number', 'Mobile Number'],
-    parent_mobile1: ['Parent Mobile 1', 'parent_mobile_1'],
-    dob: ['DOB (Date of Birth - DD-MM-YYYY)', 'DOB (Date-Month-Year) Ex: 09-Sep-2003)', 'date_of_birth'],
-    caste: ['Category', 'category', 'category_name', 'category_id', 'caste_id']
-};
+const {
+    PROFILE_REPORT_FIELD_KEY_ALIASES,
+    flattenStudentData,
+    parseJsonObject,
+    isValidProfileValue,
+    getProfileFieldKeys
+} = require('../utils/profileCompletionHelper');
 
-const parseJsonObject = value => {
-    if (typeof value === 'string') {
-        try {
-            value = JSON.parse(value);
-        } catch {
-            return {};
-        }
-    }
-    return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
-};
-
-const isValidProfileValue = value => {
-    if (value === null || value === undefined || value === false) return false;
-    if (Array.isArray(value)) return value.length > 0;
-    if (typeof value === 'object') return Object.keys(value).length > 0;
-    const normalized = String(value).trim().toLowerCase();
-    return !['', 'n/a', '-', '{}', 'null', 'undefined'].includes(normalized);
-};
-
-const getProfileFieldKeys = field => {
-    const keys = [field.key, field.label].filter(Boolean);
-    const normalizedFieldKeys = new Set(keys.map(key => String(key).trim().toLowerCase()));
-    for (const [key, aliases] of Object.entries(PROFILE_REPORT_FIELD_KEY_ALIASES)) {
-        if ([key, ...aliases].some(alias => normalizedFieldKeys.has(alias.toLowerCase()))) {
-            keys.push(key, ...aliases);
-        }
-    }
-    return [...new Set(keys)];
-};
 
 async function insertPendingRequest(admissionNumber, requested_changes) {
     const [existing] = await masterPool.query(
@@ -226,7 +270,7 @@ exports.getProfileCompletionReport = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid pagination parameters' });
         }
 
-        const conditions = ["LOWER(TRIM(s.student_status)) = 'regular'"];
+        const conditions = ["s.student_status IN ('regular', 'Regular', 'REGULAR')"];
         const params = [];
         const isNumeric = (value) => /^\d+$/.test(String(value));
 
@@ -279,7 +323,7 @@ exports.getProfileCompletionReport = async (req, res) => {
         }
 
         const availableStudentColumns = await getProfileReportStudentColumns();
-        const selectedColumns = new Set([
+        const baseColumns = [
             'id',
             'admission_number',
             'admission_no',
@@ -295,7 +339,15 @@ exports.getProfileCompletionReport = async (req, res) => {
             'current_year',
             'current_semester',
             'student_data'
-        ]);
+        ];
+
+        const selectedColumns = new Set();
+        for (const col of baseColumns) {
+            if (availableStudentColumns.has(col)) {
+                selectedColumns.add(col);
+            }
+        }
+
         for (const [fieldKey, aliases] of Object.entries(PROFILE_REPORT_FIELD_KEY_ALIASES)) {
             for (const key of [fieldKey, ...aliases]) {
                 if (/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key) && availableStudentColumns.has(key)) {
@@ -303,18 +355,23 @@ exports.getProfileCompletionReport = async (req, res) => {
                 }
             }
         }
-        const studentColumnsSql = [...selectedColumns]
-            .filter(column => availableStudentColumns.has(column))
-            .map(column => `s.\`${column}\``);
-        if (availableStudentColumns.has('student_photo')) {
-            studentColumnsSql.push(`
-                CASE
-                    WHEN s.student_photo IS NOT NULL
-                     AND TRIM(s.student_photo) NOT IN ('', 'n/a', '-', '{}', 'null', 'undefined')
-                    THEN 'present'
-                    ELSE NULL
-                END AS student_photo
-            `);
+
+        const photoOrBlobColumnRegex = /(photo|signature|document|image)$/i;
+        const studentColumnsSql = [];
+        for (const col of selectedColumns) {
+            if (photoOrBlobColumnRegex.test(col)) {
+                studentColumnsSql.push(`
+                    CASE
+                        WHEN s.\`${col}\` IS NOT NULL
+                         AND TRIM(s.\`${col}\`) NOT IN ('', 'n/a', '-', '{}', 'null', 'undefined')
+                         AND LENGTH(s.\`${col}\`) > 10
+                        THEN 'present'
+                        ELSE NULL
+                    END AS \`${col}\`
+                `);
+            } else {
+                studentColumnsSql.push(`s.\`${col}\``);
+            }
         }
 
         let query = `
@@ -331,106 +388,103 @@ exports.getProfileCompletionReport = async (req, res) => {
         query += ' ORDER BY s.student_name ASC, s.admission_number ASC';
 
         const [students] = await masterPool.query(query, params);
+
         const studentDataById = new Map();
         const formIdByAdmission = new Map();
-        for (const student of students) {
-            const studentData = parseJsonObject(student.student_data);
-            studentDataById.set(student.id, studentData);
-            if (studentData.form_id) {
-                formIdByAdmission.set(String(student.admission_number || student.admission_no), String(studentData.form_id));
+        const admissionsMissingFormId = [];
+
+        for (let i = 0; i < students.length; i++) {
+            const student = students[i];
+            const rawData = parseJsonObject(student.student_data);
+            studentDataById.set(student.id, rawData);
+            const admission = String(student.admission_number || student.admission_no || '');
+            if (rawData.form_id) {
+                if (admission) formIdByAdmission.set(admission, String(rawData.form_id));
+            } else if (admission) {
+                admissionsMissingFormId.push(admission);
             }
         }
 
-        const admissionsMissingFormId = [...new Set(students
-            .filter(student => !studentDataById.get(student.id).form_id)
-            .flatMap(student => [student.admission_number, student.admission_no])
-            .filter(Boolean)
-            .map(String))];
-        for (let offset = 0; offset < admissionsMissingFormId.length; offset += 500) {
-            const admissions = admissionsMissingFormId.slice(offset, offset + 500);
-            const [submissions] = await masterPool.query(
-                `SELECT admission_number, form_id FROM form_submissions
-                 WHERE admission_number IN (${admissions.map(() => '?').join(', ')})
-                 ORDER BY created_at DESC`,
-                admissions
+        if (admissionsMissingFormId.length > 0) {
+            const uniqueAdmissions = [...new Set(admissionsMissingFormId)];
+            const chunks = [];
+            for (let offset = 0; offset < uniqueAdmissions.length; offset += 500) {
+                chunks.push(uniqueAdmissions.slice(offset, offset + 500));
+            }
+            const chunkResults = await Promise.all(
+                chunks.map(chunk =>
+                    masterPool.query(
+                        `SELECT admission_number, form_id FROM form_submissions
+                         WHERE admission_number IN (${chunk.map(() => '?').join(', ')})
+                         ORDER BY created_at DESC`,
+                        chunk
+                    ).then(([rows]) => rows)
+                )
             );
-            for (const submission of submissions) {
-                const admission = String(submission.admission_number || '');
-                if (admission && submission.form_id && !formIdByAdmission.has(admission)) {
-                    formIdByAdmission.set(admission, String(submission.form_id));
+            for (const rows of chunkResults) {
+                for (const submission of rows) {
+                    const admission = String(submission.admission_number || '');
+                    if (admission && submission.form_id && !formIdByAdmission.has(admission)) {
+                        formIdByAdmission.set(admission, String(submission.form_id));
+                    }
                 }
             }
         }
 
-        const formIds = [...new Set(students
-            .map(student => {
-                const studentData = studentDataById.get(student.id);
-                return studentData.form_id || formIdByAdmission.get(String(student.admission_number || student.admission_no));
-            })
-            .filter(Boolean)
-            .map(String))];
-        const formFieldsById = new Map();
-        for (let offset = 0; offset < formIds.length; offset += 500) {
-            const ids = formIds.slice(offset, offset + 500);
-            const [forms] = await masterPool.query(
-                `SELECT form_id, form_fields FROM forms
-                 WHERE form_id IN (${ids.map(() => '?').join(', ')})`,
-                ids
-            );
-            for (const form of forms) {
-                let formFields = form.form_fields;
-                if (typeof formFields === 'string') {
-                    try { formFields = JSON.parse(formFields); } catch { formFields = []; }
-                }
-                formFieldsById.set(String(form.form_id), Array.isArray(formFields) ? formFields : []);
-            }
-        }
-
-        if (students.some(student => {
-            const studentData = studentDataById.get(student.id);
-            const formId = studentData.form_id || formIdByAdmission.get(String(student.admission_number || student.admission_no));
-            return !formFieldsById.has(String(formId));
-        })) {
-            const [registrationForms] = await masterPool.query(
-                `SELECT form_id, form_fields FROM forms
-                 WHERE form_category = 'registration' AND is_active = 1
-                 ORDER BY updated_at DESC
-                 LIMIT 1`
-            );
-            if (registrationForms.length > 0) {
-                let formFields = registrationForms[0].form_fields;
-                if (typeof formFields === 'string') {
-                    try { formFields = JSON.parse(formFields); } catch { formFields = []; }
-                }
-                formFieldsById.set('__active_registration_form__', Array.isArray(formFields) ? formFields : []);
-            }
-        }
+        const formIds = [...new Set([...formIdByAdmission.values()].filter(Boolean))];
+        const [formCacheMap, activeRegistrationForm] = await Promise.all([
+            getFormsByIds(formIds),
+            getActiveRegistrationForm()
+        ]);
 
         const reportRows = students.map(student => {
-            const studentData = studentDataById.get(student.id);
+            const rawStudentData = studentDataById.get(student.id) || {};
+            const flattenedData = flattenStudentData(rawStudentData);
             const admissionNumber = String(student.admission_number || student.admission_no || '');
-            const formId = studentData.form_id || formIdByAdmission.get(admissionNumber);
-            const formFields = formFieldsById.get(String(formId)) ||
-                formFieldsById.get('__active_registration_form__') || [];
-            const requiredFields = formFields
-                .filter(field => field && typeof field.key === 'string' && field.key && field.required === true && field.isEnabled !== false);
+            const formId = rawStudentData.form_id || formIdByAdmission.get(admissionNumber);
+
+            const formEntry = (formId && formCacheMap.get(String(formId))) || activeRegistrationForm;
+            const precomputedFields = formEntry ? formEntry.precomputed : [];
+            const totalFields = precomputedFields.length;
+
             const completionStudent = {
                 ...student,
-                college: student.resolved_college,
-                course: student.resolved_course,
-                branch: student.resolved_branch
+                college: student.resolved_college || student.college,
+                course: student.resolved_course || student.course,
+                branch: student.resolved_branch || student.branch
             };
+
             const missingFields = [];
             let completedFields = 0;
-            for (const field of requiredFields) {
-                const fieldKeys = getProfileFieldKeys(field);
-                const value = fieldKeys
-                    .flatMap(key => [completionStudent[key], studentData[key]])
-                    .find(isValidProfileValue);
-                if (isValidProfileValue(value)) completedFields += 1;
-                else missingFields.push(field.label || field.key);
+
+            for (let i = 0; i < totalFields; i++) {
+                const pf = precomputedFields[i];
+                const keys = pf.keys;
+                let found = false;
+
+                for (let k = 0; k < keys.length; k++) {
+                    const key = keys[k];
+                    if (isValidProfileValue(completionStudent[key])) {
+                        found = true;
+                        break;
+                    }
+                    if (isValidProfileValue(rawStudentData[key])) {
+                        found = true;
+                        break;
+                    }
+                    if (isValidProfileValue(flattenedData[key])) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) {
+                    completedFields++;
+                } else {
+                    missingFields.push(pf.label);
+                }
             }
-            const totalFields = requiredFields.length;
+
             const completionPercentage = totalFields > 0
                 ? Math.round((completedFields / totalFields) * 100)
                 : 0;

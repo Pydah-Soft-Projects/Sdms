@@ -1081,6 +1081,52 @@ const Students = () => {
       return str !== '' && str !== 'n/a' && str !== '-' && str !== '{}' && str !== 'null' && str !== 'undefined';
     };
 
+    const PROFILE_FIELD_KEY_ALIASES = {
+      admission_number: ['admission_no', 'Admission Number', 'Admission No', 'enquiryNumber'],
+      student_name: ['Student Name', 'studentname', 'name', 'fullName'],
+      father_name: ['Father Name', 'fathername', 'fatherName'],
+      mother_name: ['Mother Name', 'mothername', 'motherName'],
+      gender: ['M/F', 'Gender', 'sex'],
+      college: ['College Name', 'college_name', 'school_or_college_name'],
+      course: ['Program', 'Program Name', 'Course', 'Course Name', 'course_name', 'program_name'],
+      branch: ['Branch Name', 'branch_name', 'Branch'],
+      batch: ['Batch'],
+      current_year: ['Current Academic Year', 'Year', 'academic_year', 'Current Year'],
+      current_semester: ['Semester', 'Semister', 'Current Semester'],
+      stud_type: ['StudType', 'Student Type', 'student_type', 'quota', 'Quota'],
+      student_status: ['Student Status', 'studentstatus'],
+      student_mobile: ['Student Mobile number', 'Mobile Number', 'Student Mobile', 'student_mobile_number', 'mobile_number', 'phone'],
+      parent_mobile1: ['Parent Mobile 1', 'parent_mobile_1', 'Parent Mobile Number 1', 'father_mobile', 'father_phone', 'fatherPhone'],
+      parent_mobile2: ['Parent Mobile 2', 'parent_mobile_2', 'Parent Mobile Number 2', 'mother_mobile', 'mother_phone', 'motherPhone'],
+      dob: ['DOB (Date of Birth - DD-MM-YYYY)', 'DOB (Date-Month-Year) Ex: 09-Sep-2003)', 'date_of_birth', 'DOB', 'Date of Birth', 'dateOfBirth'],
+      caste: ['Category', 'category', 'category_name', 'category_id', 'caste_id', 'Caste'],
+      adhar_no: ['aadhar_no', 'aadhaar_no', 'aadhar_number', 'aadhaar_number', 'aadhaarNumber', 'ADHAR No', 'Aadhar Number', 'Aadhaar Number', 'adhar', 'aadhar', 'aadhaar'],
+      city_village: ['city_village_name', 'City/Village', 'City/Village Name', 'city', 'village', 'City', 'Village'],
+      mandal_name: ['mandal', 'Mandal Name', 'Mandal'],
+      district: ['district_name', 'District', 'District Name'],
+      student_address: ['address', 'permanent_address', 'Student Address', 'Permanent Address', 'Student Address (D.No, Str name, Village, Mandal, Dist)'],
+      student_photo: ['photo', 'studentphoto', 'Student Photo', 'Photo'],
+      certificates_status: ['certificate_status', 'certification_status', 'certificates_verified', 'certificatesstatus', 'Certificates Status', 'Certificate Status'],
+      pin_no: ['pin_number', 'roll_number', 'PIN Number', 'Pin Number', 'temporary_roll_no', 'temp_roll_no'],
+      apaar_id: ['apaar id', 'APAAR ID', 'apaarId'],
+      previous_college: ['previous_college_name', 'Previous College', 'Previous College Name', 'interCollege'],
+      admission_date: ['admissionDate', 'Admission Date', 'admission_date'],
+      scholar_status: ['scholarstatus', 'Scholar Status', 'isScholarApplicable'],
+      remarks: ['Remarks', 'notes']
+    };
+
+    const getFieldKeys = (field) => {
+      if (!field) return [];
+      const keys = [field.key, field.label].filter(Boolean);
+      const norm = new Set(keys.map(k => String(k).trim().toLowerCase()));
+      for (const [k, aliases] of Object.entries(PROFILE_FIELD_KEY_ALIASES)) {
+        if ([k, ...aliases].some(a => norm.has(a.toLowerCase()))) {
+          keys.push(k, ...aliases);
+        }
+      }
+      return [...new Set(keys)];
+    };
+
     const requiredFields = formFields.filter(field =>
       field?.key && field.required === true && field.isEnabled !== false
     );
@@ -1090,7 +1136,9 @@ const Students = () => {
     const totalCount = requiredFields.length;
 
     requiredFields.forEach(field => {
-      const value = [student[field.key], parsedData[field.key], student[field.label], parsedData[field.label]]
+      const fieldKeys = getFieldKeys(field);
+      const value = fieldKeys
+        .flatMap(key => [student[key], parsedData[key]])
         .find(isValidValue);
       if (isValidValue(value)) {
         filledCount++;
@@ -1185,8 +1233,17 @@ const Students = () => {
     api.get(`/submissions/student/${encodeURIComponent(admissionNumber)}/completion-status`)
       .then(response => {
         if (active) {
-          const fields = response.data?.data?.fieldStatus;
+          const statusData = response.data?.data;
+          const fields = statusData?.fieldStatus;
           setProfileCompletionFields(Array.isArray(fields) ? fields : []);
+          if (statusData && typeof statusData.completionPercentage === 'number') {
+            setProfileCompletion({
+              percentage: statusData.completionPercentage,
+              filledCount: statusData.completedFields || 0,
+              totalCount: statusData.totalFields || 0,
+              missingFields: (statusData.missingFields || []).map(f => f.label || f.key || f)
+            });
+          }
         }
       })
       .catch(error => {
@@ -2183,7 +2240,16 @@ const Students = () => {
       ...(student.student_mobile && { student_mobile: student.student_mobile, 'Student Mobile Number': student.student_mobile }),
       ...(student.parent_mobile1 && { parent_mobile1: student.parent_mobile1, 'Parent Mobile Number 1': student.parent_mobile1 }),
       ...(student.parent_mobile2 && { parent_mobile2: student.parent_mobile2, 'Parent Mobile Number 2': student.parent_mobile2 }),
-      ...(student.adhar_no && { adhar_no: student.adhar_no, 'ADHAR No': student.adhar_no }),
+      ...(student.adhar_no && {
+        adhar_no: student.adhar_no,
+        aadhar_no: student.adhar_no,
+        aadhaar_no: student.adhar_no,
+        aadhar_number: student.adhar_no,
+        aadhaar_number: student.adhar_no,
+        'ADHAR No': student.adhar_no,
+        'Aadhar Number': student.adhar_no,
+        'Aadhaar Number': student.adhar_no
+      }),
       ...(student.caste && { caste: student.caste, 'Caste': student.caste }),
       ...(student.batch && { batch: student.batch, 'Batch': student.batch }),
       ...(student.college && { college: student.college, 'College': student.college }),
@@ -2204,10 +2270,30 @@ const Students = () => {
       Section: student.section || '',
       ...(student.stud_type && { stud_type: student.stud_type, 'StudType': student.stud_type }),
       ...(student.student_status && { student_status: student.student_status, 'Student Status': student.student_status }),
-      ...(student.student_address && { student_address: student.student_address }),
-      ...(student.city_village && { city_village: student.city_village }),
-      ...(student.mandal_name && { mandal_name: student.mandal_name }),
-      ...(student.district && { district: student.district, 'District': student.district }),
+      ...(student.student_address && {
+        student_address: student.student_address,
+        address: student.student_address,
+        'Student Address': student.student_address,
+        'Permanent Address': student.student_address
+      }),
+      ...(student.city_village && {
+        city_village: student.city_village,
+        city_village_name: student.city_village,
+        'City/Village': student.city_village,
+        'City/Village Name': student.city_village
+      }),
+      ...(student.mandal_name && {
+        mandal_name: student.mandal_name,
+        mandal: student.mandal_name,
+        'Mandal Name': student.mandal_name,
+        'Mandal': student.mandal_name
+      }),
+      ...(student.district && {
+        district: student.district,
+        district_name: student.district,
+        'District': student.district,
+        'District Name': student.district
+      }),
       ...(student.pin_no && { pin_no: student.pin_no }),
       ...(student.previous_college && { previous_college: student.previous_college }),
       // Always include certificates_status even if null, so it can be edited

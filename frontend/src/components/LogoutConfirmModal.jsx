@@ -120,20 +120,12 @@ const LogoutConfirmModal = ({ isOpen, onClose, onConfirm }) => {
             {isSSO ? (
               <div className="space-y-3">
                 <p className="leading-relaxed">
-                  Are you sure you want to sign out of the Student Portal?
+                  Are you sure you want to sign out?
                 </p>
-                <div className="rounded-xl border border-amber-200/80 bg-gradient-to-br from-amber-50 to-orange-50/60 p-3.5 text-left dark:border-amber-900/40 dark:from-amber-950/30 dark:to-orange-950/20 shadow-sm">
-                  <div className="flex items-start gap-2.5">
-                    <ExternalLink className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs">
-                      <p className="font-semibold text-amber-900 dark:text-amber-200">
-                        Single Sign-On (SSO) Active
-                      </p>
-                      <p className="text-amber-700 dark:text-amber-300 mt-0.5 leading-relaxed">
-                        You logged in via Single Sign-On. Signing out will end your session and redirect you back to the{' '}
-                        <strong className="font-semibold text-amber-900 dark:text-amber-100">CRM Portal</strong>.
-                      </p>
-                    </div>
+                <div className="rounded-xl border border-amber-200/80 bg-gradient-to-br from-amber-50 to-orange-50/60 p-3 text-center dark:border-amber-900/40 dark:from-amber-950/30 dark:to-orange-950/20 shadow-sm">
+                  <div className="flex items-center justify-center gap-2 text-xs font-medium text-amber-900 dark:text-amber-200">
+                    <ExternalLink className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                    <span>It will redirect to the CRM portal</span>
                   </div>
                 </div>
               </div>

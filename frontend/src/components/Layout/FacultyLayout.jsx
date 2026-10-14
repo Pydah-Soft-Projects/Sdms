@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
+import LogoutConfirmModal from '../LogoutConfirmModal';
 
 const NAV_ITEMS = [
   { path: '/faculty/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -33,13 +34,12 @@ const NAV_ITEMS = [
 
 const FacultyLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
 
   const handleLogout = () => {
-    logout();
-    toast.success('Logged out successfully');
-    navigate('/login');
+    setIsLogoutModalOpen(true);
   };
 
   return (
@@ -125,6 +125,10 @@ const FacultyLayout = () => {
           <Outlet />
         </main>
       </div>
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+      />
     </div>
   );
 };

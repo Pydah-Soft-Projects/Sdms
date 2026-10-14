@@ -675,7 +675,7 @@ exports.createSSOSession = async (req, res) => {
         success: true,
         message: 'SSO session created successfully',
         token,
-        user
+        user: { ...user, isSSO: true }
       });
     }
 
@@ -720,7 +720,7 @@ exports.createSSOSession = async (req, res) => {
       success: true,
       message: 'SSO session created successfully',
       token,
-      user
+      user: { ...user, isSSO: true }
     });
   } catch (err) {
     console.error('SSO session error:', err);

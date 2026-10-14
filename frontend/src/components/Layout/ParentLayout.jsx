@@ -15,11 +15,13 @@ import {
 import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
 import { getStaticFileUrlDirect } from '../../config/api';
+import LogoutConfirmModal from '../LogoutConfirmModal';
 
 const ParentLayout = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.add('parent-portal');
@@ -31,9 +33,7 @@ const ParentLayout = () => {
   }, []);
 
   const handleLogout = () => {
-    logout();
-    toast.success('Logged out successfully');
-    navigate('/parent/login', { replace: true });
+    setIsLogoutModalOpen(true);
   };
 
   const photoUrl = user?.student_photo
@@ -231,6 +231,10 @@ const ParentLayout = () => {
           </button>
         </div>
       </nav>
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+      />
     </div>
   );
 };

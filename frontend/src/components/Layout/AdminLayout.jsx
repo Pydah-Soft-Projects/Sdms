@@ -48,6 +48,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import useAuthStore from "../../store/authStore";
+import LogoutConfirmModal from "../LogoutConfirmModal";
 import {
   MODULE_ROUTE_MAP,
   getModuleKeyForPath,
@@ -311,17 +312,16 @@ const CLUB_PERMISSION_BY_PATH = {
 const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [expandedItems, setExpandedItems] = useState(new Set()); // Collapsed by default
   const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false); // New: For mobile "More" menu
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const handleLogout = () => {
-    logout();
-    toast.success("Logged out successfully");
-    navigate("/login");
+    setIsLogoutModalOpen(true);
   };
 
   // Get allowed modules based on user role and permissions
@@ -841,6 +841,12 @@ const AdminLayout = () => {
           </div>
         </div>
       )}
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+      />
     </div>
   );
 };

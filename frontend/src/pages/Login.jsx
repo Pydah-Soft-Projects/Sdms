@@ -158,7 +158,8 @@ const Login = () => {
       }
 
       const { token, user } = sessionRes.data;
-      const result = loginFromSSO(token, user);
+      const crmReturnUrl = searchParams.get('crm_url') || searchParams.get('return_url') || CRM_FRONTEND_URL;
+      const result = loginFromSSO(token, user, crmReturnUrl);
       toast.success('Login successful!');
       navigate(result.redirectPath, { replace: true });
     } catch (err) {

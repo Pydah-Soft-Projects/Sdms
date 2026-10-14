@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import api from '../config/api';
+import api, { CRM_FRONTEND_URL } from '../config/api';
 import { queryClient } from '../config/queryClient';
 import {
   MODULE_ROUTE_MAP,
@@ -69,17 +69,22 @@ const resolveDefaultRoute = (user, userType = null) => {
   return '/';
 };
 
-const useAuthStore = create((set) => {
+const useAuthStore = create((set, get) => {
   // Initialize from localStorage
   const storedUser = localStorage.getItem('user');
   const storedToken = localStorage.getItem('token');
   const storedUserType = localStorage.getItem('userType');
+  const storedIsSSO = localStorage.getItem('isSSO') === 'true';
 
   return {
     user: storedUser ? JSON.parse(storedUser) : null,
     token: storedToken || null,
     isAuthenticated: !!storedToken,
     userType: storedUserType || null, // 'admin' or 'student'
+    isSSO: storedIsSSO || false,
+
+    getIsSSO: () => localStorage.getItem('isSSO') === 'true' || !!get().isSSO || !!get().user?.isSSO,
+    getCRMUrl: () => localStorage.getItem('crmUrl') || CRM_FRONTEND_URL || 'https://crm.pydah.edu.in',
 
     login: async (username, password, expectedRole) => {
       try {
@@ -125,8 +130,10 @@ const useAuthStore = create((set) => {
         localStorage.setItem('user', JSON.stringify(user));
         localStorage.setItem('userType', userType);
         localStorage.removeItem('admin');
+        localStorage.removeItem('isSSO');
+        localStorage.removeItem('crmUrl');
 
-        set({ user, token, isAuthenticated: true, userType });
+        set({ user, token, isAuthenticated: true, userType, isSSO: false });
         return { success: true, redirectPath: resolveDefaultRoute(user, userType) };
       } catch (error) {
         console.error('Login error:', error);
@@ -144,22 +151,36 @@ const useAuthStore = create((set) => {
       return useAuthStore.getState().login(username, password, 'student');
     },
 
-    setAuth: (user, token, userType = 'student') => {
+    setAuth: (user, token, userType = 'student', isSSO = false) => {
+      const userObj = isSSO ? { ...user, isSSO: true } : user;
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(userObj));
       localStorage.setItem('userType', userType);
-      set({ user, token, isAuthenticated: true, userType });
+      if (isSSO) {
+        localStorage.setItem('isSSO', 'true');
+      } else {
+        localStorage.removeItem('isSSO');
+        localStorage.removeItem('crmUrl');
+      }
+      set({ user: userObj, token, isAuthenticated: true, userType, isSSO: !!isSSO });
     },
 
     /** SSO: store token/user from sso-session and return redirect path */
-    loginFromSSO: (token, user) => {
+    loginFromSSO: (token, user, crmUrl = null) => {
       const userType = user.role === 'parent' ? 'parent' : (user.role === 'student' ? 'student' : 'admin');
+      const userWithSSO = { ...user, isSSO: true };
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(userWithSSO));
       localStorage.setItem('userType', userType);
+      localStorage.setItem('isSSO', 'true');
+      if (crmUrl) {
+        localStorage.setItem('crmUrl', crmUrl);
+      } else if (!localStorage.getItem('crmUrl')) {
+        localStorage.setItem('crmUrl', CRM_FRONTEND_URL || 'https://crm.pydah.edu.in');
+      }
       localStorage.removeItem('admin');
-      set({ user, token, isAuthenticated: true, userType });
-      return { success: true, redirectPath: resolveDefaultRoute(user, userType) };
+      set({ user: userWithSSO, token, isAuthenticated: true, userType, isSSO: true });
+      return { success: true, redirectPath: resolveDefaultRoute(userWithSSO, userType) };
     },
 
     sendParentOtp: async (mobileNumber) => {
@@ -237,7 +258,11 @@ const useAuthStore = create((set) => {
       return { user: updatedUser };
     }),
 
-    logout: () => {
+    logout: (redirect = true) => {
+      // Capture SSO state before removing
+      const wasSSO = localStorage.getItem('isSSO') === 'true' || !!get()?.isSSO || !!get()?.user?.isSSO;
+      const crmUrl = localStorage.getItem('crmUrl') || CRM_FRONTEND_URL || 'https://crm.pydah.edu.in';
+
       // Clear all React Query cache immediately
       queryClient.clear();
 
@@ -246,6 +271,8 @@ const useAuthStore = create((set) => {
       localStorage.removeItem('user');
       localStorage.removeItem('userType');
       localStorage.removeItem('admin');
+      localStorage.removeItem('isSSO');
+      localStorage.removeItem('crmUrl');
 
       // Clear any other potential cache/data items
       try {
@@ -262,7 +289,15 @@ const useAuthStore = create((set) => {
       }
 
       // Clear state
-      set({ user: null, token: null, isAuthenticated: false, userType: null });
+      set({ user: null, token: null, isAuthenticated: false, userType: null, isSSO: false });
+
+      if (redirect) {
+        if (wasSSO && crmUrl) {
+          window.location.href = crmUrl;
+        } else {
+          window.location.href = '/login';
+        }
+      }
     },
 
     verifyToken: async () => {

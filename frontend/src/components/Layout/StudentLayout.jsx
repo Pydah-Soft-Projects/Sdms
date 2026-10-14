@@ -56,6 +56,7 @@ import { navigateToCrtApp } from '../../utils/crtAppUrl';
 import { resolveRegistrationBranchYear } from '../../config/registrationBranchYear';
 import { computeRegistrationStageDisplays, isRegistrationPortalUnlocked } from '../../config/registrationStages.jsx';
 import TopHeaderBar from '../student/TopHeaderBar';
+import LogoutConfirmModal from '../LogoutConfirmModal';
 
 const StudentLayout = ({ children }) => {
     // State
@@ -72,6 +73,7 @@ const StudentLayout = ({ children }) => {
     const [hasInternship, setHasInternship] = useState(false);
     const [hasTransportPass, setHasTransportPass] = useState(false);
     const [layoutSettings, setLayoutSettings] = useState(null);
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
     const navigate = useNavigate();
     const location = useLocation();
@@ -350,9 +352,7 @@ const StudentLayout = ({ children }) => {
     };
 
     const handleLogout = () => {
-        logout();
-        toast.success('Logged out successfully');
-        navigate('/student/login');
+        setIsLogoutModalOpen(true);
     };
 
     const navItems = [
@@ -787,6 +787,12 @@ const StudentLayout = ({ children }) => {
                     </div>
                 </div>
             )}
+
+            {/* Logout Confirmation Modal */}
+            <LogoutConfirmModal
+                isOpen={isLogoutModalOpen}
+                onClose={() => setIsLogoutModalOpen(false)}
+            />
         </div>
     );
 };

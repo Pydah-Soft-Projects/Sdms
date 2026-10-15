@@ -273,7 +273,6 @@ function App() {
             <Route path="attendance-monitoring" element={<AttendanceMonitoring />} />
             <Route path="internship-management" element={<InternshipAdmin />} />
             <Route path="services/borrow-management" element={<CertificateBorrowManagement />} />
-            <Route path="ai-assistant" element={<AiAssistant />} />
           </Route>
 
 

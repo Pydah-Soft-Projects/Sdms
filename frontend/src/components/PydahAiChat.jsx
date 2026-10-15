@@ -23,7 +23,7 @@ export default function PydahAiChat({
   ...restProps
 }) {
   const location = useLocation();
-  const { token: storeToken, userType } = useAuthStore();
+  const { token: storeToken, userType, user } = useAuthStore();
   const [isLoaded, setIsLoaded] = useState(false);
 
   const isAiAssistantPage = location?.pathname?.endsWith('/ai-assistant');
@@ -33,8 +33,12 @@ export default function PydahAiChat({
   const activeAssistantId = propsAssistantId || 'student-assistant';
   const activeApiBaseUrl = propsApiBaseUrl || getAiApiBaseUrl();
 
+  // Strict Guard: ONLY allow for student accounts, NEVER for admin, super_admin, or staff
+  const currentRole = String(user?.role || userType || '').toLowerCase();
+  const isStudent = currentRole === 'student';
+
   useEffect(() => {
-    if (!activeToken) return;
+    if (!activeToken || !isStudent) return;
 
     if (typeof window !== 'undefined') {
       // Expose React & ReactDOM globally BEFORE UMD bundle executes to prevent React hook errors
@@ -99,8 +103,8 @@ export default function PydahAiChat({
     };
   }, [activeApiBaseUrl, activeAssistantId, activeToken, title, welcomeMessage, mode]);
 
-  // Strictly only show if an authenticated token is present
-  if (!activeToken) {
+  // Strictly only show if an authenticated token is present and user is a student
+  if (!activeToken || !isStudent) {
     return null;
   }
 

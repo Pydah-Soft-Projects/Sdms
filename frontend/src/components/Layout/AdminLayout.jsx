@@ -7,7 +7,6 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import {
-  Sparkles,
   LayoutDashboard,
   FileText,
   ClipboardList,
@@ -71,12 +70,6 @@ const NAV_ITEMS = [
     path: "/",
     icon: LayoutDashboard,
     label: "Dashboard",
-    permission: FRONTEND_MODULES.DASHBOARD,
-  },
-  {
-    path: "/ai-assistant",
-    icon: Sparkles,
-    label: "AI Assistant",
     permission: FRONTEND_MODULES.DASHBOARD,
   },
   {

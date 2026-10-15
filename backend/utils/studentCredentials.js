@@ -132,7 +132,7 @@ async function saveStudentCredentials(studentId, admissionNumber, username, pass
 /**
  * Generate and store student login credentials
  * Username: admission number (default) OR distinct PIN when assigned
- * Password: random 8-character alphanumeric
+ * Password: random 6-digit numeric password
  * 
  * @param {number} studentId - Student ID from students table
  * @param {string} admissionNumber - Student admission number
@@ -171,12 +171,8 @@ async function generateStudentCredentials(
       return { success: false, error: 'Admission number is required for username' };
     }
 
-    // Generate random alphanumeric password (8 characters)
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let plainPassword = '';
-    for (let i = 0; i < 8; i++) {
-      plainPassword += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    // Generate numeric password (6 digits)
+    const plainPassword = Math.floor(100000 + Math.random() * 900000).toString();
 
     // Hash password
     const passwordHash = await bcrypt.hash(plainPassword, 10);

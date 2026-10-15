@@ -167,11 +167,15 @@ function App() {
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Toaster
         position="top-right"
+        containerStyle={{
+          zIndex: 999999999,
+        }}
         toastOptions={{
           duration: 3000,
           style: {
             background: '#363636',
             color: '#fff',
+            zIndex: 999999999,
           },
           success: {
             duration: 3000,

@@ -1458,7 +1458,7 @@ const PublicForm = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 py-3 sm:py-4 lg:py-6 px-3 sm:px-4 lg:px-6">
-      <Toaster position="top-center sm:top-right" />
+      <Toaster position="top-center sm:top-right" containerStyle={{ zIndex: 999999999 }} />
       <div className="max-w-6xl mx-auto">
         <div className="bg-white rounded-lg sm:rounded-2xl shadow-xl overflow-hidden">
           {/* Header */}

@@ -1050,3 +1050,10 @@ html.parent-portal #root {
   animation: shimmerProgress 1.2s ease-in-out infinite;
 }
 
+/* Ensure toast notifications always render in front of all modals and dialogs */
+[data-hot-toast],
+div:has(> [data-hot-toast]),
+div:has(> div > [data-hot-toast]) {
+  z-index: 999999999 !important;
+}
+

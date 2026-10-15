@@ -60,28 +60,12 @@ const StudentTimetable = () => {
 
     const normalizeSlotTimings = (rawSlots) => {
         if (!Array.isArray(rawSlots)) return [];
-        return rawSlots.map(slot => {
-            const sName = String(slot.slot_name || slot.name || slot.label || '').trim().toUpperCase();
-            const sOrder = Number(slot.sort_order ?? slot.id ?? 0);
-
-            let updatedSlot = { ...slot };
-
-            if (sName === 'P3' || sName.includes('P3') || sOrder === 3) {
-                updatedSlot.start_time = '10:55:00';
-                updatedSlot.end_time = '11:05:00';
-            } else if (sName === 'P4' || sName.includes('P4') || sOrder === 4) {
-                updatedSlot.start_time = '11:05:00';
-                updatedSlot.end_time = '12:45:00';
-            } else if (sName === 'P6' || sName.includes('P6') || sOrder === 6) {
-                updatedSlot.start_time = '12:45:00';
-                updatedSlot.end_time = '13:45:00';
-            } else if (sName === 'P7' || sName.includes('P7') || sOrder === 7) {
-                updatedSlot.start_time = '13:45:00';
-                updatedSlot.end_time = '14:35:00';
-            }
-
-            return updatedSlot;
-        });
+        return rawSlots.map(slot => ({
+            ...slot,
+            slot_name: slot.slot_name || slot.name || slot.label || `P${slot.sort_order || slot.id || ''}`,
+            start_time: slot.start_time || '',
+            end_time: slot.end_time || ''
+        }));
     };
 
     // Fetch Timetable & Period Slots
@@ -93,25 +77,38 @@ const StudentTimetable = () => {
             if (isManualRefresh) setRefreshing(true);
             else setLoading(true);
 
-            // 1. Fetch Period Slots
+            // 1. Fetch Default Period Slots
             const slotsRes = await api.get('/period-slots', {
                 params: collegeId ? { college_id: collegeId } : {}
             });
-            if (slotsRes.data?.success) {
-                setPeriodSlots(normalizeSlotTimings(slotsRes.data.data || []));
+            if (slotsRes.data?.success && Array.isArray(slotsRes.data.data)) {
+                setPeriodSlots(normalizeSlotTimings(slotsRes.data.data));
             }
 
-            // 2. Fetch Timetable for Selected Year & Semester
-            if (branchId) {
-                const timetableRes = await api.get('/timetable', {
+            // 2. Fetch Timetable for Selected Year & Semester strictly from Academic Portal
+            const timetableRes = await api.get('/timetable/my-timetable', {
+                params: {
+                    branch_id: branchId,
+                    branch: user?.branch,
+                    year: selectedYear,
+                    semester: selectedSem
+                }
+            }).catch(async () => {
+                return await api.get('/timetable', {
                     params: {
                         branch_id: branchId,
+                        branch: user?.branch,
                         year: selectedYear,
                         semester: selectedSem
                     }
                 });
-                if (timetableRes.data?.success) {
-                    setTimetableData(timetableRes.data.data || []);
+            });
+
+            if (timetableRes?.data?.success) {
+                setTimetableData(timetableRes.data.data || []);
+                // If the Academic Portal timetable plan has dedicated timing template slots, prioritize them
+                if (Array.isArray(timetableRes.data.slots) && timetableRes.data.slots.length > 0) {
+                    setPeriodSlots(normalizeSlotTimings(timetableRes.data.slots));
                 }
             }
 
@@ -260,7 +257,7 @@ const StudentTimetable = () => {
                 if (!subjectDaysMap.has(key)) {
                     subjectDaysMap.set(key, {
                         name: title,
-                        code: item.subject_code || 'SUB-101',
+                        code: item.subject_code || (title ? title.replace(/\s+/g, '-').substring(0, 10).toUpperCase() : 'SUB-101'),
                         days: new Set(),
                         slotLabels: new Set(),
                         faculty: item.faculty_name || item.teacher_name || item.faculty || item.staff_name || item.instructor_name || null,
@@ -349,18 +346,13 @@ const StudentTimetable = () => {
         const sName = String(slot?.slot_name || slot?.name || slot?.label || '').trim().toUpperCase();
         const sOrder = Number(slot?.sort_order ?? slot?.id ?? 0);
         const startTime = String(slot?.start_time || '');
+        const slotType = String(slot?.slot_type || '').toLowerCase();
         const isBreakSlot = 
-            !entry && (
-                sName === 'P3' || 
-                sName === 'P6' || 
-                sName.includes('P3') || 
-                sName.includes('P6') || 
-                sName.includes('BREAK') ||
-                sOrder === 3 || 
-                sOrder === 6 ||
-                startTime.startsWith('10:50') ||
-                startTime.startsWith('12:45')
-            );
+            slotType === 'break' || 
+            slotType === 'lunch' || 
+            sName.includes('BREAK') || 
+            sName.includes('LUNCH') ||
+            (entry && (String(entry.type || '').toLowerCase() === 'break' || String(entry.type || '').toLowerCase() === 'lunch'));
 
         const entryType = String(entry?.type || '').toLowerCase();
         const isLab = entryType === 'lab';
@@ -369,7 +361,7 @@ const StudentTimetable = () => {
 
         let badgeText = String(entry?.type || '').toUpperCase();
         if (!entry) {
-            badgeText = isBreakSlot ? 'BREAK' : 'FREE SLOT';
+            badgeText = isBreakSlot ? (sName.includes('LUNCH') || slotType === 'lunch' ? 'LUNCH BREAK' : 'BREAK') : 'FREE SLOT';
         } else if (!badgeText || badgeText === 'SUBJECT' || badgeText === 'THEORY') {
             badgeText = 'THEORY';
         }
@@ -411,7 +403,7 @@ const StudentTimetable = () => {
 
         const titleText = entry
             ? (entry.subject_name || entry.custom_label || entry.title || entry.name || (entry.type ? `${entry.type}` : 'Subject Class'))
-            : (isBreakSlot ? (sName.includes('P3') || sOrder === 3 ? 'Break' : 'Lunch Break') : 'Free Period Slot');
+            : (isBreakSlot ? (sName.includes('LUNCH') || slotType === 'lunch' ? 'Lunch Break' : 'Break') : 'Free Period Slot');
 
         const codeOrLabel = entry?.subject_code || (entry?.subject_name ? entry?.custom_label : null) || slot?.slot_name || 'Class';
         const facultyName = postedSlotLog?.faculty_name || entry?.faculty_name || entry?.teacher_name || entry?.faculty || entry?.staff_name;
@@ -473,11 +465,11 @@ const StudentTimetable = () => {
             return (
                 <div className={`h-full w-full rounded-xl border flex flex-col items-center justify-center min-h-[105px] ${isBreakSlot ? 'bg-amber-50/60 border-amber-200/80' : 'bg-slate-50/30 border-slate-200/70 border-dashed'} p-1.5 text-center`}>
                     <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border ${isBreakSlot ? 'bg-amber-100 text-amber-900 border-amber-300' : 'text-slate-400 border-slate-200 bg-white'}`}>
-                        {isBreakSlot ? 'BREAK' : 'FREE SLOT'}
+                        {isBreakSlot ? (sName.includes('LUNCH') || slotType === 'lunch' ? 'LUNCH BREAK' : 'BREAK') : 'FREE SLOT'}
                     </span>
                     {isBreakSlot && (
                         <span className="text-[8px] sm:text-[9px] font-bold text-amber-700/80 mt-0.5 leading-none">
-                            {sName.includes('P3') || sOrder === 3 ? 'Break' : 'Lunch Break'}
+                            {sName.includes('LUNCH') || slotType === 'lunch' ? 'Lunch Break' : 'Break'}
                         </span>
                     )}
                 </div>
@@ -860,8 +852,8 @@ const StudentTimetable = () => {
                             <p className="text-slate-400 text-xs font-medium text-center py-6">No subjects listed in current timetable configuration.</p>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                {timetableSubjects.map((sub) => (
-                                    <div key={sub.code} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-blue-300 transition-all space-y-2.5">
+                                {timetableSubjects.map((sub, idx) => (
+                                    <div key={`${sub.code || 'sub'}-${sub.name || ''}-${idx}`} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-blue-300 transition-all space-y-2.5">
                                         <div className="flex items-start justify-between">
                                             <span className="text-[9px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
                                                 {sub.code}

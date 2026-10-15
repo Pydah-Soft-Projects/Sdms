@@ -83,9 +83,8 @@ const EventCalendar = lazy(() => import('./pages/admin/EventCalendar'));
 const StudentCalendar = lazy(() => import('./pages/student/StudentCalendar'));
 const StudentTimetable = lazy(() => import('./pages/student/StudentTimetable'));
 
-// AI Assistant Page & CDN Widget Component
+// AI Assistant Page
 const AiAssistant = lazy(() => import('./pages/AiAssistant'));
-import PydahAiChat from './components/PydahAiChat';
 
 // Layout (Lazy Loaded)
 const AdminLayout = lazy(() => import('./components/Layout/AdminLayout'));
@@ -347,13 +346,6 @@ function App() {
         </Routes>
       </Suspense>
 
-      {/* Floating Bottom-Right Chat Widget Active Across All Pages */}
-      <PydahAiChat
-        mode="widget"
-        title="Pydah Student Assistant"
-        welcomeMessage="How can I help you today?"
-        position="bottom-right"
-      />
     </Router>
   );
 }

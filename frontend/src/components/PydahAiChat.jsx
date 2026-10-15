@@ -34,6 +34,8 @@ export default function PydahAiChat({
   const activeApiBaseUrl = propsApiBaseUrl || getAiApiBaseUrl();
 
   useEffect(() => {
+    if (!activeToken) return;
+
     if (typeof window !== 'undefined') {
       // Expose React & ReactDOM globally BEFORE UMD bundle executes to prevent React hook errors
       window.React = React;
@@ -46,10 +48,7 @@ export default function PydahAiChat({
       window.PYDAH_AI_ASSISTANT_ID = activeAssistantId;
       window.PYDAH_AI_TITLE = title;
       window.PYDAH_AI_WELCOME_MESSAGE = welcomeMessage;
-
-      if (activeToken) {
-        window.PYDAH_AI_AUTH_TOKEN = activeToken;
-      }
+      window.PYDAH_AI_AUTH_TOKEN = activeToken;
 
       console.log(`🤖 [Pydah AI Chat UI] Connected AI Central Engine Base URL: ${activeApiBaseUrl}`);
       console.log(`🤖 [Pydah AI Chat UI] Persona: ${activeAssistantId} | Auth Token Present: ${!!activeToken}`);
@@ -90,7 +89,20 @@ export default function PydahAiChat({
         setIsLoaded(true);
       }
     }
-  }, [activeApiBaseUrl, activeAssistantId, activeToken, title, welcomeMessage]);
+
+    return () => {
+      // Remove any lingering floating elements if unmounted or user logs out
+      if (mode === 'widget') {
+        const lingering = document.querySelectorAll('.pydah-ai-widget-container, #pydah-ai-root, .pydah-ai-floating-btn');
+        lingering.forEach(el => el.remove());
+      }
+    };
+  }, [activeApiBaseUrl, activeAssistantId, activeToken, title, welcomeMessage, mode]);
+
+  // Strictly only show if an authenticated token is present
+  if (!activeToken) {
+    return null;
+  }
 
   // Hide floating widget button on dedicated AI Assistant page
   if (mode === 'widget' && isAiAssistantPage) {

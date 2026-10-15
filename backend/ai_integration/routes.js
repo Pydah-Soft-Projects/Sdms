@@ -128,8 +128,8 @@ const handleExecuteTool = async (req, res) => {
         handler = tools.get_student_marks;
       } else if (name.includes('fee') || name.includes('due') || name.includes('pay') || name.includes('tuition')) {
         handler = tools.get_student_fees;
-      } else if (name.includes('time') || name.includes('sched') || name.includes('class')) {
-        handler = tools.get_student_timetable;
+      } else if (name.includes('time') || name.includes('sched') || name.includes('class') || name.includes('period') || name.includes('routine')) {
+        handler = tools.get_my_timetable;
       } else if (name.includes('ticket') || name.includes('complain') || name.includes('issue')) {
         handler = tools.get_student_tickets;
       } else if (name.includes('transp') || name.includes('bus') || name.includes('route')) {
@@ -149,17 +149,7 @@ const handleExecuteTool = async (req, res) => {
 
     // Build userContext
     const reqUser = req.user || {};
-    const userContext = {
-      userId: reqUser.id || reqUser.student_id || reqUser.userId || reqUser.user_id || reqUser.pinNo || reqUser.admissionNumber,
-      id: reqUser.id || reqUser.student_id || reqUser.user_id,
-      role: reqUser.role || 'student',
-      pinNo: reqUser.pinNo || reqUser.pin_no,
-      admissionNumber: reqUser.admissionNumber || reqUser.admission_number,
-      username: reqUser.username || reqUser.name || reqUser.full_name,
-      email: reqUser.email,
-      college_id: reqUser.college_id,
-      branch_id: reqUser.branch_id
-    };
+    const userContext = buildUserContext(reqUser);
 
     // Execute tool handler
     const result = await handler(userContext, toolArgs);
@@ -191,7 +181,44 @@ const handleExecuteTool = async (req, res) => {
   }
 };
 
+const buildUserContext = (reqUser = {}) => ({
+  userId: reqUser.id || reqUser.student_id || reqUser.userId || reqUser.user_id || reqUser.pinNo || reqUser.admissionNumber,
+  id: reqUser.id || reqUser.student_id || reqUser.user_id,
+  role: reqUser.role || 'student',
+  pinNo: reqUser.pinNo || reqUser.pin_no,
+  admissionNumber: reqUser.admissionNumber || reqUser.admission_number,
+  username: reqUser.username || reqUser.name || reqUser.full_name,
+  email: reqUser.email,
+  college_id: reqUser.college_id,
+  branch_id: reqUser.branch_id
+});
+
+// Direct Timetable HTTP Endpoints for AI & Client Apps
+const handleDirectMyTimetable = async (req, res) => {
+  try {
+    const userContext = buildUserContext(req.user);
+    const args = { ...req.query, ...req.body };
+    const result = await tools.get_my_timetable(userContext, args);
+    return res.json({
+      success: true,
+      ...result,
+      result
+    });
+  } catch (err) {
+    console.error('[AI Integration] Direct timetable error:', err);
+    return res.status(200).json({
+      success: false,
+      error: err.message || 'Failed to fetch timetable'
+    });
+  }
+};
+
 // Register endpoints
+router.get('/my-timetable', aiAuthMiddleware, handleDirectMyTimetable);
+router.get('/timetable', aiAuthMiddleware, handleDirectMyTimetable);
+router.post('/my-timetable', aiAuthMiddleware, handleDirectMyTimetable);
+router.post('/timetable', aiAuthMiddleware, handleDirectMyTimetable);
+
 router.post('/execute-tool', aiAuthMiddleware, handleExecuteTool);
 router.post('/execute_tool', aiAuthMiddleware, handleExecuteTool);
 router.post('/', aiAuthMiddleware, handleExecuteTool);

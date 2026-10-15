@@ -236,14 +236,17 @@ exports.unifiedLogin = async (req, res) => {
       }
 
       const [studentDetails] = await masterPool.query(
-        `SELECT s.student_name, s.student_mobile, s.pin_no, s.batch, s.current_year, s.current_semester, s.student_photo, 
+        `SELECT s.student_name, s.student_mobile, s.pin_no, s.batch, s.current_year, s.current_semester, s.section, s.student_photo, 
           s.course, s.branch, s.college,
-          cb.id as branch_id, col.id as college_id, c.level as course_level,
+          COALESCE(s.branch_id, cb.id) as branch_id,
+          COALESCE(s.college_id, col.id) as college_id,
+          COALESCE(s.course_id, c.id) as course_id,
+          c.level as course_level,
           s.registration_status, s.student_data
          FROM students s
-         LEFT JOIN colleges col ON s.college COLLATE utf8mb4_unicode_ci = col.name COLLATE utf8mb4_unicode_ci
-         LEFT JOIN courses c ON s.course COLLATE utf8mb4_unicode_ci = c.name COLLATE utf8mb4_unicode_ci AND c.college_id = col.id
-         LEFT JOIN course_branches cb ON s.branch COLLATE utf8mb4_unicode_ci = cb.name COLLATE utf8mb4_unicode_ci AND cb.course_id = c.id
+         LEFT JOIN colleges col ON (s.college_id = col.id OR s.college COLLATE utf8mb4_unicode_ci = col.name COLLATE utf8mb4_unicode_ci)
+         LEFT JOIN courses c ON (s.course_id = c.id OR (s.course COLLATE utf8mb4_unicode_ci = c.name COLLATE utf8mb4_unicode_ci AND c.college_id = col.id))
+         LEFT JOIN course_branches cb ON (s.branch_id = cb.id OR (s.branch COLLATE utf8mb4_unicode_ci = cb.name COLLATE utf8mb4_unicode_ci AND cb.course_id = c.id))
          WHERE s.id = ? LIMIT 1`,
         [studentCred.student_id]
       );
@@ -256,7 +259,11 @@ exports.unifiedLogin = async (req, res) => {
           pinNo: s.pin_no || studentCred.username,
           role: 'student',
           college_id: s.college_id,
-          branch_id: s.branch_id
+          branch_id: s.branch_id,
+          course_id: s.course_id,
+          current_year: s.current_year,
+          current_semester: s.current_semester,
+          section: s.section
         }, process.env.JWT_SECRET, { expiresIn: '24h' });
 
         // Helper to resolve status
@@ -279,7 +286,9 @@ exports.unifiedLogin = async (req, res) => {
           name: s.student_name,
           current_year: s.current_year,
           current_semester: s.current_semester,
+          section: s.section,
           course: s.course,
+          course_id: s.course_id,
           course_level: s.course_level,
           branch: s.branch,
           college: s.college,

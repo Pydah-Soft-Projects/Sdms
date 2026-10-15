@@ -54,10 +54,10 @@ import InstallPrompt from '../PWA/InstallPrompt';
 import { getSubscriptionStatus, registerServiceWorker, subscribeUser } from '../../services/pushService';
 import RegistrationPendingModal from '../RegistrationPendingModal';
 import { getTicketAppUrl } from '../../utils/ticketAppUrl';
-import { navigateToCrtApp } from '../../utils/crtAppUrl';
 import { resolveRegistrationBranchYear } from '../../config/registrationBranchYear';
 import { computeRegistrationStageDisplays, isRegistrationPortalUnlocked } from '../../config/registrationStages.jsx';
 import TopHeaderBar from '../student/TopHeaderBar';
+import PydahAiChat from '../PydahAiChat';
 
 const StudentLayout = ({ children }) => {
     // State
@@ -789,6 +789,16 @@ const StudentLayout = ({ children }) => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Pydah AI Floating Assistant - ONLY rendered for logged-in students with active token */}
+            {user && (
+                <PydahAiChat
+                    mode="widget"
+                    title="Pydah Student Assistant"
+                    welcomeMessage="Hi! How can I help you with your timetable, attendance, or courses today?"
+                    position="bottom-right"
+                />
             )}
         </div>
     );

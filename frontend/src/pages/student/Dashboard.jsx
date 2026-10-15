@@ -289,8 +289,9 @@ const Dashboard = () => {
 
                 // 9. Timetable & Period Slots
                 Promise.allSettled([
-                    api.get('/timetable', { params: { branch_id: user.branch_id, year: user.current_year, semester: user.current_semester || 1 } }),
-                    api.get('/period-slots', { params: { college_id: user.college_id } })
+                    api.get('/timetable/my-timetable', { params: { year: user?.current_year, semester: user?.current_semester || 1 } })
+                        .catch(() => api.get('/timetable', { params: { branch_id: user?.branch_id, branch: user?.branch, year: user?.current_year, semester: user?.current_semester || 1 } })),
+                    api.get('/period-slots', { params: { college_id: user?.college_id } })
                 ]).then(([timetableRes, periodSlotsRes]) => {
                     if (timetableRes.status === 'fulfilled' && timetableRes.value.data?.success && periodSlotsRes.status === 'fulfilled' && periodSlotsRes.value.data?.success) {
                         const allTimetable = timetableRes.value.data.data;

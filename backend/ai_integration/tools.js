@@ -3,8 +3,9 @@
  * Wraps existing backend services and database queries for Pydah AI orchestration.
  */
 
-const { masterPool } = require('../config/database');
+const { masterPool, academicPool } = require('../config/database');
 const { checkStudentAccess } = require('./permissions');
+const { fetchTimetableData } = require('../controllers/timetableController');
 
 // Helper to resolve student record from user_context or arguments
 async function resolveStudent(userContext, targetId) {
@@ -352,46 +353,169 @@ async function get_my_fees(userContext, args = {}) {
   return get_student_fees(userContext, args);
 }
 
+const DAY_MAP = {
+  'mon': 'Monday', 'monday': 'Monday',
+  'tue': 'Tuesday', 'tues': 'Tuesday', 'tuesday': 'Tuesday',
+  'wed': 'Wednesday', 'wednesday': 'Wednesday',
+  'thu': 'Thursday', 'thur': 'Thursday', 'thurs': 'Thursday', 'thursday': 'Thursday',
+  'fri': 'Friday', 'friday': 'Friday',
+  'sat': 'Saturday', 'saturday': 'Saturday',
+  'sun': 'Sunday', 'sunday': 'Sunday'
+};
+
+function normalizeDay(day) {
+  if (!day) return '';
+  const clean = String(day).trim().toLowerCase();
+  return DAY_MAP[clean] || day;
+}
+
 /**
- * 5. Get Student Timetable & Schedule
+ * 5. Get Student Timetable & Schedule (Context & Authentication Aware)
  */
 async function get_student_timetable(userContext, args = {}) {
-  const studentId = args.student_id || args.studentId;
+  const studentId = args.student_id || args.studentId || args.pin_no || args.admission_number;
   const student = await resolveStudent(userContext, studentId);
 
+  // Determine branch_id
+  let branchId = args.branch_id || student.branch_id;
+  if (!branchId && student.branch) {
+    try {
+      const [bRows] = await masterPool.query(
+        'SELECT id FROM course_branches WHERE name = ? OR code = ? LIMIT 1',
+        [student.branch, student.branch]
+      );
+      if (bRows && bRows.length > 0) {
+        branchId = bRows[0].id;
+      }
+    } catch (e) {
+      console.warn('Branch id resolution notice:', e.message);
+    }
+  }
+
+  const year = args.year || student.current_year || 1;
+  const semester = args.semester || student.current_semester || 1;
+  const section = args.section || student.section;
+
   let schedule = [];
+  let source = 'academic_portal';
+  let planMetadata = null;
 
   try {
-    const [rows] = await masterPool.query(
-      `SELECT t.day_of_week, ps.start_time, ps.end_time, ps.period_name, s.name as subject_name, f.name as faculty_name
-       FROM timetable t
-       JOIN period_slots ps ON t.period_slot_id = ps.id
-       LEFT JOIN subjects s ON t.subject_id = s.id
-       LEFT JOIN faculty f ON t.faculty_id = f.id
-       WHERE t.branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1)
-         AND (t.section = ? OR t.section IS NULL)
-       ORDER BY FIELD(t.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), ps.start_time`,
-      [student.branch, student.section]
-    );
+    const fetchRes = await fetchTimetableData({
+      branch_id: branchId,
+      year: year,
+      semester: semester,
+      section: section,
+      student_id: student.id,
+      faculty_id: ['faculty', 'teacher', 'branch_faculty'].includes(String(userContext.role || '').toLowerCase()) ? userContext.id : null
+    });
 
-    schedule = (rows || []).map(r => ({
-      day: r.day_of_week,
-      period: r.period_name,
-      time: `${r.start_time} - ${r.end_time}`,
-      subject: r.subject_name || 'Subject',
-      faculty: r.faculty_name || 'Faculty Member'
-    }));
+    source = fetchRes.source || 'academic_portal';
+    planMetadata = fetchRes.plan || null;
+
+    if (fetchRes.data && Array.isArray(fetchRes.data)) {
+      schedule = fetchRes.data.map(r => {
+        const dayNorm = normalizeDay(r.day_of_week);
+        const startTimeStr = r.start_time ? String(r.start_time).substring(0, 5) : '';
+        const endTimeStr = r.end_time ? String(r.end_time).substring(0, 5) : '';
+        const timeDisplay = startTimeStr && endTimeStr ? `${startTimeStr} - ${endTimeStr}` : 'Scheduled';
+
+        return {
+          day: dayNorm,
+          day_short: r.day_of_week,
+          period: r.slot_label || r.period_name || (r.slot_order ? `Slot ${r.slot_order}` : 'Period'),
+          slot_order: r.slot_order || r.period_slot_id || 1,
+          time: timeDisplay,
+          start_time: r.start_time || null,
+          end_time: r.end_time || null,
+          subject: r.subject_name || r.custom_label || 'Subject',
+          subject_code: r.subject_code || '',
+          faculty: r.faculty_name || r.teacher_name || r.faculty || r.staff_name || 'Faculty Member',
+          type: r.type || r.entry_type || 'theory',
+          room: r.room_label || '',
+          batch: r.batch_label || ''
+        };
+      });
+    }
   } catch (err) {
-    console.warn('Timetable lookup fallback:', err.message);
+    console.warn('Timetable lookup error:', err.message);
+  }
+
+  // Today's day name
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const now = new Date();
+  const todayDay = dayNames[now.getDay()];
+
+  // Today's schedule
+  const todaySchedule = schedule.filter(s => s.day === todayDay);
+
+  // Group weekly schedule by day
+  const weeklySchedule = {
+    Monday: [],
+    Tuesday: [],
+    Wednesday: [],
+    Thursday: [],
+    Friday: [],
+    Saturday: []
+  };
+  schedule.forEach(item => {
+    if (weeklySchedule[item.day]) {
+      weeklySchedule[item.day].push(item);
+    }
+  });
+
+  // Calculate current and upcoming next class today
+  let currentClass = null;
+  let nextClass = null;
+
+  if (todaySchedule.length > 0) {
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+    const currentTimeMinutes = currentHours * 60 + currentMinutes;
+
+    for (const slot of todaySchedule) {
+      if (slot.start_time && slot.end_time) {
+        const [sh, sm] = String(slot.start_time).split(':').map(Number);
+        const [eh, em] = String(slot.end_time).split(':').map(Number);
+        const startMins = sh * 60 + sm;
+        const endMins = eh * 60 + em;
+
+        if (currentTimeMinutes >= startMins && currentTimeMinutes <= endMins) {
+          currentClass = slot;
+        } else if (currentTimeMinutes < startMins && !nextClass) {
+          nextClass = slot;
+        }
+      }
+    }
+    if (!nextClass && todaySchedule.length > 0) {
+      nextClass = todaySchedule[0];
+    }
   }
 
   return {
     student_name: student.student_name,
+    pin_no: student.pin_no,
+    roll_number: student.roll_number,
+    admission_number: student.admission_number,
     branch: student.branch,
     section: student.section,
     current_year: student.current_year,
     current_semester: student.current_semester,
-    schedule: schedule
+    today_day: todayDay,
+    total_classes_today: todaySchedule.length,
+    today_schedule: todaySchedule,
+    current_class: currentClass,
+    next_class: nextClass,
+    schedule: schedule,
+    weekly_schedule: weeklySchedule,
+    source: source,
+    plan_info: planMetadata ? {
+      plan_id: planMetadata.id,
+      academic_year: planMetadata.academic_year_label,
+      batch: planMetadata.batch,
+      status: planMetadata.status,
+      version: planMetadata.version_no
+    } : null
   };
 }
 
@@ -562,8 +686,16 @@ const dues = get_student_fees;
 const get_timetable = get_student_timetable;
 const get_my_student_timetable = get_student_timetable;
 const student_timetable = get_student_timetable;
+const my_timetable = get_student_timetable;
 const timetable = get_student_timetable;
 const schedule = get_student_timetable;
+const my_schedule = get_student_timetable;
+const get_today_timetable = get_student_timetable;
+const today_timetable = get_student_timetable;
+const get_class_schedule = get_student_timetable;
+const class_schedule = get_student_timetable;
+const fetch_my_timetable = get_student_timetable;
+const fetch_timetable = get_student_timetable;
 
 const get_tickets = get_student_tickets;
 const get_my_student_tickets = get_student_tickets;
@@ -641,8 +773,16 @@ const toolRegistry = {
   get_my_student_timetable,
   get_timetable,
   student_timetable,
+  my_timetable,
   timetable,
   schedule,
+  my_schedule,
+  get_today_timetable,
+  today_timetable,
+  get_class_schedule,
+  class_schedule,
+  fetch_my_timetable,
+  fetch_timetable,
 
   // Tickets Aliases
   get_student_tickets,

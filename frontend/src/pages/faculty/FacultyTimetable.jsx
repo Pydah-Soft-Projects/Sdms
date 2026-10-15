@@ -14,28 +14,12 @@ const FacultyTimetable = () => {
 
     const normalizeSlotTimings = (rawSlots) => {
         if (!Array.isArray(rawSlots)) return [];
-        return rawSlots.map(slot => {
-            const sName = String(slot.slot_name || slot.name || slot.label || '').trim().toUpperCase();
-            const sOrder = Number(slot.sort_order ?? slot.id ?? 0);
-
-            let updatedSlot = { ...slot };
-
-            if (sName === 'P3' || sName.includes('P3') || sOrder === 3) {
-                updatedSlot.start_time = '10:55:00';
-                updatedSlot.end_time = '11:05:00';
-            } else if (sName === 'P4' || sName.includes('P4') || sOrder === 4) {
-                updatedSlot.start_time = '11:05:00';
-                updatedSlot.end_time = '12:45:00';
-            } else if (sName === 'P6' || sName.includes('P6') || sOrder === 6) {
-                updatedSlot.start_time = '12:45:00';
-                updatedSlot.end_time = '13:45:00';
-            } else if (sName === 'P7' || sName.includes('P7') || sOrder === 7) {
-                updatedSlot.start_time = '13:45:00';
-                updatedSlot.end_time = '14:35:00';
-            }
-
-            return updatedSlot;
-        });
+        return rawSlots.map(slot => ({
+            ...slot,
+            slot_name: slot.slot_name || slot.name || slot.label || `P${slot.sort_order || slot.id || ''}`,
+            start_time: slot.start_time || '',
+            end_time: slot.end_time || ''
+        }));
     };
 
     useEffect(() => {

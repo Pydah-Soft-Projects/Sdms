@@ -1,16 +1,110 @@
 const { masterPool, academicPool } = require('../config/database');
 
-exports.list = async (req, res) => {
-    try {
-        const { branch_id, year, semester, faculty_id } = req.query;
+const DAY_MAP = {
+    'mon': 'Monday', 'monday': 'Monday',
+    'tue': 'Tuesday', 'tues': 'Tuesday', 'tuesday': 'Tuesday',
+    'wed': 'Wednesday', 'wednesday': 'Wednesday',
+    'thu': 'Thursday', 'thur': 'Thursday', 'thurs': 'Thursday', 'thursday': 'Thursday',
+    'fri': 'Friday', 'friday': 'Friday',
+    'sat': 'Saturday', 'saturday': 'Saturday',
+    'sun': 'Sunday', 'sunday': 'Sunday'
+};
 
-        // 1. Try querying Academic Portal DB (ap_timetable_plans & ap_timetable_entries)
-        if (year && semester) {
+const normalizeDay = (day) => {
+    if (!day) return '';
+    const clean = String(day).trim().toLowerCase();
+    return DAY_MAP[clean] || day;
+};
+
+/**
+ * Timetable data fetcher - Strictly from Academic Portal DB (academic_portal)
+ */
+async function fetchTimetableData({ branch_id, branch, year, semester, section, faculty_id, faculty_name, student_id }) {
+    try {
+        if (!branch_id && branch) {
             try {
-                let plans = [];
+                const [bRows] = await masterPool.query(
+                    'SELECT id FROM course_branches WHERE name = ? OR code = ? LIMIT 1',
+                    [branch, branch]
+                );
+                if (bRows && bRows.length > 0) branch_id = bRows[0].id;
+            } catch (e) {}
+        }
+        // 1. Faculty Timetable Lookup in Academic Portal DB
+        if (faculty_id || faculty_name) {
+            let staffId = faculty_id;
+            let staffDisplayName = faculty_name;
+
+            try {
+                const [staffRows] = await academicPool.query(
+                    `SELECT id, display_name, employee_code FROM ap_staff_link 
+                     WHERE id = ? OR hrms_employee_id = ? OR employee_code = ? OR display_name = ? LIMIT 1`,
+                    [faculty_id, faculty_id, faculty_id, faculty_name || faculty_id]
+                );
+                if (staffRows && staffRows.length > 0) {
+                    staffId = staffRows[0].id;
+                    staffDisplayName = staffRows[0].display_name;
+                }
+            } catch (staffErr) {
+                console.warn('Academic Portal staff link lookup warning:', staffErr.message);
+            }
+
+            const [facultyEntries] = await academicPool.query(
+                `SELECT 
+                    e.*,
+                    p.branch_id,
+                    p.year_of_study,
+                    p.semester_number,
+                    p.section_name,
+                    p.academic_year_label,
+                    sl.display_name as faculty_name,
+                    sl.display_name as teacher_name,
+                    sl.display_name as faculty,
+                    sl.display_name as staff_name,
+                    ts.slot_order,
+                    COALESCE(ts.slot_order, e.period_slot_id, e.timing_slot_id) as slot_order_id,
+                    ts.label as slot_label,
+                    ts.start_time,
+                    ts.end_time,
+                    COALESCE(e.entry_type, 'subject') as type,
+                    COALESCE(e.span, 1) as span
+                 FROM ap_timetable_entries e
+                 JOIN ap_timetable_plans p ON p.id = e.plan_id
+                 LEFT JOIN ap_timing_template_slots ts ON (ts.id = e.period_slot_id OR ts.id = e.timing_slot_id)
+                 LEFT JOIN ap_staff_link sl ON sl.id = e.faculty_staff_link_id
+                 WHERE (e.faculty_staff_link_id = ? OR sl.display_name = ?)
+                 ORDER BY FIELD(e.day_of_week, 'MON', 'TUE', 'WED', 'THUR', 'THU', 'FRI', 'SAT', 'SUN', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), ts.slot_order`,
+                [staffId, staffDisplayName || '']
+            );
+
+            return {
+                success: true,
+                data: facultyEntries || [],
+                source: 'academic_portal'
+            };
+        }
+
+        // 2. Student & Branch Timetable Lookup in Academic Portal DB
+        if (year && semester) {
+            let plans = [];
+
+            // A. Match branch and section
+            if (branch_id && section) {
+                [plans] = await academicPool.query(
+                    `SELECT id, timing_template_id, batch, year_of_study, semester_number, section_name, status, version_no, academic_year_label
+                     FROM ap_timetable_plans
+                     WHERE branch_id = ? AND year_of_study = ? AND semester_number = ? AND section_name = ?
+                     ORDER BY (status = 'published') DESC, version_no DESC, id DESC
+                     LIMIT 1`,
+                    [branch_id, year, semester, section]
+                );
+            }
+
+            // B. Match branch, year, semester
+            if (!plans || plans.length === 0) {
                 if (branch_id) {
                     [plans] = await academicPool.query(
-                        `SELECT id, timing_template_id, batch, year_of_study, semester_number
+                        `SELECT id, timing_template_id, batch, year_of_study, semester_number, section_name, status, version_no, academic_year_label
                          FROM ap_timetable_plans
                          WHERE branch_id = ? AND year_of_study = ? AND semester_number = ?
                          ORDER BY (status = 'published') DESC, version_no DESC, id DESC
@@ -18,75 +112,261 @@ exports.list = async (req, res) => {
                         [branch_id, year, semester]
                     );
                 }
+            }
 
-                if (!plans || plans.length === 0) {
+            // C. Fallback: Match year and semester across college
+            if (!plans || plans.length === 0) {
+                [plans] = await academicPool.query(
+                    `SELECT id, timing_template_id, batch, year_of_study, semester_number, section_name, status, version_no, academic_year_label
+                     FROM ap_timetable_plans
+                     WHERE year_of_study = ? AND semester_number = ?
+                     ORDER BY (status = 'published') DESC, version_no DESC, id DESC
+                     LIMIT 1`,
+                    [year, semester]
+                );
+            }
+
+            // D. Fallback: Match branch (any published plan for branch)
+            if (!plans || plans.length === 0) {
+                if (branch_id) {
                     [plans] = await academicPool.query(
-                        `SELECT id, timing_template_id, batch, year_of_study, semester_number
+                        `SELECT id, timing_template_id, batch, year_of_study, semester_number, section_name, status, version_no, academic_year_label
                          FROM ap_timetable_plans
-                         WHERE year_of_study = ? AND semester_number = ?
+                         WHERE branch_id = ?
                          ORDER BY (status = 'published') DESC, version_no DESC, id DESC
                          LIMIT 1`,
-                        [year, semester]
+                        [branch_id]
                     );
                 }
+            }
 
-                if (plans && plans.length > 0) {
-                    const planId = plans[0].id;
-                    const [apRows] = await academicPool.query(
-                        `SELECT 
-                            e.*,
-                            sl.display_name as faculty_name,
-                            sl.display_name as teacher_name,
-                            sl.display_name as faculty,
-                            sl.display_name as staff_name,
-                            ts.slot_order,
-                            COALESCE(ts.slot_order, e.period_slot_id, e.timing_slot_id) as slot_order_id,
-                            ts.label as slot_label,
-                            ts.start_time,
-                            ts.end_time,
-                            COALESCE(e.entry_type, 'subject') as type,
-                            COALESCE(e.span, 1) as span
-                         FROM ap_timetable_entries e
-                         LEFT JOIN ap_timing_template_slots ts ON (ts.id = e.period_slot_id OR ts.id = e.timing_slot_id)
-                         LEFT JOIN ap_staff_link sl ON sl.id = e.faculty_staff_link_id
-                         WHERE e.plan_id = ?
-                         ORDER BY e.day_of_week, ts.slot_order`,
-                        [planId]
-                    );
+            // E. Fallback: Latest active plan in Academic Portal
+            if (!plans || plans.length === 0) {
+                [plans] = await academicPool.query(
+                    `SELECT id, timing_template_id, batch, year_of_study, semester_number, section_name, status, version_no, academic_year_label
+                     FROM ap_timetable_plans
+                     ORDER BY (status = 'published') DESC, version_no DESC, id DESC
+                     LIMIT 1`
+                );
+            }
 
-                    if (apRows.length > 0) {
-                        return res.json({ success: true, data: apRows, source: 'academic_portal' });
+            if (plans && plans.length > 0) {
+                const plan = plans[0];
+                const [apRows] = await academicPool.query(
+                    `SELECT 
+                        e.*,
+                        sl.display_name as faculty_name,
+                        sl.display_name as teacher_name,
+                        sl.display_name as faculty,
+                        sl.display_name as staff_name,
+                        ts.slot_order,
+                        COALESCE(ts.slot_order, e.period_slot_id, e.timing_slot_id) as slot_order_id,
+                        ts.label as slot_label,
+                        ts.start_time,
+                        ts.end_time,
+                        COALESCE(e.entry_type, 'subject') as type,
+                        COALESCE(e.span, 1) as span
+                     FROM ap_timetable_entries e
+                     LEFT JOIN ap_timing_template_slots ts ON (ts.id = e.period_slot_id OR ts.id = e.timing_slot_id)
+                     LEFT JOIN ap_staff_link sl ON sl.id = e.faculty_staff_link_id
+                     WHERE e.plan_id = ?
+                     ORDER BY FIELD(e.day_of_week, 'MON', 'TUE', 'WED', 'THUR', 'THU', 'FRI', 'SAT', 'SUN', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), ts.slot_order`,
+                    [plan.id]
+                );
+
+                let filteredRows = apRows || [];
+                if (student_id) {
+                    const studentSpecific = filteredRows.filter(r => {
+                        if (!r.student_ids) return false;
+                        try {
+                            const sids = typeof r.student_ids === 'string' ? JSON.parse(r.student_ids) : r.student_ids;
+                            return Array.isArray(sids) && sids.includes(Number(student_id));
+                        } catch (e) {
+                            return false;
+                        }
+                    });
+                    if (studentSpecific.length > 0) {
+                        filteredRows = studentSpecific;
                     }
                 }
-            } catch (apErr) {
-                console.warn('Academic Portal DB timetable fetch notice:', apErr.message);
+
+                // Also fetch timing template slots directly from Academic Portal
+                let planSlots = [];
+                if (plan.timing_template_id) {
+                    try {
+                        const [tSlots] = await academicPool.query(
+                            `SELECT DISTINCT slot_order as id, slot_order, label as slot_name, label as name, MIN(start_time) as start_time, MAX(end_time) as end_time, slot_type, slot_order as sort_order
+                             FROM ap_timing_template_slots
+                             WHERE template_id = ?
+                             GROUP BY slot_order, label, slot_type
+                             ORDER BY slot_order ASC`,
+                            [plan.timing_template_id]
+                        );
+                        planSlots = tSlots || [];
+                    } catch (tsErr) {
+                        console.warn('Academic Portal plan template slots fetch notice:', tsErr.message);
+                    }
+                }
+
+                return {
+                    success: true,
+                    data: filteredRows,
+                    plan: plan,
+                    slots: planSlots,
+                    source: 'academic_portal'
+                };
+            }
+
+            return {
+                success: true,
+                data: [],
+                plan: null,
+                slots: [],
+                source: 'academic_portal',
+                message: `No timetable plan found in Academic Portal for Year ${year} Sem ${semester}`
+            };
+        }
+
+        return {
+            success: false,
+            data: [],
+            source: 'academic_portal',
+            message: 'branch_id, year, and semester (or faculty_id) are required'
+        };
+    } catch (apErr) {
+        console.error('Academic Portal timetable fetch error:', apErr);
+        return {
+            success: false,
+            data: [],
+            source: 'academic_portal',
+            error: apErr.message
+        };
+    }
+}
+
+exports.fetchTimetableData = fetchTimetableData;
+
+exports.list = async (req, res) => {
+    try {
+        let { branch_id, branch, year, semester, faculty_id, section } = req.query;
+
+        // Auto-detect student profile if user is authenticated and parameters are missing
+        if (req.user && (!branch_id || !year || !semester)) {
+            const lookupVal = req.user.id || req.user.pinNo || req.user.pin_no || req.user.admissionNumber || req.user.admission_number || req.user.username;
+            if (lookupVal) {
+                try {
+                    const [students] = await masterPool.query(
+                        `SELECT s.branch_id, s.current_year, s.current_semester, s.section, cb.name as branch_name 
+                         FROM students s 
+                         LEFT JOIN course_branches cb ON cb.id = s.branch_id
+                         WHERE s.id = ? OR s.pin_no = ? OR s.admission_number = ? LIMIT 1`,
+                        [lookupVal, lookupVal, lookupVal]
+                    );
+                    if (students && students.length > 0) {
+                        branch_id = branch_id || students[0].branch_id;
+                        branch = branch || students[0].branch_name;
+                        year = year || students[0].current_year;
+                        semester = semester || students[0].current_semester || 1;
+                        section = section || students[0].section;
+                    }
+                } catch (e) {}
             }
         }
 
-        // 2. Fallback to SDMS Master DB (student_database)
-        let query = `SELECT te.*, s.name as subject_name, s.code as subject_code, b.name as branch_name
-                     FROM timetable_entries te
-                     LEFT JOIN subjects s ON s.id = te.subject_id
-                     LEFT JOIN course_branches b ON b.id = te.branch_id`;
-        let params = [];
-        let conditions = [];
-
-        if (branch_id && year && semester) {
-            conditions.push(`te.branch_id = ? AND te.year_of_study = ? AND te.semester_number = ?`);
-            params.push(branch_id, year, semester);
-        } else if (faculty_id) {
-            conditions.push(`te.subject_id IN (SELECT subject_id FROM faculty_subjects WHERE rbac_user_id = ?)`);
-            params.push(faculty_id);
-        } else {
-            return res.status(400).json({ success: false, message: 'branch context or faculty_id is required' });
-        }
-
-        query += ` WHERE ` + conditions.join(' AND ') + ` ORDER BY te.day_of_week, te.period_slot_id`;
-        const [rows] = await masterPool.query(query, params);
-
-        res.json({ success: true, data: rows, source: 'master' });
+        const result = await fetchTimetableData({ branch_id, branch, year, semester, faculty_id, section });
+        res.json({ success: true, data: result.data || [], slots: result.slots || [], source: result.source, plan: result.plan });
     } catch (error) {
         console.error('timetable list error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch timetable' });
+    }
+};
+
+/**
+ * Get My Timetable (Context-Aware for Logged-in Student or Faculty)
+ */
+exports.getMyTimetable = async (req, res) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+        }
+
+        const role = String(user.role || '').toLowerCase();
+        let branchId = req.query.branch_id || user.branchId || user.branch_id;
+        let year = req.query.year || user.current_year || user.year || user.year_of_study;
+        let semester = req.query.semester || user.current_semester || user.semester || user.semester_number;
+        let section = req.query.section || user.section;
+        let branch = req.query.branch || user.branch;
+        let studentRecord = null;
+        let facultyId = null;
+
+        // If user is student or role is undefined, lookup student profile
+        if (role === 'student' || (!branchId && !year && !['admin', 'super_admin'].includes(role))) {
+            const lookupVal = user.id || user.pinNo || user.pin_no || user.admissionNumber || user.admission_number || user.username;
+            if (lookupVal) {
+                const [students] = await masterPool.query(
+                    `SELECT s.id, s.student_name, s.pin_no, s.admission_number, s.branch_id, s.current_year, s.current_semester, s.section, s.batch,
+                            s.branch, cb.name as branch_name, c.name as course_name
+                     FROM students s
+                     LEFT JOIN course_branches cb ON cb.id = s.branch_id
+                     LEFT JOIN courses c ON c.id = s.course_id
+                     WHERE s.id = ? OR s.pin_no = ? OR s.admission_number = ? OR s.admission_no = ? LIMIT 1`,
+                    [lookupVal, lookupVal, lookupVal, lookupVal]
+                );
+
+                if (students && students.length > 0) {
+                    studentRecord = students[0];
+                    branchId = branchId || studentRecord.branch_id;
+                    branch = branch || studentRecord.branch || studentRecord.branch_name;
+                    year = year || studentRecord.current_year;
+                    semester = semester || studentRecord.current_semester || 1;
+                    section = section || studentRecord.section;
+                }
+            }
+        }
+
+        if (['faculty', 'teacher', 'branch_faculty'].includes(role)) {
+            facultyId = user.id;
+        }
+
+        const result = await fetchTimetableData({
+            branch_id: branchId,
+            branch: branch,
+            year: year || 1,
+            semester: semester || 1,
+            section: section,
+            faculty_id: facultyId,
+            student_id: studentRecord ? studentRecord.id : user.id
+        });
+
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const todayName = dayNames[new Date().getDay()];
+
+        const todaySchedule = (result.data || []).filter(item => {
+            const norm = normalizeDay(item.day_of_week);
+            return norm === todayName;
+        });
+
+        return res.json({
+            success: true,
+            source: result.source,
+            student: studentRecord || {
+                id: user.id,
+                username: user.username,
+                role: user.role,
+                branch_id: branchId,
+                current_year: year,
+                current_semester: semester,
+                section: section
+            },
+            today_day: todayName,
+            today_schedule: todaySchedule,
+            data: result.data || [],
+            slots: result.slots || [],
+            plan: result.plan || null
+        });
+    } catch (error) {
+        console.error('getMyTimetable error:', error);
         res.status(500).json({ success: false, message: 'Failed to fetch timetable' });
     }
 };

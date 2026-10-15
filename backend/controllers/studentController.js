@@ -6996,7 +6996,7 @@ exports.login = async (req, res) => {
     }
 
     const [studentRows] = await masterPool.query(
-      `SELECT s.admission_number, s.admission_no, s.pin_no, s.student_name, s.student_mobile, s.current_year, s.current_semester, s.student_photo, s.course, s.branch, s.college, s.batch
+      `SELECT s.admission_number, s.admission_no, s.pin_no, s.student_name, s.student_mobile, s.current_year, s.current_semester, s.student_photo, s.course, s.branch, s.college, s.batch, s.branch_id, s.course_id, s.college_id, s.section
        FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id
        WHERE s.id = ?
        LIMIT 1`,
@@ -7018,7 +7018,11 @@ exports.login = async (req, res) => {
         id: studentValid.student_id,
         admissionNumber: studentValid.admission_number,
         pinNo: studentProfile.pin_no || studentValid.username,
-        role: 'student'
+        role: 'student',
+        branch_id: studentProfile.branch_id,
+        college_id: studentProfile.college_id,
+        course_id: studentProfile.course_id,
+        section: studentProfile.section
       },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
@@ -7035,7 +7039,11 @@ exports.login = async (req, res) => {
       course: studentProfile.course,
       branch: studentProfile.branch,
       college: studentProfile.college,
-      student_photo: studentProfile.student_photo
+      student_photo: studentProfile.student_photo,
+      branch_id: studentProfile.branch_id,
+      course_id: studentProfile.course_id,
+      college_id: studentProfile.college_id,
+      section: studentProfile.section
     };
 
     res.json({

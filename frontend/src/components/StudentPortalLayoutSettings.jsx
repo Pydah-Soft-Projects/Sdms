@@ -18,7 +18,8 @@ import {
     EyeOff,
     Bus,
     Wallet,
-    Award
+    Award,
+    Sparkles
 } from 'lucide-react';
 import api from '../config/api';
 
@@ -27,6 +28,7 @@ const StudentPortalLayoutSettings = ({ readOnly = false }) => {
     const [saving, setSaving] = useState(false);
     const [layout, setLayout] = useState({
         dashboard: true,
+        'ai-assistant': true,
         announcements: true,
         clubs: true,
         events: true,
@@ -37,9 +39,9 @@ const StudentPortalLayoutSettings = ({ readOnly = false }) => {
         services: true,
         'my-tickets': true,
         feedback: true,
-      transport: false,
-      fees: false,
-      scholarship: true
+        transport: false,
+        fees: false,
+        scholarship: true
     });
 
     useEffect(() => {
@@ -85,6 +87,7 @@ const StudentPortalLayoutSettings = ({ readOnly = false }) => {
 
     const components = [
         { key: 'dashboard', label: 'Dashboard', icon: Home, description: 'Direct access to overview and quick stats' },
+        { key: 'ai-assistant', label: 'AI Assistant', icon: Sparkles, description: 'Interactive AI chat assistant and dedicated assistant page' },
         { key: 'announcements', label: 'Announcements', icon: Megaphone, description: 'Official college notices and news' },
         { key: 'clubs', label: 'Clubs', icon: Users, description: 'Student associations and activities' },
         { key: 'events', label: 'Event Calendar', icon: Calendar, description: 'Upcoming college events and schedule' },

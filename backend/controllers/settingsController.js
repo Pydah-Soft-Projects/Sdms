@@ -360,6 +360,7 @@ exports.getStudentLayoutSettings = async (req, res) => {
 
     let layout = {
       dashboard: true,
+      'ai-assistant': true,
       announcements: true,
       clubs: true,
       events: true,

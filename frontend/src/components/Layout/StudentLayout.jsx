@@ -306,6 +306,15 @@ const StudentLayout = ({ children }) => {
         }
     }, [location.pathname, isPending]);
 
+    // If AI Assistant is disabled in layout settings, block direct access to /student/ai-assistant
+    useEffect(() => {
+        if (layoutSettings && (layoutSettings['ai-assistant'] === false || layoutSettings.ai_assistant === false)) {
+            if (location.pathname === '/student/ai-assistant') {
+                navigate('/student/dashboard', { replace: true });
+            }
+        }
+    }, [location.pathname, layoutSettings, navigate]);
+
     const handleNavigation = (e, path) => {
         if (isPending && !allowedPaths.includes(path)) {
             e.preventDefault();
@@ -381,7 +390,10 @@ const StudentLayout = ({ children }) => {
 
         if (layoutSettings) {
             const key = item.path.replace('/student/', '');
-            if (!item.isCrtApp && layoutSettings[key] === false) return false;
+            if (!item.isCrtApp) {
+                if (layoutSettings[key] === false) return false;
+                if (key === 'ai-assistant' && layoutSettings.ai_assistant === false) return false;
+            }
         }
 
         return true;
@@ -791,8 +803,8 @@ const StudentLayout = ({ children }) => {
                 </div>
             )}
 
-            {/* Pydah AI Floating Assistant - ONLY rendered for logged-in students with active token */}
-            {user && (
+            {/* Pydah AI Floating Assistant - ONLY rendered for logged-in students with active token when enabled in layout settings */}
+            {user && (layoutSettings ? (layoutSettings['ai-assistant'] !== false && layoutSettings.ai_assistant !== false) : true) && (
                 <PydahAiChat
                     mode="widget"
                     title="Pydah Student Assistant"

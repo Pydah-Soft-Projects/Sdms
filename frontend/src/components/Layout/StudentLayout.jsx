@@ -452,9 +452,9 @@ const StudentLayout = ({ children }) => {
                 ${isBirthday ? 'bg-white/95 border-amber-200/60 shadow-[4px_0_24px_-2px_rgba(245,158,11,0.05)]' : 'bg-white/95 border-gray-200/60 shadow-[4px_0_24px_-2px_rgba(0,0,0,0.02)]'}
                 ${desktopSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
-                <div className="h-full flex flex-col">
+                <div className="h-full w-full flex flex-col min-h-0 overflow-hidden">
                     {/* Logo Area */}
-                    <div className={`h-16 lg:h-[4.25rem] flex items-center justify-between px-5 border-b transition-all duration-300 ${isBirthday ? 'border-amber-100 bg-gradient-to-r from-amber-50/50 to-orange-50/30' : 'border-gray-100/80 bg-white/50'}`}>
+                    <div className={`shrink-0 h-16 lg:h-[4.25rem] flex items-center justify-between px-5 border-b transition-all duration-300 ${isBirthday ? 'border-amber-100 bg-gradient-to-r from-amber-50/50 to-orange-50/30' : 'border-gray-100/80 bg-white/50'}`}>
                         <div className="flex items-center gap-3.5 group cursor-pointer" onClick={() => navigate('/student/dashboard')}>
                             <div className={`h-11 w-11 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${isBirthday ? 'bg-gradient-to-br from-amber-500 to-orange-500 shadow-amber-200' : 'bg-gradient-to-br from-sky-500 to-indigo-600 shadow-sky-200'}`}>
                                 {isBirthday ? <span className="text-xl">🎂</span> : <span className="font-black text-xl tracking-tighter">S</span>}
@@ -474,7 +474,7 @@ const StudentLayout = ({ children }) => {
                     </div>
 
                     {/* Navigation */}
-                    <nav className="flex-1 px-3 py-4 lg:py-5 space-y-0.5 overflow-y-auto no-scrollbar scroll-smooth">
+                    <nav className="flex-1 min-h-0 px-3 py-4 lg:py-5 space-y-0.5 overflow-y-auto no-scrollbar scroll-smooth">
                         {navItems.map((item, index) => (
                             item.isCrtApp ? (
                                 <button
@@ -536,7 +536,7 @@ const StudentLayout = ({ children }) => {
                     {/* User Info Card */}
                     <div
                         onClick={() => navigate('/student/profile')}
-                        className={`mx-5 mb-3 p-4 rounded-2xl border relative overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-500 ${isBirthday ? 'bg-white border-amber-100 shadow-amber-100/20' : 'bg-white border-sky-100 shadow-sky-500/10'}`}
+                        className={`shrink-0 mx-5 mb-3 p-3.5 rounded-2xl border relative overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-500 ${isBirthday ? 'bg-white border-amber-100 shadow-amber-100/20' : 'bg-white border-sky-100 shadow-sky-500/10'}`}
                     >
                         <div className={`absolute top-0 right-0 w-20 h-20 rounded-bl-full -mr-10 -mt-10 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12 ${isBirthday ? 'bg-amber-50/80' : 'bg-sky-100/80'}`}></div>
                         <div className="flex items-center gap-3.5 relative z-10">
@@ -562,7 +562,7 @@ const StudentLayout = ({ children }) => {
                     </div>
 
                     {/* Logout */}
-                    <div className={`p-4 border-t ${isBirthday ? 'border-amber-100 bg-amber-50/30' : 'border-gray-100 bg-gray-50/30'}`}>
+                    <div className={`shrink-0 p-4 border-t ${isBirthday ? 'border-amber-100 bg-amber-50/30' : 'border-gray-100 bg-gray-50/30'}`}>
                         <button
                             onClick={handleLogout}
                             className={`flex items-center justify-center gap-2.5 px-4 py-3.5 w-full rounded-xl text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 group ${isBirthday ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-900 hover:bg-gray-800'}`}

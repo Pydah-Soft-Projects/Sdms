@@ -1,4 +1,5 @@
 const { masterPool, stagingPool } = require('../config/database');
+const { includeForgotPasswordLimit } = require('../middleware/forgotPasswordRateLimit');
 const { triggerAdmissionsSyncAsync, syncStudentToAdmissions, bulkSyncAllStudentsToAdmissions } = require('../services/admissionsSyncService');
 const { fetchActiveQuotaCodes } = require('./quotaController');
 const { resolveCasteIdByName, resolveCategoryIdByName } = require('./casteCategoryController');
@@ -545,7 +546,9 @@ const {
   fetchStudentTableSectionOptions,
   getConfiguredSectionsForBranch,
   resolveStudentPinSql,
-  resolveStudentNameSql
+  resolveStudentNameSql,
+  comparePins,
+  isPinInRange
 } = require('../services/sectionFilterService');
 const { buildStudentSearchCondition } = require('../services/rollNumberService');
 const { getScopeConditionString } = require('../utils/scoping');
@@ -7908,20 +7911,20 @@ exports.forgotPassword = async (req, res) => {
     const { mobileNumber } = req.body;
 
     if (!mobileNumber) {
-      return res.status(400).json({
+      return res.status(400).json(includeForgotPasswordLimit(req, {
         success: false,
         message: 'Mobile number is required'
-      });
+      }));
     }
 
     // Sanitize mobile number (keep only digits)
     const cleanMobile = mobileNumber.replace(/\D/g, '');
 
     if (cleanMobile.length < 10) {
-      return res.status(400).json({
+      return res.status(400).json(includeForgotPasswordLimit(req, {
         success: false,
         message: 'Invalid mobile number'
-      });
+      }));
     }
 
     // Find students with this mobile number
@@ -7933,10 +7936,10 @@ exports.forgotPassword = async (req, res) => {
     );
 
     if (students.length === 0) {
-      return res.status(404).json({
+      return res.status(404).json(includeForgotPasswordLimit(req, {
         success: false,
         message: 'No student found with this mobile number'
-      });
+      }));
     }
 
     const { generateCredentialsByAdmissionNumber } = require('../utils/studentCredentials');
@@ -7964,25 +7967,25 @@ exports.forgotPassword = async (req, res) => {
     const setCookie = results.some(r => r.success);
 
     if (!setCookie) {
-      return res.status(500).json({
+      return res.status(500).json(includeForgotPasswordLimit(req, {
         success: false,
         message: 'Failed to reset password for found students',
         results
-      });
+      }));
     }
 
-    res.json({
+    res.json(includeForgotPasswordLimit(req, {
       success: true,
       message: 'New password has been sent to your mobile number',
       data: results
-    });
+    }));
 
   } catch (error) {
     console.error('Forgot password error:', error);
-    res.status(500).json({
+    res.status(500).json(includeForgotPasswordLimit(req, {
       success: false,
       message: 'Server error while processing forgot password'
-    });
+    }));
   }
 };
 
@@ -9988,7 +9991,7 @@ exports.getSectionPartitionStudents = async (req, res) => {
       });
     }
 
-    const { configuredSections } = await getConfiguredSectionsForBranch({
+    const { configuredSections, sectionBreakdown } = await getConfiguredSectionsForBranch({
       course: normalizedCourse,
       branch: normalizedBranch
     });
@@ -10000,7 +10003,7 @@ exports.getSectionPartitionStudents = async (req, res) => {
       });
     }
 
-    const pageSize = Math.max(1, Math.min(parseInt(limit, 10) || 50, 200));
+    const pageSize = Math.max(1, Math.min(parseInt(limit, 10) || 50, 1000));
     const pageOffset = Math.max(0, parseInt(offset, 10) || 0);
 
     let scopeCondition = null;
@@ -10012,7 +10015,7 @@ exports.getSectionPartitionStudents = async (req, res) => {
     }
 
     const isNumeric = (val) => /^\d+$/.test(val);
-    let whereClause = `WHERE 1=1 AND s.batch = ? AND s.student_status = 'Regular'`;
+    let whereClause = `WHERE 1=1 AND s.batch = ? AND s.student_status = 'Regular' AND UPPER(TRIM(IFNULL(s.stud_type, ''))) NOT IN ('LATER', 'LSPOT', 'L.E')`;
     const params = [normalizedBatch];
 
     if (isNumeric(normalizedCollege)) {
@@ -10073,9 +10076,9 @@ exports.getSectionPartitionStudents = async (req, res) => {
        FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id
        ${whereClause}
        ORDER BY
-         CASE WHEN ${pinSql} IS NOT NULL AND ${pinSql} REGEXP '^[0-9]+$' THEN 0 ELSE 1 END ASC,
-         CASE WHEN ${pinSql} IS NOT NULL AND ${pinSql} REGEXP '^[0-9]+$' THEN CAST(${pinSql} AS UNSIGNED) END ASC,
-         ${pinSql} ASC,
+         CASE WHEN resolved_pin IS NOT NULL AND resolved_pin REGEXP '^[0-9]+$' THEN 0 ELSE 1 END ASC,
+         CASE WHEN resolved_pin IS NOT NULL AND resolved_pin REGEXP '^[0-9]+$' THEN CAST(resolved_pin AS UNSIGNED) END ASC,
+         resolved_pin ASC,
          s.admission_number ASC
        LIMIT ? OFFSET ?`,
       [...params, pageSize, pageOffset]
@@ -10096,6 +10099,7 @@ exports.getSectionPartitionStudents = async (req, res) => {
           section: row.section || null
         })),
         sections: configuredSections,
+        sectionBreakdown: sectionBreakdown || [],
         pagination: {
           total,
           limit: pageSize,
@@ -10235,63 +10239,78 @@ exports.bulkSaveSectionPartition = async (req, res) => {
     }
 
     const results = { success: 0, failed: 0, errors: [] };
+    const configuredSectionsCache = new Map();
 
-    for (const item of assignments) {
-      const admissionNumber = item?.admissionNumber || item?.admission_number;
-      if (!admissionNumber) {
-        results.failed += 1;
-        results.errors.push({ admissionNumber: null, message: 'Missing admission number' });
-        continue;
+    const getConfiguredSections = async (course, branch) => {
+      const cacheKey = `${course}___${branch}`;
+      if (configuredSectionsCache.has(cacheKey)) {
+        return configuredSectionsCache.get(cacheKey);
       }
+      const { configuredSections } = await getConfiguredSectionsForBranch({ course, branch });
+      const secList = configuredSections || [];
+      configuredSectionsCache.set(cacheKey, secList);
+      return secList;
+    };
 
-      const normalizedSection =
-        item.section === null || item.section === undefined || String(item.section).trim() === ''
-          ? ''
-          : String(item.section).trim();
+    const CONCURRENCY = 15;
+    for (let i = 0; i < assignments.length; i += CONCURRENCY) {
+      const chunk = assignments.slice(i, i + CONCURRENCY);
+      await Promise.all(
+        chunk.map(async (item) => {
+          const admissionNumber = item?.admissionNumber || item?.admission_number;
+          if (!admissionNumber) {
+            results.failed += 1;
+            results.errors.push({ admissionNumber: null, message: 'Missing admission number' });
+            return;
+          }
 
-      try {
-        const [studentRows] = await masterPool.query(
-          `SELECT id, course, branch, batch FROM students WHERE admission_number = ?${scopeClause} LIMIT 1`,
-          [admissionNumber, ...scopeParams]
-        );
+          const normalizedSection =
+            item.section === null || item.section === undefined || String(item.section).trim() === ''
+              ? ''
+              : String(item.section).trim();
 
-        if (studentRows.length === 0) {
-          results.failed += 1;
-          results.errors.push({ admissionNumber, message: 'Student not found' });
-          continue;
-        }
+          try {
+            const [studentRows] = await masterPool.query(
+              `SELECT id, course, branch, batch FROM students WHERE admission_number = ?${scopeClause} LIMIT 1`,
+              [admissionNumber, ...scopeParams]
+            );
 
-        const student = studentRows[0];
-        const { configuredSections } = await getConfiguredSectionsForBranch({
-          course: student.course,
-          branch: student.branch
-        });
+            if (studentRows.length === 0) {
+              results.failed += 1;
+              results.errors.push({ admissionNumber, message: 'Student not found' });
+              return;
+            }
 
-        if (!configuredSections.length) {
-          results.failed += 1;
-          results.errors.push({ admissionNumber, message: 'Section breakdown not enabled for branch' });
-          continue;
-        }
+            const student = studentRows[0];
+            const configuredSections = await getConfiguredSections(student.course, student.branch);
 
-        if (normalizedSection && !configuredSections.includes(normalizedSection)) {
-          results.failed += 1;
-          results.errors.push({ admissionNumber, message: `Invalid section: ${normalizedSection}` });
-          continue;
-        }
+            if (!configuredSections.length) {
+              results.failed += 1;
+              results.errors.push({ admissionNumber, message: 'Section breakdown not enabled for branch' });
+              return;
+            }
 
-        await sectionAssignmentService.applyStudentSectionValue({
-          studentId: student.id,
-          courseName: student.course,
-          branchName: student.branch,
-          batch: student.batch,
-          sectionName: normalizedSection
-        });
+            if (normalizedSection && !configuredSections.includes(normalizedSection)) {
+              results.failed += 1;
+              results.errors.push({ admissionNumber, message: `Invalid section: ${normalizedSection}` });
+              return;
+            }
 
-        results.success += 1;
-      } catch (itemError) {
-        results.failed += 1;
-        results.errors.push({ admissionNumber, message: itemError.message || 'Update failed' });
-      }
+            await sectionAssignmentService.applyStudentSectionValue({
+              studentId: student.id,
+              courseName: student.course,
+              branchName: student.branch,
+              batch: student.batch,
+              sectionName: normalizedSection
+            });
+
+            results.success += 1;
+          } catch (itemError) {
+            results.failed += 1;
+            results.errors.push({ admissionNumber, message: itemError.message || 'Update failed' });
+          }
+        })
+      );
     }
 
     if (results.success > 0) {
@@ -10308,6 +10327,168 @@ exports.bulkSaveSectionPartition = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to save section assignments'
+    });
+  }
+};
+
+exports.applyPinRangeSectionPartition = async (req, res) => {
+  try {
+    const { college, course, branch, batch, ranges } = req.body;
+
+    const normalizedCollege = typeof college === 'string' && college.trim() ? college.trim() : null;
+    const normalizedCourse = typeof course === 'string' && course.trim() ? course.trim() : null;
+    const normalizedBranch = typeof branch === 'string' && branch.trim() ? branch.trim() : null;
+    const normalizedBatch = typeof batch === 'string' && batch.trim() ? batch.trim() : null;
+
+    if (!normalizedCollege || !normalizedCourse || !normalizedBranch || !normalizedBatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'College, course, branch, and batch are required'
+      });
+    }
+
+    if (!Array.isArray(ranges) || ranges.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'At least one PIN range is required'
+      });
+    }
+
+    const { configuredSections } = await getConfiguredSectionsForBranch({
+      course: normalizedCourse,
+      branch: normalizedBranch
+    });
+
+    if (!configuredSections.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Section breakdown is not enabled for this branch'
+      });
+    }
+
+    let scopeCondition = null;
+    let scopeParams = [];
+    if (req.userScope) {
+      const scope = getScopeConditionString(req.userScope, 's');
+      scopeCondition = scope.scopeCondition;
+      scopeParams = scope.params;
+    }
+
+    const isNumeric = (val) => /^\d+$/.test(val);
+    let whereClause = `WHERE 1=1 AND s.batch = ? AND s.student_status = 'Regular' AND UPPER(TRIM(IFNULL(s.stud_type, ''))) NOT IN ('LATER', 'LSPOT', 'L.E')`;
+    const params = [normalizedBatch];
+
+    if (isNumeric(normalizedCollege)) {
+      whereClause += ` AND s.college_id = ?`;
+      params.push(parseInt(normalizedCollege, 10));
+    } else {
+      const { clause: collegeClause, params: collegeParams } = buildCollegeNameFilter(normalizedCollege, 's');
+      if (collegeClause !== '1=0') {
+        whereClause += ` AND ${collegeClause}`;
+        params.push(...collegeParams);
+      } else {
+        whereClause += ` AND 1=0`;
+      }
+    }
+
+    if (isNumeric(normalizedCourse)) {
+      whereClause += ` AND s.course_id = ?`;
+      params.push(parseInt(normalizedCourse, 10));
+    } else {
+      whereClause += ` AND s.course = ?`;
+      params.push(normalizedCourse);
+    }
+
+    if (isNumeric(normalizedBranch)) {
+      whereClause += ` AND s.branch_id = ?`;
+      params.push(parseInt(normalizedBranch, 10));
+    } else {
+      whereClause += ` AND s.branch = ?`;
+      params.push(normalizedBranch);
+    }
+
+    if (scopeCondition) {
+      whereClause += ` AND ${scopeCondition}`;
+      params.push(...scopeParams);
+    }
+
+    const pinSql = resolveStudentPinSql('s');
+    const [rows] = await masterPool.query(
+      `SELECT
+         s.id,
+         s.admission_number,
+         s.course,
+         s.branch,
+         s.batch,
+         ${pinSql} AS resolved_pin
+       FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id
+       ${whereClause}`,
+      params
+    );
+
+    const assignments = [];
+    for (const student of rows) {
+      const studentPin = student.resolved_pin;
+      if (!studentPin) continue;
+
+      for (const range of ranges) {
+        if (!range.section || !range.startPin || !range.endPin) continue;
+        if (isPinInRange(studentPin, range.startPin, range.endPin)) {
+          assignments.push({
+            studentId: student.id,
+            admissionNumber: student.admission_number,
+            section: range.section,
+            course: student.course,
+            branch: student.branch,
+            batch: student.batch
+          });
+          break;
+        }
+      }
+    }
+
+    const results = { success: 0, failed: 0, errors: [] };
+    const CONCURRENCY = 15;
+    for (let i = 0; i < assignments.length; i += CONCURRENCY) {
+      const chunk = assignments.slice(i, i + CONCURRENCY);
+      await Promise.all(
+        chunk.map(async (item) => {
+          try {
+            await sectionAssignmentService.applyStudentSectionValue({
+              studentId: item.studentId,
+              courseName: item.course,
+              branchName: item.branch,
+              batch: item.batch,
+              sectionName: item.section
+            });
+            results.success += 1;
+          } catch (e) {
+            results.failed += 1;
+            results.errors.push({ admissionNumber: item.admissionNumber, message: e.message });
+          }
+        })
+      );
+    }
+
+    if (results.success > 0) {
+      clearStudentsCache();
+    }
+
+    res.json({
+      success: results.failed === 0,
+      message: `Assigned ${results.success} student(s) into sections based on PIN range`,
+      data: {
+        totalStudents: rows.length,
+        assignedCount: results.success,
+        failedCount: results.failed,
+        assignments: assignments.map(a => ({ admissionNumber: a.admissionNumber, section: a.section }))
+      }
+    });
+  } catch (error) {
+    console.error('applyPinRangeSectionPartition error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to apply PIN range section partition'
     });
   }
 };

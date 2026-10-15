@@ -5,6 +5,13 @@ import useAuthStore from '../store/authStore';
 import toast from 'react-hot-toast';
 import api, { CRM_BACKEND_URL, CRM_FRONTEND_URL } from '../config/api';
 
+const normalizeForgotContact = (contact) => {
+  const trimmedContact = contact.trim();
+  return trimmedContact.includes('@')
+    ? trimmedContact.toLowerCase()
+    : trimmedContact.replace(/\D/g, '');
+};
+
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,12 +68,28 @@ const Login = () => {
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotContact, setForgotContact] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotAttemptsRemaining, setForgotAttemptsRemaining] = useState(null);
+  const [forgotLockedUntil, setForgotLockedUntil] = useState(null);
+  const [forgotLimitContact, setForgotLimitContact] = useState('');
   const [userTypeReset, setUserTypeReset] = useState('student');
+
+  const updateForgotPasswordLimit = (data, contact) => {
+    if (Number.isInteger(data?.attemptsRemaining)) {
+      setForgotAttemptsRemaining(data.attemptsRemaining);
+      setForgotLimitContact(normalizeForgotContact(contact));
+    }
+    if (Number.isFinite(data?.retryAfterMs) && data.retryAfterMs > 0) {
+      setForgotLockedUntil(Date.now() + data.retryAfterMs);
+    } else if (data && Number.isInteger(data.attemptsRemaining)) {
+      setForgotLockedUntil(null);
+    }
+  };
 
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
     const contact = forgotContact.trim();
     if (!contact) return;
+    if (forgotLockedUntil && Date.now() < forgotLockedUntil) return;
 
     setForgotLoading(true);
     try {
@@ -81,15 +104,34 @@ const Login = () => {
           : { mobileNumber: contact };
 
       const response = await api.post(endpoint, payload);
+      updateForgotPasswordLimit(response.data, contact);
       if (response.data.success) {
-        toast.success(response.data.message);
+        const remainingMessage = Number.isInteger(response.data.attemptsRemaining)
+          ? ` You have ${response.data.attemptsRemaining} attempts left today.`
+          : '';
+        const lockoutMessage = response.data.retryAfterMs > 0
+          ? response.data.attemptsRemaining === 0
+            ? ' Please try again when your 24-hour limit resets.'
+            : ' Please try again after one hour.'
+          : '';
+        toast.success(`${response.data.message}${remainingMessage}${lockoutMessage}`);
         setShowForgotModal(false);
         setForgotContact('');
       } else {
-        toast.error(response.data.message || 'Failed to send password');
+        const remainingMessage = Number.isInteger(response.data.attemptsRemaining)
+          && !response.data.message?.includes('attempts left')
+          ? ` You have ${response.data.attemptsRemaining} attempts left today.`
+          : '';
+        toast.error(`${response.data.message || 'Failed to send password'}${remainingMessage}`);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to send password. Try again.');
+      const responseData = error.response?.data;
+      updateForgotPasswordLimit(responseData, contact);
+      const remainingMessage = Number.isInteger(responseData?.attemptsRemaining)
+        && !responseData.message?.includes('attempts left')
+        ? ` You have ${responseData.attemptsRemaining} attempts left today.`
+        : '';
+      toast.error(`${responseData?.message || 'Failed to send password. Try again.'}${remainingMessage}`);
     } finally {
       setForgotLoading(false);
     }
@@ -97,6 +139,9 @@ const Login = () => {
 
   const isStudentLogin = activeTab === 'student';
   const isParentLogin = activeTab === 'parent';
+  const hasCurrentForgotPasswordLimit = Boolean(
+    forgotLimitContact && forgotLimitContact === normalizeForgotContact(forgotContact)
+  );
 
   useEffect(() => {
     setActiveTab(getTabFromPath());
@@ -641,6 +686,21 @@ const Login = () => {
             )}
 
             <form onSubmit={handleForgotSubmit}>
+              {hasCurrentForgotPasswordLimit && Number.isInteger(forgotAttemptsRemaining) && (
+                <p className="mb-4 text-sm text-gray-600" role="status">
+                  You have {forgotAttemptsRemaining} forgot password {forgotAttemptsRemaining === 1 ? 'attempt' : 'attempts'} left today.
+                  {forgotLockedUntil && currentTime.getTime() < forgotLockedUntil && (
+                    <span className="block mt-1 text-red-600">
+                      Try again in {Math.ceil((forgotLockedUntil - currentTime.getTime()) / 60000)} minute(s).
+                    </span>
+                  )}
+                  {forgotAttemptsRemaining === 0 && (
+                    <span className="block mt-1 text-red-600">
+                      The daily limit has been reached. Try again when your 24-hour limit resets.
+                    </span>
+                  )}
+                </p>
+              )}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {(!isStudentLogin && userTypeReset === 'staff') ? 'Email or Mobile Number' : 'Mobile Number'}
@@ -660,7 +720,12 @@ const Login = () => {
               </div>
               <button
                 type="submit"
-                disabled={forgotLoading}
+                disabled={forgotLoading || (
+                  hasCurrentForgotPasswordLimit && (
+                    Boolean(forgotLockedUntil && currentTime.getTime() < forgotLockedUntil)
+                    || forgotAttemptsRemaining === 0
+                  )
+                )}
                 className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-primary-dark disabled:opacity-50 flex justify-center items-center gap-2"
               >
                 {forgotLoading && <Loader2 className="animate-spin" size={16} />}

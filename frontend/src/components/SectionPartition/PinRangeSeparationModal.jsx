@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   X,
   SlidersHorizontal,
@@ -29,6 +29,7 @@ const PinRangeSeparationModal = ({
   onClose,
   filters,
   configuredSections = [],
+  sectionBreakdown = [],
   students = [],
   totalStudents = 0,
   loadingAllStudents = false,
@@ -36,25 +37,44 @@ const PinRangeSeparationModal = ({
   onSaveDirectly,
   saving = false
 }) => {
-  // Normalize configured section names list (e.g. ['A', 'B'] or ['Section A', 'Section B'])
+  // Normalize breakdown section items: [{ name: 'A', strength: 80 }, ...]
+  const breakdownList = useMemo(() => {
+    if (Array.isArray(sectionBreakdown) && sectionBreakdown.length > 0) {
+      return sectionBreakdown
+        .filter((item) => item && (item.name || typeof item === 'string'))
+        .map((item) => (typeof item === 'object' ? item : { name: String(item), strength: null }));
+    }
+    if (Array.isArray(configuredSections) && configuredSections.length > 0) {
+      return configuredSections
+        .filter(Boolean)
+        .map((item) => (typeof item === 'object' ? item : { name: String(item), strength: null }));
+    }
+    return [];
+  }, [sectionBreakdown, configuredSections]);
+
+  // Section names list (e.g. ['A', 'B', 'C', 'D'])
   const availableSectionNames = useMemo(() => {
-    return (configuredSections || [])
-      .map((item) => (typeof item === 'object' ? item?.name || item?.id : item))
-      .filter(Boolean);
-  }, [configuredSections]);
+    return breakdownList.map((item) => item.name).filter(Boolean);
+  }, [breakdownList]);
 
-  // Default number of sections: always 2 by default
-  const initialSectionCount = 2;
+  // Section breakdown limits the maximum number of sections dynamically!
+  const hasConfiguredBreakdown = breakdownList.length > 0;
+  const maxSectionsAllowed = hasConfiguredBreakdown ? breakdownList.length : 10;
+  const initialSectionCount = hasConfiguredBreakdown ? breakdownList.length : 2;
 
-  const [numberOfSections, setNumberOfSections] = useState(2);
+  const [numberOfSections, setNumberOfSections] = useState(initialSectionCount);
   const [ranges, setRanges] = useState([]);
   const [isApplying, setIsApplying] = useState(false);
+  const autoInitializedRef = useRef(false);
 
   // Initialize or re-initialize ranges when modal opens
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      autoInitializedRef.current = false;
+      return;
+    }
 
-    const count = initialSectionCount;
+    const count = Math.min(initialSectionCount, maxSectionsAllowed);
     setNumberOfSections(count);
 
     const initialRanges = Array.from({ length: count }, (_, idx) => {
@@ -70,34 +90,45 @@ const PinRangeSeparationModal = ({
     });
 
     setRanges(initialRanges);
-  }, [isOpen, initialSectionCount, availableSectionNames]);
+  }, [isOpen, initialSectionCount, maxSectionsAllowed, availableSectionNames]);
 
-  // Handle changing the number of sections
+  // Calculate real-time stats
+  const stats = useMemo(() => {
+    return calculateSectionRangeStats(students, ranges);
+  }, [students, ranges]);
+
+  // Handle changing the number of sections - all students must be fitted into the new section count
   const handleSectionCountChange = (newCount) => {
-    const targetCount = Math.max(1, Math.min(10, parseInt(newCount, 10) || 1));
+    const targetCount = Math.max(1, Math.min(maxSectionsAllowed, parseInt(newCount, 10) || 1));
     setNumberOfSections(targetCount);
 
+    const sortedStudents = stats.sortedStudentsWithPin;
+    const distributed =
+      sortedStudents.length > 0
+        ? distributeStudentsIntoSections(sortedStudents, targetCount, breakdownList)
+        : [];
+
     setRanges((prev) => {
-      if (targetCount === prev.length) return prev;
+      const nextRanges = [];
+      for (let i = 0; i < targetCount; i++) {
+        const existingRange = prev[i];
+        const usedNames = new Set(nextRanges.map((r) => r.section));
+        const sectionName =
+          existingRange?.section && !usedNames.has(existingRange.section)
+            ? existingRange.section
+            : availableSectionNames.find((name) => !usedNames.has(name)) ||
+              availableSectionNames[i] ||
+              (i < 26 ? `Section ${String.fromCharCode(65 + i)}` : `Section ${i + 1}`);
 
-      if (targetCount > prev.length) {
-        const added = [];
-        for (let i = prev.length; i < targetCount; i++) {
-          const defaultName =
-            availableSectionNames[i] ||
-            (i < 26 ? `Section ${String.fromCharCode(65 + i)}` : `Section ${i + 1}`);
-          added.push({
-            id: `range-${Date.now()}-${i}`,
-            section: defaultName,
-            startPin: '',
-            endPin: ''
-          });
-        }
-        return [...prev, ...added];
+        const item = distributed[i];
+        nextRanges.push({
+          id: existingRange?.id || `range-${Date.now()}-${i}`,
+          section: sectionName,
+          startPin: item ? item.startPin || '' : existingRange?.startPin || '',
+          endPin: item ? item.endPin || '' : existingRange?.endPin || ''
+        });
       }
-
-      // If reducing, trim from end
-      return prev.slice(0, targetCount);
+      return nextRanges;
     });
   };
 
@@ -114,45 +145,106 @@ const PinRangeSeparationModal = ({
     );
   };
 
-  // Add a new section range row
+  // Add a new section range row - strictly clamped by section breakdown and fits all students
   const handleAddSectionRow = () => {
-    if (ranges.length >= 10) {
-      toast.error('Maximum 10 sections allowed');
+    if (ranges.length >= maxSectionsAllowed) {
+      toast.error(
+        hasConfiguredBreakdown
+          ? `Cannot exceed ${maxSectionsAllowed} sections configured in section breakdown for this branch`
+          : 'Maximum 10 sections allowed'
+      );
       return;
     }
-    const nextIdx = ranges.length;
-    const defaultName =
-      availableSectionNames[nextIdx] ||
-      (nextIdx < 26 ? `Section ${String.fromCharCode(65 + nextIdx)}` : `Section ${nextIdx + 1}`);
-
-    setRanges((prev) => [
-      ...prev,
-      {
-        id: `range-${Date.now()}-${nextIdx}`,
-        section: defaultName,
-        startPin: '',
-        endPin: ''
-      }
-    ]);
-    setNumberOfSections((prev) => prev + 1);
+    const nextCount = ranges.length + 1;
+    handleSectionCountChange(nextCount);
   };
 
-  // Remove a section range row
+  // Remove a section range row - all students are fitted into the remaining sections
   const handleRemoveSectionRow = (id) => {
     if (ranges.length <= 1) {
       toast.error('At least one section is required');
       return;
     }
-    setRanges((prev) => prev.filter((r) => r.id !== id));
-    setNumberOfSections((prev) => Math.max(1, prev - 1));
+    const remainingRanges = ranges.filter((r) => r.id !== id);
+    const targetCount = remainingRanges.length;
+    setNumberOfSections(targetCount);
+
+    const sortedStudents = stats.sortedStudentsWithPin;
+    const distributed =
+      sortedStudents.length > 0
+        ? distributeStudentsIntoSections(sortedStudents, targetCount, breakdownList)
+        : [];
+
+    setRanges(
+      remainingRanges.map((r, idx) => {
+        const item = distributed[idx];
+        return {
+          ...r,
+          startPin: item ? item.startPin || '' : r.startPin || '',
+          endPin: item ? item.endPin || '' : r.endPin || ''
+        };
+      })
+    );
   };
 
-  // Calculate real-time stats
-  const stats = useMemo(() => {
-    return calculateSectionRangeStats(students, ranges);
-  }, [students, ranges]);
+  // Auto-fill ranges if empty when students are loaded and modal is opened
+  useEffect(() => {
+    if (!isOpen || autoInitializedRef.current) return;
+    if (ranges.length === 0 || stats.sortedStudentsWithPin.length === 0) return;
 
-  // Auto-distribute evenly across sections in PIN order
+    const allEmpty = ranges.every((r) => !r.startPin && !r.endPin);
+    if (!allEmpty) return;
+
+    const distributed = distributeStudentsIntoSections(
+      stats.sortedStudentsWithPin,
+      ranges.length,
+      breakdownList
+    );
+
+    if (distributed.length > 0) {
+      setRanges((prev) =>
+        prev.map((range, idx) => {
+          const item = distributed[idx];
+          if (!item) return range;
+          return {
+            ...range,
+            startPin: item.startPin || '',
+            endPin: item.endPin || ''
+          };
+        })
+      );
+      autoInitializedRef.current = true;
+    }
+  }, [isOpen, ranges, stats.sortedStudentsWithPin, breakdownList]);
+
+  // Helper to find 1-based serial number for a PIN
+  const getSerialForPin = (pin, isEnd = false) => {
+    if (!pin) return null;
+    const list = stats.sortedStudentsWithPin;
+    if (isEnd) {
+      for (let i = list.length - 1; i >= 0; i--) {
+        if (list[i]?.pinNo === pin) return i + 1;
+      }
+      return null;
+    }
+    const idx = list.findIndex((s) => s?.pinNo === pin);
+    return idx !== -1 ? idx + 1 : null;
+  };
+
+  // Helper to compute target serial range from section breakdown
+  const getBreakdownTargetRange = (index) => {
+    if (!breakdownList || !breakdownList[index]) return null;
+    const strength = Number(breakdownList[index].strength);
+    if (!strength) return null;
+    const start =
+      breakdownList
+        .slice(0, index)
+        .reduce((sum, item) => sum + (Number(item?.strength) || 0), 0) + 1;
+    const end = start + strength - 1;
+    return { start, end, strength, label: `${start}-${end}` };
+  };
+
+  // Auto-distribute across sections (uses breakdown capacities if configured)
   const handleAutoDistribute = () => {
     if (stats.sortedStudentsWithPin.length === 0) {
       toast.error('No students with PIN numbers found in this batch');
@@ -161,7 +253,8 @@ const PinRangeSeparationModal = ({
 
     const distributed = distributeStudentsIntoSections(
       stats.sortedStudentsWithPin,
-      ranges.length
+      ranges.length,
+      breakdownList
     );
 
     setRanges((prev) =>
@@ -176,8 +269,11 @@ const PinRangeSeparationModal = ({
       })
     );
 
+    const hasBreaks = breakdownList.some((b) => Number(b.strength) > 0);
     toast.success(
-      `Distributed ${stats.sortedStudentsWithPin.length} students across ${ranges.length} sections`
+      hasBreaks
+        ? `Distributed ${stats.sortedStudentsWithPin.length} students across ${ranges.length} sections based on section breakdown`
+        : `Distributed ${stats.sortedStudentsWithPin.length} students across ${ranges.length} sections`
     );
   };
 
@@ -377,9 +473,16 @@ const PinRangeSeparationModal = ({
               <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <div>
-                    <label htmlFor="num-sections-input" className="block text-xs font-bold uppercase tracking-wider text-indigo-900 mb-1">
-                      Number of Sections to Separate
-                    </label>
+                    <div className="flex items-center gap-2 mb-1">
+                      <label htmlFor="num-sections-input" className="block text-xs font-bold uppercase tracking-wider text-indigo-900">
+                        Number of Sections to Separate
+                      </label>
+                      {hasConfiguredBreakdown && (
+                        <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md">
+                          Breakdown Limit: Max {maxSectionsAllowed}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       <div className="inline-flex items-center border border-indigo-200 rounded-lg bg-white shadow-sm overflow-hidden">
                         <button
@@ -395,7 +498,7 @@ const PinRangeSeparationModal = ({
                           id="num-sections-input"
                           type="number"
                           min="1"
-                          max="10"
+                          max={maxSectionsAllowed}
                           value={numberOfSections}
                           onChange={(e) => handleSectionCountChange(e.target.value)}
                           className="w-14 text-center py-1.5 text-sm font-bold text-gray-900 border-x border-indigo-100 focus:outline-none"
@@ -403,9 +506,14 @@ const PinRangeSeparationModal = ({
                         <button
                           type="button"
                           onClick={() => handleSectionCountChange(numberOfSections + 1)}
-                          disabled={numberOfSections >= 10}
+                          disabled={numberOfSections >= maxSectionsAllowed}
                           className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                           aria-label="Increase section count"
+                          title={
+                            numberOfSections >= maxSectionsAllowed
+                              ? `Cannot exceed ${maxSectionsAllowed} sections configured in section breakdown`
+                              : 'Increase section count'
+                          }
                         >
                           +
                         </button>
@@ -421,7 +529,11 @@ const PinRangeSeparationModal = ({
                     onClick={handleAutoDistribute}
                     disabled={stats.withPinCount === 0}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Evenly divides regular students across sections by sorted PIN"
+                    title={
+                      hasConfiguredBreakdown
+                        ? 'Distribute students across sections according to configured section breakdown strengths'
+                        : 'Evenly divides regular students across sections by sorted PIN'
+                    }
                   >
                     <Sparkles size={14} />
                     Auto-Distribute Ranges
@@ -468,6 +580,10 @@ const PinRangeSeparationModal = ({
                     o.sections.includes(range.section)
                   );
 
+                  const startSerial = getSerialForPin(range.startPin, false);
+                  const endSerial = getSerialForPin(range.endPin, true);
+                  const targetConfig = getBreakdownTargetRange(index);
+
                   return (
                     <div
                       key={range.id}
@@ -488,9 +604,19 @@ const PinRangeSeparationModal = ({
                             {index + 1}
                           </span>
                           <div className="flex-1">
-                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                              Section Name
-                            </label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                Section Name
+                              </label>
+                              {targetConfig && (
+                                <span
+                                  className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.2 rounded"
+                                  title={`Target range from breakdown: S.No ${targetConfig.label} (${targetConfig.strength} capacity)`}
+                                >
+                                  Cap: {targetConfig.strength}
+                                </span>
+                              )}
+                            </div>
                             {availableSectionNames.length > 0 ? (
                               <select
                                 value={range.section}
@@ -499,9 +625,9 @@ const PinRangeSeparationModal = ({
                                 }
                                 className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                               >
-                                {availableSectionNames.map((s) => (
-                                  <option key={s} value={s}>
-                                    {s}
+                                {breakdownList.map((item) => (
+                                  <option key={item.name} value={item.name}>
+                                    Section {item.name}{item.strength ? ` (${item.strength} students)` : ''}
                                   </option>
                                 ))}
                                 {!availableSectionNames.includes(range.section) && (
@@ -522,42 +648,88 @@ const PinRangeSeparationModal = ({
                           </div>
                         </div>
 
-                        {/* PIN Range Inputs: Start to End */}
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:items-center">
+                        {/* PIN Range Dropdowns: Start to End */}
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:items-center">
+                          {/* From (Start PIN) Dropdown */}
                           <div>
-                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                              From (Start PIN)
-                            </label>
-                            <input
-                              type="text"
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                From (Start PIN)
+                              </label>
+                              {startSerial !== null && (
+                                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">
+                                  S.No #{startSerial}
+                                </span>
+                              )}
+                            </div>
+                            <select
                               value={range.startPin}
                               onChange={(e) =>
                                 handleRangeFieldChange(range.id, 'startPin', e.target.value)
                               }
-                              placeholder={stats.minPin ? `e.g. ${stats.minPin}` : 'Start PIN'}
-                              className="w-full uppercase font-mono border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            />
+                              className="w-full font-mono border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                            >
+                              <option value="">-- Select Start PIN --</option>
+                              {stats.sortedStudentsWithPin.map((student, sIdx) => {
+                                const sNo = sIdx + 1;
+                                return (
+                                  <option
+                                    key={`start-${range.id}-${student.pinNo}-${sIdx}`}
+                                    value={student.pinNo}
+                                  >
+                                    {sNo}. {student.pinNo}{student.studentName ? ` - ${student.studentName}` : ''}
+                                  </option>
+                                );
+                              })}
+                              {range.startPin &&
+                                !stats.sortedStudentsWithPin.some((s) => s.pinNo === range.startPin) && (
+                                  <option value={range.startPin}>{range.startPin}</option>
+                                )}
+                            </select>
                           </div>
 
+                          {/* To (End PIN) Dropdown */}
                           <div>
-                            <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                              To (End PIN)
-                            </label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                To (End PIN)
+                              </label>
+                              {endSerial !== null && (
+                                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">
+                                  S.No #{endSerial}
+                                </span>
+                              )}
+                            </div>
                             <div className="flex items-center gap-1.5">
-                              <input
-                                type="text"
+                              <select
                                 value={range.endPin}
                                 onChange={(e) =>
                                   handleRangeFieldChange(range.id, 'endPin', e.target.value)
                                 }
-                                placeholder={stats.maxPin ? `e.g. ${stats.maxPin}` : 'End PIN'}
-                                className="w-full uppercase font-mono border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                              />
+                                className="w-full font-mono border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                              >
+                                <option value="">-- Select End PIN --</option>
+                                {stats.sortedStudentsWithPin.map((student, sIdx) => {
+                                  const sNo = sIdx + 1;
+                                  return (
+                                    <option
+                                      key={`end-${range.id}-${student.pinNo}-${sIdx}`}
+                                      value={student.pinNo}
+                                    >
+                                      {sNo}. {student.pinNo}{student.studentName ? ` - ${student.studentName}` : ''}
+                                    </option>
+                                  );
+                                })}
+                                {range.endPin &&
+                                  !stats.sortedStudentsWithPin.some((s) => s.pinNo === range.endPin) && (
+                                    <option value={range.endPin}>{range.endPin}</option>
+                                  )}
+                              </select>
                               {ranges.length > 1 && (
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveSectionRow(range.id)}
-                                  className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                                  className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors shrink-0"
                                   title="Remove Section"
                                   aria-label="Remove Section"
                                 >
@@ -569,7 +741,7 @@ const PinRangeSeparationModal = ({
                         </div>
 
                         {/* Estimated Count Badge */}
-                        <div className="lg:w-44 flex lg:flex-col lg:items-end justify-between items-center shrink-0 border-t lg:border-t-0 pt-2 lg:pt-0">
+                        <div className="lg:w-48 flex lg:flex-col lg:items-end justify-between items-center shrink-0 border-t lg:border-t-0 pt-2 lg:pt-0">
                           <div className="text-xs text-gray-500 font-medium lg:hidden">
                             Estimated:
                           </div>
@@ -593,6 +765,14 @@ const PinRangeSeparationModal = ({
                               0 Students
                             </span>
                           )}
+
+                          {/* Serial Number Range comparison */}
+                          {startSerial && endSerial && !stat.isInvalidRange && (
+                            <div className="text-[11px] text-gray-500 text-right mt-1 font-mono">
+                              S.No {startSerial} → {endSerial}
+                            </div>
+                          )}
+
                           {hasOverlap && !stat.isInvalidRange && (
                             <span className="text-[10px] text-amber-600 font-semibold mt-1">
                               ⚠️ Overlaps with other range
@@ -605,8 +785,8 @@ const PinRangeSeparationModal = ({
                 })}
               </div>
 
-              {/* Add Section Button */}
-              {ranges.length < 10 && (
+              {/* Add Section Button - Clamped to Breakdown */}
+              {ranges.length < maxSectionsAllowed ? (
                 <button
                   type="button"
                   onClick={handleAddSectionRow}
@@ -615,7 +795,11 @@ const PinRangeSeparationModal = ({
                   <Plus size={16} />
                   Add Another Section
                 </button>
-              )}
+              ) : hasConfiguredBreakdown ? (
+                <div className="w-full py-2.5 px-4 rounded-xl bg-gray-50 border border-gray-200 text-center text-xs text-gray-500 font-medium">
+                  Maximum limit reached: {maxSectionsAllowed} of {maxSectionsAllowed} sections configured in section breakdown for {filters.branch || 'this branch'}
+                </div>
+              ) : null}
 
               {/* Missing PIN notes */}
               {stats.noPinCount > 0 && (

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const studentController = require('../controllers/studentController');
+const { forgotPasswordRateLimit } = require('../middleware/forgotPasswordRateLimit');
 
 const authMiddleware = require('../middleware/auth');
 const { attachUserScope, verifyPermission, allowStudentOwnProfileOrPermission } = require('../middleware/rbac');
@@ -22,7 +23,7 @@ const documentUpload = multer({
 
 // Public student login
 router.post('/login', studentController.login);
-router.post('/forgot-password', studentController.forgotPassword); // Public forgot password
+router.post('/forgot-password', forgotPasswordRateLimit, studentController.forgotPassword); // Public forgot password
 
 // Protected Change Password Route (Student)
 router.post(
@@ -120,6 +121,14 @@ router.post(
   verifyPermission(MODULES.SECTION_PARTITION, 'manage'),
   attachUserScope,
   studentController.bulkSaveSectionPartition
+);
+
+router.post(
+  '/section-partition/apply-pin-ranges',
+  authMiddleware,
+  verifyPermission(MODULES.SECTION_PARTITION, 'manage'),
+  attachUserScope,
+  studentController.applyPinRangeSectionPartition
 );
 
 router.use('/reports', require('./reports'));

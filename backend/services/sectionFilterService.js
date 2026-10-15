@@ -12,20 +12,33 @@ const resolveStudentSectionSql = (alias = 'students') =>
 /** @deprecated Use resolveStudentSectionSql — same source (students.section). */
 const resolveManualStudentSectionSql = resolveStudentSectionSql;
 
-const resolveStudentPinSql = (alias = 'students') => `NULLIF(TRIM(COALESCE(
-  NULLIF(TRIM(${alias}.pin_no), ''),
-  NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$.pin_no'))), ''),
-  NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$."Pin Number"'))), ''),
-  NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$.pin_number'))), ''),
-  NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$.PIN'))), '')
-)), '')`;
+const resolveStudentPinSql = (alias = 'students') => `CASE
+  WHEN NULLIF(TRIM(${alias}.pin_no), '') IS NOT NULL
+    AND NOT EXISTS (
+      SELECT 1 FROM student_roll_numbers srn
+      WHERE srn.student_id = ${alias}.id
+        AND srn.roll_number COLLATE utf8mb4_unicode_ci = ${alias}.pin_no COLLATE utf8mb4_unicode_ci
+    ) THEN TRIM(${alias}.pin_no)
+  WHEN ${alias}.student_data IS NOT NULL AND JSON_VALID(${alias}.student_data) = 1 THEN
+    NULLIF(TRIM(COALESCE(
+      NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$.pin_no'))), ''),
+      NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$."Pin Number"'))), ''),
+      NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$.pin_number'))), ''),
+      NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$.PIN'))), '')
+    )), '')
+  ELSE NULL
+END`;
 
-const resolveStudentNameSql = (alias = 'students') => `NULLIF(TRIM(COALESCE(
-  NULLIF(TRIM(${alias}.student_name), ''),
-  NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$.student_name'))), ''),
-  NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$."Student Name"'))), ''),
-  NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$.name'))), '')
-)), '')`;
+const resolveStudentNameSql = (alias = 'students') => `CASE
+  WHEN NULLIF(TRIM(${alias}.student_name), '') IS NOT NULL THEN TRIM(${alias}.student_name)
+  WHEN ${alias}.student_data IS NOT NULL AND JSON_VALID(${alias}.student_data) = 1 THEN
+    NULLIF(TRIM(COALESCE(
+      NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$.student_name'))), ''),
+      NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$."Student Name"'))), ''),
+      NULLIF(TRIM(JSON_UNQUOTE(JSON_EXTRACT(${alias}.student_data, '$.name'))), '')
+    )), '')
+  ELSE NULL
+END`;
 
 const parseBranchMetadata = (metadata) => {
   if (!metadata) return null;
@@ -41,7 +54,7 @@ const parseBranchMetadata = (metadata) => {
 
 const getConfiguredSectionsForBranch = async ({ course, branch } = {}) => {
   if (!branch) {
-    return { courseName: course || null, configuredSections: [] };
+    return { courseName: course || null, configuredSections: [], sectionBreakdown: [] };
   }
 
   if (course) {
@@ -59,7 +72,7 @@ const getConfiguredSectionsForBranch = async ({ course, branch } = {}) => {
     }
 
     if (courseRows.length === 0) {
-      return { courseName: course, configuredSections: [] };
+      return { courseName: course, configuredSections: [], sectionBreakdown: [] };
     }
 
     let branchRows;
@@ -76,17 +89,25 @@ const getConfiguredSectionsForBranch = async ({ course, branch } = {}) => {
     }
 
     if (branchRows.length === 0 || !branchRows[0].metadata) {
-      return { courseName: courseRows[0].name, configuredSections: [] };
+      return { courseName: courseRows[0].name, configuredSections: [], sectionBreakdown: [] };
     }
 
     const metadata = parseBranchMetadata(branchRows[0].metadata);
     if (!metadata?.sections?.enabled || !Array.isArray(metadata.sections.items)) {
-      return { courseName: course, configuredSections: [] };
+      return { courseName: course, configuredSections: [], sectionBreakdown: [] };
     }
+
+    const sectionBreakdown = metadata.sections.items.filter(
+      (item) => item && (item.name || typeof item === 'string')
+    );
+    const configuredSections = sectionBreakdown
+      .map((item) => (typeof item === 'object' ? item.name : item))
+      .filter(Boolean);
 
     return {
       courseName: courseRows[0].name,
-      configuredSections: metadata.sections.items.map((item) => item?.name).filter(Boolean)
+      configuredSections,
+      sectionBreakdown
     };
   }
 
@@ -115,13 +136,23 @@ const getConfiguredSectionsForBranch = async ({ course, branch } = {}) => {
       continue;
     }
 
-    const configuredSections = metadata.sections.items.map((item) => item?.name).filter(Boolean);
+    const sectionBreakdown = metadata.sections.items.filter(
+      (item) => item && (item.name || typeof item === 'string')
+    );
+    const configuredSections = sectionBreakdown
+      .map((item) => (typeof item === 'object' ? item.name : item))
+      .filter(Boolean);
+
     if (configuredSections.length > 0) {
-      return { courseName: row.course_name, configuredSections };
+      return {
+        courseName: row.course_name,
+        configuredSections,
+        sectionBreakdown
+      };
     }
   }
 
-  return { courseName: null, configuredSections: [] };
+  return { courseName: null, configuredSections: [], sectionBreakdown: [] };
 };
 
 /** Distinct section values from students.section only. */
@@ -171,6 +202,50 @@ const fetchStudentTableSectionOptions = async ({ course, branch, batch, year, se
 
 const fetchSectionFilterOptions = async (filters = {}) => fetchStudentTableSectionOptions(filters);
 
+const comparePins = (a, b) => {
+  const strA = String(a || '').trim().toUpperCase();
+  const strB = String(b || '').trim().toUpperCase();
+
+  const isNumA = /^\d+$/.test(strA);
+  const isNumB = /^\d+$/.test(strB);
+
+  if (isNumA && isNumB) {
+    const nA = parseInt(strA, 10);
+    const nB = parseInt(strB, 10);
+    return nA < nB ? -1 : nA > nB ? 1 : 0;
+  }
+
+  if (isNumA && !isNumB) return -1;
+  if (!isNumA && isNumB) return 1;
+
+  return strA < strB ? -1 : strA > strB ? 1 : 0;
+};
+
+const isPinInRange = (studentPin, startPin, endPin) => {
+  if (!studentPin || !startPin || !endPin) return false;
+  const s = String(studentPin).trim().toUpperCase();
+  const start = String(startPin).trim().toUpperCase();
+  const end = String(endPin).trim().toUpperCase();
+
+  if (comparePins(s, start) >= 0 && comparePins(s, end) <= 0) {
+    return true;
+  }
+
+  if (/^\d+$/.test(start) && /^\d+$/.test(end)) {
+    const startNum = parseInt(start, 10);
+    const endNum = parseInt(end, 10);
+    const match = s.match(/(\d+)$/);
+    if (match) {
+      const pinNum = parseInt(match[1], 10);
+      if (pinNum >= startNum && pinNum <= endNum) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
 module.exports = {
   resolveStudentSectionSql,
   resolveManualStudentSectionSql,
@@ -178,5 +253,8 @@ module.exports = {
   resolveStudentNameSql,
   fetchSectionFilterOptions,
   fetchStudentTableSectionOptions,
-  getConfiguredSectionsForBranch
+  getConfiguredSectionsForBranch,
+  comparePins,
+  isPinInRange
 };
+

@@ -720,7 +720,7 @@ const DigitalStudentCard = ({
   const collegeLogo =
     collegeDetails.logo && collegeDetails.logo !== '/logo.png' && !String(collegeDetails.logo).endsWith('/logo.png')
       ? collegeDetails.logo
-      : '/Pydah_logo_whitebg.avif';
+      : '/Pydah_logo.png';
   const signatureUrl =
     principalSignatureUrl ||
     (collegeDetails.principalSignatureUrl ? resolvePhotoUrl(collegeDetails.principalSignatureUrl) : null) ||
@@ -1116,11 +1116,12 @@ const DigitalStudentCard = ({
           }}
         >
           <img
-            src={collegeLogo || '/Pydah_logo_whitebg.avif'}
+            className="id-card-print-logo"
+            src={collegeLogo || '/Pydah_logo.png'}
             alt={collegeName}
             onError={(e) => {
-              if (e.currentTarget.src !== '/Pydah_logo_whitebg.avif') {
-                e.currentTarget.src = '/Pydah_logo_whitebg.avif';
+              if (!e.currentTarget.src.endsWith('/Pydah_logo.png')) {
+                e.currentTarget.src = '/Pydah_logo.png';
               }
             }}
             style={{
@@ -1162,6 +1163,7 @@ const DigitalStudentCard = ({
             return (
               <>
                 <span
+                  className="id-card-print-college-name"
                   style={{
                     display: 'block',
                     fontFamily: "'Inter', sans-serif",
@@ -1179,6 +1181,7 @@ const DigitalStudentCard = ({
                 </span>
                 {l2 && (
                   <span
+                    className="id-card-print-college-name"
                     style={{
                       display: 'block',
                       fontFamily: "'Inter', sans-serif",
@@ -1488,6 +1491,7 @@ const DigitalStudentCard = ({
             }}
           >
             <QRCodeSVG
+              className="id-card-print-qr"
               value={qrValue}
               size={300}
               level="M"
@@ -1511,6 +1515,7 @@ const DigitalStudentCard = ({
           >
             {/* Signature image — fills width, up to 6.5mm tall */}
             <img
+              className="id-card-print-signature"
               src={signatureUrl}
               alt="Principal Signature"
               style={{
@@ -1558,6 +1563,7 @@ const DigitalStudentCard = ({
           }}
         >
           <QRCodeSVG
+            className="id-card-print-qr"
             value={qrValue}
             size={300}
             level="M"

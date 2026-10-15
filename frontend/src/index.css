@@ -975,6 +975,28 @@ html.parent-portal #root {
         print-color-adjust: exact !important;
     }
 
+    body.printing-id-card #id-card-print-mount .id-card-print-logo {
+        filter: brightness(1.05) contrast(1.2) saturate(1.15) !important;
+    }
+
+    body.printing-id-card #id-card-print-mount .id-card-print-college-name {
+        color: #a90f1b !important;
+        -webkit-text-stroke: 0.12px currentColor;
+        text-shadow: 0 0 0.25px currentColor;
+        letter-spacing: 0 !important;
+    }
+
+    body.printing-id-card #id-card-print-mount .id-card-print-signature {
+        filter: brightness(1.08) contrast(1.4) !important;
+    }
+
+    body.printing-id-card #id-card-print-mount .id-card-print-qr path:last-of-type {
+        stroke: #000000 !important;
+        stroke-width: 0.08 !important;
+        stroke-linejoin: round !important;
+        shape-rendering: crispEdges !important;
+    }
+
     /* Multi-page: front then back */
     body.printing-id-card #id-card-print-mount .id-card-print-page {
         display: block !important;
@@ -1056,4 +1078,3 @@ div:has(> [data-hot-toast]),
 div:has(> div > [data-hot-toast]) {
   z-index: 999999999 !important;
 }
-

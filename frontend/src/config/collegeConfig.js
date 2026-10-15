@@ -18,21 +18,21 @@ export const COLLEGES = {
   pharmacy: {
     name: "Pydah College of Pharmacy",
     website: "",
-    logo: "/Pydah_logo_whitebg.avif",
+    logo: "/Pydah_logo.png",
     address: "Kakinada - 533003",
     contact: ""
   },
   engineering: {
     name: "Pydah College of Engineering",
     website: "",
-    logo: "/Pydah_logo_whitebg.avif",
+    logo: "/Pydah_logo.png",
     address: "Kakinada - 533003",
     contact: ""
   },
   degree: {
     name: "Pydah VRT Degree College",
     website: "",
-    logo: "/Pydah_logo_whitebg.avif",
+    logo: "/Pydah_logo.png",
     address: "Kakinada - 533003",
     contact: ""
   }
@@ -92,7 +92,7 @@ export const resolveCollegeDetails = (collegeProp, studentProp = {}) => {
   const resolvedLogo =
     customLogo && customLogo !== '/logo.png' && !String(customLogo).endsWith('/logo.png')
       ? customLogo
-      : (preset.logo || '/Pydah_logo_whitebg.avif');
+      : (preset.logo || '/Pydah_logo.png');
 
   const resolvedAddress =
     colObj.address ||
@@ -124,4 +124,3 @@ export const resolveCollegeDetails = (collegeProp, studentProp = {}) => {
     principalSignatureUrl: resolvedSignature,
   };
 };
-

@@ -52,6 +52,17 @@ const StudentTimetable = () => {
     const defaultDay = today >= 1 && today <= 6 ? days[today - 1] : 'MON';
     const [activeDay, setActiveDay] = useState(defaultDay);
 
+    // Responsive screen check for clean mobile view separation
+    const [isMobileScreen, setIsMobileScreen] = useState(() => typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobileScreen(window.innerWidth < 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     // Sync user default year/sem on load
     useEffect(() => {
         if (user?.current_year) setSelectedYear(Number(user.current_year) || 1);
@@ -59,14 +70,46 @@ const StudentTimetable = () => {
     }, [user]);
 
     const normalizeSlotTimings = (rawSlots) => {
-        if (!Array.isArray(rawSlots)) return [];
+        if (!Array.isArray(rawSlots) || rawSlots.length === 0) return [];
         return rawSlots.map(slot => ({
             ...slot,
-            slot_name: slot.slot_name || slot.name || slot.label || `P${slot.sort_order || slot.id || ''}`,
+            id: slot.id ?? slot.sort_order ?? slot.slot_order ?? 1,
+            sort_order: slot.sort_order ?? slot.slot_order ?? slot.id ?? 1,
+            slot_name: slot.slot_name || slot.name || slot.label || `P${slot.sort_order || slot.slot_order || slot.id || ''}`,
             start_time: slot.start_time || '',
-            end_time: slot.end_time || ''
+            end_time: slot.end_time || '',
+            slot_type: slot.slot_type || ''
         }));
     };
+
+    // Effective period slots without hardcoding - dynamically derived from API or timetable data
+    const effectiveSlots = useMemo(() => {
+        if (Array.isArray(periodSlots) && periodSlots.length > 0) {
+            return periodSlots;
+        }
+        if (Array.isArray(timetableData) && timetableData.length > 0) {
+            const slotMap = new Map();
+            timetableData.forEach(item => {
+                const order = Number(item.slot_order || item.slot_order_id || item.period_slot_id || 1);
+                const label = item.slot_label || `P${order}`;
+                if (!slotMap.has(order)) {
+                    slotMap.set(order, {
+                        id: item.period_slot_id || item.timing_slot_id || order,
+                        sort_order: order,
+                        slot_order: order,
+                        slot_name: label,
+                        name: label,
+                        start_time: item.start_time || '',
+                        end_time: item.end_time || '',
+                        slot_type: item.type || 'period'
+                    });
+                }
+            });
+            const extracted = Array.from(slotMap.values()).sort((a, b) => a.sort_order - b.sort_order);
+            if (extracted.length > 0) return extracted;
+        }
+        return [];
+    }, [periodSlots, timetableData]);
 
     // Fetch Timetable & Period Slots
     const fetchTimetableAndSlots = async (isManualRefresh = false) => {
@@ -161,10 +204,10 @@ const StudentTimetable = () => {
         return str;
     };
 
-    const getEntryForSlot = (day, slotObj) => {
+    const getEntryForSlot = (day, slotObj, slotIndex) => {
         if (!slotObj) return undefined;
-        const targetId = Number(typeof slotObj === 'object' ? (slotObj.id ?? slotObj.sort_order) : slotObj);
-        const targetSortOrder = Number(typeof slotObj === 'object' ? (slotObj.sort_order ?? slotObj.id) : slotObj);
+        const targetId = Number(typeof slotObj === 'object' ? (slotObj.id ?? slotObj.sort_order ?? slotObj.slot_order) : slotObj);
+        const targetSortOrder = Number(typeof slotObj === 'object' ? (slotObj.sort_order ?? slotObj.slot_order ?? slotObj.id) : slotObj);
         const targetLabel = String(typeof slotObj === 'object' ? (slotObj.slot_name || slotObj.name || '') : '').trim().toUpperCase();
 
         return timetableData.find(item => {
@@ -177,20 +220,21 @@ const StudentTimetable = () => {
             const itemLabel = String(item.slot_label || item.label || '').trim().toUpperCase();
 
             return (
-                itemSlotId === targetId ||
-                itemSlotOrder === targetSortOrder ||
-                itemSlotOrder === targetId ||
+                (itemSlotId && (itemSlotId === targetId || itemSlotId === targetSortOrder)) ||
+                (itemSlotOrder && (itemSlotOrder === targetSortOrder || itemSlotOrder === targetId)) ||
+                (slotIndex != null && itemSlotOrder === (slotIndex + 1)) ||
                 (targetLabel && itemLabel && targetLabel === itemLabel)
             );
         });
     };
 
     const getMobileEntryForSlot = (day, slotIndex) => {
-        const exactEntry = getEntryForSlot(day, periodSlots[slotIndex]?.id);
+        const slot = effectiveSlots[slotIndex];
+        const exactEntry = getEntryForSlot(day, slot, slotIndex);
         if (exactEntry) return { ...exactEntry, isStart: true };
 
         for (let i = 0; i < slotIndex; i++) {
-            const prevEntry = getEntryForSlot(day, periodSlots[i]?.id);
+            const prevEntry = getEntryForSlot(day, effectiveSlots[i], i);
             if (prevEntry && prevEntry.span > (slotIndex - i)) {
                 return { ...prevEntry, isCovered: true };
             }
@@ -408,44 +452,46 @@ const StudentTimetable = () => {
         const codeOrLabel = entry?.subject_code || (entry?.subject_name ? entry?.custom_label : null) || slot?.slot_name || 'Class';
         const facultyName = postedSlotLog?.faculty_name || entry?.faculty_name || entry?.teacher_name || entry?.faculty || entry?.staff_name;
 
-        // Mobile View Layout
+        // Mobile & Responsive Card Layout
         if (isMobile) {
             return (
                 <div
                     onClick={() => onClick && entry && onClick(entry, slot, day)}
-                    className={`w-full rounded-2xl border bg-white shadow-xs transition-all duration-200 group relative overflow-hidden p-3.5 space-y-2.5 ${entry ? 'hover:border-blue-500 hover:shadow-md cursor-pointer' : 'border-slate-200/90'} ${isBreakSlot ? 'bg-amber-50/30 border-amber-200/80' : ''}`}
+                    className={`w-full h-full flex flex-col justify-between rounded-2xl border bg-white shadow-xs transition-all duration-200 group relative overflow-hidden p-3.5 sm:p-4 space-y-3 ${entry ? 'hover:border-blue-500 hover:shadow-md cursor-pointer' : 'border-slate-200/90'} ${isBreakSlot ? 'bg-amber-50/30 border-amber-200/80' : ''}`}
                     title={entry ? 'Click to view teacher & subject attendance details' : undefined}
                 >
                     <div className={`absolute top-0 left-0 w-1.5 h-full ${barColor}`} />
 
-                    {/* 1. Top Row: P1 badge on left, THEORY/LAB badge on right */}
-                    <div className="flex items-center justify-between pl-1">
-                        <span className={`text-xs font-black uppercase px-2.5 py-0.5 rounded-lg border shadow-2xs ${periodBadgeStyle}`}>
-                            {slot?.slot_name || 'P1'}
-                        </span>
-                        <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${badgeStyle}`}>
-                            {badgeText}
-                        </span>
-                    </div>
+                    <div className="space-y-2">
+                        {/* 1. Top Row: P1 badge on left, THEORY/LAB badge on right */}
+                        <div className="flex items-center justify-between pl-1">
+                            <span className={`text-xs font-black uppercase px-2.5 py-0.5 rounded-lg border shadow-2xs ${periodBadgeStyle}`}>
+                                {slot?.slot_name || 'P1'}
+                            </span>
+                            <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${badgeStyle}`}>
+                                {badgeText}
+                            </span>
+                        </div>
 
-                    {/* 2. Timing line below P1 */}
-                    <div className="flex items-center gap-1.5 text-xs font-bold pl-1">
-                        <Clock size={13} className={`${timeColor} shrink-0`} />
-                        <span className="text-slate-600">
-                            {formatTimeTo12h(slot?.start_time)} {slot?.end_time ? `- ${formatTimeTo12h(slot?.end_time)}` : ''}
-                        </span>
-                    </div>
+                        {/* 2. Timing line below P1 */}
+                        <div className="flex items-center gap-1.5 text-xs font-bold pl-1">
+                            <Clock size={13} className={`${timeColor} shrink-0`} />
+                            <span className="text-slate-600">
+                                {formatTimeTo12h(slot?.start_time)} {slot?.end_time ? `- ${formatTimeTo12h(slot?.end_time)}` : ''}
+                            </span>
+                        </div>
 
-                    {/* 3. Subject Name */}
-                    <div className="pl-1">
-                        <h4 className="font-extrabold text-blue-950 text-sm sm:text-base leading-snug tracking-tight group-hover:text-blue-700 transition-colors">
-                            {titleText}
-                        </h4>
+                        {/* 3. Subject Name */}
+                        <div className="pl-1">
+                            <h4 className="font-extrabold text-blue-950 text-sm sm:text-base leading-snug tracking-tight group-hover:text-blue-700 transition-colors">
+                                {titleText}
+                            </h4>
+                        </div>
                     </div>
 
                     {/* 4. Footer: Subject Faculty Name & Subject Code */}
-                    {entry && (
-                        <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between pl-1 gap-2 text-xs min-w-0">
+                    {entry ? (
+                        <div className="mt-auto pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between pl-1 gap-2 text-xs min-w-0">
                             <div className="flex items-center gap-1.5 text-blue-950 font-extrabold min-w-0 flex-1" title={facultyName || 'Faculty'}>
                                 <UserCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                                 <span className="truncate">{facultyName || 'Department Faculty'}</span>
@@ -455,23 +501,33 @@ const StudentTimetable = () => {
                                 <span>{codeOrLabel}</span>
                             </div>
                         </div>
+                    ) : (
+                        <div className="mt-auto" />
                     )}
                 </div>
             );
         }
 
         // Desktop Grid Cell View
-        if (!entry) {
-            return (
-                <div className={`h-full w-full rounded-xl border flex flex-col items-center justify-center min-h-[105px] ${isBreakSlot ? 'bg-amber-50/60 border-amber-200/80' : 'bg-slate-50/30 border-slate-200/70 border-dashed'} p-1.5 text-center`}>
-                    <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border ${isBreakSlot ? 'bg-amber-100 text-amber-900 border-amber-300' : 'text-slate-400 border-slate-200 bg-white'}`}>
-                        {isBreakSlot ? (sName.includes('LUNCH') || slotType === 'lunch' ? 'LUNCH BREAK' : 'BREAK') : 'FREE SLOT'}
-                    </span>
-                    {isBreakSlot && (
-                        <span className="text-[8px] sm:text-[9px] font-bold text-amber-700/80 mt-0.5 leading-none">
+        if (!entry || isBreak) {
+            if (isBreakSlot) {
+                return (
+                    <div className="h-full w-full rounded-xl border border-amber-200/80 bg-amber-50/50 flex flex-col items-center justify-center min-h-[105px] p-1.5 text-center">
+                        <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
+                            BREAK
+                        </span>
+                        <span className="text-[9px] sm:text-[10px] font-bold text-amber-800 mt-1 leading-none">
                             {sName.includes('LUNCH') || slotType === 'lunch' ? 'Lunch Break' : 'Break'}
                         </span>
-                    )}
+                    </div>
+                );
+            }
+
+            return (
+                <div className="h-full w-full rounded-xl border border-slate-200/70 border-dashed bg-slate-50/30 flex flex-col items-center justify-center min-h-[105px] p-1.5 text-center">
+                    <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border text-slate-400 border-slate-200 bg-white">
+                        FREE SLOT
+                    </span>
                 </div>
             );
         }
@@ -516,10 +572,11 @@ const StudentTimetable = () => {
         <div className="space-y-4 sm:space-y-6 animate-fade-in w-full max-w-[1920px] mx-auto px-3 sm:px-4 md:px-6 pb-40 sm:pb-16 overflow-x-hidden">
 
             {/* ── Top Portal Header ── */}
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 shrink-0">
+            <header className="flex items-center justify-between gap-3 sm:gap-4 w-full shrink-0">
                 <div>
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold !text-blue-900 heading-font">
-                        Academic Timetable & Schedule
+                    <h1 className="text-xl sm:text-2xl font-extrabold !text-blue-900 heading-font leading-tight">
+                        <span className="block sm:inline">Academic Timetable</span>{' '}
+                        <span className="block sm:inline sm:ml-0.5">& Schedule</span>
                     </h1>
                     <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 font-semibold mt-0.5 flex flex-wrap items-center gap-1.5 sm:gap-2">
                         <BookOpen size={14} className="text-blue-600 shrink-0" />
@@ -531,28 +588,30 @@ const StudentTimetable = () => {
                     </p>
                 </div>
 
-                <div className="flex items-center justify-end sm:justify-start gap-2.5 sm:gap-3">
-                    {/* Attendance Pill (Hidden on Mobile View as requested) */}
-                    <div className="hidden sm:flex bg-white border border-slate-200 px-3.5 sm:px-4 py-2 rounded-xl shadow-xs items-center gap-2.5 sm:gap-3 shrink-0">
-                        <div className="p-1.5 sm:p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
-                            <Award size={18} />
-                        </div>
-                        <div>
-                            <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider leading-none mb-1">Academic Attendance</p>
-                            <div className="flex items-center gap-1.5 sm:gap-2">
-                                <span className="text-sm sm:text-base font-extrabold text-blue-900 leading-none">{academicAttendanceSummary.percentage}%</span>
-                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${academicAttendanceSummary.badgeBg}`}>
-                                    {academicAttendanceSummary.status}
-                                </span>
+                <div className="flex items-center gap-2 sm:gap-3 ml-auto shrink-0">
+                    {/* Attendance Pill - Only visible on Desktop/Tablet */}
+                    {!isMobileScreen && (
+                        <div className="flex bg-white border border-slate-200 px-3.5 sm:px-4 py-2 rounded-xl shadow-xs items-center gap-2.5 sm:gap-3 shrink-0">
+                            <div className="p-1.5 sm:p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
+                                <Award size={18} />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider leading-none mb-1">Academic Attendance</p>
+                                <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <span className="text-sm sm:text-base font-extrabold text-blue-900 leading-none">{academicAttendanceSummary.percentage}%</span>
+                                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${academicAttendanceSummary.badgeBg}`}>
+                                        {academicAttendanceSummary.status}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* Refresh Button (Hidden on Mobile View) */}
+                    {/* Refresh Button */}
                     <button
                         onClick={() => fetchTimetableAndSlots(true)}
                         disabled={refreshing}
-                        className="hidden sm:flex p-2.5 sm:p-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-xs items-center justify-center shrink-0"
+                        className="flex p-2.5 sm:p-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-xs items-center justify-center shrink-0"
                         title="Refresh"
                     >
                         <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
@@ -560,185 +619,240 @@ const StudentTimetable = () => {
                 </div>
             </header>
 
-            {/* ── View Navigation Tabs (Optimized for Mobile) ── */}
-            <div className="bg-gray-100/90 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl w-full sm:w-fit shrink-0 shadow-xs">
-                <div className="grid grid-cols-3 sm:flex items-center gap-1 sm:gap-1.5">
-                    <button
-                        onClick={() => setActiveTab('grid')}
-                        className={`flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-200 text-center ${activeTab === 'grid'
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+            {/* ── View Navigation Tabs ── */}
+            {isMobileScreen ? (
+                /* Mobile Tabs: 3 constant equal columns, NO horizontal scroll */
+                <div className="bg-gray-100/90 p-1 rounded-xl w-full shadow-xs">
+                    <div className="grid grid-cols-3 gap-1 w-full">
+                        <button
+                            onClick={() => setActiveTab('grid')}
+                            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-center transition-all duration-200 ${
+                                activeTab === 'grid'
+                                    ? 'bg-blue-600 text-white shadow-sm'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                             }`}
-                    >
-                        <Calendar size={14} className="shrink-0 hidden sm:inline-block" />
-                        <span className="sm:hidden">Timetable</span>
-                        <span className="hidden sm:inline">Semester Timetable (Grid)</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('periodwise')}
-                        className={`flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-200 text-center ${activeTab === 'periodwise'
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                        >
+                            <Calendar size={13} className="shrink-0 mb-1" />
+                            <span className="text-[10px] font-bold leading-tight">
+                                <span className="block">Semester</span>
+                                <span className="block text-[9px] opacity-90">Timetable</span>
+                            </span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('periodwise')}
+                            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-center transition-all duration-200 ${
+                                activeTab === 'periodwise'
+                                    ? 'bg-blue-600 text-white shadow-sm'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                             }`}
-                    >
-                        <Clock size={14} className="shrink-0 hidden sm:inline-block" />
-                        <span className="sm:hidden">Period-wise</span>
-                        <span className="hidden sm:inline">Period-wise Breakdown</span>
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('academic')}
-                        className={`flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-bold transition-all duration-200 text-center ${activeTab === 'academic'
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                        >
+                            <Clock size={13} className="shrink-0 mb-1" />
+                            <span className="text-[10px] font-bold leading-tight">
+                                <span className="block">Period-wise</span>
+                                <span className="block text-[9px] opacity-90">Breakdown</span>
+                            </span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('academic')}
+                            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-center transition-all duration-200 ${
+                                activeTab === 'academic'
+                                    ? 'bg-blue-600 text-white shadow-sm'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
                             }`}
-                    >
-                        <TrendingUp size={14} className="shrink-0 hidden sm:inline-block" />
-                        <span className="sm:hidden">Summary</span>
-                        <span className="hidden sm:inline">Academic Summary</span>
-                    </button>
+                        >
+                            <TrendingUp size={13} className="shrink-0 mb-1" />
+                            <span className="text-[10px] font-bold leading-tight">
+                                <span className="block">Academic</span>
+                                <span className="block text-[9px] opacity-90">Summary</span>
+                            </span>
+                        </button>
+                    </div>
                 </div>
-            </div>
+            ) : (
+                /* Desktop Tabs: Untouched inline layout */
+                <div className="bg-gray-100/90 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl w-fit shrink-0 shadow-xs">
+                    <div className="inline-flex items-center gap-1 sm:gap-1.5">
+                        <button
+                            onClick={() => setActiveTab('grid')}
+                            className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 text-center ${activeTab === 'grid'
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                }`}
+                        >
+                            <Calendar size={14} className="shrink-0" />
+                            <span>Semester Timetable (Grid)</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('periodwise')}
+                            className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 text-center ${activeTab === 'periodwise'
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                }`}
+                        >
+                            <Clock size={14} className="shrink-0" />
+                            <span>Period-wise Breakdown</span>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('academic')}
+                            className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 text-center ${activeTab === 'academic'
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                }`}
+                        >
+                            <TrendingUp size={14} className="shrink-0" />
+                            <span>Academic Summary</span>
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* ── TAB 1: SEMESTER TIMETABLE (GRID VIEW) ── */}
             {activeTab === 'grid' && (
-                <div>
-                    {/* Mobile View */}
-                    <div className="md:hidden space-y-4 w-full overflow-x-hidden">
-                        <div className="bg-white/95 backdrop-blur-md px-2 py-2 border border-slate-200 rounded-xl shadow-xs">
-                            <div className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5">
-                                {days.map((day) => (
-                                    <button
-                                        key={day}
-                                        onClick={() => setActiveDay(day)}
-                                        className={`flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${activeDay === day
-                                            ? 'bg-blue-600 text-white shadow-sm'
-                                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                                            } ${day === currentDayName ? 'ring-2 ring-blue-500 font-extrabold' : ''}`}
-                                    >
-                                        <span>{day}</span>
-                                        {day === currentDayName && (
-                                            <span className={`text-[8px] font-black px-1 py-0.2 rounded uppercase ${activeDay === day ? 'bg-white text-blue-700' : 'bg-blue-600 text-white'}`}>
-                                                TODAY
-                                            </span>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
+                    {effectiveSlots.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center p-20 text-center">
+                            <Calendar className="w-12 h-12 text-slate-300 mb-3" />
+                            <h3 className="text-lg font-bold text-blue-900 mb-1">No Timetable Configured</h3>
+                            <p className="text-slate-500 max-w-xs text-xs">
+                                Please contact your department HOD for the weekly schedule.
+                            </p>
                         </div>
-
-                        <div className="space-y-3 pt-1 w-full min-w-0">
-                            {periodSlots.map((slot, index) => {
-                                const entry = getMobileEntryForSlot(activeDay, index);
-                                return (
-                                    <TimetableCard
-                                        key={slot.id}
-                                        entry={entry}
-                                        slot={slot}
-                                        day={activeDay}
-                                        isMobile
-                                        onClick={(entry, slot, day) => openPeriodModal(entry, slot, day)}
-                                    />
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* Desktop View (Tabular Grid) */}
-                    <div className="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        {periodSlots.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center p-20 text-center">
-                                <Calendar className="w-12 h-12 text-slate-300 mb-3" />
-                                <h3 className="text-lg font-bold text-blue-900 mb-1">No Timetable Configured</h3>
-                                <p className="text-slate-500 max-w-xs text-xs">
-                                    Please contact your department HOD for the weekly schedule.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="w-full overflow-hidden">
-                                <div className="w-full">
-                                    {/* Table Header Row */}
-                                    <div className="flex border-b border-slate-200 bg-slate-50/80 w-full">
-                                        <div className="w-16 sm:w-20 flex-shrink-0 p-2 sm:p-3 flex items-center justify-center border-r border-slate-200 bg-slate-100/60">
-                                            <span className="text-[9px] sm:text-[10px] font-black text-blue-900 uppercase tracking-wider">SLOTS</span>
-                                        </div>
-                                        <div
-                                            className="flex-1 grid min-w-0"
-                                            style={{ gridTemplateColumns: `repeat(${periodSlots.length}, minmax(0, 1fr))` }}
+                    ) : isMobileScreen ? (
+                        /* Mobile Cards-wise View */
+                        <div className="p-3.5 space-y-3.5">
+                            {/* Day selector pills */}
+                            <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                                <div className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5 w-full">
+                                    {days.map((day) => (
+                                        <button
+                                            key={day}
+                                            onClick={() => setActiveDay(day)}
+                                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${activeDay === day
+                                                ? 'bg-blue-600 text-white shadow-sm'
+                                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                                } ${day === currentDayName ? 'ring-2 ring-blue-500 font-extrabold' : ''}`}
                                         >
-                                            {periodSlots.map((slot) => (
-                                                <div key={slot.id} className="py-2 sm:py-2.5 px-1 text-center border-r border-slate-200 last:border-r-0 flex flex-col justify-center bg-slate-50/50 min-w-0">
-                                                    <p className="text-[9px] sm:text-[10px] font-extrabold text-blue-900 uppercase tracking-wider mb-0.5 truncate">{slot.slot_name}</p>
-                                                    <p className="text-[8px] sm:text-[9px] font-bold text-slate-600 flex items-center justify-center gap-0.5 whitespace-nowrap truncate">
-                                                        <Clock size={10} className="text-blue-600 shrink-0 hidden sm:inline" />
-                                                        <span className="truncate">{formatTimeTo12h(slot.start_time).replace(' AM', '').replace(' PM', '')} - {formatTimeTo12h(slot.end_time)}</span>
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
+                                            <span>{day}</span>
+                                            {day === currentDayName && (
+                                                <span className={`text-[8px] font-black px-1 py-0.2 rounded uppercase ${activeDay === day ? 'bg-white text-blue-700' : 'bg-blue-600 text-white'}`}>
+                                                    TODAY
+                                                </span>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Period Cards for selected day */}
+                            <div className="space-y-3">
+                                {effectiveSlots.map((slot, index) => {
+                                    const entry = getEntryForSlot(activeDay, slot, index);
+                                    return (
+                                        <TimetableCard
+                                            key={slot.id || `grid-m-slot-${index}`}
+                                            entry={entry}
+                                            slot={slot}
+                                            day={activeDay}
+                                            isMobile
+                                            isToday={activeDay === currentDayName}
+                                            onClick={(entry, slot, day) => entry && openPeriodModal(entry, slot, day)}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ) : (
+                        /* Desktop Full Table Grid */
+                        <div className="w-full overflow-x-auto">
+                            <div className="min-w-[950px] w-full">
+                                {/* Table Header Row: Days column + Period Slots */}
+                                <div className="flex border-b border-slate-200 bg-slate-50/80 w-full">
+                                    <div className="w-20 sm:w-24 flex-shrink-0 p-3 flex items-center justify-center border-r border-slate-200 bg-slate-100/70">
+                                        <span className="text-[10px] sm:text-xs font-black text-blue-900 uppercase tracking-wider">DAYS</span>
                                     </div>
-
-                                    {/* Table Body Rows */}
-                                    <div className="divide-y divide-slate-200 w-full">
-                                        {days.map((day) => (
-                                            <div key={day} className={`flex transition-colors w-full ${day === currentDayName ? 'bg-blue-50/30' : 'hover:bg-slate-50/40'}`}>
-                                                <div className={`w-16 sm:w-20 flex-shrink-0 flex flex-col items-center justify-center border-r font-extrabold text-xs tracking-wider transition-all relative ${
-                                                    day === currentDayName 
-                                                        ? 'bg-blue-600 text-white border-r-blue-700 shadow-sm' 
-                                                        : 'text-slate-700 bg-slate-50/50 border-slate-200'
-                                                }`}>
-                                                    <span>{day}</span>
-                                                    {day === currentDayName && (
-                                                        <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-widest px-1 py-0.5 rounded-md bg-white text-blue-700 mt-1 shadow-2xs leading-none">
-                                                            TODAY
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                <div
-                                                    className="flex-1 grid min-w-0"
-                                                    style={{ gridTemplateColumns: `repeat(${periodSlots.length}, minmax(0, 1fr))` }}
-                                                >
-                                                    {periodSlots.map((slot) => {
-                                                        const entry = getEntryForSlot(day, slot);
-                                                        return (
-                                                            <div
-                                                                key={slot.id}
-                                                                className="p-1 min-h-[105px] flex border-r border-slate-200 last:border-r-0 min-w-0"
-                                                            >
-                                                                <TimetableCard
-                                                                    entry={entry}
-                                                                    slot={slot}
-                                                                    day={day}
-                                                                    isToday={day === currentDayName}
-                                                                    onClick={(entry, slot, day) => openPeriodModal(entry, slot, day)}
-                                                                />
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
+                                    <div
+                                        className="flex-1 grid min-w-0"
+                                        style={{ gridTemplateColumns: `repeat(${effectiveSlots.length}, minmax(0, 1fr))` }}
+                                    >
+                                        {effectiveSlots.map((slot, sIdx) => (
+                                            <div key={slot.id || `h-slot-${sIdx}`} className="py-2.5 px-1.5 text-center border-r border-slate-200 last:border-r-0 flex flex-col justify-center bg-slate-50/50 min-w-0">
+                                                <p className="text-[10px] sm:text-xs font-black text-blue-900 uppercase tracking-wider mb-0.5 truncate">{slot.slot_name}</p>
+                                                <p className="text-[9px] sm:text-[10px] font-bold text-slate-600 flex items-center justify-center gap-1 whitespace-nowrap truncate">
+                                                    <Clock size={11} className="text-blue-600 shrink-0" />
+                                                    <span className="truncate">{formatTimeTo12h(slot.start_time).replace(' AM', '').replace(' PM', '')} - {formatTimeTo12h(slot.end_time)}</span>
+                                                </p>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
+
+                                {/* Table Body Rows: Each Day as a Row */}
+                                <div className="divide-y divide-slate-200 w-full">
+                                    {days.map((day) => (
+                                        <div key={day} className={`flex transition-colors w-full ${day === currentDayName ? 'bg-blue-50/30' : 'hover:bg-slate-50/40'}`}>
+                                            <div className={`w-20 sm:w-24 flex-shrink-0 flex flex-col items-center justify-center border-r font-extrabold text-xs tracking-wider transition-all relative ${
+                                                day === currentDayName 
+                                                    ? 'bg-blue-600 text-white border-r-blue-700 shadow-sm' 
+                                                    : 'text-slate-700 bg-slate-50/50 border-slate-200'
+                                            }`}>
+                                                <span>{day}</span>
+                                                {day === currentDayName && (
+                                                    <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-white text-blue-700 mt-1 shadow-2xs leading-none">
+                                                        TODAY
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div
+                                                className="flex-1 grid min-w-0"
+                                                style={{ gridTemplateColumns: `repeat(${effectiveSlots.length}, minmax(0, 1fr))` }}
+                                            >
+                                                {effectiveSlots.map((slot, sIdx) => {
+                                                    const entry = getEntryForSlot(day, slot, sIdx);
+                                                    return (
+                                                        <div
+                                                            key={slot.id || `b-slot-${sIdx}`}
+                                                            className="p-1 min-h-[110px] flex border-r border-slate-200 last:border-r-0 min-w-0"
+                                                        >
+                                                            <TimetableCard
+                                                                entry={entry}
+                                                                slot={slot}
+                                                                day={day}
+                                                                isToday={day === currentDayName}
+                                                                onClick={(entry, slot, day) => openPeriodModal(entry, slot, day)}
+                                                            />
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* ── TAB 2: PERIOD-WISE BREAKDOWN ── */}
             {activeTab === 'periodwise' && (
                 <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4 sm:space-y-5 shadow-xs">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
-                        <div>
-                            <h3 className="text-sm sm:text-base font-extrabold text-blue-900 tracking-tight leading-snug">
+                    <div
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100 w-full"
+                        style={!isMobileScreen ? { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } : undefined}
+                    >
+                        <div className="text-left shrink-0">
+                            <h3 className="text-sm sm:text-base font-extrabold text-blue-900 tracking-tight leading-snug text-left">
                                 Period-wise Timetable Breakdown
                             </h3>
-                            <p className="hidden sm:block text-xs text-slate-500 font-medium mt-0.5">
+                            <p className="hidden sm:block text-xs text-slate-500 font-medium mt-0.5 text-left">
                                 Select a day to view period schedule and posted teacher attendance details.
                             </p>
                         </div>
-                        <div className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5 w-full sm:w-auto">
+                        <div
+                            className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5 w-full sm:w-auto"
+                            style={!isMobileScreen ? { width: 'auto', marginLeft: 'auto', flexShrink: 0 } : undefined}
+                        >
                             {days.map((day) => (
                                 <button
                                     key={day}
@@ -759,9 +873,9 @@ const StudentTimetable = () => {
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        {periodSlots.map((slot, index) => {
-                            const entry = getEntryForSlot(activeDay, slot);
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                        {effectiveSlots.map((slot, index) => {
+                            const entry = getEntryForSlot(activeDay, slot, index);
 
                             // Find posted attendance log for this period from ap_attendance_post_students
                             const postedSlotLog = periodWiseLogs.find(log => {
@@ -774,7 +888,7 @@ const StudentTimetable = () => {
 
                             return (
                                 <TimetableCard
-                                    key={slot.id}
+                                    key={slot.id || `pw-slot-${index}`}
                                     entry={entry}
                                     slot={slot}
                                     day={activeDay}

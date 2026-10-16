@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import useAuthStore from './store/authStore';
+import PortalSwitcher from './components/PortalSwitcher';
 
 // Critical Direct Import for Instant Login Load
 import Login from './pages/Login';
@@ -147,6 +148,20 @@ const RouteLoader = () => (
 function App() {
   const { isAuthenticated, userType } = useAuthStore();
 
+  // Target Portal: Clear stale session early when incoming SSO token is detected in URL
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ssoToken = urlParams.get('token');
+    if (ssoToken) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('isSSO');
+      sessionStorage.clear();
+      useAuthStore.setState({ user: null, token: null, isAuthenticated: false, userType: null, isSSO: false });
+    }
+  }, []);
+
   React.useEffect(() => {
     if (isAuthenticated && userType !== 'parent') {
       const initPush = async () => {
@@ -168,6 +183,8 @@ function App() {
 
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      {/* Pydah Universal Portal Switcher — rendered strictly for SSO authenticated users */}
+      <PortalSwitcher />
       <Toaster
         position="top-right"
         containerStyle={{

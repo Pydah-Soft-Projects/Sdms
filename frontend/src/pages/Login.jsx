@@ -161,6 +161,11 @@ const Login = () => {
   const handleSSOLogin = useCallback(async (encryptedToken) => {
     setIsVerifying(true);
     setSsoError(null);
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isSSO');
+    sessionStorage.clear();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
     try {

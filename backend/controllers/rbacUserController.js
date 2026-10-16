@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { masterPool } = require('../config/database');
+const { includeForgotPasswordLimit } = require('../middleware/forgotPasswordRateLimit');
 const smsService = require('../services/smsService');
 const { logAudit } = require('../services/auditLogService');
 const {
@@ -2181,10 +2182,10 @@ exports.forgotPassword = async (req, res) => {
     const mobileInput = (req.body.mobileNumber || req.body.phone || '').trim();
 
     if (!emailInput && !mobileInput) {
-      return res.status(400).json({
+      return res.status(400).json(includeForgotPasswordLimit(req, {
         success: false,
         message: 'Email or mobile number is required'
-      });
+      }));
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -2204,10 +2205,10 @@ exports.forgotPassword = async (req, res) => {
       const mobileNumber = mobileInput || emailInput;
       const normalizedPhone = String(mobileNumber).replace(/[^\d]/g, '');
       if (!normalizedPhone) {
-        return res.status(400).json({
+        return res.status(400).json(includeForgotPasswordLimit(req, {
           success: false,
           message: 'Enter a valid email or mobile number'
-        });
+        }));
       }
 
       const [rows] = await masterPool.query(
@@ -2226,21 +2227,21 @@ exports.forgotPassword = async (req, res) => {
     }
 
     if (!users || users.length === 0) {
-      return res.status(404).json({
+      return res.status(404).json(includeForgotPasswordLimit(req, {
         success: false,
         message: isEmailLookup
           ? 'User not found with this email'
           : 'User not found with this mobile number'
-      });
+      }));
     }
 
     const user = users[0];
 
     if (!user.email) {
-      return res.status(400).json({
+      return res.status(400).json(includeForgotPasswordLimit(req, {
         success: false,
         message: 'No email is registered for this account. Please contact admin.'
-      });
+      }));
     }
 
     // Generate new random password (8 chars)
@@ -2324,12 +2325,12 @@ exports.forgotPassword = async (req, res) => {
     if (smsSent) channels.push('SMS');
 
     if (channels.length > 0) {
-      return res.json({
+      return res.json(includeForgotPasswordLimit(req, {
         success: true,
         message: `New password sent to your registered ${channels.join(' and ')}`,
         emailSent,
         smsSent
-      });
+      }));
     }
 
     console.error('Forgot password: password updated but all notifications failed', {
@@ -2337,18 +2338,18 @@ exports.forgotPassword = async (req, res) => {
       emailError,
       smsError
     });
-    return res.status(500).json({
+    return res.status(500).json(includeForgotPasswordLimit(req, {
       success: false,
       message: 'Password was reset but we could not send email or SMS. Please contact admin.',
       emailError: emailError || undefined,
       smsError: smsError || undefined
-    });
+    }));
   } catch (error) {
     console.error('Forgot password error:', error);
-    res.status(500).json({
+    res.status(500).json(includeForgotPasswordLimit(req, {
       success: false,
       message: 'Server error processing request'
-    });
+    }));
   }
 };
 
@@ -2451,4 +2452,3 @@ exports.getStudentStats = async (req, res) => {
     });
   }
 };
-

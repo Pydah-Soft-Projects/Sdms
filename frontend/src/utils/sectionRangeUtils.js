@@ -61,12 +61,71 @@ export const isPinInRange = (studentPin, startPin, endPin) => {
 };
 
 /**
- * Automatically distribute sorted students with PINs into N sections evenly.
+ * Automatically distribute sorted students with PINs into N sections.
+ * If sectionBreakdown is provided with strengths, distributes according to those capacities.
+ * Otherwise, distributes evenly across the sections.
  * Returns array of { startPin, endPin, count, startIndex, endIndex }.
  */
-export const distributeStudentsIntoSections = (sortedStudents, numSections) => {
+export const distributeStudentsIntoSections = (
+  sortedStudents = [],
+  numSections = 0,
+  sectionBreakdown = []
+) => {
   const total = sortedStudents.length;
   if (total === 0 || numSections <= 0) return [];
+
+  // When numSections equals the full breakdown length, use configured breakdown capacities
+  const isFullBreakdown =
+    Array.isArray(sectionBreakdown) &&
+    sectionBreakdown.length > 0 &&
+    numSections === sectionBreakdown.length;
+
+  const hasConfiguredStrengths =
+    isFullBreakdown &&
+    sectionBreakdown.every((item) => Number(item?.strength) > 0);
+
+  if (hasConfiguredStrengths) {
+    let currentIndex = 0;
+    const distributed = [];
+
+    for (let i = 0; i < numSections; i++) {
+      if (currentIndex >= total) {
+        distributed.push({
+          startIndex: total > 0 ? total - 1 : 0,
+          endIndex: total > 0 ? total - 1 : 0,
+          count: 0,
+          startPin: '',
+          endPin: ''
+        });
+        continue;
+      }
+
+      const startIndex = currentIndex;
+      const strength = Number(sectionBreakdown[i].strength);
+
+      // The last section must ALWAYS fit all remaining students up to total - 1
+      const isLast = i === numSections - 1;
+      const endIndex = isLast
+        ? total - 1
+        : Math.min(total - 1, currentIndex + strength - 1);
+      const count = Math.max(0, endIndex - startIndex + 1);
+
+      distributed.push({
+        startIndex,
+        endIndex,
+        count,
+        startPin: sortedStudents[startIndex]?.pinNo || '',
+        endPin: sortedStudents[endIndex]?.pinNo || ''
+      });
+
+      currentIndex = endIndex + 1;
+    }
+
+    return distributed;
+  }
+
+  // When decreasing section count or without fixed breakdown capacities:
+  // All students are fitted evenly across the requested number of sections!
   const baseSize = Math.floor(total / numSections);
   const remainder = total % numSections;
 
@@ -75,25 +134,30 @@ export const distributeStudentsIntoSections = (sortedStudents, numSections) => {
 
   for (let i = 0; i < numSections; i++) {
     const sectionSize = baseSize + (i < remainder ? 1 : 0);
-    if (sectionSize === 0) {
+    if (sectionSize === 0 || currentIndex >= total) {
       distributed.push({
-        startIndex: currentIndex,
-        endIndex: currentIndex,
+        startIndex: total > 0 ? total - 1 : 0,
+        endIndex: total > 0 ? total - 1 : 0,
         count: 0,
         startPin: '',
         endPin: ''
       });
     } else {
       const startIndex = currentIndex;
-      const endIndex = currentIndex + sectionSize - 1;
+      const isLast = i === numSections - 1;
+      const endIndex = isLast
+        ? total - 1
+        : Math.min(total - 1, currentIndex + sectionSize - 1);
+      const count = Math.max(0, endIndex - startIndex + 1);
+
       distributed.push({
         startIndex,
         endIndex,
-        count: sectionSize,
+        count,
         startPin: sortedStudents[startIndex]?.pinNo || '',
         endPin: sortedStudents[endIndex]?.pinNo || ''
       });
-      currentIndex += sectionSize;
+      currentIndex = endIndex + 1;
     }
   }
   return distributed;

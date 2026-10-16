@@ -8,11 +8,13 @@ import {
   AlertTriangle,
   Save,
   Users,
-  X
+  X,
+  SlidersHorizontal
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../config/api';
 import { SkeletonTable } from '../components/SkeletonLoader';
+import PinRangeSeparationModal from '../components/SectionPartition/PinRangeSeparationModal';
 import useAuthStore from '../store/authStore';
 import {
   hasPermission,
@@ -26,7 +28,7 @@ const CHUNK_SIZE = 50;
 
 const getBranchSectionConfig = (coursesWithLevels, courseInput, branchInput) => {
   if (!branchInput || !courseInput) {
-    return { enabled: false, items: [] };
+    return { enabled: false, items: [], breakdown: [] };
   }
 
   const courseStr = typeof courseInput === 'object' ? (courseInput.name || courseInput.id) : String(courseInput).trim();
@@ -36,21 +38,26 @@ const getBranchSectionConfig = (coursesWithLevels, courseInput, branchInput) => 
     (c) => String(c.name).toLowerCase() === courseStr.toLowerCase() || String(c.id) === courseStr
   );
   if (!courseObj) {
-    return { enabled: false, items: [] };
+    return { enabled: false, items: [], breakdown: [] };
   }
 
   const branchObj = (courseObj.branches || []).find(
     (b) => String(b.name).toLowerCase() === branchStr.toLowerCase() || String(b.id) === branchStr
   );
   if (!branchObj?.metadata?.sections?.enabled) {
-    return { enabled: false, items: [] };
+    return { enabled: false, items: [], breakdown: [] };
   }
 
-  const items = (branchObj.metadata?.sections?.items || [])
+  const rawItems = branchObj.metadata?.sections?.items || [];
+  const breakdown = rawItems
+    .filter((item) => item && (item.name || typeof item === 'string'))
+    .map((item) => (typeof item === 'object' ? item : { name: String(item), strength: null }));
+
+  const items = breakdown
     .map((item) => (typeof item === 'object' ? item?.name : item))
     .filter(Boolean);
 
-  return { enabled: items.length > 0, items };
+  return { enabled: items.length > 0, items, breakdown };
 };
 
 const normalizeSectionValue = (value) => {
@@ -88,6 +95,7 @@ const SectionPartition = () => {
   const [loadingFilters, setLoadingFilters] = useState(false);
   const [students, setStudents] = useState([]);
   const [sectionOptions, setSectionOptions] = useState([]);
+  const [sectionBreakdown, setSectionBreakdown] = useState([]);
   const [loadingInitial, setLoadingInitial] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -99,6 +107,8 @@ const SectionPartition = () => {
   const [selectedStudentKeys, setSelectedStudentKeys] = useState(new Set());
   const [bulkAssignModalOpen, setBulkAssignModalOpen] = useState(false);
   const [bulkAssignSection, setBulkAssignSection] = useState('');
+  const [pinRangeModalOpen, setPinRangeModalOpen] = useState(false);
+  const [loadingAllStudents, setLoadingAllStudents] = useState(false);
 
   const scrollContainerRef = useRef(null);
   const loadMoreRef = useRef(null);
@@ -125,6 +135,16 @@ const SectionPartition = () => {
     if (sectionOptions.length > 0) return sectionOptions;
     return getBranchSectionConfig(coursesWithLevels, filters.course, filters.branch).items;
   }, [sectionOptions, coursesWithLevels, filters.course, filters.branch]);
+
+  const currentSectionBreakdown = useMemo(() => {
+    const config = getBranchSectionConfig(coursesWithLevels, filters.course, filters.branch);
+    if (config.breakdown && config.breakdown.length > 0) return config.breakdown;
+    if (sectionBreakdown && sectionBreakdown.length > 0) return sectionBreakdown;
+    if (sectionOptions && sectionOptions.length > 0) {
+      return sectionOptions.map((s) => (typeof s === 'object' ? s : { name: String(s), strength: null }));
+    }
+    return [];
+  }, [coursesWithLevels, filters.course, filters.branch, sectionBreakdown, sectionOptions]);
 
   const unsavedCount = useMemo(() => {
     return students.filter((student) => {
@@ -226,6 +246,7 @@ const SectionPartition = () => {
     setHasMore(false);
     setNextOffset(0);
     setSectionOptions([]);
+    setSectionBreakdown([]);
   }, []);
 
   const loadStudents = useCallback(async ({ offset = 0, append = false } = {}) => {
@@ -262,6 +283,7 @@ const SectionPartition = () => {
       const pagination = data.pagination || {};
 
       setSectionOptions(data.sections || []);
+      setSectionBreakdown(data.sectionBreakdown || []);
       setTotalStudents(pagination.total || 0);
       setHasMore(Boolean(pagination.hasMore));
       setNextOffset(offset + rows.length);
@@ -484,6 +506,107 @@ const SectionPartition = () => {
     loadStudents({ offset: 0, append: false });
   };
 
+  const fetchAllStudentsForBatch = useCallback(async () => {
+    if (!filtersReady) return [];
+    setLoadingAllStudents(true);
+    try {
+      const params = new URLSearchParams({
+        college: filters.college,
+        course: filters.course,
+        branch: filters.branch,
+        batch: filters.batch,
+        limit: '1000',
+        offset: '0'
+      });
+      const response = await api.get(`/students/section-partition?${params.toString()}`);
+      if (response.data?.success) {
+        const rows = response.data.data?.students || [];
+        const pagination = response.data.data?.pagination || {};
+        setSectionOptions(response.data.data?.sections || []);
+        setSectionBreakdown(response.data.data?.sectionBreakdown || []);
+        setTotalStudents(pagination.total || rows.length);
+        setStudents(rows);
+        setHasMore(false);
+        applyRowsToSectionState(rows, false);
+        return rows;
+      }
+      return [];
+    } catch (error) {
+      console.error('Failed to fetch all students:', error);
+      toast.error('Failed to load all students for batch');
+      return [];
+    } finally {
+      setLoadingAllStudents(false);
+    }
+  }, [filters, filtersReady, applyRowsToSectionState]);
+
+  const openPinRangeModal = async () => {
+    if (!filtersReady) {
+      toast.error('Please select College, Course, Branch, and Batch first');
+      return;
+    }
+    setPinRangeModalOpen(true);
+    if (students.length < totalStudents || students.length === 0) {
+      await fetchAllStudentsForBatch();
+    }
+  };
+
+  const handleApplyPinRangeDraft = (assignments) => {
+    if (!canEditSection) {
+      toast.error('You do not have permission to update sections');
+      return;
+    }
+
+    setDraftSections((prev) => {
+      const next = { ...prev };
+      assignments.forEach(({ admissionNumber, section }) => {
+        next[admissionNumber] = normalizeSectionValue(section);
+      });
+      return next;
+    });
+  };
+
+  const handleSavePinRangeDirectly = async (assignments, ranges) => {
+    if (!canEditSection) {
+      toast.error('You do not have permission to save sections');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await api.post('/students/section-partition/apply-pin-ranges', {
+        college: filters.college,
+        course: filters.course,
+        branch: filters.branch,
+        batch: filters.batch,
+        ranges
+      });
+
+      if (response.data?.success) {
+        toast.success(response.data?.message || 'Section ranges applied successfully');
+        await loadStudents({ offset: 0, append: false });
+      } else {
+        throw new Error(response.data?.message || 'Failed to apply section ranges');
+      }
+    } catch (err) {
+      console.warn('Direct range save failed, falling back to bulk save assignments:', err);
+      try {
+        const fallbackResponse = await api.post('/students/section-partition/save', { assignments });
+        if (fallbackResponse.data?.success || fallbackResponse.data?.data?.success > 0) {
+          toast.success(fallbackResponse.data?.message || 'Saved section assignments successfully');
+          await loadStudents({ offset: 0, append: false });
+        } else {
+          throw new Error(fallbackResponse.data?.message || 'Failed to save section assignments');
+        }
+      } catch (fallbackErr) {
+        toast.error(fallbackErr.response?.data?.message || 'Failed to save section assignments');
+        throw fallbackErr;
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const tableHeadCellClass =
     'sticky top-0 z-10 bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide shadow-[0_1px_0_0_rgb(229,231,235)]';
 
@@ -502,7 +625,7 @@ const SectionPartition = () => {
             </div>
             <h1 className="text-xl font-bold text-gray-900">Section Management</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Regular students in the selected batch are listed by PIN order. Assign sections and click Save.
+              Regular students in the selected batch are listed by PIN order. Assign sections individually, by PIN range, or click Save.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -515,6 +638,18 @@ const SectionPartition = () => {
               <RefreshCw size={16} className={loadingInitial ? 'animate-spin' : ''} />
               Refresh
             </button>
+            {canEditSection && (
+              <button
+                type="button"
+                onClick={openPinRangeModal}
+                disabled={!filtersReady || loadingInitial}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-sm font-semibold shadow-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Separate regular students into sections based on PIN number range"
+              >
+                <SlidersHorizontal size={16} />
+                Separate by PIN Range
+              </button>
+            )}
             {canEditSection && (
               <button
                 type="button"
@@ -646,19 +781,33 @@ const SectionPartition = () => {
           <div>
             <h2 className="text-lg font-semibold text-gray-900">Students</h2>
             <p className="text-sm text-gray-600">
-              Only Regular students are shown in PIN order. Assign sections using the table dropdown or Bulk Assign, then click Save.
+              Only Regular students are shown in PIN order. Assign sections using the table dropdown, Bulk Assign, or PIN Range Separation.
             </p>
           </div>
           {filtersReady && (
-            <div className="text-sm text-gray-700 font-medium">
-              <span className="text-indigo-600">{students.length.toLocaleString()}</span>
-              {' of '}
-              <span className="text-gray-900">{totalStudents.toLocaleString()}</span>
-              {' student'}
-              {totalStudents === 1 ? '' : 's'}
-              {unsavedCount > 0 && (
-                <span className="ml-2 text-amber-600">({unsavedCount} unsaved)</span>
+            <div className="flex items-center gap-3">
+              {canEditSection && (
+                <button
+                  type="button"
+                  onClick={openPinRangeModal}
+                  disabled={loadingInitial}
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-colors disabled:opacity-50"
+                  title="Separate regular students into sections based on PIN number range"
+                >
+                  <SlidersHorizontal size={14} />
+                  PIN Range Separation
+                </button>
               )}
+              <div className="text-sm text-gray-700 font-medium">
+                <span className="text-indigo-600">{students.length.toLocaleString()}</span>
+                {' of '}
+                <span className="text-gray-900">{totalStudents.toLocaleString()}</span>
+                {' student'}
+                {totalStudents === 1 ? '' : 's'}
+                {unsavedCount > 0 && (
+                  <span className="ml-2 text-amber-600">({unsavedCount} unsaved)</span>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -918,6 +1067,20 @@ const SectionPartition = () => {
           </div>
         )}
       </div>
+
+      <PinRangeSeparationModal
+        isOpen={pinRangeModalOpen}
+        onClose={() => setPinRangeModalOpen(false)}
+        filters={filters}
+        configuredSections={configuredSectionItems}
+        sectionBreakdown={currentSectionBreakdown}
+        students={students}
+        totalStudents={totalStudents}
+        loadingAllStudents={loadingAllStudents}
+        onApplyDraft={handleApplyPinRangeDraft}
+        onSaveDirectly={handleSavePinRangeDirectly}
+        saving={saving}
+      />
     </div>
   );
 };

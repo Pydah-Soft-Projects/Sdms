@@ -9977,7 +9977,7 @@ exports.bulkTransferStudents = async (req, res) => {
 
 exports.getSectionPartitionStudents = async (req, res) => {
   try {
-    const { college, course, branch, batch, limit = 25, offset = 0 } = req.query;
+    const { college, course, branch, batch, limit = 25, offset = 0, sectionStatus } = req.query;
 
     const normalizedCollege = typeof college === 'string' && college.trim() ? college.trim() : null;
     const normalizedCourse = typeof course === 'string' && course.trim() ? course.trim() : null;
@@ -10056,6 +10056,35 @@ exports.getSectionPartitionStudents = async (req, res) => {
     const pinSql = resolveStudentPinSql('s');
     const nameSql = resolveStudentNameSql('s');
 
+    // Aggregate counts across all / marked / not marked for the selected batch
+    const [statusCountRows] = await masterPool.query(
+      `SELECT
+         COUNT(*) AS total_all,
+         COUNT(CASE WHEN ${sectionSql} IS NOT NULL THEN 1 END) AS total_marked,
+         COUNT(CASE WHEN ${sectionSql} IS NULL THEN 1 END) AS total_not_marked
+       FROM students s
+         LEFT JOIN colleges ON s.college_id = colleges.id
+         LEFT JOIN courses ON s.course_id = courses.id
+         LEFT JOIN course_branches ON s.branch_id = course_branches.id
+       ${whereClause}`,
+      params
+    );
+    const statusCounts = {
+      all: Number(statusCountRows[0]?.total_all) || 0,
+      marked: Number(statusCountRows[0]?.total_marked) || 0,
+      notMarked: Number(statusCountRows[0]?.total_not_marked) || 0
+    };
+
+    const normalizedSectionStatus = typeof sectionStatus === 'string' ? sectionStatus.trim().toLowerCase() : '';
+    if (normalizedSectionStatus === 'marked') {
+      whereClause += ` AND ${sectionSql} IS NOT NULL`;
+    } else if (normalizedSectionStatus === 'not_marked' || normalizedSectionStatus === 'not-marked' || normalizedSectionStatus === 'unassigned') {
+      whereClause += ` AND ${sectionSql} IS NULL`;
+    } else if (normalizedSectionStatus && normalizedSectionStatus !== 'all') {
+      whereClause += ` AND ${sectionSql} = ?`;
+      params.push(sectionStatus.trim());
+    }
+
     const [countRows] = await masterPool.query(
       `SELECT COUNT(*) AS total FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id ${whereClause}`,
       params
@@ -10100,6 +10129,7 @@ exports.getSectionPartitionStudents = async (req, res) => {
         })),
         sections: configuredSections,
         sectionBreakdown: sectionBreakdown || [],
+        statusCounts,
         pagination: {
           total,
           limit: pageSize,
@@ -10333,7 +10363,7 @@ exports.bulkSaveSectionPartition = async (req, res) => {
 
 exports.applyPinRangeSectionPartition = async (req, res) => {
   try {
-    const { college, course, branch, batch, ranges } = req.body;
+    const { college, course, branch, batch, ranges, sectionStatus } = req.body;
 
     const normalizedCollege = typeof college === 'string' && college.trim() ? college.trim() : null;
     const normalizedCourse = typeof course === 'string' && course.trim() ? course.trim() : null;
@@ -10410,6 +10440,17 @@ exports.applyPinRangeSectionPartition = async (req, res) => {
     if (scopeCondition) {
       whereClause += ` AND ${scopeCondition}`;
       params.push(...scopeParams);
+    }
+
+    const sectionSql = resolveStudentSectionSql('s');
+    const normalizedSectionStatus = typeof sectionStatus === 'string' ? sectionStatus.trim().toLowerCase() : '';
+    if (normalizedSectionStatus === 'marked') {
+      whereClause += ` AND ${sectionSql} IS NOT NULL`;
+    } else if (normalizedSectionStatus === 'not_marked' || normalizedSectionStatus === 'not-marked' || normalizedSectionStatus === 'unassigned') {
+      whereClause += ` AND ${sectionSql} IS NULL`;
+    } else if (normalizedSectionStatus && normalizedSectionStatus !== 'all') {
+      whereClause += ` AND ${sectionSql} = ?`;
+      params.push(sectionStatus.trim());
     }
 
     const pinSql = resolveStudentPinSql('s');

@@ -82,8 +82,16 @@ const SectionPartition = () => {
     college: '',
     course: '',
     branch: '',
-    batch: ''
+    batch: '',
+    sectionStatus: 'all'
   });
+  const [statusCounts, setStatusCounts] = useState({
+    all: 0,
+    marked: 0,
+    notMarked: 0
+  });
+  const [allBatchStudents, setAllBatchStudents] = useState([]);
+  const [allBatchTotal, setAllBatchTotal] = useState(0);
   const [colleges, setColleges] = useState([]);
   const [collegesLoading, setCollegesLoading] = useState(false);
   const [quickFilterOptions, setQuickFilterOptions] = useState({
@@ -247,6 +255,9 @@ const SectionPartition = () => {
     setNextOffset(0);
     setSectionOptions([]);
     setSectionBreakdown([]);
+    setStatusCounts({ all: 0, marked: 0, notMarked: 0 });
+    setAllBatchStudents([]);
+    setAllBatchTotal(0);
   }, []);
 
   const loadStudents = useCallback(async ({ offset = 0, append = false } = {}) => {
@@ -272,6 +283,9 @@ const SectionPartition = () => {
         limit: String(CHUNK_SIZE),
         offset: String(offset)
       });
+      if (filters.sectionStatus && filters.sectionStatus !== 'all') {
+        params.append('sectionStatus', filters.sectionStatus);
+      }
 
       const response = await api.get(`/students/section-partition?${params.toString()}`);
       if (!response.data?.success) {
@@ -285,6 +299,9 @@ const SectionPartition = () => {
       setSectionOptions(data.sections || []);
       setSectionBreakdown(data.sectionBreakdown || []);
       setTotalStudents(pagination.total || 0);
+      if (data.statusCounts) {
+        setStatusCounts(data.statusCounts);
+      }
       setHasMore(Boolean(pagination.hasMore));
       setNextOffset(offset + rows.length);
 
@@ -329,7 +346,7 @@ const SectionPartition = () => {
       return;
     }
     loadStudents({ offset: 0, append: false });
-  }, [filtersReady, filters.college, filters.course, filters.branch, filters.batch, loadStudents, resetStudentList]);
+  }, [filtersReady, filters.college, filters.course, filters.branch, filters.batch, filters.sectionStatus, loadStudents, resetStudentList]);
 
   useEffect(() => {
     const sentinel = loadMoreRef.current;
@@ -354,16 +371,25 @@ const SectionPartition = () => {
   const handleFilterChange = (key, value) => {
     setSelectedStudentKeys(new Set());
     setFilters((prev) => {
-      const next = { ...prev, [key]: value || '' };
+      const next = { ...prev, [key]: value || (key === 'sectionStatus' ? 'all' : '') };
       if (key === 'college') {
         next.course = '';
         next.branch = '';
         next.batch = '';
+        setAllBatchStudents([]);
+        setAllBatchTotal(0);
       } else if (key === 'course') {
         next.branch = '';
         next.batch = '';
+        setAllBatchStudents([]);
+        setAllBatchTotal(0);
       } else if (key === 'branch') {
         next.batch = '';
+        setAllBatchStudents([]);
+        setAllBatchTotal(0);
+      } else if (key === 'batch') {
+        setAllBatchStudents([]);
+        setAllBatchTotal(0);
       }
       return next;
     });
@@ -497,12 +523,16 @@ const SectionPartition = () => {
   };
 
   const clearFilters = () => {
-    setFilters({ college: '', course: '', branch: '', batch: '' });
+    setFilters({ college: '', course: '', branch: '', batch: '', sectionStatus: 'all' });
+    setAllBatchStudents([]);
+    setAllBatchTotal(0);
     resetStudentList();
   };
 
   const handleRefresh = () => {
     if (!filtersReady) return;
+    setAllBatchStudents([]);
+    setAllBatchTotal(0);
     loadStudents({ offset: 0, append: false });
   };
 
@@ -518,13 +548,22 @@ const SectionPartition = () => {
         limit: '1000',
         offset: '0'
       });
+      if (filters.sectionStatus && filters.sectionStatus !== 'all') {
+        params.append('sectionStatus', filters.sectionStatus);
+      }
       const response = await api.get(`/students/section-partition?${params.toString()}`);
       if (response.data?.success) {
         const rows = response.data.data?.students || [];
         const pagination = response.data.data?.pagination || {};
         setSectionOptions(response.data.data?.sections || []);
         setSectionBreakdown(response.data.data?.sectionBreakdown || []);
-        setTotalStudents(pagination.total || rows.length);
+        const total = pagination.total || rows.length;
+        setAllBatchTotal(total);
+        setAllBatchStudents(rows);
+        if (response.data.data?.statusCounts) {
+          setStatusCounts(response.data.data.statusCounts);
+        }
+        setTotalStudents(total);
         setStudents(rows);
         setHasMore(false);
         applyRowsToSectionState(rows, false);
@@ -532,8 +571,8 @@ const SectionPartition = () => {
       }
       return [];
     } catch (error) {
-      console.error('Failed to fetch all students:', error);
-      toast.error('Failed to load all students for batch');
+      console.error('Failed to fetch students for batch:', error);
+      toast.error('Failed to load students for batch');
       return [];
     } finally {
       setLoadingAllStudents(false);
@@ -546,7 +585,7 @@ const SectionPartition = () => {
       return;
     }
     setPinRangeModalOpen(true);
-    if (students.length < totalStudents || students.length === 0) {
+    if (allBatchStudents.length === 0 || allBatchStudents.length < allBatchTotal || students.length < totalStudents) {
       await fetchAllStudentsForBatch();
     }
   };
@@ -579,11 +618,14 @@ const SectionPartition = () => {
         course: filters.course,
         branch: filters.branch,
         batch: filters.batch,
+        sectionStatus: filters.sectionStatus,
         ranges
       });
 
       if (response.data?.success) {
         toast.success(response.data?.message || 'Section ranges applied successfully');
+        setAllBatchStudents([]);
+        setAllBatchTotal(0);
         await loadStudents({ offset: 0, append: false });
       } else {
         throw new Error(response.data?.message || 'Failed to apply section ranges');
@@ -594,6 +636,8 @@ const SectionPartition = () => {
         const fallbackResponse = await api.post('/students/section-partition/save', { assignments });
         if (fallbackResponse.data?.success || fallbackResponse.data?.data?.success > 0) {
           toast.success(fallbackResponse.data?.message || 'Saved section assignments successfully');
+          setAllBatchStudents([]);
+          setAllBatchTotal(0);
           await loadStudents({ offset: 0, append: false });
         } else {
           throw new Error(fallbackResponse.data?.message || 'Failed to save section assignments');
@@ -647,7 +691,7 @@ const SectionPartition = () => {
                 title="Separate regular students into sections based on PIN number range"
               >
                 <SlidersHorizontal size={16} />
-                Separate by PIN Range
+                PIN Range Separation
               </button>
             )}
             {canEditSection && (
@@ -664,7 +708,7 @@ const SectionPartition = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
           <div>
             <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
               College
@@ -750,6 +794,28 @@ const SectionPartition = () => {
               })}
             </select>
           </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+              Section Status
+            </label>
+            <select
+              value={filters.sectionStatus || 'all'}
+              onChange={(e) => handleFilterChange('sectionStatus', e.target.value)}
+              disabled={!filtersReady || loadingInitial}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
+            >
+              <option value="all">
+                All {statusCounts.all > 0 ? `(${statusCounts.all})` : ''}
+              </option>
+              <option value="marked">
+                Section Marked {statusCounts.marked > 0 ? `(${statusCounts.marked})` : ''}
+              </option>
+              <option value="not_marked">
+                Not Marked {statusCounts.notMarked > 0 ? `(${statusCounts.notMarked})` : ''}
+              </option>
+            </select>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100">
@@ -785,20 +851,44 @@ const SectionPartition = () => {
             </p>
           </div>
           {filtersReady && (
-            <div className="flex items-center gap-3">
-              {canEditSection && (
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center p-0.5 rounded-lg bg-gray-100 border border-gray-200 text-xs font-medium">
                 <button
                   type="button"
-                  onClick={openPinRangeModal}
-                  disabled={loadingInitial}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-colors disabled:opacity-50"
-                  title="Separate regular students into sections based on PIN number range"
+                  onClick={() => handleFilterChange('sectionStatus', 'all')}
+                  className={`px-3 py-1.5 rounded-md transition-all ${
+                    filters.sectionStatus === 'all'
+                      ? 'bg-white text-indigo-700 font-semibold shadow-xs'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
-                  <SlidersHorizontal size={14} />
-                  PIN Range Separation
+                  All {statusCounts.all > 0 ? `(${statusCounts.all})` : ''}
                 </button>
-              )}
-              <div className="text-sm text-gray-700 font-medium">
+                <button
+                  type="button"
+                  onClick={() => handleFilterChange('sectionStatus', 'marked')}
+                  className={`px-3 py-1.5 rounded-md transition-all ${
+                    filters.sectionStatus === 'marked'
+                      ? 'bg-white text-emerald-700 font-semibold shadow-xs'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Section Marked {statusCounts.marked > 0 ? `(${statusCounts.marked})` : ''}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleFilterChange('sectionStatus', 'not_marked')}
+                  className={`px-3 py-1.5 rounded-md transition-all ${
+                    filters.sectionStatus === 'not_marked'
+                      ? 'bg-white text-amber-700 font-semibold shadow-xs'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Not Marked {statusCounts.notMarked > 0 ? `(${statusCounts.notMarked})` : ''}
+                </button>
+              </div>
+
+              <div className="text-sm text-gray-700 font-medium whitespace-nowrap">
                 <span className="text-indigo-600">{students.length.toLocaleString()}</span>
                 {' of '}
                 <span className="text-gray-900">{totalStudents.toLocaleString()}</span>
@@ -819,8 +909,12 @@ const SectionPartition = () => {
         ) : loadingInitial && students.length === 0 ? (
           <SkeletonTable rows={10} cols={7} />
         ) : students.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-gray-500 border border-dashed border-gray-200 rounded-lg">
-            No students found for the selected filters.
+          <div className="flex-1 flex items-center justify-center text-gray-500 border border-dashed border-gray-200 rounded-lg text-center p-6">
+            {filters.sectionStatus === 'marked'
+              ? 'No section-marked students found for the selected batch.'
+              : filters.sectionStatus === 'not_marked'
+              ? 'No unassigned students found. All students have sections assigned!'
+              : 'No students found for the selected filters.'}
           </div>
         ) : (
           <div className="flex-1 min-h-0 flex flex-col min-w-0 overflow-hidden">
@@ -1074,8 +1168,9 @@ const SectionPartition = () => {
         filters={filters}
         configuredSections={configuredSectionItems}
         sectionBreakdown={currentSectionBreakdown}
-        students={students}
-        totalStudents={totalStudents}
+        students={allBatchStudents.length > 0 ? allBatchStudents : students}
+        totalStudents={allBatchTotal || totalStudents}
+        statusCounts={statusCounts}
         loadingAllStudents={loadingAllStudents}
         onApplyDraft={handleApplyPinRangeDraft}
         onSaveDirectly={handleSavePinRangeDirectly}

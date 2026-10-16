@@ -231,6 +231,35 @@ export const calculateSectionRangeStats = (students = [], ranges = []) => {
     });
   });
 
+  // Calculate aggregated stats per unique section
+  const sectionSummaryMap = new Map();
+  sectionCounts.forEach((rc) => {
+    if (!sectionSummaryMap.has(rc.section)) {
+      sectionSummaryMap.set(rc.section, {
+        section: rc.section,
+        count: 0,
+        percentage: 0,
+        studentKeys: new Set(),
+        rangeCount: 0
+      });
+    }
+    const secSum = sectionSummaryMap.get(rc.section);
+    secSum.rangeCount += 1;
+    rc.studentKeys.forEach((key) => secSum.studentKeys.add(key));
+  });
+
+  const sectionSummaries = Array.from(sectionSummaryMap.values()).map((sec) => {
+    const count = sec.studentKeys.size;
+    const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+    return {
+      section: sec.section,
+      count,
+      percentage,
+      studentKeys: Array.from(sec.studentKeys),
+      rangeCount: sec.rangeCount
+    };
+  });
+
   const overlaps = [];
   studentMatchMap.forEach((matchedSections, key) => {
     if (matchedSections.length > 1) {
@@ -252,7 +281,106 @@ export const calculateSectionRangeStats = (students = [], ranges = []) => {
     totalMatched,
     unmatchedCount,
     sectionCounts,
+    sectionSummaries,
     overlappingCount: overlaps.length,
     overlaps
+  };
+};
+
+/**
+ * Compute available student options for a given range so that already selected PIN ranges
+ * from other ranges are excluded.
+ */
+export const getAvailableRangeOptions = (
+  sortedStudentsWithPin = [],
+  allFlatRanges = [],
+  currentRangeId = '',
+  currentStartPin = '',
+  currentEndPin = ''
+) => {
+  if (!Array.isArray(sortedStudentsWithPin) || sortedStudentsWithPin.length === 0) {
+    return {
+      occupiedIndices: new Set(),
+      occupiedPinSet: new Set(),
+      availableStartStudents: [],
+      availableEndStudents: []
+    };
+  }
+
+  // 1. Identify all OTHER valid ranges
+  const otherRanges = allFlatRanges.filter(
+    (r) => r.id !== currentRangeId && r.startPin && r.endPin
+  );
+
+  // 2. Map occupied indices
+  const occupiedIndices = new Set();
+  const occupiedPinSet = new Set();
+
+  otherRanges.forEach((r) => {
+    const sIdx = sortedStudentsWithPin.findIndex((s) => s.pinNo === r.startPin);
+    let eIdx = -1;
+    for (let i = sortedStudentsWithPin.length - 1; i >= 0; i--) {
+      if (sortedStudentsWithPin[i]?.pinNo === r.endPin) {
+        eIdx = i;
+        break;
+      }
+    }
+
+    if (sIdx !== -1 && eIdx !== -1 && sIdx <= eIdx) {
+      for (let i = sIdx; i <= eIdx; i++) {
+        occupiedIndices.add(i);
+        if (sortedStudentsWithPin[i]?.pinNo) {
+          occupiedPinSet.add(sortedStudentsWithPin[i].pinNo);
+        }
+      }
+    } else {
+      // Fallback range check
+      sortedStudentsWithPin.forEach((s, idx) => {
+        if (isPinInRange(s.pinNo, r.startPin, r.endPin)) {
+          occupiedIndices.add(idx);
+          if (s.pinNo) occupiedPinSet.add(s.pinNo);
+        }
+      });
+    }
+  });
+
+  // 3. Available students for Start PIN (unoccupied + currently selected startPin)
+  const availableStartStudents = sortedStudentsWithPin.filter((student, idx) => {
+    if (occupiedIndices.has(idx)) {
+      return student.pinNo === currentStartPin;
+    }
+    return true;
+  });
+
+  // 4. Available students for End PIN (unoccupied >= startPin, up to the first blocked index)
+  let availableEndStudents = [];
+  if (!currentStartPin) {
+    availableEndStudents = [];
+  } else {
+    const startIdx = sortedStudentsWithPin.findIndex((s) => s.pinNo === currentStartPin);
+    if (startIdx === -1) {
+      availableEndStudents = [];
+    } else {
+      let maxAllowedIdx = sortedStudentsWithPin.length - 1;
+      for (let i = startIdx + 1; i < sortedStudentsWithPin.length; i++) {
+        if (occupiedIndices.has(i)) {
+          maxAllowedIdx = i - 1;
+          break;
+        }
+      }
+
+      availableEndStudents = sortedStudentsWithPin.filter((student, idx) => {
+        if (idx < startIdx) return false;
+        if (idx <= maxAllowedIdx) return true;
+        return student.pinNo === currentEndPin;
+      });
+    }
+  }
+
+  return {
+    occupiedIndices,
+    occupiedPinSet,
+    availableStartStudents,
+    availableEndStudents
   };
 };

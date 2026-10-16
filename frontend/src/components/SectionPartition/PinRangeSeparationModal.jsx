@@ -14,14 +14,16 @@ import {
   Trash2,
   Loader2,
   Save,
-  Check
+  Check,
+  Layers
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
   comparePins,
   isPinInRange,
   distributeStudentsIntoSections,
-  calculateSectionRangeStats
+  calculateSectionRangeStats,
+  getAvailableRangeOptions
 } from '../../utils/sectionRangeUtils';
 
 const PinRangeSeparationModal = ({
@@ -32,11 +34,31 @@ const PinRangeSeparationModal = ({
   sectionBreakdown = [],
   students = [],
   totalStudents = 0,
+  statusCounts = { all: 0, marked: 0, notMarked: 0 },
   loadingAllStudents = false,
   onApplyDraft,
   onSaveDirectly,
   saving = false
 }) => {
+  const markedCount = useMemo(() => {
+    if (statusCounts?.marked !== undefined && statusCounts.marked !== null && Number(statusCounts.marked) >= 0) {
+      return Number(statusCounts.marked);
+    }
+    return students.filter((s) => Boolean(s.section && String(s.section).trim())).length;
+  }, [statusCounts, students]);
+
+  const notMarkedCount = useMemo(() => {
+    if (statusCounts?.notMarked !== undefined && statusCounts.notMarked !== null && Number(statusCounts.notMarked) >= 0) {
+      return Number(statusCounts.notMarked);
+    }
+    return students.filter((s) => !s.section || !String(s.section).trim()).length;
+  }, [statusCounts, students]);
+
+  const batchTotalCount = useMemo(() => {
+    if (statusCounts?.all) return Number(statusCounts.all);
+    return totalStudents || students.length;
+  }, [statusCounts, totalStudents, students.length]);
+
   // Normalize breakdown section items: [{ name: 'A', strength: 80 }, ...]
   const breakdownList = useMemo(() => {
     if (Array.isArray(sectionBreakdown) && sectionBreakdown.length > 0) {
@@ -57,17 +79,17 @@ const PinRangeSeparationModal = ({
     return breakdownList.map((item) => item.name).filter(Boolean);
   }, [breakdownList]);
 
-  // Section breakdown limits the maximum number of sections dynamically!
+  // Section breakdown limits the maximum number of sections dynamically
   const hasConfiguredBreakdown = breakdownList.length > 0;
   const maxSectionsAllowed = hasConfiguredBreakdown ? breakdownList.length : 10;
   const initialSectionCount = hasConfiguredBreakdown ? breakdownList.length : 2;
 
   const [numberOfSections, setNumberOfSections] = useState(initialSectionCount);
-  const [ranges, setRanges] = useState([]);
+  const [sections, setSections] = useState([]);
   const [isApplying, setIsApplying] = useState(false);
   const autoInitializedRef = useRef(false);
 
-  // Initialize or re-initialize ranges when modal opens
+  // Initialize or re-initialize sections when modal opens
   useEffect(() => {
     if (!isOpen) {
       autoInitializedRef.current = false;
@@ -77,27 +99,88 @@ const PinRangeSeparationModal = ({
     const count = Math.min(initialSectionCount, maxSectionsAllowed);
     setNumberOfSections(count);
 
-    const initialRanges = Array.from({ length: count }, (_, idx) => {
+    const initialSections = Array.from({ length: count }, (_, idx) => {
       const defaultName =
         availableSectionNames[idx] ||
         (idx < 26 ? `Section ${String.fromCharCode(65 + idx)}` : `Section ${idx + 1}`);
       return {
-        id: `range-${Date.now()}-${idx}`,
+        id: `sec-${Date.now()}-${idx}`,
         section: defaultName,
-        startPin: '',
-        endPin: ''
+        ranges: [
+          {
+            id: `range-${Date.now()}-${idx}-0`,
+            startPin: '',
+            endPin: ''
+          }
+        ]
       };
     });
 
-    setRanges(initialRanges);
+    setSections(initialSections);
   }, [isOpen, initialSectionCount, maxSectionsAllowed, availableSectionNames]);
+
+  // Flattened ranges across all sections for stats and validation
+  const flatRanges = useMemo(() => {
+    return sections.flatMap((sec) =>
+      sec.ranges.map((r) => ({
+        id: r.id,
+        sectionId: sec.id,
+        section: sec.section,
+        startPin: r.startPin,
+        endPin: r.endPin
+      }))
+    );
+  }, [sections]);
 
   // Calculate real-time stats
   const stats = useMemo(() => {
-    return calculateSectionRangeStats(students, ranges);
-  }, [students, ranges]);
+    return calculateSectionRangeStats(students, flatRanges);
+  }, [students, flatRanges]);
 
-  // Handle changing the number of sections - all students must be fitted into the new section count
+  // Helper to map section-level aggregated statistics
+  const sectionSummaryMap = useMemo(() => {
+    const map = new Map();
+    (stats.sectionSummaries || []).forEach((item) => {
+      map.set(item.section, item);
+    });
+    return map;
+  }, [stats.sectionSummaries]);
+
+  // Auto-fill ranges if empty when students are loaded and modal is opened
+  useEffect(() => {
+    if (!isOpen || autoInitializedRef.current) return;
+    if (sections.length === 0 || stats.sortedStudentsWithPin.length === 0) return;
+
+    const allEmpty = flatRanges.every((r) => !r.startPin && !r.endPin);
+    if (!allEmpty) return;
+
+    const distributed = distributeStudentsIntoSections(
+      stats.sortedStudentsWithPin,
+      sections.length,
+      breakdownList
+    );
+
+    if (distributed.length > 0) {
+      setSections((prev) =>
+        prev.map((sec, idx) => {
+          const item = distributed[idx];
+          return {
+            ...sec,
+            ranges: [
+              {
+                id: sec.ranges[0]?.id || `range-${Date.now()}-${idx}-0`,
+                startPin: item ? item.startPin || '' : '',
+                endPin: item ? item.endPin || '' : ''
+              }
+            ]
+          };
+        })
+      );
+      autoInitializedRef.current = true;
+    }
+  }, [isOpen, sections.length, flatRanges, stats.sortedStudentsWithPin, breakdownList]);
+
+  // Handle changing the number of sections
   const handleSectionCountChange = (newCount) => {
     const targetCount = Math.max(1, Math.min(maxSectionsAllowed, parseInt(newCount, 10) || 1));
     setNumberOfSections(targetCount);
@@ -108,46 +191,46 @@ const PinRangeSeparationModal = ({
         ? distributeStudentsIntoSections(sortedStudents, targetCount, breakdownList)
         : [];
 
-    setRanges((prev) => {
-      const nextRanges = [];
+    setSections((prev) => {
+      const nextSections = [];
       for (let i = 0; i < targetCount; i++) {
-        const existingRange = prev[i];
-        const usedNames = new Set(nextRanges.map((r) => r.section));
+        const existingSec = prev[i];
+        const usedNames = new Set(nextSections.map((s) => s.section));
         const sectionName =
-          existingRange?.section && !usedNames.has(existingRange.section)
-            ? existingRange.section
+          existingSec?.section && !usedNames.has(existingSec.section)
+            ? existingSec.section
             : availableSectionNames.find((name) => !usedNames.has(name)) ||
               availableSectionNames[i] ||
               (i < 26 ? `Section ${String.fromCharCode(65 + i)}` : `Section ${i + 1}`);
 
         const item = distributed[i];
-        nextRanges.push({
-          id: existingRange?.id || `range-${Date.now()}-${i}`,
+        const initialRanges = existingSec?.ranges?.length
+          ? existingSec.ranges.map((r, rIdx) =>
+              rIdx === 0 && item
+                ? { ...r, startPin: item.startPin || '', endPin: item.endPin || '' }
+                : r
+            )
+          : [
+              {
+                id: `range-${Date.now()}-${i}-0`,
+                startPin: item ? item.startPin || '' : '',
+                endPin: item ? item.endPin || '' : ''
+              }
+            ];
+
+        nextSections.push({
+          id: existingSec?.id || `sec-${Date.now()}-${i}`,
           section: sectionName,
-          startPin: item ? item.startPin || '' : existingRange?.startPin || '',
-          endPin: item ? item.endPin || '' : existingRange?.endPin || ''
+          ranges: initialRanges
         });
       }
-      return nextRanges;
+      return nextSections;
     });
   };
 
-  // Update a specific range property
-  const handleRangeFieldChange = (id, field, value) => {
-    setRanges((prev) =>
-      prev.map((r) => {
-        if (r.id !== id) return r;
-        return {
-          ...r,
-          [field]: field === 'section' ? value : String(value || '').trim().toUpperCase()
-        };
-      })
-    );
-  };
-
-  // Add a new section range row - strictly clamped by section breakdown and fits all students
+  // Add a new section row
   const handleAddSectionRow = () => {
-    if (ranges.length >= maxSectionsAllowed) {
+    if (sections.length >= maxSectionsAllowed) {
       toast.error(
         hasConfiguredBreakdown
           ? `Cannot exceed ${maxSectionsAllowed} sections configured in section breakdown for this branch`
@@ -155,18 +238,18 @@ const PinRangeSeparationModal = ({
       );
       return;
     }
-    const nextCount = ranges.length + 1;
+    const nextCount = sections.length + 1;
     handleSectionCountChange(nextCount);
   };
 
-  // Remove a section range row - all students are fitted into the remaining sections
-  const handleRemoveSectionRow = (id) => {
-    if (ranges.length <= 1) {
+  // Remove a section row
+  const handleRemoveSectionRow = (sectionId) => {
+    if (sections.length <= 1) {
       toast.error('At least one section is required');
       return;
     }
-    const remainingRanges = ranges.filter((r) => r.id !== id);
-    const targetCount = remainingRanges.length;
+    const remainingSections = sections.filter((s) => s.id !== sectionId);
+    const targetCount = remainingSections.length;
     setNumberOfSections(targetCount);
 
     const sortedStudents = stats.sortedStudentsWithPin;
@@ -175,47 +258,156 @@ const PinRangeSeparationModal = ({
         ? distributeStudentsIntoSections(sortedStudents, targetCount, breakdownList)
         : [];
 
-    setRanges(
-      remainingRanges.map((r, idx) => {
+    setSections(
+      remainingSections.map((sec, idx) => {
         const item = distributed[idx];
         return {
-          ...r,
-          startPin: item ? item.startPin || '' : r.startPin || '',
-          endPin: item ? item.endPin || '' : r.endPin || ''
+          ...sec,
+          ranges: sec.ranges.map((r, rIdx) =>
+            rIdx === 0 && item
+              ? { ...r, startPin: item.startPin || '', endPin: item.endPin || '' }
+              : r
+          )
         };
       })
     );
   };
 
-  // Auto-fill ranges if empty when students are loaded and modal is opened
-  useEffect(() => {
-    if (!isOpen || autoInitializedRef.current) return;
-    if (ranges.length === 0 || stats.sortedStudentsWithPin.length === 0) return;
+  // Update section name
+  const handleSectionNameChange = (sectionId, newName) => {
+    setSections((prev) =>
+      prev.map((sec) => (sec.id === sectionId ? { ...sec, section: newName } : sec))
+    );
+  };
 
-    const allEmpty = ranges.every((r) => !r.startPin && !r.endPin);
-    if (!allEmpty) return;
+  // Add another PIN range to a specific section (Multi-range selection support!)
+  const handleAddPinRangeToSection = (sectionId) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id !== sectionId) return sec;
+        const newRange = {
+          id: `range-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+          startPin: '',
+          endPin: ''
+        };
+        return {
+          ...sec,
+          ranges: [...sec.ranges, newRange]
+        };
+      })
+    );
+    toast.success('Added new PIN range row. Select Start and End PIN from available students.');
+  };
+
+  // Remove or clear a PIN range from a specific section
+  const handleRemovePinRangeFromSection = (sectionId, rangeId) => {
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id !== sectionId) return sec;
+        if (sec.ranges.length <= 1) {
+          // Clear inputs if it's the only range
+          return {
+            ...sec,
+            ranges: sec.ranges.map((r) =>
+              r.id === rangeId ? { ...r, startPin: '', endPin: '' } : r
+            )
+          };
+        }
+        // Remove range if there are multiple ranges
+        return {
+          ...sec,
+          ranges: sec.ranges.filter((r) => r.id !== rangeId)
+        };
+      })
+    );
+  };
+
+  // Update a specific range property (startPin / endPin)
+  const handleRangeFieldChange = (sectionId, rangeId, field, value) => {
+    const formattedVal = String(value || '').trim().toUpperCase();
+
+    setSections((prev) =>
+      prev.map((sec) => {
+        if (sec.id !== sectionId) return sec;
+        return {
+          ...sec,
+          ranges: sec.ranges.map((r) => {
+            if (r.id !== rangeId) return r;
+            const updated = { ...r, [field]: formattedVal };
+
+            // If startPin changed, verify that existing endPin is still >= startPin; if not, clear endPin
+            if (field === 'startPin') {
+              if (updated.endPin) {
+                const sIdx = stats.sortedStudentsWithPin.findIndex(
+                  (s) => s.pinNo === formattedVal
+                );
+                const eIdx = stats.sortedStudentsWithPin.findIndex(
+                  (s) => s.pinNo === updated.endPin
+                );
+                if (sIdx === -1 || eIdx === -1 || eIdx < sIdx) {
+                  updated.endPin = '';
+                }
+              }
+            }
+            return updated;
+          })
+        };
+      })
+    );
+  };
+
+  // Auto-distribute across sections (uses breakdown capacities if configured)
+  const handleAutoDistribute = () => {
+    if (stats.sortedStudentsWithPin.length === 0) {
+      toast.error('No students with PIN numbers found in this batch');
+      return;
+    }
 
     const distributed = distributeStudentsIntoSections(
       stats.sortedStudentsWithPin,
-      ranges.length,
+      sections.length,
       breakdownList
     );
 
-    if (distributed.length > 0) {
-      setRanges((prev) =>
-        prev.map((range, idx) => {
-          const item = distributed[idx];
-          if (!item) return range;
-          return {
-            ...range,
-            startPin: item.startPin || '',
-            endPin: item.endPin || ''
-          };
-        })
-      );
-      autoInitializedRef.current = true;
-    }
-  }, [isOpen, ranges, stats.sortedStudentsWithPin, breakdownList]);
+    setSections((prev) =>
+      prev.map((sec, idx) => {
+        const item = distributed[idx];
+        return {
+          ...sec,
+          ranges: [
+            {
+              id: sec.ranges[0]?.id || `range-${Date.now()}-${idx}-0`,
+              startPin: item ? item.startPin || '' : '',
+              endPin: item ? item.endPin || '' : ''
+            }
+          ]
+        };
+      })
+    );
+
+    const hasBreaks = breakdownList.some((b) => Number(b.strength) > 0);
+    toast.success(
+      hasBreaks
+        ? `Distributed ${stats.sortedStudentsWithPin.length} students across ${sections.length} sections based on section breakdown`
+        : `Distributed ${stats.sortedStudentsWithPin.length} students across ${sections.length} sections`
+    );
+  };
+
+  // Clear all PIN ranges
+  const handleClearRanges = () => {
+    setSections((prev) =>
+      prev.map((sec, idx) => ({
+        ...sec,
+        ranges: [
+          {
+            id: sec.ranges[0]?.id || `range-${Date.now()}-${idx}-0`,
+            startPin: '',
+            endPin: ''
+          }
+        ]
+      }))
+    );
+  };
 
   // Helper to find 1-based serial number for a PIN
   const getSerialForPin = (pin, isEnd = false) => {
@@ -244,53 +436,9 @@ const PinRangeSeparationModal = ({
     return { start, end, strength, label: `${start}-${end}` };
   };
 
-  // Auto-distribute across sections (uses breakdown capacities if configured)
-  const handleAutoDistribute = () => {
-    if (stats.sortedStudentsWithPin.length === 0) {
-      toast.error('No students with PIN numbers found in this batch');
-      return;
-    }
-
-    const distributed = distributeStudentsIntoSections(
-      stats.sortedStudentsWithPin,
-      ranges.length,
-      breakdownList
-    );
-
-    setRanges((prev) =>
-      prev.map((range, idx) => {
-        const item = distributed[idx];
-        if (!item) return range;
-        return {
-          ...range,
-          startPin: item.startPin,
-          endPin: item.endPin
-        };
-      })
-    );
-
-    const hasBreaks = breakdownList.some((b) => Number(b.strength) > 0);
-    toast.success(
-      hasBreaks
-        ? `Distributed ${stats.sortedStudentsWithPin.length} students across ${ranges.length} sections based on section breakdown`
-        : `Distributed ${stats.sortedStudentsWithPin.length} students across ${ranges.length} sections`
-    );
-  };
-
-  // Clear all PIN ranges
-  const handleClearRanges = () => {
-    setRanges((prev) =>
-      prev.map((r) => ({
-        ...r,
-        startPin: '',
-        endPin: ''
-      }))
-    );
-  };
-
   // Collect assignment pairs { admissionNumber, section }
   const getAssignments = () => {
-    const validRanges = ranges.filter((r) => r.section && r.startPin && r.endPin);
+    const validRanges = flatRanges.filter((r) => r.section && r.startPin && r.endPin);
     if (validRanges.length === 0) {
       return null;
     }
@@ -337,7 +485,15 @@ const PinRangeSeparationModal = ({
 
     setIsApplying(true);
     try {
-      await onSaveDirectly(assignments, ranges);
+      const validFlatRanges = flatRanges
+        .filter((r) => r.section && r.startPin && r.endPin)
+        .map((r) => ({
+          section: r.section,
+          startPin: r.startPin,
+          endPin: r.endPin
+        }));
+
+      await onSaveDirectly(assignments, validFlatRanges);
       onClose();
     } catch (err) {
       console.error('Failed to save PIN range partition:', err);
@@ -382,6 +538,22 @@ const PinRangeSeparationModal = ({
                     </span>
                   </>
                 )}
+                <span>•</span>
+                <span
+                  className={`font-semibold px-2 py-0.5 rounded text-xs ${
+                    filters.sectionStatus === 'marked'
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                      : filters.sectionStatus === 'not_marked'
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'bg-indigo-100 text-indigo-800 border border-indigo-200'
+                  }`}
+                >
+                  {filters.sectionStatus === 'marked'
+                    ? `Section Marked Only (${stats.totalStudents})`
+                    : filters.sectionStatus === 'not_marked'
+                    ? `Not Marked Only (${stats.totalStudents})`
+                    : `All Students (${stats.totalStudents})`}
+                </span>
               </div>
             </div>
           </div>
@@ -400,22 +572,54 @@ const PinRangeSeparationModal = ({
           {loadingAllStudents ? (
             <div className="py-16 flex flex-col items-center justify-center gap-3 text-gray-500">
               <Loader2 size={32} className="animate-spin text-indigo-600" />
-              <p className="text-sm font-medium">Loading all batch students for PIN range calculation...</p>
+              <p className="text-sm font-medium">
+                {filters.sectionStatus === 'not_marked'
+                  ? 'Loading unassigned students for PIN range calculation...'
+                  : filters.sectionStatus === 'marked'
+                  ? 'Loading section-marked students for PIN range calculation...'
+                  : 'Loading all batch students for PIN range calculation...'}
+              </p>
             </div>
           ) : (
             <>
               {/* Batch PIN Stats Overview Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 <div className="bg-gray-50 border border-gray-200/80 rounded-xl p-3 flex flex-col justify-between">
                   <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     <Users size={14} className="text-indigo-600" />
                     Total Students
                   </div>
                   <div className="mt-2 text-2xl font-black text-gray-900">
-                    {stats.totalStudents.toLocaleString()}
+                    {batchTotalCount.toLocaleString()}
                   </div>
                   <div className="text-[11px] text-gray-500 mt-0.5">
                     {stats.withPinCount} with PIN{stats.withPinCount === 1 ? '' : 's'}
+                  </div>
+                </div>
+
+                <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-xl p-3 flex flex-col justify-between">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 uppercase tracking-wider">
+                    <CheckCircle2 size={14} className="text-emerald-600" />
+                    Section Marked
+                  </div>
+                  <div className="mt-2 text-2xl font-black text-emerald-700">
+                    {markedCount.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-emerald-700/80 mt-0.5 font-medium">
+                    {batchTotalCount > 0 ? `${Math.round((markedCount / batchTotalCount) * 100)}% of batch` : 'Assigned'}
+                  </div>
+                </div>
+
+                <div className="bg-amber-50/40 border border-amber-200/80 rounded-xl p-3 flex flex-col justify-between">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-amber-800 uppercase tracking-wider">
+                    <AlertCircle size={14} className="text-amber-600" />
+                    Not Marked
+                  </div>
+                  <div className="mt-2 text-2xl font-black text-amber-600">
+                    {notMarkedCount.toLocaleString()}
+                  </div>
+                  <div className="text-[11px] text-amber-700/80 mt-0.5 font-medium">
+                    {batchTotalCount > 0 ? `${Math.round((notMarkedCount / batchTotalCount) * 100)}% pending` : 'Pending'}
                   </div>
                 </div>
 
@@ -428,13 +632,17 @@ const PinRangeSeparationModal = ({
                     {stats.minPin ? `${stats.minPin} → ${stats.maxPin}` : 'No PINs found'}
                   </div>
                   <div className="text-[11px] text-gray-500 mt-0.5">
-                    Lowest to Highest in batch
+                    {filters.sectionStatus === 'not_marked'
+                      ? 'Lowest to Highest (unassigned)'
+                      : filters.sectionStatus === 'marked'
+                      ? 'Lowest to Highest (marked)'
+                      : 'Lowest to Highest in batch'}
                   </div>
                 </div>
 
                 <div className="bg-gray-50 border border-gray-200/80 rounded-xl p-3 flex flex-col justify-between">
                   <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    <CheckCircle2 size={14} className="text-emerald-600" />
+                    <Layers size={14} className="text-indigo-600" />
                     Total Matched
                   </div>
                   <div className="mt-2 text-2xl font-black text-emerald-700">
@@ -452,7 +660,7 @@ const PinRangeSeparationModal = ({
 
                 <div className="bg-gray-50 border border-gray-200/80 rounded-xl p-3 flex flex-col justify-between">
                   <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    <AlertCircle size={14} className={stats.unmatchedCount > 0 ? 'text-amber-500' : 'text-gray-400'} />
+                    <AlertTriangle size={14} className={stats.unmatchedCount > 0 ? 'text-amber-500' : 'text-gray-400'} />
                     Unmatched / No PIN
                   </div>
                   <div className={`mt-2 text-2xl font-black ${stats.unmatchedCount > 0 ? 'text-amber-600' : 'text-gray-700'}`}>
@@ -487,8 +695,8 @@ const PinRangeSeparationModal = ({
                       <div className="inline-flex items-center border border-indigo-200 rounded-lg bg-white shadow-sm overflow-hidden">
                         <button
                           type="button"
-                          onClick={() => handleSectionCountChange(numberOfSections - 1)}
-                          disabled={numberOfSections <= 1}
+                          onClick={() => handleSectionCountChange(sections.length - 1)}
+                          disabled={sections.length <= 1}
                           className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                           aria-label="Decrease section count"
                         >
@@ -499,18 +707,18 @@ const PinRangeSeparationModal = ({
                           type="number"
                           min="1"
                           max={maxSectionsAllowed}
-                          value={numberOfSections}
+                          value={sections.length}
                           onChange={(e) => handleSectionCountChange(e.target.value)}
                           className="w-14 text-center py-1.5 text-sm font-bold text-gray-900 border-x border-indigo-100 focus:outline-none"
                         />
                         <button
                           type="button"
-                          onClick={() => handleSectionCountChange(numberOfSections + 1)}
-                          disabled={numberOfSections >= maxSectionsAllowed}
+                          onClick={() => handleSectionCountChange(sections.length + 1)}
+                          disabled={sections.length >= maxSectionsAllowed}
                           className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                           aria-label="Increase section count"
                           title={
-                            numberOfSections >= maxSectionsAllowed
+                            sections.length >= maxSectionsAllowed
                               ? `Cannot exceed ${maxSectionsAllowed} sections configured in section breakdown`
                               : 'Increase section count'
                           }
@@ -562,222 +770,331 @@ const PinRangeSeparationModal = ({
               )}
 
               {/* Section PIN Range Rows List */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between text-xs font-semibold text-gray-500 uppercase tracking-wider px-1">
-                  <span>Sections & PIN Number Ranges</span>
-                  <span>Estimated Counts</span>
+                  <span>Sections & Multi PIN Number Ranges</span>
+                  <span>Section Totals</span>
                 </div>
 
-                {ranges.map((range, index) => {
-                  const stat = stats.sectionCounts.find((s) => s.id === range.id) || {
+                {sections.map((sec, secIndex) => {
+                  const secStat = sectionSummaryMap.get(sec.section) || {
                     count: 0,
-                    percentage: 0,
-                    isInvalidRange: false
+                    percentage: 0
                   };
-
-                  // Check if this section has overlapping students with others
-                  const hasOverlap = stats.overlaps.some((o) =>
-                    o.sections.includes(range.section)
-                  );
-
-                  const startSerial = getSerialForPin(range.startPin, false);
-                  const endSerial = getSerialForPin(range.endPin, true);
-                  const targetConfig = getBreakdownTargetRange(index);
+                  const targetConfig = getBreakdownTargetRange(secIndex);
 
                   return (
                     <div
-                      key={range.id}
-                      className={`p-4 rounded-xl border transition-all ${
-                        stat.isInvalidRange
-                          ? 'border-rose-300 bg-rose-50/40'
-                          : hasOverlap
-                          ? 'border-amber-300 bg-amber-50/30'
-                          : stat.count > 0
-                          ? 'border-indigo-200 bg-indigo-50/20 shadow-sm'
+                      key={sec.id}
+                      className={`rounded-2xl border transition-all overflow-hidden ${
+                        secStat.count > 0
+                          ? 'border-indigo-200 bg-white shadow-sm ring-1 ring-indigo-50/50'
                           : 'border-gray-200 bg-white'
                       }`}
                     >
-                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                        {/* Section Selector / Name */}
-                        <div className="flex items-center gap-2 min-w-[200px]">
-                          <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold flex items-center justify-center shrink-0">
-                            {index + 1}
+                      {/* Section Card Top Bar */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-gray-50 via-indigo-50/20 to-white border-b border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <span className="w-7 h-7 rounded-lg bg-indigo-600 text-white text-xs font-black flex items-center justify-center shadow-sm">
+                            {secIndex + 1}
                           </span>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
-                                Section Name
-                              </label>
-                              {targetConfig && (
-                                <span
-                                  className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.2 rounded"
-                                  title={`Target range from breakdown: S.No ${targetConfig.label} (${targetConfig.strength} capacity)`}
-                                >
-                                  Cap: {targetConfig.strength}
-                                </span>
-                              )}
-                            </div>
+                          <div className="flex items-center gap-2">
                             {availableSectionNames.length > 0 ? (
                               <select
-                                value={range.section}
-                                onChange={(e) =>
-                                  handleRangeFieldChange(range.id, 'section', e.target.value)
-                                }
-                                className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                value={sec.section}
+                                onChange={(e) => handleSectionNameChange(sec.id, e.target.value)}
+                                className="border border-gray-300 rounded-lg px-2.5 py-1 text-sm font-bold text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                               >
                                 {breakdownList.map((item) => (
                                   <option key={item.name} value={item.name}>
                                     Section {item.name}{item.strength ? ` (${item.strength} students)` : ''}
                                   </option>
                                 ))}
-                                {!availableSectionNames.includes(range.section) && (
-                                  <option value={range.section}>{range.section}</option>
+                                {!availableSectionNames.includes(sec.section) && (
+                                  <option value={sec.section}>{sec.section}</option>
                                 )}
                               </select>
                             ) : (
                               <input
                                 type="text"
-                                value={range.section}
-                                onChange={(e) =>
-                                  handleRangeFieldChange(range.id, 'section', e.target.value)
-                                }
+                                value={sec.section}
+                                onChange={(e) => handleSectionNameChange(sec.id, e.target.value)}
                                 placeholder="Section Name (e.g. A)"
-                                className="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="border border-gray-300 rounded-lg px-2.5 py-1 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-36"
                               />
+                            )}
+
+                            {targetConfig && (
+                              <span
+                                className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/70 px-2 py-0.5 rounded-md"
+                                title={`Target breakdown strength: ${targetConfig.strength} students`}
+                              >
+                                Cap: {targetConfig.strength}
+                              </span>
                             )}
                           </div>
                         </div>
 
-                        {/* PIN Range Dropdowns: Start to End */}
-                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:items-center">
-                          {/* From (Start PIN) Dropdown */}
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
-                                From (Start PIN)
-                              </label>
-                              {startSerial !== null && (
-                                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">
-                                  S.No #{startSerial}
+                        {/* Section Total Count & Actions */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            {secStat.count > 0 ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-xs">
+                                <Check size={13} className="text-emerald-600" />
+                                {secStat.count} Student{secStat.count === 1 ? '' : 's'}
+                                <span className="text-[10px] font-semibold text-emerald-600 border-l border-emerald-200 pl-1.5">
+                                  {secStat.percentage}%
                                 </span>
-                              )}
-                            </div>
-                            <select
-                              value={range.startPin}
-                              onChange={(e) =>
-                                handleRangeFieldChange(range.id, 'startPin', e.target.value)
-                              }
-                              className="w-full font-mono border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                            >
-                              <option value="">-- Select Start PIN --</option>
-                              {stats.sortedStudentsWithPin.map((student, sIdx) => {
-                                const sNo = sIdx + 1;
-                                return (
-                                  <option
-                                    key={`start-${range.id}-${student.pinNo}-${sIdx}`}
-                                    value={student.pinNo}
-                                  >
-                                    {sNo}. {student.pinNo}{student.studentName ? ` - ${student.studentName}` : ''}
-                                  </option>
-                                );
-                              })}
-                              {range.startPin &&
-                                !stats.sortedStudentsWithPin.some((s) => s.pinNo === range.startPin) && (
-                                  <option value={range.startPin}>{range.startPin}</option>
-                                )}
-                            </select>
-                          </div>
-
-                          {/* To (End PIN) Dropdown */}
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
-                                To (End PIN)
-                              </label>
-                              {endSerial !== null && (
-                                <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">
-                                  S.No #{endSerial}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <select
-                                value={range.endPin}
-                                onChange={(e) =>
-                                  handleRangeFieldChange(range.id, 'endPin', e.target.value)
-                                }
-                                className="w-full font-mono border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                              >
-                                <option value="">-- Select End PIN --</option>
-                                {stats.sortedStudentsWithPin.map((student, sIdx) => {
-                                  const sNo = sIdx + 1;
-                                  return (
-                                    <option
-                                      key={`end-${range.id}-${student.pinNo}-${sIdx}`}
-                                      value={student.pinNo}
-                                    >
-                                      {sNo}. {student.pinNo}{student.studentName ? ` - ${student.studentName}` : ''}
-                                    </option>
-                                  );
-                                })}
-                                {range.endPin &&
-                                  !stats.sortedStudentsWithPin.some((s) => s.pinNo === range.endPin) && (
-                                    <option value={range.endPin}>{range.endPin}</option>
-                                  )}
-                              </select>
-                              {ranges.length > 1 && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveSectionRow(range.id)}
-                                  className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors shrink-0"
-                                  title="Remove Section"
-                                  aria-label="Remove Section"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Estimated Count Badge */}
-                        <div className="lg:w-48 flex lg:flex-col lg:items-end justify-between items-center shrink-0 border-t lg:border-t-0 pt-2 lg:pt-0">
-                          <div className="text-xs text-gray-500 font-medium lg:hidden">
-                            Estimated:
-                          </div>
-                          {stat.isInvalidRange ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-semibold">
-                              <AlertCircle size={12} />
-                              Start &gt; End PIN
-                            </span>
-                          ) : stat.count > 0 ? (
-                            <div className="text-right">
-                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
-                                <Check size={12} />
-                                {stat.count} Student{stat.count === 1 ? '' : 's'}
                               </span>
-                              <div className="text-[11px] text-gray-500 mt-0.5">
-                                {stat.percentage}% of total batch
+                            ) : (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
+                                0 Students
+                              </span>
+                            )}
+
+                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">
+                              <Layers size={12} />
+                              {sec.ranges.length} Range{sec.ranges.length === 1 ? '' : 's'}
+                            </span>
+                          </div>
+
+                          {sections.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSectionRow(sec.id)}
+                              className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                              title={`Remove Section ${sec.section}`}
+                              aria-label={`Remove Section ${sec.section}`}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Section Ranges List */}
+                      <div className="p-4 space-y-3 bg-white">
+                        {sec.ranges.map((range, rangeIndex) => {
+                          const rangeStat = stats.sectionCounts.find((s) => s.id === range.id) || {
+                            count: 0,
+                            percentage: 0,
+                            isInvalidRange: false
+                          };
+
+                          const startSerial = getSerialForPin(range.startPin, false);
+                          const endSerial = getSerialForPin(range.endPin, true);
+
+                          // Compute available range options strictly excluding other selected ranges
+                          const { availableStartStudents, availableEndStudents } =
+                            getAvailableRangeOptions(
+                              stats.sortedStudentsWithPin,
+                              flatRanges,
+                              range.id,
+                              range.startPin,
+                              range.endPin
+                            );
+
+                          return (
+                            <div
+                              key={range.id}
+                              className={`p-3 rounded-xl border transition-all ${
+                                rangeStat.isInvalidRange
+                                  ? 'border-rose-300 bg-rose-50/30'
+                                  : rangeStat.count > 0
+                                  ? 'border-indigo-100 bg-indigo-50/15'
+                                  : 'border-gray-200/80 bg-gray-50/40'
+                              }`}
+                            >
+                              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                                {/* Range Index Tag */}
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <span className="text-[11px] font-bold text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-md">
+                                    Range {rangeIndex + 1}
+                                  </span>
+                                </div>
+
+                                {/* From (Start PIN) and To (End PIN) Select Dropdowns */}
+                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:items-center">
+                                  {/* From (Start PIN) */}
+                                  <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                        From (Start PIN)
+                                      </label>
+                                      {startSerial !== null && (
+                                        <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.2 rounded">
+                                          S.No #{startSerial}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <select
+                                      value={range.startPin}
+                                      onChange={(e) =>
+                                        handleRangeFieldChange(
+                                          sec.id,
+                                          range.id,
+                                          'startPin',
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-full font-mono border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                    >
+                                      <option value="">
+                                        {availableStartStudents.length > 0
+                                          ? '-- Select Start PIN --'
+                                          : '-- All students allocated in existing ranges --'}
+                                      </option>
+                                      {availableStartStudents.map((student) => {
+                                        const sNo = getSerialForPin(student.pinNo, false);
+                                        return (
+                                          <option
+                                            key={`start-${range.id}-${student.pinNo}`}
+                                            value={student.pinNo}
+                                          >
+                                            {sNo ? `${sNo}. ` : ''}
+                                            {student.pinNo}
+                                            {student.studentName
+                                              ? ` - ${student.studentName.slice(0, 32)}`
+                                              : ''}
+                                          </option>
+                                        );
+                                      })}
+                                      {range.startPin &&
+                                        !availableStartStudents.some(
+                                          (s) => s.pinNo === range.startPin
+                                        ) && (
+                                          <option value={range.startPin}>
+                                            {getSerialForPin(range.startPin)
+                                              ? `${getSerialForPin(range.startPin)}. `
+                                              : ''}
+                                            {range.startPin}
+                                          </option>
+                                        )}
+                                    </select>
+                                  </div>
+
+                                  {/* To (End PIN) */}
+                                  <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                        To (End PIN)
+                                      </label>
+                                      {endSerial !== null && (
+                                        <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.2 rounded">
+                                          S.No #{endSerial}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      <select
+                                        value={range.endPin}
+                                        disabled={!range.startPin}
+                                        onChange={(e) =>
+                                          handleRangeFieldChange(
+                                            sec.id,
+                                            range.id,
+                                            'endPin',
+                                            e.target.value
+                                          )
+                                        }
+                                        className="w-full font-mono border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                                      >
+                                        <option value="">
+                                          {!range.startPin
+                                            ? '-- Select Start PIN First --'
+                                            : availableEndStudents.length > 0
+                                            ? '-- Select End PIN --'
+                                            : '-- No valid End PINs in range --'}
+                                        </option>
+                                        {availableEndStudents.map((student) => {
+                                          const sNo = getSerialForPin(student.pinNo, true);
+                                          return (
+                                            <option
+                                              key={`end-${range.id}-${student.pinNo}`}
+                                              value={student.pinNo}
+                                            >
+                                              {sNo ? `${sNo}. ` : ''}
+                                              {student.pinNo}
+                                              {student.studentName
+                                                ? ` - ${student.studentName.slice(0, 32)}`
+                                                : ''}
+                                            </option>
+                                          );
+                                        })}
+                                        {range.endPin &&
+                                          !availableEndStudents.some(
+                                            (s) => s.pinNo === range.endPin
+                                          ) && (
+                                            <option value={range.endPin}>
+                                              {getSerialForPin(range.endPin, true)
+                                                ? `${getSerialForPin(range.endPin, true)}. `
+                                                : ''}
+                                              {range.endPin}
+                                            </option>
+                                          )}
+                                      </select>
+
+                                      {/* Delete / Clear Range button */}
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleRemovePinRangeFromSection(sec.id, range.id)
+                                        }
+                                        className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors shrink-0"
+                                        title={
+                                          sec.ranges.length > 1
+                                            ? 'Remove this PIN range'
+                                            : 'Clear Start and End PIN'
+                                        }
+                                        aria-label="Remove PIN range"
+                                      >
+                                        <Trash2 size={15} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Range Student Count / Serial Indicator */}
+                                <div className="lg:w-44 flex lg:flex-col lg:items-end justify-between items-center shrink-0 border-t lg:border-t-0 pt-2 lg:pt-0">
+                                  {rangeStat.isInvalidRange ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-xs font-semibold">
+                                      <AlertCircle size={12} />
+                                      Start &gt; End PIN
+                                    </span>
+                                  ) : rangeStat.count > 0 ? (
+                                    <div className="text-right">
+                                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold">
+                                        <Check size={11} className="text-emerald-600" />
+                                        {rangeStat.count} Student{rangeStat.count === 1 ? '' : 's'}
+                                      </span>
+                                      {startSerial && endSerial && (
+                                        <div className="text-[11px] text-gray-500 font-mono mt-0.5">
+                                          S.No {startSerial} → {endSerial}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 text-xs font-medium">
+                                      0 Students
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          ) : (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-medium">
-                              0 Students
-                            </span>
-                          )}
+                          );
+                        })}
 
-                          {/* Serial Number Range comparison */}
-                          {startSerial && endSerial && !stat.isInvalidRange && (
-                            <div className="text-[11px] text-gray-500 text-right mt-1 font-mono">
-                              S.No {startSerial} → {endSerial}
-                            </div>
-                          )}
-
-                          {hasOverlap && !stat.isInvalidRange && (
-                            <span className="text-[10px] text-amber-600 font-semibold mt-1">
-                              ⚠️ Overlaps with other range
-                            </span>
-                          )}
+                        {/* Add Another Number Range to This Section Button */}
+                        <div className="pt-1 flex items-center justify-between">
+                          <button
+                            type="button"
+                            onClick={() => handleAddPinRangeToSection(sec.id)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-indigo-300 text-indigo-700 hover:text-indigo-900 bg-indigo-50/40 hover:bg-indigo-100/60 text-xs font-bold transition-all"
+                            title={`Add another PIN range to Section ${sec.section} (e.g. lateral entry, transfer, or another roll series)`}
+                          >
+                            <Plus size={14} />
+                            + Add Another Range to Section {sec.section}
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -786,7 +1103,7 @@ const PinRangeSeparationModal = ({
               </div>
 
               {/* Add Section Button - Clamped to Breakdown */}
-              {ranges.length < maxSectionsAllowed ? (
+              {sections.length < maxSectionsAllowed ? (
                 <button
                   type="button"
                   onClick={handleAddSectionRow}
@@ -801,12 +1118,30 @@ const PinRangeSeparationModal = ({
                 </div>
               ) : null}
 
-              {/* Missing PIN notes */}
-              {stats.noPinCount > 0 && (
-                <div className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3">
-                  <span className="font-semibold text-gray-700">Note:</span> {stats.noPinCount} student(s) in this batch do not have a PIN number assigned. They cannot be partitioned by PIN range and will retain their existing sections.
+              {/* Partition Scope & Missing PIN notes */}
+              <div className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1">
+                <div>
+                  <span className="font-semibold text-gray-800">Partition Scope:</span>{' '}
+                  {filters.sectionStatus === 'not_marked' ? (
+                    <>
+                      Partitioning only the <span className="font-bold text-gray-900">{stats.totalStudents}</span> unassigned (not marked) students into sections. Existing sections of other students will remain untouched.
+                    </>
+                  ) : filters.sectionStatus === 'marked' ? (
+                    <>
+                      Re-partitioning only the <span className="font-bold text-gray-900">{stats.totalStudents}</span> students who currently have sections marked.
+                    </>
+                  ) : (
+                    <>
+                      Partitioning all <span className="font-bold text-gray-900">{stats.totalStudents}</span> batch students into sections by PIN range.
+                    </>
+                  )}
                 </div>
-              )}
+                {stats.noPinCount > 0 && (
+                  <div className="text-amber-700">
+                    • {stats.noPinCount} student(s) do not have a PIN number assigned and will retain their current sections.
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>

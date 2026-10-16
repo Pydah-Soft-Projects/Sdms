@@ -134,6 +134,7 @@ const useAuthStore = create((set, get) => {
         localStorage.removeItem('crmUrl');
 
         set({ user, token, isAuthenticated: true, userType, isSSO: false });
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('auth-change'));
         return { success: true, redirectPath: resolveDefaultRoute(user, userType) };
       } catch (error) {
         console.error('Login error:', error);
@@ -163,6 +164,7 @@ const useAuthStore = create((set, get) => {
         localStorage.removeItem('crmUrl');
       }
       set({ user: userObj, token, isAuthenticated: true, userType, isSSO: !!isSSO });
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('auth-change'));
     },
 
     /** SSO: store token/user from sso-session and return redirect path */
@@ -180,6 +182,7 @@ const useAuthStore = create((set, get) => {
       }
       localStorage.removeItem('admin');
       set({ user: userWithSSO, token, isAuthenticated: true, userType, isSSO: true });
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('auth-change'));
       return { success: true, redirectPath: resolveDefaultRoute(userWithSSO, userType) };
     },
 
@@ -290,6 +293,7 @@ const useAuthStore = create((set, get) => {
 
       // Clear state
       set({ user: null, token: null, isAuthenticated: false, userType: null, isSSO: false });
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('auth-change'));
 
       if (redirect) {
         if (wasSSO && crmUrl) {
@@ -311,14 +315,17 @@ const useAuthStore = create((set, get) => {
           const type = persistedType || (user.role === 'parent' ? 'parent' : (user.role === 'student' ? 'student' : 'admin'));
 
           set({ user, isAuthenticated: true, userType: type });
+          if (typeof window !== 'undefined') window.dispatchEvent(new Event('auth-change'));
           return true;
         }
         throw new Error('Invalid response');
       } catch (error) {
-        set({ user: null, token: null, isAuthenticated: false, userType: null });
+        set({ user: null, token: null, isAuthenticated: false, userType: null, isSSO: false });
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('userType');
+        localStorage.removeItem('isSSO');
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('auth-change'));
         return false;
       }
     }

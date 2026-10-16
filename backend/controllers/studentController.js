@@ -10015,7 +10015,7 @@ exports.getSectionPartitionStudents = async (req, res) => {
     }
 
     const isNumeric = (val) => /^\d+$/.test(val);
-    let whereClause = `WHERE 1=1 AND s.batch = ? AND s.student_status = 'Regular' AND UPPER(TRIM(IFNULL(s.stud_type, ''))) NOT IN ('LATER', 'LSPOT', 'L.E')`;
+    let whereClause = `WHERE 1=1 AND s.batch = ? AND s.student_status = 'Regular'`;
     const params = [normalizedBatch];
 
     if (isNumeric(normalizedCollege)) {
@@ -10099,13 +10099,16 @@ exports.getSectionPartitionStudents = async (req, res) => {
          s.course,
          s.branch,
          s.college,
+         s.stud_type,
          ${pinSql} AS resolved_pin,
          ${nameSql} AS student_name,
          ${sectionSql} AS section
        FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id
        ${whereClause}
        ORDER BY
-         CASE WHEN resolved_pin IS NOT NULL AND resolved_pin REGEXP '^[0-9]+$' THEN 0 ELSE 1 END ASC,
+         CASE WHEN resolved_pin IS NOT NULL AND TRIM(resolved_pin) != '' AND resolved_pin REGEXP '^[0-9]+$' THEN 0
+              WHEN resolved_pin IS NOT NULL AND TRIM(resolved_pin) != '' THEN 1
+              ELSE 2 END ASC,
          CASE WHEN resolved_pin IS NOT NULL AND resolved_pin REGEXP '^[0-9]+$' THEN CAST(resolved_pin AS UNSIGNED) END ASC,
          resolved_pin ASC,
          s.admission_number ASC
@@ -10125,6 +10128,7 @@ exports.getSectionPartitionStudents = async (req, res) => {
           course: row.course,
           branch: row.branch,
           college: row.college,
+          studType: row.stud_type || null,
           section: row.section || null
         })),
         sections: configuredSections,
@@ -10405,7 +10409,7 @@ exports.applyPinRangeSectionPartition = async (req, res) => {
     }
 
     const isNumeric = (val) => /^\d+$/.test(val);
-    let whereClause = `WHERE 1=1 AND s.batch = ? AND s.student_status = 'Regular' AND UPPER(TRIM(IFNULL(s.stud_type, ''))) NOT IN ('LATER', 'LSPOT', 'L.E')`;
+    let whereClause = `WHERE 1=1 AND s.batch = ? AND s.student_status = 'Regular'`;
     const params = [normalizedBatch];
 
     if (isNumeric(normalizedCollege)) {

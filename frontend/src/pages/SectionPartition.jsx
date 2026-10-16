@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import {
   LayoutGrid,
   Filter,
@@ -9,7 +9,11 @@ import {
   Save,
   Users,
   X,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Search,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../config/api';
@@ -78,13 +82,17 @@ const SectionPartition = () => {
     isFullAccessRole(user?.role) ||
     hasPermission(userPermissions, BACKEND_MODULES.SECTION_PARTITION, 'manage');
 
-  const [filters, setFilters] = useState({
-    college: '',
-    course: '',
-    branch: '',
-    batch: '',
-    sectionStatus: 'all'
-  });
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [filters, setFilters] = useState(() => ({
+    college: searchParams.get('college') || '',
+    course: searchParams.get('course') || '',
+    branch: searchParams.get('branch') || '',
+    batch: searchParams.get('batch') || '',
+    sectionStatus: searchParams.get('sectionStatus') || 'all'
+  }));
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filtersExpanded, setFiltersExpanded] = useState(true);
   const [statusCounts, setStatusCounts] = useState({
     all: 0,
     marked: 0,
@@ -164,11 +172,6 @@ const SectionPartition = () => {
   }, [students, draftSections, savedSections]);
 
   const selectedCount = selectedStudentKeys.size;
-
-  const isAllLoadedSelected = useMemo(() => {
-    if (students.length === 0) return false;
-    return students.every((student) => selectedStudentKeys.has(getStudentKey(student)));
-  }, [students, selectedStudentKeys]);
 
   const applyRowsToSectionState = useCallback((rows, reset = false) => {
     setSavedSections((prev) => {
@@ -368,6 +371,35 @@ const SectionPartition = () => {
     return () => observer.disconnect();
   }, [hasMore, loadingInitial, loadingMore, nextOffset, loadStudents]);
 
+  useEffect(() => {
+    const qCollege = searchParams.get('college') || '';
+    const qCourse = searchParams.get('course') || '';
+    const qBranch = searchParams.get('branch') || '';
+    const qBatch = searchParams.get('batch') || '';
+    const qStatus = searchParams.get('sectionStatus') || 'all';
+
+    if (qCollege || qCourse || qBranch || qBatch) {
+      setFilters((prev) => {
+        if (
+          prev.college === qCollege &&
+          prev.course === qCourse &&
+          prev.branch === qBranch &&
+          prev.batch === qBatch &&
+          prev.sectionStatus === qStatus
+        ) {
+          return prev;
+        }
+        return {
+          college: qCollege,
+          course: qCourse,
+          branch: qBranch,
+          batch: qBatch,
+          sectionStatus: qStatus
+        };
+      });
+    }
+  }, [searchParams]);
+
   const handleFilterChange = (key, value) => {
     setSelectedStudentKeys(new Set());
     setFilters((prev) => {
@@ -391,6 +423,17 @@ const SectionPartition = () => {
         setAllBatchStudents([]);
         setAllBatchTotal(0);
       }
+
+      const newParams = new URLSearchParams();
+      if (next.college) newParams.set('college', next.college);
+      if (next.course) newParams.set('course', next.course);
+      if (next.branch) newParams.set('branch', next.branch);
+      if (next.batch) newParams.set('batch', next.batch);
+      if (next.sectionStatus && next.sectionStatus !== 'all') {
+        newParams.set('sectionStatus', next.sectionStatus);
+      }
+      setSearchParams(newParams, { replace: true });
+
       return next;
     });
   };
@@ -405,6 +448,22 @@ const SectionPartition = () => {
       [studentKey]: normalizeSectionValue(sectionValue)
     }));
   };
+
+  const displayedStudents = useMemo(() => {
+    if (!searchTerm.trim()) return students;
+    const term = searchTerm.trim().toLowerCase();
+    return students.filter((s) => {
+      const pin = String(s.pinNo || '').toLowerCase();
+      const name = String(s.studentName || '').toLowerCase();
+      const adm = String(s.admissionNumber || '').toLowerCase();
+      return pin.includes(term) || name.includes(term) || adm.includes(term);
+    });
+  }, [students, searchTerm]);
+
+  const isAllLoadedSelected = useMemo(() => {
+    if (displayedStudents.length === 0) return false;
+    return displayedStudents.every((student) => selectedStudentKeys.has(getStudentKey(student)));
+  }, [displayedStudents, selectedStudentKeys]);
 
   const toggleStudentSelection = (studentKey) => {
     setSelectedStudentKeys((prev) => {
@@ -423,7 +482,7 @@ const SectionPartition = () => {
       setSelectedStudentKeys(new Set());
       return;
     }
-    setSelectedStudentKeys(new Set(students.map((student) => getStudentKey(student))));
+    setSelectedStudentKeys(new Set(displayedStudents.map((student) => getStudentKey(student))));
   };
 
   const applyBulkSectionToSelected = (sectionValue) => {
@@ -524,6 +583,8 @@ const SectionPartition = () => {
 
   const clearFilters = () => {
     setFilters({ college: '', course: '', branch: '', batch: '', sectionStatus: 'all' });
+    setSearchParams(new URLSearchParams(), { replace: true });
+    setSearchTerm('');
     setAllBatchStudents([]);
     setAllBatchTotal(0);
     resetStudentList();
@@ -652,213 +713,329 @@ const SectionPartition = () => {
   };
 
   const tableHeadCellClass =
-    'sticky top-0 z-10 bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide shadow-[0_1px_0_0_rgb(229,231,235)]';
+    'sticky top-0 z-10 bg-gray-50 px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wide border-b border-gray-200';
 
   if (!canViewSectionPartition) {
     return <Navigate to="/" replace />;
   }
 
   return (
-    <div className="h-full min-h-0 flex flex-col overflow-hidden gap-3 p-4 lg:p-6">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-4 shrink-0">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2 text-indigo-600 mb-1">
-              <LayoutGrid size={20} />
-              <span className="text-xs font-bold uppercase tracking-widest">Students</span>
-            </div>
-            <h1 className="text-xl font-bold text-gray-900">Section Management</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Regular students in the selected batch are listed by PIN order. Assign sections individually, by PIN range, or click Save.
-            </p>
+    <div className="h-full flex flex-col overflow-hidden space-y-2 sm:space-y-3 p-3 sm:p-4">
+      {/* Top Search Bar with Action Buttons (Identical to Students.jsx) */}
+      <div className="flex flex-col gap-2 shrink-0">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-8 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-xs min-h-[36px]"
+              placeholder="Filter loaded students by name, PIN, or admission no..."
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={handleRefresh}
               disabled={!filtersReady || loadingInitial}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium disabled:opacity-50"
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs font-medium shadow-xs transition-colors min-h-[34px] disabled:opacity-50"
             >
-              <RefreshCw size={16} className={loadingInitial ? 'animate-spin' : ''} />
-              Refresh
+              <RefreshCw size={14} className={loadingInitial ? 'animate-spin' : ''} />
+              <span>Refresh</span>
             </button>
+
             {canEditSection && (
               <button
                 type="button"
                 onClick={openPinRangeModal}
                 disabled={!filtersReady || loadingInitial}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-sm font-semibold shadow-sm transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-emerald-600 to-emerald-700 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 min-h-[34px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 title="Separate regular students into sections based on PIN number range"
               >
-                <SlidersHorizontal size={16} />
-                PIN Range Separation
+                <SlidersHorizontal size={14} />
+                <span>PIN Range Separation</span>
               </button>
             )}
+
             {canEditSection && (
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={!filtersReady || saving || unsavedCount === 0}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold disabled:opacity-50"
+                className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 min-h-[34px] disabled:opacity-50 whitespace-nowrap"
               >
-                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                Save{unsavedCount > 0 ? ` (${unsavedCount})` : ''}
+                {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                <span>Save{unsavedCount > 0 ? ` (${unsavedCount})` : ''}</span>
               </button>
             )}
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-              College
-            </label>
-            <select
-              value={filters.college}
-              onChange={(e) => handleFilterChange('college', e.target.value)}
-              disabled={collegesLoading}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="">Select College</option>
-              {colleges.filter((c) => c.isActive !== false).map((college) => (
-                <option key={college.id} value={college.name}>{college.name}</option>
-              ))}
-            </select>
+      {/* Statistics Cards (Identical to Students.jsx) */}
+      {filtersReady && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Total Students</p>
+                <p className="text-base font-bold text-blue-600 leading-tight">
+                  {(statusCounts.all || totalStudents).toLocaleString()}
+                </p>
+                <p className="text-[9px] text-gray-400 mt-0.5">Regular in Batch</p>
+              </div>
+              <div className="bg-blue-50 p-1.5 rounded-lg">
+                <Users className="text-blue-500" size={14} />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-              Course
-            </label>
-            <select
-              value={filters.course}
-              onChange={(e) => handleFilterChange('course', e.target.value)}
-              disabled={!filters.college || loadingFilters}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
-            >
-              <option value="">Select Course</option>
-              {quickFilterOptions.courses.map((course) => {
-                const val = typeof course === 'object' ? course.name || course.id : course;
-                const label = typeof course === 'object' ? course.name || course.id : course;
-                return (
-                  <option key={val} value={val}>
-                    {label}
-                  </option>
-                );
-              })}
-            </select>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Section Marked</p>
+                <p className="text-base font-bold text-emerald-600 leading-tight">
+                  {statusCounts.marked.toLocaleString()}
+                </p>
+                <p className="text-[9px] text-emerald-600 mt-0.5 font-medium">
+                  {statusCounts.all > 0 ? `${Math.round((statusCounts.marked / statusCounts.all) * 100)}% assigned` : 'Assigned'}
+                </p>
+              </div>
+              <div className="bg-emerald-50 p-1.5 rounded-lg">
+                <CheckCircle2 className="text-emerald-500" size={14} />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-              Branch
-            </label>
-            <select
-              value={filters.branch}
-              onChange={(e) => handleFilterChange('branch', e.target.value)}
-              disabled={!filters.course || loadingFilters}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
-            >
-              <option value="">Select Branch</option>
-              {availableBranches.map((branch) => {
-                const val = typeof branch === 'object' ? branch.name || branch.id : branch;
-                const label = typeof branch === 'object' ? branch.name || branch.id : branch;
-                return (
-                  <option key={val} value={val}>
-                    {label}
-                  </option>
-                );
-              })}
-            </select>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Not Marked</p>
+                <p className="text-base font-bold text-amber-600 leading-tight">
+                  {statusCounts.notMarked.toLocaleString()}
+                </p>
+                <p className="text-[9px] text-amber-600 mt-0.5 font-medium">
+                  {statusCounts.all > 0 ? `${Math.round((statusCounts.notMarked / statusCounts.all) * 100)}% pending` : 'Pending'}
+                </p>
+              </div>
+              <div className="bg-amber-50 p-1.5 rounded-lg">
+                <AlertTriangle className="text-amber-500" size={14} />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-              Batch
-            </label>
-            <select
-              value={filters.batch}
-              onChange={(e) => handleFilterChange('batch', e.target.value)}
-              disabled={!filters.branch || loadingFilters}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
-            >
-              <option value="">Select Batch</option>
-              {quickFilterOptions.batches.map((batch) => {
-                const val = typeof batch === 'object' ? batch.name || batch.id : batch;
-                const label = typeof batch === 'object' ? batch.name || batch.id : batch;
-                return (
-                  <option key={val} value={val}>
-                    {label}
-                  </option>
-                );
-              })}
-            </select>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Unsaved Changes</p>
+                <p className={`text-base font-bold leading-tight ${unsavedCount > 0 ? 'text-amber-600' : 'text-gray-700'}`}>
+                  {unsavedCount.toLocaleString()}
+                </p>
+                <p className="text-[9px] text-gray-400 mt-0.5">
+                  {unsavedCount > 0 ? 'Click Save to persist' : 'All synced'}
+                </p>
+              </div>
+              <div className={`p-1.5 rounded-lg ${unsavedCount > 0 ? 'bg-amber-50' : 'bg-gray-50'}`}>
+                <Save className={unsavedCount > 0 ? 'text-amber-500' : 'text-gray-400'} size={14} />
+              </div>
+            </div>
           </div>
+        </div>
+      )}
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-              Section Status
-            </label>
-            <select
-              value={filters.sectionStatus || 'all'}
-              onChange={(e) => handleFilterChange('sectionStatus', e.target.value)}
-              disabled={!filtersReady || loadingInitial}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100"
+      {/* Filter Section (Identical styling to Students.jsx) */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden shrink-0">
+        <div className="bg-gray-50 border-b border-gray-200 px-3 py-1.5">
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setFiltersExpanded(!filtersExpanded)}
+              className="flex items-center gap-2 text-[11px] font-bold text-gray-700 uppercase tracking-wider hover:text-gray-900 transition-colors"
             >
-              <option value="all">
-                All {statusCounts.all > 0 ? `(${statusCounts.all})` : ''}
-              </option>
-              <option value="marked">
-                Section Marked {statusCounts.marked > 0 ? `(${statusCounts.marked})` : ''}
-              </option>
-              <option value="not_marked">
-                Not Marked {statusCounts.notMarked > 0 ? `(${statusCounts.notMarked})` : ''}
-              </option>
-            </select>
+              <Filter size={14} />
+              <span>Filters</span>
+              {filtersExpanded ? (
+                <ChevronUp size={14} className="text-gray-500" />
+              ) : (
+                <ChevronDown size={14} className="text-gray-500" />
+              )}
+            </button>
+            <div className="flex items-center gap-3">
+              {!filtersExpanded && filtersReady && (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] text-gray-500">Active:</span>
+                  {filters.college && (
+                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded">
+                      College: {filters.college}
+                    </span>
+                  )}
+                  {filters.course && (
+                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded">
+                      Course: {filters.course}
+                    </span>
+                  )}
+                  {filters.branch && (
+                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded">
+                      Branch: {filters.branch}
+                    </span>
+                  )}
+                  {filters.batch && (
+                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded">
+                      Batch: {filters.batch}
+                    </span>
+                  )}
+                </div>
+              )}
+              {(filters.college || filters.course || filters.branch || filters.batch) && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Filter size={16} />
-            <span>Select college, course, branch, and batch to load all students in PIN order.</span>
-          </div>
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm"
-          >
-            Clear Filters
-          </button>
-        </div>
+        {filtersExpanded && (
+          <div className="p-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+              <div className="flex flex-col">
+                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">
+                  College
+                </label>
+                <select
+                  value={filters.college}
+                  onChange={(e) => handleFilterChange('college', e.target.value)}
+                  disabled={collegesLoading}
+                  className="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
+                >
+                  <option value="">Select College</option>
+                  {colleges.filter((c) => c.isActive !== false).map((c) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
 
-        {filters.branch && !branchHasSections && students.length === 0 && !loadingInitial && (
-          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            <AlertTriangle size={18} className="shrink-0 mt-0.5" />
-            <span>
-              Section breakdown is not enabled for the selected branch. Enable it in Course Settings first.
-            </span>
+              <div className="flex flex-col">
+                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">
+                  Course
+                </label>
+                <select
+                  value={filters.course}
+                  onChange={(e) => handleFilterChange('course', e.target.value)}
+                  disabled={!filters.college || loadingFilters}
+                  className="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white disabled:bg-gray-100"
+                >
+                  <option value="">Select Course</option>
+                  {quickFilterOptions.courses.map((c) => {
+                    const val = typeof c === 'object' ? c.name || c.id : c;
+                    return <option key={val} value={val}>{val}</option>;
+                  })}
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">
+                  Branch
+                </label>
+                <select
+                  value={filters.branch}
+                  onChange={(e) => handleFilterChange('branch', e.target.value)}
+                  disabled={!filters.course || loadingFilters}
+                  className="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white disabled:bg-gray-100"
+                >
+                  <option value="">Select Branch</option>
+                  {availableBranches.map((b) => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">
+                  Batch
+                </label>
+                <select
+                  value={filters.batch}
+                  onChange={(e) => handleFilterChange('batch', e.target.value)}
+                  disabled={!filters.branch || loadingFilters}
+                  className="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white disabled:bg-gray-100"
+                >
+                  <option value="">Select Batch</option>
+                  {quickFilterOptions.batches.map((b) => {
+                    const val = typeof b === 'object' ? b.name || b.id : b;
+                    return <option key={val} value={val}>{val}</option>;
+                  })}
+                </select>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">
+                  Section Status
+                </label>
+                <select
+                  value={filters.sectionStatus || 'all'}
+                  onChange={(e) => handleFilterChange('sectionStatus', e.target.value)}
+                  disabled={!filtersReady || loadingInitial}
+                  className="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white disabled:bg-gray-100"
+                >
+                  <option value="all">All {statusCounts.all > 0 ? `(${statusCounts.all})` : ''}</option>
+                  <option value="marked">Section Marked {statusCounts.marked > 0 ? `(${statusCounts.marked})` : ''}</option>
+                  <option value="not_marked">Not Marked {statusCounts.notMarked > 0 ? `(${statusCounts.notMarked})` : ''}</option>
+                </select>
+              </div>
+            </div>
+
+            {filters.branch && !branchHasSections && students.length === 0 && !loadingInitial && (
+              <div className="mt-2 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <AlertTriangle size={15} className="shrink-0 mt-0.5" />
+                <span>Section breakdown is not enabled for this branch. Please enable sections in Course Settings first.</span>
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div className="flex-1 min-h-0 bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 shrink-0">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Students</h2>
-            <p className="text-sm text-gray-600">
-              Only Regular students are shown in PIN order. Assign sections using the table dropdown, Bulk Assign, or PIN Range Separation.
-            </p>
+      {/* Students Table Container Card */}
+      <div className="flex-1 min-h-0 bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 flex flex-col overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 mb-2.5 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-gray-900">Students</span>
+            {filtersReady && (
+              <span className="text-xs text-gray-500">
+                ({displayedStudents.length} of {totalStudents} loaded)
+              </span>
+            )}
+            {unsavedCount > 0 && (
+              <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                {unsavedCount} unsaved
+              </span>
+            )}
           </div>
+
           {filtersReady && (
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center p-0.5 rounded-lg bg-gray-100 border border-gray-200 text-xs font-medium">
                 <button
                   type="button"
                   onClick={() => handleFilterChange('sectionStatus', 'all')}
-                  className={`px-3 py-1.5 rounded-md transition-all ${
+                  className={`px-2.5 py-1 rounded-md transition-all text-xs ${
                     filters.sectionStatus === 'all'
-                      ? 'bg-white text-indigo-700 font-semibold shadow-xs'
+                      ? 'bg-white text-blue-600 font-semibold shadow-xs'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
@@ -867,9 +1044,9 @@ const SectionPartition = () => {
                 <button
                   type="button"
                   onClick={() => handleFilterChange('sectionStatus', 'marked')}
-                  className={`px-3 py-1.5 rounded-md transition-all ${
+                  className={`px-2.5 py-1 rounded-md transition-all text-xs ${
                     filters.sectionStatus === 'marked'
-                      ? 'bg-white text-emerald-700 font-semibold shadow-xs'
+                      ? 'bg-white text-emerald-600 font-semibold shadow-xs'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
@@ -878,39 +1055,30 @@ const SectionPartition = () => {
                 <button
                   type="button"
                   onClick={() => handleFilterChange('sectionStatus', 'not_marked')}
-                  className={`px-3 py-1.5 rounded-md transition-all ${
+                  className={`px-2.5 py-1 rounded-md transition-all text-xs ${
                     filters.sectionStatus === 'not_marked'
-                      ? 'bg-white text-amber-700 font-semibold shadow-xs'
+                      ? 'bg-white text-amber-600 font-semibold shadow-xs'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   Not Marked {statusCounts.notMarked > 0 ? `(${statusCounts.notMarked})` : ''}
                 </button>
               </div>
-
-              <div className="text-sm text-gray-700 font-medium whitespace-nowrap">
-                <span className="text-indigo-600">{students.length.toLocaleString()}</span>
-                {' of '}
-                <span className="text-gray-900">{totalStudents.toLocaleString()}</span>
-                {' student'}
-                {totalStudents === 1 ? '' : 's'}
-                {unsavedCount > 0 && (
-                  <span className="ml-2 text-amber-600">({unsavedCount} unsaved)</span>
-                )}
-              </div>
             </div>
           )}
         </div>
 
         {!filtersReady ? (
-          <div className="flex-1 flex items-center justify-center text-gray-500 border border-dashed border-gray-200 rounded-lg">
-            Select all filters above to view students eligible for section management.
+          <div className="flex-1 flex items-center justify-center text-gray-500 border border-dashed border-gray-200 rounded-lg text-xs">
+            Select College, Course, Branch, and Batch above to view and assign sections.
           </div>
         ) : loadingInitial && students.length === 0 ? (
           <SkeletonTable rows={10} cols={7} />
-        ) : students.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-gray-500 border border-dashed border-gray-200 rounded-lg text-center p-6">
-            {filters.sectionStatus === 'marked'
+        ) : displayedStudents.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center text-gray-500 border border-dashed border-gray-200 rounded-lg text-center p-6 text-xs">
+            {searchTerm
+              ? `No students matching "${searchTerm}".`
+              : filters.sectionStatus === 'marked'
               ? 'No section-marked students found for the selected batch.'
               : filters.sectionStatus === 'not_marked'
               ? 'No unassigned students found. All students have sections assigned!'
@@ -919,8 +1087,8 @@ const SectionPartition = () => {
         ) : (
           <div className="flex-1 min-h-0 flex flex-col min-w-0 overflow-hidden">
             {canEditSection && selectedCount > 0 && (
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-3 p-3 rounded-lg border border-indigo-200 bg-indigo-50 shrink-0">
-                <div className="text-sm text-indigo-900">
+              <div className="flex flex-wrap items-center justify-between gap-2.5 mb-2.5 p-2.5 rounded-lg border border-blue-200 bg-blue-50 shrink-0">
+                <div className="text-xs text-blue-900">
                   <span className="font-semibold">{selectedCount}</span>
                   {' student'}
                   {selectedCount === 1 ? '' : 's'}
@@ -930,16 +1098,16 @@ const SectionPartition = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedStudentKeys(new Set())}
-                    className="px-3 py-1.5 text-sm font-medium rounded-lg border border-indigo-200 bg-white text-indigo-700 hover:bg-indigo-100"
+                    className="px-2.5 py-1 text-xs font-medium rounded-lg border border-blue-200 bg-white text-blue-700 hover:bg-blue-100"
                   >
                     Clear selection
                   </button>
                   <button
                     type="button"
                     onClick={openBulkAssignModal}
-                    className="inline-flex items-center gap-2 px-4 py-1.5 text-sm font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-xs"
                   >
-                    <Users size={16} />
+                    <Users size={14} />
                     Bulk Assign
                   </button>
                 </div>
@@ -948,9 +1116,9 @@ const SectionPartition = () => {
 
             <div
               ref={scrollContainerRef}
-              className="flex-1 min-h-0 overflow-auto border border-gray-100 rounded-lg max-h-[calc(100dvh-26rem)] sm:max-h-[calc(100dvh-24rem)] lg:max-h-[calc(100dvh-22rem)]"
+              className="flex-1 min-h-0 overflow-auto border border-gray-200 rounded-lg"
             >
-              <table className="min-w-full border-separate border-spacing-0 divide-y divide-gray-200 text-sm">
+              <table className="min-w-full border-separate border-spacing-0 divide-y divide-gray-200 text-xs">
                 <thead>
                   <tr>
                     {canEditSection && (
@@ -959,36 +1127,22 @@ const SectionPartition = () => {
                           type="checkbox"
                           checked={isAllLoadedSelected}
                           onChange={(e) => toggleSelectAllLoaded(e.target.checked)}
-                          className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           title="Select all loaded students"
                         />
                       </th>
                     )}
-                    <th className={`${tableHeadCellClass} w-12`}>
-                      #
-                    </th>
-                    <th className={tableHeadCellClass}>
-                      Batch
-                    </th>
-                    <th className={tableHeadCellClass}>
-                      PIN Number
-                    </th>
-                    <th className={tableHeadCellClass}>
-                      Student Name
-                    </th>
-                    <th className={tableHeadCellClass}>
-                      Course
-                    </th>
-                    <th className={tableHeadCellClass}>
-                      Branch
-                    </th>
-                    <th className={tableHeadCellClass}>
-                      Section
-                    </th>
+                    <th className={`${tableHeadCellClass} w-12`}>#</th>
+                    <th className={tableHeadCellClass}>Batch</th>
+                    <th className={tableHeadCellClass}>PIN Number</th>
+                    <th className={tableHeadCellClass}>Student Name</th>
+                    <th className={tableHeadCellClass}>Course</th>
+                    <th className={tableHeadCellClass}>Branch</th>
+                    <th className={tableHeadCellClass}>Section</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {students.map((student, index) => {
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {displayedStudents.map((student, index) => {
                     const studentKey = getStudentKey(student);
                     const draftValue = normalizeSectionValue(draftSections[studentKey]);
                     const savedValue = normalizeSectionValue(savedSections[studentKey]);
@@ -1003,43 +1157,60 @@ const SectionPartition = () => {
                             toggleStudentSelection(studentKey);
                           }
                         }}
-                        className={`hover:bg-gray-50 ${isDirty ? 'bg-amber-50/50' : ''} ${isSelected ? 'bg-indigo-50/40' : ''} ${canEditSection ? 'cursor-pointer' : ''}`}
+                        className={`hover:bg-blue-50/30 transition-colors ${
+                          isDirty ? 'bg-amber-50/50' : ''
+                        } ${isSelected ? 'bg-blue-50/50' : ''} ${canEditSection ? 'cursor-pointer' : ''}`}
                       >
                         {canEditSection && (
-                          <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                             <input
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleStudentSelection(studentKey)}
-                              className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                               aria-label={`Select ${student.studentName || student.pinNo || 'student'}`}
                             />
                           </td>
                         )}
-                        <td className="px-4 py-3 text-gray-500 text-xs">{index + 1}</td>
-                        <td className="px-4 py-3 text-gray-900">{student.batch || '-'}</td>
-                        <td className="px-4 py-3 text-gray-900 font-medium">{student.pinNo || '-'}</td>
-                        <td className="px-4 py-3 text-gray-900">{student.studentName || '-'}</td>
-                        <td className="px-4 py-3 text-gray-700">{student.course || '-'}</td>
-                        <td className="px-4 py-3 text-gray-700">{student.branch || '-'}</td>
-                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-3 py-2 text-gray-500 text-[11px]">{index + 1}</td>
+                        <td className="px-3 py-2 text-gray-900">{student.batch || '-'}</td>
+                        <td className="px-3 py-2 text-gray-900 font-medium">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono">{student.pinNo || '-'}</span>
+                            {student.studType &&
+                              ['LATER', 'LSPOT', 'L.E'].includes(
+                                String(student.studType).trim().toUpperCase()
+                              ) && (
+                                <span
+                                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"
+                                  title={`Lateral Entry Quota (${student.studType})`}
+                                >
+                                  Lateral
+                                </span>
+                              )}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 text-gray-900">{student.studentName || '-'}</td>
+                        <td className="px-3 py-2 text-gray-700">{student.course || '-'}</td>
+                        <td className="px-3 py-2 text-gray-700">{student.branch || '-'}</td>
+                        <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                           <select
                             value={draftValue}
                             onChange={(e) =>
                               handleSectionDraftChange(studentKey, e.target.value)
                             }
                             disabled={!canEditSection || saving}
-                            className={`w-full min-w-[140px] border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-gray-100 disabled:text-gray-500 ${
-                              isDirty ? 'border-amber-400 bg-amber-50' : 'border-gray-300'
+                            className={`w-full min-w-[120px] border rounded-lg px-2.5 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500 bg-white ${
+                              isDirty ? 'border-amber-400 bg-amber-50 font-semibold' : 'border-gray-300'
                             }`}
                           >
-                            <option value="">—</option>
+                            <option value="">— Unassigned —</option>
                             {configuredSectionItems.map((section) => {
                               const val = typeof section === 'object' ? section.name || section.id : section;
                               const label = typeof section === 'object' ? section.name || section.id : section;
                               return (
                                 <option key={val} value={val}>
-                                  {label}
+                                  Section {label}
                                 </option>
                               );
                             })}
@@ -1051,18 +1222,18 @@ const SectionPartition = () => {
                 </tbody>
               </table>
 
-              <div ref={loadMoreRef} className="py-4 flex justify-center">
+              <div ref={loadMoreRef} className="py-3 flex justify-center border-t border-gray-100 bg-gray-50/50">
                 {loadingMore && (
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Loader2 size={18} className="animate-spin text-indigo-600" />
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Loader2 size={16} className="animate-spin text-blue-600" />
                     Loading more students...
                   </div>
                 )}
                 {!loadingMore && hasMore && (
-                  <span className="text-xs text-gray-400">Scroll for more</span>
+                  <span className="text-[11px] text-gray-400">Scroll down for more</span>
                 )}
                 {!hasMore && students.length > 0 && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-[11px] text-gray-500">
                     All {totalStudents.toLocaleString()} students loaded
                   </span>
                 )}
@@ -1070,55 +1241,55 @@ const SectionPartition = () => {
             </div>
 
             {canEditSection && (
-              <div className="flex justify-end pt-4 mt-2 border-t border-gray-100 shrink-0">
+              <div className="flex justify-end pt-3 mt-2 border-t border-gray-100 shrink-0">
                 <button
                   type="button"
                   onClick={handleSave}
                   disabled={saving || unsavedCount === 0}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-semibold disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 text-xs font-semibold shadow-sm transition-all disabled:opacity-50"
                 >
-                  {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                  Save Section Assignments{unsavedCount > 0 ? ` (${unsavedCount})` : ''}
+                  {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                  <span>Save Section Assignments{unsavedCount > 0 ? ` (${unsavedCount})` : ''}</span>
                 </button>
               </div>
             )}
 
             {bulkAssignModalOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
                 <div
-                  className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md"
+                  className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-md overflow-hidden"
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby="bulk-assign-title"
                 >
-                  <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                  <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 bg-gray-50">
                     <div>
-                      <h3 id="bulk-assign-title" className="text-lg font-semibold text-gray-900">
+                      <h3 id="bulk-assign-title" className="text-sm font-bold text-gray-900">
                         Bulk Assign Section
                       </h3>
-                      <p className="text-sm text-gray-600 mt-0.5">
+                      <p className="text-xs text-gray-500 mt-0.5">
                         {selectedCount} student{selectedCount === 1 ? '' : 's'} selected
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setBulkAssignModalOpen(false)}
-                      className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                       aria-label="Close"
                     >
-                      <X size={20} />
+                      <X size={18} />
                     </button>
                   </div>
 
-                  <div className="px-5 py-4 space-y-4">
+                  <div className="px-5 py-4 space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
                         Select Section
                       </label>
                       <select
                         value={bulkAssignSection}
                         onChange={(e) => setBulkAssignSection(e.target.value)}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
                         autoFocus
                       >
                         <option value="">None (clear section)</option>
@@ -1127,22 +1298,22 @@ const SectionPartition = () => {
                           const label = typeof section === 'object' ? section.name || section.id : section;
                           return (
                             <option key={val} value={val}>
-                              {label}
+                              Section {label}
                             </option>
                           );
                         })}
                       </select>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-[11px] text-gray-500">
                       This updates the draft for selected students. Click Save on the page to store in the database.
                     </p>
                   </div>
 
-                  <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-100 bg-gray-50 rounded-b-xl">
+                  <div className="flex justify-end gap-2 px-5 py-3 border-t border-gray-100 bg-gray-50">
                     <button
                       type="button"
                       onClick={() => setBulkAssignModalOpen(false)}
-                      className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-white"
+                      className="px-3.5 py-1.5 text-xs font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                     >
                       Cancel
                     </button>
@@ -1150,7 +1321,7 @@ const SectionPartition = () => {
                       type="button"
                       onClick={handleBulkAssignConfirm}
                       disabled={saving}
-                      className="px-4 py-2 text-sm font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+                      className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 shadow-xs"
                     >
                       Apply to selected
                     </button>

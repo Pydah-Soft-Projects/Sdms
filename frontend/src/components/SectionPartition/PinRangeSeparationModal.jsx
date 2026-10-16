@@ -513,21 +513,21 @@ const PinRangeSeparationModal = ({
     >
       <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50/70 via-white to-white shrink-0">
+        <div className="flex items-center justify-between px-6 py-3.5 border-b border-gray-200 bg-white shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-200 shrink-0">
-              <SlidersHorizontal size={20} />
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white flex items-center justify-center shadow-xs shrink-0">
+              <SlidersHorizontal size={18} />
             </div>
             <div>
-              <h2 id="pin-separation-title" className="text-lg font-bold text-gray-900 leading-tight">
+              <h2 id="pin-separation-title" className="text-base sm:text-lg font-bold text-gray-900 leading-tight">
                 Section Separation by PIN Range
               </h2>
-              <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-gray-600">
-                <span className="font-semibold text-indigo-700">{filters.course || 'Course'}</span>
+              <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-gray-500">
+                <span className="font-semibold text-blue-700">{filters.course || 'Course'}</span>
                 <span>•</span>
-                <span>{filters.branch || 'Branch'}</span>
+                <span className="font-medium text-gray-700">{filters.branch || 'Branch'}</span>
                 <span>•</span>
-                <span className="bg-indigo-100/70 text-indigo-800 font-medium px-1.5 py-0.5 rounded">
+                <span className="bg-blue-50 text-blue-700 font-medium px-1.5 py-0.5 rounded border border-blue-100">
                   Batch {filters.batch || 'Batch'}
                 </span>
                 {filters.college && (
@@ -542,10 +542,10 @@ const PinRangeSeparationModal = ({
                 <span
                   className={`font-semibold px-2 py-0.5 rounded text-xs ${
                     filters.sectionStatus === 'marked'
-                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                       : filters.sectionStatus === 'not_marked'
-                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                      : 'bg-indigo-100 text-indigo-800 border border-indigo-200'
+                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                      : 'bg-blue-50 text-blue-700 border border-blue-200'
                   }`}
                 >
                   {filters.sectionStatus === 'marked'
@@ -560,18 +560,18 @@ const PinRangeSeparationModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             aria-label="Close"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-4">
           {loadingAllStudents ? (
             <div className="py-16 flex flex-col items-center justify-center gap-3 text-gray-500">
-              <Loader2 size={32} className="animate-spin text-indigo-600" />
+              <Loader2 size={32} className="animate-spin text-blue-600" />
               <p className="text-sm font-medium">
                 {filters.sectionStatus === 'not_marked'
                   ? 'Loading unassigned students for PIN range calculation...'
@@ -582,122 +582,137 @@ const PinRangeSeparationModal = ({
             </div>
           ) : (
             <>
-              {/* Batch PIN Stats Overview Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                <div className="bg-gray-50 border border-gray-200/80 rounded-xl p-3 flex flex-col justify-between">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    <Users size={14} className="text-indigo-600" />
-                    Total Students
-                  </div>
-                  <div className="mt-2 text-2xl font-black text-gray-900">
-                    {batchTotalCount.toLocaleString()}
-                  </div>
-                  <div className="text-[11px] text-gray-500 mt-0.5">
-                    {stats.withPinCount} with PIN{stats.withPinCount === 1 ? '' : 's'}
-                  </div>
-                </div>
-
-                <div className="bg-emerald-50/40 border border-emerald-200/80 rounded-xl p-3 flex flex-col justify-between">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 uppercase tracking-wider">
-                    <CheckCircle2 size={14} className="text-emerald-600" />
-                    Section Marked
-                  </div>
-                  <div className="mt-2 text-2xl font-black text-emerald-700">
-                    {markedCount.toLocaleString()}
-                  </div>
-                  <div className="text-[11px] text-emerald-700/80 mt-0.5 font-medium">
-                    {batchTotalCount > 0 ? `${Math.round((markedCount / batchTotalCount) * 100)}% of batch` : 'Assigned'}
+              {/* Batch PIN Stats Overview Cards (Consistent with Students.jsx) */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Total Students</p>
+                      <p className="text-lg font-bold text-blue-600 leading-tight">
+                        {batchTotalCount.toLocaleString()}
+                      </p>
+                      <p className="text-[9px] text-gray-400 mt-0.5 truncate">
+                        {stats.withPinCount} with PIN{stats.withPinCount === 1 ? '' : 's'}
+                      </p>
+                    </div>
+                    <div className="bg-blue-50 p-1.5 rounded-lg shrink-0">
+                      <Users className="text-blue-500" size={14} />
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-amber-50/40 border border-amber-200/80 rounded-xl p-3 flex flex-col justify-between">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-amber-800 uppercase tracking-wider">
-                    <AlertCircle size={14} className="text-amber-600" />
-                    Not Marked
-                  </div>
-                  <div className="mt-2 text-2xl font-black text-amber-600">
-                    {notMarkedCount.toLocaleString()}
-                  </div>
-                  <div className="text-[11px] text-amber-700/80 mt-0.5 font-medium">
-                    {batchTotalCount > 0 ? `${Math.round((notMarkedCount / batchTotalCount) * 100)}% pending` : 'Pending'}
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 border border-gray-200/80 rounded-xl p-3 flex flex-col justify-between">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    <Hash size={14} className="text-indigo-600" />
-                    PIN Range
-                  </div>
-                  <div className="mt-1 font-mono text-sm font-bold text-gray-800 truncate" title={`${stats.minPin || 'N/A'} - ${stats.maxPin || 'N/A'}`}>
-                    {stats.minPin ? `${stats.minPin} → ${stats.maxPin}` : 'No PINs found'}
-                  </div>
-                  <div className="text-[11px] text-gray-500 mt-0.5">
-                    {filters.sectionStatus === 'not_marked'
-                      ? 'Lowest to Highest (unassigned)'
-                      : filters.sectionStatus === 'marked'
-                      ? 'Lowest to Highest (marked)'
-                      : 'Lowest to Highest in batch'}
+                <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Section Marked</p>
+                      <p className="text-lg font-bold text-emerald-600 leading-tight">
+                        {markedCount.toLocaleString()}
+                      </p>
+                      <p className="text-[9px] text-emerald-600 mt-0.5 font-medium truncate">
+                        {batchTotalCount > 0 ? `${Math.round((markedCount / batchTotalCount) * 100)}% of batch` : 'Assigned'}
+                      </p>
+                    </div>
+                    <div className="bg-emerald-50 p-1.5 rounded-lg shrink-0">
+                      <CheckCircle2 className="text-emerald-500" size={14} />
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-gray-50 border border-gray-200/80 rounded-xl p-3 flex flex-col justify-between">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    <Layers size={14} className="text-indigo-600" />
-                    Total Matched
-                  </div>
-                  <div className="mt-2 text-2xl font-black text-emerald-700">
-                    {stats.totalMatched}
-                    <span className="text-xs font-medium text-gray-500 ml-1">
-                      / {stats.withPinCount}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-gray-500 mt-0.5">
-                    {stats.withPinCount > 0
-                      ? `${Math.round((stats.totalMatched / stats.withPinCount) * 100)}% covered`
-                      : '0%'}
+                <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Not Marked</p>
+                      <p className="text-lg font-bold text-amber-600 leading-tight">
+                        {notMarkedCount.toLocaleString()}
+                      </p>
+                      <p className="text-[9px] text-amber-600 mt-0.5 font-medium truncate">
+                        {batchTotalCount > 0 ? `${Math.round((notMarkedCount / batchTotalCount) * 100)}% pending` : 'Pending'}
+                      </p>
+                    </div>
+                    <div className="bg-amber-50 p-1.5 rounded-lg shrink-0">
+                      <AlertCircle className="text-amber-500" size={14} />
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-gray-50 border border-gray-200/80 rounded-xl p-3 flex flex-col justify-between">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    <AlertTriangle size={14} className={stats.unmatchedCount > 0 ? 'text-amber-500' : 'text-gray-400'} />
-                    Unmatched / No PIN
+                <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">PIN Range</p>
+                      <p className="text-xs font-bold font-mono text-gray-900 leading-tight truncate" title={`${stats.minPin || 'N/A'} - ${stats.maxPin || 'N/A'}`}>
+                        {stats.minPin ? `${stats.minPin} → ${stats.maxPin}` : 'No PINs'}
+                      </p>
+                      <p className="text-[9px] text-gray-400 mt-0.5 truncate">
+                        Lowest to Highest
+                      </p>
+                    </div>
+                    <div className="bg-blue-50 p-1.5 rounded-lg shrink-0">
+                      <Hash className="text-blue-500" size={14} />
+                    </div>
                   </div>
-                  <div className={`mt-2 text-2xl font-black ${stats.unmatchedCount > 0 ? 'text-amber-600' : 'text-gray-700'}`}>
-                    {stats.unmatchedCount}
-                    {stats.noPinCount > 0 && (
-                      <span className="text-xs font-semibold text-rose-500 ml-1.5" title={`${stats.noPinCount} student(s) have no PIN`}>
-                        ({stats.noPinCount} no PIN)
-                      </span>
-                    )}
+                </div>
+
+                <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Total Matched</p>
+                      <p className="text-lg font-bold text-emerald-600 leading-tight">
+                        {stats.totalMatched}
+                        <span className="text-xs font-normal text-gray-400 ml-1">
+                          /{stats.withPinCount}
+                        </span>
+                      </p>
+                      <p className="text-[9px] text-emerald-600 mt-0.5 font-medium truncate">
+                        {stats.withPinCount > 0
+                          ? `${Math.round((stats.totalMatched / stats.withPinCount) * 100)}% covered`
+                          : '0%'}
+                      </p>
+                    </div>
+                    <div className="bg-emerald-50 p-1.5 rounded-lg shrink-0">
+                      <Layers className="text-emerald-500" size={14} />
+                    </div>
                   </div>
-                  <div className="text-[11px] text-gray-500 mt-0.5">
-                    {stats.unmatchedCount === 0 && stats.noPinCount === 0 ? 'All students assigned' : 'Will remain unchanged'}
+                </div>
+
+                <div className="bg-white rounded-lg shadow-xs border border-gray-200 p-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Unmatched</p>
+                      <p className={`text-lg font-bold leading-tight ${stats.unmatchedCount > 0 ? 'text-amber-600' : 'text-gray-700'}`}>
+                        {stats.unmatchedCount}
+                      </p>
+                      <p className="text-[9px] text-gray-400 mt-0.5 truncate">
+                        {stats.noPinCount > 0 ? `${stats.noPinCount} with no PIN` : 'Will remain'}
+                      </p>
+                    </div>
+                    <div className={`p-1.5 rounded-lg shrink-0 ${stats.unmatchedCount > 0 ? 'bg-amber-50' : 'bg-gray-50'}`}>
+                      <AlertTriangle className={stats.unmatchedCount > 0 ? 'text-amber-500' : 'text-gray-400'} size={14} />
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Number of Sections Selector and Auto-Distribute Toolbar */}
-              <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <label htmlFor="num-sections-input" className="block text-xs font-bold uppercase tracking-wider text-indigo-900">
+                      <label htmlFor="num-sections-input" className="block text-xs font-bold uppercase tracking-wider text-gray-700">
                         Number of Sections to Separate
                       </label>
                       {hasConfiguredBreakdown && (
-                        <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-md">
+                        <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
                           Breakdown Limit: Max {maxSectionsAllowed}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="inline-flex items-center border border-indigo-200 rounded-lg bg-white shadow-sm overflow-hidden">
+                      <div className="inline-flex items-center border border-gray-300 rounded-lg bg-white shadow-xs overflow-hidden">
                         <button
                           type="button"
                           onClick={() => handleSectionCountChange(sections.length - 1)}
                           disabled={sections.length <= 1}
-                          className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                           aria-label="Decrease section count"
                         >
                           -
@@ -709,13 +724,13 @@ const PinRangeSeparationModal = ({
                           max={maxSectionsAllowed}
                           value={sections.length}
                           onChange={(e) => handleSectionCountChange(e.target.value)}
-                          className="w-14 text-center py-1.5 text-sm font-bold text-gray-900 border-x border-indigo-100 focus:outline-none"
+                          className="w-14 text-center py-1 text-sm font-bold text-gray-900 border-x border-gray-200 focus:outline-none"
                         />
                         <button
                           type="button"
                           onClick={() => handleSectionCountChange(sections.length + 1)}
                           disabled={sections.length >= maxSectionsAllowed}
-                          className="px-3 py-1.5 text-gray-600 hover:bg-gray-100 font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          className="px-3 py-1 text-gray-600 hover:bg-gray-100 font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                           aria-label="Increase section count"
                           title={
                             sections.length >= maxSectionsAllowed
@@ -736,7 +751,7 @@ const PinRangeSeparationModal = ({
                     type="button"
                     onClick={handleAutoDistribute}
                     disabled={stats.withPinCount === 0}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 min-h-[34px] disabled:opacity-50 disabled:cursor-not-allowed"
                     title={
                       hasConfiguredBreakdown
                         ? 'Distribute students across sections according to configured section breakdown strengths'
@@ -744,16 +759,16 @@ const PinRangeSeparationModal = ({
                     }
                   >
                     <Sparkles size={14} />
-                    Auto-Distribute Ranges
+                    <span>Auto-Distribute Ranges</span>
                   </button>
                   <button
                     type="button"
                     onClick={handleClearRanges}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs font-medium transition-colors"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 text-xs font-medium shadow-xs transition-colors min-h-[34px]"
                     title="Clear Start and End PIN inputs"
                   >
                     <RotateCcw size={14} />
-                    Clear
+                    <span>Clear</span>
                   </button>
                 </div>
               </div>
@@ -786,16 +801,16 @@ const PinRangeSeparationModal = ({
                   return (
                     <div
                       key={sec.id}
-                      className={`rounded-2xl border transition-all overflow-hidden ${
+                      className={`rounded-xl border transition-all overflow-hidden ${
                         secStat.count > 0
-                          ? 'border-indigo-200 bg-white shadow-sm ring-1 ring-indigo-50/50'
+                          ? 'border-blue-200 bg-white shadow-xs'
                           : 'border-gray-200 bg-white'
                       }`}
                     >
                       {/* Section Card Top Bar */}
-                      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r from-gray-50 via-indigo-50/20 to-white border-b border-gray-100">
+                      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200">
                         <div className="flex items-center gap-3">
-                          <span className="w-7 h-7 rounded-lg bg-indigo-600 text-white text-xs font-black flex items-center justify-center shadow-sm">
+                          <span className="w-6 h-6 rounded-md bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-bold flex items-center justify-center shadow-xs">
                             {secIndex + 1}
                           </span>
                           <div className="flex items-center gap-2">
@@ -803,7 +818,7 @@ const PinRangeSeparationModal = ({
                               <select
                                 value={sec.section}
                                 onChange={(e) => handleSectionNameChange(sec.id, e.target.value)}
-                                className="border border-gray-300 rounded-lg px-2.5 py-1 text-sm font-bold text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                className="border border-gray-300 rounded-lg px-2.5 py-1 text-xs font-bold text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               >
                                 {breakdownList.map((item) => (
                                   <option key={item.name} value={item.name}>
@@ -820,13 +835,13 @@ const PinRangeSeparationModal = ({
                                 value={sec.section}
                                 onChange={(e) => handleSectionNameChange(sec.id, e.target.value)}
                                 placeholder="Section Name (e.g. A)"
-                                className="border border-gray-300 rounded-lg px-2.5 py-1 text-sm font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 w-36"
+                                className="border border-gray-300 rounded-lg px-2.5 py-1 text-xs font-bold text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-36"
                               />
                             )}
 
                             {targetConfig && (
                               <span
-                                className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200/70 px-2 py-0.5 rounded-md"
+                                className="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md"
                                 title={`Target breakdown strength: ${targetConfig.strength} students`}
                               >
                                 Cap: {targetConfig.strength}
@@ -839,7 +854,7 @@ const PinRangeSeparationModal = ({
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2">
                             {secStat.count > 0 ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-xs">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold shadow-xs">
                                 <Check size={13} className="text-emerald-600" />
                                 {secStat.count} Student{secStat.count === 1 ? '' : 's'}
                                 <span className="text-[10px] font-semibold text-emerald-600 border-l border-emerald-200 pl-1.5">
@@ -852,7 +867,7 @@ const PinRangeSeparationModal = ({
                               </span>
                             )}
 
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-600 bg-white border border-gray-200 px-2 py-0.5 rounded-md">
                               <Layers size={12} />
                               {sec.ranges.length} Range{sec.ranges.length === 1 ? '' : 's'}
                             </span>
@@ -897,11 +912,11 @@ const PinRangeSeparationModal = ({
                           return (
                             <div
                               key={range.id}
-                              className={`p-3 rounded-xl border transition-all ${
+                              className={`p-3 rounded-lg border transition-all ${
                                 rangeStat.isInvalidRange
                                   ? 'border-rose-300 bg-rose-50/30'
                                   : rangeStat.count > 0
-                                  ? 'border-indigo-100 bg-indigo-50/15'
+                                  ? 'border-blue-100 bg-blue-50/20'
                                   : 'border-gray-200/80 bg-gray-50/40'
                               }`}
                             >
@@ -922,7 +937,7 @@ const PinRangeSeparationModal = ({
                                         From (Start PIN)
                                       </label>
                                       {startSerial !== null && (
-                                        <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.2 rounded">
+                                        <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-1.5 py-0.2 rounded">
                                           S.No #{startSerial}
                                         </span>
                                       )}
@@ -937,7 +952,7 @@ const PinRangeSeparationModal = ({
                                           e.target.value
                                         )
                                       }
-                                      className="w-full font-mono border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                                      className="w-full font-mono border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                     >
                                       <option value="">
                                         {availableStartStudents.length > 0
@@ -945,19 +960,25 @@ const PinRangeSeparationModal = ({
                                           : '-- All students allocated in existing ranges --'}
                                       </option>
                                       {availableStartStudents.map((student) => {
-                                        const sNo = getSerialForPin(student.pinNo, false);
-                                        return (
-                                          <option
-                                            key={`start-${range.id}-${student.pinNo}`}
-                                            value={student.pinNo}
-                                          >
-                                            {sNo ? `${sNo}. ` : ''}
-                                            {student.pinNo}
-                                            {student.studentName
-                                              ? ` - ${student.studentName.slice(0, 32)}`
-                                              : ''}
-                                          </option>
-                                        );
+                                          const sNo = getSerialForPin(student.pinNo, false);
+                                          const isLateral =
+                                            student.studType &&
+                                            ['LATER', 'LSPOT', 'L.E'].includes(
+                                              String(student.studType).trim().toUpperCase()
+                                            );
+                                          return (
+                                            <option
+                                              key={`start-${range.id}-${student.pinNo}`}
+                                              value={student.pinNo}
+                                            >
+                                              {sNo ? `${sNo}. ` : ''}
+                                              {student.pinNo}
+                                              {isLateral ? ' [Lateral]' : ''}
+                                              {student.studentName
+                                                ? ` - ${student.studentName.slice(0, 32)}`
+                                                : ''}
+                                            </option>
+                                          );
                                       })}
                                       {range.startPin &&
                                         !availableStartStudents.some(
@@ -980,7 +1001,7 @@ const PinRangeSeparationModal = ({
                                         To (End PIN)
                                       </label>
                                       {endSerial !== null && (
-                                        <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.2 rounded">
+                                        <span className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-1.5 py-0.2 rounded">
                                           S.No #{endSerial}
                                         </span>
                                       )}
@@ -997,7 +1018,7 @@ const PinRangeSeparationModal = ({
                                             e.target.value
                                           )
                                         }
-                                        className="w-full font-mono border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-900 bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                                        className="w-full font-mono border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                                       >
                                         <option value="">
                                           {!range.startPin
@@ -1008,6 +1029,11 @@ const PinRangeSeparationModal = ({
                                         </option>
                                         {availableEndStudents.map((student) => {
                                           const sNo = getSerialForPin(student.pinNo, true);
+                                          const isLateral =
+                                            student.studType &&
+                                            ['LATER', 'LSPOT', 'L.E'].includes(
+                                              String(student.studType).trim().toUpperCase()
+                                            );
                                           return (
                                             <option
                                               key={`end-${range.id}-${student.pinNo}`}
@@ -1015,6 +1041,7 @@ const PinRangeSeparationModal = ({
                                             >
                                               {sNo ? `${sNo}. ` : ''}
                                               {student.pinNo}
+                                              {isLateral ? ' [Lateral]' : ''}
                                               {student.studentName
                                                 ? ` - ${student.studentName.slice(0, 32)}`
                                                 : ''}
@@ -1089,7 +1116,7 @@ const PinRangeSeparationModal = ({
                           <button
                             type="button"
                             onClick={() => handleAddPinRangeToSection(sec.id)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-indigo-300 text-indigo-700 hover:text-indigo-900 bg-indigo-50/40 hover:bg-indigo-100/60 text-xs font-bold transition-all"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-blue-300 text-blue-700 hover:text-blue-900 bg-blue-50/40 hover:bg-blue-100/60 text-xs font-bold transition-all"
                             title={`Add another PIN range to Section ${sec.section} (e.g. lateral entry, transfer, or another roll series)`}
                           >
                             <Plus size={14} />
@@ -1107,7 +1134,7 @@ const PinRangeSeparationModal = ({
                 <button
                   type="button"
                   onClick={handleAddSectionRow}
-                  className="w-full py-2.5 px-4 rounded-xl border border-dashed border-gray-300 text-gray-600 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+                  className="w-full py-2 px-4 rounded-xl border border-dashed border-gray-300 text-gray-600 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/30 text-xs font-medium flex items-center justify-center gap-1.5 transition-all"
                 >
                   <Plus size={16} />
                   Add Another Section
@@ -1147,7 +1174,7 @@ const PinRangeSeparationModal = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50/80 rounded-b-2xl shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-3.5 border-t border-gray-200 bg-gray-50 rounded-b-2xl shrink-0">
           <div className="text-xs text-gray-600">
             <span className="font-bold text-gray-900">{stats.totalMatched}</span> of{' '}
             <span className="font-bold text-gray-900">{stats.withPinCount}</span> students with PINs matched
@@ -1161,7 +1188,7 @@ const PinRangeSeparationModal = ({
               type="button"
               onClick={onClose}
               disabled={isApplying || saving}
-              className="px-4 py-2 text-sm font-medium rounded-xl border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="px-3.5 py-1.5 text-xs font-medium rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 min-h-[34px] shadow-xs transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
@@ -1170,7 +1197,7 @@ const PinRangeSeparationModal = ({
               type="button"
               onClick={handleApplyToDraft}
               disabled={isApplying || saving || stats.totalMatched === 0}
-              className="px-4 py-2 text-sm font-semibold rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3.5 py-1.5 text-xs font-medium rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 min-h-[34px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Apply section changes to table rows so you can review before saving"
             >
               Apply to Table (Review)
@@ -1180,7 +1207,7 @@ const PinRangeSeparationModal = ({
               type="button"
               onClick={handleSaveDirect}
               disabled={isApplying || saving || stats.totalMatched === 0}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 min-h-[34px] disabled:opacity-50 disabled:cursor-not-allowed"
               title="Save section assignments directly to database"
             >
               {isApplying || saving ? (

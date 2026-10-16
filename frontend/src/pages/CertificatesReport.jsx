@@ -338,6 +338,7 @@ const CertificatesReport = () => {
         'Adm No',
         'Student Mobile',
         'Batch',
+        'Branch',
         'Student Status',
         'Overall Certificates Status',
         ...allCertColumns.map(c => `${c.name} (${c.level})`)
@@ -357,6 +358,9 @@ const CertificatesReport = () => {
           ? (s.student_mobile?.name || s.mobile_number?.name || '')
           : (s.student_mobile || s.mobile_number || s.mobile || s.phone || s.student_phone || '');
         const batch = typeof s.batch === 'object' ? (s.batch?.name || '') : (s.batch || '');
+        const branch = typeof (s.branch_name || s.branch) === 'object'
+          ? (s.branch_name?.name || s.branch?.name || '')
+          : (s.branch_name || s.branch || '');
         const studentStatus = typeof s.student_status === 'object' ? (s.student_status?.name || 'Regular') : (s.student_status || 'Regular');
         const p = s.course_name || s.program || s.course || '';
         const courseLvl = getCourseType(p) || 'UG';
@@ -380,6 +384,7 @@ const CertificatesReport = () => {
           `"${String(admNo).replace(/"/g, '""')}"`,
           `"${String(studentMobile).replace(/"/g, '""')}"`,
           `"${String(batch).replace(/"/g, '""')}"`,
+          `"${String(branch).replace(/"/g, '""')}"`,
           `"${String(studentStatus).replace(/"/g, '""')}"`,
           `"${String(certStatus).replace(/"/g, '""')}"`,
           ...certValues.map(v => `"${v}"`)
@@ -675,6 +680,7 @@ const CertificatesReport = () => {
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Adm No</th>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Student Mobile</th>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Batch</th>
+                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Branch</th>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Status</th>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Overall Status</th>
                 <th colSpan={allCertColumns.length || 1} className="py-2.5 px-4 text-center bg-blue-50/80 text-blue-900 font-bold text-xs uppercase tracking-wider border-b border-blue-200">
@@ -693,20 +699,20 @@ const CertificatesReport = () => {
             <tbody className="divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7 + (allCertColumns.length || 1)} className="text-center py-12 text-gray-500">
+                  <td colSpan={8 + (allCertColumns.length || 1)} className="text-center py-12 text-gray-500">
                     <RefreshCw className="animate-spin mx-auto mb-2 text-blue-500" size={24} />
                     Loading student certificate records...
                   </td>
                 </tr>
               ) : isError ? (
                 <tr>
-                  <td colSpan={7 + (allCertColumns.length || 1)} className="text-center py-12 text-red-500">
+                  <td colSpan={8 + (allCertColumns.length || 1)} className="text-center py-12 text-red-500">
                     Failed to fetch student data. Please select Level and click Refresh to try again.
                   </td>
                 </tr>
               ) : students.length === 0 ? (
                 <tr>
-                  <td colSpan={7 + (allCertColumns.length || 1)} className="text-center py-12 text-gray-500">
+                  <td colSpan={8 + (allCertColumns.length || 1)} className="text-center py-12 text-gray-500">
                     No student certificate records found matching the criteria.
                   </td>
                 </tr>
@@ -725,6 +731,9 @@ const CertificatesReport = () => {
                     ? (student.student_mobile?.name || student.mobile_number?.name || '—')
                     : (student.student_mobile || student.mobile_number || student.mobile || student.phone || student.student_phone || '—');
                   const batch = typeof student.batch === 'object' ? (student.batch?.name || '—') : (student.batch || '—');
+                  const branch = typeof (student.branch_name || student.branch) === 'object'
+                    ? (student.branch_name?.name || student.branch?.name || '—')
+                    : (student.branch_name || student.branch || '—');
                   const program = typeof (student.course_name || student.program || student.course) === 'object'
                     ? (student.course_name?.name || student.program?.name || student.course?.name || '—')
                     : (student.course_name || student.program || student.course || '—');
@@ -758,6 +767,9 @@ const CertificatesReport = () => {
                       </td>
                       <td className="py-3.5 px-4 align-middle text-xs font-medium text-gray-700 whitespace-nowrap border-r border-gray-100">
                         {batch}
+                      </td>
+                      <td className="py-3.5 px-4 align-middle text-xs font-medium text-gray-700 whitespace-nowrap border-r border-gray-100">
+                        {branch}
                       </td>
                       <td className="py-3.5 px-4 align-middle whitespace-nowrap border-r border-gray-100">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${getStudentStatusBadgeClass(student.student_status || 'Regular')}`}>

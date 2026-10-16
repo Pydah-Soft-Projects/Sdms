@@ -1,0 +1,7 @@
+{
+  "web_apps": [
+    {
+      "manifest": "https://crm.pydah.edu.in/manifest.json"
+    }
+  ]
+}

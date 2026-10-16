@@ -21,9 +21,8 @@ exports.list = async (req, res) => {
 
     // 1. Try querying Academic Portal DB (ap_timing_template_slots & ap_timing_templates)
     try {
-      let apSql = `SELECT DISTINCT slot_order as id, label as slot_name, label as name, MIN(start_time) as start_time, MAX(end_time) as end_time, slot_order as sort_order
+      let apSql = `SELECT DISTINCT slot_order as id, slot_order, label as slot_name, label as name, MIN(start_time) as start_time, MAX(end_time) as end_time, slot_order as sort_order
                    FROM ap_timing_template_slots
-                   WHERE is_active = 1
                    GROUP BY slot_order, label
                    ORDER BY slot_order ASC`;
       const [apRows] = await academicPool.query(apSql);

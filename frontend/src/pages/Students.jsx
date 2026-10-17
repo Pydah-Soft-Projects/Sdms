@@ -3011,19 +3011,19 @@ const Students = () => {
         {/* Search Bar with Action Buttons Inline */}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600" size={18} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleLocalSearch()}
-              className="w-full pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-xs touch-manipulation min-h-[36px]"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm touch-manipulation min-h-[38px] shadow-2xs"
               placeholder="Search by name, admission no, PIN, or roll number..."
             />
           </div>
           <button
             onClick={handleLocalSearch}
-            className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation min-h-[36px] text-xs font-medium whitespace-nowrap"
+            className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation min-h-[38px] text-sm font-semibold whitespace-nowrap shadow-2xs"
           >
             Search
           </button>
@@ -3032,7 +3032,7 @@ const Students = () => {
             {canAddStudent && (
               <Link
                 to="/students/add"
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[34px] whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
               >
                 <Plus size={16} />
                 <span>Add Student</span>
@@ -3045,7 +3045,7 @@ const Students = () => {
                   await fetchForms();
                   setShowBulkStudentUpload(true);
                 }}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-600 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[34px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-blue-500 to-blue-600 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
                 disabled={loadingForms}
               >
                 <Upload size={16} />
@@ -3056,7 +3056,7 @@ const Students = () => {
             {canUpdatePin && (
               <button
                 onClick={() => setShowManualRollNumber(true)}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[34px] whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
               >
                 <UserCog size={16} />
                 <span>Update PIN</span>
@@ -3073,7 +3073,7 @@ const Students = () => {
                   if (filters.batch) params.set('batch', filters.batch);
                   navigate(`/section-partition${params.toString() ? `?${params.toString()}` : ''}`);
                 }}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[34px] whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
                 title="Manage student sections and PIN range allocation"
               >
                 <LayoutGrid size={16} />
@@ -3085,7 +3085,7 @@ const Students = () => {
               <button
                 onClick={handleBulkDelete}
                 disabled={selectedCount === 0 || bulkDeleteMutation.isPending}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-red-600 to-red-700 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[34px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-red-600 to-red-700 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
               >
                 <Trash2 size={16} />
                 <span>{bulkDeleteMutation.isPending ? '...' : `Delete (${selectedCount})`}</span>
@@ -3096,7 +3096,7 @@ const Students = () => {
               <button
                 onClick={handleBulkResendPasswords}
                 disabled={selectedCount === 0 || bulkPasswordState.processing}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-teal-600 to-teal-700 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[34px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-teal-600 to-teal-700 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
               >
                 <Key size={16} />
                 <span>{bulkPasswordState.processing ? '...' : `Resend Pass`}</span>
@@ -3106,7 +3106,7 @@ const Students = () => {
             {canExportStudents && (
               <button
                 onClick={handleExportCSV}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-white text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-600 border border-transparent shadow-sm hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[34px] whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-blue-500 to-blue-600 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
               >
                 <Download size={16} />
                 <span>Export CSV</span>
@@ -3118,51 +3118,51 @@ const Students = () => {
 
       {/* Statistics Cards */}
       {students.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="bg-white rounded-xl shadow-2xs border border-gray-200 p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Total Students</p>
-                <p className="text-base font-bold text-blue-600 leading-tight">{totalStudents.toLocaleString()}</p>
-                <p className="text-[9px] text-gray-400 mt-0.5">
+                <p className="text-xs font-semibold text-gray-500 mb-0.5 uppercase tracking-wider">Total Students</p>
+                <p className="text-lg font-bold text-blue-600 leading-tight">{totalStudents.toLocaleString()}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
                   {filters.student_status === 'Regular' ? 'Regular' : 'Filtered'}
                 </p>
               </div>
-              <div className="bg-blue-50 p-1.5 rounded-lg">
-                <Users className="text-blue-500" size={14} />
+              <div className="bg-blue-50 p-2 rounded-xl">
+                <Users className="text-blue-500" size={18} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+          <div className="bg-white rounded-xl shadow-2xs border border-gray-200 p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Profiles Done</p>
-                <p className="text-base font-bold text-blue-600 leading-tight">{stats.completed}</p>
-                <p className="text-[9px] text-gray-400 mt-0.5">
+                <p className="text-xs font-semibold text-gray-500 mb-0.5 uppercase tracking-wider">Profiles Done</p>
+                <p className="text-lg font-bold text-blue-600 leading-tight">{stats.completed}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
                   {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}% completion
                 </p>
               </div>
-              <div className="bg-blue-50 p-1.5 rounded-lg">
-                <CheckCircle className="text-blue-500" size={14} />
+              <div className="bg-blue-50 p-2 rounded-xl">
+                <CheckCircle className="text-blue-500" size={18} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+          <div className="bg-white rounded-xl shadow-2xs border border-gray-200 p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-medium text-gray-500 mb-0.5 uppercase tracking-wider">Avg Completion</p>
-                <p className="text-base font-bold text-blue-600 leading-tight">{stats.averageCompletion}%</p>
-                <div className="w-full bg-gray-100 rounded-full h-1 mt-1">
+                <p className="text-xs font-semibold text-gray-500 mb-0.5 uppercase tracking-wider">Avg Completion</p>
+                <p className="text-lg font-bold text-blue-600 leading-tight">{stats.averageCompletion}%</p>
+                <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1.5">
                   <div
-                    className="bg-blue-500 h-1 rounded-full transition-all duration-300"
+                    className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
                     style={{ width: `${stats.averageCompletion}%` }}
                   ></div>
                 </div>
               </div>
-              <div className="bg-blue-50 p-1.5 rounded-lg">
-                <TrendingUp className="text-blue-500" size={14} />
+              <div className="bg-blue-50 p-2 rounded-xl">
+                <TrendingUp className="text-blue-500" size={18} />
               </div>
             </div>
           </div>
@@ -3170,12 +3170,12 @@ const Students = () => {
       )}
 
       {/* Filter Section - Always Visible and Expandable */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50 border-b border-gray-200 px-3 py-1.5">
+      <div className="bg-white rounded-xl shadow-2xs border border-gray-200 overflow-hidden">
+        <div className="bg-gray-50/80 border-b border-gray-200 px-3.5 py-2">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setFiltersExpanded(!filtersExpanded)}
-              className="flex items-center gap-2 text-[11px] font-bold text-gray-700 uppercase tracking-wider hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider hover:text-gray-900 transition-colors"
             >
               <Filter size={14} />
               <span>Filters</span>
@@ -3548,134 +3548,109 @@ const Students = () => {
               <table className="w-full responsive-table" style={{ tableLayout: 'auto' }}>
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="py-1 px-1.5 text-xs font-semibold text-gray-700 text-center w-10 sticky left-0 bg-gray-50 z-20 border-r border-gray-200">
+                    <th className="py-3 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-center w-12 sticky left-0 bg-gray-50 z-20 border-r border-gray-200">
                       <input
                         type="checkbox"
-                        className="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded"
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                         disabled={students.length === 0 || bulkDeleteMutation.isPending}
                         checked={isAllSelected}
                         onChange={(e) => toggleSelectAllStudents(e.target.checked)}
                       />
                     </th>
                     {canViewField('student_photo') && (
-                      <th className="py-2 px-1.5 text-[10px] font-semibold text-gray-700 text-left min-w-[40px] sticky left-10 bg-gray-50 z-20 border-r border-gray-200">
-                        <div className="font-semibold">Photo</div>
+                      <th className="py-3 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[56px] sticky left-12 bg-gray-50 z-20 border-r border-gray-200">
+                        Photo
                       </th>
                     )}
                     {canViewField('student_name') && (
-                      <th className="py-2 px-1 text-[10px] font-semibold text-gray-700 text-left max-w-[80px]">
-                        <div className="font-semibold truncate">Student Name</div>
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left w-52 min-w-[170px] max-w-[210px]">
+                        Student Name
                       </th>
                     )}
                     {canViewField('pin_no') && (
-                      <th className="py-2 px-1 text-[10px] font-semibold text-gray-700 text-left max-w-[40px]">
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[90px]">
                         <button
                           onClick={() => handleSort('pinNumber')}
-                          className="flex items-center gap-1 hover:text-gray-900 transition-colors"
+                          className="flex items-center gap-1 hover:text-gray-900 transition-colors uppercase font-bold"
                         >
-                          <div className="font-semibold truncate">PIN</div>
+                          PIN
                         </button>
                       </th>
                     )}
                     {canViewField('admission_number') && (
-                      <th className="py-2 px-1 text-[10px] font-semibold text-gray-700 text-left max-w-[50px]">
-                        <div className="font-semibold truncate">Adm No</div>
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[95px]">
+                        Adm No
                       </th>
                     )}
                     {canViewField('batch') && (
-                      <th className="py-2 px-1 text-[10px] font-semibold text-gray-700 text-left">
-                        <div className="font-semibold">Batch</div>
-                      </th>
-                    )}
-                    {canViewField('college') && (
-                      <th className="py-2 px-1 text-[10px] font-semibold text-gray-700 text-left max-w-[80px]">
-                        <div className="font-semibold truncate">College</div>
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[70px]">
+                        Batch
                       </th>
                     )}
                     {canViewField('course') && (
-                      <th className="py-2 px-1 text-[10px] font-semibold text-gray-700 text-left">
-                        <div className="font-semibold">Program</div>
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[85px] max-w-[100px]">
+                        Program
                       </th>
                     )}
                     {canViewField('branch') && (
-                      <th className="py-2 px-1 text-[10px] font-semibold text-gray-700 text-left max-w-[60px]">
-                        <div className="font-semibold truncate">Branch</div>
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[85px] max-w-[110px]">
+                        Branch
                       </th>
                     )}
                     {showSectionColumn && (
-                      <th className="py-2 px-1 text-[10px] font-semibold text-gray-700 text-left max-w-[48px]">
-                        <div className="font-semibold truncate">Section</div>
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[70px]">
+                        Section
                       </th>
                     )}
                     {!isCashier && (
                       <>
                         {canViewField('stud_type') && (
-                          <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left">
-                            <div className="font-semibold">Quota</div>
-                          </th>
-                        )}
-                        {canViewField('caste') && (
-                          <>
-                            <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left">
-                              <div className="font-semibold">Category</div>
-                            </th>
-                            <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left">
-                              <div className="font-semibold">Caste</div>
-                            </th>
-                          </>
-                        )}
-                        {canViewField('gender') && (
-                          <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left">
-                            <div className="font-semibold">Gen</div>
+                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[75px]">
+                            Quota
                           </th>
                         )}
                         {canViewField('student_status') && (
-                          <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left max-w-[120px]">
-                            <div className="font-semibold">Status</div>
+                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[85px]">
+                            Status
                           </th>
                         )}
                         {canViewField('certificates_status') && (
-                          <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left max-w-[120px]">
-                            <div className="font-semibold">Certs</div>
+                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[80px]">
+                            Certs
                           </th>
                         )}
                       </>
                     )}
                     {canViewField('fee_status') && (
-                      <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left">
-                        <div className="font-semibold">Fees</div>
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[80px]">
+                        Fees
                       </th>
                     )}
                     {canViewField('current_year') && (
-                      <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left">
-                        <div className="font-semibold">Yr</div>
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-center min-w-[48px]">
+                        Yr
                       </th>
                     )}
                     {canViewField('current_semester') && (
-                      <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left">
-                        <div className="font-semibold">Sem</div>
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-center min-w-[48px]">
+                        Sem
                       </th>
                     )}
                     {!isCashier && (
                       <>
                         {canViewField('scholar_status') && (
-                          <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left max-w-[120px]">
-                            <div className="font-semibold">Scholar</div>
+                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[85px]">
+                            Scholar
                           </th>
                         )}
                         {showMeritColumn && (
-                          <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left max-w-[120px]">
-                            <div className="font-semibold">Merit</div>
+                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[80px]">
+                            Merit
                           </th>
                         )}
                         {canViewField('registration_status') && (
-                          <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left">
-                            <div className="font-semibold">Reg</div>
-                          </th>
-                        )}
-                        {canViewField('remarks') && (
-                          <th className="py-2 px-1.5 text-xs font-semibold text-gray-700 text-left max-w-[120px]">
-                            <div className="font-semibold">Remarks</div>
+                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[75px]">
+                            Reg
                           </th>
                         )}
                       </>
@@ -3688,7 +3663,7 @@ const Students = () => {
                       <tr
                         key={student.admission_number}
                         style={{ animationDelay: `${Math.min(index, 25) * 22}ms` }}
-                        className="border-b border-gray-100 hover:bg-indigo-50/40 transition-colors cursor-pointer row-cascade"
+                        className="border-b border-gray-100 hover:bg-blue-50/40 transition-colors cursor-pointer row-cascade"
                         onClick={(e) => {
                           // Don't trigger view modal if interacting with inputs/selects/inline editors
                           if (
@@ -3711,172 +3686,103 @@ const Students = () => {
                           }
                         }}
                       >
-                        <td className="py-1 px-1.5 text-center sticky left-0 bg-white z-10 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
+                        <td className="py-3 px-3 text-center sticky left-0 bg-white z-10 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
-                            className="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded"
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                             disabled={bulkDeleteMutation.isPending}
                             checked={selectedAdmissionNumbers.has(student.admission_number)}
                             onChange={() => toggleSelectStudent(student.admission_number)}
                           />
                         </td>
                         {canViewField('student_photo') && (
-                          <td className="py-1 px-1.5 sticky left-10 bg-white z-10 border-r border-gray-200">
+                          <td className="py-2 px-3 sticky left-12 bg-white z-10 border-r border-gray-200">
                             <div className="flex items-center justify-center mx-auto">
                               <StudentAvatar
                                 admissionNumber={student.admission_number}
                                 studentName={student.student_name}
-                                className="w-7 h-7"
+                                className="w-8 h-8 rounded-full shadow-xs"
                               />
                             </div>
                           </td>
                         )}
                         {canViewField('student_name') && (
-                          <td className="py-1.5 px-1 text-[10px] text-gray-900 leading-tight max-w-[80px]">
-                            <div className="truncate font-medium" title={student.student_name}>
+                          <td className="py-2.5 px-3 text-xs text-gray-900 leading-snug w-52 min-w-[170px] max-w-[210px]">
+                            <div className="font-semibold text-gray-900 truncate hover:text-blue-600 transition-colors max-w-[200px]" title={student.student_name}>
                               {student.student_name || '-'}
                             </div>
                           </td>
                         )}
                         {canViewField('pin_no') && (
-                          <td className="py-1.5 px-1 text-[10px] text-gray-600">
+                          <td className="py-2.5 px-3 text-xs text-gray-700 whitespace-nowrap">
                             {student.pin_no ? (
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200/80 shadow-[0_1px_2px_rgba(16,185,129,0.06)]">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-xs font-semibold font-mono border border-emerald-200/80 shadow-xs">
                                 {student.pin_no}
                               </span>
                             ) : (
-                              <span className="text-gray-300 font-medium">-</span>
+                              <span className="text-gray-400 font-medium">-</span>
                             )}
                           </td>
                         )}
                         {canViewField('admission_number') && (
-                          <td className="py-1.5 px-1 text-[10px] font-bold text-gray-900 font-mono tracking-tight">{student.admission_number || '-'}</td>
+                          <td className="py-2.5 px-3 text-xs font-bold text-gray-900 font-mono tracking-tight whitespace-nowrap">{student.admission_number || '-'}</td>
                         )}
                         {canViewField('batch') && (
-                          <td className="py-1.5 px-1 text-[10px] text-gray-700 font-medium">{student.batch || '-'}</td>
-                        )}
-                        {canViewField('college') && (
-                          <td className="py-1.5 px-1 text-[10px] text-gray-700 max-w-[80px]">
-                            <div className="truncate" title={student.college}>
-                              {student.college || '-'}
-                            </div>
-                          </td>
+                          <td className="py-2.5 px-3 text-xs text-gray-800 font-medium whitespace-nowrap">{student.batch || '-'}</td>
                         )}
                         {canViewField('course') && (
-                          <td className="py-1.5 px-1 text-[10px] text-gray-700">{student.course || '-'}</td>
+                          <td className="py-2.5 px-3 text-xs text-gray-800 font-medium max-w-[100px] truncate" title={student.course}>
+                            {student.course || '-'}
+                          </td>
                         )}
                         {canViewField('branch') && (
-                          <td className="py-1.5 px-1 text-[10px] text-gray-700 max-w-[60px]">
-                            <div className="truncate" title={student.branch}>
-                              {student.branch || '-'}
-                            </div>
+                          <td className="py-2.5 px-3 text-xs text-gray-800 font-medium max-w-[110px] truncate" title={student.branch}>
+                            {student.branch || '-'}
                           </td>
                         )}
                         {showSectionColumn && (
-                          <td className="py-1.5 px-1 text-[10px] text-gray-700 font-semibold">
+                          <td className="py-2.5 px-3 text-xs text-gray-800 font-semibold whitespace-nowrap">
                             {student.section || '-'}
                           </td>
                         )}
                         {!isCashier && (
                           <>
                             {canViewField('stud_type') && (
-                              <td className="py-1.5 px-1 text-[10px] text-gray-700">
+                              <td className="py-2.5 px-3 text-xs text-gray-700">
                                 {student.stud_type ? (
-                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-slate-100/90 text-slate-700 text-[9px] font-bold uppercase tracking-wider">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-bold uppercase tracking-wider border border-slate-200/60">
                                     {student.stud_type}
                                   </span>
                                 ) : '-'}
                               </td>
                             )}
-                            {canViewField('caste') && (
-                              <>
-                                <td className="py-1.5 px-1 text-[10px] text-gray-700 max-w-[70px]">
-                                  <div className="truncate font-medium" title={resolveStudentCaste(student).categoryName || ''}>
-                                    {resolveStudentCaste(student).categoryName || '-'}
-                                  </div>
-                                </td>
-                                <td className="py-1.5 px-1 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
-                                  <div className="max-w-[80px]">
-                                    {(() => {
-                                      const display = resolveStudentCaste(student);
-                                      const studentKey = student.id || student.admission_number || student.admissionNumber;
-                                      const isEditing =
-                                        canEditStudents &&
-                                        canEditField('caste') &&
-                                        !isFieldFrozen(student, 'caste') &&
-                                        editingCell?.studentId === studentKey &&
-                                        editingCell?.field === 'caste';
-
-                                      if (isEditing) {
-                                        return renderEditableCell(
-                                          student,
-                                          'caste',
-                                          'select',
-                                          buildCasteSelectOptions(
-                                            dynamicCasteOptions,
-                                            display.linked ? display.casteName : ''
-                                          )
-                                        );
-                                      }
-
-                                      return (
-                                        <div
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (canEditStudents && canEditField('caste') && !isFieldFrozen(student, 'caste')) {
-                                              const startValue = display.linked
-                                                ? (display.casteName || '')
-                                                : '';
-                                              handleCellClick(student, 'caste', startValue, 'select');
-                                            }
-                                          }}
-                                          className={`${canEditStudents && canEditField('caste') && !isFieldFrozen(student, 'caste') ? 'cursor-pointer hover:bg-blue-50' : ''} px-1 py-0.5 rounded truncate`}
-                                          title={
-                                            display.linked
-                                              ? (display.casteName || '')
-                                              : 'Pick a caste under the category (optional)'
-                                          }
-                                        >
-                                          {display.linked ? (display.casteName || '-') : '-'}
-                                        </div>
-                                      );
-                                    })()}
-                                  </div>
-                                </td>
-                              </>
-                            )}
-                            {canViewField('gender') && (
-                              <td className="py-1.5 px-1 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
-                                {renderEditableCell(student, 'gender', 'select', ['M', 'F', 'Other'])}
-                              </td>
-                            )}
                             {canViewField('student_status') && (
-                              <td className="py-1.5 px-1 text-[10px] text-gray-700 max-w-[100px] truncate" onClick={(e) => e.stopPropagation()}>
+                              <td className="py-2.5 px-3 text-xs text-gray-800 truncate" onClick={(e) => e.stopPropagation()}>
                                 {renderEditableCell(student, 'student_status', 'select', STUDENT_STATUS_OPTIONS)}
                               </td>
                             )}
                             {canViewField('certificates_status') && (
-                              <td className="py-1.5 px-1 text-[10px] text-gray-700 max-w-[100px] truncate">
+                              <td className="py-2.5 px-3 text-xs text-gray-800 truncate font-medium">
                                 {student.certificates_status || 'Pending'}
                               </td>
                             )}
                           </>
                         )}
                         {canViewField('fee_status') && (
-                          <td className="py-1.5 px-1 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
+                          <td className="py-2.5 px-3 text-xs text-gray-800" onClick={(e) => e.stopPropagation()}>
                             {renderEditableCell(student, 'fee_status', 'select', FEE_STATUS_OPTIONS)}
                           </td>
                         )}
                         {canViewField('current_year') && (
-                          <td className="py-1.5 px-1 text-[10px]">
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-bold text-[10px]">
+                          <td className="py-2.5 px-3 text-xs text-center">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200/60">
                               Y{student.current_year || 1}
                             </span>
                           </td>
                         )}
                         {canViewField('current_semester') && (
-                          <td className="py-1.5 px-1 text-[10px]">
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-bold text-[10px]">
+                          <td className="py-2.5 px-3 text-xs text-center">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold text-xs border border-indigo-200/60">
                               S{student.current_semester || 1}
                             </span>
                           </td>
@@ -3885,14 +3791,14 @@ const Students = () => {
                           <>
                             {canViewField('scholar_status') && !isCashier && (
                               <td
-                                className="py-1 px-1 text-[10px] text-gray-700 max-w-[100px] truncate capitalize"
+                                className="py-2.5 px-3 text-xs text-gray-800 truncate capitalize"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleViewDetails(student, 'scholarship');
                                 }}
                               >
                                 <div
-                                  className="px-2 py-1 rounded hover:bg-purple-50 hover:text-purple-700 transition-colors cursor-pointer capitalize"
+                                  className="px-2 py-1 rounded hover:bg-purple-50 hover:text-purple-700 transition-colors cursor-pointer capitalize font-medium"
                                   title="Open scholarship details"
                                 >
                                   {formatScholarshipStatusDisplay(student.scholar_status)}
@@ -3901,7 +3807,7 @@ const Students = () => {
                             )}
                             {showMeritColumn && (
                               <td
-                                className="py-1 px-1 text-[10px] text-gray-700 max-w-[120px] truncate"
+                                className="py-2.5 px-3 text-xs text-gray-800 truncate"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (canViewMeritStatus) {
@@ -3910,7 +3816,7 @@ const Students = () => {
                                 }}
                               >
                                 <div
-                                  className={`px-2 py-1 rounded transition-colors ${
+                                  className={`px-2 py-1 rounded transition-colors font-medium ${
                                     canViewMeritStatus ? 'cursor-pointer' : ''
                                   } ${
                                     student.merit_status === 'yes'
@@ -3926,23 +3832,10 @@ const Students = () => {
                               </td>
                             )}
                             {canViewField('registration_status') && !isCashier && (
-                              <td className="py-1 px-1 text-[10px]">
-                                <span className={`inline-flex px-1.5 py-0.5 rounded ${getRegistrationStatusBadgeClass(student.registration_status)}`}>
+                              <td className="py-2.5 px-3 text-xs">
+                                <span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-semibold ${getRegistrationStatusBadgeClass(student.registration_status)}`}>
                                   {formatRegistrationStatusLabel(student.registration_status)}
                                 </span>
-                              </td>
-                            )}
-                            {canViewField('remarks') && (
-                              <td className="py-1 px-1 text-[10px] text-gray-700 max-w-[120px] truncate" onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewHistory(student);
-                              }}>
-                                <div className="flex items-center gap-1.5 px-2 py-1 hover:bg-blue-50 hover:text-blue-600 rounded transition-colors cursor-pointer border border-transparent hover:border-blue-100 min-h-[28px]">
-                                  <MessageSquare size={12} className="text-blue-500 shrink-0" />
-                                  <span className="truncate max-w-[80px]" title={student.remarks || 'View Remarks'}>
-                                    {student.remarks || <span className="text-gray-400 italic">No remarks</span>}
-                                  </span>
-                                </div>
                               </td>
                             )}
                           </>
@@ -3997,69 +3890,41 @@ const Students = () => {
                               PIN Number: {student.pin_no}
                             </span>
                           )}
-
-
                         </div>
                       </div>
 
                       {/* Key Information Grid */}
-                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+                      <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-gray-100">
                         {canViewField('batch') && (
                           <div>
-                            <p className="text-xs text-gray-500">Batch</p>
-                            <p className="text-sm font-medium text-gray-900">{student.batch || '-'}</p>
-                          </div>
-                        )}
-                        {canViewField('college') && (
-                          <div>
-                            <p className="text-xs text-gray-500">College</p>
-                            <p className="text-sm font-medium text-gray-900 truncate" title={student.college || ''}>{student.college || '-'}</p>
+                            <p className="text-xs text-gray-500 font-medium">Batch</p>
+                            <p className="text-sm font-semibold text-gray-900">{student.batch || '-'}</p>
                           </div>
                         )}
                         {canViewField('course') && (
                           <div>
-                            <p className="text-xs text-gray-500">Program</p>
-                            <p className="text-sm font-medium text-gray-900 truncate" title={student.course || ''}>{student.course || '-'}</p>
+                            <p className="text-xs text-gray-500 font-medium">Program</p>
+                            <p className="text-sm font-semibold text-gray-900 truncate" title={student.course || ''}>{student.course || '-'}</p>
                           </div>
                         )}
                         {canViewField('branch') && (
                           <div>
-                            <p className="text-xs text-gray-500">Branch</p>
-                            <p className="text-sm font-medium text-gray-900 truncate" title={student.branch || ''}>{student.branch || '-'}</p>
+                            <p className="text-xs text-gray-500 font-medium">Branch</p>
+                            <p className="text-sm font-semibold text-gray-900 truncate" title={student.branch || ''}>{student.branch || '-'}</p>
                           </div>
                         )}
                         {showSectionColumn && (
                           <div>
-                            <p className="text-xs text-gray-500">Section</p>
-                            <p className="text-sm font-medium text-gray-900">{student.section || '-'}</p>
+                            <p className="text-xs text-gray-500 font-medium">Section</p>
+                            <p className="text-sm font-semibold text-gray-900">{student.section || '-'}</p>
                           </div>
                         )}
                         {!isCashier && (
                           <>
-                            {canViewField('caste') && (
-                              <div>
-                                <p className="text-xs text-gray-500">Category / Caste</p>
-                                <p className="text-sm font-medium text-gray-900 truncate">
-                                  {(() => {
-                                    const display = resolveStudentCaste(student);
-                                    if (display.categoryName && display.casteName) {
-                                      return `${display.categoryName} / ${display.casteName}`;
-                                    }
-                                    return display.categoryName || display.legacyCaste || '-';
-                                  })()}
-                                </p>
-                              </div>
-                            )}
-                            {canViewField('gender') && (
-                              <div>
-                                <p className="text-xs text-gray-500">Gender</p>
-                                <p className="text-sm font-medium text-gray-900 truncate" title={student.gender || ''}>{student.gender || '-'}</p>
-                              </div>
-                            )}
                             {canViewField('student_status') && (
                               <div>
-                                <p className="text-xs text-gray-500">Status</p>
-                                <p className="text-sm font-medium text-gray-900 truncate" title={student.student_status || ''}>{student.student_status || '-'}</p>
+                                <p className="text-xs text-gray-500 font-medium">Status</p>
+                                <p className="text-sm font-semibold text-gray-900 truncate" title={student.student_status || ''}>{student.student_status || '-'}</p>
                               </div>
                             )}
                           </>
@@ -4067,14 +3932,14 @@ const Students = () => {
 
                         {canViewField('fee_status') && (
                           <div>
-                            <p className="text-xs text-gray-500">Fee Status</p>
-                            <p className="text-sm font-medium text-gray-900">{student.fee_status || 'pending'}</p>
+                            <p className="text-xs text-gray-500 font-medium">Fee Status</p>
+                            <p className="text-sm font-semibold text-gray-900">{student.fee_status || 'pending'}</p>
                           </div>
                         )}
                         {(canViewField('current_year') || canViewField('current_semester')) && (
                           <div>
-                            <p className="text-xs text-gray-500">Year/Sem</p>
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-xs text-gray-500 font-medium">Year/Sem</p>
+                            <p className="text-sm font-semibold text-gray-900">
                               {canViewField('current_year') ? (student.current_year || '-') : '?'}
                               /
                               {canViewField('current_semester') ? (student.current_semester || '-') : '?'}
@@ -4102,8 +3967,8 @@ const Students = () => {
                                 className="rounded-lg p-1 -m-1 hover:bg-purple-50 cursor-pointer"
                                 title="Open scholarship details"
                               >
-                                <p className="text-xs text-gray-500">Scholar Status</p>
-                                <p className="text-sm font-medium text-gray-900 truncate" title={formatScholarshipStatusDisplay(student.scholar_status)}>
+                                <p className="text-xs text-gray-500 font-medium">Scholar Status</p>
+                                <p className="text-sm font-semibold text-gray-900 truncate" title={formatScholarshipStatusDisplay(student.scholar_status)}>
                                   {formatScholarshipStatusDisplay(student.scholar_status)}
                                 </p>
                               </div>
@@ -4128,8 +3993,8 @@ const Students = () => {
                                 className={`rounded-lg p-1 -m-1 ${canViewMeritStatus ? 'hover:bg-amber-50 cursor-pointer' : ''}`}
                                 title={canViewMeritStatus ? 'Open merit status' : 'Merit status'}
                               >
-                                <p className="text-xs text-gray-500">Merit Status</p>
-                                <p className={`text-sm font-medium truncate ${
+                                <p className="text-xs text-gray-500 font-medium">Merit Status</p>
+                                <p className={`text-sm font-semibold truncate ${
                                   student.merit_status === 'yes'
                                     ? 'text-green-700'
                                     : student.merit_status === 'no'
@@ -4142,8 +4007,8 @@ const Students = () => {
                             )}
                             {canViewField('registration_status') && (
                               <div>
-                                <p className="text-xs text-gray-500">Registration Status</p>
-                                <p className={`text-sm font-medium inline-flex px-2 py-0.5 rounded ${getRegistrationStatusBadgeClass(student.registration_status)}`}>
+                                <p className="text-xs text-gray-500 font-medium">Registration Status</p>
+                                <p className={`text-sm font-semibold inline-flex px-2 py-0.5 rounded ${getRegistrationStatusBadgeClass(student.registration_status)}`}>
                                   {formatRegistrationStatusLabel(student.registration_status)}
                                 </p>
                               </div>
@@ -4167,20 +4032,20 @@ const Students = () => {
               })}
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 border-t border-gray-100">
-            <div className="text-[11px] text-gray-600">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 px-4 py-3 border-t border-gray-100 bg-white">
+            <div className="text-xs sm:text-sm text-gray-600 font-medium">
               {totalStudents === 0
                 ? 'No students to display'
-                : `Showing ${showingFrom.toLocaleString()}-${showingTo.toLocaleString()} of ${totalStudents.toLocaleString()}`}
+                : `Showing ${showingFrom.toLocaleString()}-${showingTo.toLocaleString()} of ${totalStudents.toLocaleString()} students`}
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <label className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-600">
-                <span className="hidden sm:inline">Rows per page</span>
-                <span className="sm:hidden">Per page</span>
+              <label className="flex items-center gap-1.5 text-xs text-gray-600 font-medium">
+                <span className="hidden sm:inline">Rows per page:</span>
+                <span className="sm:hidden">Per page:</span>
                 <select
                   value={pageSize}
                   onChange={handlePageSizeChange}
-                  className="px-1.5 py-0.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-[11px] touch-manipulation min-h-[28px] sm:min-h-[32px]"
+                  className="px-2 py-1 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-xs font-semibold text-gray-700 touch-manipulation min-h-[30px]"
                   disabled={filtersLoading}
                 >
                   {pageSizeOptions.map((option) => (
@@ -4193,18 +4058,18 @@ const Students = () => {
                   type="button"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={isFirstPage || totalStudents === 0}
-                  className="flex-1 sm:flex-none px-2 py-1 border border-gray-300 rounded-md text-[11px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation min-h-[32px] font-semibold"
+                  className="flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 rounded-lg text-xs text-gray-700 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation font-semibold shadow-2xs"
                 >
                   Previous
                 </button>
-                <span className="text-[10px] sm:text-[11px] text-gray-600 px-1 text-center whitespace-nowrap font-medium">
+                <span className="text-xs text-gray-600 px-1 text-center whitespace-nowrap font-medium">
                   Page {Math.min(currentPage, totalPages).toLocaleString()} of {totalPages.toLocaleString()}
                 </span>
                 <button
                   type="button"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={isLastPage || totalStudents === 0}
-                  className="flex-1 sm:flex-none px-2 py-1 border border-gray-300 rounded-md text-[11px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation min-h-[32px] font-semibold"
+                  className="flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 rounded-lg text-xs text-gray-700 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation font-semibold shadow-2xs"
                 >
                   Next
                 </button>
@@ -4264,67 +4129,17 @@ const Students = () => {
                     </button>
                   )}
 
-                  {/* ... More Actions Dropdown */}
-                  {!editMode && (
-                    <div className="relative">
-                      <button
-                        onClick={() => setShowMoreActions(!showMoreActions)}
-                        className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
-                      >
-                        <MoreHorizontal size={14} />
-                        <span>More Actions</span>
-                        <ChevronDown size={12} />
-                      </button>
-
-                      {showMoreActions && (
-                        <div
-                          className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-[100] animate-fade-in text-xs font-semibold text-gray-700"
-                          onClick={() => setShowMoreActions(false)}
-                        >
-                          {!isCashier && (
-                            <button
-                              onClick={handleResetPassword}
-                              className="w-full text-left px-4 py-2.5 hover:bg-orange-50 hover:text-orange-600 flex items-center gap-2 transition-colors"
-                            >
-                              <RefreshCw size={14} className={resettingPassword ? 'animate-spin text-orange-500' : ''} />
-                              <span>Reset Password</span>
-                            </button>
-                          )}
-                          <button
-                            onClick={() => {
-                              const svgEl = document.querySelector(`#student-qr-${selectedStudent.admission_number} svg`);
-                              if (svgEl) {
-                                const serializer = new XMLSerializer();
-                                const svgStr = serializer.serializeToString(svgEl);
-                                const blob = new Blob([svgStr], { type: 'image/svg+xml' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `QR_${selectedStudent.admission_number}.svg`;
-                                a.click();
-                                URL.revokeObjectURL(url);
-                              } else {
-                                toast.error('QR code generator initialized');
-                              }
-                            }}
-                            className="w-full text-left px-4 py-2.5 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2 transition-colors"
-                          >
-                            <Download size={14} />
-                            <span>Download QR Code</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setActiveStudentTab('id_card');
-                              setShowIdCardPreview(true);
-                            }}
-                            className="w-full text-left px-4 py-2.5 hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2 transition-colors"
-                          >
-                            <CreditCard size={14} />
-                            <span>View Digital ID Card</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                  {/* Reset Password Button */}
+                  {!editMode && !isCashier && (
+                    <button
+                      onClick={handleResetPassword}
+                      disabled={resettingPassword}
+                      className="flex items-center gap-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200/90 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs hover:shadow-xs active:scale-95 disabled:opacity-50"
+                      title="Reset Student Password"
+                    >
+                      <RefreshCw size={13} className={resettingPassword ? 'animate-spin text-orange-600' : 'text-orange-600'} />
+                      <span>{resettingPassword ? 'Resetting...' : 'Reset Password'}</span>
+                    </button>
                   )}
 
                   <button
@@ -4383,7 +4198,7 @@ const Students = () => {
                       <span className="text-gray-300 font-bold">|</span>
                       <span>{editData.course || selectedStudent?.course || 'Program'} - {editData.branch || selectedStudent?.branch || 'Branch'}</span>
                       <span className="text-gray-300 font-bold">|</span>
-                      <span>Year {editData.current_year || selectedStudent?.current_year || 1} &bull; Semester {editData.current_semester || selectedStudent?.current_semester || 1}</span>
+                      <span>Year {editData.current_year || selectedStudent?.current_year || 1} &bull; Semester {editData.current_semester || selectedStudent?.current_semester || 1}{getStudentSection(editData, selectedStudent) ? ` • Section ${getStudentSection(editData, selectedStudent)}` : ''}</span>
                       <span className="text-gray-300 font-bold">|</span>
                       <span className="text-indigo-700 font-extrabold">{editData.college || selectedStudent?.college || 'Pydah College of Engineering'}</span>
                     </p>
@@ -4535,19 +4350,6 @@ const Students = () => {
                     <span>Communication</span>
                   </button>
                 )}
-
-                <button
-                  onClick={() => setActiveStudentTab('id_card')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                    activeStudentTab === 'id_card'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <CreditCard size={15} />
-                  <span>ID Card</span>
-                </button>
-
                 <button
                   onClick={() => setActiveStudentTab('history')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
@@ -4576,10 +4378,10 @@ const Students = () => {
 
             {/* Scrollable Content Body */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-              {/* Overview Tab (4 Cards per row Grid Layout) */}
+              {/* Overview Tab (3 Cards per row Grid Layout) */}
               {activeStudentTab === 'details' && (
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Card 1: Student Identity */}
                     <div className="bg-white rounded-xl border border-gray-200/80 shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
                       <div>
@@ -4711,82 +4513,7 @@ const Students = () => {
                       </div>
                     </div>
 
-                    {/* Card 2: Academic Information */}
-                    <div className="bg-white rounded-xl border border-gray-200/80 shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2.5">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs">
-                              <GraduationCap size={15} />
-                            </div>
-                            <h3 className="font-extrabold text-xs text-gray-900">Academic Info</h3>
-                          </div>
-                          {!editMode && canEditStudents && !isCashier && (
-                            <button onClick={handleEdit} className="text-[11px] font-bold text-emerald-600 hover:text-emerald-800 flex items-center gap-1">
-                              <Edit size={11} /> Edit
-                            </button>
-                          )}
-                        </div>
-
-                        <div className="space-y-2 text-[11px]">
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">College</span>
-                            <span className="font-bold text-gray-900 truncate max-w-[120px]" title={editData.college || selectedStudent?.college}>{editData.college || selectedStudent?.college || '-'}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Program</span>
-                            <span className="font-bold text-gray-900">{editData.course || selectedStudent?.course || '-'}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Branch</span>
-                            <span className="font-bold text-gray-900">{editData.branch || selectedStudent?.branch || '-'}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Year / Sem</span>
-                            <span className="font-bold text-gray-900">{editData.current_year || selectedStudent?.current_year || 1} / {editData.current_semester || selectedStudent?.current_semester || 1}</span>
-                          </div>
-                          {(studentBranchHasSections || getStudentSection(editData, selectedStudent)) && (
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-500 font-semibold">Section</span>
-                              {editMode ? (
-                                studentSectionOptions && studentSectionOptions.length > 0 ? (
-                                  <select
-                                    value={getStudentSection(editData, selectedStudent) || ''}
-                                    onChange={(e) => updateEditField('section', e.target.value)}
-                                    className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right"
-                                  >
-                                    <option value="">Select Section</option>
-                                    {studentSectionOptions.map((sec) => (
-                                      <option key={sec} value={sec}>{sec}</option>
-                                    ))}
-                                  </select>
-                                ) : (
-                                  <input
-                                    type="text"
-                                    value={editData.section !== undefined ? editData.section : (editData.Section !== undefined ? editData.Section : (selectedStudent?.section || ''))}
-                                    onChange={(e) => updateEditField('section', e.target.value)}
-                                    placeholder="e.g. A"
-                                    className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-24"
-                                  />
-                                )
-                              ) : (
-                                <span className="font-bold text-gray-900">{getStudentSection(editData, selectedStudent) || '-'}</span>
-                              )}
-                            </div>
-                          )}
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Quota</span>
-                            <span className="font-bold text-gray-900">{editData.stud_type || selectedStudent?.stud_type || 'Regular'}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Status</span>
-                            <span className="font-bold text-emerald-600 capitalize">{editData.student_status || selectedStudent?.student_status || 'Regular'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Card 3: Quick Status */}
+                    {/* Card 2: Quick Status */}
                     <div className="bg-white rounded-xl border border-gray-200/80 shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2.5">
@@ -4901,13 +4628,6 @@ const Students = () => {
                                 {formatMeritStatusDisplay(selectedStudent?.merit_status)}
                               </button>
                             )}
-                          </div>
-
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">ID Card</span>
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              Issued
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -5282,6 +5002,36 @@ const Students = () => {
                               </span>
                             )}
                           </div>
+
+                          {(studentBranchHasSections || getStudentSection(editData, selectedStudent)) && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500 font-semibold">Section</span>
+                              {editMode ? (
+                                studentSectionOptions && studentSectionOptions.length > 0 ? (
+                                  <select
+                                    value={getStudentSection(editData, selectedStudent) || ''}
+                                    onChange={(e) => updateEditField('section', e.target.value)}
+                                    className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right"
+                                  >
+                                    <option value="">Select Section</option>
+                                    {studentSectionOptions.map((sec) => (
+                                      <option key={sec} value={sec}>{sec}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <input
+                                    type="text"
+                                    value={editData.section !== undefined ? editData.section : (editData.Section !== undefined ? editData.Section : (selectedStudent?.section || ''))}
+                                    onChange={(e) => updateEditField('section', e.target.value)}
+                                    placeholder="e.g. A"
+                                    className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-24"
+                                  />
+                                )
+                              ) : (
+                                <span className="font-bold text-gray-900">{getStudentSection(editData, selectedStudent) || '-'}</span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -5858,138 +5608,6 @@ const Students = () => {
                   </div>
                 </div>
               )}
-
-              {activeStudentTab === 'id_card' && (() => {
-                const getStudentDataForCard = (key, fallback = '') => {
-                  if (!selectedStudent?.student_data) return fallback;
-                  const dk = Object.keys(selectedStudent.student_data).find(k => k.toLowerCase() === String(key).toLowerCase());
-                  const v = dk ? selectedStudent.student_data[dk] : undefined;
-                  return v !== undefined && v !== null && v !== '' ? String(v) : fallback;
-                };
-
-                const handleGeneratePrint = () => {
-                  try {
-                    const result = printIdCardFrontAndBack(
-                      '.id-card-print-front',
-                      '.id-card-print-back',
-                      { backOrientation: idCardBackOrientation }
-                    );
-                    toast.success(
-                      `Print dialog: 2 pages (Front + Back [${idCardBackOrientation === 'rotate180' ? '180° Rotated' : 'Straight'}])`
-                    );
-                  } catch (err) {
-                    console.error(err);
-                    toast.error(err.message || 'Unable to open print dialog');
-                  }
-                };
-
-                const activeCol = resolveIdCardCollegeObj(selectedStudent);
-                const sigUrl = resolveIdCardCollegeSignature(selectedStudent);
-
-                return (
-                  <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 flex flex-col items-center gap-5">
-                    <div className="flex items-center justify-between w-full max-w-md">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-700 font-bold">
-                          <CreditCard size={20} />
-                        </div>
-                        <div>
-                          <h3 className="text-base font-bold text-gray-900">Digital ID Card</h3>
-                          <p className="text-xs text-gray-400">CR80 Format · Dual-Sided Print Preview</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="w-full max-w-md space-y-6">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2 text-center">Front Side</p>
-                        <div className="id-card-preview-scaler-box">
-                          <div className="id-card-preview-scaler">
-                            <DigitalStudentCard
-                              className="id-card-print-front"
-                              college={activeCol}
-                              student={selectedStudent}
-                              getStudentData={getStudentDataForCard}
-                              principalSignatureUrl={sigUrl}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Back Side</p>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            idCardBackOrientation === 'straight' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
-                          }`}>
-                            {idCardBackOrientation === 'straight' ? 'Straight (0°)' : 'Rotated (180°)'}
-                          </span>
-                        </div>
-                        <div className="id-card-preview-scaler-box">
-                          <div className="id-card-preview-scaler">
-                            <DigitalIdCardBack
-                              className="id-card-print-back"
-                              student={selectedStudent}
-                              getStudentData={getStudentDataForCard}
-                              college={activeCol}
-                              rotate180={idCardBackOrientation === 'rotate180'}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Flip Edge Orientation */}
-                      <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-gray-800">Back Side Flip Edge</span>
-                          <span className="text-[10px] text-gray-500 font-semibold">
-                            {idCardBackOrientation === 'straight' ? 'Straight (Upright)' : 'Rotate 180° (Flipped)'}
-                          </span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIdCardBackOrientation('straight');
-                              try { localStorage.setItem('id_card_back_orientation', 'straight'); } catch {}
-                            }}
-                            className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                              idCardBackOrientation === 'straight'
-                                ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
-                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                            }`}
-                          >
-                            Straight (0°)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIdCardBackOrientation('rotate180');
-                              try { localStorage.setItem('id_card_back_orientation', 'rotate180'); } catch {}
-                            }}
-                            className={`py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                              idCardBackOrientation === 'rotate180'
-                                ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
-                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                            }`}
-                          >
-                            Rotate 180°
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 w-full max-w-md">
-                      <button
-                        onClick={handleGeneratePrint}
-                        className="w-full py-3 bg-gray-900 text-white rounded-xl text-xs font-bold hover:bg-gray-800 flex items-center justify-center gap-2 shadow-sm"
-                      >
-                        <Printer size={16} /> Generate Print (Front + Back)
-                      </button>
-                    </div>
-                  </div>
-                );
-              })()}
 
               {activeStudentTab === 'parent_activity' && selectedStudent?.id && (
                 <ParentEngagementPanel studentId={selectedStudent.id} variant="tab" />

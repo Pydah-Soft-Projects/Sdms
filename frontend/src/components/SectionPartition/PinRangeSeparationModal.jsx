@@ -102,7 +102,7 @@ const PinRangeSeparationModal = ({
     const initialSections = Array.from({ length: count }, (_, idx) => {
       const defaultName =
         availableSectionNames[idx] ||
-        (idx < 26 ? `Section ${String.fromCharCode(65 + idx)}` : `Section ${idx + 1}`);
+        (idx < 26 ? String.fromCharCode(65 + idx) : String(idx + 1));
       return {
         id: `sec-${Date.now()}-${idx}`,
         section: defaultName,
@@ -201,7 +201,7 @@ const PinRangeSeparationModal = ({
             ? existingSec.section
             : availableSectionNames.find((name) => !usedNames.has(name)) ||
               availableSectionNames[i] ||
-              (i < 26 ? `Section ${String.fromCharCode(65 + i)}` : `Section ${i + 1}`);
+              (i < 26 ? String.fromCharCode(65 + i) : String(i + 1));
 
         const item = distributed[i];
         const initialRanges = existingSec?.ranges?.length
@@ -451,7 +451,9 @@ const PinRangeSeparationModal = ({
       for (const range of validRanges) {
         if (isPinInRange(pin, range.startPin, range.endPin)) {
           assignments.push({
-            admissionNumber: student.admissionNumber,
+            studentId: student.id,
+            admissionNumber: student.admissionNumber || null,
+            pinNo: pin,
             section: range.section
           });
           break; // First matching range wins

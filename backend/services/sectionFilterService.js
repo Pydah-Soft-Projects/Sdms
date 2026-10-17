@@ -61,13 +61,13 @@ const getConfiguredSectionsForBranch = async ({ course, branch } = {}) => {
     let courseRows;
     if (/^\d+$/.test(course)) {
       [courseRows] = await masterPool.query(
-        'SELECT id, name FROM courses WHERE id = ? AND is_active = 1 LIMIT 1',
+        'SELECT id, name FROM courses WHERE id = ? AND is_active = 1',
         [parseInt(course, 10)]
       );
     } else {
       [courseRows] = await masterPool.query(
-        'SELECT id, name FROM courses WHERE name = ? AND is_active = 1 LIMIT 1',
-        [course]
+        'SELECT id, name FROM courses WHERE (name = ? OR code = ?) AND is_active = 1',
+        [course, course]
       );
     }
 
@@ -75,40 +75,45 @@ const getConfiguredSectionsForBranch = async ({ course, branch } = {}) => {
       return { courseName: course, configuredSections: [], sectionBreakdown: [] };
     }
 
+    const courseIds = courseRows.map((c) => c.id);
     let branchRows;
     if (/^\d+$/.test(branch)) {
       [branchRows] = await masterPool.query(
-        'SELECT metadata FROM course_branches WHERE course_id = ? AND id = ? AND is_active = 1 LIMIT 1',
-        [courseRows[0].id, parseInt(branch, 10)]
+        `SELECT metadata, course_id FROM course_branches WHERE course_id IN (${courseIds.map(() => '?').join(',')}) AND id = ? AND is_active = 1`,
+        [...courseIds, parseInt(branch, 10)]
       );
     } else {
       [branchRows] = await masterPool.query(
-        'SELECT metadata FROM course_branches WHERE course_id = ? AND name = ? AND is_active = 1 LIMIT 1',
-        [courseRows[0].id, branch]
+        `SELECT metadata, course_id FROM course_branches WHERE course_id IN (${courseIds.map(() => '?').join(',')}) AND (name = ? OR code = ?) AND is_active = 1`,
+        [...courseIds, branch, branch]
       );
     }
 
-    if (branchRows.length === 0 || !branchRows[0].metadata) {
-      return { courseName: courseRows[0].name, configuredSections: [], sectionBreakdown: [] };
+    for (const bRow of branchRows) {
+      if (!bRow.metadata) continue;
+      const metadata = parseBranchMetadata(bRow.metadata);
+      if (!metadata?.sections?.enabled || !Array.isArray(metadata.sections.items)) {
+        continue;
+      }
+
+      const sectionBreakdown = metadata.sections.items.filter(
+        (item) => item && (item.name || typeof item === 'string')
+      );
+      const configuredSections = sectionBreakdown
+        .map((item) => (typeof item === 'object' ? item.name : item))
+        .filter(Boolean);
+
+      if (configuredSections.length > 0) {
+        const matchedCourse = courseRows.find((c) => c.id === bRow.course_id);
+        return {
+          courseName: matchedCourse ? matchedCourse.name : course,
+          configuredSections,
+          sectionBreakdown
+        };
+      }
     }
 
-    const metadata = parseBranchMetadata(branchRows[0].metadata);
-    if (!metadata?.sections?.enabled || !Array.isArray(metadata.sections.items)) {
-      return { courseName: course, configuredSections: [], sectionBreakdown: [] };
-    }
-
-    const sectionBreakdown = metadata.sections.items.filter(
-      (item) => item && (item.name || typeof item === 'string')
-    );
-    const configuredSections = sectionBreakdown
-      .map((item) => (typeof item === 'object' ? item.name : item))
-      .filter(Boolean);
-
-    return {
-      courseName: courseRows[0].name,
-      configuredSections,
-      sectionBreakdown
-    };
+    return { courseName: courseRows[0].name, configuredSections: [], sectionBreakdown: [] };
   }
 
   let branchRows;
@@ -125,8 +130,8 @@ const getConfiguredSectionsForBranch = async ({ course, branch } = {}) => {
       `SELECT cb.metadata, c.name AS course_name
        FROM course_branches cb
        JOIN courses c ON cb.course_id = c.id
-       WHERE cb.name = ? AND cb.is_active = 1 AND c.is_active = 1`,
-      [branch]
+       WHERE (cb.name = ? OR cb.code = ?) AND cb.is_active = 1 AND c.is_active = 1`,
+      [branch, branch]
     );
   }
 

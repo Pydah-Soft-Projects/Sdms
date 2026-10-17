@@ -123,18 +123,34 @@ const syncStudentSectionFromData = async ({
     [studentId, branchRows[0].id, normalizeBatch(batch), String(sectionName).trim()]
   );
 
+  // 2. Primary persistence: update section column directly on students table
   await masterPool.query(
     `UPDATE students
      SET section = ?,
-         student_data = JSON_SET(
-           COALESCE(student_data, '{}'),
-           '$.section', ?,
-           '$.Section', ?
-         ),
          updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
-    [String(sectionName).trim(), String(sectionName).trim(), String(sectionName).trim(), studentId]
+    [String(sectionName).trim(), studentId]
   );
+
+  // Sync student_data JSON safely (non-blocking if student_data is malformed/truncated)
+  try {
+    const val = String(sectionName).trim();
+    await masterPool.query(
+      `UPDATE students
+       SET student_data = CASE
+         WHEN student_data IS NOT NULL AND JSON_VALID(student_data) = 1 THEN
+           JSON_SET(student_data, '$.section', ?, '$.Section', ?)
+         WHEN student_data IS NULL THEN
+           JSON_OBJECT('section', ?, 'Section', ?)
+         ELSE
+           student_data
+       END
+       WHERE id = ?`,
+      [val, val, val, val, studentId]
+    );
+  } catch (jsonErr) {
+    console.warn(`[updateStudentSectionManual] Non-blocking JSON update skipped for student ${studentId}:`, jsonErr.message);
+  }
 };
 
 /**
@@ -397,15 +413,22 @@ const clearStudentSection = async (studentId) => {
 };
 
 const getBranchIdForCourseBranch = async (courseName, branchName) => {
-  const [branchRows] = await masterPool.query(
-    `SELECT cb.id
-     FROM course_branches cb
-     JOIN courses c ON cb.course_id = c.id
-     WHERE c.name = ? AND cb.name = ? AND c.is_active = 1 AND cb.is_active = 1
-     LIMIT 1`,
-    [courseName, branchName]
-  );
-  return branchRows.length > 0 ? branchRows[0].id : null;
+  try {
+    const [branchRows] = await masterPool.query(
+      `SELECT cb.id
+       FROM course_branches cb
+       JOIN courses c ON cb.course_id = c.id
+       WHERE (c.name = ? OR c.code = ? OR c.id = ?)
+         AND (cb.name = ? OR cb.code = ? OR cb.id = ?)
+         AND c.is_active = 1 AND cb.is_active = 1
+       LIMIT 1`,
+      [courseName, courseName, courseName, branchName, branchName, branchName]
+    );
+    return branchRows.length > 0 ? branchRows[0].id : null;
+  } catch (err) {
+    console.warn('getBranchIdForCourseBranch query warning:', err.message);
+    return null;
+  }
 };
 
 /** Persist section to students.section, student_data JSON, and student_sections (manual partition save). */
@@ -414,14 +437,10 @@ const applyStudentSectionValue = async ({
   courseName,
   branchName,
   batch,
+  branchId: explicitBranchId,
   sectionName
 }) => {
-  if (!studentId || !courseName || !branchName) {
-    return;
-  }
-
-  const branchId = await getBranchIdForCourseBranch(courseName, branchName);
-  if (!branchId) {
+  if (!studentId) {
     return;
   }
 
@@ -430,44 +449,88 @@ const applyStudentSectionValue = async ({
       ? ''
       : String(sectionName).trim();
 
+  // 1. Primary persistence: update section column on students table directly
   if (normalized) {
     await masterPool.query(
       `UPDATE students
        SET section = ?,
-           student_data = JSON_SET(
-         COALESCE(student_data, '{}'),
-         '$.section', ?,
-         '$.Section', ?
-       ),
-       updated_at = CURRENT_TIMESTAMP
+           updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [normalized, normalized, normalized, studentId]
+      [normalized, studentId]
     );
   } else {
     await masterPool.query(
       `UPDATE students
        SET section = NULL,
-           student_data = JSON_REMOVE(
-         JSON_REMOVE(COALESCE(student_data, '{}'), '$.section'),
-         '$.Section'
-       ),
-       updated_at = CURRENT_TIMESTAMP
+           updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
       [studentId]
     );
   }
 
-  await masterPool.query(
-    `INSERT INTO student_sections (student_id, branch_id, batch, section_name, is_manual)
-     VALUES (?, ?, ?, ?, 1)
-     ON DUPLICATE KEY UPDATE
-       branch_id = VALUES(branch_id),
-       batch = VALUES(batch),
-       section_name = VALUES(section_name),
-       is_manual = 1,
-       updated_at = CURRENT_TIMESTAMP`,
-    [studentId, branchId, normalizeBatch(batch), normalized]
-  );
+  // Sync student_data JSON safely (non-blocking if student_data is malformed/truncated at MySQL TEXT 65535 limit)
+  try {
+    if (normalized) {
+      await masterPool.query(
+        `UPDATE students
+         SET student_data = CASE
+           WHEN student_data IS NOT NULL AND JSON_VALID(student_data) = 1 THEN
+             JSON_SET(student_data, '$.section', ?, '$.Section', ?)
+           WHEN student_data IS NULL THEN
+             JSON_OBJECT('section', ?, 'Section', ?)
+           ELSE
+             student_data
+         END
+         WHERE id = ?`,
+        [normalized, normalized, normalized, normalized, studentId]
+      );
+    } else {
+      await masterPool.query(
+        `UPDATE students
+         SET student_data = CASE
+           WHEN student_data IS NOT NULL AND JSON_VALID(student_data) = 1 THEN
+             JSON_REMOVE(JSON_REMOVE(student_data, '$.section'), '$.Section')
+           ELSE
+             student_data
+         END
+         WHERE id = ?`,
+        [studentId]
+      );
+    }
+  } catch (jsonErr) {
+    console.warn(`[applyStudentSectionValue] Non-blocking JSON update skipped for student ${studentId}:`, jsonErr.message);
+  }
+
+  // 2. Auxiliary persistence: student_sections table (non-blocking if auxiliary table fails)
+  try {
+    let branchId = explicitBranchId || null;
+    if (!branchId && courseName && branchName) {
+      branchId = await getBranchIdForCourseBranch(courseName, branchName);
+    }
+
+    if (branchId) {
+      if (normalized) {
+        await masterPool.query(
+          `INSERT INTO student_sections (student_id, branch_id, batch, section_name, is_manual)
+           VALUES (?, ?, ?, ?, 1)
+           ON DUPLICATE KEY UPDATE
+             branch_id = VALUES(branch_id),
+             batch = VALUES(batch),
+             section_name = VALUES(section_name),
+             is_manual = 1,
+             updated_at = CURRENT_TIMESTAMP`,
+          [studentId, branchId, normalizeBatch(batch), normalized]
+        );
+      } else {
+        await masterPool.query(
+          'DELETE FROM student_sections WHERE student_id = ?',
+          [studentId]
+        );
+      }
+    }
+  } catch (secErr) {
+    console.warn('student_sections sync warning (non-fatal):', secErr.message);
+  }
 };
 
 module.exports = {

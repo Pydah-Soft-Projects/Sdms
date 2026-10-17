@@ -123,18 +123,34 @@ const syncStudentSectionFromData = async ({
     [studentId, branchRows[0].id, normalizeBatch(batch), String(sectionName).trim()]
   );
 
+  // 2. Primary persistence: update section column directly on students table
   await masterPool.query(
     `UPDATE students
      SET section = ?,
-         student_data = JSON_SET(
-           COALESCE(student_data, '{}'),
-           '$.section', ?,
-           '$.Section', ?
-         ),
          updated_at = CURRENT_TIMESTAMP
      WHERE id = ?`,
-    [String(sectionName).trim(), String(sectionName).trim(), String(sectionName).trim(), studentId]
+    [String(sectionName).trim(), studentId]
   );
+
+  // Sync student_data JSON safely (non-blocking if student_data is malformed/truncated)
+  try {
+    const val = String(sectionName).trim();
+    await masterPool.query(
+      `UPDATE students
+       SET student_data = CASE
+         WHEN student_data IS NOT NULL AND JSON_VALID(student_data) = 1 THEN
+           JSON_SET(student_data, '$.section', ?, '$.Section', ?)
+         WHEN student_data IS NULL THEN
+           JSON_OBJECT('section', ?, 'Section', ?)
+         ELSE
+           student_data
+       END
+       WHERE id = ?`,
+      [val, val, val, val, studentId]
+    );
+  } catch (jsonErr) {
+    console.warn(`[updateStudentSectionManual] Non-blocking JSON update skipped for student ${studentId}:`, jsonErr.message);
+  }
 };
 
 /**
@@ -433,32 +449,56 @@ const applyStudentSectionValue = async ({
       ? ''
       : String(sectionName).trim();
 
-  // 1. Primary persistence: students table and student_data JSON
+  // 1. Primary persistence: update section column on students table directly
   if (normalized) {
     await masterPool.query(
       `UPDATE students
        SET section = ?,
-           student_data = JSON_SET(
-         COALESCE(student_data, '{}'),
-         '$.section', ?,
-         '$.Section', ?
-       ),
-       updated_at = CURRENT_TIMESTAMP
+           updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
-      [normalized, normalized, normalized, studentId]
+      [normalized, studentId]
     );
   } else {
     await masterPool.query(
       `UPDATE students
        SET section = NULL,
-           student_data = JSON_REMOVE(
-         JSON_REMOVE(COALESCE(student_data, '{}'), '$.section'),
-         '$.Section'
-       ),
-       updated_at = CURRENT_TIMESTAMP
+           updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
       [studentId]
     );
+  }
+
+  // Sync student_data JSON safely (non-blocking if student_data is malformed/truncated at MySQL TEXT 65535 limit)
+  try {
+    if (normalized) {
+      await masterPool.query(
+        `UPDATE students
+         SET student_data = CASE
+           WHEN student_data IS NOT NULL AND JSON_VALID(student_data) = 1 THEN
+             JSON_SET(student_data, '$.section', ?, '$.Section', ?)
+           WHEN student_data IS NULL THEN
+             JSON_OBJECT('section', ?, 'Section', ?)
+           ELSE
+             student_data
+         END
+         WHERE id = ?`,
+        [normalized, normalized, normalized, normalized, studentId]
+      );
+    } else {
+      await masterPool.query(
+        `UPDATE students
+         SET student_data = CASE
+           WHEN student_data IS NOT NULL AND JSON_VALID(student_data) = 1 THEN
+             JSON_REMOVE(JSON_REMOVE(student_data, '$.section'), '$.Section')
+           ELSE
+             student_data
+         END
+         WHERE id = ?`,
+        [studentId]
+      );
+    }
+  } catch (jsonErr) {
+    console.warn(`[applyStudentSectionValue] Non-blocking JSON update skipped for student ${studentId}:`, jsonErr.message);
   }
 
   // 2. Auxiliary persistence: student_sections table (non-blocking if auxiliary table fails)

@@ -537,7 +537,9 @@ const SectionPartition = () => {
         return draft !== saved;
       })
       .map((student) => ({
-        admissionNumber: student.admissionNumber,
+        studentId: student.id,
+        admissionNumber: student.admissionNumber || null,
+        pinNo: student.pinNo || null,
         section: normalizeSectionValue(draftSections[getStudentKey(student)])
       }));
 
@@ -549,11 +551,20 @@ const SectionPartition = () => {
     setSaving(true);
     try {
       const response = await api.post('/students/section-partition/save', { assignments });
-      if (response.data?.success || response.data?.data?.success > 0) {
+      const data = response.data?.data || {};
+      const successCount = Number(data.success) || (response.data?.success ? assignments.length : 0);
+      const failedCount = Number(data.failed) || 0;
+
+      if (successCount > 0) {
         const updatedSaved = { ...savedSections };
-        assignments.forEach(({ admissionNumber, section }) => {
-          updatedSaved[admissionNumber] = section;
-          const match = students.find((s) => s.admissionNumber === admissionNumber);
+        assignments.forEach(({ studentId, admissionNumber, section }) => {
+          if (admissionNumber) updatedSaved[admissionNumber] = section;
+          if (studentId) updatedSaved[String(studentId)] = section;
+          const match = students.find(
+            (s) =>
+              (studentId && s.id === studentId) ||
+              (admissionNumber && s.admissionNumber === admissionNumber)
+          );
           if (match) {
             updatedSaved[getStudentKey(match)] = section;
           }
@@ -561,7 +572,11 @@ const SectionPartition = () => {
         setSavedSections(updatedSaved);
         setStudents((prev) =>
           prev.map((student) => {
-            const change = assignments.find((a) => a.admissionNumber === student.admissionNumber);
+            const change = assignments.find(
+              (a) =>
+                (a.studentId && a.studentId === student.id) ||
+                (a.admissionNumber && a.admissionNumber === student.admissionNumber)
+            );
             if (!change) return student;
             return {
               ...student,
@@ -569,13 +584,22 @@ const SectionPartition = () => {
             };
           })
         );
-        toast.success(response.data?.message || `Saved ${assignments.length} section assignment(s)`);
+
+        if (failedCount === 0) {
+          toast.success(response.data?.message || `Saved ${assignments.length} section assignment(s)`);
+        } else {
+          const firstErr = data.errors?.[0]?.message;
+          toast.success(
+            `Saved ${successCount} section(s), ${failedCount} failed${firstErr ? `: ${firstErr}` : ''}`
+          );
+        }
       } else {
-        throw new Error(response.data?.message || 'Failed to save sections');
+        const firstErr = data.errors?.[0]?.message;
+        throw new Error(firstErr || response.data?.message || 'Failed to save sections');
       }
     } catch (error) {
       console.error('Failed to save sections:', error);
-      toast.error(error.response?.data?.message || 'Failed to save section assignments');
+      toast.error(error.message || error.response?.data?.message || 'Failed to save section assignments');
     } finally {
       setSaving(false);
     }
@@ -659,8 +683,19 @@ const SectionPartition = () => {
 
     setDraftSections((prev) => {
       const next = { ...prev };
-      assignments.forEach(({ admissionNumber, section }) => {
-        next[admissionNumber] = normalizeSectionValue(section);
+      assignments.forEach((item) => {
+        const val = normalizeSectionValue(item.section);
+        if (item.admissionNumber) next[item.admissionNumber] = val;
+        if (item.studentId) next[String(item.studentId)] = val;
+        const match = students.find(
+          (s) =>
+            (item.studentId && s.id === item.studentId) ||
+            (item.admissionNumber && s.admissionNumber === item.admissionNumber) ||
+            (item.pinNo && s.pinNo === item.pinNo)
+        );
+        if (match) {
+          next[getStudentKey(match)] = val;
+        }
       });
       return next;
     });
@@ -1207,10 +1242,11 @@ const SectionPartition = () => {
                             <option value="">— Unassigned —</option>
                             {configuredSectionItems.map((section) => {
                               const val = typeof section === 'object' ? section.name || section.id : section;
-                              const label = typeof section === 'object' ? section.name || section.id : section;
+                              const rawLabel = typeof section === 'object' ? section.name || section.id : section;
+                              const cleanLabel = String(rawLabel || '').replace(/^(section|sec)\.?\s+/i, '');
                               return (
                                 <option key={val} value={val}>
-                                  Section {label}
+                                  Section {cleanLabel}
                                 </option>
                               );
                             })}
@@ -1295,10 +1331,11 @@ const SectionPartition = () => {
                         <option value="">None (clear section)</option>
                         {configuredSectionItems.map((section) => {
                           const val = typeof section === 'object' ? section.name || section.id : section;
-                          const label = typeof section === 'object' ? section.name || section.id : section;
+                          const rawLabel = typeof section === 'object' ? section.name || section.id : section;
+                          const cleanLabel = String(rawLabel || '').replace(/^(section|sec)\.?\s+/i, '');
                           return (
                             <option key={val} value={val}>
-                              Section {label}
+                              Section {cleanLabel}
                             </option>
                           );
                         })}

@@ -10152,19 +10152,47 @@ exports.getSectionPartitionStudents = async (req, res) => {
   }
 };
 
+const resolveCanonicalSectionName = (rawSection, configuredSections = []) => {
+  if (rawSection === null || rawSection === undefined || String(rawSection).trim() === '') {
+    return '';
+  }
+  const cleanInput = String(rawSection).trim();
+  if (!Array.isArray(configuredSections) || configuredSections.length === 0) {
+    return cleanInput;
+  }
+
+  // 1. Exact match
+  const exact = configuredSections.find((s) => String(s).trim() === cleanInput);
+  if (exact) return String(exact).trim();
+
+  // 2. Case-insensitive match
+  const ci = configuredSections.find((s) => String(s).trim().toLowerCase() === cleanInput.toLowerCase());
+  if (ci) return String(ci).trim();
+
+  // 3. Match without "Section" or "Sec" prefix (e.g. "Section A" matches "A", or "A" matches "Section A")
+  const stripPrefix = (str) =>
+    String(str || '')
+      .trim()
+      .replace(/^(section|sec)\.?\s+/i, '')
+      .trim()
+      .toLowerCase();
+
+  const prefixMatch = configuredSections.find(
+    (s) => stripPrefix(s) === stripPrefix(cleanInput)
+  );
+  if (prefixMatch) return String(prefixMatch).trim();
+
+  return null; // Not matching configured sections
+};
+
 exports.updateStudentSection = async (req, res) => {
   try {
     const { admissionNumber } = req.params;
     const { section } = req.body;
 
     if (!admissionNumber) {
-      return res.status(400).json({ success: false, message: 'Admission number is required' });
+      return res.status(400).json({ success: false, message: 'Admission number or Student ID is required' });
     }
-
-    const normalizedSection =
-      section === null || section === undefined || String(section).trim() === ''
-        ? null
-        : String(section).trim();
 
     let scopeClause = '';
     const scopeParams = [];
@@ -10176,71 +10204,69 @@ exports.updateStudentSection = async (req, res) => {
       }
     }
 
-    const [studentRows] = await masterPool.query(
-      `SELECT id, course, branch, batch, college FROM students WHERE admission_number = ?${scopeClause} LIMIT 1`,
-      [admissionNumber, ...scopeParams]
-    );
-
-    if (studentRows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Student not found' });
+    let student = null;
+    if (/^\d+$/.test(admissionNumber)) {
+      const [byIdRows] = await masterPool.query(
+        `SELECT id, course, branch, batch, college, branch_id, admission_number, pin_no
+         FROM students WHERE id = ?${scopeClause} LIMIT 1`,
+        [parseInt(admissionNumber, 10), ...scopeParams]
+      );
+      if (byIdRows.length > 0) student = byIdRows[0];
     }
 
-    const student = studentRows[0];
+    if (!student) {
+      const [byAdmRows] = await masterPool.query(
+        `SELECT id, course, branch, batch, college, branch_id, admission_number, pin_no
+         FROM students WHERE (admission_number = ? OR pin_no = ?)${scopeClause} LIMIT 1`,
+        [admissionNumber, admissionNumber, ...scopeParams]
+      );
+      if (byAdmRows.length > 0) student = byAdmRows[0];
+    }
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student not found or not accessible within your scope' });
+    }
+
     const { configuredSections } = await getConfiguredSectionsForBranch({
       course: student.course,
       branch: student.branch
     });
 
-    if (!configuredSections.length) {
+    const canonicalSection = resolveCanonicalSectionName(section, configuredSections);
+    if (canonicalSection === null) {
       return res.status(400).json({
         success: false,
-        message: 'Section breakdown is not enabled for this student branch'
+        message: `Invalid section "${section}". Allowed: ${configuredSections.join(', ')}`
       });
     }
 
-    if (normalizedSection && !configuredSections.includes(normalizedSection)) {
-      return res.status(400).json({
-        success: false,
-        message: `Invalid section. Allowed: ${configuredSections.join(', ')}`
-      });
-    }
-
-    if (normalizedSection) {
-      await sectionAssignmentService.applyStudentSectionValue({
-        studentId: student.id,
-        courseName: student.course,
-        branchName: student.branch,
-        batch: student.batch,
-        sectionName: normalizedSection
-      });
-    } else {
-      await sectionAssignmentService.applyStudentSectionValue({
-        studentId: student.id,
-        courseName: student.course,
-        branchName: student.branch,
-        batch: student.batch,
-        sectionName: ''
-      });
-    }
+    await sectionAssignmentService.applyStudentSectionValue({
+      studentId: student.id,
+      courseName: student.course,
+      branchName: student.branch,
+      batch: student.batch,
+      branchId: student.branch_id,
+      sectionName: canonicalSection
+    });
 
     clearStudentsCache();
 
     await writeAuditLog(masterPool, {
       actionType: 'UPDATE',
       entityType: 'STUDENT',
-      entityId: admissionNumber,
+      entityId: student.admission_number || String(student.id),
       actor: req.user || req.admin,
       details: {
         field: 'section',
         from: null,
-        to: normalizedSection
+        to: canonicalSection || null
       }
     });
 
     res.json({
       success: true,
-      message: normalizedSection ? 'Section updated successfully' : 'Section cleared successfully',
-      data: { section: normalizedSection }
+      message: canonicalSection ? 'Section updated successfully' : 'Section cleared successfully',
+      data: { section: canonicalSection || null }
     });
   } catch (error) {
     console.error('updateStudentSection error:', error);
@@ -10291,42 +10317,67 @@ exports.bulkSaveSectionPartition = async (req, res) => {
       const chunk = assignments.slice(i, i + CONCURRENCY);
       await Promise.all(
         chunk.map(async (item) => {
+          const studentId = item?.studentId || item?.student_id || item?.id;
           const admissionNumber = item?.admissionNumber || item?.admission_number;
-          if (!admissionNumber) {
+          const pinNo = item?.pinNo || item?.pin_no || item?.pin;
+
+          if (!studentId && !admissionNumber && !pinNo) {
             results.failed += 1;
-            results.errors.push({ admissionNumber: null, message: 'Missing admission number' });
+            results.errors.push({ admissionNumber: null, message: 'Missing student identifier' });
             return;
           }
 
-          const normalizedSection =
-            item.section === null || item.section === undefined || String(item.section).trim() === ''
-              ? ''
-              : String(item.section).trim();
-
+          let student = null;
           try {
-            const [studentRows] = await masterPool.query(
-              `SELECT id, course, branch, batch FROM students WHERE admission_number = ?${scopeClause} LIMIT 1`,
-              [admissionNumber, ...scopeParams]
-            );
+            // 1. Look up student by primary key ID if provided
+            if (studentId) {
+              const [byIdRows] = await masterPool.query(
+                `SELECT id, admission_number, pin_no, course, branch, batch, branch_id
+                 FROM students WHERE id = ?${scopeClause} LIMIT 1`,
+                [studentId, ...scopeParams]
+              );
+              if (byIdRows.length > 0) {
+                student = byIdRows[0];
+              }
+            }
 
-            if (studentRows.length === 0) {
+            // 2. Fallback to admission_number or pin_no
+            if (!student && (admissionNumber || pinNo)) {
+              const lookupValues = [admissionNumber, pinNo].filter(Boolean);
+              if (lookupValues.length > 0) {
+                const placeholders = lookupValues.map(() => '?').join(', ');
+                const [byAdmRows] = await masterPool.query(
+                  `SELECT id, admission_number, pin_no, course, branch, batch, branch_id
+                   FROM students
+                   WHERE (admission_number IN (${placeholders}) OR pin_no IN (${placeholders}))${scopeClause}
+                   LIMIT 1`,
+                  [...lookupValues, ...lookupValues, ...scopeParams]
+                );
+                if (byAdmRows.length > 0) {
+                  student = byAdmRows[0];
+                }
+              }
+            }
+
+            if (!student) {
+              const identifier = admissionNumber || pinNo || studentId;
               results.failed += 1;
-              results.errors.push({ admissionNumber, message: 'Student not found' });
+              results.errors.push({
+                admissionNumber: identifier,
+                message: 'Student not found or not accessible within your assigned permissions'
+              });
               return;
             }
 
-            const student = studentRows[0];
             const configuredSections = await getConfiguredSections(student.course, student.branch);
+            const canonicalSection = resolveCanonicalSectionName(item.section, configuredSections);
 
-            if (!configuredSections.length) {
+            if (canonicalSection === null) {
               results.failed += 1;
-              results.errors.push({ admissionNumber, message: 'Section breakdown not enabled for branch' });
-              return;
-            }
-
-            if (normalizedSection && !configuredSections.includes(normalizedSection)) {
-              results.failed += 1;
-              results.errors.push({ admissionNumber, message: `Invalid section: ${normalizedSection}` });
+              results.errors.push({
+                admissionNumber: student.admission_number || student.pin_no || student.id,
+                message: `Invalid section "${item.section}". Allowed: ${configuredSections.join(', ')}`
+              });
               return;
             }
 
@@ -10335,13 +10386,18 @@ exports.bulkSaveSectionPartition = async (req, res) => {
               courseName: student.course,
               branchName: student.branch,
               batch: student.batch,
-              sectionName: normalizedSection
+              branchId: student.branch_id,
+              sectionName: canonicalSection
             });
 
             results.success += 1;
           } catch (itemError) {
+            console.error('Section assignment error for student:', student?.id || admissionNumber || pinNo, itemError);
             results.failed += 1;
-            results.errors.push({ admissionNumber, message: itemError.message || 'Update failed' });
+            results.errors.push({
+              admissionNumber: student?.admission_number || student?.pin_no || admissionNumber || studentId,
+              message: itemError.message || 'Update failed'
+            });
           }
         })
       );
@@ -10465,6 +10521,7 @@ exports.applyPinRangeSectionPartition = async (req, res) => {
          s.course,
          s.branch,
          s.batch,
+         s.branch_id,
          ${pinSql} AS resolved_pin
        FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id
        ${whereClause}`,
@@ -10479,13 +10536,15 @@ exports.applyPinRangeSectionPartition = async (req, res) => {
       for (const range of ranges) {
         if (!range.section || !range.startPin || !range.endPin) continue;
         if (isPinInRange(studentPin, range.startPin, range.endPin)) {
+          const canonicalSec = resolveCanonicalSectionName(range.section, configuredSections) || range.section;
           assignments.push({
             studentId: student.id,
             admissionNumber: student.admission_number,
-            section: range.section,
+            section: canonicalSec,
             course: student.course,
             branch: student.branch,
-            batch: student.batch
+            batch: student.batch,
+            branchId: student.branch_id
           });
           break;
         }
@@ -10504,12 +10563,13 @@ exports.applyPinRangeSectionPartition = async (req, res) => {
               courseName: item.course,
               branchName: item.branch,
               batch: item.batch,
+              branchId: item.branchId,
               sectionName: item.section
             });
             results.success += 1;
           } catch (e) {
             results.failed += 1;
-            results.errors.push({ admissionNumber: item.admissionNumber, message: e.message });
+            results.errors.push({ admissionNumber: item.admissionNumber || item.studentId, message: e.message });
           }
         })
       );

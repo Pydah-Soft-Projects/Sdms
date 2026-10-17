@@ -9,6 +9,17 @@ const AuthCallback = () => {
     const verifyToken = useAuthStore((state) => state.verifyToken);
 
     useEffect(() => {
+        const SCRIPT_ID = 'pydah-portal-switcher-cdn';
+        if (!document.getElementById(SCRIPT_ID)) {
+            const script = document.createElement('script');
+            script.id = SCRIPT_ID;
+            script.src = 'https://crm.pydah.edu.in/portal-switcher.js';
+            script.async = true;
+            document.body.appendChild(script);
+        }
+    }, []);
+
+    useEffect(() => {
         const processAuth = async () => {
             const token = searchParams.get('token');
             const role = searchParams.get('role');
@@ -44,14 +55,7 @@ const AuthCallback = () => {
         processAuth();
     }, [searchParams, navigate, verifyToken]);
 
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
-            <div className="text-center">
-                <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <h2 className="text-xl font-semibold text-gray-700">Verifying Session...</h2>
-            </div>
-        </div>
-    );
+    return <pydah-sso-loader />;
 };
 
 export default AuthCallback;

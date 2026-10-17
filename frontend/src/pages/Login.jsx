@@ -64,6 +64,21 @@ const Login = () => {
   const [ssoError, setSsoError] = useState(null);
   const [showLoginForm, setShowLoginForm] = useState(() => !searchParams.get('token'));
 
+  // Preload portal-switcher.js early if an incoming SSO token is present in the URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('token')) {
+      const SCRIPT_ID = 'pydah-portal-switcher-cdn';
+      if (!document.getElementById(SCRIPT_ID)) {
+        const script = document.createElement('script');
+        script.id = SCRIPT_ID;
+        script.src = 'https://crm.pydah.edu.in/portal-switcher.js';
+        script.async = true;
+        document.body.appendChild(script);
+      }
+    }
+  }, []);
+
   // Forgot Password State
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotContact, setForgotContact] = useState('');
@@ -339,23 +354,8 @@ const Login = () => {
     }
   };
 
-  if (isVerifying) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-neutral-bg to-gray-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-          <p className="mt-4 text-gray-600">Verifying authentication...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!showLoginForm) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-gray-50 flex items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto" />
-      </div>
-    );
+  if (isVerifying || !showLoginForm) {
+    return <pydah-sso-loader />;
   }
 
   return (

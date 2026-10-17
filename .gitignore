@@ -2,5 +2,11 @@
 *.pem
 LightsailDefaultKey*
 
+# Environment and configuration files
+.env*
+ENV_CONFIGURATION*
+*.env
+
 # Local deploy artifacts
 frontend/dist.tar.gz
+

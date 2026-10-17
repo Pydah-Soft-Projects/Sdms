@@ -1746,6 +1746,17 @@ exports.markAttendance = async (req, res) => {
     connection = await masterPool.getConnection();
     await connection.beginTransaction();
 
+    let scopeClause = '';
+    const queryParams = [uniqueStudentIds];
+
+    if (req.userScope && !req.userScope.unrestricted) {
+      const { scopeCondition, params: scopeParams } = getScopeConditionString(req.userScope, 's');
+      if (scopeCondition) {
+        scopeClause = ` AND ${scopeCondition}`;
+        queryParams.push(...scopeParams);
+      }
+    }
+
     const [studentRows] = await connection.query(
       `
         SELECT
@@ -1768,8 +1779,9 @@ exports.markAttendance = async (req, res) => {
         ${STUDENT_ROLL_NUMBERS_JOIN}
         WHERE s.id IN (?)
           AND s.student_status = 'Regular'
+          ${scopeClause}
       `,
-      [uniqueStudentIds]
+      queryParams
     );
 
     const studentMap = new Map(
@@ -1788,9 +1800,9 @@ exports.markAttendance = async (req, res) => {
 
     if (missingStudents.length > 0) {
       await connection.rollback();
-      return res.status(404).json({
+      return res.status(403).json({
         success: false,
-        message: `Students not found: ${missingStudents.join(', ')}`
+        message: `Students not found or outside your authorized scope: ${missingStudents.slice(0, 10).join(', ')}${missingStudents.length > 10 ? ` and ${missingStudents.length - 10} more` : ''}`
       });
     }
 

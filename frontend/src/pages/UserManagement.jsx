@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ShieldCheck,
@@ -42,20 +43,8 @@ import api from '../config/api';
 import useAuthStore from '../store/authStore';
 import { ROLE_LABELS, ROLE_COLORS, isFullAccessRole, hasModuleAccess, hasWriteAccess, FRONTEND_MODULES, BACKEND_MODULES, MODULE_PERMISSIONS, MODULE_LABELS, createDefaultPermissions, STUDENT_MANAGEMENT_VIEW_DIALOG_SUBPAGE_KEYS } from '../constants/rbac';
 const USER_MANAGEMENT_MODULE_KEYS = Object.keys(BACKEND_MODULES);
-const SEMINAR_HALL_USER_PERMISSIONS = {
-  permissions: ['view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls'],
-  labels: {
-    view_seminar_halls: 'View Seminar Hall',
-    create_seminar_hall_request: 'Create Seminar Hall Request',
-    manage_seminar_halls: 'Edit Seminar Hall'
-  }
-};
-const getUserManagementModulePermissions = moduleKey => moduleKey === BACKEND_MODULES.CLUBS
-  ? SEMINAR_HALL_USER_PERMISSIONS
-  : MODULE_PERMISSIONS[moduleKey];
-const getUserManagementModuleLabel = moduleKey => moduleKey === BACKEND_MODULES.CLUBS
-  ? 'Seminar Hall'
-  : MODULE_LABELS[moduleKey] || moduleKey;
+const getUserManagementModulePermissions = moduleKey => MODULE_PERMISSIONS[moduleKey];
+const getUserManagementModuleLabel = moduleKey => MODULE_LABELS[moduleKey] || moduleKey;
 
 const SUBPAGE_GRID_CLASS = 'grid grid-cols-[minmax(0,1fr)_112px_112px] gap-3 items-center';
 
@@ -451,8 +440,8 @@ const RoleSelectModal = ({ isOpen, onClose, roles, selectedRole, onSelect }) => 
     return roleLabel.toLowerCase().includes(term) || description.toLowerCase().includes(term);
   });
 
-  return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white w-full max-w-2xl rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
         <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-2">
@@ -531,6 +520,7 @@ const RoleSelectModal = ({ isOpen, onClose, roles, selectedRole, onSelect }) => 
       </div>
     </div>
   );
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };
 
 // Selection Modal Component
@@ -597,8 +587,8 @@ const SelectionModal = ({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+  const modalContent = (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white w-full max-w-2xl rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
         <div className={`bg-gradient-to-r ${c.gradient} px-4 sm:px-6 py-3 sm:py-4`}>
           <div className="flex items-center justify-between gap-2">
@@ -735,6 +725,7 @@ const SelectionModal = ({
       </div>
     </div>
   );
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };
 
 // Icon mapping for field categories
@@ -1353,13 +1344,6 @@ const UserManagement = () => {
         });
       }
     });
-    allPerms[BACKEND_MODULES.CLUBS] = {
-      ...createDefaultPermissions()[BACKEND_MODULES.CLUBS],
-      ...(editForm?.permissions?.[BACKEND_MODULES.CLUBS] || {}),
-      view_seminar_halls: true,
-      create_seminar_hall_request: true,
-      manage_seminar_halls: true
-    };
     setEditForm(prev => ({ ...prev, permissions: allPerms }));
   };
 
@@ -1757,9 +1741,7 @@ const UserManagement = () => {
   // Check if user has any permissions configured
   const hasPermissions = (userData) => {
     if (!userData.permissions) return false;
-    return Object.entries(userData.permissions)
-      .filter(([moduleKey]) => moduleKey !== BACKEND_MODULES.CLUBS)
-      .some(([, modulePerms]) => {
+    return Object.entries(userData.permissions).some(([, modulePerms]) => {
       if (!modulePerms || typeof modulePerms !== 'object') return false;
       return Object.values(modulePerms).some(val => val === true);
     });
@@ -1770,9 +1752,7 @@ const UserManagement = () => {
     const totalModules = USER_MANAGEMENT_MODULE_KEYS.length;
     const permissions = userData.permissions || {};
     let granted = 0;
-    Object.entries(permissions)
-      .filter(([moduleKey]) => moduleKey !== BACKEND_MODULES.CLUBS)
-      .forEach(([, modulePerms]) => {
+    Object.entries(permissions).forEach(([, modulePerms]) => {
       if (modulePerms && typeof modulePerms === 'object') {
         if (Object.values(modulePerms).some(val => val === true)) {
           granted++;
@@ -3158,8 +3138,8 @@ const UserManagement = () => {
       />
 
       {/* Add new role modal */}
-      {showAddRoleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      {showAddRoleModal && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
             <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-3 flex items-center justify-between">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -3251,12 +3231,13 @@ const UserManagement = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Delete role confirm modal */}
-      {deleteRoleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      {deleteRoleModal && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden my-auto border border-slate-200">
             {/* Modal Header */}
             <div className="px-5 py-4 bg-gradient-to-r from-red-600 to-rose-600 text-white flex items-center justify-between">
@@ -3438,12 +3419,13 @@ const UserManagement = () => {
               );
             })()}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Role Configuration Modal */}
-      {showRoleConfigModal && roleConfigModalRole && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+      {showRoleConfigModal && roleConfigModalRole && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
           <div className="bg-white w-full max-w-5xl rounded-lg sm:rounded-2xl shadow-2xl my-auto overflow-hidden flex flex-col max-h-[90vh]">
             <div className="flex-shrink-0 bg-gradient-to-r from-violet-600 to-purple-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -3760,13 +3742,14 @@ const UserManagement = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Module Access Modal - Left: modules list, Right: access details */}
       {
-        showModuleAccessModal && moduleAccessUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+        showModuleAccessModal && moduleAccessUser && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
             <div className="bg-white w-full max-w-5xl rounded-lg sm:rounded-2xl shadow-2xl my-auto overflow-hidden flex flex-col">
               {/* Header */}
               <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
@@ -4301,14 +4284,15 @@ const UserManagement = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )
       }
 
       {/* Edit Modal with Improved Permissions UI */}
       {
-        editingUser && editForm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+        editingUser && editForm && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
             <div className="bg-white w-full max-w-7xl rounded-lg sm:rounded-2xl shadow-2xl max-h-[95vh] my-auto overflow-hidden flex flex-col">
               <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                 <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 min-w-0 flex-1">
@@ -4910,7 +4894,8 @@ const UserManagement = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </div>,
+          document.body
         )
       }
 
@@ -4981,8 +4966,8 @@ const UserManagement = () => {
 
       {/* Reset Password Modal */}
       {
-        resetPasswordUser && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+        resetPasswordUser && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
             <div className="bg-white w-full max-w-md rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
               <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -5078,14 +5063,15 @@ const UserManagement = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )
       }
 
       {/* Delete User Confirmation Modal */}
       {
-        deleteUserModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+        deleteUserModal && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
             <div className="bg-white w-full max-w-md rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
               <div className="bg-gradient-to-r from-rose-500 to-red-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -5168,14 +5154,15 @@ const UserManagement = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )
       }
 
       {/* Field Permissions Modal */}
       {
-        showFieldPermissionsModal && (
-          <div className="fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4">
+        showFieldPermissionsModal && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
               {/* Header */}
               <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
@@ -5346,10 +5333,11 @@ const UserManagement = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )
       }
-    </div >
+    </div>
   );
 };
 

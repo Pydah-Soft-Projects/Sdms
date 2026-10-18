@@ -818,8 +818,17 @@ const updateClub = async (req, res) => {
         const { clubId } = req.params;
         const { name, description, membership_fee, fee_type, admin_roles } = req.body;
 
+        const [existing] = await masterPool.query('SELECT * FROM clubs WHERE id = ?', [clubId]);
+        if (existing.length === 0) return res.status(404).json({ success: false, message: 'Club not found' });
+        const currentClub = existing[0];
+
+        const finalName = name !== undefined ? name : currentClub.name;
+        const finalDescription = description !== undefined ? description : currentClub.description;
+        const finalFee = membership_fee !== undefined ? membership_fee : currentClub.membership_fee;
+        const finalFeeType = fee_type !== undefined ? fee_type : currentClub.fee_type;
+
         let query = 'UPDATE clubs SET name = ?, description = ?, membership_fee = ?, fee_type = ?';
-        let params = [name, description, membership_fee || 0, fee_type || 'Yearly'];
+        let params = [finalName, finalDescription, finalFee || 0, finalFeeType || 'Yearly'];
 
         if (admin_roles !== undefined && ['admin', 'super_admin', 'superadmin'].includes(String(req.user?.role || '').toLowerCase())) {
             const suppliedAdminRoles = typeof admin_roles === 'string' ? JSON.parse(admin_roles) : (admin_roles || []);
@@ -828,8 +837,6 @@ const updateClub = async (req, res) => {
             query += ', admin_roles = ?';
             params.push(parsedAdminRoles);
         }
-
-
 
         if (req.file) {
             try {
@@ -859,6 +866,106 @@ const updateClub = async (req, res) => {
             fs.unlinkSync(req.file.path);
         }
         res.status(500).json({ success: false, message: 'Failed to update club' });
+    }
+};
+
+const searchStudents = async (req, res) => {
+    try {
+        const { query } = req.query;
+        if (!query || !query.trim()) {
+            return res.json({ success: true, data: [] });
+        }
+        const term = `%${query.trim()}%`;
+        const [rows] = await masterPool.query(
+            `SELECT id, student_name, admission_number, pin_no, student_mobile, email, college, course, branch, current_year
+             FROM students 
+             WHERE student_name LIKE ? 
+                OR admission_number LIKE ? 
+                OR pin_no LIKE ? 
+                OR student_mobile LIKE ? 
+                OR email LIKE ?
+             LIMIT 30`,
+            [term, term, term, term, term]
+        );
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error('Error searching students:', error);
+        res.status(500).json({ success: false, message: 'Failed to search students' });
+    }
+};
+
+const addClubMember = async (req, res) => {
+    try {
+        const { clubId } = req.params;
+        const { studentId, admission_number, status = 'approved' } = req.body;
+
+        let student = null;
+        if (studentId) {
+            const [rows] = await masterPool.query('SELECT * FROM students WHERE id = ?', [studentId]);
+            if (rows.length > 0) student = rows[0];
+        }
+        if (!student && admission_number) {
+            const [rows] = await masterPool.query('SELECT * FROM students WHERE admission_number = ?', [admission_number]);
+            if (rows.length > 0) student = rows[0];
+        }
+
+        if (!student) {
+            return res.status(404).json({ success: false, message: 'Student not found' });
+        }
+
+        const [existing] = await masterPool.query(
+            'SELECT * FROM club_members WHERE club_id = ? AND (student_id = ? OR student_id = ?)',
+            [clubId, student.id, student.admission_number]
+        );
+
+        if (existing.length > 0) {
+            if (existing[0].status !== 'approved') {
+                await masterPool.query(
+                    'UPDATE club_members SET status = "approved", payment_status = "paid" WHERE id = ?',
+                    [existing[0].id]
+                );
+                return res.json({ success: true, message: `${student.student_name} approved as club member!` });
+            }
+            return res.status(400).json({ success: false, message: `${student.student_name} is already a member of this club` });
+        }
+
+        const [clubs] = await masterPool.query('SELECT name, membership_fee, fee_type FROM clubs WHERE id = ?', [clubId]);
+        if (clubs.length === 0) return res.status(404).json({ success: false, message: 'Club not found' });
+
+        const club = clubs[0];
+        const feeType = club.fee_type || 'Yearly';
+
+        await masterPool.query(
+            'INSERT INTO club_members (club_id, student_id, status, payment_status, fee_type) VALUES (?, ?, ?, ?, ?)',
+            [clubId, student.id, status, 'paid', feeType]
+        );
+
+        const [chan] = await masterPool.query(
+            'SELECT id FROM chat_channels WHERE club_id = ? AND is_active = 1 LIMIT 1',
+            [clubId]
+        );
+        if (chan.length > 0) {
+            await masterPool.query(
+                'INSERT IGNORE INTO chat_channel_members (channel_id, member_type, student_id) VALUES (?, ?, ?)',
+                [chan[0].id, 'student', student.id]
+            ).catch(() => {});
+        }
+
+        res.json({ success: true, message: `${student.student_name} added to club successfully!` });
+    } catch (error) {
+        console.error('Error adding club member:', error);
+        res.status(500).json({ success: false, message: 'Failed to add club member' });
+    }
+};
+
+const removeClubMember = async (req, res) => {
+    try {
+        const { clubId, memberId } = req.params;
+        await masterPool.query('DELETE FROM club_members WHERE club_id = ? AND (id = ? OR student_id = ?)', [clubId, memberId, memberId]);
+        res.json({ success: true, message: 'Club member removed successfully' });
+    } catch (error) {
+        console.error('Error removing club member:', error);
+        res.status(500).json({ success: false, message: 'Failed to remove club member' });
     }
 };
 
@@ -1696,5 +1803,8 @@ module.exports = {
     getSeminarHallRequests,
     getSeminarHallAudienceEstimate,
     createSeminarHallRequest,
-    updateSeminarHallRequestStatus
+    updateSeminarHallRequestStatus,
+    searchStudents,
+    addClubMember,
+    removeClubMember
 };

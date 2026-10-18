@@ -227,7 +227,7 @@ const NAV_ITEMS = [
   {
     path: "/clubs",
     icon: Users,
-    label: "Clubs",
+    label: "Student Clubs",
     permission: FRONTEND_MODULES.CLUBS,
     subItems: [
       {

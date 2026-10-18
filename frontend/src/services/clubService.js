@@ -145,6 +145,21 @@ const updateSeminarHallRequestStatus = async (requestId, status, adminRemarks = 
     return response.data;
 };
 
+const searchStudents = async (query) => {
+    const response = await api.get('/clubs/students/search', { params: { query } });
+    return response.data;
+};
+
+const addClubMember = async (clubId, studentData) => {
+    const response = await api.post(`/clubs/${clubId}/members`, studentData);
+    return response.data;
+};
+
+const removeClubMember = async (clubId, memberId) => {
+    const response = await api.delete(`/clubs/${clubId}/members/${memberId}`);
+    return response.data;
+};
+
 export default {
     getClubs,
     getClubDetails,
@@ -163,6 +178,9 @@ export default {
     deleteClubRole,
     checkHrmsUserAccount,
     searchHrmsEmployees,
+    searchStudents,
+    addClubMember,
+    removeClubMember,
     getAllClubApprovals,
     getAllClubStudents,
     getSeminarHallRequests,

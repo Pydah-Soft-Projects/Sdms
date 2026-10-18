@@ -4,7 +4,7 @@ import {
     ArrowRight, Zap, Search, Settings, UserCheck, CheckCircle,
     AlertTriangle, UserPlus, RefreshCw, Eye, Bell, BellOff,
     MessageSquare, Calendar, Clock, Send, Hash, Paperclip, ChevronDown,
-    DollarSign, AlertCircle, CheckCircle2, Filter
+    DollarSign, AlertCircle, CheckCircle2, Filter, Upload, Image, GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -611,6 +611,26 @@ const Clubs = ({ initialSubPage }) => {
     const [selectedHrmsEmployee, setSelectedHrmsEmployee] = useState(null);
     const [hrmsUserStatus, setHrmsUserStatus] = useState(null);
 
+    // Club Logo Update in Settings Tab & Modal
+    const [clubLogoFile, setClubLogoFile] = useState(null);
+    const [clubLogoPreview, setClubLogoPreview] = useState(null);
+    const [updatingLogo, setUpdatingLogo] = useState(false);
+    const [formLogoPreview, setFormLogoPreview] = useState(null);
+
+    // Direct Add Student Member Modal State
+    const [showAddStudentMemberModal, setShowAddStudentMemberModal] = useState(false);
+    const [studentSearchQuery, setStudentSearchQuery] = useState('');
+    const [studentSearchResults, setStudentSearchResults] = useState([]);
+    const [searchingStudentsForAdd, setSearchingStudentsForAdd] = useState(false);
+    const [addingMember, setAddingMember] = useState(false);
+
+    // Role Assignee Type & Student Role Search inside Creation/Edit Modal
+    const [roleAssigneeType, setRoleAssigneeType] = useState('student'); // 'student' | 'hrms'
+    const [studentRoleSearchQuery, setStudentRoleSearchQuery] = useState('');
+    const [studentRoleSearchResults, setStudentRoleSearchResults] = useState([]);
+    const [searchingRoleStudent, setSearchingRoleStudent] = useState(false);
+    const [selectedStudentRole, setSelectedStudentRole] = useState(null);
+
     // New/Edit Role Form Data
     const [roleForm, setRoleForm] = useState({ role_name: '', description: '', pages: [...DEFAULT_CLUB_ADMIN_PAGES] });
 
@@ -969,6 +989,149 @@ const Clubs = ({ initialSubPage }) => {
         toast.success(`Assigned ${newAssignment.name} as ${newAssignment.roleName}`);
     };
 
+    const handleSearchRoleStudent = async (query) => {
+        setStudentRoleSearchQuery(query);
+        if (!query || !query.trim()) {
+            setStudentRoleSearchResults([]);
+            return;
+        }
+        setSearchingRoleStudent(true);
+        try {
+            const res = await clubService.searchStudents(query.trim());
+            if (res.success && res.data) {
+                setStudentRoleSearchResults(res.data);
+            }
+        } catch (err) {
+            console.error('Error searching students for role:', err);
+        } finally {
+            setSearchingRoleStudent(false);
+        }
+    };
+
+    const handleAddStudentRoleAssignment = () => {
+        if (!selectedRoleCode) return toast.error('Please select a role');
+        if (!selectedStudentRole) return toast.error('Please select a student');
+
+        const roleObj = dynamicRoles.find(r => r.role_code === selectedRoleCode) || { role_name: selectedRoleCode };
+        const pagePermissions = getPagePermissions({ pages: roleObj.pages || DEFAULT_CLUB_ADMIN_PAGES });
+
+        const newAssignment = {
+            userId: selectedStudentRole.admission_number,
+            studentId: selectedStudentRole.id,
+            empNo: selectedStudentRole.admission_number,
+            name: selectedStudentRole.student_name,
+            email: selectedStudentRole.email || `${selectedStudentRole.admission_number}@student.pydah.edu.in`,
+            roleCode: selectedRoleCode,
+            roleName: roleObj.role_name,
+            isStudent: true,
+            pages: pagesFromPermissions(pagePermissions),
+            pagePermissions,
+            isSuperAdmin: false
+        };
+
+        setFormData(prev => ({
+            ...prev,
+            admin_roles: [...(prev.admin_roles || []), newAssignment]
+        }));
+
+        setSelectedStudentRole(null);
+        setStudentRoleSearchQuery('');
+        setStudentRoleSearchResults([]);
+        toast.success(`Assigned ${newAssignment.name} as ${newAssignment.roleName}`);
+    };
+
+    const handleUpdateClubLogo = async (file) => {
+        if (!file || !selectedClub?.id) return;
+        setUpdatingLogo(true);
+        try {
+            const data = new FormData();
+            data.append('image', file);
+            const res = await clubService.updateClub(selectedClub.id, data);
+            if (res.success) {
+                toast.success('Club logo updated successfully');
+                setClubLogoFile(null);
+                setClubLogoPreview(null);
+                fetchClubs();
+                const updated = await clubService.getClubDetails(selectedClub.id);
+                if (updated?.success && updated?.data) {
+                    setSelectedClub(updated.data);
+                }
+            } else {
+                toast.error(res.message || 'Failed to update club logo');
+            }
+        } catch (err) {
+            toast.error('Failed to update club logo');
+        } finally {
+            setUpdatingLogo(false);
+        }
+    };
+
+    const handleSearchStudentsForAdd = async (query) => {
+        setStudentSearchQuery(query);
+        if (!query || !query.trim()) {
+            setStudentSearchResults([]);
+            return;
+        }
+        setSearchingStudentsForAdd(true);
+        try {
+            const res = await clubService.searchStudents(query.trim());
+            if (res.success && res.data) {
+                setStudentSearchResults(res.data);
+            }
+        } catch (err) {
+            console.error('Error searching students:', err);
+        } finally {
+            setSearchingStudentsForAdd(false);
+        }
+    };
+
+    const handleAddStudentToClub = async (student) => {
+        if (!student || !selectedClub?.id) return;
+        setAddingMember(true);
+        try {
+            const res = await clubService.addClubMember(selectedClub.id, {
+                studentId: student.id,
+                admission_number: student.admission_number,
+                status: 'approved'
+            });
+            if (res.success) {
+                toast.success(res.message || `${student.student_name} added to club successfully`);
+                fetchClubs();
+                const updated = await clubService.getClubDetails(selectedClub.id);
+                if (updated?.success && updated?.data) {
+                    setSelectedClub(updated.data);
+                }
+                fetchStudents();
+            } else {
+                toast.error(res.message || 'Failed to add student to club');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to add student to club');
+        } finally {
+            setAddingMember(false);
+        }
+    };
+
+    const handleRemoveMember = async (memberId) => {
+        if (!confirm('Are you sure you want to remove this member from the club?')) return;
+        try {
+            const res = await clubService.removeClubMember(selectedClub.id, memberId);
+            if (res.success) {
+                toast.success('Member removed from club');
+                const updated = await clubService.getClubDetails(selectedClub.id);
+                if (updated?.success && updated?.data) {
+                    setSelectedClub(updated.data);
+                }
+                fetchClubs();
+                fetchStudents();
+            } else {
+                toast.error(res.message || 'Failed to remove member');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to remove member');
+        }
+    };
+
     const handleRemoveAdminRoleAssignment = (index) => {
         setFormData(prev => ({
             ...prev,
@@ -1224,9 +1387,13 @@ const Clubs = ({ initialSubPage }) => {
             fee_type: 'Yearly',
             admin_roles: []
         });
+        setFormLogoPreview(null);
         setSelectedHrmsEmployee(null);
         setHrmsSearchQuery('');
         setHrmsUserStatus(null);
+        setSelectedStudentRole(null);
+        setStudentRoleSearchQuery('');
+        setStudentRoleSearchResults([]);
     };
 
     const prepareEdit = (club) => {
@@ -1239,6 +1406,13 @@ const Clubs = ({ initialSubPage }) => {
             fee_type: club.fee_type || 'Yearly',
             admin_roles: club.admin_roles || []
         });
+        setFormLogoPreview(club.image_url || null);
+        setSelectedHrmsEmployee(null);
+        setHrmsSearchQuery('');
+        setHrmsUserStatus(null);
+        setSelectedStudentRole(null);
+        setStudentRoleSearchQuery('');
+        setStudentRoleSearchResults([]);
         setShowEditModal(true);
     };
 
@@ -1564,9 +1738,25 @@ const Clubs = ({ initialSubPage }) => {
                                             return (
                                                 <div className="space-y-4 pt-2">
                                                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                                                        <h3 className="text-base font-bold text-gray-900">
-                                                            Approved Student Members ({filteredMembers.length}{hasActiveMemberFilters ? ` of ${approvedMembers.length}` : ''})
-                                                        </h3>
+                                                        <div>
+                                                            <h3 className="text-base font-bold text-gray-900">
+                                                                Approved Student Members ({filteredMembers.length}{hasActiveMemberFilters ? ` of ${approvedMembers.length}` : ''})
+                                                            </h3>
+                                                            <p className="text-xs text-gray-500">View and manage enrolled student club members.</p>
+                                                        </div>
+                                                        {getClubPageAccess(selectedClub?.id, 'students').write && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setStudentSearchQuery('');
+                                                                    setStudentSearchResults([]);
+                                                                    setShowAddStudentMemberModal(true);
+                                                                }}
+                                                                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95"
+                                                            >
+                                                                <UserPlus size={14} /> Add Student Member
+                                                            </button>
+                                                        )}
                                                     </div>
 
                                                     {/* Filter Toolbar for Members */}
@@ -1987,7 +2177,7 @@ const Clubs = ({ initialSubPage }) => {
                                                 <div className="flex justify-between items-center">
                                                     <div>
                                                         <h3 className="text-base font-bold text-gray-900">Club Configuration & Admin Roles</h3>
-                                                        <p className="text-xs text-gray-500">Edit club details and assign dynamic admin leadership roles.</p>
+                                                        <p className="text-xs text-gray-500">Edit club details, upload logo, and assign dynamic leadership roles.</p>
                                                     </div>
                                                     {isAdmin && (
                                                         <button
@@ -1997,6 +2187,84 @@ const Clubs = ({ initialSubPage }) => {
                                                             <Edit2 size={14} /> Update Settings & Assign Roles
                                                         </button>
                                                     )}
+                                                </div>
+
+                                                {/* Dedicated Club Logo & Image Update Section */}
+                                                <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Image size={18} className="text-blue-600" />
+                                                        <h4 className="text-sm font-bold text-gray-900">Club Logo / Profile Image</h4>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500">Upload or change the official logo/image for this club. It will be displayed across student portals, club cards, and headers.</p>
+
+                                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pt-1">
+                                                        {/* Current or Preview Image */}
+                                                        <div className="relative group">
+                                                            <div className="w-24 h-24 rounded-2xl border-2 border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center shadow-inner">
+                                                                {clubLogoPreview ? (
+                                                                    <img src={clubLogoPreview} alt="Preview" className="w-full h-full object-cover" />
+                                                                ) : selectedClub?.image_url ? (
+                                                                    <img src={selectedClub.image_url} alt={selectedClub.name} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="flex flex-col items-center justify-center text-gray-400">
+                                                                        <Users size={28} className="opacity-40 mb-1" />
+                                                                        <span className="text-[10px] font-bold">No Logo</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            {clubLogoPreview && (
+                                                                <span className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-amber-500 text-white text-[9px] font-extrabold rounded-full shadow-xs">
+                                                                    New
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="space-y-3 flex-1">
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <label className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all border border-gray-300">
+                                                                    <Upload size={14} />
+                                                                    <span>{clubLogoFile ? 'Choose Different Image' : 'Select Club Logo'}</span>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        className="hidden"
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                setClubLogoFile(file);
+                                                                                setClubLogoPreview(URL.createObjectURL(file));
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+
+                                                                {clubLogoFile && (
+                                                                    <>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => handleUpdateClubLogo(clubLogoFile)}
+                                                                            disabled={updatingLogo}
+                                                                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all disabled:opacity-50"
+                                                                        >
+                                                                            {updatingLogo ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
+                                                                            <span>{updatingLogo ? 'Uploading...' : 'Save & Update Logo'}</span>
+                                                                        </button>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                setClubLogoFile(null);
+                                                                                setClubLogoPreview(null);
+                                                                            }}
+                                                                            className="px-2.5 py-2 text-xs font-bold text-gray-500 hover:text-red-600 rounded-xl hover:bg-red-50"
+                                                                        >
+                                                                            Cancel
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-[11px] text-gray-400">Supported formats: JPG, PNG, WEBP, SVG. Recommended square resolution: 400x400px.</p>
+                                                        </div>
+                                                    </div>
                                                 </div>
 
                                                 <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 space-y-3 text-xs">
@@ -2476,6 +2744,36 @@ const Clubs = ({ initialSubPage }) => {
                             />
                         </div>
 
+                        <div className="space-y-1 sm:col-span-2">
+                            <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                                <Image size={14} className="text-blue-600" /> Club Logo / Image
+                            </label>
+                            <div className="flex items-center gap-4 p-3 bg-gray-50 border rounded-xl">
+                                <div className="w-14 h-14 rounded-xl border bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
+                                    {formLogoPreview ? (
+                                        <img src={formLogoPreview} alt="Logo" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Users size={22} className="text-gray-400" />
+                                    )}
+                                </div>
+                                <div className="space-y-1 flex-1">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setFormData({ ...formData, image: file });
+                                                setFormLogoPreview(URL.createObjectURL(file));
+                                            }
+                                        }}
+                                        className="text-xs text-gray-600 file:mr-2.5 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                                    />
+                                    <p className="text-[10px] text-gray-400">Upload or replace the official club emblem/logo (PNG, JPG, WEBP, SVG)</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-gray-700">Membership Fee (INR)</label>
                             <input
@@ -2599,20 +2897,125 @@ const Clubs = ({ initialSubPage }) => {
                                 </div>
 
                                 <div>
-                                    <label className="text-[11px] font-bold text-slate-700">Search HRMS Employee / SDMS User</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Type name, emp_no, email..."
-                                        value={hrmsSearchQuery}
-                                        onChange={(e) => handleSearchHrms(e.target.value)}
-                                        className="w-full px-2.5 py-1.5 text-xs border rounded-lg bg-white"
-                                    />
-                                    {searchingHrms && <span className="text-[10px] text-gray-400">Searching employees...</span>}
+                                    <div className="flex items-center justify-between mb-1">
+                                        <label className="text-[11px] font-bold text-slate-700">
+                                            {roleAssigneeType === 'student' ? 'Search Student (Members / Leaders)' : 'Search Faculty / HRMS Staff'}
+                                        </label>
+                                        <div className="inline-flex rounded-md bg-gray-200 p-0.5 text-[10px] font-bold">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setRoleAssigneeType('student');
+                                                    setSelectedHrmsEmployee(null);
+                                                    setHrmsSearchQuery('');
+                                                    setHrmsSearchResults([]);
+                                                }}
+                                                className={`px-2 py-0.5 rounded transition-all ${roleAssigneeType === 'student' ? 'bg-white text-blue-700 shadow-xs' : 'text-gray-600 hover:text-gray-900'}`}
+                                            >
+                                                Student
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setRoleAssigneeType('hrms');
+                                                    setSelectedStudentRole(null);
+                                                    setStudentRoleSearchQuery('');
+                                                    setStudentRoleSearchResults([]);
+                                                }}
+                                                className={`px-2 py-0.5 rounded transition-all ${roleAssigneeType === 'hrms' ? 'bg-white text-blue-700 shadow-xs' : 'text-gray-600 hover:text-gray-900'}`}
+                                            >
+                                                Faculty / Staff
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {roleAssigneeType === 'student' ? (
+                                        <>
+                                            <input
+                                                type="text"
+                                                placeholder="Type student name, admission no, PIN, branch..."
+                                                value={studentRoleSearchQuery}
+                                                onChange={(e) => handleSearchRoleStudent(e.target.value)}
+                                                className="w-full px-2.5 py-1.5 text-xs border rounded-lg bg-white"
+                                            />
+                                            {searchingRoleStudent && <span className="text-[10px] text-blue-600 animate-pulse">Searching students...</span>}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <input
+                                                type="text"
+                                                placeholder="Type name, emp_no, email..."
+                                                value={hrmsSearchQuery}
+                                                onChange={(e) => handleSearchHrms(e.target.value)}
+                                                className="w-full px-2.5 py-1.5 text-xs border rounded-lg bg-white"
+                                            />
+                                            {searchingHrms && <span className="text-[10px] text-gray-400">Searching employees...</span>}
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
+                            {/* Student Search Results Dropdown */}
+                            {roleAssigneeType === 'student' && studentRoleSearchResults.length > 0 && (
+                                <div className="max-h-48 overflow-y-auto bg-white border border-slate-300 rounded-lg divide-y shadow-lg">
+                                    {studentRoleSearchResults.map((st, i) => (
+                                        <div
+                                            key={st.id || i}
+                                            onClick={() => {
+                                                setSelectedStudentRole(st);
+                                                setStudentRoleSearchResults([]);
+                                            }}
+                                            className="p-2.5 hover:bg-blue-50 cursor-pointer text-xs flex justify-between items-center"
+                                        >
+                                            <div>
+                                                <p className="font-bold text-gray-900">{st.student_name}</p>
+                                                <p className="text-[10px] text-gray-500 font-mono">
+                                                    Adm: {st.admission_number} {st.pin_no ? `| PIN: ${st.pin_no}` : ''}
+                                                </p>
+                                                <p className="text-[10px] text-gray-500">
+                                                    {[st.course, st.branch, st.college].filter(Boolean).join(' • ')}
+                                                </p>
+                                            </div>
+                                            <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">
+                                                Student
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Selected Student Card */}
+                            {roleAssigneeType === 'student' && selectedStudentRole && (
+                                <div className="bg-white p-3 border border-blue-200 rounded-xl space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                                                <GraduationCap size={15} className="text-blue-600" />
+                                                Selected: {selectedStudentRole.student_name}
+                                            </p>
+                                            <p className="text-[11px] text-gray-600 font-mono mt-0.5">
+                                                Adm: {selectedStudentRole.admission_number} {selectedStudentRole.pin_no ? `| PIN: ${selectedStudentRole.pin_no}` : ''}
+                                            </p>
+                                            <p className="text-[10px] text-gray-500">
+                                                {[selectedStudentRole.course, selectedStudentRole.branch, selectedStudentRole.college].filter(Boolean).join(' • ')}
+                                            </p>
+                                        </div>
+                                        <button type="button" onClick={() => setSelectedStudentRole(null)} className="text-xs text-red-500 font-bold hover:text-red-700">Change</button>
+                                    </div>
+                                    <div className="flex justify-end pt-1 border-t border-gray-100">
+                                        <button
+                                            type="button"
+                                            onClick={handleAddStudentRoleAssignment}
+                                            className="px-3.5 py-1.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 text-xs shadow-xs flex items-center gap-1"
+                                        >
+                                            <Plus size={13} /> Add to Role
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* HRMS Search Results Dropdown */}
-                            {hrmsSearchResults.length > 0 && (
+                            {roleAssigneeType === 'hrms' && hrmsSearchResults.length > 0 && (
                                 <div className="max-h-40 overflow-y-auto bg-white border border-slate-300 rounded-lg divide-y shadow-lg">
                                     {hrmsSearchResults.map((emp, i) => (
                                         <div
@@ -2635,7 +3038,7 @@ const Clubs = ({ initialSubPage }) => {
                             )}
 
                             {/* Selected Employee Card & Account Check */}
-                            {selectedHrmsEmployee && (
+                            {roleAssigneeType === 'hrms' && selectedHrmsEmployee && (
                                 <div className="bg-white p-3 border rounded-xl space-y-2">
                                     <div className="flex justify-between items-center">
                                         <div>
@@ -3104,6 +3507,101 @@ const Clubs = ({ initialSubPage }) => {
                         </button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* ================= MODAL: ADD STUDENT MEMBER DIRECTLY ================= */}
+            <Modal
+                show={showAddStudentMemberModal}
+                onClose={() => {
+                    setShowAddStudentMemberModal(false);
+                    setStudentSearchQuery('');
+                    setStudentSearchResults([]);
+                }}
+                title={`Add Student Member - ${selectedClub?.name || 'Club'}`}
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="text-xs font-bold text-gray-700">Search Student</label>
+                        <p className="text-[11px] text-gray-500 mb-2">Search students by student name, PIN number, admission number, or branch to add them to this club.</p>
+                        <div className="relative">
+                            <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Type name, admission no, PIN..."
+                                value={studentSearchQuery}
+                                onChange={(e) => handleSearchStudentsForAdd(e.target.value)}
+                                className="w-full pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                autoFocus
+                            />
+                        </div>
+                        {searchingStudentsForAdd && <p className="text-[11px] text-blue-600 mt-1 animate-pulse">Searching students...</p>}
+                    </div>
+
+                    {/* Results */}
+                    {studentSearchResults.length > 0 && (
+                        <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-xl divide-y">
+                            {studentSearchResults.map(st => {
+                                const isAlreadyMember = (selectedClub?.members || []).some(m =>
+                                    String(m.student_id) === String(st.id) || String(m.admission_number) === String(st.admission_number)
+                                );
+                                return (
+                                    <div
+                                        key={st.id}
+                                        className={`p-3 text-xs flex justify-between items-center transition-colors ${
+                                            isAlreadyMember ? 'bg-gray-50 opacity-60' : 'hover:bg-blue-50/60'
+                                        }`}
+                                    >
+                                        <div>
+                                            <p className="font-bold text-gray-900">{st.student_name}</p>
+                                            <p className="text-[11px] text-gray-600 font-mono">
+                                                Adm: {st.admission_number} {st.pin_no ? `| PIN: ${st.pin_no}` : ''}
+                                            </p>
+                                            <p className="text-[10px] text-gray-500">
+                                                {[st.course, st.branch, st.current_year ? `Year ${st.current_year}` : null, st.college].filter(Boolean).join(' • ')}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            {isAlreadyMember ? (
+                                                <span className="px-2.5 py-1 text-[10px] font-bold bg-green-100 text-green-700 rounded-full">
+                                                    Already Member
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleAddStudentToClub(st)}
+                                                    disabled={addingMember}
+                                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 shadow-xs"
+                                                >
+                                                    <Plus size={13} /> Add Member
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {studentSearchQuery && !searchingStudentsForAdd && studentSearchResults.length === 0 && (
+                        <div className="text-center py-6 text-gray-400 text-xs border border-dashed rounded-xl">
+                            No students found matching "{studentSearchQuery}".
+                        </div>
+                    )}
+
+                    <div className="flex justify-end pt-3 border-t">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowAddStudentMemberModal(false);
+                                setStudentSearchQuery('');
+                                setStudentSearchResults([]);
+                            }}
+                            className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );

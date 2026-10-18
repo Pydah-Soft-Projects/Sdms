@@ -714,8 +714,12 @@ exports.getCollegeDashboardStats = async (req, res) => {
       String(now.getDate()).padStart(2, '0'),
     ].join('-');
 
-    // 1. All active colleges
-    const colleges = await collegeService.fetchColleges({ includeInactive: false });
+    // 1. All active colleges (scoped for college-restricted users)
+    let colleges = await collegeService.fetchColleges({ includeInactive: false });
+
+    if (req.userScope && !req.userScope.unrestricted && req.userScope.collegeNames && req.userScope.collegeNames.length > 0) {
+      colleges = (colleges || []).filter((c) => req.userScope.collegeNames.includes(c.name));
+    }
 
     if (!colleges || colleges.length === 0) {
       return res.json({ success: true, data: [] });

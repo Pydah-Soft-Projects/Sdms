@@ -519,7 +519,7 @@ exports.unifiedLogin = async (req, res) => {
 exports.login = exports.unifiedLogin;
 
 // CRM Backend URL for SSO token verification (Portal receives SSO from CRM)
-const getCrmBackendUrl = () => (process.env.CRM_BACKEND_URL || 'https://pydah-crm-backend.pydah.edu.in').trim().replace(/\/$/, '');
+const getCrmBackendUrl = () => (process.env.CRM_BACKEND_URL || 'https://crm.pydah.edu.in').trim().replace(/\/$/, '');
 
 /**
  * Create SSO session from CRM token (Portal SSO flow).

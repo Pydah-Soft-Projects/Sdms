@@ -83,7 +83,7 @@ You can configure the widget using `data-*` attributes on the `<script>` tag or 
 | Attribute | Script Tag Attribute | Type | Default | Description |
 |---|---|---|---|---|
 | `currentPortal` | `data-current-portal` | `string` | `null` | **Required.** The portal ID of the current app (e.g. `'fee-management'`). |
-| `apiBaseUrl` | `data-api-base-url` | `string` | `https://pydah-crm-backend.pydah.edu.in` (prod) / `http://localhost:8000` (dev) | Base URL of the CRM Auth Gateway. |
+| `apiBaseUrl` | `data-api-base-url` | `string` | `https://crm.pydah.edu.in` (prod) / `http://localhost:8000` (dev) | Base URL of the CRM Auth Gateway. |
 | `landingUrl` | `data-landing-url` | `string` | `https://crm.pydah.edu.in` | URL for the "Central Hub" link. |
 | `position` | `data-position` | `string` | `'bottom-right'` | Initial corner (`'bottom-right'`, `'bottom-left'`). |
 | `token` | N/A (JS only) | `string` | Auto-detected | The host portal's JWT auth token. |

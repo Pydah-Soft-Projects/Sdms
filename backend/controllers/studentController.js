@@ -4966,13 +4966,88 @@ exports.getDashboardStats = async (req, res) => {
     // Build the same scope condition for the attendance join (scoped to students table)
     let attendanceScopeJoin = '';
     const attendanceScopeParams = [];
+    let studentsScopeCondition = '';
+    const studentsScopeParams = [];
     if (req.userScope) {
       const { scopeCondition, params: scopeParams } = getScopeConditionString(req.userScope, 's');
       if (scopeCondition) {
         attendanceScopeJoin = ` AND ${scopeCondition}`;
         attendanceScopeParams.push(...scopeParams);
       }
+      const { scopeCondition: scCond, params: scParams } = getScopeConditionString(req.userScope, 'students');
+      if (scCond) {
+        studentsScopeCondition = ` AND ${scCond}`;
+        studentsScopeParams.push(...scParams);
+      }
     }
+
+    // College attendance scoping
+    let collegeAttendanceFilter = '';
+    const collegeAttendanceParams = [todayKey];
+    if (req.userScope && !req.userScope.unrestricted && req.userScope.collegeNames && req.userScope.collegeNames.length > 0) {
+      collegeAttendanceFilter = ` WHERE c.name IN (${req.userScope.collegeNames.map(() => '?').join(',')})`;
+    }
+
+    // Build scoped service requests, tickets, and profile change queries
+    let serviceRequestsStatsQuery = 'SELECT sr.status, COUNT(*) as count FROM service_requests sr';
+    let serviceRequestsStatsParams = [];
+    let recentServicesQuery = `
+      SELECT sr.id, sr.status, sr.created_at, s.name as service_name, st.student_name, st.admission_number
+      FROM service_requests sr
+      LEFT JOIN services s ON sr.service_id = s.id
+    `;
+    let recentServicesParams = [];
+
+    let ticketStatsQuery = 'SELECT t.status, COUNT(*) as count FROM tickets t';
+    let ticketStatsParams = [];
+    let recentTicketsQuery = `
+      SELECT t.id, t.ticket_number, t.status, t.priority, t.created_at, c.name as category_name, s.student_name, s.admission_number
+      FROM tickets t
+      LEFT JOIN complaint_categories c ON t.category_id = c.id
+    `;
+    let recentTicketsParams = [];
+
+    let profileRequestsStatsQuery = 'SELECT p.status, COUNT(*) as count FROM profile_change_requests p';
+    let profileRequestsStatsParams = [];
+    let recentProfileRequestsQuery = `
+      SELECT p.id, p.admission_number, p.requested_changes, p.status, p.created_at, s.student_name, s.college, s.branch
+      FROM profile_change_requests p
+    `;
+    let recentProfileRequestsParams = [];
+
+    if (req.userScope && !req.userScope.unrestricted) {
+      const { scopeCondition: sScope, params: sScopeParams } = getScopeConditionString(req.userScope, 's');
+      const { scopeCondition: stScope, params: stScopeParams } = getScopeConditionString(req.userScope, 'st');
+
+      serviceRequestsStatsQuery += ` INNER JOIN students s ON sr.student_id = s.id WHERE 1=1${sScope ? ` AND ${sScope}` : ''}`;
+      serviceRequestsStatsParams.push(...sScopeParams);
+
+      recentServicesQuery += ` INNER JOIN students st ON sr.student_id = st.id WHERE 1=1${stScope ? ` AND ${stScope}` : ''}`;
+      recentServicesParams.push(...stScopeParams);
+
+      ticketStatsQuery += ` INNER JOIN students s ON t.student_id = s.id WHERE 1=1${sScope ? ` AND ${sScope}` : ''}`;
+      ticketStatsParams.push(...sScopeParams);
+
+      recentTicketsQuery += ` INNER JOIN students s ON t.student_id = s.id WHERE 1=1${sScope ? ` AND ${sScope}` : ''}`;
+      recentTicketsParams.push(...sScopeParams);
+
+      profileRequestsStatsQuery += ` INNER JOIN students s ON p.admission_number = s.admission_number WHERE 1=1${sScope ? ` AND ${sScope}` : ''}`;
+      profileRequestsStatsParams.push(...sScopeParams);
+
+      recentProfileRequestsQuery += ` INNER JOIN students s ON p.admission_number = s.admission_number WHERE p.status = 'pending'${sScope ? ` AND ${sScope}` : ''}`;
+      recentProfileRequestsParams.push(...sScopeParams);
+    } else {
+      recentServicesQuery += ' LEFT JOIN students st ON sr.student_id = st.id';
+      recentTicketsQuery += ' LEFT JOIN students s ON t.student_id = s.id';
+      recentProfileRequestsQuery += ' LEFT JOIN students s ON p.admission_number = s.admission_number WHERE p.status = \'pending\'';
+    }
+
+    serviceRequestsStatsQuery += ' GROUP BY sr.status';
+    recentServicesQuery += ' ORDER BY sr.created_at DESC LIMIT 5';
+    ticketStatsQuery += ' GROUP BY t.status';
+    recentTicketsQuery += ' ORDER BY t.created_at DESC LIMIT 5';
+    profileRequestsStatsQuery += ' GROUP BY p.status';
+    recentProfileRequestsQuery += ' ORDER BY p.created_at DESC LIMIT 5';
 
     // Run all independent queries in parallel with graceful error handling
     const [
@@ -4997,9 +5072,9 @@ exports.getDashboardStats = async (req, res) => {
       masterPool.query(`
         SELECT COALESCE(registration_status, 'pending') as status, COUNT(*) as count 
         FROM students 
-        WHERE student_status = 'Regular'
+        WHERE student_status = 'Regular'${studentsScopeCondition}
         GROUP BY COALESCE(registration_status, 'pending')
-      `),
+      `, studentsScopeParams),
       masterPool.query(`
         SELECT 
           DATE_FORMAT(created_at, '%b') as month,
@@ -5008,11 +5083,11 @@ exports.getDashboardStats = async (req, res) => {
           SUM(CASE WHEN LOWER(COALESCE(registration_status, 'pending')) = 'pending' THEN 1 ELSE 0 END) as pending,
           SUM(CASE WHEN LOWER(COALESCE(registration_status, 'pending')) IN ('temporary', 'rejected') THEN 1 ELSE 0 END) as rejected
         FROM students
-        WHERE student_status = 'Regular' AND created_at IS NOT NULL
+        WHERE student_status = 'Regular' AND created_at IS NOT NULL${studentsScopeCondition}
         GROUP BY MONTH(created_at), DATE_FORMAT(created_at, '%b')
         ORDER BY MIN(created_at) ASC
         LIMIT 12
-      `),
+      `, studentsScopeParams),
       masterPool.query('SELECT status, COUNT(*) as count FROM form_submissions GROUP BY status'),
       masterPool.query(
         `SELECT fs.submission_id, fs.admission_number, fs.status, fs.created_at, fs.form_id,
@@ -5041,8 +5116,9 @@ exports.getDashboardStats = async (req, res) => {
          FROM colleges c
          LEFT JOIN students s ON (s.college_id = c.id OR s.college COLLATE utf8mb4_unicode_ci = c.name OR s.college COLLATE utf8mb4_unicode_ci = c.code) AND s.student_status = 'Regular'
          LEFT JOIN attendance_records ar ON ar.student_id = s.id AND ar.attendance_date = ?
+         ${collegeAttendanceFilter}
          GROUP BY c.id, c.name, c.code`,
-        [todayKey]
+        collegeAttendanceFilter && req.userScope?.collegeNames ? [todayKey, ...req.userScope.collegeNames] : [todayKey]
       ),
       masterPool.query(
         `SELECT ar.status, COUNT(*) AS count
@@ -5062,39 +5138,18 @@ exports.getDashboardStats = async (req, res) => {
          GROUP BY ar.status`,
         [...attendanceScopeParams]
       ),
-      masterPool.query('SELECT status, COUNT(*) as count FROM service_requests GROUP BY status'),
+      masterPool.query(serviceRequestsStatsQuery, serviceRequestsStatsParams),
+      masterPool.query(recentServicesQuery, recentServicesParams),
+      masterPool.query(ticketStatsQuery, ticketStatsParams),
+      masterPool.query(recentTicketsQuery, recentTicketsParams),
+      masterPool.query(profileRequestsStatsQuery, profileRequestsStatsParams),
+      masterPool.query(recentProfileRequestsQuery, recentProfileRequestsParams),
       masterPool.query(
-        `SELECT sr.id, sr.status, sr.created_at, s.name as service_name, st.student_name, st.admission_number
-         FROM service_requests sr
-         LEFT JOIN services s ON sr.service_id = s.id
-         LEFT JOIN students st ON sr.student_id = st.id
-         ORDER BY sr.created_at DESC
-         LIMIT 5`
-      ),
-      masterPool.query('SELECT status, COUNT(*) as count FROM tickets GROUP BY status'),
-      masterPool.query(
-        `SELECT t.id, t.ticket_number, t.status, t.priority, t.created_at, c.name as category_name, s.student_name, s.admission_number
-         FROM tickets t
-         LEFT JOIN complaint_categories c ON t.category_id = c.id
-         LEFT JOIN students s ON t.student_id = s.id
-         ORDER BY t.created_at DESC
-         LIMIT 5`
-      ),
-      masterPool.query('SELECT status, COUNT(*) as count FROM profile_change_requests GROUP BY status'),
-      masterPool.query(
-        `SELECT p.id, p.admission_number, p.requested_changes, p.status, p.created_at, s.student_name, s.college, s.branch
-         FROM profile_change_requests p
-         LEFT JOIN students s ON p.admission_number = s.admission_number
-         WHERE p.status = 'pending'
-         ORDER BY p.created_at DESC
-         LIMIT 5`
-      ),
-      masterPool.query(
-        `SELECT id, title, description, event_date, start_time, end_time, event_type, is_active
+        `SELECT id, title, description, event_date, start_time, end_time, event_type, is_active, target_college
          FROM events
          WHERE is_active = 1
          ORDER BY event_date DESC
-         LIMIT 10`
+         LIMIT 20`
       )
     ]);
 
@@ -5259,8 +5314,24 @@ exports.getDashboardStats = async (req, res) => {
     }
     const recentProfileRequests = recentProfileRequestsResult.status === 'fulfilled' ? recentProfileRequestsResult.value[0] || [] : [];
 
-    // Events
-    const upcomingEvents = upcomingEventsResult.status === 'fulfilled' ? upcomingEventsResult.value[0] || [] : [];
+    // Events - scoped by college if user is college-scoped
+    let upcomingEvents = upcomingEventsResult.status === 'fulfilled' ? upcomingEventsResult.value[0] || [] : [];
+    if (req.userScope && !req.userScope.unrestricted && req.userScope.collegeNames && req.userScope.collegeNames.length > 0) {
+      upcomingEvents = upcomingEvents.filter(event => {
+        if (!event.target_college) return true;
+        let targets = [];
+        try {
+          targets = typeof event.target_college === 'string' ? JSON.parse(event.target_college) : event.target_college;
+          if (!Array.isArray(targets)) targets = [String(targets)];
+        } catch {
+          targets = [event.target_college];
+        }
+        if (!targets || targets.length === 0) return true;
+        return targets.some(target => req.userScope.collegeNames.some(cName => 
+          String(target).trim().toLowerCase() === String(cName).trim().toLowerCase()
+        ));
+      });
+    }
 
     // Recent activity feed combining tickets, service requests, profile requests
     const activities = [];

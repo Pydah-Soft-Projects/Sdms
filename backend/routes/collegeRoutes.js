@@ -24,7 +24,7 @@ router.post('/:id/upload-principal-signature', upload.single('signature'), colle
 router.delete('/:id/principal-signature', collegeController.deletePrincipalSignature);
 
 // Super admin dashboard stats (college-wise) — must be before /:collegeId
-router.get('/dashboard-stats', collegeController.getCollegeDashboardStats);
+router.get('/dashboard-stats', attachUserScope, collegeController.getCollegeDashboardStats);
 
 // College list (no param)
 router.get('/', attachUserScope, collegeController.getColleges);

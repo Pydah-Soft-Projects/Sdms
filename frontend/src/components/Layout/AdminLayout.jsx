@@ -227,7 +227,7 @@ const NAV_ITEMS = [
   {
     path: "/clubs",
     icon: Users,
-    label: "Clubs",
+    label: "Student Clubs",
     permission: FRONTEND_MODULES.CLUBS,
     subItems: [
       {
@@ -683,7 +683,7 @@ const AdminLayout = () => {
       </aside>
 
       {/* 2. Main Content Area */}
-      <main className={`flex-1 h-screen overflow-y-auto overflow-x-hidden relative z-10 transition-all duration-300 pb-20 lg:pb-0`}>
+      <main className={`flex-1 h-screen overflow-y-auto overflow-x-hidden transition-all duration-300 pb-20 lg:pb-0`}>
         <div className="p-4 lg:p-8 bg-gray-50/20 min-h-full">
           <Outlet />
         </div>

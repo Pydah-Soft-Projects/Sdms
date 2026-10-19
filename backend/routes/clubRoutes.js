@@ -124,6 +124,7 @@ const requireClubPage = (pageKey = null, access = 'read') => async (req, res, ne
 router.get('/', verifyToken, requireClubPage(), clubController.getClubs);
 router.get('/roles', verifyToken, requireClubPage('settings', 'read'), clubController.getClubRoles);
 router.get('/check-hrms-user', verifyToken, clubController.checkHrmsUserAccount);
+router.get('/students/search', verifyToken, requireClubPage('students', 'read'), clubController.searchStudents);
 router.get('/students/all', verifyToken, requireClubPage('students', 'read'), clubController.getAllClubStudents);
 router.get('/seminar-halls/list', verifyToken, requireAnyClubPermission('view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls', 'view'), clubController.getSeminarHalls);
 router.get('/seminar-halls', verifyToken, requireAnyClubPermission('view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls', 'view'), clubController.getSeminarHallRequests);
@@ -144,7 +145,9 @@ router.post('/', verifyToken, isAdmin, upload.single('image'), clubController.cr
 router.post('/roles', verifyToken, isAdmin, clubController.createClubRole);
 router.put('/roles/:roleId', verifyToken, isAdmin, clubController.updateClubRole);
 router.delete('/roles/:roleId', verifyToken, isAdmin, clubController.deleteClubRole);
+router.post('/:clubId/members', verifyToken, requireClubPage('students', 'write'), clubController.addClubMember);
 router.patch('/:clubId/members', verifyToken, requireClubPage('students', 'write'), clubController.updateMembershipStatus); // Body: { studentId, status }
+router.delete('/:clubId/members/:memberId', verifyToken, requireClubPage('students', 'write'), clubController.removeClubMember);
 router.post('/:clubId/activities', verifyToken, requireClubPage('management', 'write'), upload.single('image'), clubController.createActivity);
 router.put('/:clubId', verifyToken, requireClubPage('settings', 'write'), upload.single('image'), clubController.updateClub);
 router.delete('/:clubId', verifyToken, isAdmin, clubController.deleteClub);

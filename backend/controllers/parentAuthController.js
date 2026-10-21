@@ -130,13 +130,22 @@ const recordParentLogin = async (studentId, parentMobile) => {
   );
 };
 
-const sendSmsInBackground = (mobileNumber, message) => {
+const sendSmsInBackground = (mobileNumber, message, student = null) => {
   sendOtpSms(smsService, {
     to: mobileNumber,
     message,
     templateId: PARENT_OTP_SMS_TEMPLATE_ID,
     peId: OTP_PE_ID,
-    meta: { template: 'parent_portal_otp' }
+    meta: {
+      template: 'parent_portal_otp',
+      category: 'otp',
+      student: student ? {
+        id: student.id,
+        admissionNumber: student.admission_number,
+        currentYear: student.current_year,
+        currentSemester: student.current_semester
+      } : undefined
+    }
   }).catch((err) => {
     console.error('[Parent OTP] Background SMS failed:', err.message);
   });
@@ -191,7 +200,7 @@ exports.sendParentOtp = async (req, res) => {
     }
 
     // Respond immediately; SMS gateway can be slow (30s+)
-    sendSmsInBackground(mobileNumber, message);
+    sendSmsInBackground(mobileNumber, message, students[0]);
 
     res.json({
       success: true,

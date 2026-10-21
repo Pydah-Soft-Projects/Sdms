@@ -213,7 +213,7 @@ const StudentAnnouncements = () => {
                                             onClick={() => setSelectedAnnouncement(ann)}
                                             className="rounded-xl border border-slate-200/60 shadow-xs overflow-hidden active:scale-[0.98] transition-all duration-150 cursor-pointer flex flex-col group bg-white"
                                         >
-                                            {/* Image / Placeholder */}
+                                            {/* Image / Fallback */}
                                             {ann.image_url ? (
                                                 <div className="w-full aspect-[16/9] bg-slate-100 overflow-hidden shrink-0 relative">
                                                     <img src={ann.image_url} alt={ann.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -222,11 +222,11 @@ const StudentAnnouncements = () => {
                                                     )}
                                                 </div>
                                             ) : (
-                                                <div className="w-full h-24 bg-gradient-to-br from-indigo-50 to-indigo-100/60 flex items-center justify-center relative overflow-hidden shrink-0">
-                                                    <div className="absolute -right-4 -bottom-4 text-indigo-200 opacity-50"><Megaphone size={48} /></div>
-                                                    <div className="w-8 h-8 bg-white rounded-lg shadow-xs border border-indigo-100 flex items-center justify-center relative z-10">
-                                                        <Megaphone size={14} className="text-indigo-500" />
-                                                    </div>
+                                                <div className="w-full aspect-[16/9] bg-slate-900 overflow-hidden shrink-0 relative">
+                                                    <img src="/images/announcement-fallback.jpg" alt={ann.title} className="w-full h-full object-cover" />
+                                                    {ann.target_college && (
+                                                        <span className="absolute bottom-2 left-2 bg-indigo-600 text-white px-1.5 py-0.5 rounded text-[8px] uppercase font-black tracking-wider shadow-xs">{ann.target_college}</span>
+                                                    )}
                                                 </div>
                                             )}
                                             {/* Content */}
@@ -263,9 +263,11 @@ const StudentAnnouncements = () => {
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="h-24 bg-indigo-50/60 flex items-center justify-center relative overflow-hidden shrink-0 border-b border-slate-100">
-                                                <div className="absolute -right-4 -top-4 text-indigo-600/5 group-hover:scale-110 transition-all duration-500"><Megaphone size={80} /></div>
-                                                <div className="h-10 w-10 bg-white rounded-xl shadow-xs border border-slate-100 flex items-center justify-center relative z-10"><Megaphone className="text-indigo-500" size={20} /></div>
+                                            <div className="h-36 w-full bg-slate-900 overflow-hidden relative shrink-0">
+                                                <img src="/images/announcement-fallback.jpg" alt={ann.title} className="w-full h-full object-cover" />
+                                                <div className="absolute bottom-3 left-3 z-10">
+                                                    <span className="bg-indigo-600 text-white px-2 py-0.5 rounded text-[8px] uppercase font-black tracking-widest">{ann.target_college || 'Notice'}</span>
+                                                </div>
                                             </div>
                                         )}
                                         <div className="p-3.5 flex-1 flex flex-col justify-between">

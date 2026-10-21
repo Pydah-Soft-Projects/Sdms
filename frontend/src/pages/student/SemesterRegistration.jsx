@@ -408,7 +408,7 @@ const SemesterRegistration = () => {
 
     if (initialLoading) {
         return (
-            <div className="max-w-6xl mx-auto space-y-8 animate-pulse pb-20">
+            <div className="w-full space-y-8 animate-pulse pb-20">
                 <div className="space-y-2">
                     <SkeletonBox height="h-8" width="w-64" />
                     <SkeletonBox height="h-4" width="w-96" />
@@ -463,8 +463,8 @@ const SemesterRegistration = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 animate-fade-in pb-28 px-3 sm:px-6 pt-3 sm:pt-6">
-            {/* ── Admin-Dashboard Style Overview Card ── */}
+        <div className="w-full space-y-4 sm:space-y-6 animate-fade-in pb-16 px-3 sm:px-6 pt-3 sm:pt-6">
+            {/* ── Cycle Overview Card ── */}
             <div className={`rounded-2xl p-4 sm:p-5 border transition-all shadow-sm ${
                 isActuallyComplete
                     ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-500/30'
@@ -479,34 +479,15 @@ const SemesterRegistration = () => {
                                 Current Academic Cycle
                             </span>
                             <span className="text-xs font-bold text-white/90">
-                                <span className="sm:hidden bg-white/25 px-2 py-0.5 rounded-md font-black text-white shadow-xs">
-                                    Year {currentYear} • Semester {currentSemester}
-                                </span>
-                                <span className="hidden sm:inline">
+                                <span className="bg-white/25 px-2 py-0.5 rounded-md font-black text-white shadow-xs">
                                     Year {currentYear} • Semester {currentSemester}
                                 </span>
                                 {studentData?.branch ? ` • ${studentData.branch}` : ''}
                             </span>
                         </div>
                         <h2 className="text-lg sm:text-xl font-black text-white leading-tight">
-                            {isActuallyComplete ? (
-                                <>
-                                    <span className="sm:hidden">Registered</span>
-                                    <span className="hidden sm:inline">Registration Completed & Verified</span>
-                                </>
-                            ) : isTemporaryRegistration ? (
-                                'Registration Temporary'
-                            ) : (
-                                'Registration In Progress'
-                            )}
+                            {isActuallyComplete ? 'Registered' : isTemporaryRegistration ? 'Registration Temporary' : 'Registration In Progress'}
                         </h2>
-                        <p className="hidden sm:block text-xs text-white/85 mt-1">
-                            {isActuallyComplete
-                                ? 'All 5 registration processes have been successfully completed and verified for this semester.'
-                                : isTemporaryRegistration
-                                    ? 'Portal access is granted. Certain stage updates may still be required to reach finalized status.'
-                                    : 'Complete all required registration stages below to finalize your semester registration.'}
-                        </p>
                     </div>
                     <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 mt-1 sm:mt-0">
                         <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-extrabold text-xs shadow-xs ${
@@ -524,8 +505,8 @@ const SemesterRegistration = () => {
                 </div>
             </div>
 
-            {/* ── 5-Stage Stepper: Mobile View (Vertical Step-by-Step, One Below One, No Scrolling) ── */}
-            <div className="sm:hidden bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs">
+            {/* ── 5-Stage Stepper: (Vertical Step-by-Step, One Below One) ── */}
+            <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs">
                 <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
                     <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">Registration Process Steps</h3>
                     <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
@@ -588,8 +569,8 @@ const SemesterRegistration = () => {
                 </div>
             </div>
 
-            {/* ── Mobile View: Previous Registration Button & History ── */}
-            <div className="sm:hidden space-y-2.5">
+            {/* ── Previous Registration Button & History ── */}
+            <div className="space-y-2.5">
                 <button
                     type="button"
                     onClick={() => setShowPreviousRegistration(prev => !prev)}
@@ -666,129 +647,6 @@ const SemesterRegistration = () => {
                         )}
                     </div>
                 )}
-            </div>
-
-            {/* ── 5-Stage Stepper: Desktop View (Horizontal Stepper) ── */}
-            <div className="hidden sm:block bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs">
-                <div className="flex items-center justify-between max-w-4xl mx-auto relative px-1">
-                    {stageSummaryItems.map((item, index) => {
-                        const isDone = item.stage.completed || item.stage.optional;
-                        return (
-                            <React.Fragment key={item.id}>
-                                <div
-                                    onClick={() => setActiveStepId(item.id)}
-                                    className="flex flex-col items-center gap-1 relative z-10 cursor-pointer group active:scale-95 transition-transform"
-                                >
-                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-xs ${
-                                        isDone ? 'bg-emerald-600 text-white ring-4 ring-emerald-100' : 'bg-slate-800 text-white ring-4 ring-slate-100'
-                                    }`}>
-                                        {isDone ? <CheckCircle size={16} strokeWidth={2.5} /> : <span>{index + 1}</span>}
-                                    </div>
-                                    <span className="text-[11px] font-extrabold text-slate-800 group-hover:text-emerald-700">Stage {index + 1}</span>
-                                    <span className="text-[9px] font-bold text-slate-500 text-center max-w-[85px] truncate">{item.title}</span>
-                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                                        isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                                    }`}>
-                                        {isDone ? 'Done' : 'Pending'}
-                                    </span>
-                                </div>
-
-                                {index < stageSummaryItems.length - 1 && (
-                                    <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-slate-100">
-                                        <div className={`h-full transition-all duration-500 ${isDone ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
-                                    </div>
-                                )}
-                            </React.Fragment>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* ── Section Title (Desktop Only) ── */}
-            <div className="hidden sm:flex items-center justify-between pt-1">
-                <div>
-                    <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">Registration Processes</h3>
-                    <p className="text-xs text-slate-500">Current Academic Year {currentYear} • Semester {currentSemester} Process Details</p>
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg">
-                    {isActuallyComplete ? 'All 5 Stages Verified' : 'In Progress'}
-                </span>
-            </div>
-
-            {/* ── Steps Grid (Desktop Only) ── */}
-            <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
-                {steps.map(step => {
-                    const isComplete = isStepCompleted(step.id);
-                    const Icon = step.icon;
-                    const stage = getStageForStep(step.id);
-
-                    return (
-                        <div
-                            key={step.id}
-                            onClick={() => setActiveStepId(step.id)}
-                            className={`
-                                relative bg-white rounded-2xl p-4 sm:p-5 border-l-4 transition-all duration-200 cursor-pointer hover:shadow-md active:scale-[0.99] group shadow-xs
-                                ${isComplete
-                                    ? 'border-l-emerald-500 border-slate-200/80 hover:border-emerald-200'
-                                    : 'border-l-amber-500 border-slate-200/80 hover:border-amber-200'}
-                            `}
-                        >
-                            <div className="flex justify-between items-start mb-3">
-                                <div className={`p-2.5 rounded-xl ${isComplete ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-                                    <Icon size={20} />
-                                </div>
-                                {isComplete ? (
-                                    <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1">
-                                        <CheckCircle size={11} />
-                                        DONE
-                                    </div>
-                                ) : (
-                                    <div className="bg-amber-50 text-amber-700 border border-amber-100 px-2.5 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1">
-                                        <AlertCircle size={11} />
-                                        PENDING
-                                    </div>
-                                )}
-                            </div>
-
-                            <h3 className="text-sm sm:text-base font-extrabold text-slate-900 mb-1 group-hover:text-emerald-700 transition-colors">
-                                {step.title}
-                            </h3>
-                            <p className="text-xs text-slate-500 line-clamp-2">
-                                {step.description}
-                            </p>
-                            {stage && (
-                                <div className="mt-3">
-                                    <RegistrationStageBadge display={stage.display} />
-                                </div>
-                            )}
-
-                            <div className="mt-3.5 pt-2 border-t border-slate-100 flex items-center justify-between text-emerald-700 text-xs font-bold">
-                                <span>View Details</span>
-                                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            {/* ── Fixed Footer Action Bar ── */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 sm:p-4 shadow-lg z-30 lg:pl-64">
-                <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
-                    <div>
-                        <p className="text-xs sm:text-sm font-extrabold text-slate-900">
-                            {isActuallyComplete ? 'Registration Finalized' : 'Registration Status'}
-                        </p>
-                        <p className="text-[10px] sm:text-xs text-slate-500">
-                            {isActuallyComplete ? `Current cycle registration verified for Year ${currentYear}, Sem ${currentSemester}` : 'Your registration will be automatically finalized once all steps are completed.'}
-                        </p>
-                    </div>
-                    <button
-                        onClick={() => navigate('/student/dashboard')}
-                        className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition text-xs shrink-0 flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
-                    >
-                        <CheckCircle size={14} /> Go to Dashboard
-                    </button>
-                </div>
             </div>
 
             {/* Modal Overlay */}

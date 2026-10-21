@@ -797,7 +797,7 @@ const Dashboard = () => {
                 </div>
 
                 <div className="relative z-10 flex items-center justify-between gap-3 pointer-events-none">
-                    <div className="flex items-center gap-3 min-w-0 pointer-events-auto max-w-[52%] sm:max-w-[58%] md:max-w-[64%]">
+                    <div className="flex items-center gap-3 min-w-0 pointer-events-auto max-w-[58%] sm:max-w-[58%] md:max-w-[64%]">
                         {/* Profile Photo */}
                         <div className="relative shrink-0">
                             <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full p-0.5 bg-white/20 backdrop-blur-md shadow-md border border-white/30">
@@ -831,9 +831,31 @@ const Dashboard = () => {
 
                             {/* Image 1 Badges: Light green & light blue pills side-by-side */}
                             <div className="flex items-center gap-1.5 mt-1">
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#dcfce7] text-[#15803d] shrink-0">
+                                {/* Desktop View: Original Regular Badge */}
+                                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#dcfce7] text-[#15803d] shrink-0">
                                     <CheckCircle size={11} className="text-[#15803d]" /> Regular
                                 </span>
+
+                                {/* Mobile View: Replaces Regular with Registration Status & Redirects to Semester Registration */}
+                                <Link
+                                    to="/student/semester-registration"
+                                    className={`sm:hidden inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 transition-transform active:scale-95 cursor-pointer ${
+                                        isRegistrationCompleted
+                                            ? 'bg-[#dcfce7] text-[#15803d]'
+                                            : 'bg-[#fee2e2] text-[#b91c1c]'
+                                    }`}
+                                >
+                                    {isRegistrationCompleted ? (
+                                        <>
+                                            <CheckCircle size={11} className="text-[#15803d]" /> Registered
+                                        </>
+                                    ) : (
+                                        <>
+                                            <AlertCircle size={11} className="text-[#b91c1c]" /> Not Completed
+                                        </>
+                                    )}
+                                </Link>
+
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#dbeafe] text-[#1d4ed8] shrink-0">
                                     <CheckCircle size={11} className="text-[#1d4ed8]" /> Profile {isProfileVerified ? '100%' : '90%'}
                                 </span>
@@ -1070,7 +1092,7 @@ const Dashboard = () => {
 
             {/* SEM Registration Card */}
             {isEnabled('semester-registration') && (
-                <div className={`rounded-[22px] p-4 sm:p-5 shadow-md border border-white/20 relative overflow-hidden ${isRegistrationCompleted ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white' : 'bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white'}`}>
+                <div className={`hidden sm:block rounded-[22px] p-4 sm:p-5 shadow-md border border-white/20 relative overflow-hidden ${isRegistrationCompleted ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white' : 'bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white'}`}>
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-black uppercase tracking-wider text-white/80">SEM REGISTRATION</span>
                         <div className="p-1.5 rounded-lg bg-white/20 text-white">
@@ -1152,14 +1174,13 @@ const Dashboard = () => {
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                                     <Calendar size={16} className="text-fuchsia-600" />
-                                    Campus Events
+                                    Calender
                                 </h3>
                                 <Link
                                     to="/student/events"
                                     state={{ initialDate: upcomingEvents.length > 0 ? upcomingEvents[0].event_date : new Date() }}
                                     className="text-xs font-bold text-sky-700 hover:text-sky-800"
                                 >
-                                    Calendar
                                 </Link>
                             </div>
 

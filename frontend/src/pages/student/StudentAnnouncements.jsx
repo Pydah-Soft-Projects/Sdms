@@ -14,13 +14,61 @@ const StudentAnnouncements = () => {
     const [votingId, setVotingId] = useState(null);
 
     // Pagination & Caching states
-    const [offset, setOffset] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
     const [dataFetched, setDataFetched] = useState({ announcements: false, polls: false });
 
+    // Refs to eliminate stale closures and race conditions in infinite scroll
+    const offsetRef = useRef(0);
+    const hasMoreRef = useRef(true);
+    const isFetchingRef = useRef(false);
+
     // Infinite scroll sentinel ref
     const sentinelRef = useRef(null);
+
+    // Fetch announcements with deduplication and reliable offset tracking
+    const fetchAnnouncements = useCallback(async (isRefresh = false, loadMore = false) => {
+        if (isFetchingRef.current) return;
+        if (loadMore && !hasMoreRef.current) return;
+
+        isFetchingRef.current = true;
+        if (!loadMore) setLoading(true);
+        else setIsFetchingMore(true);
+
+        try {
+            const currentOffset = isRefresh ? 0 : (loadMore ? offsetRef.current : 0);
+            const response = await api.get(`/announcements/student?limit=6&offset=${currentOffset}`);
+            if (response.data.success) {
+                const newData = response.data.data || [];
+                const serverHasMore = Boolean(response.data.hasMore);
+
+                if (isRefresh || !loadMore) {
+                    const uniqueInitial = Array.from(new Map(newData.map(item => [item.id, item])).values());
+                    setAnnouncements(uniqueInitial);
+                    offsetRef.current = uniqueInitial.length;
+                } else {
+                    setAnnouncements(prev => {
+                        const map = new Map();
+                        prev.forEach(item => map.set(item.id, item));
+                        newData.forEach(item => map.set(item.id, item));
+                        return Array.from(map.values());
+                    });
+                    offsetRef.current += newData.length;
+                }
+
+                hasMoreRef.current = serverHasMore;
+                setHasMore(serverHasMore);
+                setDataFetched(prev => ({ ...prev, announcements: true }));
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to load announcements');
+        } finally {
+            isFetchingRef.current = false;
+            setLoading(false);
+            setIsFetchingMore(false);
+        }
+    }, []);
 
     // IntersectionObserver for infinite scroll
     const observerRef = useRef(null);
@@ -29,14 +77,14 @@ const StudentAnnouncements = () => {
         if (!sentinelRef.current) return;
         observerRef.current = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasMore && !isFetchingMore) {
+                if (entries[0].isIntersecting && hasMoreRef.current && !isFetchingRef.current) {
                     fetchAnnouncements(false, true);
                 }
             },
             { threshold: 0.1 }
         );
         observerRef.current.observe(sentinelRef.current);
-    }, [hasMore, isFetchingMore]);
+    }, [fetchAnnouncements]);
 
     useEffect(() => {
         if (activeTab === 'announcements' && dataFetched.announcements) {
@@ -51,35 +99,7 @@ const StudentAnnouncements = () => {
         } else if (activeTab === 'polls' && !dataFetched.polls) {
             fetchPolls();
         }
-    }, [activeTab]);
-
-    const fetchAnnouncements = async (isRefresh = false, loadMore = false) => {
-        if (!loadMore) setLoading(true);
-        else setIsFetchingMore(true);
-
-        try {
-            const currentOffset = isRefresh ? 0 : (loadMore ? offset : 0);
-            const response = await api.get(`/announcements/student?limit=6&offset=${currentOffset}`);
-            if (response.data.success) {
-                const newData = response.data.data || [];
-                if (isRefresh || (!loadMore)) {
-                    setAnnouncements(newData);
-                    setOffset(6);
-                } else {
-                    setAnnouncements(prev => [...prev, ...newData]);
-                    setOffset(prev => prev + 6);
-                }
-                setHasMore(response.data.hasMore);
-                setDataFetched(prev => ({ ...prev, announcements: true }));
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to load announcements');
-        } finally {
-            setLoading(false);
-            setIsFetchingMore(false);
-        }
-    };
+    }, [activeTab, dataFetched.announcements, dataFetched.polls, fetchAnnouncements]);
 
     const fetchPolls = async (isRefresh = false) => {
         setLoading(true);

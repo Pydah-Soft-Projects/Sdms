@@ -4981,6 +4981,22 @@ exports.getDashboardStats = async (req, res) => {
       }
     }
 
+    // Load attendance config for exclusions (courses and students)
+    const attendanceConfig = await loadAttendanceConfig();
+    const excludedCourses = Array.isArray(attendanceConfig?.excludedCourses) ? attendanceConfig.excludedCourses : [];
+    const excludedStudents = Array.isArray(attendanceConfig?.excludedStudents) ? attendanceConfig.excludedStudents : [];
+
+    let attendanceExclusionClause = '';
+    const attendanceExclusionParams = [];
+    if (excludedCourses.length > 0) {
+      attendanceExclusionClause += ` AND (s.course IS NULL OR s.course NOT IN (${excludedCourses.map(() => '?').join(',')}))`;
+      attendanceExclusionParams.push(...excludedCourses);
+    }
+    if (excludedStudents.length > 0) {
+      attendanceExclusionClause += ` AND (s.admission_number IS NULL OR s.admission_number NOT IN (${excludedStudents.map(() => '?').join(',')}))`;
+      attendanceExclusionParams.push(...excludedStudents);
+    }
+
     // College attendance scoping
     let collegeAttendanceFilter = '';
     const collegeAttendanceParams = [todayKey];
@@ -5060,6 +5076,7 @@ exports.getDashboardStats = async (req, res) => {
       collegeAttendanceResult,
       weeklyAttendanceResult,
       monthlyAttendanceResult,
+      attendanceStudentCountResult,
       serviceRequestsResult,
       recentServicesResult,
       ticketStatsResult,
@@ -5103,9 +5120,9 @@ exports.getDashboardStats = async (req, res) => {
          FROM attendance_records ar
          INNER JOIN students s ON s.id = ar.student_id
          WHERE ar.attendance_date = ?
-           AND s.student_status = 'Regular'${attendanceScopeJoin}
+           AND s.student_status = 'Regular'${attendanceScopeJoin}${attendanceExclusionClause}
          GROUP BY ar.status`,
-        [todayKey, ...attendanceScopeParams]
+        [todayKey, ...attendanceScopeParams, ...attendanceExclusionParams]
       ),
       masterPool.query(
         `SELECT c.id, c.name, c.code,
@@ -5114,29 +5131,39 @@ exports.getDashboardStats = async (req, res) => {
                 SUM(CASE WHEN ar.status = 'absent' THEN 1 ELSE 0 END) as absentToday,
                 COUNT(ar.id) as recordsToday
          FROM colleges c
-         LEFT JOIN students s ON (s.college_id = c.id OR s.college COLLATE utf8mb4_unicode_ci = c.name OR s.college COLLATE utf8mb4_unicode_ci = c.code) AND s.student_status = 'Regular'
+         LEFT JOIN students s ON (s.college_id = c.id OR s.college COLLATE utf8mb4_unicode_ci = c.name OR s.college COLLATE utf8mb4_unicode_ci = c.code) AND s.student_status = 'Regular'${attendanceExclusionClause}
          LEFT JOIN attendance_records ar ON ar.student_id = s.id AND ar.attendance_date = ?
          ${collegeAttendanceFilter}
          GROUP BY c.id, c.name, c.code`,
-        collegeAttendanceFilter && req.userScope?.collegeNames ? [todayKey, ...req.userScope.collegeNames] : [todayKey]
+        collegeAttendanceFilter && req.userScope?.collegeNames 
+          ? [...attendanceExclusionParams, todayKey, ...req.userScope.collegeNames] 
+          : [...attendanceExclusionParams, todayKey]
       ),
       masterPool.query(
-        `SELECT ar.status, COUNT(*) AS count
+        `SELECT DATE_FORMAT(ar.attendance_date, '%Y-%m-%d') as attendance_date, ar.status, COUNT(*) AS count
          FROM attendance_records ar
          INNER JOIN students s ON s.id = ar.student_id
          WHERE ar.attendance_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND CURDATE()
-           AND s.student_status = 'Regular'${attendanceScopeJoin}
-         GROUP BY ar.status`,
-        [...attendanceScopeParams]
+           AND s.student_status = 'Regular'${attendanceScopeJoin}${attendanceExclusionClause}
+         GROUP BY DATE_FORMAT(ar.attendance_date, '%Y-%m-%d'), ar.status
+         ORDER BY attendance_date ASC`,
+        [...attendanceScopeParams, ...attendanceExclusionParams]
       ),
       masterPool.query(
-        `SELECT ar.status, COUNT(*) AS count
+        `SELECT DATE_FORMAT(ar.attendance_date, '%Y-%m-%d') as attendance_date, ar.status, COUNT(*) AS count
          FROM attendance_records ar
          INNER JOIN students s ON s.id = ar.student_id
          WHERE ar.attendance_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 29 DAY) AND CURDATE()
-           AND s.student_status = 'Regular'${attendanceScopeJoin}
-         GROUP BY ar.status`,
-        [...attendanceScopeParams]
+           AND s.student_status = 'Regular'${attendanceScopeJoin}${attendanceExclusionClause}
+         GROUP BY DATE_FORMAT(ar.attendance_date, '%Y-%m-%d'), ar.status
+         ORDER BY attendance_date ASC`,
+        [...attendanceScopeParams, ...attendanceExclusionParams]
+      ),
+      masterPool.query(
+        `SELECT COUNT(*) AS total
+         FROM students s
+         WHERE s.student_status = 'Regular'${attendanceScopeJoin}${attendanceExclusionClause}`,
+        [...attendanceScopeParams, ...attendanceExclusionParams]
       ),
       masterPool.query(serviceRequestsStatsQuery, serviceRequestsStatsParams),
       masterPool.query(recentServicesQuery, recentServicesParams),
@@ -5155,6 +5182,9 @@ exports.getDashboardStats = async (req, res) => {
 
     const masterDbConnected = studentCountResult.status === 'fulfilled';
     const totalStudents = studentCountResult.status === 'fulfilled' ? Number(studentCountResult.value[0]?.[0]?.total || 0) : 0;
+    const totalAttendanceStudents = attendanceStudentCountResult.status === 'fulfilled'
+      ? Number(attendanceStudentCountResult.value[0]?.[0]?.total || 0)
+      : totalStudents;
 
     // Registrations breakdown from students table
     let registrationsSummary = { total: 0, pending: 0, approved: 0, rejected: 0 };
@@ -5199,20 +5229,101 @@ exports.getDashboardStats = async (req, res) => {
     }
 
     let weeklyPresent = 0, weeklyAbsent = 0, weeklyHoliday = 0;
+    const weeklyByDate = {};
     if (weeklyAttendanceResult && weeklyAttendanceResult.status === 'fulfilled') {
       (weeklyAttendanceResult.value[0] || []).forEach(row => {
-        if (row.status === 'present') weeklyPresent = Number(row.count) || 0;
-        else if (row.status === 'absent') weeklyAbsent = Number(row.count) || 0;
-        else if (row.status === 'holiday') weeklyHoliday = Number(row.count) || 0;
+        const cnt = Number(row.count) || 0;
+        const d = row.attendance_date;
+        if (d) {
+          if (!weeklyByDate[d]) weeklyByDate[d] = { present: 0, absent: 0, holiday: 0, pending: 0 };
+          if (row.status === 'present') weeklyByDate[d].present += cnt;
+          else if (row.status === 'absent') weeklyByDate[d].absent += cnt;
+          else if (row.status === 'holiday') weeklyByDate[d].holiday += cnt;
+          else weeklyByDate[d].pending += cnt;
+        }
+        if (row.status === 'present') weeklyPresent += cnt;
+        else if (row.status === 'absent') weeklyAbsent += cnt;
+        else if (row.status === 'holiday') weeklyHoliday += cnt;
+      });
+    }
+
+    // Build 7-day breakdown for weekly chart
+    const weeklyChartData = [];
+    for (let i = 6; i >= 0; i--) {
+      const dt = new Date();
+      dt.setDate(dt.getDate() - i);
+      const yyyy = dt.getFullYear();
+      const mm = String(dt.getMonth() + 1).padStart(2, '0');
+      const dd = String(dt.getDate()).padStart(2, '0');
+      const dateKey = `${yyyy}-${mm}-${dd}`;
+      const dayName = dt.toLocaleDateString('en-US', { weekday: 'short' });
+      const fullDate = dt.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+      const rec = weeklyByDate[dateKey] || { present: 0, absent: 0, holiday: 0, pending: 0 };
+      const tot = rec.present + rec.absent;
+      weeklyChartData.push({
+        name: dayName,
+        date: dateKey,
+        fullDate: `${fullDate} (${dayName})`,
+        present: rec.present,
+        absent: rec.absent,
+        pending: rec.pending,
+        total: tot,
+        rate: tot > 0 ? Math.round((rec.present / tot) * 100) : 0
       });
     }
 
     let monthlyPresent = 0, monthlyAbsent = 0, monthlyHoliday = 0;
+    const monthlyByDate = {};
     if (monthlyAttendanceResult && monthlyAttendanceResult.status === 'fulfilled') {
       (monthlyAttendanceResult.value[0] || []).forEach(row => {
-        if (row.status === 'present') monthlyPresent = Number(row.count) || 0;
-        else if (row.status === 'absent') monthlyAbsent = Number(row.count) || 0;
-        else if (row.status === 'holiday') monthlyHoliday = Number(row.count) || 0;
+        const cnt = Number(row.count) || 0;
+        const d = row.attendance_date;
+        if (d) {
+          if (!monthlyByDate[d]) monthlyByDate[d] = { present: 0, absent: 0, holiday: 0, pending: 0 };
+          if (row.status === 'present') monthlyByDate[d].present += cnt;
+          else if (row.status === 'absent') monthlyByDate[d].absent += cnt;
+          else if (row.status === 'holiday') monthlyByDate[d].holiday += cnt;
+          else monthlyByDate[d].pending += cnt;
+        }
+        if (row.status === 'present') monthlyPresent += cnt;
+        else if (row.status === 'absent') monthlyAbsent += cnt;
+        else if (row.status === 'holiday') monthlyHoliday += cnt;
+      });
+    }
+
+    // Build 4 weekly buckets for monthly chart
+    const monthlyChartData = [];
+    for (let w = 3; w >= 0; w--) {
+      let wPresent = 0, wAbsent = 0, wPending = 0;
+      let startLabel = '', endLabel = '';
+      for (let d = 6; d >= 0; d--) {
+        const dt = new Date();
+        dt.setDate(dt.getDate() - (w * 7 + d));
+        const yyyy = dt.getFullYear();
+        const mm = String(dt.getMonth() + 1).padStart(2, '0');
+        const dd = String(dt.getDate()).padStart(2, '0');
+        const dateKey = `${yyyy}-${mm}-${dd}`;
+        const shortDate = dt.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+        if (d === 6) startLabel = shortDate;
+        if (d === 0) endLabel = shortDate;
+        const rec = monthlyByDate[dateKey];
+        if (rec) {
+          wPresent += rec.present;
+          wAbsent += rec.absent;
+          wPending += rec.pending;
+        }
+      }
+      const wTotal = wPresent + wAbsent;
+      const weekIndex = 4 - w;
+      monthlyChartData.push({
+        name: `Week ${weekIndex}`,
+        dateRange: `${startLabel} - ${endLabel}`,
+        fullDate: `${startLabel} - ${endLabel}`,
+        present: wPresent,
+        absent: wAbsent,
+        pending: wPending,
+        total: wTotal,
+        rate: wTotal > 0 ? Math.round((wPresent / wTotal) * 100) : 0
       });
     }
 
@@ -5236,7 +5347,7 @@ exports.getDashboardStats = async (req, res) => {
       isAttendancePostedToday = (presentToday + absentToday) > 0 || collegesPostedCount > 0;
     }
 
-    const pendingToday = Math.max(0, totalStudents - presentToday - absentToday - holidayToday);
+    const pendingToday = Math.max(0, totalAttendanceStudents - presentToday - absentToday - holidayToday);
     const weeklyMarked = weeklyPresent + weeklyAbsent + weeklyHoliday;
     const monthlyMarked = monthlyPresent + monthlyAbsent + monthlyHoliday;
 
@@ -5246,27 +5357,30 @@ exports.getDashboardStats = async (req, res) => {
         absent: absentToday,
         holiday: holidayToday,
         pending: pendingToday,
-        total: totalStudents,
+        total: totalAttendanceStudents,
         marked: presentToday + absentToday + holidayToday,
-        rate: totalStudents > 0 ? Math.round(((presentToday + absentToday + holidayToday) / totalStudents) * 100) : 0
+        rate: totalAttendanceStudents > 0 ? Math.round(((presentToday + absentToday + holidayToday) / totalAttendanceStudents) * 100) : 0
       },
       weekly: {
         present: weeklyPresent,
         absent: weeklyAbsent,
         holiday: weeklyHoliday,
-        pending: Math.max(0, (totalStudents * 6) - weeklyMarked),
-        total: totalStudents * 6,
+        pending: Math.max(0, (totalAttendanceStudents * 6) - weeklyMarked),
+        total: totalAttendanceStudents * 6,
         marked: weeklyMarked,
-        rate: (totalStudents * 6) > 0 ? Math.round((weeklyMarked / (totalStudents * 6)) * 100) : 0
+        rate: (totalAttendanceStudents * 6) > 0 ? Math.round((weeklyMarked / (totalAttendanceStudents * 6)) * 100) : 0,
+        chartData: weeklyChartData
       },
       monthly: {
         present: monthlyPresent,
         absent: monthlyAbsent,
         holiday: monthlyHoliday,
-        pending: Math.max(0, (totalStudents * 25) - monthlyMarked),
-        total: totalStudents * 25,
+        pending: Math.max(0, (totalAttendanceStudents * 25) - monthlyMarked),
+        total: totalAttendanceStudents * 25,
         marked: monthlyMarked,
-        rate: (totalStudents * 25) > 0 ? Math.round((monthlyMarked / (totalStudents * 25)) * 100) : 0
+        rate: (totalAttendanceStudents * 25) > 0 ? Math.round((monthlyMarked / (totalAttendanceStudents * 25)) * 100) : 0,
+        chartData: monthlyChartData,
+        calendarData: monthlyByDate
       }
     };
 
@@ -5480,6 +5594,105 @@ exports.getDashboardStats = async (req, res) => {
       success: false,
       message: 'Server error while fetching dashboard statistics',
     });
+  }
+};
+
+// Get course-wise attendance breakdown for a specific date
+exports.getCourseWiseAttendance = async (req, res) => {
+  try {
+    const requestedDate = req.query.date || getISTDateString();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(requestedDate)) {
+      return res.status(400).json({ success: false, message: 'Invalid date format. Expected YYYY-MM-DD.' });
+    }
+
+    // Load attendance config for exclusions (courses and students)
+    const attendanceConfig = await loadAttendanceConfig();
+    const excludedCourses = Array.isArray(attendanceConfig?.excludedCourses) ? attendanceConfig.excludedCourses : [];
+    const excludedStudents = Array.isArray(attendanceConfig?.excludedStudents) ? attendanceConfig.excludedStudents : [];
+
+    let attendanceExclusionClause = '';
+    const attendanceExclusionParams = [];
+    if (excludedCourses.length > 0) {
+      attendanceExclusionClause += ` AND (s.course IS NULL OR s.course NOT IN (${excludedCourses.map(() => '?').join(',')}))`;
+      attendanceExclusionParams.push(...excludedCourses);
+    }
+    if (excludedStudents.length > 0) {
+      attendanceExclusionClause += ` AND (s.admission_number IS NULL OR s.admission_number NOT IN (${excludedStudents.map(() => '?').join(',')}))`;
+      attendanceExclusionParams.push(...excludedStudents);
+    }
+
+    let attendanceScopeJoin = '';
+    const attendanceScopeParams = [];
+    if (req.userScope) {
+      const { scopeCondition, params: scopeParams } = getScopeConditionString(req.userScope, 's');
+      if (scopeCondition) {
+        attendanceScopeJoin = ` AND ${scopeCondition}`;
+        attendanceScopeParams.push(...scopeParams);
+      }
+    }
+
+    const [rows] = await masterPool.query(
+      `SELECT 
+         COALESCE(c.name, s.course, 'Other') AS name,
+         COUNT(DISTINCT s.id) AS totalStudents,
+         SUM(CASE WHEN ar.status = 'present' THEN 1 ELSE 0 END) AS present,
+         SUM(CASE WHEN ar.status = 'absent' THEN 1 ELSE 0 END) AS absent,
+         SUM(CASE WHEN ar.status = 'holiday' THEN 1 ELSE 0 END) AS holiday,
+         COUNT(ar.id) AS recordsCount
+       FROM students s
+       LEFT JOIN courses c ON (s.course_id = c.id OR s.course COLLATE utf8mb4_unicode_ci = c.name)
+       LEFT JOIN attendance_records ar ON ar.student_id = s.id AND ar.attendance_date = ?
+       WHERE s.student_status = 'Regular'${attendanceScopeJoin}${attendanceExclusionClause}
+       GROUP BY COALESCE(c.name, s.course, 'Other')
+       HAVING totalStudents > 0
+       ORDER BY totalStudents DESC`,
+      [requestedDate, ...attendanceScopeParams, ...attendanceExclusionParams]
+    );
+
+    const courses = (rows || []).map(r => {
+      const totalStudents = Number(r.totalStudents) || 0;
+      const present = Number(r.present) || 0;
+      const absent = Number(r.absent) || 0;
+      const holiday = Number(r.holiday) || 0;
+      const marked = present + absent + holiday;
+      const isPosted = (present + absent) > 0;
+      const rate = totalStudents > 0 ? Math.round((present / totalStudents) * 100) : 0;
+      const postedRate = (present + absent) > 0 ? Math.round((present / (present + absent)) * 100) : 0;
+
+      return {
+        name: r.name,
+        totalStudents,
+        present,
+        absent,
+        holiday,
+        marked,
+        rate,
+        postedRate,
+        isPosted
+      };
+    });
+
+    const totalStudents = courses.reduce((sum, c) => sum + c.totalStudents, 0);
+    const totalPresent = courses.reduce((sum, c) => sum + c.present, 0);
+    const totalAbsent = courses.reduce((sum, c) => sum + c.absent, 0);
+    const overallRate = totalStudents > 0 ? Math.round((totalPresent / totalStudents) * 100) : 0;
+    const overallPostedRate = (totalPresent + totalAbsent) > 0 ? Math.round((totalPresent / (totalPresent + totalAbsent)) * 100) : 0;
+
+    return res.json({
+      success: true,
+      data: {
+        date: requestedDate,
+        totalStudents,
+        present: totalPresent,
+        absent: totalAbsent,
+        rate: overallRate,
+        postedRate: overallPostedRate,
+        courses
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching course-wise attendance:', error);
+    return res.status(500).json({ success: false, message: 'Server error while fetching course-wise attendance' });
   }
 };
 

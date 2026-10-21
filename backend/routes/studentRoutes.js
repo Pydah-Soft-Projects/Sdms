@@ -77,6 +77,14 @@ router.get(
 );
 
 router.get(
+  '/attendance/course-wise',
+  authMiddleware,
+  verifyPermission(MODULES.STUDENT_MANAGEMENT, 'view'),
+  attachUserScope,
+  studentController.getCourseWiseAttendance
+);
+
+router.get(
   '/batches',
   authMiddleware,
   verifyPermission(MODULES.STUDENT_MANAGEMENT, 'view'),

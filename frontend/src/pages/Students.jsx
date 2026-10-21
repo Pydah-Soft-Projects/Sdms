@@ -2991,6 +2991,27 @@ const Students = () => {
   // Never show full-page loader - always show page structure
   // Only the table area will show loading state
 
+  // Helper to format academic class as "4-1 A" (Year-Semester Section)
+  const getAcademicClassDisplay = (student) => {
+    const y = canViewField('current_year') ? (student.current_year || 1) : null;
+    const s = canViewField('current_semester') ? (student.current_semester || 1) : null;
+    const sec = (showSectionColumn && student.section && student.section !== '-') ? String(student.section).trim() : '';
+
+    if (y && s) {
+      return `${y}-${s}${sec ? ` ${sec}` : ''}`;
+    }
+    if (y) {
+      return `Y${y}${sec ? ` ${sec}` : ''}`;
+    }
+    if (s) {
+      return `S${s}${sec ? ` ${sec}` : ''}`;
+    }
+    if (sec) {
+      return `Sec ${sec}`;
+    }
+    return '-';
+  };
+
   // If user somehow reaches this page without view permission, show a clean access message
   if (!canViewStudents) {
     return (
@@ -3597,9 +3618,9 @@ const Students = () => {
                         Branch
                       </th>
                     )}
-                    {showSectionColumn && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[70px]">
-                        Section
+                    {(canViewField('current_year') || canViewField('current_semester') || showSectionColumn) && (
+                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-center min-w-[95px]">
+                        Yr / Sem
                       </th>
                     )}
                     {!isCashier && (
@@ -3624,16 +3645,6 @@ const Students = () => {
                     {canViewField('fee_status') && (
                       <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[80px]">
                         Fees
-                      </th>
-                    )}
-                    {canViewField('current_year') && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-center min-w-[48px]">
-                        Yr
-                      </th>
-                    )}
-                    {canViewField('current_semester') && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-center min-w-[48px]">
-                        Sem
                       </th>
                     )}
                     {!isCashier && (
@@ -3740,9 +3751,14 @@ const Students = () => {
                             {student.branch || '-'}
                           </td>
                         )}
-                        {showSectionColumn && (
-                          <td className="py-2.5 px-3 text-xs text-gray-800 font-semibold whitespace-nowrap">
-                            {student.section || '-'}
+                        {(canViewField('current_year') || canViewField('current_semester') || showSectionColumn) && (
+                          <td className="py-2.5 px-3 text-xs text-center whitespace-nowrap">
+                            <span
+                              className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200/60 font-mono tracking-wide"
+                              title={`Year ${student.current_year || 1}, Semester ${student.current_semester || 1}${student.section && student.section !== '-' ? `, Section ${student.section}` : ''}`}
+                            >
+                              {getAcademicClassDisplay(student)}
+                            </span>
                           </td>
                         )}
                         {!isCashier && (
@@ -3771,20 +3787,6 @@ const Students = () => {
                         {canViewField('fee_status') && (
                           <td className="py-2.5 px-3 text-xs text-gray-800" onClick={(e) => e.stopPropagation()}>
                             {renderEditableCell(student, 'fee_status', 'select', FEE_STATUS_OPTIONS)}
-                          </td>
-                        )}
-                        {canViewField('current_year') && (
-                          <td className="py-2.5 px-3 text-xs text-center">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200/60">
-                              Y{student.current_year || 1}
-                            </span>
-                          </td>
-                        )}
-                        {canViewField('current_semester') && (
-                          <td className="py-2.5 px-3 text-xs text-center">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 font-bold text-xs border border-indigo-200/60">
-                              S{student.current_semester || 1}
-                            </span>
                           </td>
                         )}
                         {(!isCashier || canAddRemarks || canManageRemarks) && (
@@ -3913,10 +3915,19 @@ const Students = () => {
                             <p className="text-sm font-semibold text-gray-900 truncate" title={student.branch || ''}>{student.branch || '-'}</p>
                           </div>
                         )}
-                        {showSectionColumn && (
+                        {(canViewField('current_year') || canViewField('current_semester') || showSectionColumn) && (
                           <div>
-                            <p className="text-xs text-gray-500 font-medium">Section</p>
-                            <p className="text-sm font-semibold text-gray-900">{student.section || '-'}</p>
+                            <p className="text-xs text-gray-500 font-medium">
+                              Yr / Sem
+                            </p>
+                            <div className="mt-0.5">
+                              <span
+                                className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200/60 font-mono tracking-wide"
+                                title={`Year ${student.current_year || 1}, Semester ${student.current_semester || 1}${student.section && student.section !== '-' ? `, Section ${student.section}` : ''}`}
+                              >
+                                {getAcademicClassDisplay(student)}
+                              </span>
+                            </div>
                           </div>
                         )}
                         {!isCashier && (
@@ -3934,16 +3945,6 @@ const Students = () => {
                           <div>
                             <p className="text-xs text-gray-500 font-medium">Fee Status</p>
                             <p className="text-sm font-semibold text-gray-900">{student.fee_status || 'pending'}</p>
-                          </div>
-                        )}
-                        {(canViewField('current_year') || canViewField('current_semester')) && (
-                          <div>
-                            <p className="text-xs text-gray-500 font-medium">Year/Sem</p>
-                            <p className="text-sm font-semibold text-gray-900">
-                              {canViewField('current_year') ? (student.current_year || '-') : '?'}
-                              /
-                              {canViewField('current_semester') ? (student.current_semester || '-') : '?'}
-                            </p>
                           </div>
                         )}
 

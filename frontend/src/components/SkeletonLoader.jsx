@@ -106,14 +106,13 @@ export const SkeletonStudentsTable = ({ rows = 10 }) => {
     { width: 'w-36' }, // College
     { width: 'w-32' }, // Course
     { width: 'w-32' }, // Branch
+    { width: 'w-24' }, // Yr / Sem / Sec
     { width: 'w-28' }, // Student Type
     { width: 'w-24' }, // Status
     { width: 'w-28' }, // Scholar Status
     { width: 'w-24' }, // Caste
     { width: 'w-20' }, // Gender
     { width: 'w-32' }, // Certificate Status
-    { width: 'w-16' }, // Year
-    { width: 'w-16' }, // Semester
     { width: 'w-32' }, // Remarks
   ];
 

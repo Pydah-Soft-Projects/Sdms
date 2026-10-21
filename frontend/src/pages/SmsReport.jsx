@@ -8,7 +8,9 @@ import {
   Lock,
   ChevronLeft,
   ChevronRight,
-  Loader2
+  Loader2,
+  Search,
+  X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../config/api';
@@ -21,6 +23,24 @@ const getTodayDateString = () => {
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+};
+
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return { date: '-', time: '' };
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return { date: String(dateStr), time: '' };
+  const date = d.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+  const time = d.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+  return { date, time };
 };
 
 function SmsReport() {
@@ -38,9 +58,11 @@ function SmsReport() {
     date_from: todayStr,
     date_to: todayStr,
     category: '',
-    status: ''
+    status: '',
+    search: ''
   });
   const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [selectedLog, setSelectedLog] = useState(null);
   const [report, setReport] = useState(null);
   const [logs, setLogs] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 25, total: 0, totalPages: 0 });
@@ -54,6 +76,7 @@ function SmsReport() {
     if (filters.date_to) params.append('date_to', filters.date_to);
     if (filters.category) params.append('category', filters.category);
     if (filters.status) params.append('status', filters.status);
+    if (filters.search) params.append('search', filters.search.trim());
     if (selectedTemplateId) params.append('template_id', selectedTemplateId);
     Object.entries(extra).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '') params.set(k, v);
@@ -75,7 +98,7 @@ function SmsReport() {
   };
 
   const clearFilters = () => {
-    setFilters({ date_from: '', date_to: '', category: '', status: '' });
+    setFilters({ date_from: todayStr, date_to: todayStr, category: '', status: '', search: '' });
     setSelectedTemplateId('');
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
@@ -163,7 +186,14 @@ function SmsReport() {
     return 'Unavailable';
   };
 
-  const hasActiveFilters = filters.category || filters.status || selectedTemplateId || filters.date_from || filters.date_to;
+  const hasActiveFilters = Boolean(
+    filters.category ||
+    filters.status ||
+    filters.search ||
+    selectedTemplateId ||
+    filters.date_from !== todayStr ||
+    filters.date_to !== todayStr
+  );
 
   const getCategoryDisplayName = (log) => {
     if (log.category === 'SMS Template' || !log.category) {
@@ -269,6 +299,17 @@ function SmsReport() {
 
             {/* Compact Filters Toolbar */}
             <div className="flex flex-wrap items-center gap-2 text-xs">
+              <div className="flex items-center gap-1.5 bg-white border border-gray-300 rounded-lg px-2.5 py-1 shadow-2xs">
+                <Search size={13} className="text-gray-400 shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search student, mobile..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                  className="border-none p-0 text-xs focus:ring-0 text-gray-700 bg-transparent font-medium w-36 placeholder:text-gray-400"
+                />
+              </div>
+
               <div className="flex items-center gap-1 bg-white border border-gray-300 rounded-lg px-2 py-1 shadow-2xs">
                 <span className="text-gray-500 font-semibold text-[11px]">From:</span>
                 <input
@@ -298,6 +339,18 @@ function SmsReport() {
                 <option value="Sent">Sent</option>
                 <option value="Failed">Failed</option>
               </select>
+
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold transition-all shadow-2xs"
+                  title="Clear all filters"
+                >
+                  <XCircle size={13} />
+                  Reset
+                </button>
+              )}
             </div>
           </div>
 
@@ -370,28 +423,35 @@ function SmsReport() {
         </div>
 
         {/* SMS Logs Table */}
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
           {logsLoading ? (
             <div className="flex justify-center py-12"><Loader2 className="animate-spin text-blue-500" /></div>
           ) : logs.length === 0 ? (
             <p className="text-center py-12 text-xs text-gray-500">No SMS logs found for the selected filters.</p>
           ) : (
-            <table className="w-full text-xs">
-              <thead className="bg-gray-50 sticky top-0 text-gray-600 font-semibold border-b">
+            <table className="w-full text-xs table-fixed">
+              <thead className="bg-gray-50 sticky top-0 text-gray-600 font-semibold border-b z-10 shadow-2xs">
                 <tr>
-                  <th className="px-3 py-2 text-left">Status</th>
-                  <th className="px-3 py-2 text-left">Date</th>
-                  <th className="px-3 py-2 text-left">Category</th>
-                  <th className="px-3 py-2 text-left">Template Name</th>
-                  <th className="px-3 py-2 text-left">Mobile</th>
-                  <th className="px-3 py-2 text-left">Student</th>
-                  <th className="px-3 py-2 text-left">Message</th>
+                  <th className="w-[72px] px-3 py-2.5 text-left whitespace-nowrap">Status</th>
+                  <th className="w-[110px] px-3 py-2.5 text-left whitespace-nowrap">Date</th>
+                  <th className="w-[95px] px-3 py-2.5 text-left whitespace-nowrap">Category</th>
+                  <th className="w-[110px] px-3 py-2.5 text-left whitespace-nowrap">Template Name</th>
+                  <th className="w-[95px] px-3 py-2.5 text-left whitespace-nowrap">Mobile</th>
+                  <th className="w-[165px] px-3 py-2.5 text-left">Student</th>
+                  <th className="w-[165px] px-3 py-2.5 text-left">Course / Branch</th>
+                  <th className="w-[115px] px-2.5 py-2.5 text-center whitespace-nowrap">Year & Sem</th>
+                  <th className="px-3 py-2.5 text-left">Message</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 font-medium">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-blue-50/40 transition-colors">
-                    <td className="px-3 py-2">
+                  <tr
+                    key={log.id}
+                    onClick={() => setSelectedLog(log)}
+                    className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
+                    title="Click to view message details"
+                  >
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         log.status === 'Sent' || log.status === 'Delivered'
                           ? 'bg-green-50 text-green-700 border border-green-200'
@@ -400,12 +460,64 @@ function SmsReport() {
                         {log.status}
                       </span>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap text-gray-600">{log.sent_at ? new Date(log.sent_at).toLocaleString('en-IN') : '-'}</td>
-                    <td className="px-3 py-2 font-semibold text-gray-800">{getCategoryDisplayName(log)}</td>
-                    <td className="px-3 py-2 font-semibold text-blue-700">{getTemplateName(log)}</td>
-                    <td className="px-3 py-2 font-mono text-gray-700">{log.mobile_number}</td>
-                    <td className="px-3 py-2 text-gray-900">{log.student_name || log.admission_number || '-'}</td>
-                    <td className="px-3 py-2 max-w-md truncate text-gray-600" title={log.message}>{log.message}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {(() => {
+                        const { date, time } = formatDateTime(log.sent_at);
+                        return (
+                          <div className="leading-tight">
+                            <div className="font-semibold text-gray-800 text-[11px]">{date}</div>
+                            {time && (
+                              <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                                {time}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap font-semibold text-gray-800 truncate" title={getCategoryDisplayName(log)}>
+                      {getCategoryDisplayName(log)}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap font-semibold text-blue-700 truncate" title={getTemplateName(log)}>
+                      {getTemplateName(log)}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap font-mono text-gray-700">
+                      {log.mobile_number}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="font-semibold text-gray-900 leading-tight truncate" title={log.student_name || ''}>
+                        {log.student_name || (log.admission_number ? log.admission_number : '-')}
+                      </div>
+                      {log.student_name && log.admission_number && (
+                        <div className="text-[11px] text-gray-400 font-mono leading-tight mt-0.5 truncate">
+                          {log.admission_number}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="font-semibold text-gray-900 leading-tight truncate" title={log.course || '-'}>
+                        {log.course || '-'}
+                      </div>
+                      {log.branch && (
+                        <div className="text-[11px] text-gray-500 font-medium leading-tight truncate mt-0.5" title={log.branch}>
+                          {log.branch}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-2.5 py-2 text-center whitespace-nowrap">
+                      {log.current_year || log.current_semester ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                          {log.current_year ? `Year ${log.current_year}` : '-'}
+                          <span className="mx-1 text-slate-300">•</span>
+                          {log.current_semester ? `Sem ${log.current_semester}` : '-'}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 font-medium">-</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 truncate text-gray-600 group-hover:text-blue-600 transition-colors" title={log.message}>
+                      {log.message}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -438,6 +550,138 @@ function SmsReport() {
           </div>
         )}
       </section>
+
+      {/* Modal for viewing complete SMS details */}
+      {selectedLog && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setSelectedLog(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-lg w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/70">
+              <div className="flex items-center gap-2">
+                <div className="rounded-lg bg-blue-100 p-1.5 text-blue-600">
+                  <MessageSquare size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">SMS Log Details</h3>
+                  <p className="text-[11px] text-gray-500">
+                    {selectedLog.sent_at ? new Date(selectedLog.sent_at).toLocaleString('en-IN') : '-'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedLog(null)}
+                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              {/* Status & Category */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+                  <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Delivery Status</span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    selectedLog.status === 'Sent' || selectedLog.status === 'Delivered'
+                      ? 'bg-green-50 text-green-700 border border-green-200'
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}>
+                    {selectedLog.status}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+                  <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Category / Template</span>
+                  <p className="font-semibold text-gray-800">
+                    {getCategoryDisplayName(selectedLog)}
+                    {getTemplateName(selectedLog) !== '-' && (
+                      <span className="text-blue-600 font-medium ml-1">({getTemplateName(selectedLog)})</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Student & Academic Info */}
+              <div className="p-3 rounded-xl bg-blue-50/50 border border-blue-100 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-blue-600 block">Student</span>
+                    <p className="font-bold text-gray-900 text-sm">
+                      {selectedLog.student_name || 'Unlinked Student'}
+                    </p>
+                    {selectedLog.admission_number && (
+                      <p className="text-[11px] font-mono text-gray-500">Adm: {selectedLog.admission_number}</p>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] uppercase font-bold text-blue-600 block">Mobile</span>
+                    <p className="font-mono font-semibold text-gray-900 text-sm">{selectedLog.mobile_number}</p>
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-blue-100/80 grid grid-cols-4 gap-2 text-center">
+                  <div className="bg-white rounded-lg p-1.5 border border-blue-100/60">
+                    <span className="text-[10px] text-gray-400 font-semibold block">Course</span>
+                    <span className="font-bold text-gray-800 text-[11px] truncate block" title={selectedLog.course || ''}>
+                      {selectedLog.course || '-'}
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-lg p-1.5 border border-blue-100/60">
+                    <span className="text-[10px] text-gray-400 font-semibold block">Branch</span>
+                    <span className="font-bold text-gray-800 text-[11px] truncate block" title={selectedLog.branch || ''}>
+                      {selectedLog.branch || '-'}
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-lg p-1.5 border border-blue-100/60">
+                    <span className="text-[10px] text-gray-400 font-semibold block">Year</span>
+                    <span className="font-bold text-gray-800 text-[11px]">
+                      {selectedLog.current_year ? `Year ${selectedLog.current_year}` : '-'}
+                    </span>
+                  </div>
+                  <div className="bg-white rounded-lg p-1.5 border border-blue-100/60">
+                    <span className="text-[10px] text-gray-400 font-semibold block">Semester</span>
+                    <span className="font-bold text-gray-800 text-[11px]">
+                      {selectedLog.current_semester ? `Sem ${selectedLog.current_semester}` : '-'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Message Content */}
+              <div>
+                <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Message Content</span>
+                <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-800 font-mono text-xs leading-relaxed whitespace-pre-wrap select-all">
+                  {selectedLog.message}
+                </div>
+              </div>
+
+              {selectedLog.error_details && (
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-red-500 block mb-1">Error Details</span>
+                  <div className="p-2.5 bg-red-50 rounded-xl border border-red-200 text-red-700 font-mono text-[11px]">
+                    {selectedLog.error_details}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedLog(null)}
+                className="px-3.5 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-all shadow-2xs"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

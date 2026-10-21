@@ -14,7 +14,9 @@ import {
     Zap,
     AlertCircle,
     X,
-    Award
+    Award,
+    History,
+    ChevronDown
 } from 'lucide-react';
 import { SkeletonBox } from '../../components/SkeletonLoader';
 import useAuthStore from '../../store/authStore';
@@ -22,8 +24,14 @@ import toast from 'react-hot-toast';
 import api from '../../config/api';
 import {
   isStudentMobileVerifiedForCycle,
-  isParentMobileVerifiedForCycle
+  isParentMobileVerifiedForCycle,
+  isCertificatesStatusComplete
 } from '../../config/registrationCycle';
+import {
+  getCourseType,
+  getCertificatesForCourse,
+  normalizeCertificateValue
+} from '../../config/certificateConfig';
 import {
   computeRegistrationStageDisplays,
   RegistrationStageBadge,
@@ -42,6 +50,7 @@ const SemesterRegistration = () => {
     const [optionalStages, setOptionalStages] = useState([]);
     const [registrationStageConfig, setRegistrationStageConfig] = useState({});
     const [activeStepId, setActiveStepId] = useState(null); // For Modal
+    const [showPreviousRegistration, setShowPreviousRegistration] = useState(false);
 
     // Step 1 State: Verification
     const [verificationState, setVerificationState] = useState({
@@ -296,12 +305,73 @@ const SemesterRegistration = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialLoading, registrationStages.overallStatus, studentData]);
 
+    const previousRegistrations = useMemo(() => {
+        const sData = studentData?.student_data || {};
+        const parsed = typeof sData === 'string'
+            ? (() => { try { return JSON.parse(sData || '{}'); } catch { return {}; } })()
+            : sData;
+
+        // Check for actual registration history in studentData
+        if (Array.isArray(studentData?.previous_registrations) && studentData.previous_registrations.length > 0) {
+            return studentData.previous_registrations;
+        }
+        if (Array.isArray(studentData?.registration_history) && studentData.registration_history.length > 0) {
+            return studentData.registration_history;
+        }
+        if (Array.isArray(parsed?.previous_registrations) && parsed.previous_registrations.length > 0) {
+            return parsed.previous_registrations;
+        }
+        if (Array.isArray(parsed?.registration_history) && parsed.registration_history.length > 0) {
+            return parsed.registration_history;
+        }
+
+        // Check for nested actual student_data snapshot from previous promotion
+        if (parsed?.student_data && typeof parsed.student_data === 'object' && parsed.student_data.current_year) {
+            const prev = parsed.student_data;
+            return [{
+                year: prev.current_year || prev['Current Academic Year'] || '-',
+                semester: prev.current_semester || prev['Current Semester'] || '-',
+                batch: prev.batch || prev['Batch'] || '-',
+                status: prev.registration_status || prev['Registration Status'] || '-',
+                verification: prev.is_student_mobile_verified ? 'Verified' : '-',
+                certificates: prev.certificates_status || '-',
+                fee: prev.fee_status || prev['Fee Status'] || '-',
+                promotion: prev.current_year ? `Year ${prev.current_year}` : '-'
+            }];
+        }
+
+        return [];
+    }, [studentData]);
+
+    const courseType = useMemo(() => {
+        return getCourseType(studentData?.course || studentData?.program_name || user?.course || 'UG');
+    }, [studentData?.course, studentData?.program_name, user?.course]);
+
+    const certificatesList = useMemo(() => {
+        const certs = getCertificatesForCourse(courseType);
+        const sData = studentData?.student_data || {};
+        const parsed = typeof sData === 'string'
+            ? (() => { try { return JSON.parse(sData || '{}'); } catch { return {}; } })()
+            : sData;
+
+        return certs.map(c => {
+            const rawVal = parsed?.[c.key] ?? studentData?.[c.key];
+            const norm = normalizeCertificateValue(rawVal);
+            const isVerified = norm === 'Original' || norm === 'Yes' || norm === 'Memo' || norm === 'Original Returned' || isCertificatesStatusComplete(studentData?.certificates_status);
+            return {
+                ...c,
+                status: norm && norm !== 'No' ? norm : (isVerified ? 'Verified' : 'Pending'),
+                isVerified
+            };
+        });
+    }, [courseType, studentData]);
+
     // ------------ DATA & CONFIG ------------
 
     const steps = [
         {
             id: 1,
-            title: 'Verification',
+            title: 'Information Verification',
             description: 'Verify student and parent mobile numbers.',
             icon: ShieldCheck,
             color: 'blue'
@@ -372,69 +442,15 @@ const SemesterRegistration = () => {
         );
     }
 
-    // Already Completed View — show ONLY if all stages qualify as fully completed.
+    // Overall completion checkers
     const isActuallyComplete = !initialLoading && registrationStages.overallStatus === 'completed';
     const isTemporaryRegistration = !initialLoading && registrationStages.overallStatus === 'Temporary';
-
-    if (isTemporaryRegistration) {
-        return (
-            <div className="max-w-4xl mx-auto py-10 animate-fade-in">
-                <div className="bg-amber-500 rounded-3xl p-10 text-white shadow-sm relative overflow-hidden">
-                    <div className="relative z-10 text-center">
-                        <div className="mx-auto w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm">
-                            <AlertCircle size={40} className="text-white" />
-                        </div>
-                        <h1 className="text-3xl font-bold mb-4">Registration Temporary</h1>
-                        <p className="text-amber-50 text-lg mb-8 max-w-xl mx-auto">
-                            Your semester registration is marked as temporary. You can access the student portal,
-                            but scholarship or certificate updates may still be required to reach completed status.
-                        </p>
-                        <button
-                            onClick={() => navigate('/student/dashboard')}
-                            className="bg-white text-amber-700 px-8 py-3 rounded-xl font-bold hover:bg-amber-50 transition-colors shadow-lg"
-                        >
-                            Go to Dashboard
-                        </button>
-                    </div>
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -ml-16 -mb-16"></div>
-                </div>
-            </div>
-        );
-    }
-
-    if (isActuallyComplete) {
-        return (
-            <div className="max-w-4xl mx-auto py-10 animate-fade-in">
-                <div className="bg-green-600 rounded-3xl p-10 text-white shadow-sm relative overflow-hidden">
-                    <div className="relative z-10 text-center">
-                        <div className="mx-auto w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm">
-                            <CheckCircle size={40} className="text-white" />
-                        </div>
-                        <h1 className="text-3xl font-bold mb-4">You're All Set!</h1>
-                        <p className="text-emerald-100 text-lg mb-8 max-w-xl mx-auto">
-                            Your semester registration is complete. You can access your dashboard and courses now.
-                        </p>
-                        <button
-                            onClick={() => navigate('/student/dashboard')}
-                            className="bg-white text-green-700 px-8 py-3 rounded-xl font-bold hover:bg-green-50 transition-colors shadow-lg"
-                        >
-                            Go to Dashboard
-                        </button>
-                    </div>
-                    {/* Decor elements */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -ml-16 -mb-16"></div>
-                </div>
-            </div>
-        );
-    }
 
     const currentYear = studentData?.current_year ?? '1';
     const currentSemester = studentData?.current_semester ?? '1';
 
     const stageSummaryItems = [
-        { id: 1, title: 'Mobile Verification', stage: registrationStages.verification },
+        { id: 1, title: 'Information Verification', stage: registrationStages.verification },
         { id: 2, title: 'Certificate Status', stage: registrationStages.certificates },
         { id: 3, title: 'Fee Payment', stage: registrationStages.fee },
         { id: 4, title: 'Promotion Status', stage: registrationStages.promotion },
@@ -447,20 +463,260 @@ const SemesterRegistration = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-20">
-            {/* Header */}
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900 heading-font">Semester Registration</h1>
-                <p className="text-gray-500 mt-1">Complete the steps below to register for the upcoming semester.</p>
-                <div className="mt-3 flex items-center gap-2 text-sm text-gray-600 bg-gray-50 border border-gray-100 rounded-lg px-4 py-2 w-fit">
-                    <BookOpen size={18} className="text-gray-500 flex-shrink-0" />
-                    <span className="font-medium">Current:</span>
-                    <span>Year {currentYear}, Semester {currentSemester}</span>
+        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6 animate-fade-in pb-28 px-3 sm:px-6 pt-3 sm:pt-6">
+            {/* ── Admin-Dashboard Style Overview Card ── */}
+            <div className={`rounded-2xl p-4 sm:p-5 border transition-all shadow-sm ${
+                isActuallyComplete
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-500/30'
+                    : isTemporaryRegistration
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-400/30'
+                        : 'bg-white border-slate-200 text-slate-800'
+            }`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                            <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-white/20 text-white">
+                                Current Academic Cycle
+                            </span>
+                            <span className="text-xs font-bold text-white/90">
+                                <span className="sm:hidden bg-white/25 px-2 py-0.5 rounded-md font-black text-white shadow-xs">
+                                    Year {currentYear} • Semester {currentSemester}
+                                </span>
+                                <span className="hidden sm:inline">
+                                    Year {currentYear} • Semester {currentSemester}
+                                </span>
+                                {studentData?.branch ? ` • ${studentData.branch}` : ''}
+                            </span>
+                        </div>
+                        <h2 className="text-lg sm:text-xl font-black text-white leading-tight">
+                            {isActuallyComplete ? (
+                                <>
+                                    <span className="sm:hidden">Registered</span>
+                                    <span className="hidden sm:inline">Registration Completed & Verified</span>
+                                </>
+                            ) : isTemporaryRegistration ? (
+                                'Registration Temporary'
+                            ) : (
+                                'Registration In Progress'
+                            )}
+                        </h2>
+                        <p className="hidden sm:block text-xs text-white/85 mt-1">
+                            {isActuallyComplete
+                                ? 'All 5 registration processes have been successfully completed and verified for this semester.'
+                                : isTemporaryRegistration
+                                    ? 'Portal access is granted. Certain stage updates may still be required to reach finalized status.'
+                                    : 'Complete all required registration stages below to finalize your semester registration.'}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 mt-1 sm:mt-0">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-extrabold text-xs shadow-xs ${
+                            isActuallyComplete ? 'bg-white text-emerald-700' : isTemporaryRegistration ? 'bg-white text-amber-700' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                            {isActuallyComplete ? <><CheckCircle size={15} /> Completed</> : isTemporaryRegistration ? <><AlertCircle size={15} /> Temporary</> : 'Pending'}
+                        </span>
+                        <button
+                            onClick={() => navigate('/student/dashboard')}
+                            className="px-3 py-1.5 rounded-xl font-bold text-xs bg-white/20 hover:bg-white/30 text-white transition-colors"
+                        >
+                            Dashboard
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* Steps Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* ── 5-Stage Stepper: Mobile View (Vertical Step-by-Step, One Below One, No Scrolling) ── */}
+            <div className="sm:hidden bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs">
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">Registration Process Steps</h3>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        {isActuallyComplete ? '5 of 5 Completed' : 'In Progress'}
+                    </span>
+                </div>
+                <div className="space-y-0">
+                    {stageSummaryItems.map((item, index) => {
+                        const isDone = item.stage.completed || item.stage.optional;
+                        const isLast = index === stageSummaryItems.length - 1;
+
+                        return (
+                            <div
+                                key={item.id}
+                                onClick={() => {
+                                    if (item.id === 5) {
+                                        navigate('/student/scholarship');
+                                    } else {
+                                        setActiveStepId(item.id);
+                                    }
+                                }}
+                                className="flex gap-3 group cursor-pointer active:scale-[0.99] transition-transform"
+                            >
+                                {/* Left: Step Circle and Vertical Connecting Line */}
+                                <div className="flex flex-col items-center">
+                                    <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-xs shrink-0 ${
+                                        isDone ? 'bg-emerald-600 text-white ring-4 ring-emerald-50' : 'bg-slate-800 text-white ring-4 ring-slate-100'
+                                    }`}>
+                                        {isDone ? <CheckCircle size={14} strokeWidth={2.5} /> : <span>{index + 1}</span>}
+                                    </div>
+                                    {!isLast && (
+                                        <div className={`w-0.5 my-1 flex-1 min-h-[24px] rounded-full transition-colors ${
+                                            isDone ? 'bg-emerald-500' : 'bg-slate-200'
+                                        }`} />
+                                    )}
+                                </div>
+
+                                {/* Right: Step Info (One Below One) */}
+                                <div className={`flex-1 flex items-center justify-between pb-3`}>
+                                    <div>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Stage {index + 1}</span>
+                                        </div>
+                                        <h4 className="text-xs font-bold text-slate-800 group-hover:text-emerald-700 transition-colors">
+                                            {item.title}
+                                        </h4>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+                                            isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                        }`}>
+                                            {isDone ? 'Done' : 'Pending'}
+                                        </span>
+                                        <ArrowRight size={12} className="text-slate-400 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition-all" />
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* ── Mobile View: Previous Registration Button & History ── */}
+            <div className="sm:hidden space-y-2.5">
+                <button
+                    type="button"
+                    onClick={() => setShowPreviousRegistration(prev => !prev)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:bg-slate-50 active:scale-[0.99] transition-all group cursor-pointer"
+                >
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                            <History size={16} />
+                        </div>
+                        <div className="text-left">
+                            <span className="text-xs font-black text-slate-800 block">Previous Registration</span>
+                            <span className="text-[10px] text-slate-400 font-medium">View past academic year registrations</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-indigo-600 font-bold text-xs">
+                        <span>{showPreviousRegistration ? 'Hide' : 'View'}</span>
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${showPreviousRegistration ? 'rotate-180' : ''}`} />
+                    </div>
+                </button>
+
+                {showPreviousRegistration && (
+                    <div className="space-y-2.5 pt-0.5 animate-fade-in">
+                        {previousRegistrations.length > 0 ? (
+                            previousRegistrations.map((prev, idx) => (
+                                <div
+                                    key={idx}
+                                    className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs"
+                                >
+                                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                                                <History size={14} />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-xs font-black text-slate-800">
+                                                    {prev.year && prev.year !== '-' ? `Year ${prev.year}` : '-'} {prev.semester && prev.semester !== '-' ? `• Semester ${prev.semester}` : ''}
+                                                </h4>
+                                                <p className="text-[10px] text-slate-400 font-medium">{prev.batch || prev.academic_year || '-'}</p>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                                            String(prev.status || '').toLowerCase() === 'completed'
+                                                ? 'bg-emerald-100 text-emerald-800'
+                                                : 'bg-slate-100 text-slate-600'
+                                        }`}>
+                                            {prev.status || '-'}
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                                        <div className="bg-slate-50/80 rounded-xl p-2 border border-slate-100 flex items-center justify-between">
+                                            <span className="text-slate-500 font-semibold">Verification</span>
+                                            <span className="text-slate-800 font-bold">{prev.verification || '-'}</span>
+                                        </div>
+                                        <div className="bg-slate-50/80 rounded-xl p-2 border border-slate-100 flex items-center justify-between">
+                                            <span className="text-slate-500 font-semibold">Certificates</span>
+                                            <span className="text-slate-800 font-bold">{prev.certificates || '-'}</span>
+                                        </div>
+                                        <div className="bg-slate-50/80 rounded-xl p-2 border border-slate-100 flex items-center justify-between">
+                                            <span className="text-slate-500 font-semibold">Fee Status</span>
+                                            <span className="text-slate-800 font-bold">{prev.fee || '-'}</span>
+                                        </div>
+                                        <div className="bg-slate-50/80 rounded-xl p-2 border border-slate-100 flex items-center justify-between">
+                                            <span className="text-slate-500 font-semibold">Promotion</span>
+                                            <span className="text-slate-800 font-bold">{prev.promotion || '-'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="bg-white rounded-2xl border border-slate-200/90 p-4 text-center">
+                                <span className="text-sm font-black text-slate-400">-</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* ── 5-Stage Stepper: Desktop View (Horizontal Stepper) ── */}
+            <div className="hidden sm:block bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs">
+                <div className="flex items-center justify-between max-w-4xl mx-auto relative px-1">
+                    {stageSummaryItems.map((item, index) => {
+                        const isDone = item.stage.completed || item.stage.optional;
+                        return (
+                            <React.Fragment key={item.id}>
+                                <div
+                                    onClick={() => setActiveStepId(item.id)}
+                                    className="flex flex-col items-center gap-1 relative z-10 cursor-pointer group active:scale-95 transition-transform"
+                                >
+                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-xs ${
+                                        isDone ? 'bg-emerald-600 text-white ring-4 ring-emerald-100' : 'bg-slate-800 text-white ring-4 ring-slate-100'
+                                    }`}>
+                                        {isDone ? <CheckCircle size={16} strokeWidth={2.5} /> : <span>{index + 1}</span>}
+                                    </div>
+                                    <span className="text-[11px] font-extrabold text-slate-800 group-hover:text-emerald-700">Stage {index + 1}</span>
+                                    <span className="text-[9px] font-bold text-slate-500 text-center max-w-[85px] truncate">{item.title}</span>
+                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+                                        isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                    }`}>
+                                        {isDone ? 'Done' : 'Pending'}
+                                    </span>
+                                </div>
+
+                                {index < stageSummaryItems.length - 1 && (
+                                    <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-slate-100">
+                                        <div className={`h-full transition-all duration-500 ${isDone ? 'bg-emerald-500' : 'bg-slate-200'}`}></div>
+                                    </div>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* ── Section Title (Desktop Only) ── */}
+            <div className="hidden sm:flex items-center justify-between pt-1">
+                <div>
+                    <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">Registration Processes</h3>
+                    <p className="text-xs text-slate-500">Current Academic Year {currentYear} • Semester {currentSemester} Process Details</p>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-lg">
+                    {isActuallyComplete ? 'All 5 Stages Verified' : 'In Progress'}
+                </span>
+            </div>
+
+            {/* ── Steps Grid (Desktop Only) ── */}
+            <div className="hidden sm:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
                 {steps.map(step => {
                     const isComplete = isStepCompleted(step.id);
                     const Icon = step.icon;
@@ -471,33 +727,33 @@ const SemesterRegistration = () => {
                             key={step.id}
                             onClick={() => setActiveStepId(step.id)}
                             className={`
-                                relative bg-white rounded-2xl p-6 border-l-4 transition-all duration-300 cursor-pointer hover:shadow-md hover:-translate-y-1 group shadow-sm
+                                relative bg-white rounded-2xl p-4 sm:p-5 border-l-4 transition-all duration-200 cursor-pointer hover:shadow-md active:scale-[0.99] group shadow-xs
                                 ${isComplete
-                                    ? 'border-l-green-500 border-gray-100 bg-green-50/10'
-                                    : 'border-l-red-500 border-red-50 bg-white hover:bg-red-50/10'}
+                                    ? 'border-l-emerald-500 border-slate-200/80 hover:border-emerald-200'
+                                    : 'border-l-amber-500 border-slate-200/80 hover:border-amber-200'}
                             `}
                         >
-                            <div className="flex justify-between items-start mb-4">
-                                <div className={`p-3 rounded-xl ${isComplete ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                    <Icon size={24} />
+                            <div className="flex justify-between items-start mb-3">
+                                <div className={`p-2.5 rounded-xl ${isComplete ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+                                    <Icon size={20} />
                                 </div>
                                 {isComplete ? (
-                                    <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                                        <CheckCircle size={12} />
+                                    <div className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1">
+                                        <CheckCircle size={11} />
                                         DONE
                                     </div>
                                 ) : (
-                                    <div className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 animate-pulse">
-                                        <AlertCircle size={12} />
+                                    <div className="bg-amber-50 text-amber-700 border border-amber-100 px-2.5 py-0.5 rounded-full text-[10px] font-black flex items-center gap-1">
+                                        <AlertCircle size={11} />
                                         PENDING
                                     </div>
                                 )}
                             </div>
 
-                            <h3 className="text-lg font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
+                            <h3 className="text-sm sm:text-base font-extrabold text-slate-900 mb-1 group-hover:text-emerald-700 transition-colors">
                                 {step.title}
                             </h3>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-xs text-slate-500 line-clamp-2">
                                 {step.description}
                             </p>
                             {stage && (
@@ -506,26 +762,32 @@ const SemesterRegistration = () => {
                                 </div>
                             )}
 
-                            <div className="mt-4 flex items-center text-blue-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                View Details <ArrowRight size={16} className="ml-1" />
+                            <div className="mt-3.5 pt-2 border-t border-slate-100 flex items-center justify-between text-emerald-700 text-xs font-bold">
+                                <span>View Details</span>
+                                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                             </div>
                         </div>
                     );
                 })}
             </div>
 
-            {/* Final Action Bar */}
-            {/* Footer replaced with Status Info */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-30 lg:pl-64">
-                <div className="max-w-6xl mx-auto flex items-center justify-between">
+            {/* ── Fixed Footer Action Bar ── */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 sm:p-4 shadow-lg z-30 lg:pl-64">
+                <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
                     <div>
-                        <p className="text-sm font-medium text-gray-900">Registration Status</p>
-                        <p className="text-xs text-gray-500">Your registration will be automatically finalized once all steps are completed.</p>
+                        <p className="text-xs sm:text-sm font-extrabold text-slate-900">
+                            {isActuallyComplete ? 'Registration Finalized' : 'Registration Status'}
+                        </p>
+                        <p className="text-[10px] sm:text-xs text-slate-500">
+                            {isActuallyComplete ? `Current cycle registration verified for Year ${currentYear}, Sem ${currentSemester}` : 'Your registration will be automatically finalized once all steps are completed.'}
+                        </p>
                     </div>
-                    <div className="flex items-center gap-2 text-blue-600 font-semibold text-sm bg-blue-50 px-4 py-2 rounded-lg border border-blue-100">
-                        <Zap size={16} className="animate-pulse" />
-                        Automated System Active
-                    </div>
+                    <button
+                        onClick={() => navigate('/student/dashboard')}
+                        className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition text-xs shrink-0 flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer"
+                    >
+                        <CheckCircle size={14} /> Go to Dashboard
+                    </button>
                 </div>
             </div>
 
@@ -616,23 +878,56 @@ const SemesterRegistration = () => {
 
                             {/* STEP 2: CERTIFICATES */}
                             {activeStepId === 2 && (
-                                <div className="text-center">
-                                    <div className="flex justify-center mb-6">
+                                <div className="space-y-4">
+                                    <div className="flex flex-col items-center justify-center mb-1">
                                         <RegistrationStageBadge display={registrationStages.certificates.display} />
+                                        <p className="text-xs text-gray-500 mt-2 font-medium">
+                                            Current Status: <span className="font-bold text-gray-800 capitalize">{studentData?.certificates_status || 'Pending'}</span>
+                                        </p>
                                     </div>
-                                    <p className="text-sm text-gray-500 mb-6 capitalize">
-                                        Current Status: {studentData?.certificates_status || 'Pending'}
-                                    </p>
+
+                                    {/* Certificates List */}
+                                    <div className="space-y-2">
+                                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 px-1">
+                                            Academic Certificates & Documents
+                                        </h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                            {certificatesList.map(cert => (
+                                                <div
+                                                    key={cert.key}
+                                                    className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between shadow-2xs"
+                                                >
+                                                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                                            cert.isVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                                        }`}>
+                                                            <FileText size={16} />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-bold text-slate-800 truncate" title={cert.label}>
+                                                                {cert.label}
+                                                            </p>
+                                                            <p className="text-[10px] text-slate-400 font-medium">
+                                                                Document Verification
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${
+                                                        cert.isVerified
+                                                            ? 'bg-emerald-100 text-emerald-800'
+                                                            : 'bg-amber-100 text-amber-800'
+                                                    }`}>
+                                                        {cert.status}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
                                     {!isStepCompleted(2) && (
-                                        <div className="bg-yellow-50 text-yellow-800 p-6 rounded-xl text-left border border-yellow-100">
-                                            <h4 className="font-bold mb-3 flex items-center gap-2"><AlertCircle size={18} /> Action Required</h4>
-                                            <p className="mb-4 text-sm">Please submit the original copies of the following documents to the administration office:</p>
-                                            <ul className="list-disc list-inside space-y-2 text-sm ml-2">
-                                                <li>SSC / 10th Class Certificate</li>
-                                                <li>Intermediate / Diploma Certificate</li>
-                                                <li>Aadhar Card & Photos</li>
-                                                <li>Study Certificates</li>
-                                            </ul>
+                                        <div className="bg-yellow-50 text-yellow-800 p-4 rounded-xl text-left border border-yellow-100 text-xs">
+                                            <h4 className="font-bold mb-1.5 flex items-center gap-1.5"><AlertCircle size={16} /> Action Required</h4>
+                                            <p>Please submit any pending original documents to the administration office for verification.</p>
                                         </div>
                                     )}
                                 </div>

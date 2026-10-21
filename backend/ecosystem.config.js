@@ -1,11 +1,11 @@
 /**
- * PM2 config for SDMS production (1 GB Lightsail).
- * App name must match nginx + deploy workflow: sdbms
+ * PM2 config for SDMS production (AWS Lightsail)
+ * App name: sdms-backend
  */
 module.exports = {
   apps: [
     {
-      name: 'sdbms',
+      name: 'sdms-backend',
       script: './server.js',
       instances: 1,
       exec_mode: 'fork',
@@ -23,3 +23,4 @@ module.exports = {
     }
   ]
 };
+

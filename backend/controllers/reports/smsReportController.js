@@ -176,7 +176,7 @@ exports.getSmsReportLogs = async (req, res) => {
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 25));
     const offset = (page - 1) * limit;
-    const { date_from, date_to, category, status, template_id } = req.query;
+    const { date_from, date_to, category, status, template_id, course, branch, year, semester, search } = req.query;
 
     const { joinClause, whereClause, params } = buildSmsLogScope(req);
     let filteredWhere = whereClause;
@@ -219,6 +219,26 @@ exports.getSmsReportLogs = async (req, res) => {
         filteredParams.push(template_id);
       }
     }
+    if (course) {
+      filteredWhere += ' AND s.course = ?';
+      filteredParams.push(course);
+    }
+    if (branch) {
+      filteredWhere += ' AND s.branch = ?';
+      filteredParams.push(branch);
+    }
+    if (year) {
+      filteredWhere += ' AND COALESCE(sl.current_year, s.current_year) = ?';
+      filteredParams.push(year);
+    }
+    if (semester) {
+      filteredWhere += ' AND COALESCE(sl.current_semester, s.current_semester) = ?';
+      filteredParams.push(semester);
+    }
+    if (search) {
+      filteredWhere += ' AND (sl.mobile_number LIKE ? OR s.student_name LIKE ? OR s.admission_number LIKE ? OR sl.message LIKE ?)';
+      filteredParams.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+    }
 
     const studentJoin = joinClause || ' LEFT JOIN students s ON sl.student_id = s.id ';
 
@@ -231,6 +251,7 @@ exports.getSmsReportLogs = async (req, res) => {
     const [logs] = await masterPool.query(
       `SELECT
         sl.id,
+        sl.student_id,
         sl.mobile_number,
         sl.message,
         sl.category,
@@ -243,7 +264,9 @@ exports.getSmsReportLogs = async (req, res) => {
         s.student_name,
         s.college,
         s.course,
-        s.branch
+        s.branch,
+        COALESCE(sl.current_year, s.current_year) AS current_year,
+        COALESCE(sl.current_semester, s.current_semester) AS current_semester
       FROM sms_logs sl
       ${studentJoin}
       ${filteredWhere}
@@ -251,6 +274,47 @@ exports.getSmsReportLogs = async (req, res) => {
       LIMIT ? OFFSET ?`,
       [...filteredParams, limit, offset]
     );
+
+    // Enrich any missing student data by mobile number (e.g. parent OTP or unlinked logs)
+    const missingMobiles = [
+      ...new Set(
+        logs
+          .filter((l) => !l.student_name && l.mobile_number && l.mobile_number.length >= 10)
+          .map((l) => l.mobile_number)
+      )
+    ];
+    if (missingMobiles.length > 0) {
+      try {
+        const [matchedStudents] = await masterPool.query(
+          `SELECT id, admission_number, student_name, college, course, branch, current_year, current_semester, student_mobile, parent_mobile1, parent_mobile2
+           FROM students
+           WHERE student_mobile IN (?) OR parent_mobile1 IN (?) OR parent_mobile2 IN (?)`,
+          [missingMobiles, missingMobiles, missingMobiles]
+        );
+        const studentMap = {};
+        matchedStudents.forEach((s) => {
+          if (s.student_mobile) studentMap[s.student_mobile] = s;
+          if (s.parent_mobile1) studentMap[s.parent_mobile1] = s;
+          if (s.parent_mobile2) studentMap[s.parent_mobile2] = s;
+        });
+
+        logs.forEach((log) => {
+          if (!log.student_name && studentMap[log.mobile_number]) {
+            const matched = studentMap[log.mobile_number];
+            log.student_id = log.student_id || matched.id;
+            log.admission_number = matched.admission_number;
+            log.student_name = matched.student_name;
+            log.college = matched.college;
+            log.course = matched.course;
+            log.branch = matched.branch;
+            log.current_year = log.current_year || matched.current_year;
+            log.current_semester = log.current_semester || matched.current_semester;
+          }
+        });
+      } catch (enrichErr) {
+        console.warn('Non-fatal error enriching SMS logs by mobile:', enrichErr.message);
+      }
+    }
 
     res.json({
       success: true,

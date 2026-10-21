@@ -2,8 +2,8 @@
 # One-time / occasional tuning for 1 GB Lightsail SDMS host.
 set -euo pipefail
 
-APP="${HOME}/Student-Data-Management-Application"
-PM2_APP="sdbms"
+APP="${HOME}/Sdms"
+PM2_APP="sdms-backend"
 
 echo "==> PM2 logrotate (smaller footprint on 1GB RAM)"
 pm2 install pm2-logrotate 2>/dev/null || true
@@ -18,6 +18,7 @@ pm2 flush "$PM2_APP" 2>/dev/null || pm2 flush || true
 echo "==> Remove stray PM2 apps"
 pm2 delete student-db-backend 2>/dev/null || true
 pm2 delete pydah-backend 2>/dev/null || true
+pm2 delete sdbms 2>/dev/null || true
 
 echo "==> Apply ecosystem (memory cap + nightly restart)"
 cd "${APP}/backend"

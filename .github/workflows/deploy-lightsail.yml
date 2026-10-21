@@ -13,7 +13,7 @@ on:
 
 env:
   NODE_VERSION: '20'
-  PM2_APP_NAME: sdbms
+  PM2_APP_NAME: sdms-backend
 
 jobs:
   build-frontend:
@@ -32,6 +32,10 @@ jobs:
 
       - name: Install & build
         working-directory: frontend
+        env:
+          VITE_API_URL: https://sdms-backend.pydah.edu.in
+          VITE_TICKET_APP_URL: https://maintenance.pydah.edu.in
+          VITE_CRT_APP_URL: https://crt.pydahsoft.in
         run: |
           npm ci
           npm run build
@@ -63,23 +67,23 @@ jobs:
       - name: Upload dist archive to server
         uses: appleboy/scp-action@v1.0.0
         with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          host: ${{ secrets.LIGHTSAIL_HOST || secrets.SERVER_IP || secrets.HOST }}
+          username: ec2-user
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY || secrets.SSH_PRIVATE_KEY || secrets.SSH_KEY }}
           source: frontend-dist.tar.gz
           target: /tmp/
 
       - name: Deploy backend + frontend on server
         uses: appleboy/ssh-action@v1.2.5
         with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          host: ${{ secrets.LIGHTSAIL_HOST || secrets.SERVER_IP || secrets.HOST }}
+          username: ec2-user
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY || secrets.SSH_PRIVATE_KEY || secrets.SSH_KEY }}
           script_stop: true
           command_timeout: 15m
           script: |
             set -euo pipefail
-            APP="/home/ec2-user/Student-Data-Management-Application"
+            APP="/home/ec2-user/Sdms"
             PM2_APP="${{ env.PM2_APP_NAME }}"
 
             echo "==> Pull latest code"
@@ -94,21 +98,21 @@ jobs:
             fi
             tar -xzf /tmp/frontend-dist.tar.gz -C "$APP/frontend"
             rm -f /tmp/frontend-dist.tar.gz
+            chmod -R 755 "$APP/frontend/dist"
+            chmod o+x /home/ec2-user "$APP" "$APP/frontend" 2>/dev/null || true
             test -f dist/index.html
 
             echo "==> Backend install"
             cd "$APP/backend"
             npm ci --omit=dev
 
-            echo "==> DB migrations (safe to re-run)"
-            node scripts/updateAttendanceStatusEnum.js || true
-
             echo "==> PM2 restart ($PM2_APP)"
             # Let npm ci memory settle on 1GB Lightsail before forking Node
             sleep 5
             pm2 delete student-db-backend 2>/dev/null || true
+            pm2 delete sdbms 2>/dev/null || true
             if pm2 describe "$PM2_APP" >/dev/null 2>&1; then
-              pm2 restart "$PM2_APP" --update-env
+              pm2 restart ecosystem.config.js --only "$PM2_APP" --update-env || pm2 restart "$PM2_APP" --update-env
             else
               pm2 start ecosystem.config.js --only "$PM2_APP" --update-env
             fi
@@ -121,34 +125,35 @@ jobs:
             echo "==> Health (wait until Node is listening)"
             HEALTH_OK=0
             for i in $(seq 1 30); do
-              if curl -fsS --max-time 5 http://127.0.0.1:5000/health >/dev/null 2>&1; then
+              if curl -fsS --max-time 5 http://127.0.0.1:5001/health >/dev/null 2>&1; then
                 HEALTH_OK=1
                 echo "Health OK on attempt $i"
                 break
               fi
-              echo "Health attempt $i/30 — waiting for :5000 ..."
+              echo "Health attempt $i/30 — waiting for :5001 ..."
               sleep 2
             done
             if [ "$HEALTH_OK" != "1" ]; then
-              echo "Backend did not become healthy on 127.0.0.1:5000"
+              echo "Backend did not become healthy on 127.0.0.1:5001"
               pm2 list || true
               pm2 describe "$PM2_APP" || true
               pm2 logs "$PM2_APP" --lines 80 --nostream || true
-              ss -lntp | grep -E '5000|node' || true
+              ss -lntp | grep -E '5001|node' || true
               exit 1
             fi
-            curl -fsS http://127.0.0.1:5000/health
+            curl -fsS http://127.0.0.1:5001/health
             echo
-            curl -fsSk https://127.0.0.1/api/health -H 'Host: sdms.pydah.edu.in' || true
+            curl -fsS http://127.0.0.1/api/health -H 'Host: sdms.pydah.edu.in' || true
+            curl -fsS http://127.0.0.1/health -H 'Host: sdms-backend.pydah.edu.in' || true
             echo
             pm2 list
 
       - name: Verify deployment
         uses: appleboy/ssh-action@v1.2.5
         with:
-          host: ${{ secrets.LIGHTSAIL_HOST }}
-          username: ${{ secrets.LIGHTSAIL_USER }}
-          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          host: ${{ secrets.LIGHTSAIL_HOST || secrets.SERVER_IP || secrets.HOST }}
+          username: ec2-user
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY || secrets.SSH_PRIVATE_KEY || secrets.SSH_KEY }}
           script: |
             set -e
             PM2_APP="${{ env.PM2_APP_NAME }}"
@@ -157,5 +162,5 @@ jobs:
               pm2 logs "$PM2_APP" --lines 80 --nostream
               exit 1
             fi
-            curl -fsS --max-time 5 http://127.0.0.1:5000/health >/dev/null
+            curl -fsS --max-time 5 http://127.0.0.1:5001/health >/dev/null
             echo "Deployment verified"

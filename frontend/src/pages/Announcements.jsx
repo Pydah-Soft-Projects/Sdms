@@ -926,8 +926,18 @@ const Announcements = () => {
                                             <button onClick={() => handleDelete(ann.id, 'announcements')} className="p-1.5 hover:bg-red-50 text-red-500 rounded"><Trash2 size={16} /></button>
                                         </div>
                                     </div>
-                                    {ann.image_url && (
+                                    {ann.image_url ? (
                                         <AnnouncementImage src={ann.image_url} alt={ann.title} />
+                                    ) : (
+                                        <div className="mb-3 h-36 overflow-hidden rounded-lg bg-slate-900 relative">
+                                            <img
+                                                src="/images/announcement-fallback.jpg"
+                                                alt="Announcement"
+                                                loading="lazy"
+                                                decoding="async"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
                                     )}
                                     <p className="text-sm text-gray-500 mb-3 line-clamp-2">{ann.content}</p>
                                     <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">

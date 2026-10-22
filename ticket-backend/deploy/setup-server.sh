@@ -9,8 +9,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "==> Ensuring app directory exists: $APP_ROOT"
 sudo mkdir -p "$APP_ROOT"
 
-echo "==> Installing nginx config"
-sudo cp "$SCRIPT_DIR/nginx-ticket-fullstack.conf" /etc/nginx/conf.d/ticket.conf
+if [ -f "$SCRIPT_DIR/nginx-ticket-fullstack.conf" ]; then
+  echo "==> Installing nginx config"
+  sudo cp "$SCRIPT_DIR/nginx-ticket-fullstack.conf" /etc/nginx/conf.d/ticket.conf
+fi
 
 for backend_dir in \
   /home/ec2-user/Student-Data-Management-Application/ticket-backend \
@@ -35,12 +37,15 @@ echo "==> Reloading nginx"
 sudo systemctl reload nginx
 
 if command -v pm2 >/dev/null 2>&1; then
-  if pm2 describe sdbms-ticket >/dev/null 2>&1; then
+  if pm2 describe maintenance-backend >/dev/null 2>&1; then
+    echo "==> Restarting maintenance-backend via pm2"
+    pm2 restart maintenance-backend --update-env
+  elif pm2 describe sdbms-ticket >/dev/null 2>&1; then
     echo "==> Restarting sdbms-ticket via pm2"
-    pm2 restart sdbms-ticket
+    pm2 restart sdbms-ticket --update-env
   elif pm2 describe ticket-backend >/dev/null 2>&1; then
     echo "==> Restarting ticket-backend via pm2"
-    pm2 restart ticket-backend
+    pm2 restart ticket-backend --update-env
   fi
 fi
 

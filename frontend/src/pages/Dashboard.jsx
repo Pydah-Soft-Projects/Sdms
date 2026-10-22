@@ -1262,7 +1262,7 @@ const Dashboard = () => {
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="flex items-center gap-3 p-2 rounded-xl animate-pulse">
-                    <div className="min-w-[46px] h-[46px] rounded-xl bg-gray-100 flex-shrink-0" />
+                    <div className="w-[46px] h-[46px] min-w-[46px] max-w-[46px] rounded-xl bg-gray-100 flex-shrink-0" />
                     <div className="min-w-0 flex-1 space-y-1.5">
                       <div className="h-3.5 bg-gray-200 rounded w-3/4" />
                       <div className="h-2.5 bg-gray-100 rounded w-1/2" />
@@ -1274,10 +1274,6 @@ const Dashboard = () => {
               <div className="space-y-3">
                 {displayAnnouncements.map((ann, idx) => {
                   const annDate = ann.created_at ? new Date(ann.created_at) : null;
-                  const dayNum = annDate && !isNaN(annDate.getTime()) ? annDate.getDate() : (idx + 1);
-                  const monthStr = annDate && !isNaN(annDate.getTime())
-                    ? annDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()
-                    : 'INFO';
                   const dateStr = annDate && !isNaN(annDate.getTime())
                     ? annDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
                     : 'Recent';
@@ -1289,32 +1285,19 @@ const Dashboard = () => {
                       onClick={() => navigate('/announcements')}
                       className="group flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50/80 transition-colors cursor-pointer"
                     >
-                      {/* Image Thumbnail or Date Badge (matching Calendar card style) */}
-                      {ann.image_url ? (
-                        <div className="min-w-[46px] h-[46px] rounded-xl overflow-hidden bg-gray-100 border border-blue-200/80 flex-shrink-0">
-                          <img
-                            src={ann.image_url}
-                            alt=""
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              if (e.currentTarget.nextElementSibling) {
-                                e.currentTarget.nextElementSibling.classList.remove('hidden');
-                                e.currentTarget.nextElementSibling.classList.add('flex');
-                              }
-                            }}
-                          />
-                          <div className="hidden w-full h-full flex-col items-center justify-center bg-blue-50/60 text-blue-700">
-                            <span className="font-extrabold text-sm leading-none">{dayNum}</span>
-                            <span className="font-bold text-[9px] tracking-wider mt-0.5 text-blue-600">{monthStr}</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center min-w-[46px] h-[46px] rounded-xl border border-blue-200 bg-blue-50/60 flex-shrink-0">
-                          <span className="text-blue-700 font-extrabold text-sm leading-none">{dayNum}</span>
-                          <span className="text-blue-600 font-bold text-[9px] tracking-wider mt-0.5">{monthStr}</span>
-                        </div>
-                      )}
+                      {/* Image Thumbnail (matching announcements page, evenly sized) */}
+                      <div className="w-[46px] h-[46px] min-w-[46px] max-w-[46px] rounded-xl overflow-hidden bg-slate-900 border border-blue-200/80 flex-shrink-0">
+                        <img
+                          src={ann.image_url || '/images/announcement-fallback.jpg'}
+                          alt={ann.title || ''}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          onError={(e) => {
+                            if (e.currentTarget.src !== window.location.origin + '/images/announcement-fallback.jpg') {
+                              e.currentTarget.src = '/images/announcement-fallback.jpg';
+                            }
+                          }}
+                        />
+                      </div>
 
                       {/* Content */}
                       <div className="min-w-0 flex-1">

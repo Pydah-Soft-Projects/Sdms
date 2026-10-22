@@ -5,6 +5,21 @@ import { SkeletonBox } from '../../components/SkeletonLoader';
 import api from '../../config/api';
 import toast from 'react-hot-toast';
 
+const formatTarget = (val) => {
+    if (!val) return 'Notice';
+    if (Array.isArray(val)) return val[0] || 'Notice';
+    if (typeof val === 'string') {
+        try {
+            const parsed = JSON.parse(val);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed[0];
+            return val;
+        } catch {
+            return val;
+        }
+    }
+    return String(val);
+};
+
 const StudentAnnouncements = () => {
     const [activeTab, setActiveTab] = useState('announcements');
     const [loading, setLoading] = useState(true);
@@ -37,7 +52,7 @@ const StudentAnnouncements = () => {
 
         try {
             const currentOffset = isRefresh ? 0 : (loadMore ? offsetRef.current : 0);
-            const response = await api.get(`/announcements/student?limit=6&offset=${currentOffset}`);
+            const response = await api.get(`/announcements/student?limit=50&offset=${currentOffset}`);
             if (response.data.success) {
                 const newData = response.data.data || [];
                 const serverHasMore = Boolean(response.data.hasMore);
@@ -204,84 +219,55 @@ const StudentAnnouncements = () => {
                         </div>
                     ) : (
                         <>
-                            {/* MOBILE: Single-column card feed with infinite scroll */}
-                            <div className="md:hidden pb-4">
-                                <div className="space-y-3">
-                                    {announcements.map((ann) => (
-                                        <div
-                                            key={ann.id}
-                                            onClick={() => setSelectedAnnouncement(ann)}
-                                            className="rounded-xl border border-slate-200/60 shadow-xs overflow-hidden active:scale-[0.98] transition-all duration-150 cursor-pointer flex flex-col group bg-white"
-                                        >
-                                            {/* Image / Fallback */}
-                                            {ann.image_url ? (
-                                                <div className="w-full aspect-[16/9] bg-slate-100 overflow-hidden shrink-0 relative">
-                                                    <img src={ann.image_url} alt={ann.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                                    {ann.target_college && (
-                                                        <span className="absolute bottom-2 left-2 bg-indigo-600 text-white px-1.5 py-0.5 rounded text-[8px] uppercase font-black tracking-wider shadow-xs">{ann.target_college}</span>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <div className="w-full aspect-[16/9] bg-slate-900 overflow-hidden shrink-0 relative">
-                                                    <img src="/images/announcement-fallback.jpg" alt={ann.title} className="w-full h-full object-cover" />
-                                                    {ann.target_college && (
-                                                        <span className="absolute bottom-2 left-2 bg-indigo-600 text-white px-1.5 py-0.5 rounded text-[8px] uppercase font-black tracking-wider shadow-xs">{ann.target_college}</span>
-                                                    )}
-                                                </div>
-                                            )}
-                                            {/* Content */}
-                                            <div className="p-2.5 flex-1 flex flex-col justify-between">
-                                                <div>
-                                                    <p className="text-[9px] text-indigo-600 font-extrabold uppercase tracking-wider mb-0.5">
-                                                        {new Date(ann.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                    </p>
-                                                    <h3 className="text-[11px] font-extrabold text-slate-800 leading-tight line-clamp-2 group-hover:text-indigo-700 transition-colors">{ann.title}</h3>
-                                                </div>
-                                                <div className="flex items-center gap-0.5 mt-2 pt-1.5 border-t border-slate-100">
-                                                    <span className="text-[9px] font-extrabold text-indigo-600 uppercase tracking-wider">Read More</span>
-                                                    <ChevronRight size={10} className="text-indigo-500" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* DESKTOP: Card Grid */}
-                            <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+                            {/* Announcements Responsive Card Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                                 {announcements.map((ann) => (
                                     <div
                                         key={ann.id}
                                         onClick={() => setSelectedAnnouncement(ann)}
-                                        className="rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full bg-white"
+                                        className="rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full bg-white"
                                     >
+                                        {/* Image / Fallback */}
                                         {ann.image_url ? (
-                                            <div className="h-36 w-full bg-slate-100 overflow-hidden relative shrink-0">
+                                            <div className="w-full h-44 sm:h-48 bg-slate-100 overflow-hidden relative shrink-0">
                                                 <img src={ann.image_url} alt={ann.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                                <div className="absolute bottom-3 left-3 z-10">
-                                                    <span className="bg-indigo-600 text-white px-2 py-0.5 rounded text-[8px] uppercase font-black tracking-widest">{ann.target_college || 'Notice'}</span>
+                                                <div className="absolute bottom-2.5 left-2.5 z-10">
+                                                    <span className="bg-indigo-600/95 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
+                                                        {formatTarget(ann.target_college)}
+                                                    </span>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="h-36 w-full bg-slate-900 overflow-hidden relative shrink-0">
+                                            <div className="w-full h-44 sm:h-48 bg-slate-900 overflow-hidden relative shrink-0">
                                                 <img src="/images/announcement-fallback.jpg" alt={ann.title} className="w-full h-full object-cover" />
-                                                <div className="absolute bottom-3 left-3 z-10">
-                                                    <span className="bg-indigo-600 text-white px-2 py-0.5 rounded text-[8px] uppercase font-black tracking-widest">{ann.target_college || 'Notice'}</span>
+                                                <div className="absolute bottom-2.5 left-2.5 z-10">
+                                                    <span className="bg-indigo-600/95 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
+                                                        {formatTarget(ann.target_college)}
+                                                    </span>
                                                 </div>
                                             </div>
                                         )}
-                                        <div className="p-3.5 flex-1 flex flex-col justify-between">
+
+                                        {/* Content */}
+                                        <div className="p-4 flex-1 flex flex-col justify-between">
                                             <div>
-                                                <div className="flex items-center justify-between text-[9px] uppercase font-bold tracking-wider text-slate-400 mb-1.5">
-                                                    <div className="flex items-center gap-1">
-                                                        <Calendar size={10} className="text-indigo-400" />
-                                                        {new Date(ann.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                    </div>
+                                                <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">
+                                                    <Calendar size={12} className="text-indigo-500 shrink-0" />
+                                                    <span>{new Date(ann.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                                 </div>
-                                                <h3 className="text-sm font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">{ann.title}</h3>
+                                                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                                                    {ann.title}
+                                                </h3>
+                                                {ann.content && (
+                                                    <p className="text-xs text-slate-500 line-clamp-2 mt-2 leading-relaxed">
+                                                        {ann.content}
+                                                    </p>
+                                                )}
                                             </div>
-                                            <div className="mt-3 pt-2 border-t border-slate-100 flex items-center">
-                                                <span className="text-[9px] font-extrabold text-indigo-600 uppercase tracking-widest flex items-center gap-1">Read More <ChevronRight size={10} /></span>
+                                            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider">
+                                                <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                                                    Read More <ChevronRight size={12} />
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -493,9 +479,9 @@ const StudentAnnouncements = () => {
                                 {selectedAnnouncement.target_college && (
                                     <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Targeted to:</span>
-                                        <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">{selectedAnnouncement.target_college}</span>
-                                        {selectedAnnouncement.target_course && <span className="bg-slate-50 text-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-100">{selectedAnnouncement.target_course}</span>}
-                                        {selectedAnnouncement.target_branch && <span className="bg-slate-50 text-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-100">{selectedAnnouncement.target_branch}</span>}
+                                        <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">{formatTarget(selectedAnnouncement.target_college)}</span>
+                                        {selectedAnnouncement.target_course && <span className="bg-slate-50 text-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-100">{formatTarget(selectedAnnouncement.target_course)}</span>}
+                                        {selectedAnnouncement.target_branch && <span className="bg-slate-50 text-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-100">{formatTarget(selectedAnnouncement.target_branch)}</span>}
                                     </div>
                                 )}
                             </div>

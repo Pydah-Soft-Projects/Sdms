@@ -206,39 +206,41 @@ exports.getAnnouncements = async (req, res) => {
 
 exports.getStudentAnnouncements = async (req, res) => {
     try {
-        const { admission_number, admissionNumber } = req.user;
+        const { admission_number, admissionNumber, id } = req.user || {};
         const studentAdmNum = admission_number || admissionNumber;
-        const limit = parseInt(req.query.limit, 10) || 5;
+        const limit = parseInt(req.query.limit, 10) || 50;
         const offset = parseInt(req.query.offset, 10) || 0;
-        // Debug log removed
 
-        const [studentRows] = await masterPool.query(
-            'SELECT college, course, branch, batch, current_year, current_semester, student_status FROM students WHERE admission_number = ? OR admission_no = ? LIMIT 1',
-            [studentAdmNum, studentAdmNum]
-        );
-
-        if (studentRows.length === 0) {
-            console.error(`Student not found for admission number: ${studentAdmNum}`);
-            return res.status(404).json({ success: false, message: 'Student not found' });
+        let student = null;
+        if (studentAdmNum || id) {
+            const [studentRows] = await masterPool.query(
+                'SELECT college, course, branch, batch, current_year, current_semester, student_status FROM students WHERE admission_number = ? OR admission_no = ? OR id = ? LIMIT 1',
+                [studentAdmNum || '', studentAdmNum || '', id || 0]
+            );
+            if (studentRows && studentRows.length > 0) {
+                student = studentRows[0];
+            }
         }
 
-        const student = studentRows[0];
-
-        // "Regular Only" Constraint: Check student_status
-        // DB stores 'Regular' (Title Case)
-        if (!student.student_status || student.student_status !== 'Regular') {
+        // Only block if student status is explicitly inactive/suspended
+        if (student && student.student_status && ['inactive', 'suspended', 'dropped', 'discontinued'].includes(String(student.student_status).trim().toLowerCase())) {
             return res.json({ success: true, data: [], hasMore: false });
         }
 
-        // Fetch active non-expired announcements (WITHOUT loading the multi-megabyte image_url text)
+        // Fetch active announcements (order by created_at DESC)
         const [rows] = await masterPool.query(
-            'SELECT id, title, content, (image_url IS NOT NULL AND image_url != "") as has_image, created_at, expires_at, is_active, target_college, target_batch, target_course, target_branch, target_year, target_semester FROM announcements WHERE is_active = 1 AND (expires_at IS NULL OR expires_at > NOW()) ORDER BY created_at DESC'
+            'SELECT id, title, content, (image_url IS NOT NULL AND image_url != "") as has_image, created_at, expires_at, is_active, target_college, target_batch, target_course, target_branch, target_year, target_semester FROM announcements WHERE is_active = 1 ORDER BY created_at DESC'
         );
 
-        const matchedAnnouncements = rows.filter(ann => {
-            const targets = parseTargetsFromRow(ann);
-            return matchesStudent(student, targets);
-        });
+        let matchedAnnouncements = rows;
+        if (student) {
+            const filtered = rows.filter(ann => {
+                const targets = parseTargetsFromRow(ann);
+                return matchesStudent(student, targets);
+            });
+            // If student matches specific announcements, use them; if none matched specific filters, fallback to all active to avoid empty state
+            matchedAnnouncements = filtered.length > 0 ? filtered : rows;
+        }
 
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         const pagedData = matchedAnnouncements.slice(offset, offset + limit).map(ann => ({
@@ -249,6 +251,7 @@ exports.getStudentAnnouncements = async (req, res) => {
         res.json({
             success: true,
             data: pagedData,
+            total: matchedAnnouncements.length,
             hasMore: matchedAnnouncements.length > offset + limit
         });
 

@@ -1006,22 +1006,15 @@ const Dashboard = () => {
                         </Link>
                     </div>
 
-                    <div className="space-y-2.5">
+                    {/* Horizontal Scrolling Side-by-Side Cards */}
+                    <div className="flex items-stretch gap-3 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth snap-x" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {feedItems.length > 0 ? (
-                            feedItems.slice(0, 3).map((item, index) => {
+                            feedItems.slice(0, 8).map((item, index) => {
                                 const isPoll = item.type === 'poll';
                                 const data = item.data;
                                 const title = isPoll ? data.question : data.title;
                                 const content = isPoll ? (data.has_voted ? 'Voted' : 'Poll active') : data.content;
                                 const dateStr = formatShortDate(data.created_at);
-
-                                const iconBgStyles = [
-                                    'bg-[#ffedd5] text-[#ea580c]',
-                                    'bg-[#dbeafe] text-[#2563eb]',
-                                    'bg-[#dcfce7] text-[#16a34a]'
-                                ];
-                                const iconStyle = iconBgStyles[index % iconBgStyles.length];
-                                const IconComponent = isPoll ? Vote : (index % 2 === 0 ? FileText : Megaphone);
 
                                 return (
                                     <div
@@ -1033,29 +1026,58 @@ const Dashboard = () => {
                                                 setShowAnnouncement(true);
                                             }
                                         }}
-                                        className="p-3.5 rounded-[22px] bg-white border border-slate-100/90 shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-3 group"
+                                        className="w-[230px] sm:w-[250px] shrink-0 rounded-[22px] bg-white border border-slate-100/90 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group snap-start overflow-hidden"
                                     >
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className={`w-10 h-10 rounded-xl ${iconStyle} flex items-center justify-center shrink-0`}>
-                                                <IconComponent size={20} />
+                                        <div>
+                                            {/* Card Image Banner */}
+                                            <div className="h-28 w-full bg-slate-900 relative overflow-hidden shrink-0">
+                                                <img
+                                                    src={data.image_url || '/images/announcement-fallback.jpg'}
+                                                    alt={title}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    onError={(e) => {
+                                                        if (e.currentTarget.src !== window.location.origin + '/images/announcement-fallback.jpg') {
+                                                            e.currentTarget.src = '/images/announcement-fallback.jpg';
+                                                        }
+                                                    }}
+                                                />
+
+                                                {/* Date Pill Floating on Image */}
+                                                <span className="absolute top-2.5 right-2.5 text-[10px] font-bold text-slate-700 bg-white/95 backdrop-blur-sm px-2.5 py-0.5 rounded-full shadow-xs border border-white/60 z-10">
+                                                    {dateStr || 'Recent'}
+                                                </span>
+
+                                                {/* Poll / Update Type Badge floating on Image bottom-left */}
+                                                <span className={`absolute bottom-2.5 left-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs z-10 ${
+                                                    isPoll 
+                                                        ? 'bg-purple-600 text-white' 
+                                                        : 'bg-[#2563eb] text-white'
+                                                }`}>
+                                                    {isPoll ? 'Poll' : 'Update'}
+                                                </span>
                                             </div>
-                                            <div className="min-w-0">
-                                                <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-[#2563eb] transition-colors">
+
+                                            {/* Card Content */}
+                                            <div className="p-3">
+                                                <h4 className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-[#2563eb] transition-colors leading-snug">
                                                     {title}
                                                 </h4>
-                                                <p className="text-xs font-normal text-slate-400 truncate mt-0.5">
-                                                    {truncateContent(content, 70)}
+                                                <p className="text-xs font-normal text-slate-400 line-clamp-2 mt-1 leading-relaxed">
+                                                    {content ? content.replace(/[\r\n]+/g, ' ').trim() : ''}
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="text-xs font-medium text-slate-400 shrink-0 ml-2">
-                                            {dateStr || '24 Sep'}
-                                        </span>
+
+                                        {/* Card Footer: Action Hint */}
+                                        <div className="px-3 pb-3 pt-1 flex items-center justify-between text-[11px] font-bold text-[#2563eb]">
+                                            <span>{isPoll ? 'Vote in Poll' : 'Read Update'}</span>
+                                            <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                                        </div>
                                     </div>
                                 );
                             })
                         ) : (
-                            <div className="p-4 text-center rounded-[22px] bg-white border border-dashed border-slate-200">
+                            <div className="w-full p-4 text-center rounded-[22px] bg-white border border-dashed border-slate-200">
                                 <p className="text-xs font-semibold text-slate-400">No recent updates</p>
                             </div>
                         )}

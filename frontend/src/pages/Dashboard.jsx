@@ -277,6 +277,30 @@ const Dashboard = () => {
     gcTime: 10 * 60 * 1000,
   });
 
+  // Announcements data for dashboard card (fetched from database/API)
+  const { data: rawAnnouncements = [], isLoading: loadingAnnouncements } = useQuery({
+    queryKey: ['announcements', 'dashboard'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/announcements/admin');
+        if (response.data?.success && Array.isArray(response.data?.data)) {
+          return response.data.data;
+        }
+      } catch {
+        try {
+          const res = await api.get('/announcements/student');
+          if (res.data?.success && Array.isArray(res.data?.data)) {
+            return res.data.data;
+          }
+        } catch {
+          // Fallback to empty
+        }
+      }
+      return [];
+    },
+    staleTime: 3 * 60 * 1000,
+  });
+
   // Current formatted date matching the top-right pill
   const currentDateStr = useMemo(() => {
     try {
@@ -570,6 +594,25 @@ const Dashboard = () => {
     ];
   }, [eventsData.list]);
 
+  // Announcements for dashboard card (directly from API/database, no hardcoded items)
+  const displayAnnouncements = useMemo(() => {
+    if (Array.isArray(rawAnnouncements) && rawAnnouncements.length > 0) {
+      return rawAnnouncements.slice(0, 5);
+    }
+    try {
+      const cached = sessionStorage.getItem('admin_announcements_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.slice(0, 5);
+        }
+      }
+    } catch {
+      // ignore
+    }
+    return [];
+  }, [rawAnnouncements]);
+
   // Fallback activities if none returned yet
   const displayActivities = useMemo(() => {
     if (recentActivities && recentActivities.length > 0) {
@@ -778,8 +821,8 @@ const Dashboard = () => {
 
       </div>
 
-      {/* 3. Middle Section: Attendance Status, Events Calendar, Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+      {/* 3. Middle Section: Attendance Status, Calendar, Announcements, Registration Status */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         
         {/* LEFT: Student Attendance Status Donut & Breakdown */}
         <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
@@ -1130,11 +1173,11 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* MIDDLE: Events Calendar Widget */}
+        {/* MIDDLE: Calendar Widget */}
         <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base sm:text-lg font-bold text-gray-900">Events Calendar</h2>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">Calendar</h2>
               <Link to="/events" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
                 View All
               </Link>
@@ -1193,6 +1236,129 @@ const Dashboard = () => {
           <div className="mt-4 pt-3 border-t border-gray-100 text-right">
             <Link to="/events" className="text-xs font-semibold text-blue-600 hover:underline">
               Browse full calendar →
+            </Link>
+          </div>
+        </div>
+
+        {/* RIGHT OF CALENDAR: Announcements Widget */}
+        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between gap-1.5 mb-4">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <h2 className="text-base font-bold text-gray-900 truncate">Announcements</h2>
+                {displayAnnouncements.length > 0 && (
+                  <span className="whitespace-nowrap flex-shrink-0 inline-flex items-center text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 leading-normal">
+                    {displayAnnouncements.length} Recent
+                  </span>
+                )}
+              </div>
+              <Link to="/announcements" className="whitespace-nowrap flex-shrink-0 text-xs font-semibold text-blue-600 hover:text-blue-700 ml-1">
+                View All
+              </Link>
+            </div>
+
+            {/* Announcements List - Clean, uncluttered layout matching Calendar card */}
+            {loadingAnnouncements && displayAnnouncements.length === 0 ? (
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center gap-3 p-2 rounded-xl animate-pulse">
+                    <div className="min-w-[46px] h-[46px] rounded-xl bg-gray-100 flex-shrink-0" />
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="h-3.5 bg-gray-200 rounded w-3/4" />
+                      <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : displayAnnouncements.length > 0 ? (
+              <div className="space-y-3">
+                {displayAnnouncements.map((ann, idx) => {
+                  const annDate = ann.created_at ? new Date(ann.created_at) : null;
+                  const dayNum = annDate && !isNaN(annDate.getTime()) ? annDate.getDate() : (idx + 1);
+                  const monthStr = annDate && !isNaN(annDate.getTime())
+                    ? annDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase()
+                    : 'INFO';
+                  const dateStr = annDate && !isNaN(annDate.getTime())
+                    ? annDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+                    : 'Recent';
+                  const isExpired = ann.expires_at && new Date(ann.expires_at) < new Date();
+
+                  return (
+                    <div
+                      key={ann.id || idx}
+                      onClick={() => navigate('/announcements')}
+                      className="group flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50/80 transition-colors cursor-pointer"
+                    >
+                      {/* Image Thumbnail or Date Badge (matching Calendar card style) */}
+                      {ann.image_url ? (
+                        <div className="min-w-[46px] h-[46px] rounded-xl overflow-hidden bg-gray-100 border border-blue-200/80 flex-shrink-0">
+                          <img
+                            src={ann.image_url}
+                            alt=""
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.nextElementSibling) {
+                                e.currentTarget.nextElementSibling.classList.remove('hidden');
+                                e.currentTarget.nextElementSibling.classList.add('flex');
+                              }
+                            }}
+                          />
+                          <div className="hidden w-full h-full flex-col items-center justify-center bg-blue-50/60 text-blue-700">
+                            <span className="font-extrabold text-sm leading-none">{dayNum}</span>
+                            <span className="font-bold text-[9px] tracking-wider mt-0.5 text-blue-600">{monthStr}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center min-w-[46px] h-[46px] rounded-xl border border-blue-200 bg-blue-50/60 flex-shrink-0">
+                          <span className="text-blue-700 font-extrabold text-sm leading-none">{dayNum}</span>
+                          <span className="text-blue-600 font-bold text-[9px] tracking-wider mt-0.5">{monthStr}</span>
+                        </div>
+                      )}
+
+                      {/* Content */}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm font-bold text-gray-900 truncate leading-snug group-hover:text-blue-600 transition-colors">
+                          {ann.title}
+                        </p>
+                        <div className="flex items-center gap-2 text-[11px] text-gray-500 mt-1">
+                          <span className="flex items-center gap-1 truncate">
+                            <Clock size={11} className={isExpired ? 'text-red-500' : 'text-gray-400'} />
+                            <span>{dateStr}</span>
+                          </span>
+                          <span>•</span>
+                          <span className="truncate text-gray-400">
+                            {ann.content ? ann.content.replace(/[\r\n]+/g, ' ').slice(0, 32) : 'Notice'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Tag badge */}
+                      <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                        isExpired
+                          ? 'bg-red-50 text-red-600 border-red-200'
+                          : ann.is_active === 0
+                          ? 'bg-gray-100 text-gray-500 border-gray-200'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      }`}>
+                        {isExpired ? 'Expired' : 'Active'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="py-8 flex flex-col items-center justify-center text-center text-gray-400">
+                <Megaphone size={28} className="text-gray-300 mb-2 opacity-60" />
+                <p className="text-xs font-semibold text-gray-600">No Announcements</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">No recent announcements published</p>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 pt-3 border-t border-gray-100 text-right">
+            <Link to="/announcements" className="text-xs font-semibold text-blue-600 hover:underline">
+              Browse all announcements →
             </Link>
           </div>
         </div>

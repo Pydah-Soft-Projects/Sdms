@@ -1110,11 +1110,11 @@ const Dashboard = () => {
                 </Link>
             </div>
 
-            {/* Recent Updates Section (Image 1 Style) */}
+            {/* Campus Events Section (Image 1 Style) */}
             {isEnabled('announcements') && (
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-base font-bold text-slate-900">Recent Updates</h2>
+                        <h2 className="text-base font-bold text-slate-900">Campus Events</h2>
                         <Link to="/student/announcements" className="text-xs font-bold text-[#2563eb] hover:underline flex items-center gap-1">
                             View All <ArrowRight size={14} />
                         </Link>
@@ -1155,30 +1155,17 @@ const Dashboard = () => {
                                                         }
                                                     }}
                                                 />
-
-                                                {/* Date Pill Floating on Image */}
-                                                <span className="absolute top-2.5 right-2.5 text-[10px] font-bold text-slate-700 bg-white/95 backdrop-blur-sm px-2.5 py-0.5 rounded-full shadow-xs border border-white/60 z-10">
-                                                    {dateStr || 'Recent'}
-                                                </span>
-
-                                                {/* Poll / Update Type Badge floating on Image bottom-left */}
-                                                <span className={`absolute bottom-2.5 left-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs z-10 ${
-                                                    isPoll 
-                                                        ? 'bg-purple-600 text-white' 
-                                                        : 'bg-[#2563eb] text-white'
-                                                }`}>
-                                                    {isPoll ? 'Poll' : 'Update'}
-                                                </span>
                                             </div>
 
                                             {/* Card Content */}
                                             <div className="p-3">
-                                                <h4 className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-[#2563eb] transition-colors leading-snug">
+                                                <h4 className="text-sm font-bold text-slate-900 line-clamp-2 group-hover:text-[#2563eb] transition-colors leading-snug">
                                                     {title}
                                                 </h4>
-                                                <p className="text-xs font-normal text-slate-400 line-clamp-2 mt-1 leading-relaxed">
-                                                    {content ? content.replace(/[\r\n]+/g, ' ').trim() : ''}
-                                                </p>
+                                                <div className="flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-1.5">
+                                                    <Clock size={12} className="text-slate-400 shrink-0" />
+                                                    <span>{dateStr || 'Recent'}</span>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -1192,7 +1179,7 @@ const Dashboard = () => {
                             })
                         ) : (
                             <div className="w-full p-4 text-center rounded-[22px] bg-white border border-dashed border-slate-200">
-                                <p className="text-xs font-semibold text-slate-400">No recent updates</p>
+                                <p className="text-xs font-semibold text-slate-400">No campus events</p>
                             </div>
                         )}
                     </div>

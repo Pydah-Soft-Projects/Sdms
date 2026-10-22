@@ -205,7 +205,7 @@ const Dashboard = () => {
             // Tier 2: Non-blocking Secondary Data (Render each widget independently as soon as it arrives)
             const fetchTier2 = () => {
                 // 1. Announcements (renders immediately within ~100ms)
-                api.get('/announcements/student?limit=5')
+                api.get('/announcements/student')
                     .then(res => {
                         if (res.data?.success && Array.isArray(res.data.data)) {
                             const sortedAnnouncements = [...res.data.data].sort((a, b) =>
@@ -287,24 +287,138 @@ const Dashboard = () => {
                     })
                     .catch(err => console.error('Failed to load internal marks:', err));
 
-                // 9. Timetable & Period Slots
+                // 9. Timetable & Period Slots (matching StudentTimetable.jsx)
+                const branchId = user?.branch_id || user?.course_branch_id || user?.branchId;
+                const collegeId = user?.college_id || user?.collegeId;
+                const selectedYear = Number(user?.current_year) || 1;
+                const selectedSem = Number(user?.current_semester) || 1;
+
                 Promise.allSettled([
-                    api.get('/timetable/my-timetable', { params: { year: user?.current_year, semester: user?.current_semester || 1 } })
-                        .catch(() => api.get('/timetable', { params: { branch_id: user?.branch_id, branch: user?.branch, year: user?.current_year, semester: user?.current_semester || 1 } })),
-                    api.get('/period-slots', { params: { college_id: user?.college_id } })
-                ]).then(([timetableRes, periodSlotsRes]) => {
-                    if (timetableRes.status === 'fulfilled' && timetableRes.value.data?.success && periodSlotsRes.status === 'fulfilled' && periodSlotsRes.value.data?.success) {
-                        const allTimetable = timetableRes.value.data.data;
-                        const allSlots = periodSlotsRes.value.data.data;
-                        const dayMap = ['SUN', 'MON', 'TUE', 'WED', 'THUR', 'FRI', 'SAT'];
-                        const currentDay = dayMap[new Date().getDay()];
-                        const todayEntries = allTimetable.filter(item => item.day_of_week === currentDay);
-                        const merged = allSlots.map(slot => {
-                            const entry = todayEntries.find(e => e.period_slot_id === slot.id);
-                            return { ...slot, entry };
+                    api.get('/timetable/my-timetable', {
+                        params: {
+                            branch_id: branchId,
+                            branch: user?.branch,
+                            year: selectedYear,
+                            semester: selectedSem
+                        }
+                    }).catch(async () => {
+                        return await api.get('/timetable', {
+                            params: {
+                                branch_id: branchId,
+                                branch: user?.branch,
+                                year: selectedYear,
+                                semester: selectedSem
+                            }
                         });
-                        setTodayTimetable(merged);
+                    }),
+                    api.get('/period-slots', {
+                        params: collegeId ? { college_id: collegeId } : {}
+                    })
+                ]).then(([timetableRes, periodSlotsRes]) => {
+                    let allTimetable = [];
+                    let allSlots = [];
+
+                    if (timetableRes.status === 'fulfilled' && timetableRes.value.data?.success) {
+                        allTimetable = Array.isArray(timetableRes.value.data.data) ? timetableRes.value.data.data : [];
+                        if (Array.isArray(timetableRes.value.data.slots) && timetableRes.value.data.slots.length > 0) {
+                            allSlots = timetableRes.value.data.slots;
+                        }
                     }
+
+                    if (allSlots.length === 0 && periodSlotsRes.status === 'fulfilled' && periodSlotsRes.value.data?.success && Array.isArray(periodSlotsRes.value.data.data)) {
+                        allSlots = periodSlotsRes.value.data.data;
+                    }
+
+                    const normalizeSlotTimings = (rawSlots) => {
+                        if (!Array.isArray(rawSlots) || rawSlots.length === 0) return [];
+                        return rawSlots.map(slot => ({
+                            ...slot,
+                            id: slot.id ?? slot.sort_order ?? slot.slot_order ?? 1,
+                            sort_order: slot.sort_order ?? slot.slot_order ?? slot.id ?? 1,
+                            slot_name: slot.slot_name || slot.name || slot.label || `P${slot.sort_order || slot.slot_order || slot.id || ''}`,
+                            start_time: slot.start_time || '',
+                            end_time: slot.end_time || '',
+                            slot_type: slot.slot_type || ''
+                        }));
+                    };
+
+                    let effectiveSlots = normalizeSlotTimings(allSlots);
+
+                    if (effectiveSlots.length === 0 && allTimetable.length > 0) {
+                        const slotMap = new Map();
+                        allTimetable.forEach(item => {
+                            const order = Number(item.slot_order || item.slot_order_id || item.period_slot_id || 1);
+                            const label = item.slot_label || `P${order}`;
+                            if (!slotMap.has(order)) {
+                                slotMap.set(order, {
+                                    id: item.period_slot_id || item.timing_slot_id || order,
+                                    sort_order: order,
+                                    slot_order: order,
+                                    slot_name: label,
+                                    name: label,
+                                    start_time: item.start_time || '',
+                                    end_time: item.end_time || '',
+                                    slot_type: item.type || 'period'
+                                });
+                            }
+                        });
+                        effectiveSlots = Array.from(slotMap.values()).sort((a, b) => a.sort_order - b.sort_order);
+                    }
+
+                    const normalizeDay = (d) => {
+                        if (!d) return '';
+                        const str = String(d).trim().toUpperCase();
+                        if (str.startsWith('MON')) return 'MON';
+                        if (str.startsWith('TUE')) return 'TUE';
+                        if (str.startsWith('WED')) return 'WED';
+                        if (str.startsWith('THU')) return 'THUR';
+                        if (str.startsWith('FRI')) return 'FRI';
+                        if (str.startsWith('SAT')) return 'SAT';
+                        if (str.startsWith('SUN')) return 'SUN';
+                        return str;
+                    };
+
+                    const days = ['SUN', 'MON', 'TUE', 'WED', 'THUR', 'FRI', 'SAT'];
+                    const currentDayName = days[new Date().getDay()];
+
+                    const getEntryForSlot = (day, slotObj, slotIndex) => {
+                        if (!slotObj) return undefined;
+                        const targetId = Number(typeof slotObj === 'object' ? (slotObj.id ?? slotObj.sort_order ?? slotObj.slot_order) : slotObj);
+                        const targetSortOrder = Number(typeof slotObj === 'object' ? (slotObj.sort_order ?? slotObj.slot_order ?? slotObj.id) : slotObj);
+                        const targetLabel = String(typeof slotObj === 'object' ? (slotObj.slot_name || slotObj.name || '') : '').trim().toUpperCase();
+
+                        return allTimetable.find(item => {
+                            const itemDay = normalizeDay(item.day_of_week || item.day);
+                            const targetDay = normalizeDay(day);
+                            if (itemDay !== targetDay) return false;
+
+                            const itemSlotId = Number(item.period_slot_id || item.timing_slot_id || item.slot_id);
+                            const itemSlotOrder = Number(item.slot_order || item.slot_order_id || item.period_slot_id);
+                            const itemLabel = String(item.slot_label || item.label || '').trim().toUpperCase();
+
+                            return (
+                                (itemSlotId && (itemSlotId === targetId || itemSlotId === targetSortOrder)) ||
+                                (itemSlotOrder && (itemSlotOrder === targetSortOrder || itemSlotOrder === targetId)) ||
+                                (slotIndex != null && itemSlotOrder === (slotIndex + 1)) ||
+                                (targetLabel && itemLabel && targetLabel === itemLabel)
+                            );
+                        });
+                    };
+
+                    const merged = effectiveSlots.map((slot, index) => {
+                        let entry = getEntryForSlot(currentDayName, slot, index);
+                        if (!entry) {
+                            for (let i = 0; i < index; i++) {
+                                const prevEntry = getEntryForSlot(currentDayName, effectiveSlots[i], i);
+                                if (prevEntry && prevEntry.span > (index - i)) {
+                                    entry = { ...prevEntry, isCovered: true };
+                                    break;
+                                }
+                            }
+                        }
+                        return { ...slot, entry };
+                    });
+                    setTodayTimetable(merged);
                 }).catch(err => console.error('Failed to load timetable:', err));
             };
 
@@ -821,12 +935,12 @@ const Dashboard = () => {
                         <div className="flex-1 min-w-0 text-left">
                             <div className="flex items-center gap-1 min-w-0 my-0.5">
                                 <h1 className="text-base sm:text-xl font-bold text-white truncate tracking-tight">
-                                    {displayData?.student_name || user?.name || 'Damerla Sai Saketh'}
+                                    {displayData?.student_name || user?.name || ''}
                                 </h1>
                                 {isBirthday && <Sparkles className="text-amber-200 animate-pulse w-4 h-4 shrink-0" />}
                             </div>
                             <p className="text-[11px] font-normal text-white/80 truncate mb-1.5">
-                                {displayData?.course || user?.course || 'B.Tech'} • {displayData?.branch || user?.branch || 'CSE'} • Year {displayData?.current_year || user?.current_year || '4'}
+                                {[displayData?.course || user?.course, displayData?.branch || user?.branch, (displayData?.current_year || user?.current_year) ? `Year ${displayData?.current_year || user?.current_year}` : null].filter(Boolean).join(' • ')}
                             </p>
 
                             {/* Image 1 Badges: Light green & light blue pills side-by-side */}
@@ -1009,7 +1123,7 @@ const Dashboard = () => {
                     {/* Horizontal Scrolling Side-by-Side Cards */}
                     <div className="flex items-stretch gap-3 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth snap-x" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {feedItems.length > 0 ? (
-                            feedItems.slice(0, 8).map((item, index) => {
+                            feedItems.map((item, index) => {
                                 const isPoll = item.type === 'poll';
                                 const data = item.data;
                                 const title = isPoll ? data.question : data.title;
@@ -1026,7 +1140,7 @@ const Dashboard = () => {
                                                 setShowAnnouncement(true);
                                             }
                                         }}
-                                        className="w-[230px] sm:w-[250px] shrink-0 rounded-[22px] bg-white border border-slate-100/90 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group snap-start overflow-hidden"
+                                        className="w-[220px] sm:w-[235px] xl:w-[215px] 2xl:w-[235px] shrink-0 rounded-[22px] bg-white border border-slate-100/90 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group snap-start overflow-hidden"
                                     >
                                         <div>
                                             {/* Card Image Banner */}
@@ -1154,29 +1268,79 @@ const Dashboard = () => {
                     </div>
 
                     {todayTimetable && todayTimetable.length > 0 ? (
-                        <div className="overflow-x-auto pb-2 custom-scrollbar">
-                            <div className="flex gap-3 min-w-max">
-                                {todayTimetable.map((slot) => (
-                                    <div
-                                        key={slot.id}
-                                        className={`flex-shrink-0 w-[140px] p-3 rounded-xl border flex flex-col justify-between ${slot.entry
-                                            ? slot.entry.type === 'subject' ? 'bg-sky-50 border-sky-100' :
-                                                slot.entry.type === 'lab' ? 'bg-purple-50 border-purple-100' :
-                                                    'bg-amber-50 border-amber-100'
-                                            : 'bg-slate-50 border-slate-100 opacity-60'
-                                            }`}
-                                    >
-                                        <div>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase">{slot.slot_name}</p>
-                                            <p className="text-[11px] font-medium text-slate-500 my-1">
-                                                {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
-                                            </p>
-                                            <h4 className="text-xs font-bold text-slate-800 line-clamp-2">
-                                                {slot.entry ? (slot.entry.type === 'subject' ? slot.entry.subject_name : slot.entry.custom_label) : 'No Session'}
-                                            </h4>
+                        <div className="overflow-x-auto xl:overflow-x-visible pb-2 custom-scrollbar">
+                            <div className="flex xl:grid xl:grid-flow-col xl:auto-cols-fr gap-2 sm:gap-2.5 2xl:gap-3 min-w-max xl:min-w-0 w-full">
+                                {todayTimetable.map((slot, sIdx) => {
+                                    const entry = slot.entry;
+                                    const sName = String(slot.slot_name || `P${sIdx + 1}`).trim().toUpperCase();
+                                    const slotType = String(slot.slot_type || '').toLowerCase();
+                                    const isBreakSlot =
+                                        slotType === 'break' ||
+                                        slotType === 'lunch' ||
+                                        sName.includes('BREAK') ||
+                                        sName.includes('LUNCH') ||
+                                        (entry && (String(entry.type || '').toLowerCase() === 'break' || String(entry.type || '').toLowerCase() === 'lunch'));
+
+                                    const entryType = String(entry?.type || '').toLowerCase();
+                                    const isLab = entryType === 'lab' || (entry && String(entry.subject_name || entry.title || '').toLowerCase().includes('lab'));
+                                    const isBreak = entryType === 'break' || entryType === 'lunch' || isBreakSlot;
+
+                                    let cardStyle = 'bg-slate-50/70 border-slate-200/80 text-slate-500';
+                                    let badgeStyle = 'bg-slate-100 text-slate-600 border-slate-200';
+                                    let badgeText = 'FREE';
+
+                                    if (isLab) {
+                                        cardStyle = 'bg-purple-50/70 border-purple-200/90 hover:border-purple-300 text-purple-950 shadow-xs';
+                                        badgeStyle = 'bg-purple-100 text-purple-800 border-purple-200';
+                                        badgeText = 'LAB';
+                                    } else if (isBreak) {
+                                        cardStyle = 'bg-amber-50/70 border-amber-200/90 text-amber-950';
+                                        badgeStyle = 'bg-amber-100 text-amber-800 border-amber-200';
+                                        badgeText = sName.includes('LUNCH') || slotType === 'lunch' ? 'LUNCH' : 'BREAK';
+                                    } else if (entry) {
+                                        cardStyle = 'bg-blue-50/70 border-blue-200/90 hover:border-blue-300 text-blue-950 shadow-xs';
+                                        badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
+                                        badgeText = 'THEORY';
+                                    }
+
+                                    const titleText = entry
+                                        ? (entry.subject_name || entry.custom_label || entry.title || entry.name || (entry.type ? `${entry.type}` : 'Subject Class'))
+                                        : (isBreakSlot ? (sName.includes('LUNCH') || slotType === 'lunch' ? 'Lunch Break' : 'Break') : 'No Session');
+
+                                    const subtitle = entry ? (entry.room_number ? `Room: ${entry.room_number}` : (entry.faculty_name || entry.teacher_name || '')) : '';
+
+                                    const startTimeFormatted = slot.start_time ? slot.start_time.slice(0, 5) : '';
+                                    const endTimeFormatted = slot.end_time ? slot.end_time.slice(0, 5) : '';
+
+                                    return (
+                                        <div
+                                            key={slot.id || `today-slot-${sIdx}`}
+                                            onClick={() => navigate('/student/timetable')}
+                                            className={`flex-shrink-0 w-[130px] sm:w-[140px] xl:w-auto xl:flex-1 p-2.5 sm:p-3 rounded-2xl border flex flex-col justify-between transition-all hover:scale-[1.02] cursor-pointer group ${cardStyle}`}
+                                        >
+                                            <div>
+                                                <div className="flex items-center justify-between gap-1 mb-1.5">
+                                                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider">{sName}</span>
+                                                    <span className={`text-[8px] sm:text-[9px] font-extrabold px-1.5 py-0.2 rounded-md border ${badgeStyle}`}>
+                                                        {badgeText}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 mb-1.5 flex items-center gap-1">
+                                                    <Clock size={10} className="shrink-0 text-slate-400" />
+                                                    <span className="truncate">{startTimeFormatted && endTimeFormatted ? `${startTimeFormatted} - ${endTimeFormatted}` : 'Scheduled'}</span>
+                                                </p>
+                                                <h4 className="text-xs font-bold line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                                                    {titleText}
+                                                </h4>
+                                            </div>
+                                            {subtitle && (
+                                                <p className="text-[10px] font-medium text-slate-400 truncate mt-2 border-t border-slate-200/50 pt-1">
+                                                    {subtitle}
+                                                </p>
+                                            )}
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     ) : (

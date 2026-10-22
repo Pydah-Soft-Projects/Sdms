@@ -13,7 +13,7 @@ on:
 
 env:
   NODE_VERSION: '20'
-  PM2_APP_NAME: sdbms-ticket
+  PM2_APP_NAME: maintenance-backend
 
 jobs:
   build-ticket-frontend:
@@ -30,23 +30,22 @@ jobs:
           cache: npm
           cache-dependency-path: ticket-app/package-lock.json
 
-      - name: Create Production Env & Build Frontend
+      - name: Install & build
         working-directory: ticket-app
+        env:
+          VITE_API_URL: /api
+          VITE_MAIN_APP_URL: https://sdms.pydah.edu.in
+          VITE_HRMS_PORTAL_URL: https://hrms.pydah.edu.in
+          VITE_TICKET_APP_URL: https://maintenance.pydah.edu.in
         run: |
-          cat << 'EOF' > .env.production
-          VITE_API_URL=/api
-          VITE_MAIN_APP_URL=https://sdms.pydah.edu.in
-          VITE_HRMS_PORTAL_URL=https://hrms.pydah.edu.in
-          VITE_TICKET_APP_URL=https://maintenance.pydah.edu.in
-          EOF
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+          npm ci
           npm run build
           test -f dist/index.html
 
-      - name: Pack Dist Artifact
+      - name: Pack dist
         run: tar -czf ticket-dist.tar.gz -C ticket-app dist
 
-      - name: Upload Dist Artifact
+      - name: Upload dist artifact
         uses: actions/upload-artifact@v4
         with:
           name: ticket-dist
@@ -61,85 +60,125 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Frontend Artifact
+      - name: Download frontend dist
         uses: actions/download-artifact@v4
         with:
           name: ticket-dist
 
-      - name: Setup SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          SSH_HOST="${{ secrets.LIGHTSAIL_TICKET_HOST || secrets.LIGHTSAIL_HOST || '43.201.200.99' }}"
-          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+      - name: Upload dist archive to server
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.LIGHTSAIL_TICKET_HOST || secrets.LIGHTSAIL_HOST || secrets.SERVER_IP || secrets.HOST }}
+          username: ec2-user
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY || secrets.SSH_PRIVATE_KEY || secrets.SSH_KEY }}
+          source: ticket-dist.tar.gz
+          target: /tmp/
 
-      - name: Upload Dist Archive to Server
-        run: |
-          SSH_HOST="${{ secrets.LIGHTSAIL_TICKET_HOST || secrets.LIGHTSAIL_HOST || '43.201.200.99' }}"
-          SSH_USER="${{ secrets.LIGHTSAIL_USER || 'ec2-user' }}"
-          scp ticket-dist.tar.gz "$SSH_USER@$SSH_HOST:/tmp/"
-
-      - name: Deploy Backend & Frontend on Server
-        run: |
-          SSH_HOST="${{ secrets.LIGHTSAIL_TICKET_HOST || secrets.LIGHTSAIL_HOST || '43.201.200.99' }}"
-          SSH_USER="${{ secrets.LIGHTSAIL_USER || 'ec2-user' }}"
-          
-          ssh "$SSH_USER@$SSH_HOST" 'bash -s' << 'ENDSSH'
+      - name: Deploy backend + frontend on server
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.LIGHTSAIL_TICKET_HOST || secrets.LIGHTSAIL_HOST || secrets.SERVER_IP || secrets.HOST }}
+          username: ec2-user
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY || secrets.SSH_PRIVATE_KEY || secrets.SSH_KEY }}
+          script_stop: true
+          command_timeout: 15m
+          script: |
             set -euo pipefail
-            APP="/home/ec2-user/Student-Data-Management-Application"
-            PM2_APP="sdbms-ticket"
 
-            echo "==> Pulling latest code"
+            if [ -d "/home/ec2-user/Student-Data-Management-Application" ]; then
+              APP="/home/ec2-user/Student-Data-Management-Application"
+            elif [ -d "/home/ec2-user/Sdms" ]; then
+              APP="/home/ec2-user/Sdms"
+            else
+              echo "Error: Application directory not found in /home/ec2-user"
+              exit 1
+            fi
+
+            PM2_APP="${{ env.PM2_APP_NAME }}"
+
+            echo "==> Pull latest code"
             cd "$APP"
             git fetch origin
             git reset --hard origin/master 2>/dev/null || git reset --hard origin/main
 
-            echo "==> Extracting frontend build to /var/www/ticket-app"
+            echo "==> Deploy ticket frontend dist"
             sudo mkdir -p /var/www/ticket-app
             sudo rm -rf /tmp/ticket-app-dist
             sudo mkdir -p /tmp/ticket-app-dist
             sudo tar -xzf /tmp/ticket-dist.tar.gz -C /tmp/ticket-app-dist
             sudo rsync -a --delete /tmp/ticket-app-dist/dist/ /var/www/ticket-app/
             sudo rm -rf /tmp/ticket-app-dist /tmp/ticket-dist.tar.gz
+            sudo chmod -R 755 /var/www/ticket-app
 
-            echo "==> Ticket Backend installation"
+            cd "$APP/ticket-app"
+            if [ -d dist ]; then
+              mv dist "dist.old.$(date +%Y%m%d%H%M%S)"
+            fi
+            sudo cp -r /var/www/ticket-app "$APP/ticket-app/dist" 2>/dev/null || true
+            chmod -R 755 "$APP/ticket-app/dist" 2>/dev/null || true
+
+            echo "==> Ticket Backend install"
             cd "$APP/ticket-backend"
-            if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
+            npm ci --omit=dev
+
+            echo "==> Database migrations"
             node migrations/migrate.js || true
 
             echo "==> PM2 restart ($PM2_APP)"
+            sleep 5
+            pm2 delete ticket-backend 2>/dev/null || true
+            pm2 delete sdbms-ticket 2>/dev/null || true
             if pm2 describe "$PM2_APP" >/dev/null 2>&1; then
-              pm2 restart "$PM2_APP" --update-env
+              pm2 restart ecosystem.config.js --only "$PM2_APP" --update-env || pm2 restart "$PM2_APP" --update-env
             else
-              pm2 start server.js --name "$PM2_APP" --update-env
+              pm2 start ecosystem.config.js --only "$PM2_APP" --update-env
             fi
             pm2 save
 
-            echo "==> Nginx test and reload"
+            echo "==> Nginx reload"
             sudo nginx -t
             sudo systemctl reload nginx
 
-            echo "==> Verifying Health Endpoint"
+            echo "==> Health check (wait until Node is listening)"
             HEALTH_OK=0
-            for i in $(seq 1 20); do
+            for i in $(seq 1 30); do
               if curl -fsS --max-time 5 http://127.0.0.1:5001/health >/dev/null 2>&1; then
                 HEALTH_OK=1
                 echo "Ticket backend healthy on attempt $i"
                 break
               fi
-              echo "Attempt $i/20 — waiting for :5001..."
+              echo "Health attempt $i/30 — waiting for :5001 ..."
               sleep 2
             done
 
             if [ "$HEALTH_OK" != "1" ]; then
-              echo "Ticket backend failed health check!"
-              pm2 logs "$PM2_APP" --lines 50 --nostream
+              echo "Ticket backend did not become healthy on 127.0.0.1:5001"
+              pm2 list || true
+              pm2 describe "$PM2_APP" || true
+              pm2 logs "$PM2_APP" --lines 80 --nostream || true
+              ss -lntp | grep -E '5001|node' || true
               exit 1
             fi
-            curl -fsS http://127.0.0.1:5001/health
-            echo ""
-            curl -fsSk https://maintenance.pydah.edu.in/health
-            echo ""
-          ENDSSH
 
+            curl -fsS http://127.0.0.1:5001/health
+            echo
+            curl -fsS http://127.0.0.1/health -H 'Host: maintenance.pydah.edu.in' || true
+            echo
+            pm2 list
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.LIGHTSAIL_TICKET_HOST || secrets.LIGHTSAIL_HOST || secrets.SERVER_IP || secrets.HOST }}
+          username: ec2-user
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY || secrets.SSH_PRIVATE_KEY || secrets.SSH_KEY }}
+          script: |
+            set -e
+            PM2_APP="${{ env.PM2_APP_NAME }}"
+            if ! pm2 list | grep -q "$PM2_APP.*online"; then
+              echo "Ticket backend not online"
+              pm2 logs "$PM2_APP" --lines 80 --nostream
+              exit 1
+            fi
+            curl -fsS --max-time 5 http://127.0.0.1:5001/health >/dev/null
+            echo "Ticket App deployment verified"

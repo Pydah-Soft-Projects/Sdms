@@ -195,16 +195,6 @@ const EmployeeManagement = () => {
     if (isLoading) {
         return (
             <div className="admin-page-container animate-pulse">
-                <div className="page-header mb-8">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
-                            <div className="h-4 bg-gray-200 rounded w-48"></div>
-                        </div>
-                        <div className="h-10 bg-gray-200 rounded w-32"></div>
-                    </div>
-                </div>
-
                 <div className="mb-6">
                     <div className="flex gap-4 border-b">
                         <div className="h-10 bg-gray-200 rounded-t w-32"></div>
@@ -247,23 +237,9 @@ const EmployeeManagement = () => {
 
     return (
         <div className="admin-page-container">
-            <div className="page-header animate-fade-in">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="page-title">Employee Management</h1>
-                        <p className="page-subtitle">Manage ticket managers and field workers</p>
-                    </div>
-                    <button onClick={() => openModal()} className="btn-primary">
-                        <UserPlus size={20} />
-                        {activeRole === 'worker' ? 'Add Worker' : activeRole === 'staff' ? 'Add Manager' : 'Add Employee'}
-                    </button>
-                </div>
-            </div>
-
             <div className="card-base" style={{ padding: 0 }}>
-
-                {/* Tabs */}
-                <div className="admin-tabs-container">
+                {/* Tabs & Action */}
+                <div className="admin-tabs-container flex justify-between items-center pr-4 flex-wrap gap-2">
                     <div className="admin-tabs-list">
                         <button
                             onClick={() => setActiveRole('all')}
@@ -284,6 +260,10 @@ const EmployeeManagement = () => {
                             Workers
                         </button>
                     </div>
+                    <button onClick={() => openModal()} className="btn-primary py-2 px-3 text-xs shrink-0">
+                        <UserPlus size={16} />
+                        <span>{activeRole === 'worker' ? 'Add Worker' : activeRole === 'staff' ? 'Add Manager' : 'Add Employee'}</span>
+                    </button>
                 </div>
 
                 {/* Filters */}

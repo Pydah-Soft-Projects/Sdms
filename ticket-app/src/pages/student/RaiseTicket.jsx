@@ -2,22 +2,16 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
-    Ticket,
-    Upload,
     X,
-    AlertCircle,
-    CheckCircle,
     Camera,
-    Sparkles,
-    Plus,
     MapPin,
+    CheckCircle2,
+    Loader2,
     Building2
 } from 'lucide-react';
 import api from '../../config/api';
 import toast from 'react-hot-toast';
 import { compressTicketPhoto, MAX_TICKET_PHOTO_BYTES } from '../../utils/ticketPhoto';
-
-import { motion } from 'framer-motion';
 import { SkeletonBox } from '../../components/SkeletonLoader';
 import '../../styles/student-pages.css';
 
@@ -31,6 +25,8 @@ const DEFAULT_COLLEGES = [
 
 const RaiseTicket = () => {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+
     const [formData, setFormData] = useState({
         category_id: '',
         sub_category_id: '',
@@ -42,9 +38,9 @@ const RaiseTicket = () => {
         description: '',
         photo: null
     });
+
     const [photoPreview, setPhotoPreview] = useState(null);
     const [photoProcessing, setPhotoProcessing] = useState(false);
-    const queryClient = useQueryClient();
 
     // Fetch active categories
     const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
@@ -55,25 +51,69 @@ const RaiseTicket = () => {
         }
     });
 
-    // Fetch active colleges for location dropdown
+    // Fetch active colleges
     const { data: collegesData } = useQuery({
         queryKey: ['colleges-active'],
         queryFn: async () => {
             try {
-                const response = await api.get('/colleges/active');
+                const response = await api.get('/colleges/public');
                 return response.data?.data || [];
             } catch (_) {
                 try {
-                    const response = await api.get('/colleges/public');
+                    const response = await api.get('/colleges/active');
                     return response.data?.data || [];
-                } catch (err) {
+                } catch {
                     return [];
                 }
             }
         }
     });
 
+    const categories = categoriesData || [];
     const collegesList = (collegesData && collegesData.length > 0) ? collegesData : DEFAULT_COLLEGES;
+
+    const selectedCategory = categories.find((c) => String(c.id) === String(formData.category_id));
+
+    // Handle photo file selection
+    const handlePhotoChange = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please select an image file (JPG, PNG, WebP)');
+            e.target.value = '';
+            return;
+        }
+
+        try {
+            setPhotoProcessing(true);
+            const compressed = await compressTicketPhoto(file, {
+                maxSizeBytes: MAX_TICKET_PHOTO_BYTES,
+                maxWidth: 1600,
+                maxHeight: 1600,
+                quality: 0.8
+            });
+
+            setFormData((prev) => ({ ...prev, photo: compressed }));
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoPreview(reader.result);
+            };
+            reader.readAsDataURL(compressed);
+        } catch (err) {
+            console.error('Photo compression error:', err);
+            toast.error('Could not process this image. Try another.');
+        } finally {
+            setPhotoProcessing(false);
+            e.target.value = '';
+        }
+    };
+
+    const removePhoto = () => {
+        setFormData((prev) => ({ ...prev, photo: null }));
+        setPhotoPreview(null);
+    };
 
     // Create ticket mutation
     const createMutation = useMutation({
@@ -112,393 +152,287 @@ const RaiseTicket = () => {
             });
             return response.data;
         },
-        onSuccess: async () => {
-            toast.success('Ticket raised successfully!');
-            await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['student-tickets'] }),
-                queryClient.invalidateQueries({ queryKey: ['tickets'] }),
-                queryClient.invalidateQueries({ queryKey: ['ticket-audience-counts'] }),
-                queryClient.invalidateQueries({ queryKey: ['ticket-stats'] })
-            ]);
+        onSuccess: (res) => {
+            toast.success('Ticket submitted successfully! Maintenance team notified.');
+            queryClient.invalidateQueries(['student-tickets']);
+            queryClient.invalidateQueries(['student-stats']);
+            setFormData({
+                category_id: '',
+                sub_category_id: '',
+                college_id: '',
+                block_no: '',
+                floor_no: '',
+                room_no: '',
+                title: '',
+                description: '',
+                photo: null
+            });
+            setPhotoPreview(null);
             navigate('/student/my-tickets');
         },
         onError: (error) => {
-            console.error('Ticket creation failed:', error);
-            console.log('Error response:', error.response);
-            toast.error(error.response?.data?.message || 'Failed to raise ticket');
+            toast.error(error.response?.data?.message || 'Failed to submit ticket. Please check fields.');
         }
     });
 
-    const categories = categoriesData || [];
-    const selectedCategory = categories.find(cat => cat.id === parseInt(formData.category_id));
-
-    const handleCategoryChange = (categoryId) => {
-        setFormData({
-            ...formData,
-            category_id: categoryId,
-            sub_category_id: '' // Reset sub-category when main category changes
-        });
-    };
-
-    const handlePhotoChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            toast.error('Please select an image file');
-            e.target.value = '';
-            return;
-        }
-
-        if (file.size > MAX_TICKET_PHOTO_BYTES) {
-            setPhotoProcessing(true);
-            try {
-                const compressed = await compressTicketPhoto(file, MAX_TICKET_PHOTO_BYTES);
-                if (compressed.size > MAX_TICKET_PHOTO_BYTES) {
-                    toast.error('Photo must be 1MB or smaller. Try a smaller image.');
-                    e.target.value = '';
-                    return;
-                }
-                setFormData({ ...formData, photo: compressed });
-                setPhotoPreview(URL.createObjectURL(compressed));
-                toast.success('Photo compressed to meet the 1MB limit');
-            } catch (error) {
-                toast.error(error.message || 'Failed to process photo');
-                e.target.value = '';
-            } finally {
-                setPhotoProcessing(false);
-            }
-            return;
-        }
-
-        setFormData({ ...formData, photo: file });
-        setPhotoPreview(URL.createObjectURL(file));
-    };
-
-    const removePhoto = () => {
-        setFormData({ ...formData, photo: null });
-        setPhotoPreview(null);
+    const handleCategoryChange = (catId) => {
+        setFormData((prev) => ({
+            ...prev,
+            category_id: catId,
+            sub_category_id: ''
+        }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
         if (!formData.category_id) {
-            toast.error('Please select a complaint category');
+            toast.error('Please select a category');
             return;
         }
 
         if (!formData.title.trim()) {
-            toast.error('Please enter a title');
+            toast.error('Please enter a subject line');
             return;
         }
 
-        // Description is optional now
         createMutation.mutate(formData);
     };
 
     if (categoriesLoading) {
         return (
-            <div className="student-page-container animate-pulse" style={{ maxWidth: '48rem', margin: '0 auto' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                    <SkeletonBox height="h-8" width="w-48" />
-                    <SkeletonBox height="h-4" width="w-72" />
-                </div>
-                <div className="card-base" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <SkeletonBox height="h-4" width="w-32" />
-                        <SkeletonBox height="h-10" width="w-full" className="rounded-lg" />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <SkeletonBox height="h-4" width="w-24" />
-                        <SkeletonBox height="h-10" width="w-full" className="rounded-lg" />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <SkeletonBox height="h-4" width="w-32" />
-                        <SkeletonBox height="h-32" width="w-full" className="rounded-lg" />
-                    </div>
-                    <SkeletonBox height="h-20" width="w-full" className="rounded-lg" />
+            <div className="space-y-4 max-w-4xl mx-auto py-2 animate-pulse">
+                <div className="bg-white rounded-2xl border border-slate-200/80 p-6 space-y-4">
+                    <SkeletonBox height="h-10" width="w-full" className="rounded-xl" />
+                    <SkeletonBox height="h-10" width="w-full" className="rounded-xl" />
+                    <SkeletonBox height="h-28" width="w-full" className="rounded-xl" />
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="student-page-container animate-fade-in-up raise-ticket-page">
-            {/* Header Section */}
-            <div className="flex-col md:flex-row flex-between pb-2 border-b border-gray-100" style={{ borderBottom: '1px solid #f3f4f6', paddingBottom: '0.375rem', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                <div className="page-header" style={{ marginBottom: 0 }}>
-                    <div className="raise-ticket-header-badge" style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', color: '#2563eb', marginBottom: '0.125rem' }}>
-                        <Ticket size={14} />
-                        <span style={{ fontSize: '0.625rem', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.2em' }}>Support Case</span>
-                    </div>
-                    <h1 className="page-title">
-                        Raise a Ticket
-                    </h1>
-                    <p className="page-subtitle">
-                        Submit your details and our team will get back to you shortly
-                    </p>
-                </div>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="form-container">
-                {/* Category Selection */}
-                <div className="form-group">
-                    <label className="form-label">
-                        Category <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <select
-                        value={formData.category_id}
-                        onChange={(e) => handleCategoryChange(e.target.value)}
-                        required
-                        className="form-select"
-                        style={{ appearance: 'none' }}
-                    >
-                        <option value="">Select a category</option>
-                        {categories.map((category) => (
-                            <option key={category.id} value={category.id}>
-                                {category.name}
-                            </option>
-                        ))}
-                    </select>
-                    {selectedCategory?.description && (
-                        <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#2563eb', fontWeight: 600, paddingLeft: '0.25rem', fontStyle: 'italic' }}>
-                            Tip: {selectedCategory.description}
-                        </p>
-                    )}
-                </div>
-
-                {/* Sub-Category Selection (if available) */}
-                {selectedCategory && selectedCategory.has_sub_categories && selectedCategory.sub_categories.length > 0 && (
-                    <div className="form-group animate-fade-in">
-                        <label className="form-label">
-                            Specific Issue <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: 500, marginLeft: '0.25rem' }}>(Optional)</span>
-                        </label>
-                        <select
-                            value={formData.sub_category_id}
-                            onChange={(e) => setFormData({ ...formData, sub_category_id: e.target.value })}
-                            className="form-select"
-                        >
-                            <option value="">Select a sub-category</option>
-                            {selectedCategory.sub_categories.map((subCategory) => (
-                                <option key={subCategory.id} value={subCategory.id}>
-                                    {subCategory.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
-
-                {/* Physical Location Details Section */}
-                <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '1rem', padding: '1.25rem', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid #cbd5e1', paddingBottom: '0.5rem' }}>
-                        <MapPin size={16} color="#2563eb" />
-                        <span style={{ fontSize: '0.875rem', fontWeight: 800, color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Physical Location</span>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>(To pinpoint issue location)</span>
-                    </div>
-
-                    {/* College Dropdown */}
-                    <div className="form-group" style={{ marginBottom: 0 }}>
-                        <label className="form-label">
-                            College <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: 500, marginLeft: '0.25rem' }}>(Optional)</span>
-                        </label>
-                        <select
-                            value={formData.college_id}
-                            onChange={(e) => setFormData({ ...formData, college_id: e.target.value })}
-                            className="form-select"
-                        >
-                            <option value="">Select College</option>
-                            {collegesList.map((col) => (
-                                <option key={col.id} value={col.id}>
-                                    {col.name} {col.code ? `(${col.code})` : ''}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Block, Floor, Room Input Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem' }}>
-                        {/* Block No */}
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label className="form-label">Block No</label>
-                            <input
-                                type="text"
-                                value={formData.block_no}
-                                onChange={(e) => setFormData({ ...formData, block_no: e.target.value })}
-                                placeholder="e.g. Block A"
-                                className="form-input"
-                            />
-                        </div>
-
-                        {/* Floor No */}
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label className="form-label">Floor No</label>
-                            <input
-                                type="text"
-                                value={formData.floor_no}
-                                onChange={(e) => setFormData({ ...formData, floor_no: e.target.value })}
-                                placeholder="e.g. 2nd Floor"
-                                className="form-input"
-                            />
-                        </div>
-
-                        {/* Room No */}
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                            <label className="form-label">Room No</label>
-                            <input
-                                type="text"
-                                value={formData.room_no}
-                                onChange={(e) => setFormData({ ...formData, room_no: e.target.value })}
-                                placeholder="e.g. Room 204"
-                                className="form-input"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Title */}
-                <div className="form-group">
-                    <label className="form-label">
-                        Subject Line <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                        type="text"
-                        value={formData.title}
-                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        required
-                        placeholder="What's the issue?"
-                        className="form-input"
-                    />
-                </div>
-
-                {/* Description */}
-                <div className="form-group">
-                    <label className="form-label">
-                        Detailed Description <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: 500, marginLeft: '0.25rem' }}>(Optional)</span>
-                    </label>
-                    <textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        rows={4}
-                        placeholder="Please provide as much detail as possible to help us resolve this quickly..."
-                        className="form-textarea"
-                        style={{ resize: 'none' }}
-                    />
-                </div>
-
-                {/* Photo Upload */}
-                <div className="form-group">
-                    <label className="form-label">
-                        Attachment <span style={{ color: '#9ca3af', fontSize: '0.75rem', fontWeight: 500, marginLeft: '0.25rem' }}>(Optional)</span>
-                    </label>
-                    {!photoPreview ? (
-                        <div className="photo-upload-box">
-                            <input
-                                type="file"
-                                id="photo-upload"
-                                accept="image/*"
-                                onChange={handlePhotoChange}
-                                style={{ display: 'none' }}
-                            />
-                            <label htmlFor="photo-upload" style={{ cursor: 'pointer', display: 'block' }}>
-                                <div style={{ width: '3rem', height: '3rem', backgroundColor: '#f9fafb', borderRadius: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.75rem auto' }}>
-                                    <Camera size={24} color="#9ca3af" />
-                                </div>
-                                <p className="photo-upload-title" style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '0.125rem' }}>Click or drag photo</p>
-                                <p style={{ fontSize: '0.6875rem', color: '#6b7280', fontWeight: 500, letterSpacing: '0.025em' }}>JPG, PNG up to 1MB</p>
-                            </label>
-                        </div>
-                    ) : (
-                        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: '1.5rem', border: '2px solid #dbeafe', padding: '0.5rem' }}>
-                            <img
-                                src={photoPreview}
-                                alt="Preview"
-                                style={{ width: '100%', maxHeight: '18rem', objectFit: 'cover', borderRadius: '1rem' }}
-                            />
-                            <div className="group-hover:opacity-100" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.2)', opacity: 0, transition: 'opacity 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = 1} onMouseLeave={(e) => e.currentTarget.style.opacity = 0}>
-                                <button
-                                    type="button"
-                                    onClick={removePhoto}
-                                    style={{ padding: '0.75rem', backgroundColor: '#dc2626', color: 'white', borderRadius: '1rem', border: 'none', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+        <div className="w-full pb-12 font-sans">
+            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 sm:p-7 space-y-5">
+                        {/* Category & Sub-Category Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {/* Category Selection */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Category <span className="text-rose-500">*</span>
+                                </label>
+                                <select
+                                    value={formData.category_id}
+                                    onChange={(e) => handleCategoryChange(e.target.value)}
+                                    required
+                                    className="w-full px-3.5 py-2.5 bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-sky-500 focus:ring-3 focus:ring-sky-500/10 rounded-xl text-sm font-medium text-slate-800 transition-all outline-none"
                                 >
-                                    <X size={24} />
-                                </button>
+                                    <option value="">Select a category</option>
+                                    {categories.map((category) => (
+                                        <option key={category.id} value={category.id}>
+                                            {category.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {selectedCategory?.description && (
+                                    <p className="mt-1 text-xs text-sky-600 font-medium italic">
+                                        Note: {selectedCategory.description}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Sub-Category Selection */}
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                    Specific Issue <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                                </label>
+                                <select
+                                    value={formData.sub_category_id}
+                                    onChange={(e) => setFormData({ ...formData, sub_category_id: e.target.value })}
+                                    disabled={!selectedCategory || !selectedCategory.sub_categories?.length}
+                                    className="w-full px-3.5 py-2.5 bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-sky-500 focus:ring-3 focus:ring-sky-500/10 rounded-xl text-sm font-medium text-slate-800 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <option value="">
+                                        {selectedCategory?.sub_categories?.length ? 'Select a sub-category' : 'No sub-categories available'}
+                                    </option>
+                                    {selectedCategory?.sub_categories?.map((subCategory) => (
+                                        <option key={subCategory.id} value={subCategory.id}>
+                                            {subCategory.name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
-                    )}
-                </div>
 
-                {/* Submit Button */}
-                <div className="raise-ticket-submit-wrap" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingTop: '1rem', position: 'relative', zIndex: 10 }}>
-                    <button
-                        type="submit"
-                        disabled={createMutation.isPending || photoProcessing}
-                        className="btn-primary raise-ticket-submit-btn"
-                        style={{ width: '100%', padding: '1rem', fontSize: '1.125rem' }}
-                    >
-                        {createMutation.isPending ? (
-                            <>
-                                <div className="animate-spin rounded-full h-6 w-6 border-4 border-white/20 border-b-white"></div>
-                                <span>Submitting...</span>
-                            </>
-                        ) : photoProcessing ? (
-                            <>
-                                <div className="animate-spin rounded-full h-6 w-6 border-4 border-white/20 border-b-white"></div>
-                                <span>Processing photo...</span>
-                            </>
-                        ) : (
-                            <>
-                                <Sparkles size={22} style={{ color: '#bfdbfe' }} />
-                                <span>Submit Ticket</span>
-                                <Plus size={22} />
-                            </>
-                        )}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => navigate('/student/my-tickets')}
-                        className="btn-secondary"
-                        style={{ width: '100%', backgroundColor: '#f3f4f6', color: '#374151' }}
-                    >
-                        Cancel
-                    </button>
-                    <style>{`
-                        .btn-secondary:hover {
-                            background-color: #e5e7eb !important;
-                        }
-                    `}</style>
-                </div>
-            </form>
+                        {/* Location Details Section Card */}
+                        <div className="bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 sm:p-5 space-y-3.5">
+                            <div className="flex items-center gap-2 pb-2 border-b border-slate-200/60">
+                                <MapPin size={16} className="text-sky-600" />
+                                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                    Physical Location
+                                </span>
+                                <span className="text-xs text-slate-400 font-normal">
+                                    (Helps technician locate the issue)
+                                </span>
+                            </div>
 
-            {/* Info Box */}
-            <div
-                className="raise-ticket-info-box animate-fade-in"
-                style={{ background: 'linear-gradient(to bottom right, #eff6ff, #e0e7ff)', border: '1px solid #dbeafe', borderRadius: '1.5rem', padding: '1.5rem 2rem' }}
-            >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-                    <div style={{ padding: '0.75rem', backgroundColor: 'white', borderRadius: '1rem', color: '#2563eb', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                        <AlertCircle size={24} />
-                    </div>
-                    <div>
-                        <h3 className="heading-font" style={{ fontSize: '1.125rem', fontWeight: 900, color: '#1e3a8a', marginBottom: '0.5rem', fontStyle: 'italic' }}>What's next?</h3>
-                        <div className="stats-grid" style={{ marginTop: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1.5rem' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                <p style={{ fontSize: '0.625rem', textTransform: 'uppercase', fontWeight: 900, color: '#60a5fa', letterSpacing: '0.05em' }}>Phase 01</p>
-                                <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e40af', lineHeight: 1.25 }}>Review by administration</p>
+                            {/* College Dropdown */}
+                            <div>
+                                <label className="block text-xs font-medium text-slate-600 mb-1">
+                                    College Campus
+                                </label>
+                                <select
+                                    value={formData.college_id}
+                                    onChange={(e) => setFormData({ ...formData, college_id: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-sky-500 focus:ring-3 focus:ring-sky-500/10 rounded-xl text-sm text-slate-800 transition-all outline-none"
+                                >
+                                    <option value="">Select College Campus</option>
+                                    {collegesList.map((col) => (
+                                        <option key={col.id} value={col.id}>
+                                            {col.name} {col.code ? `(${col.code})` : ''}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                <p style={{ fontSize: '0.625rem', textTransform: 'uppercase', fontWeight: 900, color: '#60a5fa', letterSpacing: '0.05em' }}>Phase 02</p>
-                                <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e40af', lineHeight: 1.25 }}>Resource allocation</p>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                                <p style={{ fontSize: '0.625rem', textTransform: 'uppercase', fontWeight: 900, color: '#60a5fa', letterSpacing: '0.05em' }}>Phase 03</p>
-                                <p style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1e40af', lineHeight: 1.25 }}>Solution & Feedback</p>
+
+                            {/* Block, Floor, Room Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-600 mb-1">Block / Wing</label>
+                                    <input
+                                        type="text"
+                                        value={formData.block_no}
+                                        onChange={(e) => setFormData({ ...formData, block_no: e.target.value })}
+                                        placeholder="e.g. Block A"
+                                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-sky-500 focus:ring-3 focus:ring-sky-500/10 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 transition-all outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-600 mb-1">Floor Level</label>
+                                    <input
+                                        type="text"
+                                        value={formData.floor_no}
+                                        onChange={(e) => setFormData({ ...formData, floor_no: e.target.value })}
+                                        placeholder="e.g. 2nd Floor"
+                                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-sky-500 focus:ring-3 focus:ring-sky-500/10 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 transition-all outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-slate-600 mb-1">Room / Lab No</label>
+                                    <input
+                                        type="text"
+                                        value={formData.room_no}
+                                        onChange={(e) => setFormData({ ...formData, room_no: e.target.value })}
+                                        placeholder="e.g. Room 204"
+                                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:border-sky-500 focus:ring-3 focus:ring-sky-500/10 rounded-xl text-sm text-slate-800 placeholder:text-slate-400 transition-all outline-none"
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
+
+                        {/* Subject Line */}
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Subject Line <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.title}
+                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                required
+                                placeholder="Brief summary of the issue (e.g. Projector not working in Room 204)"
+                                className="w-full px-3.5 py-2.5 bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-sky-500 focus:ring-3 focus:ring-sky-500/10 rounded-xl text-sm font-medium text-slate-800 placeholder:text-slate-400 transition-all outline-none"
+                            />
+                        </div>
+
+                        {/* Detailed Description */}
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Detailed Description <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                            </label>
+                            <textarea
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                rows={4}
+                                placeholder="Provide any additional context or specific details to help resolve this quickly..."
+                                className="w-full px-3.5 py-2.5 bg-slate-50/70 hover:bg-white focus:bg-white border border-slate-200 focus:border-sky-500 focus:ring-3 focus:ring-sky-500/10 rounded-xl text-sm font-medium text-slate-800 placeholder:text-slate-400 transition-all outline-none resize-none"
+                            />
+                        </div>
+
+                        {/* Attachment / Photo Upload */}
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                                Attachment / Photo <span className="text-slate-400 font-normal lowercase">(optional)</span>
+                            </label>
+                            {!photoPreview ? (
+                                <div className="border-2 border-dashed border-slate-200 hover:border-sky-400 hover:bg-sky-50/40 rounded-xl p-5 text-center cursor-pointer transition-all bg-slate-50/40">
+                                    <input
+                                        type="file"
+                                        id="photo-upload"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                        className="hidden"
+                                    />
+                                    <label htmlFor="photo-upload" className="cursor-pointer block">
+                                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 text-slate-500 flex items-center justify-center mx-auto mb-2 shadow-2xs">
+                                            <Camera size={20} />
+                                        </div>
+                                        <p className="text-xs font-semibold text-slate-800 mb-0.5">
+                                            Click or drag photo to attach
+                                        </p>
+                                        <p className="text-[11px] text-slate-400 font-medium">
+                                            JPG, PNG, or WebP up to 1MB
+                                        </p>
+                                    </label>
+                                </div>
+                            ) : (
+                                <div className="relative rounded-xl border border-sky-200 bg-sky-50/30 p-2 max-w-sm">
+                                    <img
+                                        src={photoPreview}
+                                        alt="Preview"
+                                        className="w-full max-h-48 object-cover rounded-lg"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={removePhoto}
+                                        className="absolute top-3 right-3 p-1.5 bg-slate-900/80 hover:bg-rose-600 text-white rounded-full transition-colors cursor-pointer shadow-sm"
+                                        title="Remove photo"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Submit Actions */}
+                        <div className="pt-2 flex items-center gap-3">
+                            <button
+                                type="submit"
+                                disabled={createMutation.isPending || photoProcessing}
+                                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 shadow-sm shadow-sky-500/25 hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+                            >
+                                {createMutation.isPending || photoProcessing ? (
+                                    <>
+                                        <Loader2 size={16} className="animate-spin" />
+                                        <span>{photoProcessing ? 'Processing photo...' : 'Submitting...'}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle2 size={16} />
+                                        <span>Submit Ticket</span>
+                                    </>
+                                )}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => navigate('/student/my-tickets')}
+                                className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
         </div>
     );
 };

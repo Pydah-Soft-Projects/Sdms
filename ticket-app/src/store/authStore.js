@@ -14,9 +14,13 @@ export { MODULE_ROUTE_MAP, getModuleKeyForPath };
 
 export const resolveUserType = (user) => {
     if (!user) return null;
+    // CRITICAL: Super Admin and Admin are ALWAYS admin, even if an HRMS ID is linked!
+    if (user.role === 'super_admin' || user.role === 'admin') return 'admin';
     if (user.role === 'student') return 'student';
-    // HRMS-only ticket session (no linked rbac_users / portal id)
-    if ((user.is_hrms_session || user.hrmsId) && !user.id) return 'requester';
+    // HRMS users without explicit ticket management access are always requesters
+    if (user.is_hrms_session || user.hrmsId || user.is_hrms_user) {
+        if (user.ticketAccess !== 'manage') return 'requester';
+    }
     if (user.ticketAccess === 'request') return 'requester';
     return 'admin';
 };
@@ -24,26 +28,55 @@ export const resolveUserType = (user) => {
 const resolveDefaultRoute = (user, userType = null) => {
     if (!user) return '/login';
 
+    // Super Admin and Admin ALWAYS route to Admin Dashboard
+    if (user.role === 'super_admin' || user.role === 'admin') {
+        return '/dashboard';
+    }
+
     const type = userType || resolveUserType(user);
 
     if (type === 'student' || type === 'requester') {
-        return '/student/my-tickets';
+        return '/student/dashboard';
     }
 
-    return '/tickets';
+    if (user?.role === 'worker' || user?.is_worker) {
+        return '/task-management';
+    }
+
+    return '/dashboard';
 };
 
 const useAuthStore = create((set) => {
     // Initialize from localStorage
     const storedUser = localStorage.getItem('user');
     const storedToken = localStorage.getItem('token');
-    const storedUserType = localStorage.getItem('userType');
+    const parsedUser = storedUser ? JSON.parse(storedUser) : null;
+    const resolvedUserType = parsedUser ? resolveUserType(parsedUser) : (localStorage.getItem('userType') || null);
+    if (parsedUser && resolvedUserType) {
+        localStorage.setItem('userType', resolvedUserType);
+    }
 
     return {
-        user: storedUser ? JSON.parse(storedUser) : null,
+        user: parsedUser,
         token: storedToken || null,
         isAuthenticated: !!storedToken,
-        userType: storedUserType || null,
+        userType: resolvedUserType,
+
+        hasPermission: (module, action = 'read') => {
+            const user = useAuthStore.getState().user;
+            if (!user) return false;
+            if (user.role === 'super_admin' || user.role === 'admin') return true;
+            const permissions = user.permissions;
+            if (!permissions || typeof permissions !== 'object') return false;
+            const modPerm = permissions[module];
+            if (!modPerm) return false;
+            if (typeof modPerm === 'boolean') return modPerm;
+            if (typeof modPerm === 'object') {
+                if (action && modPerm[action] !== undefined) return modPerm[action] === true;
+                return Object.values(modPerm).some(v => v === true);
+            }
+            return false;
+        },
 
         login: async (username, password) => {
             try {

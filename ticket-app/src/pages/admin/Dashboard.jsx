@@ -7,12 +7,10 @@ import '../../styles/admin-pages.css';
 import { DashboardSkeleton } from '../../components/SkeletonLoader';
 
 import useAuthStore from '../../store/authStore';
-import { getWorkspaceLinks } from '../../utils/hrmsPortal';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    const { token, user } = useAuthStore();
-    const workspaceLinks = getWorkspaceLinks(user, { token });
+    const { user } = useAuthStore();
 
     // Fetch ticket stats
     const { data: statsData, isLoading } = useQuery({
@@ -65,12 +63,6 @@ const AdminDashboard = () => {
 
     return (
         <div className="admin-page-container">
-            {/* Header */}
-            <div className="page-header animate-fade-in">
-                <h1 className="page-title">Admin Dashboard</h1>
-                <p className="page-subtitle">Overview of ticket management system</p>
-            </div>
-
             {/* Stats Grid */}
             <div className="stats-grid animate-fade-in">
                 <StatCard
@@ -155,34 +147,6 @@ const AdminDashboard = () => {
                                 <ArrowRight size={20} className="text-gray-300" />
                             </div>
                         </div>
-                        {workspaceLinks.map((link) => (
-                            <div
-                                key={link.id}
-                                className="card-base hover:shadow-md cursor-pointer transition-all bg-white"
-                                onClick={() => {
-                                    if (link.external) {
-                                        window.open(link.href, '_blank', 'noopener,noreferrer');
-                                    } else {
-                                        window.location.href = link.href;
-                                    }
-                                }}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="quick-action-icon text-blue-600 bg-blue-50 flex items-center justify-center rounded-lg" style={{ width: '40px', height: '40px' }}>
-                                        <div style={{ transform: 'rotate(180deg)' }}>
-                                            <ArrowRight size={24} />
-                                        </div>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h3 className="font-bold text-gray-900">{link.label}</h3>
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            {link.id === 'hrms' ? 'Open HRMS application' : 'Switch to main application'}
-                                        </p>
-                                    </div>
-                                    <ArrowRight size={20} className="text-gray-300" />
-                                </div>
-                            </div>
-                        ))}
                     </div>
                 </div>
             </div>

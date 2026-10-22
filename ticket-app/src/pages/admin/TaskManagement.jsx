@@ -265,12 +265,6 @@ const TaskManagement = () => {
 
     return (
         <div className="admin-page-container">
-            {/* Header */}
-            <div className="page-header animate-fade-in">
-                <h1 className="page-title">Ticket Management</h1>
-                <p className="page-subtitle">Track and manage student and faculty support requests</p>
-            </div>
-
             {/* Requester audience selector */}
             <div className="admin-audience-selector animate-fade-in">
                 {REQUESTER_AUDIENCES.map(({ id, label, icon: Icon }) => (

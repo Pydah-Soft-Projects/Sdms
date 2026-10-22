@@ -7,37 +7,16 @@ import {
     Users,
     Shield,
     LogOut,
-    Menu,
-    ArrowLeftCircle,
-    FolderTree,
-    ChevronDown,
-    ChevronRight
+    Menu
 } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
-import { FRONTEND_MODULES } from '../../constants/rbac';
-import { getWorkspaceLinks, hasStudentDatabasePortalAccess } from '../../utils/hrmsPortal';
-import { getMainAppReturnUrl } from '../../utils/mainAppUrl';
-
-const workspaceLinkStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '10px 16px',
-    borderRadius: '10px',
-    fontSize: '13px',
-    fontWeight: '500',
-    textDecoration: 'none',
-    color: '#4B5563',
-    transition: 'all 0.2s',
-};
 
 const AdminLayout = () => {
     // State
     const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
-    const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
     const navigate = useNavigate();
-    const { user, logout, token } = useAuthStore();
+    const { user, logout } = useAuthStore();
 
     const handleLogout = () => {
         logout();
@@ -45,59 +24,92 @@ const AdminLayout = () => {
         navigate('/login');
     };
 
-    const hasPortalAccess = hasStudentDatabasePortalAccess(user);
-    const workspaceLinks = getWorkspaceLinks(user, { token });
-    const portalReturnHref = getMainAppReturnUrl({
-        token,
-        role: user?.role === 'student' ? 'student' : (user?.role || 'admin'),
-        path: '/',
-    });
+    const isSuperAdminOrAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+    const isWorker = Boolean(user?.role === 'worker' || user?.is_worker);
 
     // --- Navigation Configuration ---
-    const navItems = [
+    const allNavItems = [
         {
+            id: 'dashboard',
             icon: LayoutDashboard,
             label: 'Dashboard',
             path: '/dashboard',
-            permission: FRONTEND_MODULES.DASHBOARD
+            hideForWorker: true,
+            module: 'ticket_dashboard'
         },
         {
+            id: 'task-management',
             icon: ClipboardList,
             label: 'Task Management',
             path: '/task-management',
-            permission: FRONTEND_MODULES.TASK_MANAGEMENT
+            module: 'ticket_management'
         },
         {
+            id: 'configuration',
             icon: Settings,
             label: 'Configuration',
             path: '/configuration',
-            permission: FRONTEND_MODULES.TICKETS
+            hideForWorker: true,
+            module: 'category_management'
         },
         {
+            id: 'employees',
             icon: Users,
             label: 'Employees',
             path: '/employees',
-            permission: FRONTEND_MODULES.USERS
+            hideForWorker: true,
+            module: 'employee_management'
         },
         {
+            id: 'sub-admins',
             icon: Shield,
             label: 'Sub Admins',
             path: '/sub-admins',
-            permission: FRONTEND_MODULES.USERS
+            adminOnly: true
         },
         {
+            id: 'roles',
             icon: Shield,
             label: 'Role Management',
             path: '/roles',
-            permission: FRONTEND_MODULES.USERS
-        },
-        ...(hasPortalAccess ? [{
-            icon: ArrowLeftCircle,
-            label: 'Back to Portal',
-            path: '/',
-            isExternal: true
-        }] : []),
+            adminOnly: true
+        }
     ];
+
+    // Filter navigation items by user access scope
+    const navItems = allNavItems.filter((item) => {
+        if (item.adminOnly) {
+            return isSuperAdminOrAdmin;
+        }
+
+        if (isWorker && item.hideForWorker) {
+            return false;
+        }
+
+        if (isSuperAdminOrAdmin) {
+            return true;
+        }
+
+        if (isWorker && item.id === 'task-management') {
+            return true;
+        }
+
+        // Check granular permissions for this module
+        if (item.module && user?.permissions) {
+            const perm = user.permissions[item.module];
+            if (perm) {
+                if (typeof perm === 'boolean') return perm;
+                if (typeof perm === 'object') return Object.values(perm).some((v) => v === true);
+            }
+        }
+
+        // Default for managers/staff with manage access without explicit perms: allow dashboard and task management
+        if (!isWorker && ['dashboard', 'task-management'].includes(item.id)) {
+            return true;
+        }
+
+        return false;
+    });
 
     // --- Inline Styles & Media Queries (Matching StudentLayout) ---
     const styles = {
@@ -144,15 +156,15 @@ const AdminLayout = () => {
             boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.5)',
         },
         logoText: {
-            fontSize: '16px',
-            fontWeight: '700',
-            color: '#111827',
+            fontSize: '15px',
+            fontWeight: '600',
+            color: '#0f172a',
             marginLeft: '12px',
-            fontFamily: "'Poppins', sans-serif",
-            letterSpacing: '-0.025em',
+            fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+            letterSpacing: '-0.01em',
         },
         nav: {
-            padding: '20px 16px',
+            padding: '16px 14px',
             overflowY: 'auto',
             flex: 1,
         },
@@ -160,26 +172,29 @@ const AdminLayout = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            padding: '12px 16px',
-            marginBottom: '6px',
-            borderRadius: '10px',
-            fontSize: '14px',
-            fontWeight: '500',
+            padding: '10px 14px',
+            marginBottom: '4px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: isActive ? '600' : '500',
             textDecoration: 'none',
-            color: isActive ? '#1D4ED8' : '#4B5563',
-            backgroundColor: isActive ? '#EFF6FF' : 'transparent',
-            transition: 'all 0.2s',
+            color: isActive ? '#0369a1' : '#475569',
+            backgroundColor: isActive ? '#f0f9ff' : 'transparent',
+            transition: 'all 0.15s ease',
             position: 'relative',
         }),
         mainContent: {
             flex: 1,
             height: '100vh',
             overflowY: 'auto',
-            padding: '24px',
+            padding: '24px 32px',
             paddingBottom: '100px',
             marginLeft: desktopSidebarOpen ? '270px' : '0',
             transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            width: '100%',
+            width: desktopSidebarOpen ? 'calc(100% - 270px)' : '100%',
+            maxWidth: desktopSidebarOpen ? 'calc(100% - 270px)' : '100%',
+            boxSizing: 'border-box',
+            minWidth: 0,
         },
         toggleButton: {
             position: 'fixed', top: '24px', left: '24px', zIndex: 50,
@@ -188,21 +203,22 @@ const AdminLayout = () => {
             boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
         },
         profileCard: {
-            margin: '0 16px 8px 16px',
-            padding: '12px',
+            margin: '0 14px 10px 14px',
+            padding: '10px 12px',
             borderRadius: '12px',
             background: 'white',
-            border: '1px solid #f1f5f9',
+            border: '1px solid #e2e8f0',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
+            gap: '10px',
         },
         logoutButton: {
-            width: '100%', padding: '10px', borderRadius: '8px',
-            backgroundColor: '#111827', color: 'white',
-            border: 'none', cursor: 'pointer',
+            width: '100%', padding: '9px 12px', borderRadius: '10px',
+            backgroundColor: '#ffffff', color: '#dc2626',
+            border: '1px solid #fee2e2', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            fontSize: '13px', fontWeight: '600'
+            fontSize: '12px', fontWeight: '600',
+            transition: 'all 0.15s ease'
         },
         mobileHeader: {
             display: 'none',
@@ -257,7 +273,14 @@ const AdminLayout = () => {
             <style>{`
                 @media (max-width: 1024px) {
                     .desktop-sidebar { width: 270px; z-index: 60 !important; }
-                    .main-content { margin-left: 0 !important; padding-top: 84px !important; }
+                    .main-content {
+                        margin-left: 0 !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        padding: 16px !important;
+                        padding-top: 80px !important;
+                        padding-bottom: 96px !important;
+                    }
                     .mobile-header { display: flex !important; }
                     .mobile-bottom-bar { display: flex !important; }
                 }
@@ -327,19 +350,6 @@ const AdminLayout = () => {
                 <nav style={styles.nav} className="custom-scrollbar">
                     {navItems.map((item, index) => {
                         const Icon = item.icon;
-                        if (item.isExternal) {
-                            return (
-                                <a
-                                    key={index}
-                                    href={item.isExternal ? portalReturnHref : item.path}
-                                    style={styles.navItem(false)}
-                                    className="hover:bg-blue-50 hover:text-blue-700"
-                                >
-                                    <Icon size={20} />
-                                    <span>{item.label}</span>
-                                </a>
-                            );
-                        }
                         return (
                             <NavLink
                                 key={index}
@@ -356,47 +366,6 @@ const AdminLayout = () => {
                             </NavLink>
                         );
                     })}
-
-                    {workspaceLinks.length > 0 && (
-                        <div style={{ marginTop: '12px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-                            <button
-                                onClick={() => setWorkspaceDropdownOpen(!workspaceDropdownOpen)}
-                                style={{
-                                    ...styles.navItem(false),
-                                    width: '100%',
-                                    justifyContent: 'space-between',
-                                    background: 'transparent',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    color: '#4B5563'
-                                }}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <FolderTree size={20} />
-                                    <span>Workspace</span>
-                                </div>
-                                {workspaceDropdownOpen ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
-                            </button>
-
-                            {workspaceDropdownOpen && (
-                                <div style={{ paddingLeft: '24px', marginTop: '4px' }}>
-                                    {workspaceLinks.map((link) => (
-                                        <a
-                                            key={link.id}
-                                            href={link.href}
-                                            target={link.external ? '_blank' : undefined}
-                                            rel={link.external ? 'noopener noreferrer' : undefined}
-                                            style={workspaceLinkStyle}
-                                            className="hover:bg-blue-50 hover:text-blue-700"
-                                        >
-                                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#3B82F6' }} />
-                                            <span>{link.label}</span>
-                                        </a>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </nav>
 
                 {/* User Info */}
@@ -428,31 +397,16 @@ const AdminLayout = () => {
 
             {/* Mobile Bottom Bar */}
             <div style={styles.mobileBottomBar} className="mobile-bottom-bar">
-                {navItems.slice(0, 4).map((item, index) => {
-                    if (item.isExternal) {
-                        return (
-                            <a
-                                key={index}
-                                href={item.isExternal ? portalReturnHref : item.path}
-                                style={styles.mobileNavItem(false)}
-                            >
-                                <item.icon size={24} />
-                                <span>{item.label}</span>
-                            </a>
-                        );
-                    }
-
-                    return (
-                        <NavLink
-                            key={index}
-                            to={item.path}
-                            style={({ isActive }) => styles.mobileNavItem(isActive)}
-                        >
-                            <item.icon size={24} />
-                            <span>{item.label === 'Task Management' ? 'Tickets' : item.label === 'Configuration' ? 'Settings' : item.label}</span>
-                        </NavLink>
-                    );
-                })}
+                {navItems.slice(0, 4).map((item, index) => (
+                    <NavLink
+                        key={index}
+                        to={item.path}
+                        style={({ isActive }) => styles.mobileNavItem(isActive)}
+                    >
+                        <item.icon size={24} />
+                        <span>{item.label === 'Task Management' ? 'Tickets' : item.label === 'Configuration' ? 'Settings' : item.label}</span>
+                    </NavLink>
+                ))}
             </div>
         </div>
     );

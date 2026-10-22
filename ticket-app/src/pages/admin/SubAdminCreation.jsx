@@ -136,16 +136,6 @@ const SubAdminCreation = () => {
     if (isLoading) {
         return (
             <div className="admin-page-container animate-pulse">
-                <div className="page-header mb-8">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
-                            <div className="h-4 bg-gray-200 rounded w-48"></div>
-                        </div>
-                        <div className="h-10 bg-gray-200 rounded w-40"></div>
-                    </div>
-                </div>
-
                 <div className="card-base p-0">
                     <div className="p-4 border-b">
                         <div className="h-10 bg-gray-200 rounded w-64"></div>
@@ -184,21 +174,9 @@ const SubAdminCreation = () => {
 
     return (
         <div className="admin-page-container">
-            <div className="page-header animate-fade-in">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="page-title">Sub Admin Management</h1>
-                        <p className="page-subtitle">Create administrators with granular permissions</p>
-                    </div>
-                    <button onClick={() => openModal()} className="btn-primary">
-                        <Shield size={20} /> Create Sub-Admin
-                    </button>
-                </div>
-            </div>
-
             <div className="card-base" style={{ padding: 0 }}>
-                <div className="admin-filters-section">
-                    <div className="input-group-wrapper" style={{ maxWidth: '400px' }}>
+                <div className="admin-filters-section flex justify-between items-center gap-4 flex-wrap">
+                    <div className="input-group-wrapper" style={{ maxWidth: '400px', flex: 1 }}>
                         <Search className="input-icon" size={18} />
                         <input
                             className="input-with-icon"
@@ -207,6 +185,9 @@ const SubAdminCreation = () => {
                             onChange={e => setSearchTerm(e.target.value)}
                         />
                     </div>
+                    <button onClick={() => openModal()} className="btn-primary shrink-0">
+                        <Shield size={18} /> <span>Create Sub-Admin</span>
+                    </button>
                 </div>
 
                 <div className="p-6 space-y-4">

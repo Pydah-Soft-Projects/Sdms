@@ -194,10 +194,10 @@ exports.createEmployee = async (req, res) => {
                 [rbac_user_id, 'staff', custom_role_id || null, roleName, categoriesJson, subcategoriesJson, permissionsJson]
             );
 
-            // Sync role to rbac_users if it's a legacy role
+            // Sync role to rbac_users if it's a legacy role (never downgrade super_admin or admin)
             if (role && ['staff', 'worker', 'manager'].includes(role)) {
                 await masterPool.query(
-                    'UPDATE rbac_users SET role = ? WHERE id = ?',
+                    'UPDATE rbac_users SET role = ? WHERE id = ? AND role NOT IN ("super_admin", "admin")',
                     [role, rbac_user_id]
                 );
             }
@@ -361,7 +361,7 @@ exports.updateEmployee = async (req, res) => {
             }
 
             await masterPool.query(
-                'UPDATE rbac_users SET role = ? WHERE id = ?',
+                'UPDATE rbac_users SET role = ? WHERE id = ? AND role NOT IN ("super_admin", "admin")',
                 [rbacRole, assignment[0].rbac_user_id]
             );
         }

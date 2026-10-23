@@ -90,13 +90,14 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
 
             // A. Match branch and section
             if (branch_id && section) {
+                const cleanSec = String(section).replace(/^sec(tion)?\s*/i, '').trim();
                 [plans] = await academicPool.query(
                     `SELECT id, timing_template_id, batch, year_of_study, semester_number, section_name, status, version_no, academic_year_label
                      FROM ap_timetable_plans
-                     WHERE branch_id = ? AND year_of_study = ? AND semester_number = ? AND section_name = ?
+                     WHERE branch_id = ? AND year_of_study = ? AND semester_number = ? AND (section_name = ? OR section_name = ? OR section_name LIKE ?)
                      ORDER BY (status = 'published') DESC, version_no DESC, id DESC
                      LIMIT 1`,
-                    [branch_id, year, semester, section]
+                    [branch_id, year, semester, section, cleanSec, `%${cleanSec}%`]
                 );
             }
 
@@ -114,19 +115,27 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
                 }
             }
 
-            // C. Fallback: Match year and semester across college
+            // B.2 Alias branch fallback (e.g. CSEAI ML branch 43 <-> CSE(AI) branch 42, or CSE branch 57 <-> branch 39)
             if (!plans || plans.length === 0) {
-                [plans] = await academicPool.query(
-                    `SELECT id, timing_template_id, batch, year_of_study, semester_number, section_name, status, version_no, academic_year_label
-                     FROM ap_timetable_plans
-                     WHERE year_of_study = ? AND semester_number = ?
-                     ORDER BY (status = 'published') DESC, version_no DESC, id DESC
-                     LIMIT 1`,
-                    [year, semester]
-                );
+                let aliasBranchId = null;
+                if (Number(branch_id) === 43) aliasBranchId = 42;
+                else if (Number(branch_id) === 42) aliasBranchId = 43;
+                else if (Number(branch_id) === 57) aliasBranchId = 39;
+                else if (Number(branch_id) === 39) aliasBranchId = 57;
+
+                if (aliasBranchId) {
+                    [plans] = await academicPool.query(
+                        `SELECT id, timing_template_id, batch, year_of_study, semester_number, section_name, status, version_no, academic_year_label
+                         FROM ap_timetable_plans
+                         WHERE branch_id = ? AND year_of_study = ? AND semester_number = ?
+                         ORDER BY (status = 'published') DESC, version_no DESC, id DESC
+                         LIMIT 1`,
+                        [aliasBranchId, year, semester]
+                    );
+                }
             }
 
-            // D. Fallback: Match branch (any published plan for branch)
+            // C. Fallback: Match branch (any plan for branch)
             if (!plans || plans.length === 0) {
                 if (branch_id) {
                     [plans] = await academicPool.query(
@@ -138,6 +147,18 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
                         [branch_id]
                     );
                 }
+            }
+
+            // D. Fallback: Match year and semester across same course if possible
+            if (!plans || plans.length === 0) {
+                [plans] = await academicPool.query(
+                    `SELECT id, timing_template_id, batch, year_of_study, semester_number, section_name, status, version_no, academic_year_label
+                     FROM ap_timetable_plans
+                     WHERE year_of_study = ? AND semester_number = ?
+                     ORDER BY (status = 'published') DESC, version_no DESC, id DESC
+                     LIMIT 1`,
+                    [year, semester]
+                );
             }
 
             // E. Fallback: Latest active plan in Academic Portal
@@ -176,18 +197,26 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
 
                 let filteredRows = apRows || [];
                 if (student_id) {
-                    const studentSpecific = filteredRows.filter(r => {
-                        if (!r.student_ids) return false;
+                    filteredRows = filteredRows.filter(r => {
+                        // General entries without student_ids apply to the whole class/section
+                        if (!r.student_ids) return true;
                         try {
-                            const sids = typeof r.student_ids === 'string' ? JSON.parse(r.student_ids) : r.student_ids;
-                            return Array.isArray(sids) && sids.includes(Number(student_id));
+                            let sids = r.student_ids;
+                            if (typeof sids === 'string') {
+                                try {
+                                    sids = JSON.parse(sids);
+                                } catch {
+                                    sids = sids.split(',').map(s => Number(s.trim())).filter(Boolean);
+                                }
+                            }
+                            if (Array.isArray(sids) && sids.length > 0) {
+                                return sids.includes(Number(student_id));
+                            }
+                            return true;
                         } catch (e) {
-                            return false;
+                            return true;
                         }
                     });
-                    if (studentSpecific.length > 0) {
-                        filteredRows = studentSpecific;
-                    }
                 }
 
                 // Also fetch timing template slots directly from Academic Portal
@@ -217,13 +246,60 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
                 };
             }
 
+            // Fallback: Check SDMS masterPool timetable_entries if academicPool has no plans
+            try {
+                const [masterRows] = await masterPool.query(
+                    `SELECT 
+                        te.id,
+                        te.branch_id,
+                        te.year_of_study,
+                        te.semester_number,
+                        te.day_of_week,
+                        te.period_slot_id,
+                        te.subject_id,
+                        te.type,
+                        te.custom_label,
+                        te.span,
+                        s.name AS subject_name,
+                        s.code AS subject_code,
+                        ps.name AS slot_label,
+                        ps.name AS slot_name,
+                        ps.start_time,
+                        ps.end_time,
+                        ps.sort_order AS slot_order,
+                        ps.sort_order AS slot_order_id
+                     FROM timetable_entries te
+                     LEFT JOIN subjects s ON s.id = te.subject_id
+                     LEFT JOIN period_slots ps ON ps.id = te.period_slot_id
+                     WHERE (te.branch_id = ? OR ?) AND (te.year_of_study = ? OR ?) AND (te.semester_number = ? OR ?)
+                     ORDER BY FIELD(te.day_of_week, 'MON', 'TUE', 'WED', 'THUR', 'THU', 'FRI', 'SAT', 'SUN', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), ps.sort_order`,
+                    [branch_id, !branch_id, year, !year, semester, !semester]
+                );
+
+                if (masterRows && masterRows.length > 0) {
+                    const [masterSlots] = await masterPool.query(
+                        `SELECT id, name as slot_name, name, start_time, end_time, sort_order
+                         FROM period_slots ORDER BY sort_order ASC`
+                    );
+                    return {
+                        success: true,
+                        data: masterRows,
+                        plan: null,
+                        slots: masterSlots || [],
+                        source: 'master'
+                    };
+                }
+            } catch (mErr) {
+                console.warn('masterPool timetable fallback error:', mErr.message);
+            }
+
             return {
                 success: true,
                 data: [],
                 plan: null,
                 slots: [],
                 source: 'academic_portal',
-                message: `No timetable plan found in Academic Portal for Year ${year} Sem ${semester}`
+                message: `No timetable plan found for Year ${year} Sem ${semester}`
             };
         }
 

@@ -1471,7 +1471,8 @@ const Dashboard = () => {
                                         (entry && (String(entry.type || '').toLowerCase() === 'break' || String(entry.type || '').toLowerCase() === 'lunch'));
 
                                     const entryType = String(entry?.type || '').toLowerCase();
-                                    const isLab = entryType === 'lab' || (entry && String(entry.subject_name || entry.title || '').toLowerCase().includes('lab'));
+                                    const hasSubject = Boolean(entry && (entry.subject_name || entry.custom_label || entry.title || entry.name));
+                                    const isLab = hasSubject && (entryType === 'lab' || String(entry.subject_name || entry.title || '').toLowerCase().includes('lab'));
                                     const isBreak = entryType === 'break' || entryType === 'lunch' || isBreakSlot;
 
                                     let cardStyle = 'bg-slate-50/70 border-slate-200/80 text-slate-500';
@@ -1486,14 +1487,14 @@ const Dashboard = () => {
                                         cardStyle = 'bg-amber-50/70 border-amber-200/90 text-amber-950';
                                         badgeStyle = 'bg-amber-100 text-amber-800 border-amber-200';
                                         badgeText = sName.includes('LUNCH') || slotType === 'lunch' ? 'LUNCH' : 'BREAK';
-                                    } else if (entry) {
+                                    } else if (hasSubject) {
                                         cardStyle = 'bg-blue-50/70 border-blue-200/90 hover:border-blue-300 text-blue-950 shadow-xs';
                                         badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
                                         badgeText = 'THEORY';
                                     }
 
-                                    const titleText = entry
-                                        ? (entry.subject_name || entry.custom_label || entry.title || entry.name || (entry.type ? `${entry.type}` : 'Subject Class'))
+                                    const titleText = hasSubject
+                                        ? (entry.subject_name || entry.custom_label || entry.title || entry.name)
                                         : (isBreakSlot ? (sName.includes('LUNCH') || slotType === 'lunch' ? 'Lunch Break' : 'Break') : 'No Session');
 
                                     const subtitle = entry ? (entry.room_number ? `Room: ${entry.room_number}` : (entry.faculty_name || entry.teacher_name || '')) : '';

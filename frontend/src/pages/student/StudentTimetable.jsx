@@ -403,8 +403,9 @@ const StudentTimetable = () => {
         const isBreak = entryType === 'break' || entryType === 'lunch' || isBreakSlot;
         const isOther = entryType === 'other';
 
+        const hasSubject = Boolean(entry && (entry.subject_name || entry.custom_label || entry.title || entry.name));
         let badgeText = String(entry?.type || '').toUpperCase();
-        if (!entry) {
+        if (!entry || !hasSubject) {
             badgeText = isBreakSlot ? (sName.includes('LUNCH') || slotType === 'lunch' ? 'LUNCH BREAK' : 'BREAK') : 'FREE SLOT';
         } else if (!badgeText || badgeText === 'SUBJECT' || badgeText === 'THEORY') {
             badgeText = 'THEORY';
@@ -423,7 +424,7 @@ const StudentTimetable = () => {
                 badgeText = `${badgeText} • ABSENT`;
                 badgeStyle = 'bg-rose-100 text-rose-800 border-rose-300';
             }
-        } else if (isLab) {
+        } else if (isLab && hasSubject) {
             badgeStyle = 'bg-purple-50 text-purple-800 border-purple-200/80';
             barColor = 'bg-purple-600';
             periodBadgeStyle = 'bg-purple-100 text-purple-900 border-purple-300';
@@ -433,20 +434,20 @@ const StudentTimetable = () => {
             barColor = 'bg-amber-500';
             periodBadgeStyle = 'bg-amber-100 text-amber-900 border-amber-300';
             timeColor = 'text-amber-800';
-        } else if (isOther) {
+        } else if (isOther && hasSubject) {
             badgeStyle = 'bg-teal-50 text-teal-800 border-teal-200/80';
             barColor = 'bg-teal-600';
             periodBadgeStyle = 'bg-teal-100 text-teal-900 border-teal-300';
             timeColor = 'text-teal-700';
-        } else if (!entry) {
+        } else if (!entry || !hasSubject) {
             badgeStyle = 'bg-slate-100 text-slate-500 border-slate-200';
             barColor = 'bg-slate-300';
             periodBadgeStyle = 'bg-slate-100 text-slate-600 border-slate-200';
             timeColor = 'text-slate-500';
         }
 
-        const titleText = entry
-            ? (entry.subject_name || entry.custom_label || entry.title || entry.name || (entry.type ? `${entry.type}` : 'Subject Class'))
+        const titleText = hasSubject
+            ? (entry.subject_name || entry.custom_label || entry.title || entry.name)
             : (isBreakSlot ? (sName.includes('LUNCH') || slotType === 'lunch' ? 'Lunch Break' : 'Break') : 'Free Period Slot');
 
         const codeOrLabel = entry?.subject_code || (entry?.subject_name ? entry?.custom_label : null) || slot?.slot_name || 'Class';
@@ -509,7 +510,7 @@ const StudentTimetable = () => {
         }
 
         // Desktop Grid Cell View
-        if (!entry || isBreak) {
+        if (!entry || !hasSubject || isBreak) {
             if (isBreakSlot) {
                 return (
                     <div className="h-full w-full rounded-xl border border-amber-200/80 bg-amber-50/50 flex flex-col items-center justify-center min-h-[105px] p-1.5 text-center">

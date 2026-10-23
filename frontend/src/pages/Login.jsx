@@ -40,6 +40,8 @@ const Login = () => {
   };
 
   const [activeTab, setActiveTab] = useState(() => getTabFromPath());
+  const isStudentLogin = activeTab === 'student';
+  const isParentLogin = activeTab === 'parent';
 
   const [parentMobile, setParentMobile] = useState('');
   const [parentOtp, setParentOtp] = useState('');
@@ -153,8 +155,6 @@ const Login = () => {
     }
   };
 
-  const isStudentLogin = activeTab === 'student';
-  const isParentLogin = activeTab === 'parent';
   const hasCurrentForgotPasswordLimit = Boolean(
     forgotLimitContact && forgotLimitContact === normalizeForgotContact(forgotContact)
   );

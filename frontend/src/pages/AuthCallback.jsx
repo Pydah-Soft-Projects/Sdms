@@ -9,6 +9,10 @@ const AuthCallback = () => {
     const verifyToken = useAuthStore((state) => state.verifyToken);
 
     useEffect(() => {
+        const role = searchParams.get('role');
+        const from = searchParams.get('from');
+        if (role === 'student' || from === 'ticket_app') return;
+
         const SCRIPT_ID = 'pydah-portal-switcher-cdn';
         if (!document.getElementById(SCRIPT_ID)) {
             const script = document.createElement('script');
@@ -17,7 +21,7 @@ const AuthCallback = () => {
             script.async = true;
             document.body.appendChild(script);
         }
-    }, []);
+    }, [searchParams]);
 
     useEffect(() => {
         const processAuth = async () => {

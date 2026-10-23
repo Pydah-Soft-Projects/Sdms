@@ -81,6 +81,24 @@ const StudentLayout = ({ children }) => {
     const location = useLocation();
     const { user, logout } = useAuthStore();
 
+    // Guard: Ensure Pydah Universal Portal Switcher is completely suppressed for student portal
+    useEffect(() => {
+        const cleanupSwitcher = () => {
+            const elements = document.querySelectorAll(
+                'pydah-portal-switcher, portal-switcher, [data-pydah-switcher], #pydah-portal-switcher, .pydah-switcher-host, pydah-sso-loader'
+            );
+            elements.forEach(el => {
+                el.style.display = 'none';
+                try { el.remove(); } catch (_) {}
+            });
+            const script = document.getElementById('pydah-portal-switcher-cdn');
+            if (script) {
+                try { script.remove(); } catch (_) {}
+            }
+        };
+        cleanupSwitcher();
+    }, []);
+
     useEffect(() => {
         const fetchStudentStatus = async () => {
             if (user?.admission_number) {
@@ -413,7 +431,7 @@ const StudentLayout = ({ children }) => {
 
 
     return (
-        <div className={`flex h-screen overflow-hidden transition-colors duration-500 ${isBirthday ? 'bg-gradient-to-br from-amber-50 via-orange-50/70 to-pink-50' : 'bg-slate-50'}`}>
+        <div data-student-portal="true" className={`flex h-screen overflow-hidden transition-colors duration-500 ${isBirthday ? 'bg-gradient-to-br from-amber-50 via-orange-50/70 to-pink-50' : 'bg-slate-50'}`}>
             {/* Background Pattern - birthday: festive dots; default: gray dots */}
             <div
                 className="fixed inset-0 -z-10 pointer-events-none transition-opacity duration-500"

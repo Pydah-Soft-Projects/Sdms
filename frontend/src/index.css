@@ -1078,3 +1078,16 @@ div:has(> [data-hot-toast]),
 div:has(> div > [data-hot-toast]) {
   z-index: 999999999 !important;
 }
+
+/* Ensure portal switcher is strictly hidden on student portal views */
+[data-student-portal] ~ pydah-portal-switcher,
+body:has([data-student-portal]) pydah-portal-switcher,
+body:has([data-student-portal]) portal-switcher,
+body:has([data-student-portal]) [data-pydah-switcher],
+body:has([data-student-portal]) #pydah-portal-switcher,
+body:has([data-student-portal]) .pydah-switcher-host,
+body:has([data-student-portal]) pydah-sso-loader {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

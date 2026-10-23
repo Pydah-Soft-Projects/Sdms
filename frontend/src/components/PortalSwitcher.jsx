@@ -7,31 +7,58 @@ const SCRIPT_ID = 'pydah-portal-switcher-cdn';
 const PORTAL_ID = 'student-portal';
 const CDN_URL = 'https://crm.pydah.edu.in/portal-switcher.js';
 
+const isStudentUser = (user, type) => {
+  const role = user?.role;
+  return (
+    type === 'student' ||
+    role === 'student' ||
+    Boolean(user?.admission_number && role !== 'staff' && role !== 'admin' && role !== 'faculty')
+  );
+};
+
+const isParentUser = (user, type) => {
+  return type === 'parent' || user?.role === 'parent';
+};
+
 /**
  * Pydah Universal Portal Switcher Widget.
  *
  * Requirements:
- * 1. Strictly rendered ONLY for SSO authenticated users.
- * 2. If logged in via standard credentials (or logged out), the script and widget DOM elements
- *    are completely removed / hidden.
- * 3. Style-isolated Shadow DOM web component provided via Pydah CDN.
+ * 1. Strictly rendered ONLY for SSO authenticated staff / admin users.
+ * 2. Never displayed for students or parents (dashboard, subpages, or student accounts).
+ * 3. If logged in via standard credentials, or for student/parent accounts, the script
+ *    and widget DOM elements are completely removed / hidden.
+ * 4. Style-isolated Shadow DOM web component provided via Pydah CDN.
  */
 export default function PortalSwitcher() {
   const location = useLocation();
-  const { isAuthenticated, isSSO, user, token } = useAuthStore();
+  const { isAuthenticated, isSSO, user, token, userType } = useAuthStore();
 
   const [ssoActive, setSsoActive] = useState(() => {
+    const storeState = useAuthStore.getState();
+    const currentUser = storeState.user;
+    const currentUserType = storeState.userType || localStorage.getItem('userType');
+    if (isStudentUser(currentUser, currentUserType) || isParentUser(currentUser, currentUserType)) {
+      return false;
+    }
     const isStoredSSO = localStorage.getItem('isSSO') === 'true';
-    return Boolean((isAuthenticated || localStorage.getItem('token')) && (isSSO || isStoredSSO || user?.isSSO));
+    return Boolean((isAuthenticated || localStorage.getItem('token')) && (isSSO || isStoredSSO || currentUser?.isSSO));
   });
 
   // Keep SSO state in sync with local storage, store updates, and auth events
   useEffect(() => {
     const checkSSO = () => {
-      const isStoredSSO = localStorage.getItem('isSSO') === 'true';
       const storeState = useAuthStore.getState();
       const currentToken = storeState.token || localStorage.getItem('token');
       const currentUser = storeState.user;
+      const currentUserType = storeState.userType || localStorage.getItem('userType');
+
+      if (isStudentUser(currentUser, currentUserType) || isParentUser(currentUser, currentUserType)) {
+        setSsoActive(false);
+        return;
+      }
+
+      const isStoredSSO = localStorage.getItem('isSSO') === 'true';
       const isAuthed = Boolean(storeState.isAuthenticated || currentToken);
       const isSSOUser = isAuthed && Boolean(storeState.isSSO || isStoredSSO || currentUser?.isSSO);
       setSsoActive(isSSOUser);
@@ -46,15 +73,31 @@ export default function PortalSwitcher() {
       window.removeEventListener('auth-change', checkSSO);
       window.removeEventListener('storage', checkSSO);
     };
-  }, [location.pathname, isAuthenticated, isSSO, user, token]);
+  }, [location.pathname, isAuthenticated, isSSO, user, token, userType]);
 
   useEffect(() => {
+    const isStudentRoute = location.pathname.startsWith('/student');
+    const isParentRoute = location.pathname.startsWith('/parent');
     const isPublicRoute =
       ['/login', '/student/login', '/parent/login', '/auth-callback'].includes(location.pathname) ||
       location.pathname.startsWith('/qr/') ||
       location.pathname.startsWith('/form/');
 
-    const shouldShow = ssoActive && !isPublicRoute;
+    const currentUser = user || (() => {
+      try {
+        const u = localStorage.getItem('user');
+        return u ? JSON.parse(u) : null;
+      } catch {
+        return null;
+      }
+    })();
+    const currentUserType = userType || localStorage.getItem('userType');
+
+    const isStudent = isStudentRoute || isStudentUser(currentUser, currentUserType);
+    const isParent = isParentRoute || isParentUser(currentUser, currentUserType);
+
+    // Strictly DO NOT show portal switcher for student or parent dashboards / sessions
+    const shouldShow = Boolean(ssoActive && !isPublicRoute && !isStudent && !isParent);
 
     const cleanupSwitcher = () => {
       const switcher = window.PydahSwitcher || window.PydahPortalSwitcher;
@@ -66,7 +109,7 @@ export default function PortalSwitcher() {
 
       // Hide and remove any custom web component elements created by the switcher
       const customElements = document.querySelectorAll(
-        'pydah-portal-switcher, portal-switcher, [data-pydah-switcher], #pydah-portal-switcher, .pydah-switcher-host'
+        'pydah-portal-switcher, portal-switcher, [data-pydah-switcher], #pydah-portal-switcher, .pydah-switcher-host, pydah-sso-loader'
       );
       customElements.forEach((el) => {
         el.style.display = 'none';
@@ -75,24 +118,35 @@ export default function PortalSwitcher() {
         } catch (_) {}
       });
 
-      // Remove the script tag so it doesn't linger for non-SSO sessions
-      const hasSsoToken = typeof window !== 'undefined' && Boolean(new URLSearchParams(window.location.search).get('token'));
-      if (!hasSsoToken) {
-        const existingScript = document.getElementById(SCRIPT_ID);
-        if (existingScript) {
-          try {
-            existingScript.remove();
-          } catch (_) {}
-        }
+      // Always remove the script tag when switcher should not show
+      const existingScript = document.getElementById(SCRIPT_ID);
+      if (existingScript) {
+        try {
+          existingScript.remove();
+        } catch (_) {}
       }
     };
 
     if (!shouldShow) {
       cleanupSwitcher();
-      return;
+
+      // Guard: Watch for any late-injected switcher elements (e.g. if CDN script auto-mounts) and immediately remove them
+      const observer = new MutationObserver(() => {
+        const customElements = document.querySelectorAll(
+          'pydah-portal-switcher, portal-switcher, [data-pydah-switcher], #pydah-portal-switcher, .pydah-switcher-host, pydah-sso-loader'
+        );
+        if (customElements.length > 0) {
+          cleanupSwitcher();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      return () => {
+        observer.disconnect();
+      };
     }
 
-    // SSO user on an authenticated route -> mount & initialize widget
+    // SSO staff user on an authenticated route -> mount & initialize widget
     const customElements = document.querySelectorAll(
       'pydah-portal-switcher, portal-switcher, [data-pydah-switcher], #pydah-portal-switcher, .pydah-switcher-host'
     );
@@ -101,14 +155,6 @@ export default function PortalSwitcher() {
     });
 
     const currentToken = token || localStorage.getItem('token') || localStorage.getItem('accessToken');
-    const currentUser = user || (() => {
-      try {
-        const u = localStorage.getItem('user');
-        return u ? JSON.parse(u) : null;
-      } catch {
-        return null;
-      }
-    })();
 
     const existingScript = document.getElementById(SCRIPT_ID);
     if (!existingScript) {
@@ -167,12 +213,11 @@ export default function PortalSwitcher() {
     }
 
     return () => {
-      // Clean up when unmounting
       if (!shouldShow) {
         cleanupSwitcher();
       }
     };
-  }, [ssoActive, location.pathname, token, user]);
+  }, [ssoActive, location.pathname, token, user, userType]);
 
   return null;
 }

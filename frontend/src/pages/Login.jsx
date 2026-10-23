@@ -64,10 +64,11 @@ const Login = () => {
   const [ssoError, setSsoError] = useState(null);
   const [showLoginForm, setShowLoginForm] = useState(() => !searchParams.get('token'));
 
-  // Preload portal-switcher.js early if an incoming SSO token is present in the URL
+  // Preload portal-switcher.js early if an incoming SSO token is present in the URL (staff only)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('token')) {
+    const isStudent = isStudentLogin || window.location.pathname.includes('/student') || params.get('role') === 'student';
+    if (!isStudent && params.get('token')) {
       const SCRIPT_ID = 'pydah-portal-switcher-cdn';
       if (!document.getElementById(SCRIPT_ID)) {
         const script = document.createElement('script');
@@ -77,7 +78,7 @@ const Login = () => {
         document.body.appendChild(script);
       }
     }
-  }, []);
+  }, [isStudentLogin]);
 
   // Forgot Password State
   const [showForgotModal, setShowForgotModal] = useState(false);

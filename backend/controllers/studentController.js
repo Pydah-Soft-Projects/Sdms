@@ -3194,6 +3194,17 @@ exports.getAllStudents = async (req, res) => {
         COALESCE(colleges.name, s.college) AS college,
         COALESCE(courses.name, s.course) AS course,
         COALESCE(course_branches.name, s.branch) AS branch,
+        COALESCE(
+          NULLIF(course_branches.total_years, 0),
+          NULLIF(courses.total_years, 0),
+          (SELECT total_years FROM courses c2 WHERE c2.name = s.course LIMIT 1)
+        ) AS total_years,
+        COALESCE(
+          NULLIF(course_branches.total_years, 0),
+          NULLIF(courses.total_years, 0),
+          (SELECT total_years FROM courses c2 WHERE c2.name = s.course LIMIT 1)
+        ) AS totalYears,
+        courses.level AS course_level,
         ms.merit_status AS merit_status,
         ${registrationStatusComputedSql} AS registration_status_computed
       FROM students s
@@ -3813,6 +3824,17 @@ exports.getStudentByAdmission = async (req, res) => {
 
     const [students] = await masterPool.query(
       `SELECT s.*, colleges.name as college, courses.name as course, course_branches.name as branch,
+              COALESCE(
+                NULLIF(course_branches.total_years, 0),
+                NULLIF(courses.total_years, 0),
+                (SELECT total_years FROM courses c2 WHERE c2.name = s.course LIMIT 1)
+              ) AS total_years,
+              COALESCE(
+                NULLIF(course_branches.total_years, 0),
+                NULLIF(courses.total_years, 0),
+                (SELECT total_years FROM courses c2 WHERE c2.name = s.course LIMIT 1)
+              ) AS totalYears,
+              courses.level AS course_level,
               srn.roll_number AS roll_number,
               srn.branch_prefix AS roll_branch_prefix,
               srn.serial AS roll_serial,
@@ -7359,6 +7381,17 @@ exports.getStudentByAdmission = async (req, res) => {
 
     const [students] = await masterPool.query(
       `SELECT s.*, colleges.name as college, courses.name as course, course_branches.name as branch, 
+              COALESCE(
+                NULLIF(course_branches.total_years, 0),
+                NULLIF(courses.total_years, 0),
+                (SELECT total_years FROM courses c2 WHERE c2.name = s.course LIMIT 1)
+              ) AS total_years,
+              COALESCE(
+                NULLIF(course_branches.total_years, 0),
+                NULLIF(courses.total_years, 0),
+                (SELECT total_years FROM courses c2 WHERE c2.name = s.course LIMIT 1)
+              ) AS totalYears,
+              courses.level AS course_level,
               sc.username,
               srn.roll_number AS roll_number,
               srn.branch_prefix AS roll_branch_prefix,

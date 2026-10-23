@@ -12,6 +12,38 @@ import StudentPhotoFrame from './StudentPhotoFrame';
 
 const _qrTokenCache = {};
 const _photoCache = {};
+let _coursesListCache = null;
+let _coursesFetchPromise = null;
+
+const ensureCoursesCache = () => {
+  if (_coursesListCache && _coursesListCache.length > 0) return Promise.resolve(_coursesListCache);
+  if (_coursesFetchPromise) return _coursesFetchPromise;
+
+  _coursesFetchPromise = api
+    .get('/courses?includeInactive=false')
+    .then((res) => {
+      if (res.data?.success && Array.isArray(res.data.data)) {
+        _coursesListCache = res.data.data;
+      }
+      return _coursesListCache || [];
+    })
+    .catch(() => {
+      return api
+        .get('/courses/options')
+        .then((optRes) => {
+          if (optRes.data?.success && Array.isArray(optRes.data.data)) {
+            _coursesListCache = optRes.data.data;
+          }
+          return _coursesListCache || [];
+        })
+        .catch(() => []);
+    })
+    .finally(() => {
+      _coursesFetchPromise = null;
+    });
+
+  return _coursesFetchPromise;
+};
 
 
 /* =========================================================
@@ -297,71 +329,179 @@ const StudentPhotoRing = () => (
 
 
 /**
- * Helper to calculate actual course duration in years based on program/course and level
+ * Helper to calculate actual course duration in years based on:
+ * 1. Explicit student object property (total_years, totalYears) from database
+ * 2. Course / Branch list matching (coursesList / cache)
+ * 3. Accurate heuristic keyword fallback (diplomas, pg, ug, pharm.d)
  */
-const getCourseDuration = (courseStr = '', levelStr = '') => {
-  const text = `${courseStr} ${levelStr}`.toLowerCase();
+const getCourseDuration = (courseStr = '', levelStr = '', studentObj = null, coursesList = null) => {
+  // 1. Direct explicit course years on student record (fetched from DB)
+  const explicitYears = Number(
+    studentObj?.total_years ??
+    studentObj?.totalYears ??
+    studentObj?.course_years ??
+    studentObj?.courseYears ??
+    (typeof studentObj?.student_data === 'object'
+      ? (studentObj.student_data.total_years ?? studentObj.student_data.totalYears)
+      : null)
+  );
 
-  // Pharm.D -> 6 years
+  if (!Number.isNaN(explicitYears) && explicitYears > 0 && explicitYears <= 10) {
+    return explicitYears;
+  }
+
+  // 2. Lookup in courses list / cache
+  const list = (Array.isArray(coursesList) && coursesList.length > 0)
+    ? coursesList
+    : (_coursesListCache || []);
+
+  if (list.length > 0) {
+    const studentCourseId = studentObj?.course_id ?? studentObj?.courseId;
+    const studentBranchId = studentObj?.branch_id ?? studentObj?.branchId;
+    const courseNorm = String(courseStr || studentObj?.course || '').trim().toLowerCase();
+    const branchNorm = String(studentObj?.branch || '').trim().toLowerCase();
+
+    // Match course by ID or name / code
+    const matchedCourse = list.find((c) => {
+      if (!c) return false;
+      if (studentCourseId != null && c.id != null && String(c.id) === String(studentCourseId)) {
+        return true;
+      }
+      const cName = String(c.name || '').trim().toLowerCase();
+      const cCode = String(c.code || '').trim().toLowerCase();
+      return (cName && (cName === courseNorm || courseNorm.includes(cName) || cName.includes(courseNorm))) ||
+             (cCode && (cCode === courseNorm || courseNorm.includes(cCode)));
+    });
+
+    if (matchedCourse) {
+      // Check branch-specific duration override first
+      if (studentBranchId != null && Array.isArray(matchedCourse.branches)) {
+        const matchedBranch = matchedCourse.branches.find((b) => {
+          if (!b) return false;
+          if (b.id != null && String(b.id) === String(studentBranchId)) return true;
+          const bName = String(b.name || '').trim().toLowerCase();
+          const bCode = String(b.code || '').trim().toLowerCase();
+          return (branchNorm && (bName === branchNorm || bCode === branchNorm));
+        });
+        const branchYears = Number(matchedBranch?.totalYears ?? matchedBranch?.total_years);
+        if (!Number.isNaN(branchYears) && branchYears > 0 && branchYears <= 10) {
+          return branchYears;
+        }
+      }
+
+      // Course-level duration
+      const courseYears = Number(matchedCourse.totalYears ?? matchedCourse.total_years);
+      if (!Number.isNaN(courseYears) && courseYears > 0 && courseYears <= 10) {
+        return courseYears;
+      }
+    }
+  }
+
+  // 3. Fallback keyword matching (Strict ordering)
+  const fullText = `${courseStr} ${levelStr} ${studentObj?.course || ''} ${studentObj?.branch || ''}`.toLowerCase();
+
+  // Pharm D (PB) -> 3 years (Post-Baccalaureate)
   if (
-    text.includes('pharm.d') ||
-    text.includes('pharm d') ||
-    text.includes('pharmd') ||
-    text.includes('doctor of pharmacy')
+    fullText.includes('pharm-d(pb)') ||
+    fullText.includes('pharm d (pb)') ||
+    fullText.includes('pharm d pb') ||
+    fullText.includes('post baccalaureate') ||
+    fullText.includes('post-baccalaureate')
+  ) {
+    return 3;
+  }
+
+  // Pharm D (Regular) -> 6 years
+  if (
+    fullText.includes('pharm.d') ||
+    fullText.includes('pharm d') ||
+    fullText.includes('pharmd') ||
+    fullText.includes('doctor of pharmacy')
   ) {
     return 6;
   }
 
-  // B.Tech / B.Pharm / B.Pharmacy / B.E. / Engineering -> 4 years
+  // 3-Year Technical / Agricultural Engineering Diplomas (CHECK BEFORE 2-year Agriculture diplomas)
   if (
-    text.includes('b.tech') ||
-    text.includes('btech') ||
-    text.includes('b.pharm') ||
-    text.includes('bpharm') ||
-    text.includes('b.pharmacy') ||
-    text.includes('b.e.') ||
-    text.includes('b.e') ||
-    text.includes('engineering')
+    fullText.includes('diploma in agricultural engineering') ||
+    fullText.includes('agricultural engineering') ||
+    fullText.includes('dae-kkd') ||
+    fullText.includes('daekkd') ||
+    fullText.includes('dae')
   ) {
-    return 4;
+    return 3;
   }
 
-  // M.Tech / M.Pharm / MCA / MBA / M.Sc / M.Com / PG / Master -> 2 years
+  // 2-Year Specific Diplomas (Agriculture, Animal Husbandry, Fisheries)
   if (
-    text.includes('m.tech') ||
-    text.includes('mtech') ||
-    text.includes('m.pharm') ||
-    text.includes('mpharm') ||
-    text.includes('m.pharmacy') ||
-    text.includes('mca') ||
-    text.includes('mba') ||
-    text.includes('m.sc') ||
-    text.includes('msc') ||
-    text.includes('m.com') ||
-    text.includes('mcom') ||
-    text.includes('pg') ||
-    text.includes('post graduate') ||
-    text.includes('master')
+    fullText.includes('diploma in agriculture') ||
+    fullText.includes('diploma in animal husbandry') ||
+    fullText.includes('diploma in fisheries') ||
+    fullText.includes('dap') ||
+    fullText.includes('dah') ||
+    fullText.includes('dfs')
   ) {
     return 2;
   }
 
-  // Diploma / Polytechnic / B.Sc / B.Com / B.A / BBA / BCA -> 3 years
+  // PG / Master Degrees -> 2 years
   if (
-    text.includes('diploma') ||
-    text.includes('polytechnic') ||
-    text.includes('b.sc') ||
-    text.includes('bsc') ||
-    text.includes('b.com') ||
-    text.includes('bcom') ||
-    text.includes('b.a') ||
-    text.includes('ba') ||
-    text.includes('bba') ||
-    text.includes('bca') ||
-    text.includes('ug') ||
-    text.includes('under graduate')
+    fullText.includes('m.tech') ||
+    fullText.includes('mtech') ||
+    fullText.includes('m.pharm') ||
+    fullText.includes('mpharm') ||
+    fullText.includes('m.pharmacy') ||
+    fullText.includes('mca') ||
+    fullText.includes('mba') ||
+    fullText.includes('m.sc') ||
+    fullText.includes('msc') ||
+    fullText.includes('m.com') ||
+    fullText.includes('mcom') ||
+    fullText.includes('post graduate') ||
+    fullText.includes('master') ||
+    String(levelStr).toLowerCase() === 'pg'
+  ) {
+    return 2;
+  }
+
+  // General 3-Year Diplomas (Polytechnic, General Diplomas) - MUST BE CHECKED BEFORE GENERIC 'engineering'
+  if (
+    fullText.includes('diploma') ||
+    fullText.includes('polytechnic') ||
+    String(levelStr).toLowerCase() === 'diploma'
   ) {
     return 3;
+  }
+
+  // 3-Year UG Degrees
+  if (
+    fullText.includes('b.sc') ||
+    fullText.includes('bsc') ||
+    fullText.includes('b.com') ||
+    fullText.includes('bcom') ||
+    fullText.includes('b.a') ||
+    fullText.includes('ba') ||
+    fullText.includes('bba') ||
+    fullText.includes('bca') ||
+    fullText.includes('b.voc') ||
+    fullText.includes('bvoc') ||
+    fullText.includes('degree')
+  ) {
+    return 3;
+  }
+
+  // 4-Year UG Engineering / Pharmacy
+  if (
+    fullText.includes('b.tech') ||
+    fullText.includes('btech') ||
+    fullText.includes('b.pharm') ||
+    fullText.includes('bpharm') ||
+    fullText.includes('b.pharmacy') ||
+    fullText.includes('b.e.') ||
+    fullText.includes('b.e') ||
+    fullText.includes('engineering')
+  ) {
+    return 4;
   }
 
   // Default duration if unrecognized
@@ -381,6 +521,7 @@ const DigitalStudentCard = ({
   className = '',
   compact = false,
   principalSignatureUrl = null,
+  coursesWithLevels = null,
 }) => {
 
   const [qrToken, setQrToken] = useState(null);
@@ -437,6 +578,19 @@ const DigitalStudentCard = ({
       .catch(() => {});
 
   }, [admNo]);
+
+
+  /* =======================================================
+     COURSES CACHE
+  ======================================================= */
+
+  useEffect(() => {
+    if (Array.isArray(coursesWithLevels) && coursesWithLevels.length > 0) {
+      _coursesListCache = coursesWithLevels;
+    } else if (!_coursesListCache) {
+      ensureCoursesCache();
+    }
+  }, [coursesWithLevels]);
 
 
   /* =======================================================
@@ -798,11 +952,13 @@ const DigitalStudentCard = ({
 
   /* =======================================================
      BATCH & VALIDITY (DYNAMICALLY DURATION BASED)
-========================================================= */
+  ========================================================= */
 
   const courseDuration = getCourseDuration(
     program || studObj.course || get('course', ''),
-    studObj.level || get('level', '')
+    studObj.level || studObj.course_level || get('level', '') || get('course_level', ''),
+    studObj,
+    coursesWithLevels || _coursesListCache
   );
 
   const rawBatch =
@@ -813,31 +969,24 @@ const DigitalStudentCard = ({
     );
 
   let startYear = 2026;
-  let endYear = startYear + courseDuration;
 
   if (rawBatch) {
     const rawStr = String(rawBatch).trim();
     const fourDigitYears = rawStr.match(/\b(20\d{2})\b/g);
 
-    if (fourDigitYears && fourDigitYears.length >= 2) {
+    if (fourDigitYears && fourDigitYears.length >= 1) {
       startYear = Number(fourDigitYears[0]);
-      endYear = Number(fourDigitYears[1]);
-    } else if (fourDigitYears && fourDigitYears.length === 1) {
-      startYear = Number(fourDigitYears[0]);
-      endYear = startYear + courseDuration;
     } else {
       const numericVal = parseInt(rawStr, 10);
       if (!isNaN(numericVal) && numericVal > 2000 && numericVal < 2100) {
         startYear = numericVal;
-        endYear = startYear + courseDuration;
       }
     }
   }
 
-  const batch =
-    rawBatch && (String(rawBatch).includes('–') || String(rawBatch).includes('-'))
-      ? String(rawBatch)
-      : `${startYear} – ${endYear}`;
+  const endYear = startYear + courseDuration;
+
+  const batch = `${startYear} – ${endYear}`;
 
   const validity =
     studObj.validity ||

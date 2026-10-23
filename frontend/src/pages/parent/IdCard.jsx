@@ -44,6 +44,9 @@ const ParentIdCard = () => {
   }
 
   const getSd = (key, fallback = '') => {
+    if (studentData && studentData[key] !== undefined && studentData[key] !== null && String(studentData[key]).trim() !== '') {
+      return String(studentData[key]);
+    }
     const sd = studentData?.student_data || {};
     const val = sd[key];
     if (val !== undefined && val !== null && String(val).trim() !== '') return String(val);

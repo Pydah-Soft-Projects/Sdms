@@ -347,6 +347,10 @@ const PrintIdCards = () => {
 
   const getStudentData = useCallback((student) => {
     return (key, fallback = '') => {
+      if (!student) return fallback;
+      if (student[key] !== undefined && student[key] !== null && student[key] !== '') {
+        return student[key];
+      }
       if (!student?.student_data) return fallback;
       const dk = Object.keys(student.student_data).find(
         (k) => k.toLowerCase() === String(key).toLowerCase()
@@ -1101,6 +1105,7 @@ const PrintIdCards = () => {
                       student={previewStudent}
                       getStudentData={getStudentData(previewStudent)}
                       principalSignatureUrl={resolveCollegeSignature(previewStudent)}
+                      coursesWithLevels={coursesWithLevels}
                     />
                   </div>
                 </div>
@@ -1213,6 +1218,7 @@ const PrintIdCards = () => {
                   student={s}
                   getStudentData={getStudentData(s)}
                   principalSignatureUrl={resolveCollegeSignature(s)}
+                  coursesWithLevels={coursesWithLevels}
                 />
                 <DigitalIdCardBack
                   className="id-card-batch-back"

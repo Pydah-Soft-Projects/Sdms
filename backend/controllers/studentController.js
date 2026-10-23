@@ -3261,8 +3261,9 @@ exports.getAllStudents = async (req, res) => {
 
     if (normalizedFilterCollege) {
       if (isNumeric(normalizedFilterCollege)) {
-        query += ' AND s.college_id = ?';
-        params.push(parseInt(normalizedFilterCollege, 10));
+        const colId = parseInt(normalizedFilterCollege, 10);
+        query += ' AND (s.college_id = ? OR s.college = (SELECT name COLLATE utf8mb4_0900_ai_ci FROM colleges WHERE id = ? LIMIT 1))';
+        params.push(colId, colId);
       } else {
         const { clause, params: collegeParams } = buildCollegeNameFilter(normalizedFilterCollege, 's');
         query += ` AND ${clause}`;
@@ -3272,21 +3273,23 @@ exports.getAllStudents = async (req, res) => {
 
     if (normalizedFilterCourse) {
       if (isNumeric(normalizedFilterCourse)) {
-        query += ' AND s.course_id = ?';
-        params.push(parseInt(normalizedFilterCourse, 10));
+        const crsId = parseInt(normalizedFilterCourse, 10);
+        query += ' AND (s.course_id = ? OR s.course = (SELECT name FROM courses WHERE id = ? LIMIT 1))';
+        params.push(crsId, crsId);
       } else {
-        query += ' AND s.course = ?';
-        params.push(normalizedFilterCourse);
+        query += ' AND (s.course = ? OR s.course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        params.push(normalizedFilterCourse, normalizedFilterCourse);
       }
     }
 
     if (normalizedFilterBranch) {
       if (isNumeric(normalizedFilterBranch)) {
-        query += ' AND s.branch_id = ?';
-        params.push(parseInt(normalizedFilterBranch, 10));
+        const brId = parseInt(normalizedFilterBranch, 10);
+        query += ' AND (s.branch_id = ? OR s.branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))';
+        params.push(brId, brId);
       } else {
-        query += ' AND s.branch = ?';
-        params.push(normalizedFilterBranch);
+        query += ' AND (s.branch = ? OR s.branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+        params.push(normalizedFilterBranch, normalizedFilterBranch);
       }
     }
 
@@ -3481,19 +3484,37 @@ exports.getAllStudents = async (req, res) => {
     }
 
     if (normalizedFilterCollege) {
-      const { clause, params: collegeParams } = buildCollegeNameFilter(normalizedFilterCollege);
-      countQuery += ` AND ${clause}`;
-      countParams.push(...collegeParams);
+      if (isNumeric(normalizedFilterCollege)) {
+        const colId = parseInt(normalizedFilterCollege, 10);
+        countQuery += ' AND (college_id = ? OR college = (SELECT name COLLATE utf8mb4_0900_ai_ci FROM colleges WHERE id = ? LIMIT 1))';
+        countParams.push(colId, colId);
+      } else {
+        const { clause, params: collegeParams } = buildCollegeNameFilter(normalizedFilterCollege);
+        countQuery += ` AND ${clause}`;
+        countParams.push(...collegeParams);
+      }
     }
 
     if (normalizedFilterCourse) {
-      countQuery += ' AND course = ?';
-      countParams.push(normalizedFilterCourse);
+      if (isNumeric(normalizedFilterCourse)) {
+        const crsId = parseInt(normalizedFilterCourse, 10);
+        countQuery += ' AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))';
+        countParams.push(crsId, crsId);
+      } else {
+        countQuery += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        countParams.push(normalizedFilterCourse, normalizedFilterCourse);
+      }
     }
 
     if (normalizedFilterBranch) {
-      countQuery += ' AND branch = ?';
-      countParams.push(normalizedFilterBranch);
+      if (isNumeric(normalizedFilterBranch)) {
+        const brId = parseInt(normalizedFilterBranch, 10);
+        countQuery += ' AND (branch_id = ? OR branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))';
+        countParams.push(brId, brId);
+      } else {
+        countQuery += ' AND (branch = ? OR branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+        countParams.push(normalizedFilterBranch, normalizedFilterBranch);
+      }
     }
 
     if (normalizedFilterSection && normalizedFilterBranch) {
@@ -6585,8 +6606,9 @@ exports.getFilterOptions = async (req, res) => {
 
     if (college) {
       if (isNumeric(college)) {
-        whereClause += ` AND college_id = ?`;
-        params.push(parseInt(college, 10));
+        const colId = parseInt(college, 10);
+        whereClause += ` AND (college_id = ? OR college = (SELECT name COLLATE utf8mb4_0900_ai_ci FROM colleges WHERE id = ? LIMIT 1))`;
+        params.push(colId, colId);
       } else {
         const { clause, params: collegeParams } = buildCollegeNameFilter(college, 'students');
         whereClause += ` AND ${clause}`;
@@ -6596,20 +6618,22 @@ exports.getFilterOptions = async (req, res) => {
 
     if (course) {
       if (isNumeric(course)) {
-        whereClause += ` AND course_id = ?`;
-        params.push(parseInt(course, 10));
+        const crsId = parseInt(course, 10);
+        whereClause += ` AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))`;
+        params.push(crsId, crsId);
       } else {
-        whereClause += ' AND course = ?';
-        params.push(course);
+        whereClause += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        params.push(course, course);
       }
     }
     if (branch) {
       if (isNumeric(branch)) {
-        whereClause += ` AND branch_id = ?`;
-        params.push(parseInt(branch, 10));
+        const brId = parseInt(branch, 10);
+        whereClause += ` AND (branch_id = ? OR branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))`;
+        params.push(brId, brId);
       } else {
-        whereClause += ' AND branch = ?';
-        params.push(branch);
+        whereClause += ' AND (branch = ? OR branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+        params.push(branch, branch);
       }
     }
     if (batch) {
@@ -6727,8 +6751,9 @@ exports.getQuickFilterOptions = async (req, res) => {
 
     if (college) {
       if (isNumeric(college)) {
-        whereClause += ` AND college_id = ?`;
-        params.push(parseInt(college, 10));
+        const colId = parseInt(college, 10);
+        whereClause += ` AND (college_id = ? OR college = (SELECT name COLLATE utf8mb4_0900_ai_ci FROM colleges WHERE id = ? LIMIT 1))`;
+        params.push(colId, colId);
       } else {
         const { clause, params: collegeParams } = buildCollegeNameFilter(college);
         whereClause += ` AND ${clause}`;
@@ -6737,20 +6762,22 @@ exports.getQuickFilterOptions = async (req, res) => {
     }
     if (course) {
       if (isNumeric(course)) {
-        whereClause += ` AND course_id = ?`;
-        params.push(parseInt(course, 10));
+        const crsId = parseInt(course, 10);
+        whereClause += ` AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))`;
+        params.push(crsId, crsId);
       } else {
-        whereClause += ' AND course = ?';
-        params.push(course);
+        whereClause += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        params.push(course, course);
       }
     }
     if (branch) {
       if (isNumeric(branch)) {
-        whereClause += ` AND branch_id = ?`;
-        params.push(parseInt(branch, 10));
+        const brId = parseInt(branch, 10);
+        whereClause += ` AND (branch_id = ? OR branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))`;
+        params.push(brId, brId);
       } else {
-        whereClause += ' AND branch = ?';
-        params.push(branch);
+        whereClause += ' AND (branch = ? OR branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+        params.push(branch, branch);
       }
     }
     if (batch) {
@@ -6770,12 +6797,11 @@ exports.getQuickFilterOptions = async (req, res) => {
       params.push(req.query.student_status);
     }
 
-    // Fetch distinct values for each filter (only colleges that exist in colleges table, to exclude orphan names)
+    // Fetch distinct colleges (from colleges table)
     let collegeRows = [];
     try {
       [collegeRows] = await masterPool.query(
-        `SELECT college AS id, college AS name FROM students ${whereClause} AND college IS NOT NULL AND college <> '' AND college COLLATE utf8mb4_unicode_ci IN (SELECT name FROM colleges WHERE is_active = 1) GROUP BY college ORDER BY college ASC`,
-        params
+        'SELECT id, name, code FROM colleges WHERE is_active = 1 ORDER BY name ASC'
       );
     } catch (colErr) {
       try {
@@ -6832,8 +6858,9 @@ exports.getQuickFilterOptions = async (req, res) => {
 
     if (college) {
       if (isNumeric(college)) {
-        yearWhereClause += ` AND college_id = ?`;
-        yearParams.push(parseInt(college, 10));
+        const colId = parseInt(college, 10);
+        yearWhereClause += ` AND (college_id = ? OR college = (SELECT name COLLATE utf8mb4_0900_ai_ci FROM colleges WHERE id = ? LIMIT 1))`;
+        yearParams.push(colId, colId);
       } else {
         const { clause, params: collegeParams } = buildCollegeNameFilter(college, 'students');
         yearWhereClause += ` AND ${clause}`;
@@ -6858,20 +6885,22 @@ exports.getQuickFilterOptions = async (req, res) => {
     }
     if (course) {
       if (isNumeric(course)) {
-        yearWhereClause += ` AND course_id = ?`;
-        yearParams.push(parseInt(course, 10));
+        const crsId = parseInt(course, 10);
+        yearWhereClause += ` AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))`;
+        yearParams.push(crsId, crsId);
       } else {
-        yearWhereClause += ' AND course = ?';
-        yearParams.push(course);
+        yearWhereClause += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        yearParams.push(course, course);
       }
     }
     if (branch) {
       if (isNumeric(branch)) {
-        yearWhereClause += ` AND branch_id = ?`;
-        yearParams.push(parseInt(branch, 10));
+        const brId = parseInt(branch, 10);
+        yearWhereClause += ` AND (branch_id = ? OR branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))`;
+        yearParams.push(brId, brId);
       } else {
-        yearWhereClause += ' AND branch = ?';
-        yearParams.push(branch);
+        yearWhereClause += ' AND (branch = ? OR branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+        yearParams.push(branch, branch);
       }
     }
     if (batch) {
@@ -6898,20 +6927,17 @@ exports.getQuickFilterOptions = async (req, res) => {
       if (isNumeric(college)) {
         collegeId = parseInt(college, 10);
       } else {
-        // Get college ID from college name
-        const [collegeRows] = await masterPool.query(
+        const [foundCols] = await masterPool.query(
           'SELECT id FROM colleges WHERE name = ? AND is_active = 1 LIMIT 1',
           [college]
         );
-        if (collegeRows.length > 0) {
-          collegeId = collegeRows[0].id;
+        if (foundCols.length > 0) {
+          collegeId = foundCols[0].id;
         }
       }
 
       if (collegeId !== null) {
-        // Get courses for this college from courses table (these are the valid courses for this college)
-        // Filter by level if level is provided
-        let courseQuery = 'SELECT name FROM courses WHERE college_id = ? AND is_active = 1';
+        let courseQuery = 'SELECT id, name, code, level FROM courses WHERE college_id = ? AND is_active = 1';
         const courseParams = [collegeId];
         if (level) {
           courseQuery += ' AND level = ?';
@@ -6919,53 +6945,22 @@ exports.getQuickFilterOptions = async (req, res) => {
         }
         courseQuery += ' ORDER BY name ASC';
         const [collegeCourses] = await masterPool.query(courseQuery, courseParams);
-        const validCourseNames = collegeCourses.map(c => c.name);
-
-        if (validCourseNames.length > 0) {
-          // Get distinct courses from students that match:
-          // 1. The current filters (college, batch, year, semester, etc.)
-          // 2. AND are in the list of valid courses for this college
-          const placeholders = validCourseNames.map(() => '?').join(',');
-          const courseWhereClause = `${whereClause} AND course IN (${placeholders})`;
-          const courseParams = [...params, ...validCourseNames];
-          [courseRows] = await masterPool.query(
-            `SELECT course AS id, course AS name FROM students ${courseWhereClause} AND course IS NOT NULL AND course <> '' GROUP BY course ORDER BY course ASC`,
-            courseParams
-          );
-        } else {
-          // No courses configured for this college
-          courseRows = [];
-        }
+        courseRows = collegeCourses.map(c => ({ id: c.id, name: c.name, code: c.code, level: c.level }));
       } else {
-        // College not found, return empty courses
         courseRows = [];
       }
     } else {
-      // No college filter, get all courses from students (NO exclusions)
-      // But if level is selected, filter courses by level
       if (level) {
-        // Get courses with the specified level from courses table
         const [levelCourses] = await masterPool.query(
-          'SELECT name FROM courses WHERE level = ? AND is_active = 1 ORDER BY name ASC',
+          'SELECT id, name, code, level FROM courses WHERE level = ? AND is_active = 1 ORDER BY name ASC',
           [level]
         );
-        const validCourseNames = levelCourses.map(c => c.name);
-        if (validCourseNames.length > 0) {
-          const placeholders = validCourseNames.map(() => '?').join(',');
-          const courseWhereClause = `${whereClause} AND course IN (${placeholders})`;
-          const courseParams = [...params, ...validCourseNames];
-          [courseRows] = await masterPool.query(
-            `SELECT course AS id, course AS name FROM students ${courseWhereClause} AND course IS NOT NULL AND course <> '' GROUP BY course ORDER BY course ASC`,
-            courseParams
-          );
-        } else {
-          courseRows = [];
-        }
+        courseRows = levelCourses.map(c => ({ id: c.id, name: c.name, code: c.code, level: c.level }));
       } else {
-        [courseRows] = await masterPool.query(
-          `SELECT course AS id, course AS name FROM students ${whereClause} AND course IS NOT NULL AND course <> '' GROUP BY course ORDER BY course ASC`,
-          params
+        const [allCourses] = await masterPool.query(
+          'SELECT id, name, code, level FROM courses WHERE is_active = 1 ORDER BY name ASC'
         );
+        courseRows = allCourses.map(c => ({ id: c.id, name: c.name, code: c.code, level: c.level }));
       }
     }
 
@@ -6976,19 +6971,16 @@ exports.getQuickFilterOptions = async (req, res) => {
       if (isNumeric(college)) {
         collegeId = parseInt(college, 10);
       } else {
-        // Get college ID from college name
-        const [collegeRows] = await masterPool.query(
+        const [foundCols] = await masterPool.query(
           'SELECT id FROM colleges WHERE name = ? AND is_active = 1 LIMIT 1',
           [college]
         );
-        if (collegeRows.length > 0) {
-          collegeId = collegeRows[0].id;
+        if (foundCols.length > 0) {
+          collegeId = foundCols[0].id;
         }
       }
 
       if (collegeId !== null) {
-        // Get courses for this college from courses table
-        // Filter by level if level is provided
         let branchCourseQuery = 'SELECT id, name FROM courses WHERE college_id = ? AND is_active = 1';
         const branchCourseParams = [collegeId];
         if (level) {
@@ -6997,60 +6989,69 @@ exports.getQuickFilterOptions = async (req, res) => {
         }
         branchCourseQuery += ' ORDER BY name ASC';
         const [collegeCourses] = await masterPool.query(branchCourseQuery, branchCourseParams);
-        const validCourseNames = collegeCourses.map(c => c.name);
         const validCourseIds = collegeCourses.map(c => c.id);
 
         if (validCourseIds.length > 0) {
           if (course) {
-            // Get course ID for the selected course (handles both ID and Name)
             const selectedCourse = collegeCourses.find(c => 
               isNumeric(course) ? c.id === parseInt(course, 10) : c.name === course
             );
             if (selectedCourse) {
-              // Get branches for this specific course from course_branches table
               const [courseBranches] = await masterPool.query(
-                'SELECT MAX(id) AS id, name FROM course_branches WHERE course_id = ? AND is_active = 1 GROUP BY name ORDER BY name ASC',
+                'SELECT id, name, code, course_id FROM course_branches WHERE course_id = ? AND is_active = 1 ORDER BY name ASC',
                 [selectedCourse.id]
               );
-              branchRows = courseBranches.map(b => ({ id: b.name, branch: b.name }));
+              branchRows = courseBranches.map(b => ({ id: b.id, name: b.name, branch: b.name, code: b.code, course_id: b.course_id }));
             } else {
-              // Selected course doesn't belong to this college
               branchRows = [];
             }
           } else {
-            // No course selected, get all branches for all courses in this college
             const courseIdPlaceholders = validCourseIds.map(() => '?').join(',');
             const [allBranches] = await masterPool.query(
-              `SELECT MAX(id) AS id, name FROM course_branches WHERE course_id IN (${courseIdPlaceholders}) AND is_active = 1 GROUP BY name ORDER BY name ASC`,
+              `SELECT id, name, code, course_id FROM course_branches WHERE course_id IN (${courseIdPlaceholders}) AND is_active = 1 ORDER BY name ASC`,
               validCourseIds
             );
-            branchRows = allBranches.map(b => ({ id: b.name, branch: b.name }));
+            branchRows = allBranches.map(b => ({ id: b.id, name: b.name, branch: b.name, code: b.code, course_id: b.course_id }));
           }
         } else {
-          // No courses configured for this college, so no branches
           branchRows = [];
         }
       } else {
-        // College not found, return empty branches
         branchRows = [];
       }
     } else {
-      // No college filter, get all branches from students (NO exclusions)
-      [branchRows] = await masterPool.query(
-        `SELECT branch AS id, branch AS name FROM students ${whereClause} AND branch IS NOT NULL AND branch <> '' GROUP BY branch ORDER BY branch ASC`,
-        params
-      );
+      if (course) {
+        let crsId = isNumeric(course) ? parseInt(course, 10) : null;
+        if (!crsId) {
+          const [found] = await masterPool.query('SELECT id FROM courses WHERE name = ? LIMIT 1', [course]);
+          if (found.length > 0) crsId = found[0].id;
+        }
+        if (crsId) {
+          const [courseBranches] = await masterPool.query(
+            'SELECT id, name, code, course_id FROM course_branches WHERE course_id = ? AND is_active = 1 ORDER BY name ASC',
+            [crsId]
+          );
+          branchRows = courseBranches.map(b => ({ id: b.id, name: b.name, branch: b.name, code: b.code, course_id: b.course_id }));
+        } else {
+          branchRows = [];
+        }
+      } else {
+        const [allBranches] = await masterPool.query(
+          'SELECT id, name, code, course_id FROM course_branches WHERE is_active = 1 ORDER BY name ASC'
+        );
+        branchRows = allBranches.map(b => ({ id: b.id, name: b.name, branch: b.name, code: b.code, course_id: b.course_id }));
+      }
     }
 
     res.json({
       success: true,
       data: {
-        colleges: collegeRows.map((row) => ({ id: row.id || row.college, name: row.name || row.college })),
+        colleges: collegeRows.map((row) => ({ id: row.id, name: row.name, code: row.code })),
         batches: batchRows.map((row) => row.batch),
         years: yearRows.map((row) => row.currentYear),
         semesters: semesterRows.map((row) => row.currentSemester),
-        courses: courseRows.map((row) => ({ id: row.id || row.course, name: row.name || row.course })),
-        branches: branchRows.map((row) => ({ id: row.id || row.branch, name: row.name || row.branch })),
+        courses: courseRows.map((row) => ({ id: row.id, name: row.name, code: row.code, level: row.level })),
+        branches: branchRows.map((row) => ({ id: row.id, name: row.name, branch: row.name, code: row.code, course_id: row.course_id })),
         sections: await fetchStudentTableSectionOptions({ course, branch, batch, year, semester, college })
       }
     });

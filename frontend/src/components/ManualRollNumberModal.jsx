@@ -108,7 +108,7 @@ const ManualRollNumberModal = ({
   }, [availableBatches]);
 
   const selectedCollege = useMemo(
-    () => colleges.find((c) => c.name === pinFilters.college) || null,
+    () => colleges.find((c) => String(c.id) === String(pinFilters.college) || c.name === pinFilters.college) || null,
     [colleges, pinFilters.college]
   );
 
@@ -124,8 +124,8 @@ const ManualRollNumberModal = ({
 
   const branchOptions = useMemo(() => {
     if (pinFilters.course) {
-      const courseObj = courseOptions.find((c) => c.name === pinFilters.course)
-        || (coursesWithLevels || []).find((c) => c.name === pinFilters.course);
+      const courseObj = courseOptions.find((c) => String(c.id) === String(pinFilters.course) || c.name === pinFilters.course)
+        || (coursesWithLevels || []).find((c) => String(c.id) === String(pinFilters.course) || c.name === pinFilters.course);
       return (courseObj?.branches || []).filter((b) => b.isActive !== false);
     }
     // No course selected: show all branches for visible courses
@@ -392,7 +392,7 @@ const ManualRollNumberModal = ({
                 College
               </label>
               <select
-                value={pinFilters.college}
+                value={selectedCollege ? String(selectedCollege.id) : (pinFilters.college || '')}
                 onChange={(e) => handlePinFilterChange('college', e.target.value)}
                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
               >
@@ -400,7 +400,7 @@ const ManualRollNumberModal = ({
                 {colleges
                   .filter((c) => c.isActive !== false)
                   .map((college) => (
-                    <option key={college.id || college.name} value={college.name}>
+                    <option key={college.id || college.name} value={college.id}>
                       {college.name}
                     </option>
                   ))}
@@ -428,13 +428,16 @@ const ManualRollNumberModal = ({
                 Program (Course)
               </label>
               <select
-                value={pinFilters.course}
+                value={(() => {
+                  const found = courseOptions.find(c => String(c.id) === String(pinFilters.course) || c.name === pinFilters.course);
+                  return found ? String(found.id || found.name) : (pinFilters.course || '');
+                })()}
                 onChange={(e) => handlePinFilterChange('course', e.target.value)}
                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
               >
                 <option value="">All Programs</option>
                 {courseOptions.map((course) => (
-                  <option key={course.id || course.name} value={course.name}>
+                  <option key={course.id || course.name} value={course.id || course.name}>
                     {course.name}
                   </option>
                 ))}
@@ -445,15 +448,19 @@ const ManualRollNumberModal = ({
                 Branch
               </label>
               <select
-                value={pinFilters.branch}
+                value={(() => {
+                  const found = branchOptions.find(b => String(b.id) === String(pinFilters.branch) || (b.name || b) === pinFilters.branch);
+                  return found ? String(found.id || found.name || found) : (pinFilters.branch || '');
+                })()}
                 onChange={(e) => handlePinFilterChange('branch', e.target.value)}
                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
               >
                 <option value="">All Branches</option>
                 {branchOptions.map((branch) => {
                   const name = branch.name || branch;
+                  const id = branch.id || name;
                   return (
-                    <option key={branch.id || name} value={name}>
+                    <option key={id} value={id}>
                       {name}
                     </option>
                   );

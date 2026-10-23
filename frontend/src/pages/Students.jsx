@@ -240,14 +240,17 @@ const getBranchSectionConfig = (coursesWithLevels, courseName, branchName) => {
     return { enabled: false, items: [] };
   }
 
+  const matchesCourse = (c, val) => !val || c.name === val || String(c.id) === String(val);
+  const matchesBranch = (b, val) => !val || b.name === val || String(b.id) === String(val);
+
   const matchingBranches = [];
   if (courseName) {
-    const courseObj = coursesWithLevels.find((course) => course.name === courseName);
-    const branchObj = (courseObj?.branches || []).find((branch) => branch.name === branchName);
+    const courseObj = (coursesWithLevels || []).find((course) => matchesCourse(course, courseName));
+    const branchObj = (courseObj?.branches || []).find((branch) => matchesBranch(branch, branchName));
     if (branchObj) matchingBranches.push(branchObj);
   } else {
-    coursesWithLevels.forEach((course) => {
-      const branchObj = (course.branches || []).find((branch) => branch.name === branchName);
+    (coursesWithLevels || []).forEach((course) => {
+      const branchObj = (course.branches || []).find((branch) => matchesBranch(branch, branchName));
       if (branchObj) matchingBranches.push(branchObj);
     });
   }
@@ -413,7 +416,7 @@ const Students = () => {
   const [editData, setEditData] = useState({});
   const [editBaseline, setEditBaseline] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({ student_status: 'Regular', level: '' }); // Default to show only Regular students
+  const [filters, setFilters] = useState({ student_status: '', level: '' });
   const [colleges, setColleges] = useState([]);
   const [collegesLoading, setCollegesLoading] = useState(false);
   const [filtersLoading, setFiltersLoading] = useState(true); // Track overall filter loading state
@@ -3146,7 +3149,7 @@ const Students = () => {
                 <p className="text-xs font-semibold text-gray-500 mb-0.5 uppercase tracking-wider">Total Students</p>
                 <p className="text-lg font-bold text-blue-600 leading-tight">{totalStudents.toLocaleString()}</p>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  {filters.student_status === 'Regular' ? 'Regular' : 'Filtered'}
+                  {filters.student_status ? (filters.student_status === 'Regular' ? 'Regular' : 'Filtered') : 'All Students'}
                 </p>
               </div>
               <div className="bg-blue-50 p-2 rounded-xl">
@@ -3243,14 +3246,18 @@ const Students = () => {
               <div className="flex flex-col">
                 <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">College</label>
                 <select
-                  value={filters.college || ''}
+                  value={(() => {
+                    if (!filters.college) return '';
+                    const match = colleges.find(c => String(c.id) === String(filters.college) || c.name === filters.college);
+                    return match ? String(match.id) : String(filters.college);
+                  })()}
                   onChange={(e) => handleFilterChange('college', e.target.value)}
                   disabled={collegesLoading}
                   className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">All</option>
                   {colleges.filter(c => c.isActive !== false).map((college) => (
-                    <option key={college.id} value={college.name}>{college.name}</option>
+                    <option key={college.id} value={college.id}>{college.name}</option>
                   ))}
                 </select>
               </div>
@@ -3283,7 +3290,11 @@ const Students = () => {
               <div className="flex flex-col">
                 <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Program</label>
                 <select
-                  value={filters.course || ''}
+                  value={(() => {
+                    if (!filters.course) return '';
+                    const match = (quickFilterOptions.courses || []).find(c => String(c.id) === String(filters.course) || c.name === filters.course);
+                    return match ? String(match.id || match) : String(filters.course);
+                  })()}
                   onChange={(e) => handleFilterChange('course', e.target.value)}
                   onFocus={(e) => {
                     // When user focuses on course dropdown, fetch all courses for selected college
@@ -3305,7 +3316,9 @@ const Students = () => {
                     .filter(course => {
                       // Filter by level if level is selected
                       if (filters.level) {
-                        const courseInfo = coursesWithLevels.find(c => c.name === course);
+                        const courseInfo = coursesWithLevels.find(c => 
+                          String(c.id) === String(course.id || course) || c.name === (course.name || course)
+                        );
                         return courseInfo?.level === filters.level;
                       }
                       return true;
@@ -3318,7 +3331,11 @@ const Students = () => {
               <div className="flex flex-col">
                 <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Branch</label>
                 <select
-                  value={filters.branch || ''}
+                  value={(() => {
+                    if (!filters.branch) return '';
+                    const match = (quickFilterOptions.branches || []).find(b => String(b.id) === String(filters.branch) || (b.name || b) === filters.branch);
+                    return match ? String(match.id || match) : String(filters.branch);
+                  })()}
                   onChange={(e) => handleFilterChange('branch', e.target.value)}
                   onFocus={(e) => {
                     // When user focuses on branch dropdown, fetch all branches for selected course
@@ -3337,7 +3354,7 @@ const Students = () => {
                 >
                   <option value="">All</option>
                   {(quickFilterOptions.branches || []).map((branch) => (
-                    <option key={branch} value={branch.id || branch}>{branch.name || branch}</option>
+                    <option key={branch.id || branch} value={branch.id || branch}>{branch.name || branch}</option>
                   ))}
                 </select>
               </div>

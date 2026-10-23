@@ -38,9 +38,16 @@ const buildMultiCollegeFilter = (collegeVal, tableAlias = 'students') => {
 
   let rawValues = [];
   if (Array.isArray(collegeVal)) {
-    rawValues = collegeVal.flatMap(v => String(v).split(','));
+    rawValues = collegeVal.map(v => String(v).trim()).filter(Boolean);
   } else {
-    rawValues = String(collegeVal).split(',');
+    const strVal = String(collegeVal).trim();
+    if (!strVal) return { clause: '', params: [] };
+    // Only split on comma if it is purely comma-separated numeric IDs (e.g. "1,2,3")
+    if (/^\d+(?:\s*,\s*\d+)+$/.test(strVal)) {
+      rawValues = strVal.split(',').map(v => v.trim()).filter(Boolean);
+    } else {
+      rawValues = [strVal];
+    }
   }
 
   const values = rawValues.map(v => v.trim()).filter(Boolean);

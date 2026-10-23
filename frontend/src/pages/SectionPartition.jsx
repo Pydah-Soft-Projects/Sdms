@@ -142,9 +142,7 @@ const SectionPartition = () => {
 
   const availableBranches = useMemo(() => {
     if (!filters.course) return [];
-    return (quickFilterOptions.branches || [])
-      .map((b) => (typeof b === 'object' ? b.name || b.id : b))
-      .filter(Boolean);
+    return (quickFilterOptions.branches || []).filter(Boolean);
   }, [quickFilterOptions.branches, filters.course]);
 
   const configuredSectionItems = useMemo(() => {
@@ -953,14 +951,18 @@ const SectionPartition = () => {
                   College
                 </label>
                 <select
-                  value={filters.college}
+                  value={(() => {
+                    if (!filters.college) return '';
+                    const match = colleges.find(c => String(c.id) === String(filters.college) || c.name === filters.college);
+                    return match ? String(match.id) : String(filters.college);
+                  })()}
                   onChange={(e) => handleFilterChange('college', e.target.value)}
                   disabled={collegesLoading}
                   className="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
                 >
                   <option value="">Select College</option>
                   {colleges.filter((c) => c.isActive !== false).map((c) => (
-                    <option key={c.id} value={c.name}>{c.name}</option>
+                    <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
               </div>
@@ -970,15 +972,20 @@ const SectionPartition = () => {
                   Course
                 </label>
                 <select
-                  value={filters.course}
+                  value={(() => {
+                    if (!filters.course) return '';
+                    const match = (quickFilterOptions.courses || []).find(c => String(c.id) === String(filters.course) || c.name === filters.course);
+                    return match ? String(match.id || match) : String(filters.course);
+                  })()}
                   onChange={(e) => handleFilterChange('course', e.target.value)}
                   disabled={!filters.college || loadingFilters}
                   className="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white disabled:bg-gray-100"
                 >
                   <option value="">Select Course</option>
                   {quickFilterOptions.courses.map((c) => {
-                    const val = typeof c === 'object' ? c.name || c.id : c;
-                    return <option key={val} value={val}>{val}</option>;
+                    const id = typeof c === 'object' ? c.id || c.name : c;
+                    const name = typeof c === 'object' ? c.name || c.id : c;
+                    return <option key={id} value={id}>{name}</option>;
                   })}
                 </select>
               </div>
@@ -988,15 +995,21 @@ const SectionPartition = () => {
                   Branch
                 </label>
                 <select
-                  value={filters.branch}
+                  value={(() => {
+                    if (!filters.branch) return '';
+                    const match = (availableBranches || []).find(b => String(b.id || b) === String(filters.branch) || (b.name || b) === filters.branch);
+                    return match ? String(match.id || match.name || match) : String(filters.branch);
+                  })()}
                   onChange={(e) => handleFilterChange('branch', e.target.value)}
                   disabled={!filters.course || loadingFilters}
                   className="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white disabled:bg-gray-100"
                 >
                   <option value="">Select Branch</option>
-                  {availableBranches.map((b) => (
-                    <option key={b} value={b}>{b}</option>
-                  ))}
+                  {availableBranches.map((b) => {
+                    const id = typeof b === 'object' ? b.id || b.name : b;
+                    const name = typeof b === 'object' ? b.name || b.branch || b.id : b;
+                    return <option key={id} value={id}>{name}</option>;
+                  })}
                 </select>
               </div>
 

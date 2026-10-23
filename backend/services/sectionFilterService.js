@@ -165,17 +165,37 @@ const fetchStudentTableSectionOptions = async ({ course, branch, batch, year, se
   const studentParams = [];
   let studentWhere = 'WHERE section IS NOT NULL AND TRIM(section) <> \'\'';
 
+  const isNumeric = (val) => /^\d+$/.test(val);
+
   if (branch) {
-    studentWhere += ' AND branch = ?';
-    studentParams.push(branch);
+    if (isNumeric(branch)) {
+      const brId = parseInt(branch, 10);
+      studentWhere += ' AND (branch_id = ? OR branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))';
+      studentParams.push(brId, brId);
+    } else {
+      studentWhere += ' AND (branch = ? OR branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+      studentParams.push(branch, branch);
+    }
   }
   if (course) {
-    studentWhere += ' AND course = ?';
-    studentParams.push(course);
+    if (isNumeric(course)) {
+      const crsId = parseInt(course, 10);
+      studentWhere += ' AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))';
+      studentParams.push(crsId, crsId);
+    } else {
+      studentWhere += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+      studentParams.push(course, course);
+    }
   }
   if (college) {
-    studentWhere += ' AND college = ?';
-    studentParams.push(college);
+    if (isNumeric(college)) {
+      const colId = parseInt(college, 10);
+      studentWhere += ' AND (college_id = ? OR college = (SELECT name COLLATE utf8mb4_0900_ai_ci FROM colleges WHERE id = ? LIMIT 1))';
+      studentParams.push(colId, colId);
+    } else {
+      studentWhere += ' AND (college = ? OR college_id = (SELECT id FROM colleges WHERE name = ? LIMIT 1))';
+      studentParams.push(college, college);
+    }
   }
   if (batch) {
     studentWhere += ' AND batch = ?';

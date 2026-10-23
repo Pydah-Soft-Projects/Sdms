@@ -32,6 +32,7 @@ const serviceRoutes = require("./routes/serviceRoutes");
 const certificateTemplateRoutes = require("./routes/certificateTemplateRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const parentRoutes = require("./routes/parentRoutes");
+const studentFeedbackPortalRoutes = require("./routes/studentFeedbackPortalRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -174,6 +175,7 @@ app.use("/api/student-merit-status", require("./routes/studentMeritStatusRoutes"
 app.use("/api/sms-templates", require("./routes/smsTemplateRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes")); // [NEW] Notification Routes
 app.use("/api/feedback-forms", require("./routes/feedbackRoutes")); // [NEW] Feedback Form Routes
+app.use("/api/student-feedback", studentFeedbackPortalRoutes); // [NEW] Academic Portal Feedback for Students
 // app.use('/api/notifications', require('./routes/pushRoutes')); // Old push routes (commented/replaced or co-exists?)
 // Keeping pushRoutes if needed for push notifications, but avoiding conflict on same path if problematic.
 // The user request was "notification icon ... inside notification center", implying web notifications.

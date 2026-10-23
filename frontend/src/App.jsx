@@ -87,6 +87,8 @@ const StudentTimetable = lazy(() => import('./pages/student/StudentTimetable'));
 
 // AI Assistant Page
 const AiAssistant = lazy(() => import('./pages/AiAssistant'));
+const StudentAcademicContent = lazy(() => import('./pages/student/StudentAcademicContent'));
+const StudentInternalMarks = lazy(() => import('./pages/student/StudentInternalMarks'));
 
 // Layout (Lazy Loaded)
 const AdminLayout = lazy(() => import('./components/Layout/AdminLayout'));
@@ -324,6 +326,8 @@ function App() {
             <Route path="profile-requests" element={<MyProfileRequests />} />
             <Route path="my-documents" element={<MyDocuments />} />
             <Route path="ai-assistant" element={<AiAssistant />} />
+            <Route path="academic-content" element={<StudentAcademicContent />} />
+            <Route path="internal-marks" element={<StudentInternalMarks />} />
           </Route>
 
           {/* Protected Parent Routes */}

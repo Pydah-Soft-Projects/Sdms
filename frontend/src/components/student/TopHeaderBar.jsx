@@ -1,11 +1,12 @@
 import React, { useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Bell } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Bell, ArrowLeft } from 'lucide-react';
 import useNotificationStore from '../../store/notificationStore';
 import useAuthStore from '../../store/authStore';
 
 const TopHeaderBar = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuthStore();
     const { unreadCount, fetchNotifications } = useNotificationStore();
 
@@ -38,6 +39,15 @@ const TopHeaderBar = () => {
         <div className="sticky -top-4 lg:-top-5 xl:-top-6 z-40 bg-[#f8fafc]/95 backdrop-blur-md flex items-center justify-between py-2.5 px-4 lg:px-5 xl:px-6 -mx-4 lg:-mx-5 xl:-mx-6 -mt-4 lg:-mt-5 xl:-mt-6 mb-3 transition-all border-b border-slate-200/60 shadow-2xs min-h-[52px] sm:min-h-[58px]">
             {/* Left: College Logo & Time Wish with Cursive Pydian */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
+                {location.pathname !== '/student/dashboard' && (
+                    <button
+                        onClick={() => navigate('/student/dashboard')}
+                        className="p-1 -ml-1 text-slate-700 hover:bg-slate-200/80 active:scale-95 rounded-xl transition-all flex items-center justify-center shrink-0 cursor-pointer lg:hidden"
+                        title="Back to Dashboard"
+                    >
+                        <ArrowLeft className="w-5 h-5 text-slate-700" />
+                    </button>
+                )}
                 <img
                     src="/logo.png"
                     alt="Pydah Group"

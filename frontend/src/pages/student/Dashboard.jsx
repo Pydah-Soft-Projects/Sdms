@@ -10,6 +10,20 @@ import { serviceService } from '../../services/serviceService';
 import clubService from '../../services/clubService';
 import { toast } from 'react-hot-toast';
 import { getTicketAppUrl } from '../../utils/ticketAppUrl';
+import { navigateToCrtApp } from '../../utils/crtAppUrl';
+import {
+    RiCheckboxCircleLine,
+    RiBookOpenLine,
+    RiFileList3Line,
+    RiBusLine,
+    RiMapPinLine,
+    RiAwardLine,
+    RiQuestionAnswerLine,
+    RiFolderLine,
+    RiServiceLine,
+    RiSparklingLine,
+    RiTicketLine
+} from 'react-icons/ri';
 
 const Dashboard = () => {
     const { user, token } = useAuthStore(); // Get token for SSO
@@ -38,6 +52,8 @@ const Dashboard = () => {
     const [academicContent, setAcademicContent] = useState({ tests: 0, notes: 0 });
     const [internalMarksCount, setInternalMarksCount] = useState(0);
     const [todayTimetable, setTodayTimetable] = useState([]);
+    const [hasInternship, setHasInternship] = useState(false);
+    const [hasTransportPass, setHasTransportPass] = useState(false);
 
     // UI States
     const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -256,6 +272,26 @@ const Dashboard = () => {
                         if (res?.data) setServiceRequests(res.data);
                     })
                     .catch(err => console.error('Failed to load service requests:', err));
+
+                // Check Internship Status
+                api.get('/internship/my-assignment')
+                    .then(res => {
+                        if (res.data?.success && res.data?.assignment) {
+                            setHasInternship(true);
+                        }
+                    })
+                    .catch(() => {});
+
+                // Check Transport Pass Active State
+                if (user?.admission_number) {
+                    api.get('/transport/my-details')
+                        .then(res => {
+                            if (res.data?.success && res.data?.hasActivePass) {
+                                setHasTransportPass(true);
+                            }
+                        })
+                        .catch(() => {});
+                }
 
                 // 6. Hourly Summary
                 api.get('/hourly-attendance/student-summary')
@@ -606,6 +642,175 @@ const Dashboard = () => {
 
     // Registration is considered fully complete if the registration status says so
     const isRegistrationCompleted = registrationLabel === 'Completed';
+
+    // All portal menu items representing every function from the student menu
+    const menuActions = useMemo(() => {
+        return [
+            {
+                key: 'attendance',
+                label: 'Attendance',
+                path: '/student/attendance',
+                icon: RiCheckboxCircleLine,
+                iconBg: 'bg-[#ecfdf5]',
+                iconColor: 'text-[#059669]',
+                enabled: isEnabled('attendance')
+            },
+            {
+                key: 'academic',
+                label: 'Academic',
+                path: '/student/academic-content',
+                icon: BookOpen,
+                iconBg: 'bg-[#eeeffe]',
+                iconColor: 'text-[#5551ff]',
+                enabled: true
+            },
+            {
+                key: 'fees',
+                label: 'Fees',
+                path: '/student/fees',
+                icon: IndianRupee,
+                iconBg: 'bg-[#ffeef2]',
+                iconColor: 'text-[#ff3366]',
+                enabled: isEnabled('fees')
+            },
+            {
+                key: 'timetable',
+                label: 'Timetable',
+                path: '/student/timetable',
+                icon: Calendar,
+                iconBg: 'bg-[#eef8ff]',
+                iconColor: 'text-[#2563eb]',
+                enabled: isEnabled('timetable')
+            },
+            {
+                key: 'internal-marks',
+                label: 'Results',
+                path: '/student/internal-marks',
+                icon: FileText,
+                iconBg: 'bg-[#eef9ff]',
+                iconColor: 'text-[#0284c7]',
+                enabled: true
+            },
+            {
+                key: 'ai-assistant',
+                label: 'AI Assistant',
+                path: '/student/ai-assistant',
+                icon: Sparkles,
+                iconBg: 'bg-[#f5f3ff]',
+                iconColor: 'text-[#7c3aed]',
+                enabled: isEnabled('ai-assistant') && layoutSettings?.ai_assistant !== false
+            },
+            {
+                key: 'semester-registration',
+                label: 'Sem Reg.',
+                path: '/student/semester-registration',
+                icon: RiFileList3Line,
+                iconBg: 'bg-[#fff7ed]',
+                iconColor: 'text-[#ea580c]',
+                enabled: isEnabled('semester-registration')
+            },
+            {
+                key: 'announcements',
+                label: 'Updates',
+                path: '/student/announcements',
+                icon: Megaphone,
+                iconBg: 'bg-[#fef3c7]',
+                iconColor: 'text-[#d97706]',
+                enabled: isEnabled('announcements')
+            },
+            {
+                key: 'events',
+                label: 'Events',
+                path: '/student/events',
+                icon: Award,
+                iconBg: 'bg-[#f3e8ff]',
+                iconColor: 'text-[#9333ea]',
+                enabled: isEnabled('events')
+            },
+            {
+                key: 'clubs',
+                label: 'Clubs',
+                path: '/student/clubs',
+                icon: Users,
+                iconBg: 'bg-[#ccfbf1]',
+                iconColor: 'text-[#0d9488]',
+                enabled: isEnabled('clubs')
+            },
+            {
+                key: 'crt-portal',
+                label: 'CRT Portal',
+                isCrt: true,
+                icon: RiBookOpenLine,
+                iconBg: 'bg-[#eff6ff]',
+                iconColor: 'text-[#3b82f6]',
+                enabled: true
+            },
+            {
+                key: 'services',
+                label: 'Services',
+                path: '/student/services',
+                icon: RiServiceLine,
+                iconBg: 'bg-[#fce7f3]',
+                iconColor: 'text-[#db2777]',
+                enabled: isEnabled('services')
+            },
+            {
+                key: 'my-tickets',
+                label: 'Maintenance',
+                isExternal: true,
+                href: ticketAppUrl,
+                icon: RiTicketLine,
+                iconBg: 'bg-[#dcfce7]',
+                iconColor: 'text-[#16a34a]',
+                enabled: true
+            },
+            {
+                key: 'internship',
+                label: 'Internship',
+                path: '/student/internship',
+                icon: RiMapPinLine,
+                iconBg: 'bg-[#e0e7ff]',
+                iconColor: 'text-[#4338ca]',
+                enabled: hasInternship && isEnabled('internship')
+            },
+            {
+                key: 'transport',
+                label: 'Transport',
+                path: '/student/transport',
+                icon: RiBusLine,
+                iconBg: 'bg-[#ffedd5]',
+                iconColor: 'text-[#c2410c]',
+                enabled: hasTransportPass && isEnabled('transport')
+            },
+            {
+                key: 'scholarship',
+                label: 'Scholarship',
+                path: '/student/scholarship',
+                icon: RiAwardLine,
+                iconBg: 'bg-[#ffe4e6]',
+                iconColor: 'text-[#e11d48]',
+                enabled: isEnabled('scholarship')
+            },
+            {
+                key: 'feedback',
+                label: 'Feedback',
+                path: '/student/feedback',
+                icon: RiQuestionAnswerLine,
+                iconBg: 'bg-[#f1f5f9]',
+                iconColor: 'text-[#475569]',
+                enabled: isEnabled('feedback')
+            },
+            {
+                key: 'my-documents',
+                label: 'Documents',
+                path: '/student/my-documents',
+                icon: RiFolderLine,
+                iconBg: 'bg-[#fef9c3]',
+                iconColor: 'text-[#ca8a04]',
+                enabled: isEnabled('my-documents')
+            }
+        ].filter(item => item.enabled);
+    }, [layoutSettings, ticketAppUrl, hasInternship, hasTransportPass]);
 
     // Helper function to truncate content to 1-2 lines
     const truncateContent = (text, maxLength = 150) => {
@@ -1051,63 +1256,60 @@ const Dashboard = () => {
                 )}
             </div>
 
-            {/* Quick Action Buttons Side-by-Side Horizontal Row (All Pages Represented) */}
-            <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1 -mx-1 px-1 my-1">
-                <Link to="/student/academic-content" className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] flex-1">
-                    <div className="w-11 h-11 rounded-2xl bg-[#eeeffe] text-[#5551ff] flex items-center justify-center group-hover:scale-105 transition-transform">
-                        <BookOpen size={20} />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight">Academic</span>
-                </Link>
+            {/* Quick Action Buttons Side-by-Side Horizontal Row (All Portal Functions from Menu) */}
+            <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0 my-1 scroll-smooth">
+                {menuActions.map((action) => {
+                    const Icon = action.icon;
+                    if (action.isCrt) {
+                        return (
+                            <button
+                                key={action.key}
+                                type="button"
+                                onClick={() => navigateToCrtApp('/student/dashboard')}
+                                className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95 cursor-pointer"
+                            >
+                                <div className={`w-11 h-11 rounded-2xl ${action.iconBg} ${action.iconColor} flex items-center justify-center group-hover:scale-105 transition-transform`}>
+                                    <Icon size={20} />
+                                </div>
+                                <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight whitespace-nowrap">
+                                    {action.label}
+                                </span>
+                            </button>
+                        );
+                    }
 
-                <Link to="/student/fees" className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] flex-1">
-                    <div className="w-11 h-11 rounded-2xl bg-[#ffeef2] text-[#ff3366] flex items-center justify-center group-hover:scale-105 transition-transform">
-                        <IndianRupee size={20} />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight">Fees</span>
-                </Link>
+                    if (action.isExternal) {
+                        return (
+                            <a
+                                key={action.key}
+                                href={action.href}
+                                className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95 cursor-pointer"
+                            >
+                                <div className={`w-11 h-11 rounded-2xl ${action.iconBg} ${action.iconColor} flex items-center justify-center group-hover:scale-105 transition-transform`}>
+                                    <Icon size={20} />
+                                </div>
+                                <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight whitespace-nowrap">
+                                    {action.label}
+                                </span>
+                            </a>
+                        );
+                    }
 
-                <Link to="/student/timetable" className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] flex-1">
-                    <div className="w-11 h-11 rounded-2xl bg-[#eef8ff] text-[#2563eb] flex items-center justify-center group-hover:scale-105 transition-transform">
-                        <Calendar size={20} />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight">Timetable</span>
-                </Link>
-
-                <Link to="/student/internal-marks" className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] flex-1">
-                    <div className="w-11 h-11 rounded-2xl bg-[#eef9ff] text-[#0284c7] flex items-center justify-center group-hover:scale-105 transition-transform">
-                        <FileText size={20} />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight">Results</span>
-                </Link>
-
-                <Link to="/student/announcements" className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] flex-1">
-                    <div className="w-11 h-11 rounded-2xl bg-[#fef3c7] text-[#d97706] flex items-center justify-center group-hover:scale-105 transition-transform">
-                        <Megaphone size={20} />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight">Updates</span>
-                </Link>
-
-                <Link to="/student/events" className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] flex-1">
-                    <div className="w-11 h-11 rounded-2xl bg-[#f3e8ff] text-[#9333ea] flex items-center justify-center group-hover:scale-105 transition-transform">
-                        <Award size={20} />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight">Events</span>
-                </Link>
-
-                <a href={ticketAppUrl} target="_blank" rel="noopener noreferrer" className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] flex-1">
-                    <div className="w-11 h-11 rounded-2xl bg-[#dcfce7] text-[#16a34a] flex items-center justify-center group-hover:scale-105 transition-transform">
-                        <Smartphone size={20} />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight">Support</span>
-                </a>
-
-                <Link to="/student/services" className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] flex-1">
-                    <div className="w-11 h-11 rounded-2xl bg-[#fce7f3] text-[#db2777] flex items-center justify-center group-hover:scale-105 transition-transform">
-                        <Clock size={20} />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight">Services</span>
-                </Link>
+                    return (
+                        <Link
+                            key={action.key}
+                            to={action.path}
+                            className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95"
+                        >
+                            <div className={`w-11 h-11 rounded-2xl ${action.iconBg} ${action.iconColor} flex items-center justify-center group-hover:scale-105 transition-transform`}>
+                                <Icon size={20} />
+                            </div>
+                            <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight whitespace-nowrap">
+                                {action.label}
+                            </span>
+                        </Link>
+                    );
+                })}
             </div>
 
             {/* Campus Events Section (Image 1 Style) */}

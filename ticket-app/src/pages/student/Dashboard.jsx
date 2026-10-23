@@ -1,34 +1,21 @@
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
     Ticket,
     Clock,
-    CheckCircle,
+    CheckCircle2,
     Plus,
     ArrowRight,
     Activity,
-    Shield
+    ShieldCheck
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../config/api';
-import { SkeletonBox, StudentDashboardSkeleton } from '../../components/SkeletonLoader';
+import { StudentDashboardSkeleton } from '../../components/SkeletonLoader';
 import '../../styles/student-pages.css';
-
-import useAuthStore from '../../store/authStore';
-import { getWorkspaceLinks, isHrmsOnlyTicketUser, navigateToHrmsPortal } from '../../utils/hrmsPortal';
 
 const Dashboard = () => {
     const navigate = useNavigate();
-    const { token, user } = useAuthStore();
-    const isHrmsOnly = isHrmsOnlyTicketUser(user);
-    const workspaceLinks = isHrmsOnly ? [] : getWorkspaceLinks(user, { token });
-
-    useEffect(() => {
-        if (isHrmsOnly) {
-            navigateToHrmsPortal();
-        }
-    }, [isHrmsOnly]);
 
     // Fetch tickets data for summary
     const { data: tickets = [], isLoading } = useQuery({
@@ -46,180 +33,150 @@ const Dashboard = () => {
         active: tickets.filter(t => ['approaching', 'resolving'].includes(t.status)).length
     }), [tickets]);
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
-
     if (isLoading) {
         return <StudentDashboardSkeleton />;
     }
 
     return (
-        <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="student-page-container"
-        >
-            {/* Welcome Header */}
-            {/* Welcome Header */}
-            <div className="page-header animate-fade-in-up">
-                <h1 className="page-title">
-                    Ticket Management
-                </h1>
-                <p className="page-subtitle">
-                    Manage and track your support requests and issues.
-                </p>
-            </div>
-
+        <div className="space-y-6 pb-6 font-sans">
             {/* Stats Overview */}
-            <div className="stats-grid">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {[
-                    { label: 'Total Tickets', value: stats.total, icon: Ticket, color: 'blue' },
-                    { label: 'Pending', value: stats.pending, icon: Clock, color: 'yellow' },
-                    { label: 'In Progress', value: stats.active, icon: Activity, color: 'purple' },
-                    { label: 'Resolved', value: stats.resolved, icon: CheckCircle, color: 'green' }
-                ].map((stat, idx) => (
-                    <motion.div
-                        key={idx}
-                        variants={itemVariants}
-                        className="stat-card"
-                        style={{
-                            background: stat.color === 'blue' ? 'linear-gradient(135deg, #ffffff 0%, #eff6ff 100%)' :
-                                stat.color === 'yellow' ? 'linear-gradient(135deg, #ffffff 0%, #fefce8 100%)' :
-                                    stat.color === 'purple' ? 'linear-gradient(135deg, #ffffff 0%, #f3e8ff 100%)' :
-                                        'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
-                            borderColor: stat.color === 'blue' ? '#bfdbfe' :
-                                stat.color === 'yellow' ? '#fde047' :
-                                    stat.color === 'purple' ? '#e9d5ff' :
-                                        '#bbf7d0'
-                        }}
-                    >
-                        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div className="stat-icon-box" style={{
-                                backgroundColor: stat.color === 'blue' ? '#eff6ff' : stat.color === 'yellow' ? '#fefce8' : stat.color === 'purple' ? '#f3e8ff' : '#f0fdf4',
-                                color: stat.color === 'blue' ? '#2563eb' : stat.color === 'yellow' ? '#ca8a04' : stat.color === 'purple' ? '#9333ea' : '#16a34a'
-                            }}>
-                                <stat.icon size={24} />
+                    { label: 'Total Tickets', value: stats.total, icon: Ticket, bg: 'bg-sky-50 text-sky-600 border-sky-100' },
+                    { label: 'Pending', value: stats.pending, icon: Clock, bg: 'bg-amber-50 text-amber-600 border-amber-100' },
+                    { label: 'In Progress', value: stats.active, icon: Activity, bg: 'bg-purple-50 text-purple-600 border-purple-100' },
+                    { label: 'Resolved', value: stats.resolved, icon: CheckCircle2, bg: 'bg-emerald-50 text-emerald-600 border-emerald-100' }
+                ].map((stat, idx) => {
+                    const Icon = stat.icon;
+                    return (
+                        <div
+                            key={idx}
+                            className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs hover:shadow-sm transition-all"
+                        >
+                            <div className="flex items-center justify-between mb-3">
+                                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    {stat.label}
+                                </span>
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center border ${stat.bg}`}>
+                                    <Icon size={16} />
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="stat-label">{stat.label}</h3>
-                                <p className="stat-value">{stat.value}</p>
+                            <div className="text-2xl font-bold text-slate-900 tracking-tight">
+                                {stat.value}
                             </div>
                         </div>
-                    </motion.div>
-                ))}
+                    );
+                })}
             </div>
 
-            <div className="dashboard-main-grid">
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                 {/* Recent Activity */}
-                <motion.div variants={itemVariants} className="col-span-8 flex-col" style={{ gap: '1rem' }}>
-                    <div className="flex-between mb-4">
-                        <h2 className="heading-font" style={{ fontSize: '1.25rem', fontWeight: 900 }}>Recent Tickets</h2>
-                        <Link to="/student/my-tickets" style={{ fontSize: '0.875rem', fontWeight: 700, color: '#2563eb', display: 'flex', alignItems: 'center', gap: '0.25rem', textDecoration: 'none' }}>
-                            View All <ArrowRight size={16} />
+                <div className="lg:col-span-8 space-y-3">
+                    <div className="flex items-center justify-between px-0.5">
+                        <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+                            Recent Tickets
+                        </h2>
+                        <Link
+                            to="/student/my-tickets"
+                            className="text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center gap-1"
+                        >
+                            <span>View All</span>
+                            <ArrowRight size={13} />
                         </Link>
                     </div>
 
                     {tickets.length > 0 ? (
-                        <div className="flex-col" style={{ gap: '1rem' }}>
-                            {tickets.slice(0, 3).map((ticket) => (
+                        <div className="space-y-2.5">
+                            {tickets.slice(0, 4).map((ticket) => (
                                 <div
                                     key={ticket.id}
-                                    className="ticket-item"
                                     onClick={() => navigate('/student/my-tickets')}
+                                    className="bg-white rounded-xl border border-slate-200/80 p-3.5 sm:p-4 shadow-2xs hover:border-sky-300 hover:shadow-xs transition-all flex items-center justify-between gap-3 cursor-pointer"
                                 >
-                                    <div className="flex-start" style={{ gap: '1rem' }}>
-                                        <div className="ticket-icon-circle">
-                                            <Ticket size={24} />
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 border border-sky-100">
+                                            <Ticket size={18} />
                                         </div>
-                                        <div className="ticket-info">
-                                            <h4>{ticket.title}</h4>
-                                            <p>#{ticket.ticket_number} • {new Date(ticket.created_at).toLocaleDateString()}</p>
+                                        <div className="min-w-0">
+                                            <h4 className="text-sm font-semibold text-slate-900 truncate">
+                                                {ticket.title}
+                                            </h4>
+                                            <p className="text-xs text-slate-400 mt-0.5">
+                                                #{ticket.ticket_number} • {new Date(ticket.created_at).toLocaleDateString()}
+                                            </p>
                                         </div>
                                     </div>
-                                    <div className={`status-badge ${ticket.status === 'completed' ? 'status-completed' :
-                                        ['approaching', 'resolving'].includes(ticket.status) ? 'status-active' :
-                                            'status-pending'
+
+                                    <div className="shrink-0">
+                                        <span className={`status-badge ${
+                                            ['completed', 'closed'].includes(ticket.status)
+                                                ? 'status-completed'
+                                                : ['approaching', 'resolving'].includes(ticket.status)
+                                                    ? 'status-active'
+                                                    : 'status-pending'
                                         }`}>
-                                        {ticket.status}
+                                            {ticket.status}
+                                        </span>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="card-base" style={{ textAlign: 'center', padding: '3rem', borderStyle: 'dashed' }}>
-                            <div style={{ width: '4rem', height: '4rem', backgroundColor: '#eff6ff', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
-                                <Shield className="text-blue-600" size={32} color="#2563eb" />
+                        <div className="bg-white rounded-2xl border border-dashed border-slate-200 p-8 text-center">
+                            <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center mx-auto mb-3">
+                                <ShieldCheck size={24} />
                             </div>
-                            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#111827' }}>No active tickets</h3>
-                            <p style={{ color: '#6b7280', marginTop: '0.25rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>Your support record is currently clean.</p>
+                            <h3 className="text-sm font-bold text-slate-800">No tickets raised yet</h3>
+                            <p className="text-xs text-slate-500 mt-1 mb-4 max-w-xs mx-auto">
+                                All your infrastructure, maintenance, and support requests will be listed here.
+                            </p>
                             <Link
                                 to="/student/raise-ticket"
-                                className="btn-primary"
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 transition-colors shadow-2xs"
                             >
-                                <Plus size={20} />
-                                Raise First Ticket
+                                <Plus size={15} />
+                                <span>Raise First Ticket</span>
                             </Link>
                         </div>
                     )}
-                </motion.div>
+                </div>
 
                 {/* Quick Actions */}
-                <motion.div variants={itemVariants} className="col-span-4 flex-col" style={{ gap: '1.5rem' }}>
-                    <h2 className="heading-font" style={{ fontSize: '1.25rem', fontWeight: 700 }}>Quick Actions</h2>
-                    <div className="flex-col" style={{ gap: '1rem' }}>
+                <div className="lg:col-span-4 space-y-3">
+                    <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider px-0.5">
+                        Quick Actions
+                    </h2>
+                    <div className="space-y-3">
                         <Link
                             to="/student/raise-ticket"
-                            className="action-card primary"
+                            className="block p-4 rounded-2xl bg-gradient-to-br from-sky-600 to-indigo-600 text-white shadow-sm shadow-sky-500/20 hover:shadow-md hover:scale-[1.01] transition-all"
                         >
-                            <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                <div style={{ padding: '0.75rem', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '0.75rem', width: 'fit-content', backdropFilter: 'blur(4px)' }}>
-                                    <Plus size={24} />
-                                </div>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.025em', fontFamily: 'Poppins, sans-serif' }}>Raise Ticket</h3>
-                                <p style={{ fontSize: '0.875rem', fontWeight: 500, opacity: 0.9, lineHeight: 1.5 }}>Need help with something? Let us know immediately and we'll resolve it.</p>
+                            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center mb-2.5">
+                                <Plus size={18} />
                             </div>
+                            <h3 className="text-sm font-bold tracking-tight">Raise a Ticket</h3>
+                            <p className="text-xs text-sky-100/90 mt-1 leading-relaxed">
+                                Need help with equipment, classrooms, or services? Submit an issue immediately.
+                            </p>
                         </Link>
 
-                        {workspaceLinks.map((link) => (
-                            <div key={link.id} className={`action-card secondary workspace-link-card${link.id === 'hrms' ? ' workspace-links-mobile-hidden' : ''}`}>
-                                <div style={{ position: 'relative', zIndex: 10 }}>
-                                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '-0.025em', fontFamily: 'Poppins, sans-serif' }}>
-                                        {link.label}
-                                    </h3>
-                                    <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-                                        {link.id === 'hrms'
-                                            ? 'Open the HRMS application for employee services and profile.'
-                                            : 'Access the Student Database portal for admin and academic modules.'}
-                                    </p>
-                                    <a
-                                        href={link.href}
-                                        target={link.external ? '_blank' : undefined}
-                                        rel={link.external ? 'noopener noreferrer' : undefined}
-                                        className="btn-secondary"
-                                        style={{ width: '100%', fontSize: '0.875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
-                                    >
-                                        Open {link.label}
-                                    </a>
-                                </div>
+                        <Link
+                            to="/student/my-tickets"
+                            className="block p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:border-sky-300 hover:shadow-sm hover:scale-[1.01] transition-all"
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center mb-2.5 border border-sky-100">
+                                <Ticket size={18} />
                             </div>
-                        ))}
+                            <h3 className="text-sm font-bold text-slate-900 tracking-tight">My Raised Tickets</h3>
+                            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                Check resolution status, engineer feedback, and history of all your tickets.
+                            </p>
+                        </Link>
                     </div>
-                </motion.div>
+                </div>
             </div>
-        </motion.div>
+        </div>
     );
 };
 

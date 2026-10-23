@@ -1,6 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Dancing+Script:wght@700&display=swap");
 
 @import "tailwindcss";
 
@@ -62,28 +60,17 @@
 body {
   font-family:
     "Inter",
-    "Poppins",
-    "Nunito",
+    system-ui,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
-    "Roboto",
-    "Oxygen",
-    "Ubuntu",
-    "Cantarell",
-    "Fira Sans",
-    "Droid Sans",
+    Roboto,
     "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #ffffff;
-  /* Pure White Background */
-  background: linear-gradient(135deg, #FFFCF5 0%, #FAFAF5 100%);
-  background-image: url('data:image/svg+xml,<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg"><defs><path id="wave" d="M0 300c50-50 100-50 200 0s150 50 200 0 150-50 200 0 150 50 200 0" fill="none" stroke="%231A2517" stroke-width="2" opacity="0.05"/></defs><use href="%23wave" transform="translate(0,50)"/><use href="%23wave" transform="translate(0,150)"/><use href="%23wave" transform="translate(0,250)"/></svg>');
-  background-repeat: no-repeat;
-  background-position: bottom right;
-  background-size: 600px;
+  background-color: #F8FAFC;
+  color: #1E293B;
   min-height: 100vh;
   overflow-x: hidden;
 }

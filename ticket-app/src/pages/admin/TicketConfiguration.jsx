@@ -137,16 +137,6 @@ const TicketConfiguration = () => {
     if (isLoading) {
         return (
             <div className="admin-page-container animate-pulse">
-                <div className="page-header mb-8">
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
-                            <div className="h-4 bg-gray-200 rounded w-48"></div>
-                        </div>
-                        <div className="h-10 bg-gray-200 rounded w-32"></div>
-                    </div>
-                </div>
-
                 <div className="card-base p-0 border rounded-lg bg-white">
                     <div className="card-header p-4 border-b">
                         <div className="h-6 bg-gray-200 rounded w-48 mb-2"></div>
@@ -184,22 +174,15 @@ const TicketConfiguration = () => {
 
     return (
         <div className="admin-page-container">
-            <div className="page-header animate-fade-in">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="page-title">Ticket Configuration</h1>
-                        <p className="page-subtitle">Manage ticket headers and sub-headers structure</p>
-                    </div>
-                    <button onClick={() => openAddModal()} className="btn-primary">
-                        <Plus size={20} /> Create Header
-                    </button>
-                </div>
-            </div>
-
             <div className="card-base" style={{ padding: 0 }}>
-                <div className="card-header">
-                    <h3 className="card-title">Complaints Hierarchy</h3>
-                    <p className="card-subtitle">Define categories and their sub-items</p>
+                <div className="card-header flex justify-between items-center gap-4 flex-wrap">
+                    <div>
+                        <h3 className="card-title">Complaints Hierarchy</h3>
+                        <p className="card-subtitle">Define categories and their sub-items</p>
+                    </div>
+                    <button onClick={() => openAddModal()} className="btn-primary py-2 px-3 text-xs shrink-0">
+                        <Plus size={16} /> <span>Create Category</span>
+                    </button>
                 </div>
                 <div className="card-body">
                     {headers.length === 0 ? (

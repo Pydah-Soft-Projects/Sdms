@@ -90,6 +90,7 @@ function buildHrmsSessionProfile({
     mappedUsername,
     mappedRole
 }) {
+    const isSuperOrAdmin = mappedRole === 'super_admin' || mappedRole === 'admin';
     return {
         hrmsId: hrmsIdStr,
         name: mappedName,
@@ -98,7 +99,7 @@ function buildHrmsSessionProfile({
         phone: mappedPhone,
         role: mappedRole,
         is_hrms_session: true,
-        ticketAccess: 'request'
+        ticketAccess: isSuperOrAdmin ? 'manage' : 'request'
     };
 }
 

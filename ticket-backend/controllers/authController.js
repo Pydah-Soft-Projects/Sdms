@@ -88,15 +88,164 @@ const buildTicketEmployeeResponse = (emp) => ({
 });
 
 const attachTicketAccess = async (userPayload, masterPool, options = {}) => {
-    const { id, role, is_worker: isWorker, is_hrms_session: isHrmsSession, hrmsId, permissions } = userPayload;
+    const { id, role, is_worker: isWorker, is_hrms_session: isHrmsSession, hrmsId, is_hrms_user: isHrmsUser, permissions } = userPayload;
+
+    // CRITICAL: Super Admin and Admin ALWAYS retain full management access!
+    // Even if an HRMS ID is linked, their role and full management access MUST NEVER change or downgrade.
+    if (role === 'super_admin' || userPayload.role === 'super_admin') {
+        return {
+            ...userPayload,
+            role: 'super_admin',
+            ticketAccess: 'manage',
+            permissions: MOCK_SUPER_ADMIN_PERMISSIONS
+        };
+    }
+
+    if (role === 'admin' || userPayload.role === 'admin') {
+        return {
+            ...userPayload,
+            role: 'admin',
+            ticketAccess: 'manage',
+            permissions: MOCK_SUPER_ADMIN_PERMISSIONS
+        };
+    }
+
     if (role === 'student') {
         return { ...userPayload, ticketAccess: 'request' };
     }
-    if ((isHrmsSession || hrmsId) && !id) {
-        return { ...userPayload, ticketAccess: 'request' };
+
+    const isHrms = Boolean(isHrmsSession || hrmsId || isHrmsUser);
+
+    // 1. Check if user is registered in ticket_employees table (assigned staff, worker, manager)
+    try {
+        const [empRows] = await masterPool.query(
+            `SELECT te.id as ticket_employee_id, te.role as te_role, te.custom_role_id, te.role_name as te_role_name,
+                    te.permissions as te_permissions, te.assigned_categories, te.assigned_subcategories, te.is_active,
+                    tr.role_name as custom_role_name, tr.display_name as custom_display_name, tr.permissions as role_permissions
+             FROM ticket_employees te
+             LEFT JOIN ticket_roles tr ON te.custom_role_id = tr.id
+             WHERE (
+                 (? IS NOT NULL AND te.rbac_user_id = ?)
+                 OR (? IS NOT NULL AND te.email = ?)
+                 OR (? IS NOT NULL AND te.username = ?)
+             )
+             AND te.is_active = 1
+             LIMIT 1`,
+            [
+                id || null, id || null,
+                userPayload.email || null, userPayload.email || null,
+                userPayload.username || null, userPayload.username || null
+            ]
+        );
+
+        if (empRows && empRows.length > 0) {
+            const te = empRows[0];
+            let empPerms = {};
+            if (te.te_permissions) {
+                try {
+                    empPerms = typeof te.te_permissions === 'string' ? JSON.parse(te.te_permissions) : te.te_permissions;
+                } catch (e) {
+                    empPerms = {};
+                }
+            } else if (te.role_permissions) {
+                try {
+                    empPerms = typeof te.role_permissions === 'string' ? JSON.parse(te.role_permissions) : te.role_permissions;
+                } catch (e) {
+                    empPerms = {};
+                }
+            } else if (te.te_role === 'worker') {
+                empPerms = { ticket_management: { read: true, update: true } };
+            } else {
+                empPerms = {
+                    ticket_dashboard: { read: true },
+                    ticket_management: { read: true, write: true, update: true },
+                    category_management: { read: true },
+                    employee_management: { read: true },
+                    ticket_reports: { read: true }
+                };
+            }
+
+            let assignedCategories = [];
+            let assignedSubcategories = [];
+            try {
+                if (te.assigned_categories) {
+                    assignedCategories = typeof te.assigned_categories === 'string' ? JSON.parse(te.assigned_categories) : te.assigned_categories;
+                }
+                if (te.assigned_subcategories) {
+                    assignedSubcategories = typeof te.assigned_subcategories === 'string' ? JSON.parse(te.assigned_subcategories) : te.assigned_subcategories;
+                }
+            } catch (e) {
+                console.error('Error parsing categories:', e);
+            }
+
+            const effectiveRole = te.custom_role_name || te.te_role_name || te.te_role || 'staff';
+            const isWorkerRole = Boolean(isWorker || options.isWorker || effectiveRole.toLowerCase().includes('worker') || te.te_role === 'worker');
+
+            return {
+                ...userPayload,
+                ticketAccess: 'manage',
+                ticketEmployeeId: te.ticket_employee_id,
+                ticketRole: effectiveRole,
+                role: effectiveRole,
+                is_worker: isWorkerRole,
+                permissions: empPerms,
+                assignedCategories: Array.isArray(assignedCategories) ? assignedCategories : [],
+                assignedSubcategories: Array.isArray(assignedSubcategories) ? assignedSubcategories : []
+            };
+        }
+    } catch (dbError) {
+        console.error('Error checking ticket_employees:', dbError);
     }
-    const ticketAccess = await resolveTicketAccessMode(masterPool, id, role, isWorker || options.isWorker, permissions);
-    return { ...userPayload, ticketAccess };
+
+    // 2. Check if worker from direct employee login
+    if (isWorker || options.isWorker) {
+        return {
+            ...userPayload,
+            ticketAccess: 'manage',
+            is_worker: true,
+            permissions: { ticket_management: { read: true, update: true } }
+        };
+    }
+
+    // 3. If user is an HRMS user (and not explicitly assigned ticket management above),
+    // they are ALWAYS a requester (they only see Dashboard, Raise Ticket, and Raised Tickets)
+    if (isHrms) {
+        return {
+            ...userPayload,
+            ticketAccess: 'request'
+        };
+    }
+
+    // 4. Non-HRMS super admin or admin has full management access
+    if (role === 'super_admin' || role === 'admin') {
+        return {
+            ...userPayload,
+            ticketAccess: 'manage',
+            permissions: MOCK_SUPER_ADMIN_PERMISSIONS
+        };
+    }
+
+    // 5. Check if sub_admin or RBAC user has ticket permissions directly
+    if (permissions && typeof permissions === 'object') {
+        const ticketModuleKeys = ['ticket_dashboard', 'ticket_management', 'employee_management', 'category_management', 'ticket_reports', 'ticket_settings'];
+        const hasTicketPerm = ticketModuleKeys.some(m => {
+            const p = permissions[m];
+            return p && typeof p === 'object' && Object.values(p).some(v => v === true);
+        });
+        if (hasTicketPerm) {
+            return {
+                ...userPayload,
+                ticketAccess: 'manage'
+            };
+        }
+    }
+
+    // Default: User has NOT been given ticket management access.
+    // They are a requester and can ONLY raise tickets!
+    return {
+        ...userPayload,
+        ticketAccess: 'request'
+    };
 };
 
 const buildTokenPayload = (user) => ({
@@ -105,6 +254,7 @@ const buildTokenPayload = (user) => ({
     username: user.username,
     name: user.name,
     email: user.email,
+    ticketAccess: user.ticketAccess,
     ...(user.hrmsId && !user.id
         ? { hrmsId: user.hrmsId, is_hrms_session: true }
         : user.hrmsId
@@ -147,6 +297,7 @@ exports.verifyToken = async (req, res) => {
 
         // HRMS-only SSO (no linked rbac id) — not portal admins with hrms_id on their account
         if ((authUser.is_hrms_session || authUser.hrmsId) && !authUser.id) {
+            const isSuperOrAdmin = authUser.role === 'super_admin' || authUser.role === 'admin';
             return res.status(200).json({
                 success: true,
                 user: {
@@ -154,10 +305,11 @@ exports.verifyToken = async (req, res) => {
                     name: authUser.name,
                     username: authUser.username,
                     email: authUser.email,
-                    role: authUser.role || 'faculty',
+                    role: authUser.role || (isSuperOrAdmin ? 'super_admin' : 'faculty'),
                     is_hrms_session: true,
                     is_hrms_user: true,
-                    ticketAccess: 'request'
+                    ticketAccess: isSuperOrAdmin ? 'manage' : 'request',
+                    permissions: isSuperOrAdmin ? MOCK_SUPER_ADMIN_PERMISSIONS : []
                 }
             });
         }

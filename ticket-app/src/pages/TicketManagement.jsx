@@ -238,14 +238,6 @@ const TicketManagement = () => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Ticket Management</h1>
-                    <p className="text-gray-600 mt-1">Manage and track student complaints</p>
-                </div>
-            </div>
-
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {stats.by_status?.map((stat) => (

@@ -76,13 +76,19 @@ const AuthCallback = () => {
                 applyAuthSession(sessionToken, user);
                 toast.success(fromHrms ? 'Signed in from HRMS' : 'Signed in from Portal');
 
+                const userType = resolveUserType(user);
+                const isSuperAdminOrAdmin = user.role === 'super_admin' || user.role === 'admin' || userType === 'admin';
+                const isRequester = !isSuperAdminOrAdmin && (fromHrms || user.role === 'student' || userType === 'requester');
                 const redirectParam = searchParams.get('redirect');
-                const defaultPath =
-                    fromHrms || user.role === 'student' || resolveUserType(user) === 'requester'
-                        ? '/student/my-tickets'
-                        : '/dashboard';
+                const defaultPath = isSuperAdminOrAdmin ? '/dashboard' : (isRequester ? '/student/dashboard' : '/dashboard');
 
-                const destination = resolveSafeRedirect(redirectParam, { defaultPath });
+                let destination = resolveSafeRedirect(redirectParam, { defaultPath });
+                if (isRequester && !destination.startsWith('/student/')) {
+                    destination = '/student/dashboard';
+                }
+                if (isSuperAdminOrAdmin && destination.startsWith('/student/')) {
+                    destination = '/dashboard';
+                }
 
                 // Replace history entry so token is stripped from the URL
                 navigate(destination, { replace: true });

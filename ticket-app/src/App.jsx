@@ -50,13 +50,14 @@ const ProtectedRoute = ({ children, allowedRoles, requiredPermission }) => {
   if (allowedRoles) {
     const isRequesterRoute = allowedRoles.includes('student') || allowedRoles.includes('requester');
     const isAdminRoute = allowedRoles.includes('admin');
+    const isSuperAdminOrAdmin = user?.role === 'super_admin' || user?.role === 'admin';
 
-    if (isRequesterRoute && !['student', 'requester'].includes(userType)) {
-      return <Navigate to="/unauthorized" replace />;
+    if (isRequesterRoute && !['student', 'requester'].includes(userType) && !isSuperAdminOrAdmin) {
+      return <Navigate to={user?.role === 'worker' || user?.is_worker ? '/task-management' : '/dashboard'} replace />;
     }
 
-    if (isAdminRoute && userType !== 'admin') {
-      return <Navigate to="/unauthorized" replace />;
+    if (isAdminRoute && userType !== 'admin' && !isSuperAdminOrAdmin) {
+      return <Navigate to="/student/dashboard" replace />;
     }
   }
 
@@ -69,17 +70,28 @@ const ProtectedRoute = ({ children, allowedRoles, requiredPermission }) => {
 };
 
 const StudentDefaultRedirect = () => {
+  return <Navigate to="dashboard" replace />;
+};
+
+const DashboardRoute = () => {
   const { user } = useAuthStore();
-  const target = isHrmsOnlyTicketUser(user) ? 'my-tickets' : 'dashboard';
-  return <Navigate to={target} replace />;
+  if (user?.role === 'worker' || user?.is_worker) {
+    return <Navigate to="/task-management" replace />;
+  }
+  return <AdminDashboard />;
+};
+
+const AdminOnlyRoute = ({ children }) => {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+  if (!isAdmin) {
+    return <Navigate to="/task-management" replace />;
+  }
+  return children;
 };
 
 const App = () => {
   const { isLoading } = useAuthStore();
-
-  // REMOVED: Automatic verifyToken() on mount.
-  // This was causing 401s on the login page by trying to validate non-existent sessions against the portal.
-  // The Ticket App Login is standalone. Authentication state is persisted in localStorage and handled by authStore.
 
   if (isLoading) {
     return (
@@ -88,14 +100,6 @@ const App = () => {
       </div>
     );
   }
-
-  // Define roles allowed to access AdminLayout
-  // Extended list to ensure all potential roles can at least land on the dashboard
-  const adminLayoutRoles = [
-    'super_admin', 'admin', 'staff', 'sub_admin', 'worker',
-    'college_principal', 'college_ao', 'college_attender',
-    'branch_hod', 'office_assistant', 'cashier', 'faculty'
-  ];
 
   return (
     <>
@@ -132,12 +136,12 @@ const App = () => {
             </ProtectedRoute>
           }
         >
-          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="dashboard" element={<DashboardRoute />} />
           <Route path="configuration" element={<TicketConfiguration />} />
           <Route path="employees" element={<EmployeeManagement />} />
           <Route path="task-management" element={<TaskManagement />} />
-          <Route path="sub-admins" element={<SubAdminCreation />} />
-          <Route path="roles" element={<RoleManagement />} />
+          <Route path="sub-admins" element={<AdminOnlyRoute><SubAdminCreation /></AdminOnlyRoute>} />
+          <Route path="roles" element={<AdminOnlyRoute><RoleManagement /></AdminOnlyRoute>} />
           <Route path="tickets" element={<Navigate to="/task-management" replace />} />
           <Route path="unauthorized" element={
             <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-gray-800">
@@ -154,7 +158,7 @@ const App = () => {
           } />
         </Route>
 
-        {/* Student Routes */}
+        {/* Student / Requester Routes */}
         <Route
           path="/student/*"
           element={
@@ -164,8 +168,8 @@ const App = () => {
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="my-tickets" element={<MyTickets />} />
           <Route path="raise-ticket" element={<RaiseTicket />} />
+          <Route path="my-tickets" element={<MyTickets />} />
           {/* Default redirect for /student root */}
           <Route path="*" element={<StudentDefaultRedirect />} />
         </Route>

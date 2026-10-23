@@ -114,18 +114,7 @@ exports.createTicket = async (req, res) => {
         }
 
         const isStudent = user.role === 'student' || user.admission_number || user.admissionNumber;
-        const isHrmsSession = !!(user.is_hrms_session || user.hrmsId);
-        const isStaffRequester = !isStudent && (
-            isHrmsSession ||
-            (user.id && user.role !== 'super_admin' && user.role !== 'admin' && !user.is_worker)
-        );
-
-        if (!isStudent && !isStaffRequester) {
-            return res.status(403).json({
-                success: false,
-                message: 'Only students and staff can raise tickets through this endpoint'
-            });
-        }
+        const isHrmsSession = !!(user.is_hrms_session || user.hrmsId || user.is_hrms_user);
 
         if (!category_id || !title) {
             return res.status(400).json({
@@ -202,33 +191,56 @@ exports.createTicket = async (req, res) => {
             requesterDisplayName = studentData[0].student_name || user.name || null;
         } else if (isHrmsSession) {
             requesterType = 'staff';
-            raisedByHrmsId = user.hrmsId;
+            raisedByHrmsId = user.hrmsId || null;
             requesterDisplayName = user.name || null;
-            admissionNumber = user.username || user.email || `HRMS-${user.hrmsId}`;
+            admissionNumber = user.username || user.email || (user.hrmsId ? `HRMS-${user.hrmsId}` : `STAFF-${user.id || Date.now()}`);
+            if (user.id) {
+                raisedByRbacId = user.id;
+            } else if (user.hrmsId) {
+                try {
+                    const [matchedRbac] = await masterPool.query(
+                        'SELECT id FROM rbac_users WHERE hrms_id = ? OR email = ? OR username = ? LIMIT 1',
+                        [user.hrmsId, user.email || '', user.username || '']
+                    );
+                    if (matchedRbac.length > 0) {
+                        raisedByRbacId = matchedRbac[0].id;
+                    }
+                } catch (_) {}
+            }
         } else {
-            let [staffUser] = await masterPool.query(
-                'SELECT id, username, email, name FROM rbac_users WHERE id = ? LIMIT 1',
-                [user.id]
-            );
+            let staffUserId = user.id;
+            if (staffUserId) {
+                let [staffUser] = await masterPool.query(
+                    'SELECT id, username, email, name FROM rbac_users WHERE id = ? LIMIT 1',
+                    [staffUserId]
+                );
 
-            if (staffUser.length === 0 && user.username) {
-                [staffUser] = await masterPool.query(
+                if (staffUser.length > 0) {
+                    requesterDisplayName = staffUser[0].name || user.name || null;
+                    admissionNumber = staffUser[0].username || staffUser[0].email || `STAFF-${staffUser[0].id}`;
+                    raisedByRbacId = staffUser[0].id;
+                }
+            }
+
+            if (!raisedByRbacId && user.username) {
+                let [staffUser] = await masterPool.query(
                     'SELECT id, username, email, name FROM rbac_users WHERE username = ? OR email = ? LIMIT 1',
                     [user.username, user.username]
                 );
-            }
 
-            if (staffUser.length === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: 'Staff profile not found. Please contact admin.'
-                });
+                if (staffUser.length > 0) {
+                    requesterDisplayName = staffUser[0].name || user.name || null;
+                    admissionNumber = staffUser[0].username || staffUser[0].email || `STAFF-${staffUser[0].id}`;
+                    raisedByRbacId = staffUser[0].id;
+                }
             }
 
             requesterType = 'staff';
-            raisedByRbacId = staffUser[0].id;
-            requesterDisplayName = staffUser[0].name || user.name || null;
-            admissionNumber = staffUser[0].username || staffUser[0].email || `STAFF-${staffUser[0].id}`;
+            if (!raisedByRbacId) {
+                raisedByRbacId = user.id || null;
+                requesterDisplayName = user.name || user.username || 'Staff';
+                admissionNumber = user.username || user.email || `STAFF-${user.id || Date.now()}`;
+            }
         }
 
         // Handle photo upload — store file path (not base64) for faster uploads
@@ -800,9 +812,17 @@ exports.getStudentTickets = async (req, res) => {
       FROM tickets t
       LEFT JOIN complaint_categories c ON t.category_id = c.id
       LEFT JOIN complaint_categories sc ON t.sub_category_id = sc.id
-      WHERE t.raised_by_hrms_id = ? AND t.requester_type = 'staff'
+      WHERE (
+          (? IS NOT NULL AND t.raised_by_hrms_id = ?)
+          OR (? IS NOT NULL AND t.raised_by_rbac_id = ?)
+          OR (t.admission_number IS NOT NULL AND t.admission_number IN (?, ?, ?))
+      )
       ORDER BY t.created_at DESC`,
-                    [user.hrmsId]
+                    [
+                        user.hrmsId || null, user.hrmsId || null,
+                        user.id || null, user.id || null,
+                        user.username || '', user.email || '', user.hrmsId ? `HRMS-${user.hrmsId}` : ''
+                    ]
                 );
             } catch (queryError) {
                 if (queryError.code === 'ER_BAD_FIELD_ERROR') {
@@ -811,9 +831,9 @@ exports.getStudentTickets = async (req, res) => {
                          FROM tickets t
                          LEFT JOIN complaint_categories c ON t.category_id = c.id
                          LEFT JOIN complaint_categories sc ON t.sub_category_id = sc.id
-                         WHERE t.admission_number = ? AND t.requester_type = 'staff'
+                         WHERE t.admission_number IN (?, ?, ?)
                          ORDER BY t.created_at DESC`,
-                        [user.username || user.email || `HRMS-${user.hrmsId}`]
+                        [user.username || '', user.email || '', user.hrmsId ? `HRMS-${user.hrmsId}` : '']
                     );
                 } else {
                     throw queryError;
@@ -838,9 +858,15 @@ exports.getStudentTickets = async (req, res) => {
       FROM tickets t
       LEFT JOIN complaint_categories c ON t.category_id = c.id
       LEFT JOIN complaint_categories sc ON t.sub_category_id = sc.id
-      WHERE t.raised_by_rbac_id = ? AND t.requester_type = 'staff'
+      WHERE (
+          (? IS NOT NULL AND t.raised_by_rbac_id = ?)
+          OR (t.admission_number IS NOT NULL AND t.admission_number IN (?, ?, ?))
+      )
       ORDER BY t.created_at DESC`,
-                [user.id]
+                [
+                    user.id || null, user.id || null,
+                    user.username || '', user.email || '', user.id ? `STAFF-${user.id}` : ''
+                ]
             );
         }
 

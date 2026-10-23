@@ -105,7 +105,6 @@ export const FiltersSkeleton = () => (
 
 export const TicketManagementSkeleton = () => (
     <div className="space-y-6">
-        <PageHeaderSkeleton />
         <StatsGridSkeleton count={5} />
         <FiltersSkeleton />
         <TableSkeleton rows={10} columns={8} />
@@ -114,7 +113,6 @@ export const TicketManagementSkeleton = () => (
 
 export const DashboardSkeleton = () => (
     <div className="space-y-6 p-6">
-        <PageHeaderSkeleton />
         <StatsGridSkeleton count={4} />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -167,7 +165,6 @@ export const TreeSkeleton = () => (
 
 export const TaskManagementSkeleton = () => (
     <div className="space-y-6">
-        <PageHeaderSkeleton />
         <div className="bg-white rounded-lg border overflow-hidden">
             {/* Tabs mock */}
             <div className="border-b p-4 flex gap-4">
@@ -187,8 +184,7 @@ export const TaskManagementSkeleton = () => (
 );
 
 export const StudentDashboardSkeleton = () => (
-    <div className="student-page-container animate-pulse">
-        <PageHeaderSkeleton />
+    <div className="space-y-6 pb-6 animate-pulse">
         <StatsGridSkeleton count={4} />
         <div className="dashboard-main-grid">
             <div className="col-span-8 flex flex-col gap-4">

@@ -1,14 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiShield, FiX } from 'react-icons/fi';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+    FiPlus,
+    FiEdit2,
+    FiTrash2,
+    FiUsers,
+    FiShield,
+    FiX,
+    FiSearch,
+    FiLock,
+    FiCheckCircle
+} from 'react-icons/fi';
 import { getRoles, createRole, updateRole, deleteRole } from '../../services/roleService';
 import PermissionMatrix from '../../components/admin/PermissionMatrix';
 import './RoleManagement.css';
+
+const MODULE_CONFIG = {
+    ticket_dashboard: { label: 'Dashboard', chipClass: 'chip-blue' },
+    ticket_management: { label: 'Ticket Management', chipClass: 'chip-emerald' },
+    employee_management: { label: 'Employee Management', chipClass: 'chip-purple' },
+    category_management: { label: 'Category Management', chipClass: 'chip-amber' },
+    ticket_reports: { label: 'Reports', chipClass: 'chip-rose' },
+    ticket_settings: { label: 'Settings', chipClass: 'chip-slate' }
+};
+
+const getActiveModules = (permissions) => {
+    if (!permissions || typeof permissions !== 'object') return [];
+
+    return Object.entries(permissions)
+        .map(([key, perms]) => {
+            if (!perms || typeof perms !== 'object') return null;
+            const grantedCount = Object.values(perms).filter(Boolean).length;
+            if (grantedCount === 0) return null;
+            const config = MODULE_CONFIG[key] || {
+                label: key.replace('ticket_', '').replace(/_/g, ' '),
+                chipClass: 'chip-slate'
+            };
+            return {
+                key,
+                label: config.label,
+                chipClass: config.chipClass,
+                grantedCount
+            };
+        })
+        .filter(Boolean);
+};
 
 const RoleManagement = () => {
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingRole, setEditingRole] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [roleFilter, setRoleFilter] = useState('all'); // 'all' | 'system' | 'custom'
+
     const [formData, setFormData] = useState({
         role_name: '',
         display_name: '',
@@ -105,7 +149,7 @@ const RoleManagement = () => {
             await fetchRoles();
             setTimeout(() => {
                 handleCloseModal();
-            }, 1500);
+            }, 1200);
         } catch (err) {
             console.error('Error saving role:', err);
             setError(err.message || 'Failed to save role');
@@ -129,39 +173,63 @@ const RoleManagement = () => {
         }
     };
 
+    // Filtered roles based on search and type filter
+    const filteredRoles = useMemo(() => {
+        return roles.filter(role => {
+            const matchesFilter =
+                roleFilter === 'all' ? true :
+                roleFilter === 'system' ? Boolean(role.is_system_role) :
+                !role.is_system_role;
+
+            if (!matchesFilter) return false;
+
+            if (!searchQuery.trim()) return true;
+
+            const q = searchQuery.toLowerCase().trim();
+            const displayName = (role.display_name || '').toLowerCase();
+            const roleName = (role.role_name || '').toLowerCase();
+            const description = (role.description || '').toLowerCase();
+
+            return displayName.includes(q) || roleName.includes(q) || description.includes(q);
+        });
+    }, [roles, roleFilter, searchQuery]);
+
+    // Statistics
+    const stats = useMemo(() => {
+        const total = roles.length;
+        const system = roles.filter(r => r.is_system_role).length;
+        const custom = total - system;
+        const totalUsers = roles.reduce((acc, r) => acc + (Number(r.employee_count) || 0), 0);
+        return { total, system, custom, totalUsers };
+    }, [roles]);
+
     if (loading) {
         return (
             <div className="role-management-page animate-pulse">
-                <div className="role-management-header mb-8">
-                    <div>
-                        <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-96"></div>
-                    </div>
-                    <div className="h-10 bg-gray-200 rounded w-32"></div>
-                </div>
-
-                <div className="roles-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <div key={i} className="role-card p-6 bg-white border rounded-lg h-64 flex flex-col justify-between">
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-gray-200"></div>
-                                    <div className="space-y-2">
-                                        <div className="h-5 bg-gray-200 rounded w-32"></div>
-                                        <div className="h-3 bg-gray-200 rounded w-20"></div>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <div className="h-3 bg-gray-200 rounded w-full"></div>
-                                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                                </div>
-                            </div>
-                            <div className="flex gap-2 mt-4">
-                                <div className="h-8 bg-gray-200 rounded w-20"></div>
-                                <div className="h-8 bg-gray-200 rounded w-20"></div>
+                {/* Stats Skeleton */}
+                <div className="role-stats-grid">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="stat-card-compact">
+                            <div className="stat-icon-wrapper bg-slate-200"></div>
+                            <div className="stat-content">
+                                <div className="h-3 bg-slate-200 rounded w-16 mb-2"></div>
+                                <div className="h-6 bg-slate-200 rounded w-10"></div>
                             </div>
                         </div>
                     ))}
+                </div>
+
+                {/* Table Skeleton */}
+                <div className="roles-table-card">
+                    <div className="roles-table-toolbar">
+                        <div className="h-10 bg-slate-200 rounded-xl w-80"></div>
+                        <div className="h-10 bg-slate-200 rounded-xl w-52"></div>
+                    </div>
+                    <div className="p-4 space-y-3">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="h-16 bg-slate-100 rounded-xl w-full"></div>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -169,16 +237,7 @@ const RoleManagement = () => {
 
     return (
         <div className="role-management-page">
-            <div className="role-management-header">
-                <div>
-                    <h1>Role Management</h1>
-                    <p className="subtitle">Create and manage custom roles with granular permissions</p>
-                </div>
-                <button className="btn-primary" onClick={() => handleOpenModal()}>
-                    <FiPlus /> Create Role
-                </button>
-            </div>
-
+            {/* Notification Alerts */}
             {error && (
                 <div className="alert alert-error">
                     {error}
@@ -191,67 +250,250 @@ const RoleManagement = () => {
                 </div>
             )}
 
-            <div className="roles-grid">
-                {roles.map(role => (
-                    <div key={role.id} className="role-card">
-                        <div className="role-card-header">
-                            <div className="role-icon">
-                                <FiShield />
-                            </div>
-                            <div className="role-info">
-                                <h3>{role.display_name}</h3>
-                                {role.is_system_role && (
-                                    <span className="badge badge-system">System Role</span>
-                                )}
-                            </div>
-                        </div>
+            {/* Quick Metrics Header */}
+            <div className="role-stats-grid">
+                <div className="stat-card-compact">
+                    <div className="stat-icon-wrapper bg-blue-50 text-blue-600 border border-blue-100">
+                        <FiShield size={18} />
+                    </div>
+                    <div className="stat-content">
+                        <span className="stat-label">Total Roles</span>
+                        <span className="stat-value">{stats.total}</span>
+                    </div>
+                </div>
 
-                        <p className="role-description">
-                            {role.description || 'No description provided'}
-                        </p>
+                <div className="stat-card-compact">
+                    <div className="stat-icon-wrapper bg-purple-50 text-purple-600 border border-purple-100">
+                        <FiLock size={18} />
+                    </div>
+                    <div className="stat-content">
+                        <span className="stat-label">System Roles</span>
+                        <span className="stat-value">{stats.system}</span>
+                    </div>
+                </div>
 
-                        <div className="role-stats">
-                            <div className="stat">
-                                <FiUsers />
-                                <span>{role.employee_count || 0} employees</span>
-                            </div>
-                        </div>
+                <div className="stat-card-compact">
+                    <div className="stat-icon-wrapper bg-emerald-50 text-emerald-600 border border-emerald-100">
+                        <FiCheckCircle size={18} />
+                    </div>
+                    <div className="stat-content">
+                        <span className="stat-label">Custom Roles</span>
+                        <span className="stat-value">{stats.custom}</span>
+                    </div>
+                </div>
 
-                        <div className="role-permissions-summary">
-                            <h4>Permissions</h4>
-                            <div className="permission-tags">
-                                {Object.entries(role.permissions || {}).map(([module, perms]) => {
-                                    const activePerms = Object.entries(perms)
-                                        .filter(([_, value]) => value === true)
-                                        .map(([key]) => key);
+                <div className="stat-card-compact">
+                    <div className="stat-icon-wrapper bg-amber-50 text-amber-600 border border-amber-100">
+                        <FiUsers size={18} />
+                    </div>
+                    <div className="stat-content">
+                        <span className="stat-label">Assigned Users</span>
+                        <span className="stat-value">{stats.totalUsers}</span>
+                    </div>
+                </div>
+            </div>
 
-                                    if (activePerms.length === 0) return null;
+            {/* Roles Table Container */}
+            <div className="roles-table-card">
+                {/* Search & Filter Controls Toolbar */}
+                <div className="roles-table-toolbar">
+                    <div className="roles-search-box">
+                        <FiSearch className="search-icon" size={17} />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search roles by name, slug, or description..."
+                            className="roles-search-input"
+                        />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchQuery('')}
+                                className="search-clear-btn"
+                                title="Clear search"
+                            >
+                                <FiX size={15} />
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="roles-filter-tabs">
+                        <button
+                            type="button"
+                            className={`filter-tab ${roleFilter === 'all' ? 'active' : ''}`}
+                            onClick={() => setRoleFilter('all')}
+                        >
+                            All ({stats.total})
+                        </button>
+                        <button
+                            type="button"
+                            className={`filter-tab ${roleFilter === 'system' ? 'active' : ''}`}
+                            onClick={() => setRoleFilter('system')}
+                        >
+                            System ({stats.system})
+                        </button>
+                        <button
+                            type="button"
+                            className={`filter-tab ${roleFilter === 'custom' ? 'active' : ''}`}
+                            onClick={() => setRoleFilter('custom')}
+                        >
+                            Custom ({stats.custom})
+                        </button>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="btn-primary shrink-0"
+                        onClick={() => handleOpenModal()}
+                    >
+                        <FiPlus size={16} />
+                        <span>Create Role</span>
+                    </button>
+                </div>
+
+                {/* Mobile Scroll Affordance */}
+                <div className="table-scroll-hint">
+                    Swipe horizontally to view all columns &rarr;
+                </div>
+
+                {/* Table Element */}
+                <div className="roles-table-scroll-container">
+                    <table className="roles-table">
+                        <thead>
+                            <tr>
+                                <th className="th-role">Role</th>
+                                <th className="th-desc">Description</th>
+                                <th className="th-users">Assigned Users</th>
+                                <th className="th-perms">Permissions</th>
+                                <th className="th-actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredRoles.length > 0 ? (
+                                filteredRoles.map(role => {
+                                    const activeModules = getActiveModules(role.permissions);
+                                    const isSystem = Boolean(role.is_system_role);
 
                                     return (
-                                        <span key={module} className="permission-tag">
-                                            {module.replace('ticket_', '').replace(/_/g, ' ')}
-                                        </span>
-                                    );
-                                }).filter(Boolean)}
-                            </div>
-                        </div>
+                                        <tr key={role.id} className="role-table-row">
+                                            {/* Role Name & Slug */}
+                                            <td>
+                                                <div className="role-identity-cell">
+                                                    <div className={`role-avatar-icon ${isSystem ? 'system' : 'custom'}`}>
+                                                        <FiShield size={18} />
+                                                    </div>
+                                                    <div className="role-meta">
+                                                        <div className="role-title-row">
+                                                            <span className="role-display-name">{role.display_name}</span>
+                                                            {isSystem ? (
+                                                                <span className="badge-pill system">System Role</span>
+                                                            ) : (
+                                                                <span className="badge-pill custom">Custom</span>
+                                                            )}
+                                                        </div>
+                                                        <span className="role-code-slug">{role.role_name}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
 
-                        <div className="role-card-actions">
-                            <button
-                                className="btn-secondary btn-sm"
-                                onClick={() => handleOpenModal(role)}
-                            >
-                                <FiEdit2 /> Edit
-                            </button>
-                            <button
-                                className="btn-danger btn-sm"
-                                onClick={() => handleDelete(role.id, role.display_name)}
-                            >
-                                <FiTrash2 /> Delete
-                            </button>
-                        </div>
-                    </div>
-                ))}
+                                            {/* Description */}
+                                            <td>
+                                                <p className="role-desc-text">
+                                                    {role.description || (
+                                                        <span className="text-slate-400 italic">No description provided</span>
+                                                    )}
+                                                </p>
+                                            </td>
+
+                                            {/* Assigned Users Count */}
+                                            <td>
+                                                <div className="users-count-badge">
+                                                    <FiUsers size={14} />
+                                                    <span>
+                                                        {role.employee_count || 0} {role.employee_count === 1 ? 'employee' : 'employees'}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            {/* Granted Module Permissions */}
+                                            <td>
+                                                <div className="permissions-chips-wrap">
+                                                    {activeModules.length === 0 ? (
+                                                        <span className="permission-empty-chip">No permissions assigned</span>
+                                                    ) : (
+                                                        activeModules.map(mod => (
+                                                            <span
+                                                                key={mod.key}
+                                                                className={`permission-chip ${mod.chipClass}`}
+                                                                title={`${mod.label} (${mod.grantedCount} actions)`}
+                                                            >
+                                                                {mod.label}
+                                                            </span>
+                                                        ))
+                                                    )}
+                                                </div>
+                                            </td>
+
+                                            {/* Action Buttons */}
+                                            <td>
+                                                <div className="actions-cell">
+                                                    <button
+                                                        type="button"
+                                                        className="action-btn edit"
+                                                        onClick={() => handleOpenModal(role)}
+                                                        title="Edit Role"
+                                                    >
+                                                        <FiEdit2 size={14} />
+                                                        <span>Edit</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={`action-btn delete ${isSystem ? 'disabled' : ''}`}
+                                                        onClick={() => {
+                                                            if (isSystem) return;
+                                                            handleDelete(role.id, role.display_name);
+                                                        }}
+                                                        disabled={isSystem}
+                                                        title={isSystem ? 'System roles cannot be deleted' : 'Delete Role'}
+                                                    >
+                                                        <FiTrash2 size={14} />
+                                                        <span>Delete</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan="5">
+                                        <div className="roles-empty-state">
+                                            <div className="empty-icon-wrap">
+                                                <FiShield size={32} />
+                                            </div>
+                                            <h3>No roles found</h3>
+                                            <p>
+                                                {searchQuery
+                                                    ? `No roles match your search "${searchQuery}". Try a different keyword.`
+                                                    : 'No roles found in this category.'}
+                                            </p>
+                                            {searchQuery && (
+                                                <button
+                                                    type="button"
+                                                    className="btn-secondary btn-sm mt-3"
+                                                    onClick={() => setSearchQuery('')}
+                                                >
+                                                    Clear Search Filter
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Create/Edit Role Modal */}
@@ -259,9 +501,14 @@ const RoleManagement = () => {
                 <div className="modal-overlay" onClick={handleCloseModal}>
                     <div className="modal-content role-modal" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2>{editingRole ? 'Edit Role' : 'Create New Role'}</h2>
-                            <button className="close-btn" onClick={handleCloseModal}>
-                                <FiX />
+                            <div>
+                                <h2>{editingRole ? 'Edit Role' : 'Create New Role'}</h2>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                    {editingRole ? `Update settings and permissions for ${editingRole.display_name}` : 'Define a new role and customize module permissions'}
+                                </p>
+                            </div>
+                            <button className="close-btn" onClick={handleCloseModal} aria-label="Close">
+                                <FiX size={18} />
                             </button>
                         </div>
 
@@ -281,7 +528,7 @@ const RoleManagement = () => {
 
                                 <div className="form-grid">
                                     <div className="form-group">
-                                        <label>Role Name *</label>
+                                        <label>Role Slug / Key *</label>
                                         <input
                                             type="text"
                                             value={formData.role_name}
@@ -289,12 +536,15 @@ const RoleManagement = () => {
                                                 ...formData,
                                                 role_name: e.target.value.toLowerCase().replace(/\s+/g, '_')
                                             })}
+                                            disabled={Boolean(editingRole?.is_system_role)}
                                             placeholder="e.g., principal, supervisor"
                                             required
                                             className="form-input"
                                         />
                                         <small className="form-hint">
-                                            Lowercase with underscores only.
+                                            {editingRole?.is_system_role
+                                                ? 'System role slugs are locked and cannot be changed.'
+                                                : 'Lowercase with underscores only (e.g. branch_admin).'}
                                         </small>
                                     </div>
 
@@ -311,6 +561,9 @@ const RoleManagement = () => {
                                             required
                                             className="form-input"
                                         />
+                                        <small className="form-hint">
+                                            Human readable name shown across the system.
+                                        </small>
                                     </div>
                                 </div>
 
@@ -322,13 +575,14 @@ const RoleManagement = () => {
                                             ...formData,
                                             description: e.target.value
                                         })}
-                                        placeholder="Brief description of this role's responsibilities"
-                                        rows="3"
+                                        placeholder="Brief description of this role's scope and responsibilities..."
+                                        rows="2"
                                         className="form-input"
                                     />
                                 </div>
 
                                 <div className="form-group">
+                                    <label className="mb-2 block">Module Permissions Matrix</label>
                                     <PermissionMatrix
                                         permissions={formData.permissions}
                                         onChange={(newPermissions) => setFormData({

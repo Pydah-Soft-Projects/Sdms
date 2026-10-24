@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { masterPool } = require('../config/database');
 const { v4: uuidv4 } = require('uuid');
 const { sendNotificationToUser } = require('./pushController');
@@ -141,7 +142,8 @@ const getClubs = async (req, res) => {
             return m && (m.status === 'approved' || m.status === 'pending') && Number(c.membership_fee) > 0;
         });
 
-        if (hasClubWithFee) {
+        // Only sync from MongoDB if connection is active (readyState === 1) to avoid 10s query timeout
+        if (hasClubWithFee && mongoose.connection && mongoose.connection.readyState === 1) {
             try {
                 const [sRow] = await masterPool.query('SELECT admission_number FROM students WHERE id = ?', [id]);
                 if (sRow.length > 0 && sRow[0].admission_number) {

@@ -53,7 +53,6 @@ const Dashboard = () => {
     const [internalMarksCount, setInternalMarksCount] = useState(0);
     const [todayTimetable, setTodayTimetable] = useState([]);
     const [hasInternship, setHasInternship] = useState(false);
-    const [hasTransportPass, setHasTransportPass] = useState(false);
 
     // UI States
     const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -282,16 +281,7 @@ const Dashboard = () => {
                     })
                     .catch(() => {});
 
-                // Check Transport Pass Active State
-                if (user?.admission_number) {
-                    api.get('/transport/my-details')
-                        .then(res => {
-                            if (res.data?.success && res.data?.hasActivePass) {
-                                setHasTransportPass(true);
-                            }
-                        })
-                        .catch(() => {});
-                }
+
 
                 // 6. Hourly Summary
                 api.get('/hourly-attendance/student-summary')
@@ -780,7 +770,7 @@ const Dashboard = () => {
                 icon: RiBusLine,
                 iconBg: 'bg-[#ffedd5]',
                 iconColor: 'text-[#c2410c]',
-                enabled: hasTransportPass && isEnabled('transport')
+                enabled: isEnabled('transport')
             },
             {
                 key: 'scholarship',
@@ -810,7 +800,7 @@ const Dashboard = () => {
                 enabled: isEnabled('my-documents')
             }
         ].filter(item => item.enabled);
-    }, [layoutSettings, ticketAppUrl, hasInternship, hasTransportPass]);
+    }, [layoutSettings, ticketAppUrl, hasInternship]);
 
     // Helper function to truncate content to 1-2 lines
     const truncateContent = (text, maxLength = 150) => {
@@ -1390,7 +1380,7 @@ const Dashboard = () => {
 
             {/* Explore Learn Build Banner (Image 1 Style) */}
             <div
-                onClick={() => navigate('/student/events')}
+                onClick={() => navigate('/student/clubs')}
                 className="rounded-[22px] p-4 sm:p-5 bg-gradient-to-r from-[#031338] via-[#091b48] to-[#0a2368] text-white shadow-lg relative overflow-hidden cursor-pointer group flex items-center justify-between"
             >
                 <div className="relative z-10">
@@ -1414,6 +1404,98 @@ const Dashboard = () => {
                     />
                 </div>
             </div>
+
+            {/* Clubs to Join Section */}
+            {isEnabled('clubs') && (
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-base font-bold text-slate-900">Clubs to Join</h2>
+                            {clubs.length > 0 && (
+                                <span className="bg-indigo-50 text-indigo-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                                    {(clubs.filter(c => c.userStatus !== 'approved').length || clubs.length)} Available
+                                </span>
+                            )}
+                        </div>
+                        <Link to="/student/clubs" className="text-xs font-bold text-[#2563eb] hover:underline flex items-center gap-1">
+                            View All <ArrowRight size={14} />
+                        </Link>
+                    </div>
+
+                    {/* Horizontal Scrolling Club Cards */}
+                    <div
+                        className="flex items-stretch gap-3 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth snap-x"
+                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
+                        {clubs.length > 0 ? (
+                            (clubs.filter(c => c.userStatus !== 'approved').length > 0
+                                ? clubs.filter(c => c.userStatus !== 'approved')
+                                : clubs
+                            ).map((club) => (
+                                <div
+                                    key={club.id}
+                                    onClick={() => navigate('/student/clubs', { state: { selectedClubId: club.id } })}
+                                    className="w-[230px] sm:w-[250px] shrink-0 rounded-[22px] bg-white border border-slate-100/90 shadow-xs hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer flex flex-col justify-between group snap-start overflow-hidden"
+                                >
+                                    <div>
+                                        {/* Card Image Banner */}
+                                        <div className="h-28 w-full bg-slate-900 relative overflow-hidden shrink-0">
+                                            {club.image_url ? (
+                                                <img
+                                                    src={club.image_url}
+                                                    alt={club.name}
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 flex items-center justify-center text-indigo-300">
+                                                    <Users size={32} />
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                                            <div className="absolute top-2 right-2">
+                                                {club.userStatus === 'pending' ? (
+                                                    <span className="bg-amber-500/90 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs flex items-center gap-1 shadow-xs animate-pulse">
+                                                        <Clock size={10} /> Pending
+                                                    </span>
+                                                ) : (
+                                                    <span className="bg-emerald-500/90 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs flex items-center gap-1 shadow-xs">
+                                                        <Sparkles size={10} /> Open to Join
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Card Content */}
+                                        <div className="p-3">
+                                            <h4 className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors leading-snug">
+                                                {club.name}
+                                            </h4>
+                                            <p className="text-[11px] font-medium text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                                                {club.description || 'Join activities, workshops, and build skills.'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Card Footer: Action Hint */}
+                                    <div className="px-3 pb-3 pt-1 border-t border-slate-50 flex items-center justify-between text-[11px] font-bold text-indigo-600">
+                                        <span className="font-extrabold">
+                                            {club.userStatus === 'pending' ? 'View Status' : 'View & Join'}
+                                        </span>
+                                        <div className="w-6 h-6 rounded-full bg-indigo-50 group-hover:bg-indigo-600 group-hover:text-white flex items-center justify-center transition-colors">
+                                            <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="w-full p-4 text-center rounded-[22px] bg-white border border-dashed border-slate-200">
+                                <Users size={24} className="mx-auto text-slate-300 mb-1" />
+                                <p className="text-xs font-semibold text-slate-400">No clubs available right now</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* SEM Registration Card */}
             {isEnabled('semester-registration') && (

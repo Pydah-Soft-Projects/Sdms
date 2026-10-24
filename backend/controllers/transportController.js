@@ -73,6 +73,10 @@ async function resolveAdmissionNumber(req) {
 async function enrichTransportRequests(rawRequests) {
     const enriched = [];
 
+    if (!rawRequests || rawRequests.length === 0 || transportConnection.readyState !== 1) {
+        return enriched;
+    }
+
     // Cache routes, buses, and destination in memory during request cycle
     const routeCache = new Map();
     const busCache = new Map();
@@ -223,7 +227,7 @@ exports.getMyTransportDetails = async (req, res) => {
     try {
         const admissionNumber = await resolveAdmissionNumber(req);
 
-        if (!admissionNumber) {
+        if (!admissionNumber || transportConnection.readyState !== 1) {
             return res.json({
                 success: true,
                 hasTransportAccess: false,
@@ -303,7 +307,7 @@ exports.getBusLiveLocation = async (req, res) => {
         // Fallback to active pass for authenticated student if no specific vehicle/route query requested
         if (!busNumber && !routeId && req.user && req.query.fleet !== 'true') {
             const admissionNumber = await resolveAdmissionNumber(req);
-            if (admissionNumber) {
+            if (admissionNumber && transportConnection.readyState === 1) {
                 const latestReq = await TransportRequest.findOne({
                     $or: [
                         { admission_number: admissionNumber },
@@ -354,7 +358,7 @@ exports.getMyTransportRequests = async (req, res) => {
     try {
         const admissionNumber = await resolveAdmissionNumber(req);
 
-        if (!admissionNumber) {
+        if (!admissionNumber || transportConnection.readyState !== 1) {
             return res.json({ success: true, data: [] });
         }
 

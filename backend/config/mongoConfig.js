@@ -1,12 +1,16 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+// Disable buffering so queries fail-fast immediately instead of hanging for 10 seconds when offline/disconnected
+mongoose.set('bufferCommands', false);
+
 const MONGO_CLIENT_OPTIONS = {
   serverSelectionTimeoutMS: 3000, // Fail fast in 3s instead of 30s default
   connectTimeoutMS: 3000,
   socketTimeoutMS: 5000,
   maxPoolSize: 5,
   minPoolSize: 1,
+  bufferCommands: false,
 };
 
 const connectDB = async () => {

@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Users, BookOpen, CheckCircle, Clock, AlertCircle, MessageSquare, Send, ChevronLeft, Sparkles } from 'lucide-react';
+import {
+    Users, BookOpen, CheckCircle, Clock, AlertCircle, MessageSquare, Send,
+    ChevronLeft, ChevronRight, Sparkles, UserPlus, Wallet, ShieldCheck, Info,
+    CreditCard, ArrowRight, DollarSign
+} from 'lucide-react';
 
 const formatChatTime = (dateStr) => {
     const d = new Date(dateStr);
@@ -60,7 +64,7 @@ const StudentClubs = () => {
                     setClubs(clubsRes.data);
                     const requestedClubId = location.state?.selectedClubId;
                     const requestedClub = clubsRes.data.find(club => String(club.id) === String(requestedClubId));
-                    if (requestedClub && requestedClub.userStatus === 'approved' && requestedClub.payment_status !== 'payment_due') {
+                    if (requestedClub) {
                         setActiveClub(requestedClub);
                         setViewMode('details');
                     } else {
@@ -183,28 +187,33 @@ const StudentClubs = () => {
     };
 
     const handleSubmitJoin = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
+        if (!selectedClub) return;
+        const targetId = selectedClub.id;
         try {
-            await clubService.joinClub(selectedClub.id);
+            await clubService.joinClub(targetId);
             toast.success('Join request sent successfully!');
             setSelectedClub(null);
             // Refresh clubs to show updated status
             const clubsRes = await clubService.getClubs();
-            if (clubsRes.success) {
+            if (clubsRes.success && Array.isArray(clubsRes.data)) {
                 setClubs(clubsRes.data);
+                const updated = clubsRes.data.find(c => c.id === targetId || String(c.id) === String(targetId));
+                if (updated) {
+                    setActiveClub(updated);
+                }
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to join');
+            toast.error(error.response?.data?.message || 'Failed to join club');
         }
     };
 
-
     const renderStatusBadge = (status) => {
         switch (status) {
-            case 'approved': return <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><CheckCircle size={12} /> Member</span>;
-            case 'pending': return <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><Clock size={12} /> Pending</span>;
-            case 'rejected': return <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full flex items-center gap-1"><AlertCircle size={12} /> Rejected</span>;
-            default: return null;
+            case 'approved': return <span className="bg-emerald-100 text-emerald-800 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 font-bold shadow-2xs whitespace-nowrap"><CheckCircle size={11} className="sm:w-3 sm:h-3" /> Active Member</span>;
+            case 'pending': return <span className="bg-amber-100 text-amber-800 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 font-bold shadow-2xs animate-pulse whitespace-nowrap"><Clock size={11} className="sm:w-3 sm:h-3" /> Pending</span>;
+            case 'rejected': return <span className="bg-rose-100 text-rose-800 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 font-bold shadow-2xs whitespace-nowrap"><AlertCircle size={11} className="sm:w-3 sm:h-3" /> Restricted</span>;
+            default: return <span className="bg-indigo-50 text-indigo-700 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 font-bold shadow-2xs whitespace-nowrap"><Sparkles size={11} className="sm:w-3 sm:h-3" /> Open to Join</span>;
         }
     };
 
@@ -212,8 +221,11 @@ const StudentClubs = () => {
     const displayClubs = listSegment === 'joined' ? joinedClubs : clubs;
 
     return (
-        <div className="min-h-0 bg-slate-50 flex flex-col">
-            <div className={`p-3 sm:p-6 mx-auto w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[80rem] flex-1 flex flex-col min-h-0 ${viewMode === 'list' ? 'space-y-4 sm:space-y-6' : 'max-h-[calc(100dvh-7rem)] lg:max-h-[calc(100vh-2rem)]'}`}>
+        <div className="min-h-0 bg-slate-50 flex flex-col no-scrollbar">
+            <div
+                className={`p-3 sm:p-6 mx-auto w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[80rem] flex-1 flex flex-col min-h-0 no-scrollbar ${viewMode === 'list' ? 'space-y-4 sm:space-y-6' : 'max-h-[calc(100dvh-7rem)] lg:max-h-[calc(100vh-2rem)]'}`}
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
                 {viewMode === 'list' ? (
                     <>
                         {/* Segment tabs: My Clubs | Discover */}
@@ -258,89 +270,70 @@ const StudentClubs = () => {
                                         <p className="text-[11px] sm:text-sm text-gray-500 mt-1">{listSegment === 'joined' ? 'Switch to Discover to browse and join.' : 'Check back later for new clubs.'}</p>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-6 lg:gap-8">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
                                         {displayClubs.map(club => (
-                                            <div key={club.id} className="group/card bg-white rounded-xl sm:rounded-[2.5rem] shadow-sm sm:shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 sm:hover:-translate-y-2 transition-all duration-500 flex flex-col relative">
-                                                <div className="h-24 sm:h-56 relative overflow-hidden shrink-0">
+                                            <div
+                                                key={club.id}
+                                                onClick={() => handleViewClub(club)}
+                                                className="group/card bg-white rounded-xl sm:rounded-[2.2rem] shadow-sm sm:shadow-lg shadow-slate-200/50 border border-slate-200/80 overflow-hidden hover:shadow-2xl hover:-translate-y-1 sm:hover:-translate-y-1.5 hover:border-indigo-300 transition-all duration-300 flex flex-col relative cursor-pointer"
+                                            >
+                                                <div className="h-32 sm:h-52 relative overflow-hidden shrink-0 bg-slate-100">
                                                     {club.image_url ? (
-                                                        <img src={club.image_url} alt={club.name} className="w-full h-full object-cover group-hover/card:scale-110 transition-transform duration-1000 ease-out" />
+                                                        <img src={club.image_url} alt={club.name} className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700 ease-out" />
                                                     ) : (
-                                                        <div className="w-full h-full bg-slate-50 flex items-center justify-center text-indigo-200">
-                                                            <Users size={32} className="sm:w-16 sm:h-16" />
+                                                        <div className="w-full h-full bg-gradient-to-br from-indigo-50 to-slate-100 flex items-center justify-center text-indigo-300">
+                                                            <Users size={36} className="sm:w-16 sm:h-16" />
                                                         </div>
                                                     )}
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent z-10 opacity-60 group-hover/card:opacity-40 transition-opacity duration-500" />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent z-10 opacity-70 group-hover/card:opacity-50 transition-opacity duration-300" />
                                                     {club.userStatus && (
-                                                        <div className="absolute top-1.5 right-1.5 sm:top-5 sm:right-5 z-20">
+                                                        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-20">
                                                             {club.userStatus === 'approved' ? (
-                                                                <span className="bg-emerald-500 text-white text-[7.5px] sm:text-[9px] px-1.5 py-0.5 sm:px-3 sm:py-1.5 rounded-md sm:rounded-xl font-black uppercase tracking-wider sm:tracking-widest shadow-md flex items-center gap-1 sm:gap-1.5 border border-white/20">
-                                                                    <CheckCircle size={10} className="sm:w-3.5 sm:h-3.5" /> Active
+                                                                <span className="bg-emerald-500 text-white text-[8px] sm:text-[10px] px-2 py-0.5 sm:px-3 sm:py-1 rounded-full font-black uppercase tracking-wider shadow-md flex items-center gap-1 border border-white/20">
+                                                                    <CheckCircle size={11} /> Member
                                                                 </span>
                                                             ) : club.userStatus === 'pending' ? (
-                                                                <span className="bg-amber-500 text-white text-[7.5px] sm:text-[9px] px-1.5 py-0.5 sm:px-3 sm:py-1.5 rounded-md sm:rounded-xl font-black uppercase tracking-wider sm:tracking-widest shadow-md flex items-center gap-1 sm:gap-1.5 border border-white/20 animate-pulse">
-                                                                    <Clock size={10} className="sm:w-3.5 sm:h-3.5" /> Waiting
+                                                                <span className="bg-amber-500 text-white text-[8px] sm:text-[10px] px-2 py-0.5 sm:px-3 sm:py-1 rounded-full font-black uppercase tracking-wider shadow-md flex items-center gap-1 border border-white/20 animate-pulse">
+                                                                    <Clock size={11} /> Pending
                                                                 </span>
                                                             ) : (
-                                                                <span className="bg-rose-500 text-white text-[7.5px] sm:text-[9px] px-1.5 py-0.5 sm:px-3 sm:py-1.5 rounded-md sm:rounded-xl font-black uppercase tracking-wider sm:tracking-widest shadow-md flex items-center gap-1 sm:gap-1.5 border border-white/20">
-                                                                    <AlertCircle size={10} className="sm:w-3.5 sm:h-3.5" /> Denied
+                                                                <span className="bg-rose-500 text-white text-[8px] sm:text-[10px] px-2 py-0.5 sm:px-3 sm:py-1 rounded-full font-black uppercase tracking-wider shadow-md flex items-center gap-1 border border-white/20">
+                                                                    <AlertCircle size={11} /> Denied
                                                                 </span>
                                                             )}
                                                         </div>
                                                     )}
-                                                    {club.membership_fee > 0 && (
-                                                        <div className="absolute bottom-1.5 left-1.5 sm:bottom-5 sm:left-5 z-20 inline-flex flex-col">
-                                                            <div className="flex items-baseline gap-0.5 sm:gap-1 bg-white/90 backdrop-blur-md px-2 py-0.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-2xl shadow-md border border-white">
-                                                                <span className="text-xs sm:text-xl font-black text-slate-900">₹{club.membership_fee}</span>
-                                                                <span className="text-[7.5px] sm:text-[9px] font-black text-slate-400 uppercase tracking-wider sm:tracking-widest">/{club.fee_type === 'Semesterly' ? 'Sem' : 'Year'}</span>
-                                                            </div>
-                                                        </div>
-                                                    )}
                                                 </div>
-                                                <div className="p-2.5 sm:p-8 flex-1 flex flex-col">
-                                                    <h3 className="text-sm sm:text-2xl font-black text-slate-900 leading-tight mb-0.5 sm:mb-4 group-hover/card:text-indigo-600 transition-colors tracking-tight">{club.name}</h3>
-                                                    <p className="text-slate-400 text-[11px] sm:text-[14px] line-clamp-2 sm:line-clamp-3 flex-1 font-bold italic leading-tight sm:leading-relaxed mb-2 sm:mb-8 opacity-80">{club.description}</p>
-                                                    <div className="mt-auto">
-                                                        {club.userStatus === 'approved' ? (
-                                                            club.payment_status === 'payment_due' ? (
-                                                                <div
-                                                                    className="w-full py-1.5 sm:py-4 rounded-lg sm:rounded-[1.5rem] bg-rose-600 text-white font-black uppercase tracking-wider sm:tracking-widest text-[9px] sm:text-[11px] shadow-md shadow-rose-200 flex items-center justify-center gap-1.5 sm:gap-3"
-                                                                >
-                                                                    <AlertCircle size={12} className="sm:w-4 sm:h-4" /> Pay Fee (₹{club.balance_due || club.membership_fee})
-                                                                </div>
+
+                                                <div className="p-3.5 sm:p-6 flex-1 flex flex-col justify-between">
+                                                    <div>
+                                                        <h3 className="text-base sm:text-xl font-black text-slate-900 leading-tight mb-1.5 sm:mb-2 group-hover/card:text-indigo-600 transition-colors tracking-tight line-clamp-1">{club.name}</h3>
+                                                        <p className="text-slate-500 text-[11px] sm:text-[13px] line-clamp-2 font-medium leading-relaxed mb-3 sm:mb-4">{club.description || 'Discover activities, workshops, and build connections.'}</p>
+                                                    </div>
+
+                                                    <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between text-indigo-600 font-bold text-xs sm:text-sm group-hover/card:text-indigo-700">
+                                                        <span className="flex items-center gap-1.5 font-extrabold">
+                                                            {club.userStatus === 'approved' ? (
+                                                                <span className="text-emerald-700 flex items-center gap-1">
+                                                                    <CheckCircle size={14} className="text-emerald-600" /> Member • View Portal
+                                                                </span>
+                                                            ) : club.userStatus === 'pending' ? (
+                                                                <span className="text-amber-700 flex items-center gap-1">
+                                                                    <Clock size={14} className="text-amber-600 animate-pulse" /> Request Pending • View Status
+                                                                </span>
+                                                            ) : club.userStatus === 'rejected' ? (
+                                                                <span className="text-rose-700 flex items-center gap-1">
+                                                                    <AlertCircle size={14} className="text-rose-600" /> Entry Restricted • View Club
+                                                                </span>
                                                             ) : (
-                                                                <button
-                                                                    onClick={() => handleViewClub(club)}
-                                                                    className="w-full py-1.5 sm:py-4 rounded-lg sm:rounded-[1.5rem] bg-indigo-600 text-white font-black uppercase tracking-wider sm:tracking-widest text-[9px] sm:text-[11px] hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200"
-                                                                >
-                                                                    Enter Portal
-                                                                </button>
-                                                            )
-                                                        ) : club.userStatus === 'pending' ? (
-                                                            club.membership_fee > 0 ? (
-                                                                <div
-                                                                    className="w-full py-1.5 sm:py-4 rounded-lg sm:rounded-[1.5rem] bg-amber-500 text-white font-black uppercase tracking-wider sm:tracking-widest text-[9px] sm:text-[11px] shadow-md shadow-amber-200 flex items-center justify-center gap-1.5 sm:gap-3"
-                                                                >
-                                                                    <AlertCircle size={12} className="sm:w-4 sm:h-4" /> Pay Fee (₹{club.balance_due || club.membership_fee})
-                                                                </div>
-                                                            ) : (
-                                                                <div className="w-full py-1.5 sm:py-4 rounded-lg sm:rounded-[1.5rem] bg-slate-50 text-slate-300 font-black uppercase tracking-wider sm:tracking-widest text-[9px] sm:text-[11px] border border-slate-100 flex items-center justify-center gap-1.5 sm:gap-3 italic">
-                                                                    <Clock size={12} className="sm:w-4 sm:h-4" /> Transmission Pending
-                                                                </div>
-                                                            )
-                                                        ) : club.userStatus === 'rejected' ? (
-                                                            <div className="w-full py-1.5 sm:py-4 rounded-lg sm:rounded-[1.5rem] bg-slate-100 text-slate-400 font-black uppercase tracking-wider sm:tracking-widest text-[9px] sm:text-[11px] border border-slate-200 flex items-center justify-center gap-1.5 sm:gap-3">
-                                                                <AlertCircle size={12} className="sm:w-4 sm:h-4" /> Entry Restricted
-                                                            </div>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => handleJoinClick(club)}
-                                                                className="w-full py-1.5 sm:py-4 rounded-lg sm:rounded-[1.5rem] bg-white border border-indigo-100 text-indigo-600 font-black uppercase tracking-wider sm:tracking-widest text-[9px] sm:text-[11px] hover:bg-indigo-50 transition-all shadow-xs hover:shadow-sm overflow-hidden group/btn relative"
-                                                            >
-                                                                <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">Request Access <Sparkles size={11} className="sm:w-3.5 sm:h-3.5" /></span>
-                                                                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-indigo-400 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500"></div>
-                                                                <span className="absolute inset-0 z-20 flex items-center justify-center gap-1 sm:gap-2 text-white opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300">Join the Future</span>
-                                                            </button>
-                                                        )}
+                                                                <span className="flex items-center gap-1 text-indigo-600">
+                                                                    View Club Details
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-indigo-50 group-hover/card:bg-indigo-600 group-hover/card:text-white flex items-center justify-center transition-all duration-300">
+                                                            <ChevronRight size={16} className="group-hover/card:translate-x-0.5 transition-transform" />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -352,101 +345,252 @@ const StudentClubs = () => {
                     </>
                 ) : (
                     /* DETAILS VIEW - fills height on large screens; only chat messages scroll */
-                    <div className="animate-in fade-in duration-300 flex-1 flex flex-col min-h-0 overflow-hidden">
+                    <div className="animate-in fade-in duration-300 flex-1 flex flex-col min-h-0 overflow-hidden no-scrollbar">
                         {activeClub && (
                             <>
                                 {/* Sticky back + club header (mobile friendly) */}
-                                <div className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-100 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 sm:py-4">
-                                    <div className="flex items-center gap-3 max-w-6xl mx-auto">
-                                        <button onClick={handleBackToList} className="shrink-0 p-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center gap-1.5 font-medium text-sm touch-manipulation" aria-label="Back to clubs">
-                                            <ChevronLeft size={20} /> <span className="hidden sm:inline">Clubs</span>
-                                        </button>
-                                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                                            <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
-                                                {activeClub.image_url ? <img src={activeClub.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400"><Users size={24} /></div>}
+                                <div className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-100 -mx-3 sm:-mx-6 px-3 sm:px-6 py-2.5 sm:py-3.5">
+                                    <div className="flex items-center justify-between gap-3 max-w-6xl mx-auto">
+                                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                                            <button onClick={handleBackToList} className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors touch-manipulation" aria-label="Back to clubs">
+                                                <ChevronLeft size={18} />
+                                            </button>
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
+                                                {activeClub.image_url ? <img src={activeClub.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-slate-400"><Users size={16} /></div>}
                                             </div>
-                                            <div className="min-w-0">
-                                                <h2 className="text-lg font-bold text-gray-900 truncate">{activeClub.name}</h2>
-                                                <div className="flex items-center gap-2 mt-0.5">{renderStatusBadge(activeClub.userStatus)}</div>
+                                            <div className="min-w-0 flex-1">
+                                                <h2 className="text-sm sm:text-base font-bold text-slate-900 truncate leading-snug">{activeClub.name}</h2>
+                                                <div className="flex items-center gap-1.5 mt-0.5">{renderStatusBadge(activeClub.userStatus)}</div>
                                             </div>
                                         </div>
+
+                                        {/* Top Header Status Indicator (if payment due) */}
+                                        {activeClub.userStatus === 'approved' && activeClub.payment_status === 'payment_due' && (
+                                            <div className="shrink-0 flex items-center gap-1.5 sm:gap-2">
+                                                <span className="py-1 px-2.5 sm:py-1.5 sm:px-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 font-bold text-[10px] sm:text-xs flex items-center gap-1">
+                                                    <AlertCircle size={13} className="text-rose-600" /> <span>Fee Pending</span>
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Tab bar: About | Activities | Chat (scroll on small) */}
-                                <div className="border-b border-gray-100 bg-white overflow-x-auto scrollbar-hide">
-                                    <div className="flex gap-0 min-w-max sm:min-w-0 sm:justify-center px-2 sm:px-0">
+                                {/* Tab bar: Overview | Activities | Chat (Full Mobile Width & Cleanly Aligned) */}
+                                <div className="border-b border-gray-200/80 bg-white -mx-3 sm:-mx-6 px-0 sm:px-6">
+                                    <div className="grid grid-cols-3 w-full sm:flex sm:w-auto sm:items-center sm:gap-8 max-w-6xl mx-auto">
                                         {[
-                                            { id: 'about', label: 'About', icon: Users },
+                                            { id: 'about', label: 'Overview', icon: Users },
                                             { id: 'activities', label: 'Activities', icon: BookOpen },
                                             { id: 'chat', label: 'Chat', icon: MessageSquare },
                                         ].map(({ id, label, icon: Icon }) => (
                                             <button
                                                 key={id}
                                                 onClick={() => setDetailTab(id)}
-                                                className={`shrink-0 py-3 px-4 sm:px-6 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 touch-manipulation ${detailTab === id ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                                                className={`relative py-3 sm:py-3.5 flex items-center justify-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold transition-all touch-manipulation border-b-2 -mb-px ${detailTab === id ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-800'}`}
                                             >
-                                                <Icon size={18} /> {label}
+                                                <Icon size={16} className={detailTab === id ? 'text-indigo-600' : 'text-gray-400'} />
+                                                <span>{label}</span>
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className={`py-6 pb-[calc(88px+env(safe-area-inset-bottom))] sm:pb-6 w-full flex-1 flex flex-col min-h-0 ${detailTab === 'chat' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+                                <div
+                                    className={`py-4 sm:py-6 pb-[calc(88px+env(safe-area-inset-bottom))] sm:pb-6 w-full flex-1 flex flex-col min-h-0 no-scrollbar ${detailTab === 'chat' ? 'overflow-hidden' : 'overflow-y-auto'}`}
+                                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                                >
                                     {detailTab === 'about' && (
-                                        <div className="bg-white rounded-2xl border border-gray-100 p-6 lg:p-8 shadow-sm w-full max-w-2xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-full">
-                                            <div className="grid grid-cols-1 xl:grid-cols-[auto_1fr] xl:gap-8 xl:items-start">
-                                                <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-6 xl:mb-0 xl:flex-col xl:items-center xl:min-w-[200px]">
-                                                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gray-100 overflow-hidden border-2 border-white shadow-lg shrink-0 mx-auto sm:mx-0">
-                                                        {activeClub.image_url ? <img src={activeClub.image_url} alt={activeClub.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400"><Users size={40} /></div>}
+                                        <div className="space-y-4 sm:space-y-6 w-full max-w-5xl mx-auto">
+                                            {/* Hero Banner inside Club Home Page */}
+                                            <div className="relative rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden bg-gradient-to-r from-indigo-950 via-indigo-900 to-slate-900 min-h-[190px] sm:h-64 flex flex-col justify-end p-4 sm:p-6">
+                                                {activeClub.image_url ? (
+                                                    <img src={activeClub.image_url} alt={activeClub.name} className="absolute inset-0 w-full h-full object-cover opacity-40 sm:opacity-50" />
+                                                ) : (
+                                                    <div className="absolute inset-0 flex items-center justify-center opacity-15">
+                                                        <Users size={120} className="text-white" />
                                                     </div>
-                                                    <div className="text-center sm:text-left xl:text-center">
-                                                        <h3 className="text-xl font-bold text-gray-900">{activeClub.name}</h3>
-                                                        {activeClub.membership_fee > 0 && (
-                                                            <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-sm font-bold">
-                                                                ₹{activeClub.membership_fee} / {activeClub.fee_type === 'Semesterly' ? 'Sem' : 'Year'}
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-transparent" />
+                                                <div className="relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-3.5 sm:gap-4">
+                                                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                                                        <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-white p-1 shadow-xl shrink-0 overflow-hidden border-2 border-white">
+                                                            {activeClub.image_url ? (
+                                                                <img src={activeClub.image_url} alt="" className="w-full h-full object-cover rounded-lg sm:rounded-xl" />
+                                                            ) : (
+                                                                <div className="w-full h-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-lg sm:text-2xl rounded-lg sm:rounded-xl">
+                                                                    {activeClub.name?.charAt(0) || 'C'}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="min-w-0 text-white flex-1">
+                                                            <h1 className="text-base sm:text-2xl lg:text-3xl font-black tracking-tight drop-shadow-md leading-tight line-clamp-2">{activeClub.name}</h1>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                {renderStatusBadge(activeClub.userStatus)}
                                                             </div>
-                                                        )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div>
-                                                    <p className="text-gray-600 text-sm lg:text-base leading-relaxed whitespace-pre-wrap">{activeClub.description}</p>
+
+                                                    {/* Hero Join Button if not yet joined */}
+                                                    {!activeClub.userStatus && (
+                                                        <button
+                                                            onClick={() => handleJoinClick(activeClub)}
+                                                            className="w-full sm:w-auto py-2.5 px-5 sm:py-3 sm:px-6 rounded-xl sm:rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs sm:text-sm shadow-xl shadow-indigo-950/40 flex items-center justify-center gap-2 transition-all shrink-0 hover:scale-[1.02] active:scale-95"
+                                                        >
+                                                            <UserPlus size={16} />
+                                                            <span>Join the Club</span>
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
+
+                                            {/* Membership Fee Card (Displayed inside Club Home Page) */}
+                                            <div className="bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/40 rounded-xl sm:rounded-2xl border border-indigo-100 p-4 sm:p-6 shadow-xs space-y-3">
+                                                <div className="flex items-center gap-3.5">
+                                                    <div className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-200 shrink-0">
+                                                        <Wallet size={20} className="sm:w-6 sm:h-6" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-[10px] sm:text-xs font-black uppercase tracking-wider text-slate-400">Membership Fee</p>
+                                                        <div className="flex items-baseline gap-1.5 sm:gap-2 mt-0.5 flex-wrap">
+                                                            {activeClub.membership_fee > 0 ? (
+                                                                <>
+                                                                    <span className="text-xl sm:text-3xl font-black text-slate-900">₹{activeClub.membership_fee}</span>
+                                                                    <span className="text-[11px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                                                        / {activeClub.fee_type === 'Semesterly' ? 'Semester' : 'Year'}
+                                                                    </span>
+                                                                </>
+                                                            ) : (
+                                                                <span className="text-lg sm:text-2xl font-black text-emerald-700">Free Membership</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-[11px] sm:text-xs text-slate-500 font-medium pt-2 border-t border-indigo-100/70 leading-relaxed">
+                                                    {activeClub.membership_fee > 0
+                                                        ? `A membership fee of ₹${activeClub.membership_fee} will be registered under your Student Fee Management upon membership request. Payment can be completed from Fee Management to finalize your club registration.`
+                                                        : 'No membership fee is required for this club. All eligible students are welcome to participate freely upon coordinator approval.'
+                                                    }
+                                                </p>
+
+                                                {activeClub.payment_status === 'payment_due' && (
+                                                    <div className="p-2.5 sm:p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-center gap-2 text-xs text-rose-800 font-semibold mt-2">
+                                                        <AlertCircle size={15} className="text-rose-600 shrink-0" />
+                                                        <span>Fee Pending: ₹{activeClub.balance_due || activeClub.membership_fee}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* About & Mission Section */}
+                                            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-4 sm:p-7 shadow-xs space-y-3 sm:space-y-4">
+                                                <div className="flex items-center gap-2 text-indigo-900 border-b border-slate-100 pb-2.5 sm:pb-3">
+                                                    <Users size={18} className="sm:w-5 sm:h-5 text-indigo-600 shrink-0" />
+                                                    <h3 className="text-sm sm:text-lg font-black tracking-tight">About {activeClub.name}</h3>
+                                                </div>
+                                                <p className="text-slate-600 text-xs sm:text-sm sm:leading-relaxed leading-normal whitespace-pre-wrap">
+                                                    {activeClub.description || 'No detailed description provided for this club.'}
+                                                </p>
+                                            </div>
+
+                                            {/* Eligibility & Target Audience */}
+                                            {(() => {
+                                                const audience = typeof activeClub.target_audience === 'string'
+                                                    ? (() => { try { return JSON.parse(activeClub.target_audience); } catch (e) { return null; } })()
+                                                    : activeClub.target_audience;
+                                                const eligibleInfo = isEligible(activeClub);
+
+                                                return (
+                                                    <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-4 sm:p-7 shadow-xs space-y-3 sm:space-y-4">
+                                                        <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-2 border-b border-slate-100 pb-2.5 sm:pb-3">
+                                                            <div className="flex items-center gap-2 text-indigo-900">
+                                                                <ShieldCheck size={18} className="sm:w-5 sm:h-5 text-indigo-600 shrink-0" />
+                                                                <h3 className="text-sm sm:text-lg font-black tracking-tight">Eligibility &amp; Target Audience</h3>
+                                                            </div>
+                                                            <span className={`self-start xs:self-auto text-[10px] font-black uppercase px-2.5 py-0.5 sm:py-1 rounded-full whitespace-nowrap ${eligibleInfo.eligible ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                                                                {eligibleInfo.eligible ? 'You Are Eligible' : eligibleInfo.reason}
+                                                            </span>
+                                                        </div>
+
+                                                        {audience && (audience.courses?.length > 0 || audience.branches?.length > 0 || audience.years?.length > 0) ? (
+                                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 text-xs">
+                                                                {audience.courses?.length > 0 && (
+                                                                    <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                                                        <span className="font-extrabold uppercase text-[9px] sm:text-[10px] text-slate-400 block mb-0.5 sm:mb-1">Eligible Courses</span>
+                                                                        <span className="font-bold text-slate-800 text-xs sm:text-sm break-words">{audience.courses.join(', ')}</span>
+                                                                    </div>
+                                                                )}
+                                                                {audience.branches?.length > 0 && (
+                                                                    <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                                                        <span className="font-extrabold uppercase text-[9px] sm:text-[10px] text-slate-400 block mb-0.5 sm:mb-1">Target Branches</span>
+                                                                        <span className="font-bold text-slate-800 text-xs sm:text-sm break-words">{audience.branches.join(', ')}</span>
+                                                                    </div>
+                                                                )}
+                                                                {audience.years?.length > 0 && (
+                                                                    <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                                                        <span className="font-extrabold uppercase text-[9px] sm:text-[10px] text-slate-400 block mb-0.5 sm:mb-1">Eligible Years</span>
+                                                                        <span className="font-bold text-slate-800 text-xs sm:text-sm break-words">{audience.years.map(y => `Year ${y}`).join(', ')}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-[11px] sm:text-xs text-slate-500 font-medium">This club is open to all enrolled students across all departments and years.</p>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
+
+                                            {/* Membership Status Notice (if submitted or active) */}
+                                            {activeClub.userStatus === 'pending' ? (
+                                                <div className="rounded-xl sm:rounded-2xl p-3.5 sm:p-5 bg-amber-50 border border-amber-200 text-amber-900 flex items-center gap-3">
+                                                    <Clock size={22} className="text-amber-600 shrink-0 sm:w-6 sm:h-6" />
+                                                    <div className="min-w-0">
+                                                        <p className="font-extrabold text-xs sm:text-sm">Join Request Submitted</p>
+                                                        <p className="text-[11px] sm:text-xs text-amber-700 mt-0.5">Your request is currently awaiting review by the club coordinator. You will be notified once approved.</p>
+                                                    </div>
+                                                </div>
+                                            ) : activeClub.userStatus === 'approved' ? (
+                                                <div className="rounded-xl sm:rounded-2xl p-3.5 sm:p-5 bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center gap-3">
+                                                    <CheckCircle size={22} className="text-emerald-600 shrink-0 sm:w-6 sm:h-6" />
+                                                    <div className="min-w-0">
+                                                        <p className="font-extrabold text-xs sm:text-sm">Active Member</p>
+                                                        <p className="text-[11px] sm:text-xs text-emerald-700 mt-0.5">You are an active member of this club. Check the Activities tab and Chat tab to engage with fellow members.</p>
+                                                    </div>
+                                                </div>
+                                            ) : null}
                                         </div>
                                     )}
 
                                     {detailTab === 'activities' && (
-                                        <div className="space-y-6 w-full">
-                                            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                                <BookOpen className="text-indigo-600" /> Activities
+                                        <div className="space-y-4 sm:space-y-6 w-full max-w-5xl mx-auto">
+                                            <h3 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+                                                <BookOpen className="text-indigo-600 sm:w-5 sm:h-5" size={18} /> Activities
                                             </h3>
                                             {(!activeClub.activities || activeClub.activities.length === 0) ? (
-                                                <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-500">
-                                                    <BookOpen size={40} className="mx-auto mb-3 text-gray-300" />
-                                                    <p>No activities posted yet.</p>
+                                                <div className="bg-white rounded-2xl border border-gray-100 p-8 sm:p-12 text-center text-gray-500">
+                                                    <BookOpen size={36} className="mx-auto mb-2.5 sm:mb-3 text-gray-300 sm:w-10 sm:h-10" />
+                                                    <p className="text-xs sm:text-sm font-medium">No activities posted yet.</p>
                                                 </div>
                                             ) : (
-                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                                                     {[...activeClub.activities].reverse().map((activity, idx) => (
-                                                        <div key={idx} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                                                        <div key={idx} className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                                                             {activity.image_url && (
-                                                                <div className="h-48 sm:h-56 bg-gray-100">
+                                                                <div className="h-40 sm:h-56 bg-gray-100">
                                                                     <img src={activity.image_url} alt="" className="w-full h-full object-cover" />
                                                                 </div>
                                                             )}
-                                                            <div className="p-5 sm:p-6">
-                                                                <div className="flex items-center gap-3 mb-3">
-                                                                    <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden shrink-0">
+                                                            <div className="p-4 sm:p-6">
+                                                                <div className="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+                                                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden shrink-0 text-xs sm:text-sm">
                                                                         {activeClub.image_url ? <img src={activeClub.image_url} alt="" className="w-full h-full object-cover" /> : activeClub.name.charAt(0)}
                                                                     </div>
-                                                                    <div>
-                                                                        <p className="font-bold text-gray-900">{activeClub.name}</p>
-                                                                        <p className="text-xs text-gray-500">{new Date(activity.posted_at).toLocaleDateString()}</p>
+                                                                    <div className="min-w-0">
+                                                                        <p className="font-bold text-gray-900 text-xs sm:text-sm truncate">{activeClub.name}</p>
+                                                                        <p className="text-[10px] sm:text-xs text-gray-500">{new Date(activity.posted_at).toLocaleDateString()}</p>
                                                                     </div>
                                                                 </div>
-                                                                <h4 className="text-lg font-bold text-gray-900 mb-2">{activity.title}</h4>
-                                                                <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-wrap">{activity.description}</p>
+                                                                <h4 className="text-sm sm:text-lg font-bold text-gray-900 mb-1.5">{activity.title}</h4>
+                                                                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{activity.description}</p>
                                                             </div>
                                                         </div>
                                                     ))}
@@ -558,45 +702,45 @@ const StudentClubs = () => {
                     </div>
                 )}
                 {selectedClub && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4 backdrop-blur-sm">
                         <div className="bg-white rounded-2xl max-h-[calc(100dvh-2rem)] max-w-md w-full overflow-y-auto shadow-2xl">
-                            <div className="p-6 sm:p-8">
-                                <div className="flex items-start justify-between gap-4 mb-6">
-                                    <div className="flex items-center gap-4 min-w-0">
-                                        <div className="w-14 h-14 rounded-xl bg-indigo-100 flex items-center justify-center overflow-hidden shrink-0">
-                                            {selectedClub.image_url ? <img src={selectedClub.image_url} alt="" className="w-full h-full object-cover" /> : <Users size={28} className="text-indigo-600" />}
+                            <div className="p-4 sm:p-8">
+                                <div className="flex items-start justify-between gap-3 mb-4 sm:mb-6">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-indigo-100 flex items-center justify-center overflow-hidden shrink-0">
+                                            {selectedClub.image_url ? <img src={selectedClub.image_url} alt="" className="w-full h-full object-cover" /> : <Users size={22} className="text-indigo-600 sm:w-7 sm:h-7" />}
                                         </div>
                                         <div className="min-w-0">
-                                            <h2 className="text-xl font-bold text-gray-900">Join {selectedClub.name}</h2>
-                                            <p className="text-sm text-gray-500 mt-0.5">Request membership</p>
+                                            <h2 className="text-base sm:text-xl font-bold text-gray-900 truncate">Join {selectedClub.name}</h2>
+                                            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Request membership</p>
                                         </div>
                                     </div>
-                                    <button onClick={() => setSelectedClub(null)} className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" aria-label="Close">×</button>
+                                    <button onClick={() => setSelectedClub(null)} className="p-1.5 sm:p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors text-lg leading-none" aria-label="Close">×</button>
                                 </div>
 
                                 {selectedClub.membership_fee > 0 && (
-                                    <div className="bg-emerald-50 p-4 rounded-xl flex items-center justify-between text-emerald-800 border border-emerald-100 mb-4">
-                                        <span className="font-semibold text-sm">Membership fee</span>
+                                    <div className="bg-emerald-50 p-3.5 sm:p-4 rounded-xl flex items-center justify-between text-emerald-800 border border-emerald-100 mb-3 sm:mb-4">
+                                        <span className="font-semibold text-xs sm:text-sm">Membership fee</span>
                                         <div className="text-right">
-                                            <p className="text-xl font-bold">₹{selectedClub.membership_fee}</p>
-                                            <p className="text-xs opacity-80">{selectedClub.fee_type}</p>
+                                            <p className="text-lg sm:text-xl font-bold">₹{selectedClub.membership_fee}</p>
+                                            <p className="text-[10px] sm:text-xs opacity-80">{selectedClub.fee_type}</p>
                                         </div>
                                     </div>
                                 )}
 
-                                <div className="bg-indigo-50 p-4 rounded-xl flex gap-3 text-indigo-900 border border-indigo-100">
-                                    <div className="flex-shrink-0 mt-0.5"><AlertCircle size={20} className="text-indigo-600" /></div>
+                                <div className="bg-indigo-50 p-3.5 sm:p-4 rounded-xl flex gap-2.5 sm:gap-3 text-indigo-900 border border-indigo-100 text-xs sm:text-sm">
+                                    <div className="flex-shrink-0 mt-0.5"><AlertCircle size={18} className="text-indigo-600 sm:w-5 sm:h-5" /></div>
                                     <div>
-                                        <p className="font-semibold text-sm">Confirm request</p>
-                                        <p className="text-sm mt-1 text-indigo-800/90">
-                                            Your profile will be shared with the club. {selectedClub.membership_fee > 0 && <>A fee row of <strong>₹{selectedClub.membership_fee}</strong> will be added to your Fee Management. Pay it from Fee Management to automatically join the club.</>}
+                                        <p className="font-semibold">Confirm request</p>
+                                        <p className="mt-0.5 sm:mt-1 text-indigo-800/90 leading-relaxed text-[11px] sm:text-xs">
+                                            Your profile will be shared with the club. {selectedClub.membership_fee > 0 && <>A fee record of <strong>₹{selectedClub.membership_fee}</strong> will be added to your Fee Management.</>}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-3 mt-6">
-                                    <button type="button" onClick={() => setSelectedClub(null)} className="flex-1 px-4 py-3 border border-gray-200 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
-                                    <button onClick={handleSubmitJoin} className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition-colors shadow-sm">
+                                <div className="flex gap-2.5 sm:gap-3 mt-5 sm:mt-6">
+                                    <button type="button" onClick={() => setSelectedClub(null)} className="flex-1 px-3 py-2.5 sm:py-3 border border-gray-200 rounded-xl font-semibold text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors">Cancel</button>
+                                    <button onClick={handleSubmitJoin} className="flex-1 px-3 py-2.5 sm:py-3 bg-indigo-600 text-white rounded-xl font-semibold text-xs sm:text-sm hover:bg-indigo-700 transition-colors shadow-sm">
                                         Send request
                                     </button>
                                 </div>

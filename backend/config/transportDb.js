@@ -8,7 +8,8 @@ const TRANSPORT_URI = process.env.TRANSPORT_MONGO_URI || 'mongodb+srv://durgapra
 const transportConnection = mongoose.createConnection(TRANSPORT_URI, {
     readPreference: 'secondaryPreferred',
     maxPoolSize: 10,
-    serverSelectionTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 3000,
+    bufferCommands: false, // Fail fast if transport cluster is disconnected or unreachable
 });
 
 transportConnection.on('connected', () => {

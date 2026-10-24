@@ -21,6 +21,23 @@ const normalizeDay = (day) => {
  */
 async function fetchTimetableData({ branch_id, branch, year, semester, section, faculty_id, faculty_name, student_id }) {
     try {
+        if (!process.env.ACADEMIC_DB_HOST) {
+            console.log('[Academic Portal Timetable] ℹ️ Academic Portal DB is not configured in .env (ACADEMIC_DB_HOST missing) -> Returning Timetable not configured');
+            return {
+                success: false,
+                data: [],
+                plan: null,
+                slots: [],
+                source: 'academic_portal',
+                message: 'Timetable not configured'
+            };
+        }
+
+        const targetDb = process.env.ACADEMIC_DB_NAME;
+        const targetHost = process.env.ACADEMIC_DB_HOST;
+        console.log(
+            `[Academic Portal Timetable] Fetching (${faculty_id ? `Faculty: ${faculty_id}` : `Branch: ${branch || branch_id}, Year: ${year}, Sem: ${semester}, Sec: ${section || 'N/A'}`}) from ${targetDb} @ ${targetHost}`
+        );
         if (!branch_id && branch) {
             try {
                 const [bRows] = await masterPool.query(
@@ -176,18 +193,15 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
 
                 let filteredRows = apRows || [];
                 if (student_id) {
-                    const studentSpecific = filteredRows.filter(r => {
-                        if (!r.student_ids) return false;
+                    filteredRows = filteredRows.filter(r => {
+                        if (!r.student_ids) return true; // Class-wide entries apply to all students
                         try {
                             const sids = typeof r.student_ids === 'string' ? JSON.parse(r.student_ids) : r.student_ids;
-                            return Array.isArray(sids) && sids.includes(Number(student_id));
+                            return Array.isArray(sids) ? sids.includes(Number(student_id)) : true;
                         } catch (e) {
-                            return false;
+                            return true;
                         }
                     });
-                    if (studentSpecific.length > 0) {
-                        filteredRows = studentSpecific;
-                    }
                 }
 
                 // Also fetch timing template slots directly from Academic Portal
@@ -208,6 +222,7 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
                     }
                 }
 
+                console.log(`[Academic Portal Timetable] ✅ Loaded Plan ${plan.id} (${filteredRows.length} entries, ${planSlots.length} slots)`);
                 return {
                     success: true,
                     data: filteredRows,
@@ -223,7 +238,7 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
                 plan: null,
                 slots: [],
                 source: 'academic_portal',
-                message: `No timetable plan found in Academic Portal for Year ${year} Sem ${semester}`
+                message: 'Timetable not configured'
             };
         }
 
@@ -231,7 +246,7 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
             success: false,
             data: [],
             source: 'academic_portal',
-            message: 'branch_id, year, and semester (or faculty_id) are required'
+            message: 'Timetable not configured'
         };
     } catch (apErr) {
         console.error('Academic Portal timetable fetch error:', apErr);
@@ -239,7 +254,8 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
             success: false,
             data: [],
             source: 'academic_portal',
-            error: apErr.message
+            error: apErr.message,
+            message: 'Timetable not configured'
         };
     }
 }
@@ -363,11 +379,12 @@ exports.getMyTimetable = async (req, res) => {
             today_schedule: todaySchedule,
             data: result.data || [],
             slots: result.slots || [],
-            plan: result.plan || null
+            plan: result.plan || null,
+            message: (result.data && result.data.length > 0) ? 'Timetable fetched successfully' : (result.message || 'Timetable not configured')
         });
     } catch (error) {
         console.error('getMyTimetable error:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch timetable' });
+        res.status(500).json({ success: false, message: 'Timetable not configured' });
     }
 };
 

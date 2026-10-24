@@ -606,7 +606,7 @@ const StudentLayout = ({ children }) => {
 
             {/* Main Content */}
             <main className={`
-                flex-1 h-screen overflow-y-auto p-4 lg:p-5 xl:p-6 relative transition-all duration-300 
+                flex-1 h-screen overflow-y-auto px-2 py-3 sm:p-4 lg:p-5 xl:p-6 relative transition-all duration-300 
                 ${desktopSidebarOpen ? 'lg:ml-72' : 'lg:ml-0'}
                 pb-6 lg:pb-8
             `}>

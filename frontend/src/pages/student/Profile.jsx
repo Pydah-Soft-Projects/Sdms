@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import api, { getStaticFileUrlDirect } from '../../config/api';
-import { User, Mail, Phone, MapPin, Calendar, Book, Hash, Lock, Shield, Clock, CheckCircle, Building2, GraduationCap } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Book, Hash, Lock, Shield, Clock, CheckCircle, Building2, GraduationCap, LogOut } from 'lucide-react';
 import { SkeletonBox } from '../../components/SkeletonLoader';
 import useAuthStore from '../../store/authStore';
 import { VerifyProfileDialog } from '../../components/student/VerifyProfileDialog';
+import LogoutConfirmModal from '../../components/LogoutConfirmModal';
 import { toast } from 'react-hot-toast';
 
 const Profile = () => {
@@ -11,6 +12,7 @@ const Profile = () => {
     const [studentData, setStudentData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showVerifyProfile, setShowVerifyProfile] = useState(false);
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
     // Change Password State
     const [showChangePassModal, setShowChangePassModal] = useState(false);
@@ -183,11 +185,6 @@ const Profile = () => {
                                     <span className="bg-indigo-50 text-indigo-700 px-2.5 sm:px-3 py-1 rounded-xl border border-indigo-100 shadow-xs shrink-0">
                                         Pin: {displayData.pin_no || displayData.pin_number || displayData.pin || getStudentData('PIN') || getStudentData('Pin Number') || getStudentData('Pin No') || 'Not Assigned'}
                                     </span>
-                                    {(displayData.roll_number || getStudentData('Temporary Roll Number') || getStudentData('Temp Roll No') || getStudentData('temporary_roll_number') || getStudentData('Roll Number')) && (
-                                        <span className="bg-purple-50 text-purple-700 px-2.5 sm:px-3 py-1 rounded-xl border border-purple-100 shadow-xs shrink-0">
-                                            Temp Roll: {displayData.roll_number || getStudentData('Temporary Roll Number') || getStudentData('Temp Roll No') || getStudentData('temporary_roll_number') || getStudentData('Roll Number')}
-                                        </span>
-                                    )}
                                 </div>
 
                                 {/* College, Branch & Year side-by-side with Lucide Icons */}
@@ -297,6 +294,18 @@ const Profile = () => {
                 </div>
             </div>
 
+            {/* Bottom Logout Button */}
+            <div className="pt-2 pb-6 flex justify-center">
+                <button
+                    type="button"
+                    onClick={() => setShowLogoutModal(true)}
+                    className="w-full sm:max-w-md flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-rose-200/80 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer group"
+                >
+                    <LogOut size={18} className="transition-transform group-hover:-translate-x-0.5" />
+                    <span>Logout</span>
+                </button>
+            </div>
+
 
             {/* Change Password Modal */}
             {showChangePassModal && (
@@ -348,6 +357,12 @@ const Profile = () => {
                 isOpen={showVerifyProfile}
                 onClose={() => setShowVerifyProfile(false)}
                 studentData={displayData}
+            />
+
+            {/* Logout Confirmation Modal */}
+            <LogoutConfirmModal
+                isOpen={showLogoutModal}
+                onClose={() => setShowLogoutModal(false)}
             />
         </div>
     );

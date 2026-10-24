@@ -47,6 +47,17 @@ const StudentTimetable = () => {
 
     const days = ['MON', 'TUE', 'WED', 'THUR', 'FRI', 'SAT'];
 
+    // Real-time Clock State for highlighting current period
+    const [currentTime, setCurrentTime] = useState(() => new Date());
+    const currentSlotRef = React.useRef(null);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 15000); // 15 seconds real-time tick
+        return () => clearInterval(timer);
+    }, []);
+
     // Default active day for mobile/periodwise
     const today = new Date().getDay();
     const defaultDay = today >= 1 && today <= 6 ? days[today - 1] : 'MON';
@@ -110,6 +121,13 @@ const StudentTimetable = () => {
         }
         return [];
     }, [periodSlots, timetableData]);
+
+    // Check if at least one academic subject is scheduled in timetableData
+    const hasAnyClasses = useMemo(() => {
+        return Array.isArray(timetableData) && timetableData.some(item => 
+            Boolean(item && (item.subject_name || item.subject_code || (item.custom_label && !String(item.custom_label).toLowerCase().includes('break'))))
+        );
+    }, [timetableData]);
 
     // Fetch Timetable & Period Slots
     const fetchTimetableAndSlots = async (isManualRefresh = false) => {
@@ -243,10 +261,38 @@ const StudentTimetable = () => {
     };
 
     const currentDayName = useMemo(() => {
-        const d = new Date().getDay();
+        const d = currentTime.getDay();
         const dayMap = ['SUN', 'MON', 'TUE', 'WED', 'THUR', 'FRI', 'SAT'];
         return dayMap[d];
-    }, []);
+    }, [currentTime]);
+
+    const parseTimeToMinutes = (timeStr) => {
+        if (!timeStr) return null;
+        const s = String(timeStr).trim().toUpperCase();
+        const isPm = s.includes('PM');
+        const isAm = s.includes('AM');
+        const cleanStr = s.replace(/AM|PM/g, '').trim();
+        const parts = cleanStr.split(':');
+        if (parts.length < 2) return null;
+        let hours = parseInt(parts[0], 10);
+        const minutes = parseInt(parts[1], 10);
+        if (isNaN(hours) || isNaN(minutes)) return null;
+        if (isPm && hours < 12) hours += 12;
+        if (isAm && hours === 12) hours = 0;
+        return hours * 60 + minutes;
+    };
+
+    const isSlotCurrent = (slot, day) => {
+        if (!slot || !slot.start_time || !slot.end_time) return false;
+        if (normalizeDay(day) !== normalizeDay(currentDayName)) return false;
+
+        const currentMins = currentTime.getHours() * 60 + currentTime.getMinutes();
+        const startMins = parseTimeToMinutes(slot.start_time);
+        const endMins = parseTimeToMinutes(slot.end_time);
+
+        if (startMins === null || endMins === null) return false;
+        return currentMins >= startMins && currentMins < endMins;
+    };
 
     // Direct Academic Portal Attendance Summary (strictly as provided by Academic Portal)
     const academicAttendanceSummary = useMemo(() => {
@@ -386,7 +432,7 @@ const StudentTimetable = () => {
         );
     }
 
-    const TimetableCard = ({ entry, slot, day, isMobile = false, postedSlotLog = null, isToday = false, onClick }) => {
+    const TimetableCard = ({ entry, slot, day, isMobile = false, postedSlotLog = null, isToday = false, isCurrent = false, onClick }) => {
         const sName = String(slot?.slot_name || slot?.name || slot?.label || '').trim().toUpperCase();
         const sOrder = Number(slot?.sort_order ?? slot?.id ?? 0);
         const startTime = String(slot?.start_time || '');
@@ -452,57 +498,126 @@ const StudentTimetable = () => {
         const codeOrLabel = entry?.subject_code || (entry?.subject_name ? entry?.custom_label : null) || slot?.slot_name || 'Class';
         const facultyName = postedSlotLog?.faculty_name || entry?.faculty_name || entry?.teacher_name || entry?.faculty || entry?.staff_name;
 
-        // Mobile & Responsive Card Layout
+        // Mobile & Responsive Clean Card Layout
         if (isMobile) {
+            if (isBreak) {
+                return (
+                    <div className={`w-full flex items-center justify-between py-2.5 px-3 rounded-xl border shadow-2xs transition-all ${
+                        isCurrent
+                            ? 'bg-amber-100/90 border-amber-400 ring-2 ring-amber-500 shadow-md text-amber-950 font-bold'
+                            : 'bg-amber-50/70 border-amber-200/60 text-amber-900'
+                    }`}>
+                        <div className="flex items-center gap-2 text-xs font-bold">
+                            <span className="text-sm">{sName.includes('LUNCH') || slotType === 'lunch' ? '🍱' : '☕'}</span>
+                            <span className="font-extrabold uppercase tracking-wide text-[10px]">
+                                {sName.includes('LUNCH') || slotType === 'lunch' ? 'Lunch Break' : 'Short Break'}
+                            </span>
+                            {isCurrent && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-amber-600 text-white shadow-2xs animate-pulse leading-none">
+                                    <span className="relative flex h-1.5 w-1.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+                                    </span>
+                                    NOW
+                                </span>
+                            )}
+                        </div>
+                        <span className={`text-[10px] font-bold whitespace-nowrap ${isCurrent ? 'text-amber-950 font-black' : 'text-amber-700/90'}`}>
+                            {formatTimeTo12h(slot?.start_time)} {slot?.end_time ? `– ${formatTimeTo12h(slot?.end_time)}` : ''}
+                        </span>
+                    </div>
+                );
+            }
+
+            if (!entry) {
+                return (
+                    <div className={`w-full flex items-center justify-between py-2 px-3 rounded-xl border shadow-2xs transition-all ${
+                        isCurrent
+                            ? 'border-blue-400 ring-2 ring-blue-500 bg-blue-50/80 text-blue-900 shadow-md'
+                            : 'border-dashed border-slate-200 bg-slate-50/40 text-slate-500'
+                    }`}>
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 ${isCurrent ? 'bg-blue-600 text-white' : 'bg-slate-200/70 text-slate-600'}`}>
+                                {slot?.slot_name || `P${sOrder || ''}`}
+                            </span>
+                            {isCurrent && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-2xs animate-pulse leading-none">
+                                    <span className="relative flex h-1.5 w-1.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+                                    </span>
+                                    NOW
+                                </span>
+                            )}
+                            <span className={`text-[10px] font-medium truncate ${isCurrent ? 'text-blue-950 font-bold' : 'text-slate-400'}`}>
+                                Free Period / Leisure Hour
+                            </span>
+                        </div>
+                        <span className={`text-[10px] font-semibold shrink-0 whitespace-nowrap ${isCurrent ? 'text-blue-950 font-bold' : 'text-slate-400'}`}>
+                            {formatTimeTo12h(slot?.start_time)} {slot?.end_time ? `– ${formatTimeTo12h(slot?.end_time)}` : ''}
+                        </span>
+                    </div>
+                );
+            }
+
+            const hasRealCode = entry?.subject_code && entry.subject_code.trim().toUpperCase() !== (slot?.slot_name || '').trim().toUpperCase();
+
             return (
                 <div
-                    onClick={() => onClick && entry && onClick(entry, slot, day)}
-                    className={`w-full h-full flex flex-col justify-between rounded-2xl border bg-white shadow-xs transition-all duration-200 group relative overflow-hidden p-3.5 sm:p-4 space-y-3 ${entry ? 'hover:border-blue-500 hover:shadow-md cursor-pointer' : 'border-slate-200/90'} ${isBreakSlot ? 'bg-amber-50/30 border-amber-200/80' : ''}`}
-                    title={entry ? 'Click to view teacher & subject attendance details' : undefined}
+                    onClick={() => onClick && onClick(entry, slot, day)}
+                    className={`w-full rounded-xl border p-2.5 transition-all cursor-pointer group space-y-1.5 relative overflow-hidden ${
+                        isCurrent
+                            ? 'bg-gradient-to-r from-blue-50/90 via-white to-indigo-50/40 border-blue-500 ring-2 ring-blue-600 shadow-md shadow-blue-500/10'
+                            : 'bg-white border-slate-200/90 shadow-2xs hover:border-blue-300'
+                    }`}
+                    title="Click to view teacher & subject attendance details"
                 >
-                    <div className={`absolute top-0 left-0 w-1.5 h-full ${barColor}`} />
+                    {isCurrent && (
+                        <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-600 to-indigo-600" />
+                    )}
 
-                    <div className="space-y-2">
-                        {/* 1. Top Row: P1 badge on left, THEORY/LAB badge on right */}
-                        <div className="flex items-center justify-between pl-1">
-                            <span className={`text-xs font-black uppercase px-2.5 py-0.5 rounded-lg border shadow-2xs ${periodBadgeStyle}`}>
-                                {slot?.slot_name || 'P1'}
+                    {/* Header Row: Period Badge + Times on left, Type Badge + Code on right */}
+                    <div className={`flex items-center justify-between gap-1.5 ${isCurrent ? 'pl-1' : ''}`}>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md shrink-0 ${isCurrent ? 'bg-blue-600 text-white shadow-xs' : periodBadgeStyle}`}>
+                                {slot?.slot_name || `P${sOrder || ''}`}
                             </span>
-                            <span className={`text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-md border ${badgeStyle}`}>
+                            {isCurrent && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-emerald-600 text-white shadow-xs animate-pulse leading-none shrink-0">
+                                    <span className="relative flex h-1.5 w-1.5">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+                                    </span>
+                                    NOW
+                                </span>
+                            )}
+                            <span className={`text-[10px] whitespace-nowrap ${isCurrent ? 'font-bold text-blue-900' : 'font-semibold text-slate-500'}`}>
+                                {formatTimeTo12h(slot?.start_time)} – {formatTimeTo12h(slot?.end_time)}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                            <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded border ${badgeStyle}`}>
                                 {badgeText}
                             </span>
-                        </div>
-
-                        {/* 2. Timing line below P1 */}
-                        <div className="flex items-center gap-1.5 text-xs font-bold pl-1">
-                            <Clock size={13} className={`${timeColor} shrink-0`} />
-                            <span className="text-slate-600">
-                                {formatTimeTo12h(slot?.start_time)} {slot?.end_time ? `- ${formatTimeTo12h(slot?.end_time)}` : ''}
-                            </span>
-                        </div>
-
-                        {/* 3. Subject Name */}
-                        <div className="pl-1">
-                            <h4 className="font-extrabold text-blue-950 text-sm sm:text-base leading-snug tracking-tight group-hover:text-blue-700 transition-colors">
-                                {titleText}
-                            </h4>
+                            {hasRealCode && (
+                                <span className="text-[9px] font-bold text-slate-400 font-mono">
+                                    {entry.subject_code}
+                                </span>
+                            )}
                         </div>
                     </div>
 
-                    {/* 4. Footer: Subject Faculty Name & Subject Code */}
-                    {entry ? (
-                        <div className="mt-auto pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between pl-1 gap-2 text-xs min-w-0">
-                            <div className="flex items-center gap-1.5 text-blue-950 font-extrabold min-w-0 flex-1" title={facultyName || 'Faculty'}>
-                                <UserCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                                <span className="truncate">{facultyName || 'Department Faculty'}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-slate-500 font-bold text-xs bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200/80 shrink-0">
-                                <Info className="w-3 h-3 text-blue-600 shrink-0" />
-                                <span>{codeOrLabel}</span>
-                            </div>
+                    {/* Subject Title (small text, full width) */}
+                    <h4 className={`text-xs leading-snug transition-colors line-clamp-2 ${isCurrent ? 'font-black text-blue-950 group-hover:text-blue-600 pl-1' : 'font-extrabold text-blue-950 group-hover:text-blue-600'}`}>
+                        {titleText}
+                    </h4>
+
+                    {/* Faculty Row */}
+                    {facultyName && (
+                        <div className={`flex items-center gap-1 text-[10px] font-semibold text-slate-600 pt-1 border-t border-slate-100 truncate ${isCurrent ? 'pl-1' : ''}`}>
+                            <UserCheck size={12} className="text-blue-600 shrink-0" />
+                            <span className="truncate">{facultyName}</span>
                         </div>
-                    ) : (
-                        <div className="mt-auto" />
                     )}
                 </div>
             );
@@ -512,10 +627,21 @@ const StudentTimetable = () => {
         if (!entry || isBreak) {
             if (isBreakSlot) {
                 return (
-                    <div className="h-full w-full rounded-xl border border-amber-200/80 bg-amber-50/50 flex flex-col items-center justify-center min-h-[105px] p-1.5 text-center">
-                        <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
-                            BREAK
-                        </span>
+                    <div className={`h-full w-full rounded-xl border flex flex-col items-center justify-center min-h-[105px] p-1.5 text-center transition-all ${
+                        isCurrent
+                            ? 'border-amber-400 ring-2 ring-amber-500 bg-amber-100/80 shadow-md'
+                            : 'border-amber-200/80 bg-amber-50/50'
+                    }`}>
+                        <div className="flex items-center gap-1">
+                            <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
+                                BREAK
+                            </span>
+                            {isCurrent && (
+                                <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-600 text-white animate-pulse">
+                                    NOW
+                                </span>
+                            )}
+                        </div>
                         <span className="text-[9px] sm:text-[10px] font-bold text-amber-800 mt-1 leading-none">
                             {sName.includes('LUNCH') || slotType === 'lunch' ? 'Lunch Break' : 'Break'}
                         </span>
@@ -524,10 +650,21 @@ const StudentTimetable = () => {
             }
 
             return (
-                <div className="h-full w-full rounded-xl border border-slate-200/70 border-dashed bg-slate-50/30 flex flex-col items-center justify-center min-h-[105px] p-1.5 text-center">
-                    <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border text-slate-400 border-slate-200 bg-white">
-                        FREE SLOT
-                    </span>
+                <div className={`h-full w-full rounded-xl border flex flex-col items-center justify-center min-h-[105px] p-1.5 text-center transition-all ${
+                    isCurrent
+                        ? 'border-blue-400 ring-2 ring-blue-500 bg-blue-50/60 shadow-md'
+                        : 'border-slate-200/70 border-dashed bg-slate-50/30'
+                }`}>
+                    <div className="flex items-center gap-1">
+                        <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border text-slate-400 border-slate-200 bg-white">
+                            FREE SLOT
+                        </span>
+                        {isCurrent && (
+                            <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-600 text-white animate-pulse">
+                                NOW
+                            </span>
+                        )}
+                    </div>
                 </div>
             );
         }
@@ -535,24 +672,38 @@ const StudentTimetable = () => {
         return (
             <div
                 onClick={() => onClick && entry && onClick(entry, slot, day)}
-                className={`h-full w-full rounded-xl flex flex-col justify-between border bg-white border-slate-200/90 hover:border-blue-500 hover:shadow-md transition-all duration-200 group relative overflow-hidden cursor-pointer p-1.5 sm:p-2 min-h-[105px] ${isToday ? 'ring-1 ring-blue-400/40 shadow-2xs' : ''}`}
+                className={`h-full w-full rounded-xl flex flex-col justify-between border transition-all duration-200 group relative overflow-hidden cursor-pointer p-1.5 sm:p-2 min-h-[105px] ${
+                    isCurrent
+                        ? 'bg-blue-50/40 border-blue-500 ring-2 ring-blue-600 shadow-lg scale-[1.01] z-10'
+                        : isToday
+                            ? 'bg-white border-blue-200 ring-1 ring-blue-400/40 shadow-2xs hover:border-blue-500 hover:shadow-md'
+                            : 'bg-white border-slate-200/90 hover:border-blue-500 hover:shadow-md'
+                }`}
                 title={`${titleText} | Faculty: ${facultyName || 'Department Faculty'} (${codeOrLabel}) - Click for details`}
             >
-                <div className={`absolute top-0 left-0 w-1 sm:w-1.5 h-full ${barColor}`} />
+                <div className={`absolute top-0 left-0 w-1 sm:w-1.5 h-full ${isCurrent ? 'bg-gradient-to-b from-blue-600 to-indigo-600' : barColor}`} />
 
                 <div className="pl-1 sm:pl-1.5 space-y-0.5">
-                    {/* Top Row: Type Badge + Subject Code Badge */}
+                    {/* Top Row: Type Badge + NOW badge + Subject Code Badge */}
                     <div className="flex items-center justify-between gap-0.5">
-                        <span className={`text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider px-1 py-0.5 rounded border leading-none ${badgeStyle}`}>
-                            {badgeText}
-                        </span>
+                        <div className="flex items-center gap-1 min-w-0">
+                            <span className={`text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider px-1 py-0.5 rounded border leading-none ${badgeStyle}`}>
+                                {badgeText}
+                            </span>
+                            {isCurrent && (
+                                <span className="inline-flex items-center gap-1 px-1 py-0.5 rounded text-[8px] font-black uppercase bg-emerald-600 text-white shadow-2xs animate-pulse leading-none shrink-0">
+                                    <span className="relative flex h-1 w-1 rounded-full bg-white"></span>
+                                    NOW
+                                </span>
+                            )}
+                        </div>
                         <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 bg-slate-100 border border-slate-200/60 px-1 py-0.5 rounded truncate max-w-[60px] sm:max-w-[75px] leading-none" title={codeOrLabel}>
                             {codeOrLabel}
                         </span>
                     </div>
 
                     {/* Subject Title */}
-                    <h4 className="font-extrabold text-blue-950 text-[10px] sm:text-xs leading-tight line-clamp-2 tracking-tight group-hover:text-blue-700 transition-colors" title={titleText}>
+                    <h4 className={`text-[10px] sm:text-xs leading-tight line-clamp-2 tracking-tight group-hover:text-blue-700 transition-colors ${isCurrent ? 'font-black text-blue-950' : 'font-extrabold text-blue-950'}`} title={titleText}>
                         {titleText}
                     </h4>
                 </div>
@@ -569,22 +720,21 @@ const StudentTimetable = () => {
     };
 
     return (
-        <div className="space-y-4 sm:space-y-6 animate-fade-in w-full max-w-[1920px] mx-auto px-3 sm:px-4 md:px-6 pb-40 sm:pb-16 overflow-x-hidden">
+        <div className="space-y-3.5 sm:space-y-6 animate-fade-in w-full max-w-[1920px] mx-auto px-0 sm:px-4 md:px-6 pb-40 sm:pb-16 overflow-x-hidden">
 
             {/* ── Top Portal Header ── */}
-            <header className="flex items-center justify-between gap-3 sm:gap-4 w-full shrink-0">
-                <div>
-                    <h1 className="text-xl sm:text-2xl font-extrabold !text-blue-900 heading-font leading-tight">
-                        <span className="block sm:inline">Academic Timetable</span>{' '}
-                        <span className="block sm:inline sm:ml-0.5">& Schedule</span>
+            <header className="flex items-center justify-between gap-2.5 sm:gap-4 w-full shrink-0">
+                <div className="min-w-0 flex-1">
+                    <h1 className="text-base sm:text-2xl font-black !text-blue-900 heading-font leading-tight whitespace-nowrap truncate">
+                        Academic Timetable &amp; Schedule
                     </h1>
-                    <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 font-semibold mt-0.5 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                        <BookOpen size={14} className="text-blue-600 shrink-0" />
+                    <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 font-semibold mt-0.5 flex items-center gap-1.5 sm:gap-2 truncate">
+                        <BookOpen size={13} className="text-blue-600 shrink-0" />
                         <span>{user?.branch || 'Engineering'}</span>
                         <span className="text-slate-300">•</span>
                         <span>Year {selectedYear}</span>
                         <span className="text-slate-300">•</span>
-                        <span>Semester {selectedSem}</span>
+                        <span>Sem {selectedSem}</span>
                     </p>
                 </div>
 
@@ -611,60 +761,51 @@ const StudentTimetable = () => {
                     <button
                         onClick={() => fetchTimetableAndSlots(true)}
                         disabled={refreshing}
-                        className="flex p-2.5 sm:p-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-xs items-center justify-center shrink-0"
+                        className="flex p-2 sm:p-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-xs items-center justify-center shrink-0"
                         title="Refresh"
                     >
-                        <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+                        <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
                     </button>
                 </div>
             </header>
 
             {/* ── View Navigation Tabs ── */}
             {isMobileScreen ? (
-                /* Mobile Tabs: 3 constant equal columns, NO horizontal scroll */
-                <div className="bg-gray-100/90 p-1 rounded-xl w-full shadow-xs">
+                /* Mobile Tabs: Compact, sleek segmented switch */
+                <div className="bg-slate-100 p-1 rounded-xl w-full border border-slate-200/70 shadow-2xs">
                     <div className="grid grid-cols-3 gap-1 w-full">
                         <button
                             onClick={() => setActiveTab('grid')}
-                            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-center transition-all duration-200 ${
+                            className={`flex items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg text-center transition-all duration-150 ${
                                 activeTab === 'grid'
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                    ? 'bg-blue-600 text-white font-extrabold shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
                             }`}
                         >
-                            <Calendar size={13} className="shrink-0 mb-1" />
-                            <span className="text-[10px] font-bold leading-tight">
-                                <span className="block">Semester</span>
-                                <span className="block text-[9px] opacity-90">Timetable</span>
-                            </span>
+                            <Calendar size={12} className="shrink-0" />
+                            <span className="text-[11px] font-bold truncate">Timetable</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('periodwise')}
-                            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-center transition-all duration-200 ${
+                            className={`flex items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg text-center transition-all duration-150 ${
                                 activeTab === 'periodwise'
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                    ? 'bg-blue-600 text-white font-extrabold shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
                             }`}
                         >
-                            <Clock size={13} className="shrink-0 mb-1" />
-                            <span className="text-[10px] font-bold leading-tight">
-                                <span className="block">Period-wise</span>
-                                <span className="block text-[9px] opacity-90">Breakdown</span>
-                            </span>
+                            <Clock size={12} className="shrink-0" />
+                            <span className="text-[11px] font-bold truncate">Periods</span>
                         </button>
                         <button
                             onClick={() => setActiveTab('academic')}
-                            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-center transition-all duration-200 ${
+                            className={`flex items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg text-center transition-all duration-150 ${
                                 activeTab === 'academic'
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                    ? 'bg-blue-600 text-white font-extrabold shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
                             }`}
                         >
-                            <TrendingUp size={13} className="shrink-0 mb-1" />
-                            <span className="text-[10px] font-bold leading-tight">
-                                <span className="block">Academic</span>
-                                <span className="block text-[9px] opacity-90">Summary</span>
-                            </span>
+                            <TrendingUp size={12} className="shrink-0" />
+                            <span className="text-[11px] font-bold truncate">Summary</span>
                         </button>
                     </div>
                 </div>
@@ -708,33 +849,38 @@ const StudentTimetable = () => {
 
             {/* ── TAB 1: SEMESTER TIMETABLE (GRID VIEW) ── */}
             {activeTab === 'grid' && (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
-                    {effectiveSlots.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center p-20 text-center">
-                            <Calendar className="w-12 h-12 text-slate-300 mb-3" />
-                            <h3 className="text-lg font-bold text-blue-900 mb-1">No Timetable Configured</h3>
-                            <p className="text-slate-500 max-w-xs text-xs">
-                                Please contact your department HOD for the weekly schedule.
+                <div className={isMobileScreen ? "w-full" : "bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden w-full"}>
+                    {!hasAnyClasses || effectiveSlots.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center p-12 sm:p-20 text-center">
+                            <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 mb-4 shadow-xs">
+                                <Calendar className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-1.5">Timetable Not Configured</h3>
+                            <p className="text-slate-500 max-w-sm text-xs sm:text-sm">
+                                Timetable for Year {selectedYear} Sem {selectedSem} has not been configured in the Academic Portal yet. Please contact your department HOD.
                             </p>
                         </div>
                     ) : isMobileScreen ? (
-                        /* Mobile Cards-wise View */
-                        <div className="p-3.5 space-y-3.5">
-                            {/* Day selector pills */}
-                            <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
-                                <div className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5 w-full">
+                        /* Mobile Timeline View - Full-width layout */
+                        <div className="w-full space-y-2">
+                            {/* Day selector: 6 equal columns, strictly NO horizontal scrolling */}
+                            <div className="w-full bg-white p-1 rounded-xl border border-slate-200/80 shadow-2xs">
+                                <div className="grid grid-cols-6 gap-1 w-full">
                                     {days.map((day) => (
                                         <button
                                             key={day}
                                             onClick={() => setActiveDay(day)}
-                                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${activeDay === day
-                                                ? 'bg-blue-600 text-white shadow-sm'
-                                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                                                } ${day === currentDayName ? 'ring-2 ring-blue-500 font-extrabold' : ''}`}
+                                            className={`py-1.5 px-0.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex flex-col items-center justify-center min-w-0 text-center ${
+                                                activeDay === day
+                                                    ? 'bg-blue-600 text-white shadow-xs'
+                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                            } ${day === currentDayName ? 'ring-1.5 ring-blue-500' : ''}`}
                                         >
-                                            <span>{day}</span>
+                                            <span className="truncate">{day === 'THUR' ? 'THU' : day}</span>
                                             {day === currentDayName && (
-                                                <span className={`text-[8px] font-black px-1 py-0.2 rounded uppercase ${activeDay === day ? 'bg-white text-blue-700' : 'bg-blue-600 text-white'}`}>
+                                                <span className={`text-[7px] font-black uppercase leading-none mt-0.5 ${
+                                                    activeDay === day ? 'text-blue-100' : 'text-blue-600'
+                                                }`}>
                                                     TODAY
                                                 </span>
                                             )}
@@ -743,20 +889,26 @@ const StudentTimetable = () => {
                                 </div>
                             </div>
 
-                            {/* Period Cards for selected day */}
-                            <div className="space-y-3">
+                            {/* Clean Full-Width Timetable Cards List */}
+                            <div className="space-y-2 w-full">
                                 {effectiveSlots.map((slot, index) => {
                                     const entry = getEntryForSlot(activeDay, slot, index);
+                                    const isCurrent = isSlotCurrent(slot, activeDay);
                                     return (
-                                        <TimetableCard
+                                        <div
                                             key={slot.id || `grid-m-slot-${index}`}
-                                            entry={entry}
-                                            slot={slot}
-                                            day={activeDay}
-                                            isMobile
-                                            isToday={activeDay === currentDayName}
-                                            onClick={(entry, slot, day) => entry && openPeriodModal(entry, slot, day)}
-                                        />
+                                            ref={isCurrent ? currentSlotRef : null}
+                                        >
+                                            <TimetableCard
+                                                entry={entry}
+                                                slot={slot}
+                                                day={activeDay}
+                                                isMobile
+                                                isToday={activeDay === currentDayName}
+                                                isCurrent={isCurrent}
+                                                onClick={(entry, slot, day) => entry && openPeriodModal(entry, slot, day)}
+                                            />
+                                        </div>
                                     );
                                 })}
                             </div>
@@ -774,15 +926,30 @@ const StudentTimetable = () => {
                                         className="flex-1 grid min-w-0"
                                         style={{ gridTemplateColumns: `repeat(${effectiveSlots.length}, minmax(0, 1fr))` }}
                                     >
-                                        {effectiveSlots.map((slot, sIdx) => (
-                                            <div key={slot.id || `h-slot-${sIdx}`} className="py-2.5 px-1.5 text-center border-r border-slate-200 last:border-r-0 flex flex-col justify-center bg-slate-50/50 min-w-0">
-                                                <p className="text-[10px] sm:text-xs font-black text-blue-900 uppercase tracking-wider mb-0.5 truncate">{slot.slot_name}</p>
-                                                <p className="text-[9px] sm:text-[10px] font-bold text-slate-600 flex items-center justify-center gap-1 whitespace-nowrap truncate">
-                                                    <Clock size={11} className="text-blue-600 shrink-0" />
-                                                    <span className="truncate">{formatTimeTo12h(slot.start_time).replace(' AM', '').replace(' PM', '')} - {formatTimeTo12h(slot.end_time)}</span>
-                                                </p>
-                                            </div>
-                                        ))}
+                                        {effectiveSlots.map((slot, sIdx) => {
+                                            const isCurrentSlotTiming = isSlotCurrent(slot, currentDayName);
+                                            return (
+                                                <div
+                                                    key={slot.id || `h-slot-${sIdx}`}
+                                                    className={`py-2.5 px-1.5 text-center border-r border-slate-200 last:border-r-0 flex flex-col justify-center min-w-0 transition-colors ${
+                                                        isCurrentSlotTiming ? 'bg-blue-100/70 border-b-2 border-b-blue-600' : 'bg-slate-50/50'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center justify-center gap-1 mb-0.5">
+                                                        <p className={`text-[10px] sm:text-xs uppercase tracking-wider truncate ${isCurrentSlotTiming ? 'font-black text-blue-950' : 'font-black text-blue-900'}`}>{slot.slot_name}</p>
+                                                        {isCurrentSlotTiming && (
+                                                            <span className="px-1 py-0.2 rounded bg-blue-600 text-white text-[7px] font-black uppercase tracking-wider animate-pulse leading-none">
+                                                                NOW
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className={`text-[9px] sm:text-[10px] font-bold flex items-center justify-center gap-1 whitespace-nowrap truncate ${isCurrentSlotTiming ? 'text-blue-900' : 'text-slate-600'}`}>
+                                                        <Clock size={11} className={isCurrentSlotTiming ? "text-blue-700 shrink-0" : "text-blue-600 shrink-0"} />
+                                                        <span className="truncate">{formatTimeTo12h(slot.start_time).replace(' AM', '').replace(' PM', '')} - {formatTimeTo12h(slot.end_time)}</span>
+                                                    </p>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
@@ -809,16 +976,18 @@ const StudentTimetable = () => {
                                             >
                                                 {effectiveSlots.map((slot, sIdx) => {
                                                     const entry = getEntryForSlot(day, slot, sIdx);
+                                                    const isCurrent = isSlotCurrent(slot, day);
                                                     return (
                                                         <div
                                                             key={slot.id || `b-slot-${sIdx}`}
-                                                            className="p-1 min-h-[110px] flex border-r border-slate-200 last:border-r-0 min-w-0"
+                                                            className={`p-1 min-h-[110px] flex border-r border-slate-200 last:border-r-0 min-w-0 ${isCurrent ? 'bg-blue-100/20' : ''}`}
                                                         >
                                                             <TimetableCard
                                                                 entry={entry}
                                                                 slot={slot}
                                                                 day={day}
                                                                 isToday={day === currentDayName}
+                                                                isCurrent={isCurrent}
                                                                 onClick={(entry, slot, day) => openPeriodModal(entry, slot, day)}
                                                             />
                                                         </div>
@@ -836,69 +1005,119 @@ const StudentTimetable = () => {
 
             {/* ── TAB 2: PERIOD-WISE BREAKDOWN ── */}
             {activeTab === 'periodwise' && (
-                <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-4 sm:space-y-5 shadow-xs">
-                    <div
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-100 w-full"
-                        style={!isMobileScreen ? { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } : undefined}
-                    >
-                        <div className="text-left shrink-0">
-                            <h3 className="text-sm sm:text-base font-extrabold text-blue-900 tracking-tight leading-snug text-left">
-                                Period-wise Timetable Breakdown
-                            </h3>
-                            <p className="hidden sm:block text-xs text-slate-500 font-medium mt-0.5 text-left">
-                                Select a day to view period schedule and posted teacher attendance details.
+                <div className={isMobileScreen ? "w-full space-y-2.5" : "bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 space-y-4 shadow-xs"}>
+                    {!hasAnyClasses || effectiveSlots.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center p-12 sm:p-20 text-center">
+                            <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 mb-4 shadow-xs">
+                                <Calendar className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-1.5">Timetable Not Configured</h3>
+                            <p className="text-slate-500 max-w-sm text-xs sm:text-sm">
+                                Timetable for Year {selectedYear} Sem {selectedSem} has not been configured in the Academic Portal yet. Please contact your department HOD.
                             </p>
                         </div>
-                        <div
-                            className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5 w-full sm:w-auto"
-                            style={!isMobileScreen ? { width: 'auto', marginLeft: 'auto', flexShrink: 0 } : undefined}
-                        >
-                            {days.map((day) => (
-                                <button
-                                    key={day}
-                                    onClick={() => setActiveDay(day)}
-                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${activeDay === day
-                                        ? 'bg-blue-600 text-white shadow-sm'
-                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                                        } ${day === currentDayName ? 'ring-2 ring-blue-500 font-extrabold' : ''}`}
-                                >
-                                    <span>{day}</span>
-                                    {day === currentDayName && (
-                                        <span className={`text-[8px] font-black px-1 py-0.2 rounded uppercase ${activeDay === day ? 'bg-white text-blue-700' : 'bg-blue-600 text-white'}`}>
-                                            TODAY
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+                    ) : (
+                        <>
+                            <div
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100 w-full"
+                                style={!isMobileScreen ? { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } : undefined}
+                            >
+                                <div className="text-left shrink-0">
+                                    <h3 className="text-sm sm:text-base font-extrabold text-blue-900 tracking-tight leading-snug text-left">
+                                        Period-wise Timetable Breakdown
+                                    </h3>
+                                    <p className="hidden sm:block text-xs text-slate-500 font-medium mt-0.5 text-left">
+                                        Select a day to view period schedule and posted teacher attendance details.
+                                    </p>
+                                </div>
+                                {!isMobileScreen && (
+                                    <div
+                                        className="flex overflow-x-auto no-scrollbar gap-1.5 py-0.5 w-auto ml-auto shrink-0"
+                                    >
+                                        {days.map((day) => (
+                                            <button
+                                                key={day}
+                                                onClick={() => setActiveDay(day)}
+                                                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${activeDay === day
+                                                    ? 'bg-blue-600 text-white shadow-sm'
+                                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                                    } ${day === currentDayName ? 'ring-2 ring-blue-500 font-extrabold' : ''}`}
+                                            >
+                                                <span>{day}</span>
+                                                {day === currentDayName && (
+                                                    <span className={`text-[8px] font-black px-1 py-0.2 rounded uppercase ${activeDay === day ? 'bg-white text-blue-700' : 'bg-blue-600 text-white'}`}>
+                                                        TODAY
+                                                    </span>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                        {effectiveSlots.map((slot, index) => {
-                            const entry = getEntryForSlot(activeDay, slot, index);
+                            {/* Mobile Day Selector for Tab 2 - NO horizontal scroll */}
+                            {isMobileScreen && (
+                                <div className="w-full bg-white p-1 rounded-xl border border-slate-200/80 shadow-2xs">
+                                    <div className="grid grid-cols-6 gap-1 w-full">
+                                        {days.map((day) => (
+                                            <button
+                                                key={day}
+                                                onClick={() => setActiveDay(day)}
+                                                className={`py-1.5 px-0.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex flex-col items-center justify-center min-w-0 text-center ${
+                                                    activeDay === day
+                                                        ? 'bg-blue-600 text-white shadow-xs'
+                                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                } ${day === currentDayName ? 'ring-1.5 ring-blue-500' : ''}`}
+                                            >
+                                                <span className="truncate">{day === 'THUR' ? 'THU' : day}</span>
+                                                {day === currentDayName && (
+                                                    <span className={`text-[7px] font-black uppercase leading-none mt-0.5 ${
+                                                        activeDay === day ? 'text-blue-100' : 'text-blue-600'
+                                                    }`}>
+                                                        TODAY
+                                                    </span>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
-                            // Find posted attendance log for this period from ap_attendance_post_students
-                            const postedSlotLog = periodWiseLogs.find(log => {
-                                const logDay = normalizeDay(log.day_of_week);
-                                const dayMatch = !logDay || logDay === normalizeDay(activeDay);
-                                const slotMatch = Number(log.period_slot_id) === Number(slot.id) || Number(log.timing_slot_id) === Number(slot.id);
-                                const codeMatch = entry?.subject_code && log.subject_code && log.subject_code.trim().toUpperCase() === entry.subject_code.trim().toUpperCase();
-                                return dayMatch && (slotMatch || codeMatch);
-                            });
+                            <div className={isMobileScreen ? "space-y-2 w-full" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5"}>
+                                {effectiveSlots.map((slot, index) => {
+                                    const entry = getEntryForSlot(activeDay, slot, index);
+                                    const isCurrent = isSlotCurrent(slot, activeDay);
 
-                            return (
-                                <TimetableCard
-                                    key={slot.id || `pw-slot-${index}`}
-                                    entry={entry}
-                                    slot={slot}
-                                    day={activeDay}
-                                    isMobile
-                                    postedSlotLog={postedSlotLog}
-                                    onClick={(entry, slot, day) => entry && openPeriodModal(entry, slot, day)}
-                                />
-                            );
-                        })}
-                    </div>
+                                    // Find posted attendance log for this period from ap_attendance_post_students
+                                    const postedSlotLog = periodWiseLogs.find(log => {
+                                        const logDay = normalizeDay(log.day_of_week);
+                                        const dayMatch = !logDay || logDay === normalizeDay(activeDay);
+                                        const slotMatch = Number(log.period_slot_id) === Number(slot.id) || Number(log.timing_slot_id) === Number(slot.id);
+                                        const codeMatch = entry?.subject_code && log.subject_code && log.subject_code.trim().toUpperCase() === entry.subject_code.trim().toUpperCase();
+                                        return dayMatch && (slotMatch || codeMatch);
+                                    });
+
+                                    return (
+                                        <div
+                                            key={slot.id || `pw-slot-${index}`}
+                                            ref={isCurrent ? currentSlotRef : null}
+                                        >
+                                            <TimetableCard
+                                                entry={entry}
+                                                slot={slot}
+                                                day={activeDay}
+                                                isMobile
+                                                isToday={activeDay === currentDayName}
+                                                isCurrent={isCurrent}
+                                                postedSlotLog={postedSlotLog}
+                                                onClick={(entry, slot, day) => entry && openPeriodModal(entry, slot, day)}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
 

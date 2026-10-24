@@ -84,23 +84,45 @@ stagingPoolRaw.on('connection', (connection) => {
   connection.query('SET time_zone = "+05:30"');
 });
 
-// Academic Portal DB connection pool (read-only queries for academic timetables & slots)
-const academicPoolRaw = mysql.createPool({
-  host: process.env.ACADEMIC_DB_HOST || process.env.DB_HOST || 'localhost',
-  user: process.env.ACADEMIC_DB_USER || process.env.DB_USER || 'root',
-  password: process.env.ACADEMIC_DB_PASSWORD || process.env.DB_PASSWORD || '',
-  database: process.env.ACADEMIC_DB_NAME || 'academic_portal',
-  port: process.env.ACADEMIC_DB_PORT || 3306,
-  connectionLimit: 15,
-  ...sharedPoolOptions,
-  ssl: process.env.ACADEMIC_DB_SSL === 'true' ? {
-    rejectUnauthorized: false,
-  } : false,
-});
+const isAcademicConfigured = Boolean(process.env.ACADEMIC_DB_HOST && process.env.ACADEMIC_DB_NAME);
 
-academicPoolRaw.on('connection', (connection) => {
-  connection.query('SET time_zone = "+05:30"');
-});
+let academicPoolRaw = null;
+let academicPool = null;
+
+if (isAcademicConfigured) {
+  // Academic Portal DB connection pool - STRICTLY from ACADEMIC_DB_* in .env (NO fallback)
+  academicPoolRaw = mysql.createPool({
+    host: process.env.ACADEMIC_DB_HOST,
+    user: process.env.ACADEMIC_DB_USER,
+    password: process.env.ACADEMIC_DB_PASSWORD || '',
+    database: process.env.ACADEMIC_DB_NAME,
+    port: parseInt(process.env.ACADEMIC_DB_PORT, 10) || 3306,
+    connectionLimit: 15,
+    ...sharedPoolOptions,
+    ssl: process.env.ACADEMIC_DB_SSL === 'true' ? {
+      rejectUnauthorized: false,
+    } : false,
+  });
+
+  academicPoolRaw.on('connection', (connection) => {
+    connection.query('SET time_zone = "+05:30"');
+  });
+
+  academicPool = wrapPoolWithRetry(academicPoolRaw.promise());
+} else {
+  // Safe stub when not configured in .env - strictly no fallback to DB_HOST
+  academicPool = {
+    query: async () => {
+      throw new Error('Academic Portal DB is not configured in .env (ACADEMIC_DB_* missing)');
+    },
+    execute: async () => {
+      throw new Error('Academic Portal DB is not configured in .env (ACADEMIC_DB_* missing)');
+    },
+    getConnection: async () => {
+      throw new Error('Academic Portal DB is not configured in .env (ACADEMIC_DB_* missing)');
+    }
+  };
+}
 
 // Admissions DB connection pool (sync SDMS changes to Admissions database)
 const admissionsPoolRaw = mysql.createPool({
@@ -123,7 +145,6 @@ admissionsPoolRaw.on('connection', (connection) => {
 // Promise-based pools with connection-lost retry
 const masterPool = wrapPoolWithRetry(masterPoolRaw.promise());
 const stagingPool = wrapPoolWithRetry(stagingPoolRaw.promise());
-const academicPool = wrapPoolWithRetry(academicPoolRaw.promise());
 const admissionsPool = wrapPoolWithRetry(admissionsPoolRaw.promise());
 
 // Test connections with retry logic
@@ -135,11 +156,25 @@ const testConnection = async (retries = 3) => {
       const conn = await masterPool.getConnection();
       conn.release();
       dbConnected = true;
+      console.log(`✅ Master DB Connected: ${process.env.DB_NAME || 'student_database'} @ ${process.env.DB_HOST || 'localhost'}`);
       break;
     } catch (error) {
       if (i < retries - 1) {
         await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
       }
+    }
+  }
+
+  // Test and log Academic Portal connectivity
+  if (!isAcademicConfigured) {
+    console.log('ℹ️  Academic Portal DB: Not configured in .env (ACADEMIC_DB_* missing) - Timetables will show "Not Configured"');
+  } else {
+    try {
+      const aConn = await academicPool.getConnection();
+      aConn.release();
+      console.log(`📚 Academic Portal DB Connected: ${process.env.ACADEMIC_DB_NAME} @ ${process.env.ACADEMIC_DB_HOST} [Source: ACADEMIC_DB_* in .env]`);
+    } catch (err) {
+      console.warn(`⚠️  Academic Portal DB Connection Failed: ${err.message} [Target: ${process.env.ACADEMIC_DB_NAME} @ ${process.env.ACADEMIC_DB_HOST}]`);
     }
   }
 

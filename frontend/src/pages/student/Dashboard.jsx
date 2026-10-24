@@ -1474,6 +1474,28 @@ const Dashboard = () => {
                                     const isLab = entryType === 'lab' || (entry && String(entry.subject_name || entry.title || '').toLowerCase().includes('lab'));
                                     const isBreak = entryType === 'break' || entryType === 'lunch' || isBreakSlot;
 
+                                    // Check if this slot is active right now
+                                    const parseTimeToMinutes = (timeStr) => {
+                                        if (!timeStr) return null;
+                                        const s = String(timeStr).trim().toUpperCase();
+                                        const isPm = s.includes('PM');
+                                        const isAm = s.includes('AM');
+                                        const cleanStr = s.replace(/AM|PM/g, '').trim();
+                                        const parts = cleanStr.split(':');
+                                        if (parts.length < 2) return null;
+                                        let hours = parseInt(parts[0], 10);
+                                        const minutes = parseInt(parts[1], 10);
+                                        if (isNaN(hours) || isNaN(minutes)) return null;
+                                        if (isPm && hours < 12) hours += 12;
+                                        if (isAm && hours === 12) hours = 0;
+                                        return hours * 60 + minutes;
+                                    };
+
+                                    const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+                                    const startMins = parseTimeToMinutes(slot.start_time);
+                                    const endMins = parseTimeToMinutes(slot.end_time);
+                                    const isCurrent = startMins !== null && endMins !== null && nowMins >= startMins && nowMins < endMins;
+
                                     let cardStyle = 'bg-slate-50/70 border-slate-200/80 text-slate-500';
                                     let badgeStyle = 'bg-slate-100 text-slate-600 border-slate-200';
                                     let badgeText = 'FREE';
@@ -1490,6 +1512,10 @@ const Dashboard = () => {
                                         cardStyle = 'bg-blue-50/70 border-blue-200/90 hover:border-blue-300 text-blue-950 shadow-xs';
                                         badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
                                         badgeText = 'THEORY';
+                                    }
+
+                                    if (isCurrent) {
+                                        cardStyle = `${cardStyle} ring-2 ring-blue-600 border-blue-500 shadow-md scale-[1.02] z-10`;
                                     }
 
                                     const titleText = entry
@@ -1509,7 +1535,14 @@ const Dashboard = () => {
                                         >
                                             <div>
                                                 <div className="flex items-center justify-between gap-1 mb-1.5">
-                                                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider">{sName}</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider">{sName}</span>
+                                                        {isCurrent && (
+                                                            <span className="inline-flex items-center gap-1 px-1 py-0.2 rounded bg-emerald-600 text-white text-[7px] font-black uppercase animate-pulse leading-none">
+                                                                NOW
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <span className={`text-[8px] sm:text-[9px] font-extrabold px-1.5 py-0.2 rounded-md border ${badgeStyle}`}>
                                                         {badgeText}
                                                     </span>

@@ -101,7 +101,18 @@ const FacultyTimetable = () => {
 
             {/* Timetable Grid Container */}
             <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl overflow-hidden">
-                <div className="overflow-x-auto custom-scrollbar">
+                {!timetableData || timetableData.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center p-16 sm:p-24 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 mb-4 shadow-xs">
+                            <Calendar className="w-8 h-8" />
+                        </div>
+                        <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-1.5">Timetable Not Configured</h3>
+                        <p className="text-slate-500 max-w-sm text-xs sm:text-sm">
+                            No teaching schedule has been configured in the Academic Portal for your profile yet. Please coordinate with your department HOD.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto custom-scrollbar">
                     <div className="min-w-[1000px]">
                         {/* Grid Header */}
                         <div className="flex border-b border-slate-100 bg-slate-50/50">
@@ -180,7 +191,8 @@ const FacultyTimetable = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            )}
+        </div>
 
             {/* Info Tip */}
             <div className="mt-8 bg-teal-50/50 border border-teal-100 p-6 rounded-[2rem] flex gap-4">

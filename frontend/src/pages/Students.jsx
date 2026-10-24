@@ -47,7 +47,8 @@ import {
   Info,
   MoreHorizontal,
   Sparkles,
-  Bus
+  Bus,
+  Lock
 } from 'lucide-react';
 import StudentAvatar from '../components/StudentAvatar';
 import DigitalStudentCard from '../components/DigitalStudentCard';
@@ -314,7 +315,7 @@ const Students = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { quotas: studentQuotas } = useStudentQuotas();
+  const { quotas: studentQuotas, loading: studentQuotasLoading } = useStudentQuotas();
   const {
     categories: casteCategories,
     casteOptions: dynamicCasteOptions,
@@ -348,6 +349,8 @@ const Students = () => {
   const canUpdatePin = hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'update_pin');
   const canExportStudents = hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'export');
   const isCashier = user?.role === USER_ROLES.CASHIER;
+  const isSuperAdmin = ['super_admin', 'superadmin', 'Super Admin'].includes(String(user?.role || '').trim());
+  const canEditQuota = isSuperAdmin;
   // SMS tab should be visible for super admin, admin, or users with view_sms permission
   const canViewSms = user?.role === 'super_admin' || user?.role === 'admin' || isCollegeAo || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'view_sms');
   const canViewMeritStatus = user?.role === 'super_admin' || user?.role === 'admin' || isCollegeAo || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'view_merit_status') || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'edit_merit_status');
@@ -415,6 +418,22 @@ const Students = () => {
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
   const [editBaseline, setEditBaseline] = useState(null);
+
+  const quotaOptions = useMemo(() => {
+    const list = [...(studentQuotas || [])];
+    const currentCode = editData?.stud_type || selectedStudent?.stud_type;
+    if (
+      currentCode &&
+      !list.some(
+        (q) =>
+          String(q.code || '').toLowerCase() === String(currentCode).toLowerCase() ||
+          String(q.name || '').toLowerCase() === String(currentCode).toLowerCase()
+      )
+    ) {
+      list.unshift({ id: 'current', code: currentCode, name: currentCode });
+    }
+    return list;
+  }, [studentQuotas, editData?.stud_type, selectedStudent?.stud_type]);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ student_status: '', level: '' });
   const [colleges, setColleges] = useState([]);
@@ -2279,7 +2298,11 @@ const Students = () => {
       }),
       section: student.section || '',
       Section: student.section || '',
-      ...(student.stud_type && { stud_type: student.stud_type, 'StudType': student.stud_type }),
+      stud_type: student.stud_type || '',
+      StudType: student.stud_type || '',
+      'Student Type': student.stud_type || '',
+      quota: student.stud_type || '',
+      Quota: student.stud_type || '',
       ...(student.student_status && { student_status: student.student_status, 'Student Status': student.student_status }),
       ...(student.student_address && {
         student_address: student.student_address,
@@ -2411,7 +2434,11 @@ const Students = () => {
       Caste: selectedStudent?.caste || linked.categoryName || '',
       category_id: selectedStudent?.category_id ?? byCategoryId?.id ?? null,
       nested_caste: linked.linked ? (linked.casteName || '') : '',
-      merit_status: selectedStudent?.merit_status || ''
+      merit_status: selectedStudent?.merit_status || '',
+      stud_type: prev.stud_type || selectedStudent?.stud_type || '',
+      StudType: prev.stud_type || selectedStudent?.stud_type || '',
+      quota: prev.stud_type || selectedStudent?.stud_type || '',
+      Quota: prev.stud_type || selectedStudent?.stud_type || ''
     }));
     setEditMode(true);
   };
@@ -2808,6 +2835,13 @@ const Students = () => {
     setEditData(prev => {
       const newData = { ...prev, [key]: value };
 
+      if (key === 'stud_type' || key === 'quota') {
+        newData.stud_type = value;
+        newData.StudType = value;
+        newData['Student Type'] = value;
+        newData.quota = value;
+        newData.Quota = value;
+      }
       if (key === 'section') {
         newData.Section = value;
       }
@@ -4226,7 +4260,28 @@ const Students = () => {
                         <CheckCircle size={14} strokeWidth={2.5} className="text-emerald-700" /> Regular
                       </span>
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-purple-100/90 text-purple-800 border border-purple-300 shadow-2xs">
-                        <Award size={14} strokeWidth={2.5} className="text-purple-700" /> {editData.stud_type || selectedStudent?.stud_type || 'Quota'}
+                        <Award size={14} strokeWidth={2.5} className="text-purple-700 shrink-0" />
+                        {editMode && canEditQuota ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-[10px] text-purple-600 font-bold uppercase tracking-wider">Quota:</span>
+                            <select
+                              value={editData.stud_type || selectedStudent?.stud_type || ''}
+                              onChange={(e) => updateEditField('stud_type', e.target.value)}
+                              disabled={studentQuotasLoading}
+                              className="bg-transparent font-black text-purple-950 text-xs focus:outline-none cursor-pointer border-b border-purple-400 py-0.5"
+                              title="Edit Quota (Super Admin Only)"
+                            >
+                              <option value="">Select Quota</option>
+                              {quotaOptions.map((q) => (
+                                <option key={q.id || q.code} value={q.code}>
+                                  {q.name ? `${q.name} (${q.code})` : q.code}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        ) : (
+                          editData.stud_type || selectedStudent?.stud_type || 'Quota'
+                        )}
                       </span>
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-black">
                         <span>Profile {profileCompletion.percentage}% Complete</span>
@@ -4614,7 +4669,7 @@ const Students = () => {
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500 font-semibold">Scholarship</span>
                             <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              Active ({selectedStudent?.stud_type || 'LSPOT'})
+                              Active ({editData.stud_type || selectedStudent?.stud_type || 'LSPOT'})
                             </span>
                           </div>
 
@@ -4971,6 +5026,46 @@ const Students = () => {
                                 </span>
                               );
                             })()}
+                          </div>
+
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-gray-500 font-semibold">Quota</span>
+                              {canEditQuota && (
+                                <span className="text-[9px] font-extrabold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded-full border border-purple-200">
+                                  Super Admin
+                                </span>
+                              )}
+                            </div>
+                            {editMode ? (
+                              canEditQuota ? (
+                                <select
+                                  value={editData.stud_type || selectedStudent?.stud_type || ''}
+                                  onChange={(e) => updateEditField('stud_type', e.target.value)}
+                                  disabled={studentQuotasLoading}
+                                  className="px-1.5 py-0.5 border border-purple-300 rounded text-[11px] font-bold bg-purple-50 text-purple-900 focus:ring-1 focus:ring-purple-500 outline-none max-w-[160px]"
+                                  title="Edit Quota (Super Admin Only)"
+                                >
+                                  <option value="">Select Quota</option>
+                                  {quotaOptions.map((quota) => (
+                                    <option key={quota.id || quota.code} value={quota.code}>
+                                      {quota.name ? `${quota.name} (${quota.code})` : quota.code}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <div className="flex items-center gap-1" title="Only Super Admin can edit Quota">
+                                  <Lock size={10} className="text-gray-400" />
+                                  <span className="font-extrabold text-gray-500 font-mono text-[11px]">
+                                    {editData.stud_type || selectedStudent?.stud_type || '-'}
+                                  </span>
+                                </div>
+                              )
+                            ) : (
+                              <span className="font-extrabold text-purple-700 font-mono">
+                                {editData.stud_type || selectedStudent?.stud_type || '-'}
+                              </span>
+                            )}
                           </div>
 
                           <div className="flex justify-between items-center">

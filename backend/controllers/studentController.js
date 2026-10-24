@@ -836,6 +836,10 @@ const FIELD_MAPPING = {
   branch: 'branch',
   // branch_code: 'branch_code', // Removed - branch_code is stored in student_data JSON only, not as a column
   stud_type: 'stud_type',
+  StudType: 'stud_type',
+  'Student Type': 'stud_type',
+  quota: 'stud_type',
+  Quota: 'stud_type',
   parent_mobile1: 'parent_mobile1',
   parent_mobile2: 'parent_mobile2',
   student_address: 'student_address',
@@ -890,7 +894,7 @@ const createComprehensiveFieldMapping = () => {
     branch_id: ['branch_id', 'branchid'],
     course: ['course', 'coursename', 'course_name', 'program', 'programname', 'program_name', 'degree', 'degreename', 'degree_name', 'course', 'coursename', 'course_name', 'program', 'programname', 'program_name', 'degree', 'degreename', 'degree_name'],
     course_id: ['course_id', 'courseid'],
-    stud_type: ['studtype', 'studenttype', 'student_type', 'type', 'category', 'studentcategory', 'studtype', 'studenttype', 'student_type', 'type', 'category', 'studentcategory', 'studentcategory', 'student_category'],
+    stud_type: ['studtype', 'studenttype', 'student_type', 'type', 'category', 'studentcategory', 'quota', 'quotacode', 'quota_code', 'studentquota', 'student_quota', 'studtype', 'studenttype', 'student_type', 'type', 'category', 'studentcategory', 'studentcategory', 'student_category'],
     student_name: ['studentname', 'name', 'student', 'fullname', 'full_name', 'studentfullname', 'student_name', 'studentname', 'nameofstudent', 'name_of_student', 'sname', 's_name'],
     student_status: ['studentstatus', 'student_status', 'status', 'currentstatus', 'current_status', 'studentstatus', 'student_status', 'status', 'currentstatus', 'current_status', 'studstatus', 'stud_status'],
     student_mobile: ['studentmobilenumber', 'studentmobile', 'mobile', 'phone', 'studentphone', 'contact', 'studentcontact', 'mobilenumber', 'phonenumber', 'student_mobile', 'studentmobile', 'studentphone', 'student_phone', 'contactnumber', 'contact_number', 'mob', 'mobile_no', 'phone_no'],
@@ -4114,6 +4118,18 @@ exports.updateStudent = async (req, res) => {
           delete studentData[key];
         }
       });
+
+      // SECURITY: Only super_admin role can update stud_type (Quota)
+      const actor = req.user || req.admin;
+      const isSuperAdmin = ['super_admin', 'superadmin'].includes(String(actor?.role || '').toLowerCase());
+      if (!isSuperAdmin) {
+        Object.keys(studentData).forEach((key) => {
+          const mappedColumn = FIELD_MAPPING[key] || FIELD_LOOKUP[normalizeHeaderKeyForLookup(key)];
+          if (mappedColumn === 'stud_type') {
+            delete studentData[key];
+          }
+        });
+      }
     }
 
     const incomingFieldCount = Object.keys(studentData).length;
@@ -4232,7 +4248,8 @@ exports.updateStudent = async (req, res) => {
       'student_status',
       'registration_status',
       'fee_status',
-      'certificates_status'
+      'certificates_status',
+      'stud_type'
     ]);
 
     const sideEffectJsonKeys = new Set();

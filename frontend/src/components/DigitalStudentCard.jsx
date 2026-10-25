@@ -152,22 +152,22 @@ const splitCollegeNameToTwoLines = (nameStr) => {
 
 const getTwoLineCollegeNameFontSize = (l1, l2) => {
   const maxLineLen = Math.max(String(l1 || '').trim().length, String(l2 || '').trim().length);
-  if (maxLineLen <= 12) return '8.2pt';
-  if (maxLineLen <= 15) return '7.4pt';
-  if (maxLineLen <= 18) return '6.6pt';
-  if (maxLineLen <= 22) return '5.8pt';
-  if (maxLineLen <= 26) return '5.1pt';
-  if (maxLineLen <= 30) return '4.5pt';
-  return '4.1pt';
+  if (maxLineLen <= 12) return '9.7pt';
+  if (maxLineLen <= 15) return '8.9pt';
+  if (maxLineLen <= 18) return '8.1pt';
+  if (maxLineLen <= 22) return '7.3pt';
+  if (maxLineLen <= 26) return '6.6pt';
+  if (maxLineLen <= 30) return '6.0pt';
+  return '5.6pt';
 };
 
 const getCollegeNameFontSize = (nameStr) => {
   const len = String(nameStr || '').trim().length;
-  if (len <= 18) return '8.5pt';
-  if (len <= 24) return '7.6pt';
-  if (len <= 30) return '6.6pt';
-  if (len <= 36) return '5.8pt';
-  return '5.0pt';
+  if (len <= 18) return '10.0pt';
+  if (len <= 24) return '9.1pt';
+  if (len <= 30) return '8.1pt';
+  if (len <= 36) return '7.3pt';
+  return '6.5pt';
 };
 
 const getDetailValueFontSize = (valStr, baseSize = '6.2pt') => {
@@ -1231,7 +1231,7 @@ const DigitalStudentCard = ({
         border: '1px solid #e5e7eb',
         borderRadius: '12px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-        fontFamily: "'Plus Jakarta Sans', 'Inter', Arial, sans-serif",
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         printColorAdjust: 'exact',
         WebkitPrintColorAdjust: 'exact',
       }}

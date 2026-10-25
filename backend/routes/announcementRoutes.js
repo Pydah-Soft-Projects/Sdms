@@ -91,6 +91,12 @@ router.get(
     verifyPermission('announcements', 'view'),
     announcementController.getSemesters
 );
+router.get(
+    '/statuses',
+    authMiddleware,
+    verifyPermission('announcements', 'view'),
+    announcementController.getStatuses
+);
 
 router.put(
     '/:id',

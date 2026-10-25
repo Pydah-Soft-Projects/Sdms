@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import {
     Megaphone,
@@ -56,7 +57,34 @@ const AnnouncementImage = ({ src, alt }) => {
 };
 
 const Announcements = () => {
-    const [activeTab, setActiveTab] = useState('announcements');
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const getTabFromUrl = (params) => {
+        const tab = params.get('tab');
+        if (tab === 'polls') return 'polls';
+        if (tab === 'sms') return 'sms';
+        if (tab === 'events' || tab === 'calendar') return 'calendar';
+        return 'announcements';
+    };
+
+    const [activeTab, setActiveTab] = useState(() => getTabFromUrl(searchParams));
+
+    useEffect(() => {
+        const target = getTabFromUrl(searchParams);
+        setActiveTab(target);
+    }, [searchParams]);
+
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId);
+        if (tabId === 'announcements') {
+            setSearchParams({});
+        } else if (tabId === 'calendar') {
+            setSearchParams({ tab: 'events' });
+        } else {
+            setSearchParams({ tab: tabId });
+        }
+    };
+
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
@@ -107,6 +135,7 @@ const Announcements = () => {
         selected_students: [],
         target_college: [],
         target_batch: [],
+        target_status: [],
         target_course: [],
         target_branch: [],
         target_year: [],
@@ -172,7 +201,7 @@ const Announcements = () => {
     const openCreateModal = (type = 'announcements') => {
         setFormData(initialFormState);
         setEditId(null);
-        setActiveTab(type);
+        handleTabChange(type);
         setIsCreateModalOpen(true);
     };
 
@@ -217,7 +246,7 @@ const Announcements = () => {
 
     const openEditModal = (item, type) => {
         setEditId(item.id);
-        setActiveTab(type);
+        handleTabChange(type);
 
         const parseField = (val) => {
             if (!val) return [];
@@ -294,7 +323,8 @@ const Announcements = () => {
                     target_type: formData.target_type,
                     selected_student_ids: (formData.selected_students || []).map(s => s.id),
                     target_college: formData.target_college,
-                    target_batch: formData.target_batch,
+                    target_batch: onSmsBroadcast ? [] : formData.target_batch,
+                    target_status: formData.target_status || [],
                     target_course: formData.target_course,
                     target_branch: formData.target_branch,
                     target_year: formData.target_year,
@@ -317,6 +347,7 @@ const Announcements = () => {
         formData.selected_students,
         formData.target_college,
         formData.target_batch,
+        formData.target_status,
         formData.target_course,
         formData.target_branch,
         formData.target_year,
@@ -534,6 +565,7 @@ const Announcements = () => {
                 selected_student_ids: (formData.selected_students || []).map(s => typeof s === 'object' ? s.id : s),
                 target_college: formData.target_college,
                 target_batch: formData.target_batch,
+                target_status: formData.target_status || [],
                 target_course: formData.target_course,
                 target_branch: formData.target_branch,
                 target_year: formData.target_year,
@@ -548,7 +580,8 @@ const Announcements = () => {
                 setFormData(prev => ({
                     ...initialFormState,
                     target_college: [],
-                    target_batch: []
+                    target_batch: [],
+                    target_status: []
                 }));
                 setSelectedTemplate(null);
             }
@@ -660,40 +693,29 @@ const Announcements = () => {
         </div>
     );
 
+    const pageTitle = activeTab === 'polls' ? 'Polls' : activeTab === 'sms' ? 'SMS' : activeTab === 'calendar' ? 'Events' : 'Announcements';
+
+    useEffect(() => {
+        document.title = `${pageTitle} | Pydah Super Admin`;
+    }, [pageTitle]);
+
     return (
         <div className="min-h-screen bg-transparent space-y-6 animate-fade-in relative">
-            {/* Tabs & Actions */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 bg-white/80 backdrop-blur-md px-6 py-2 rounded-t-2xl shadow-sm overflow-hidden sticky top-0 z-30">
-                <div className="flex overflow-x-auto scrollbar-hide w-full sm:w-auto -mx-2 sm:mx-0">
-                    <div className="flex bg-gray-100/50 p-1 rounded-xl">
-                        {[
-                            { id: 'announcements', label: 'Announcements', icon: Megaphone },
-                            { id: 'polls', label: 'Polls', icon: BarChart2 },
-                            { id: 'sms', label: 'SMS', icon: Smartphone },
-                            { id: 'calendar', label: 'Events', icon: CalendarIcon }
-                        ].map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => { setActiveTab(tab.id); }}
-                                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === tab.id
-                                    ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'
-                                    }`}
-                            >
-                                <tab.icon size={16} />
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
+            {/* Header with Page Name & Action */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 bg-white/80 backdrop-blur-md px-6 py-4 rounded-t-2xl shadow-sm overflow-hidden sticky top-0 z-30">
+                <div className="flex items-center gap-3">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
+                        {pageTitle}
+                    </h1>
                 </div>
 
                 {activeTab !== 'calendar' && activeTab !== 'sms' && (
                     <button
                         onClick={() => openCreateModal(activeTab)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl font-bold flex items-center gap-2 text-sm shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transform transition-all hover:-translate-y-0.5"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 text-sm shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transform transition-all hover:-translate-y-0.5"
                     >
                         <Plus size={18} strokeWidth={3} />
-                        Create New
+                        {activeTab === 'polls' ? 'Create New Poll' : 'Create New Announcement'}
                     </button>
                 )}
             </div>
@@ -876,7 +898,7 @@ const Announcements = () => {
                                             {/* Right Column: Audience & Action */}
                                             <div className="lg:col-span-7 flex flex-col h-full pl-4 overflow-hidden">
                                                 <div className="flex-1 min-h-0 flex flex-col pt-2">
-                                                    <TargetSelector formData={formData} setFormData={setFormData} hideTitle={true} />
+                                                    <TargetSelector formData={formData} setFormData={setFormData} hideTitle={true} isSms={true} />
                                                 </div>
 
                                                 <div className="mt-auto pt-6 border-t border-gray-100 bg-white">

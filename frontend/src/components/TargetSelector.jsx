@@ -75,9 +75,18 @@ const MultiSelect = ({ label, options, selected, onChange, placeholder, disabled
     );
 };
 
-const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = false }) => {
+const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = false, isSms = false }) => {
     const [colleges, setColleges] = useState([]);
     const [batches, setBatches] = useState([]);
+    const [statuses, setStatuses] = useState([
+        { value: 'Regular', label: 'Regular' },
+        { value: 'Admission Cancelled', label: 'Admission Cancelled' },
+        { value: 'Course Completed', label: 'Course Completed' },
+        { value: 'Detained', label: 'Detained' },
+        { value: 'Discontinued', label: 'Discontinued' },
+        { value: 'Long Absent', label: 'Long Absent' },
+        { value: 'Rejoined', label: 'Rejoined' }
+    ]);
     const [courses, setCourses] = useState([]);
     const [branches, setBranches] = useState([]);
     const [years, setYears] = useState([]);
@@ -148,17 +157,21 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
 
     const fetchMetadata = async () => {
         try {
-            const [colRes, batchRes, courRes, branchRes, yearRes, semRes] = await Promise.all([
+            const [colRes, batchRes, courRes, branchRes, yearRes, semRes, statusRes] = await Promise.all([
                 api.get('/colleges'),
                 api.get('/announcements/batches').catch(() => ({ data: { success: false, data: [] } })),
                 api.get('/courses'),
                 api.get('/announcements/branches').catch(() => ({ data: { success: false, data: [] } })),
                 api.get('/announcements/years').catch(() => ({ data: { success: false, data: [] } })),
-                api.get('/announcements/semesters').catch(() => ({ data: { success: false, data: [] } }))
+                api.get('/announcements/semesters').catch(() => ({ data: { success: false, data: [] } })),
+                api.get('/announcements/statuses').catch(() => ({ data: { success: false, data: [] } }))
             ]);
 
             if (colRes.data.success) setColleges(colRes.data.data.map(c => ({ value: c.name, label: c.name, id: c.id })));
             if (batchRes.data.success) setBatches(batchRes.data.data.map(b => ({ value: b.name, label: b.name, id: b.id })));
+            if (statusRes?.data?.success && statusRes.data.data.length > 0) {
+                setStatuses(statusRes.data.data.map(s => ({ value: s.value, label: s.label })));
+            }
             if (courRes.data.success) setCourses(courRes.data.data.map(c => ({ 
               value: c.name, 
               label: c.name + (c.level ? ` (${c.level.toUpperCase()})` : ''), 
@@ -230,7 +243,8 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                     target_type: formData.target_type,
                     selected_student_ids: (formData.selected_students || []).map(s => s.id),
                     target_college: formData.target_college,
-                    target_batch: formData.target_batch,
+                    target_batch: isSms ? [] : formData.target_batch,
+                    target_status: formData.target_status || [],
                     target_course: formData.target_course,
                     target_branch: formData.target_branch,
                     target_year: formData.target_year,
@@ -241,7 +255,7 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
         };
         const timer = setTimeout(calculateCount, 500);
         return () => clearTimeout(timer);
-    }, [formData, layout]);
+    }, [formData, layout, isSms]);
 
     if (layout === 'row') {
         return (
@@ -253,13 +267,23 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                     selected={formData.target_college}
                     onChange={vals => setFormData({ ...formData, target_college: vals })}
                 />
-                <MultiSelect
-                    label="Batch"
-                    placeholder="All"
-                    options={batches}
-                    selected={formData.target_batch}
-                    onChange={vals => setFormData({ ...formData, target_batch: vals })}
-                />
+                {isSms ? (
+                    <MultiSelect
+                        label="Status"
+                        placeholder="All"
+                        options={statuses}
+                        selected={formData.target_status || []}
+                        onChange={vals => setFormData({ ...formData, target_status: vals })}
+                    />
+                ) : (
+                    <MultiSelect
+                        label="Batch"
+                        placeholder="All"
+                        options={batches}
+                        selected={formData.target_batch}
+                        onChange={vals => setFormData({ ...formData, target_batch: vals })}
+                    />
+                )}
                 <MultiSelect
                     label="Program"
                     placeholder="All"
@@ -505,13 +529,23 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                             selected={formData.target_college}
                             onChange={vals => setFormData({ ...formData, target_college: vals })}
                         />
-                        <MultiSelect
-                            label="Batches"
-                            placeholder="All Batches"
-                            options={batches}
-                            selected={formData.target_batch}
-                            onChange={vals => setFormData({ ...formData, target_batch: vals })}
-                        />
+                        {isSms ? (
+                            <MultiSelect
+                                label="Status"
+                                placeholder="All Statuses"
+                                options={statuses}
+                                selected={formData.target_status || []}
+                                onChange={vals => setFormData({ ...formData, target_status: vals })}
+                            />
+                        ) : (
+                            <MultiSelect
+                                label="Batches"
+                                placeholder="All Batches"
+                                options={batches}
+                                selected={formData.target_batch}
+                                onChange={vals => setFormData({ ...formData, target_batch: vals })}
+                            />
+                        )}
                     </div>
                     <MultiSelect
                         label="Programs"

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Outlet,
   Link,
@@ -29,6 +29,8 @@ import {
   Ticket,
   FolderTree,
   Megaphone,
+  Smartphone,
+  Calendar,
   Briefcase,
   ArrowLeftRight,
   Wrench,
@@ -221,8 +223,34 @@ const NAV_ITEMS = [
   {
     path: "/announcements",
     icon: Megaphone,
-    label: "Announcements",
+    label: "Announcements & Comm",
     permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+    subItems: [
+      {
+        path: "/announcements",
+        label: "Announcements",
+        icon: Megaphone,
+        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+      },
+      {
+        path: "/announcements?tab=polls",
+        label: "Polls",
+        icon: BarChart3,
+        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+      },
+      {
+        path: "/announcements?tab=sms",
+        label: "SMS",
+        icon: Smartphone,
+        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+      },
+      {
+        path: "/announcements?tab=events",
+        label: "Events",
+        icon: Calendar,
+        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+      },
+    ],
   },
   {
     path: "/clubs",
@@ -315,7 +343,19 @@ const AdminLayout = () => {
   const { user } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [expandedItems, setExpandedItems] = useState(new Set()); // Collapsed by default
+  const [expandedItems, setExpandedItems] = useState(() => {
+    const initial = new Set();
+    NAV_ITEMS.forEach((item) => {
+      if (item.subItems) {
+        const hasActive = item.subItems.some((subItem) => {
+          const [subPath] = subItem.path.split('?');
+          return window.location.pathname === subPath;
+        });
+        if (hasActive) initial.add(item.path);
+      }
+    });
+    return initial;
+  });
   const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false); // New: For mobile "More" menu
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -434,18 +474,23 @@ const AdminLayout = () => {
     });
   };
 
-  // Auto-expand parent menu when on a sub-route
+  // Auto-expand parent menu when navigating to a new route
+  const prevPathnameRef = useRef(location.pathname);
   useEffect(() => {
-    filteredNavItems.forEach((item) => {
-      if (item.subItems) {
-        const hasActiveSubItem = item.subItems.some(
-          (subItem) => location.pathname === subItem.path,
-        );
-        if (hasActiveSubItem && !expandedItems.has(item.path)) {
-          setExpandedItems((prev) => new Set([...prev, item.path]));
+    if (prevPathnameRef.current !== location.pathname) {
+      prevPathnameRef.current = location.pathname;
+      filteredNavItems.forEach((item) => {
+        if (item.subItems) {
+          const hasActiveSubItem = item.subItems.some((subItem) => {
+            const [subPath] = subItem.path.split('?');
+            return location.pathname === subPath;
+          });
+          if (hasActiveSubItem) {
+            setExpandedItems((prev) => new Set([...prev, item.path]));
+          }
         }
-      }
-    });
+      });
+    }
   }, [location.pathname, filteredNavItems]);
 
   // Close workspace dropdown when sidebar collapses
@@ -565,9 +610,6 @@ const AdminLayout = () => {
               const isActive = isRouteActive(item.path);
 
               if (hasSubItems && !sidebarCollapsed) {
-                const shouldAutoExpand = item.subItems.some(subItem => location.pathname === subItem.path);
-                const isActuallyExpanded = isExpanded || shouldAutoExpand;
-
                 return (
                   <div key={item.path} className="space-y-1">
                     <button
@@ -576,18 +618,30 @@ const AdminLayout = () => {
                         toggleSubmenu(item.path);
                       }}
                       className={`w-full flex items-center justify-between rounded-lg transition-all duration-200 gap-3 px-3 py-2.5 min-h-[44px]
-                        ${isActive && !isActuallyExpanded ? "bg-[#4a5d3f] text-white font-semibold shadow-md active" : isActuallyExpanded ? "bg-white/5 text-white font-medium" : "text-gray-100/90 hover:bg-white/10 hover:text-white"}`}
+                        ${isActive && !isExpanded ? "bg-[#4a5d3f] text-white font-semibold shadow-md active" : isExpanded ? "bg-white/5 text-white font-medium" : "text-gray-100/90 hover:bg-white/10 hover:text-white"}`}
                     >
                       <div className="flex items-center gap-2 flex-1">
                         <Icon size={18} className="flex-shrink-0" />
                         <span className="whitespace-nowrap font-medium text-xs">{item.label}</span>
                       </div>
-                      {isActuallyExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                     </button>
-                    {isActuallyExpanded && (
+                    {isExpanded && (
                       <div className="ml-2 space-y-0.5 pl-6 py-2 border-l-2 border-[#4a5d3f] bg-gradient-to-r from-white/5 to-transparent rounded-r-md">
                         {item.subItems.map((subItem) => {
-                          const isSubActive = location.pathname === subItem.path;
+                          const currentFullPath = location.pathname + location.search;
+                          let isSubActive = false;
+                          if (subItem.path.includes('?')) {
+                            isSubActive = currentFullPath === subItem.path || 
+                              (subItem.path.endsWith('?tab=events') && currentFullPath === '/announcements?tab=calendar');
+                          } else {
+                            if (subItem.path === '/announcements') {
+                              isSubActive = location.pathname === '/announcements' && (!location.search || location.search === '?tab=announcements');
+                            } else {
+                              const [subPath] = subItem.path.split('?');
+                              isSubActive = location.pathname === subPath;
+                            }
+                          }
                           const SubIcon = subItem.icon || LayoutDashboard;
                           return (
                             <Link

@@ -263,7 +263,7 @@ exports.getStudentAnnouncements = async (req, res) => {
 
 exports.calculateRecipientCount = async (req, res) => {
     try {
-        const { target_type, selected_student_ids, target_college, target_batch, target_course, target_branch, target_year, target_semester } = req.body;
+        const { target_type, selected_student_ids, target_college, target_batch, target_status, target_course, target_branch, target_year, target_semester } = req.body;
 
         const parseParam = (val) => {
             if (!val) return null;
@@ -275,19 +275,31 @@ exports.calculateRecipientCount = async (req, res) => {
         };
 
         const studentIds = parseParam(selected_student_ids);
+        const statuses = parseParam(target_status);
 
         if (target_type === 'individual' && studentIds) {
-            const [rows] = await masterPool.query(
-                'SELECT COUNT(*) as count FROM students WHERE student_status = "Regular" AND id IN (?)',
-                [studentIds]
-            );
+            let indQuery = 'SELECT COUNT(*) as count FROM students WHERE 1=1 AND id IN (?)';
+            const indParams = [studentIds];
+            if (statuses && statuses.length > 0) {
+                indQuery += ' AND student_status IN (?)';
+                indParams.push(statuses);
+            } else {
+                indQuery += ' AND student_status = "Regular"';
+            }
+            const [rows] = await masterPool.query(indQuery, indParams);
             return res.json({ success: true, count: rows[0].count });
         }
 
         // Build dynamic query
-        // Force "Regular" status only
-        let query = 'SELECT COUNT(*) as count FROM students WHERE student_status = "Regular"';
+        let query = 'SELECT COUNT(*) as count FROM students WHERE 1=1';
         const params = [];
+
+        if (statuses && statuses.length > 0) {
+            query += ' AND student_status IN (?)';
+            params.push(statuses);
+        } else {
+            query += ' AND student_status = "Regular"';
+        }
 
         const colleges = parseParam(target_college);
         const batches = parseParam(target_batch);
@@ -496,6 +508,19 @@ exports.getSemesters = async (req, res) => {
     }
 };
 
+exports.getStatuses = async (req, res) => {
+    try {
+        const [rows] = await masterPool.query(
+            'SELECT DISTINCT student_status FROM students WHERE student_status IS NOT NULL AND student_status != "" ORDER BY student_status'
+        );
+        const statuses = rows.map(r => ({ value: r.student_status, label: r.student_status }));
+        res.json({ success: true, data: statuses });
+    } catch (error) {
+        console.error('Get statuses error:', error);
+        res.status(500).json({ success: false, data: [] });
+    }
+};
+
 exports.sendSMSAnnouncement = async (req, res) => {
     try {
         const {
@@ -507,6 +532,7 @@ exports.sendSMSAnnouncement = async (req, res) => {
             selected_student_ids,
             target_college,
             target_batch,
+            target_status,
             target_course,
             target_branch,
             target_year,
@@ -527,7 +553,7 @@ exports.sendSMSAnnouncement = async (req, res) => {
         }
 
         // 1. Fetch Recipients
-        let query = 'SELECT students.*, colleges.name as college, courses.name as course, course_branches.name as branch FROM students LEFT JOIN colleges ON students.college_id = colleges.id LEFT JOIN courses ON students.course_id = courses.id LEFT JOIN course_branches ON students.branch_id = course_branches.id WHERE student_status = "Regular"';
+        let query = 'SELECT students.*, colleges.name as college, courses.name as course, course_branches.name as branch FROM students LEFT JOIN colleges ON students.college_id = colleges.id LEFT JOIN courses ON students.course_id = courses.id LEFT JOIN course_branches ON students.branch_id = course_branches.id WHERE 1=1';
         const params = [];
 
         const parseParam = (val) => {
@@ -538,6 +564,14 @@ exports.sendSMSAnnouncement = async (req, res) => {
                 return parsed.length ? parsed : null;
             } catch (e) { return null; }
         };
+
+        const statuses = parseParam(target_status);
+        if (statuses && statuses.length > 0) {
+            query += ' AND students.student_status IN (?)';
+            params.push(statuses);
+        } else {
+            query += ' AND students.student_status = "Regular"';
+        }
 
         const studentIds = parseParam(selected_student_ids);
 

@@ -276,8 +276,8 @@ const DigitalIdCardBack = ({
 
   const addressFullText = cleanAddressString(rawAddress) || 'D.No. XX-XX, Komaripalem, Kakinada, A.P.';
   const displayAddress = truncateAddress(addressFullText, 175);
-  const addressFontSize = addressFullText.length > 80 ? '5.7pt' : '6.0pt';
-  const addressLineHeight = '1.22';
+  const addressFontSize = addressFullText.length > 100 ? '6.0pt' : '6.3pt';
+  const addressLineHeight = '1.24';
 
   return (
     <div
@@ -293,7 +293,7 @@ const DigitalIdCardBack = ({
         border: '1px solid #e5e7eb',
         borderRadius: '12px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-        fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         printColorAdjust: 'exact',
         WebkitPrintColorAdjust: 'exact',
       }}
@@ -324,46 +324,46 @@ const DigitalIdCardBack = ({
           }}
         >
           {/* Date of Birth */}
-          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.5pt] leading-[1.3]">
+          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.2pt] leading-[1.3]">
             Date of Birth
           </span>
-          <span className="font-extrabold text-[#000000] text-center text-[6.5pt] leading-[1.3] select-none">
+          <span className="font-extrabold text-[#000000] text-center text-[6.2pt] leading-[1.3] select-none">
             :
           </span>
-          <span className="font-extrabold text-[#000000] text-[7.0pt] leading-[1.3]">
+          <span className="font-extrabold text-[#000000] text-[6.3pt] leading-[1.3]">
             {dateOfBirth}
           </span>
 
           {/* Parent/Guardian */}
-          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.5pt] leading-[1.3]">
+          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.2pt] leading-[1.3]">
             Parent/Guardian
           </span>
-          <span className="font-extrabold text-[#000000] text-center text-[6.5pt] leading-[1.3] select-none">
+          <span className="font-extrabold text-[#000000] text-center text-[6.2pt] leading-[1.3] select-none">
             :
           </span>
           <span
-            className="font-extrabold text-[#000000] text-[7.0pt] leading-[1.3] line-clamp-2"
+            className="font-extrabold text-[#000000] text-[6.3pt] leading-[1.3] line-clamp-2"
             title={parentGuardian}
           >
             {parentGuardian}
           </span>
 
           {/* Emergency Contact */}
-          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.5pt] leading-[1.3]">
+          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.2pt] leading-[1.3]">
             Emergency Contact
           </span>
-          <span className="font-extrabold text-[#000000] text-center text-[6.5pt] leading-[1.3] select-none">
+          <span className="font-extrabold text-[#000000] text-center text-[6.2pt] leading-[1.3] select-none">
             :
           </span>
-          <span className="font-extrabold text-[#000000] text-[7.0pt] leading-[1.3] font-mono tracking-tight">
+          <span className="font-extrabold text-[#000000] text-[6.3pt] leading-[1.3]">
             {emergencyContact}
           </span>
 
           {/* Student Address */}
-          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.5pt] leading-[1.3]">
+          <span className="font-extrabold text-[#000000] whitespace-nowrap text-[6.2pt] leading-[1.3]">
             Student Address
           </span>
-          <span className="font-extrabold text-[#000000] text-center text-[6.5pt] leading-[1.3] select-none">
+          <span className="font-extrabold text-[#000000] text-center text-[6.2pt] leading-[1.3] select-none">
             :
           </span>
           <div
@@ -392,17 +392,17 @@ const DigitalIdCardBack = ({
 
           {/* Return Information */}
           <div className="flex flex-col gap-[0.8mm]">
-            <span className="text-[#64748B] font-semibold text-[5.8pt] leading-tight">
+            <span className="text-[#64748B] font-semibold text-[6.0pt] leading-tight">
               If found, please return to:
             </span>
-            <h3 className="text-[#111827] font-extrabold text-[8.2pt] leading-tight m-0 line-clamp-2">
+            <h3 className="text-[#111827] font-extrabold text-[9.7pt] leading-tight m-0 line-clamp-2">
               {collegeName}
             </h3>
-            <span className="text-[#334155] font-medium text-[5.8pt] leading-tight line-clamp-2">
+            <span className="text-[#334155] font-medium text-[6.2pt] leading-tight line-clamp-2">
               {collegeAddress}
             </span>
             {collegeContact ? (
-              <span className="text-[#334155] font-semibold text-[5.8pt] leading-tight">
+              <span className="text-[#334155] font-semibold text-[6.2pt] leading-tight">
                 College Contact: {collegeContact}
               </span>
             ) : null}

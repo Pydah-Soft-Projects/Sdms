@@ -236,8 +236,8 @@ exports.getSmsReportLogs = async (req, res) => {
       filteredParams.push(semester);
     }
     if (search) {
-      filteredWhere += ' AND (sl.mobile_number LIKE ? OR s.student_name LIKE ? OR s.admission_number LIKE ? OR sl.message LIKE ?)';
-      filteredParams.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+      filteredWhere += ' AND (sl.mobile_number LIKE ? OR s.student_name LIKE ? OR s.admission_number LIKE ? OR sl.message LIKE ? OR sl.sent_by LIKE ?)';
+      filteredParams.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
     }
 
     const studentJoin = joinClause || ' LEFT JOIN students s ON sl.student_id = s.id ';
@@ -260,6 +260,8 @@ exports.getSmsReportLogs = async (req, res) => {
         sl.message_id,
         sl.sent_at,
         sl.error_details,
+        sl.sent_by,
+        COALESCE(NULLIF(TRIM(sl.sent_by), ''), 'System Generated') AS raised_by,
         s.admission_number,
         s.student_name,
         s.college,

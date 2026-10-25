@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Loader2, Megaphone, Calendar, BarChart2, CheckCircle, Clock, AlertCircle, X, RefreshCw, ChevronRight } from 'lucide-react';
+import { Loader2, Megaphone, Calendar, BarChart2, CheckCircle, Clock, AlertCircle, X, RefreshCw, ChevronRight, Ticket, Users, Check, AlertTriangle, Send, User } from 'lucide-react';
 import { SkeletonBox } from '../../components/SkeletonLoader';
 import api from '../../config/api';
+import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
 
 const formatTarget = (val) => {
@@ -21,12 +22,28 @@ const formatTarget = (val) => {
 };
 
 const StudentAnnouncements = () => {
+    const { user } = useAuthStore();
     const [activeTab, setActiveTab] = useState('announcements');
     const [loading, setLoading] = useState(true);
     const [announcements, setAnnouncements] = useState([]);
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
     const [polls, setPolls] = useState([]);
     const [votingId, setVotingId] = useState(null);
+
+    // Event Registration state
+    const [registerModalAnnouncement, setRegisterModalAnnouncement] = useState(null);
+    const [registerFormResponses, setRegisterFormResponses] = useState({});
+    const [registerFormData, setRegisterFormData] = useState({
+        student_name: '',
+        pin_number: '',
+        college: '',
+        branch: '',
+        year_sem: '',
+        phone: '',
+        email: ''
+    });
+    const [registerSubmitting, setRegisterSubmitting] = useState(false);
+    const [cancellingRegId, setCancellingRegId] = useState(null);
 
     // Pagination & Caching states
     const [hasMore, setHasMore] = useState(true);
@@ -155,6 +172,207 @@ const StudentAnnouncements = () => {
         }
     };
 
+    const handleOpenRegisterModal = (announcement) => {
+        setRegisterModalAnnouncement(announcement);
+        const yearSemStr = [
+            user?.current_year ? `Yr ${user.current_year}` : '',
+            user?.current_semester ? `Sem ${user.current_semester}` : ''
+        ].filter(Boolean).join(' ') || (user?.batch || '');
+
+        setRegisterFormData({
+            student_name: user?.student_name || user?.name || '',
+            pin_number: user?.admission_number || user?.pin_no || '',
+            college: user?.college || '',
+            branch: user?.branch || '',
+            year_sem: yearSemStr,
+            phone: user?.phone || user?.student_mobile || '',
+            email: user?.email || ''
+        });
+
+        const initialResponses = {};
+        if (Array.isArray(announcement.registration_form_fields)) {
+            announcement.registration_form_fields.forEach(field => {
+                if (!field.is_default) {
+                    initialResponses[field.id || field.label] = '';
+                }
+            });
+        }
+        if (announcement.custom_registration_field) {
+            initialResponses['custom_registration_field'] = '';
+        }
+        setRegisterFormResponses(initialResponses);
+    };
+
+    const handleSubmitRegistration = async (e) => {
+        if (e) e.preventDefault();
+        if (!registerModalAnnouncement) return;
+
+        const formFields = Array.isArray(registerModalAnnouncement.registration_form_fields)
+            ? registerModalAnnouncement.registration_form_fields
+            : [];
+        const defaultFields = formFields.filter(f => f.is_default);
+        const customFields = formFields.filter(f => !f.is_default);
+
+        // Default profile fields fallback if not explicitly defined
+        const activeDefaultFields = defaultFields.length > 0
+            ? defaultFields
+            : [
+                { key: 'student_name', label: 'Student Full Name', required: true, enabled: true },
+                { key: 'pin_number', label: 'PIN / Roll Number', required: true, enabled: true },
+                { key: 'college', label: 'College', required: false, enabled: true },
+                { key: 'branch', label: 'Department / Branch', required: false, enabled: true },
+                { key: 'year_sem', label: 'Year & Semester', required: false, enabled: true },
+                { key: 'phone', label: 'Mobile Number', required: true, enabled: true },
+                { key: 'email', label: 'Email ID', required: false, enabled: true },
+            ];
+
+        // Validate required default fields
+        for (const def of activeDefaultFields) {
+            if (def.enabled !== false && def.required) {
+                const val = registerFormData[def.key];
+                if (val === undefined || val === null || String(val).trim() === '') {
+                    toast.error(`Please enter your ${def.label || 'required details'}`);
+                    return;
+                }
+            }
+        }
+
+        // Validate required custom fields
+        for (const field of customFields) {
+            if (field.required) {
+                const key = field.id || field.label;
+                const val = registerFormResponses[key];
+                if (val === undefined || val === null || String(val).trim() === '') {
+                    toast.error(`Please provide an answer for "${field.label}"`);
+                    return;
+                }
+            }
+        }
+
+        setRegisterSubmitting(true);
+        try {
+            const payload = {
+                student_name: registerFormData.student_name,
+                pin_number: registerFormData.pin_number,
+                college: registerFormData.college,
+                branch: registerFormData.branch,
+                year_sem: registerFormData.year_sem,
+                phone: registerFormData.phone,
+                email: registerFormData.email,
+                form_responses: registerFormResponses,
+                custom_field_value: registerFormResponses['custom_registration_field'] || ''
+            };
+
+            const response = await api.post(`/announcements/${registerModalAnnouncement.id}/register`, payload);
+            if (response.data.success) {
+                toast.success('Registration confirmed successfully!');
+                const targetId = registerModalAnnouncement.id;
+                
+                // Update announcements list
+                setAnnouncements(prev => prev.map(ann => {
+                    if (ann.id === targetId) {
+                        const newCount = (Number(ann.registered_count) || 0) + 1;
+                        const newAvailable = ann.max_seats ? Math.max(0, Number(ann.max_seats) - newCount) : null;
+                        const isFull = ann.max_seats ? newCount >= Number(ann.max_seats) : false;
+                        return {
+                            ...ann,
+                            is_registered: true,
+                            registered_count: newCount,
+                            available_seats: newAvailable,
+                            is_full: isFull,
+                            my_registration: {
+                                registered_at: new Date().toISOString(),
+                                form_responses: registerFormResponses
+                            }
+                        };
+                    }
+                    return ann;
+                }));
+
+                // Update selectedAnnouncement if open
+                setSelectedAnnouncement(prev => {
+                    if (prev && prev.id === targetId) {
+                        const newCount = (Number(prev.registered_count) || 0) + 1;
+                        const newAvailable = prev.max_seats ? Math.max(0, Number(prev.max_seats) - newCount) : null;
+                        const isFull = prev.max_seats ? newCount >= Number(prev.max_seats) : false;
+                        return {
+                            ...prev,
+                            is_registered: true,
+                            registered_count: newCount,
+                            available_seats: newAvailable,
+                            is_full: isFull,
+                            my_registration: {
+                                registered_at: new Date().toISOString(),
+                                form_responses: registerFormResponses
+                            }
+                        };
+                    }
+                    return prev;
+                });
+
+                setRegisterModalAnnouncement(null);
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Failed to submit registration');
+        } finally {
+            setRegisterSubmitting(false);
+        }
+    };
+
+    const handleCancelRegistration = async (announcementId) => {
+        if (!window.confirm('Are you sure you want to cancel your registration? Your seat will be made available to other students.')) {
+            return;
+        }
+
+        setCancellingRegId(announcementId);
+        try {
+            const response = await api.delete(`/announcements/${announcementId}/register`);
+            if (response.data.success) {
+                toast.success('Registration cancelled successfully');
+
+                // Update announcements list
+                setAnnouncements(prev => prev.map(ann => {
+                    if (ann.id === announcementId) {
+                        const newCount = Math.max(0, (Number(ann.registered_count) || 1) - 1);
+                        const newAvailable = ann.max_seats ? Math.max(0, Number(ann.max_seats) - newCount) : null;
+                        return {
+                            ...ann,
+                            is_registered: false,
+                            registered_count: newCount,
+                            available_seats: newAvailable,
+                            is_full: false,
+                            my_registration: null
+                        };
+                    }
+                    return ann;
+                }));
+
+                // Update selectedAnnouncement if open
+                setSelectedAnnouncement(prev => {
+                    if (prev && prev.id === announcementId) {
+                        const newCount = Math.max(0, (Number(prev.registered_count) || 1) - 1);
+                        const newAvailable = prev.max_seats ? Math.max(0, Number(prev.max_seats) - newCount) : null;
+                        return {
+                            ...prev,
+                            is_registered: false,
+                            registered_count: newCount,
+                            available_seats: newAvailable,
+                            is_full: false,
+                            my_registration: null
+                        };
+                    }
+                    return prev;
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Failed to cancel registration');
+        } finally {
+            setCancellingRegId(null);
+        }
+    };
+
     if (loading && announcements.length === 0 && polls.length === 0) {
         return (
             <div className="animate-pulse bg-gray-50/50 min-h-screen">
@@ -251,9 +469,26 @@ const StudentAnnouncements = () => {
                                         {/* Content */}
                                         <div className="p-4 flex-1 flex flex-col justify-between">
                                             <div>
-                                                <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">
-                                                    <Calendar size={12} className="text-indigo-500 shrink-0" />
-                                                    <span>{new Date(ann.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                                <div className="flex items-center justify-between gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Calendar size={12} className="text-indigo-500 shrink-0" />
+                                                        <span>{new Date(ann.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                                    </div>
+                                                    {ann.requires_registration && (
+                                                        ann.is_registered ? (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                <CheckCircle size={10} /> Registered
+                                                            </span>
+                                                        ) : ann.is_full ? (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-rose-700 border border-rose-200">
+                                                                Seats Full
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                                <Ticket size={10} /> {ann.available_seats !== null ? `${ann.available_seats} left` : 'Register'}
+                                                            </span>
+                                                        )
+                                                    )}
                                                 </div>
                                                 <h3 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">
                                                     {ann.title}
@@ -266,7 +501,11 @@ const StudentAnnouncements = () => {
                                             </div>
                                             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider">
                                                 <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                                                    Read More <ChevronRight size={12} />
+                                                    {ann.requires_registration && !ann.is_registered ? (
+                                                        <span className="text-indigo-600 flex items-center gap-1">Register Now <ChevronRight size={12} /></span>
+                                                    ) : (
+                                                        <span className="flex items-center gap-1">Read More <ChevronRight size={12} /></span>
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>
@@ -484,8 +723,322 @@ const StudentAnnouncements = () => {
                                         {selectedAnnouncement.target_branch && <span className="bg-slate-50 text-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-100">{formatTarget(selectedAnnouncement.target_branch)}</span>}
                                     </div>
                                 )}
+
+                                {/* Event Registration & Seats Block */}
+                                {selectedAnnouncement.requires_registration && (
+                                    <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/40 border border-indigo-100/90 shadow-xs space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2.5">
+                                                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                                                    <Ticket size={18} />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xs sm:text-sm font-black text-slate-900">Event Registration & Seats</h4>
+                                                    <p className="text-[10px] text-slate-500 font-medium">Reserve your seat to participate</p>
+                                                </div>
+                                            </div>
+                                            {selectedAnnouncement.is_registered ? (
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                                                    <CheckCircle size={12} /> Registered
+                                                </span>
+                                            ) : selectedAnnouncement.is_full ? (
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-200">
+                                                    Seats Full
+                                                </span>
+                                            ) : (
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                                    Open
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Stats Row */}
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center">
+                                            <div className="p-2.5 bg-white rounded-xl border border-slate-100 shadow-2xs">
+                                                <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Total Capacity</span>
+                                                <span className="text-xs sm:text-sm font-black text-slate-800">
+                                                    {selectedAnnouncement.max_seats ? `${selectedAnnouncement.max_seats} Seats` : 'Unlimited'}
+                                                </span>
+                                            </div>
+                                            <div className="p-2.5 bg-white rounded-xl border border-slate-100 shadow-2xs">
+                                                <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Available</span>
+                                                <span className="text-xs sm:text-sm font-black text-indigo-600">
+                                                    {selectedAnnouncement.available_seats !== null ? `${selectedAnnouncement.available_seats} Seats` : 'Open'}
+                                                </span>
+                                            </div>
+                                            <div className="col-span-2 sm:col-span-1 p-2.5 bg-white rounded-xl border border-slate-100 shadow-2xs">
+                                                <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Deadline</span>
+                                                <span className="text-xs font-black text-slate-800 truncate block">
+                                                    {selectedAnnouncement.registration_deadline
+                                                        ? new Date(selectedAnnouncement.registration_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                                                        : 'No Deadline'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Status / Action */}
+                                        {selectedAnnouncement.is_registered ? (
+                                            <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center justify-between gap-3">
+                                                <div className="flex items-center gap-2.5">
+                                                    <CheckCircle size={18} className="text-emerald-600 shrink-0" />
+                                                    <div>
+                                                        <p className="text-xs font-black text-emerald-900">Your registration is confirmed!</p>
+                                                        <p className="text-[10px] text-emerald-700 font-medium">Your seat is reserved for this event.</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleCancelRegistration(selectedAnnouncement.id)}
+                                                    disabled={cancellingRegId === selectedAnnouncement.id}
+                                                    className="px-3 py-1.5 rounded-lg text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 transition-all flex items-center gap-1 shrink-0"
+                                                >
+                                                    {cancellingRegId === selectedAnnouncement.id ? <Loader2 size={12} className="animate-spin" /> : 'Cancel Seat'}
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            (() => {
+                                                const isDeadlinePassed = selectedAnnouncement.registration_deadline && new Date(selectedAnnouncement.registration_deadline) < new Date();
+                                                if (isDeadlinePassed) {
+                                                    return (
+                                                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-amber-800 text-xs font-bold">
+                                                            <Clock size={16} className="shrink-0" />
+                                                            Registration closed: Deadline passed.
+                                                        </div>
+                                                    );
+                                                }
+                                                if (selectedAnnouncement.is_full) {
+                                                    return (
+                                                        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-800 text-xs font-bold">
+                                                            <AlertCircle size={16} className="shrink-0" />
+                                                            Registration closed: All seats have been filled.
+                                                        </div>
+                                                    );
+                                                }
+                                                return (
+                                                    <button
+                                                        onClick={() => handleOpenRegisterModal(selectedAnnouncement)}
+                                                        className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-md shadow-indigo-200 transition-all"
+                                                    >
+                                                        <Ticket size={16} />
+                                                        Register & Book Seat Now
+                                                    </button>
+                                                );
+                                            })()
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Student Event Registration Modal ── */}
+            {registerModalAnnouncement && (
+                <div
+                    className="fixed inset-0 z-[95] flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-sm animate-fade-in"
+                    onClick={() => setRegisterModalAnnouncement(null)}
+                >
+                    <div
+                        className="bg-white w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                                    <Ticket size={18} />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">Event Registration</h3>
+                                    <p className="text-[11px] font-medium text-slate-500 line-clamp-1">{registerModalAnnouncement.title}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setRegisterModalAnnouncement(null)}
+                                className="p-1.5 hover:bg-slate-200 rounded-xl transition-all text-slate-400 hover:text-slate-700"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        {(() => {
+                            const formFields = Array.isArray(registerModalAnnouncement.registration_form_fields)
+                                ? registerModalAnnouncement.registration_form_fields
+                                : [];
+                            const defaultFields = formFields.filter(f => f.is_default);
+                            const customFields = formFields.filter(f => !f.is_default);
+
+                            const activeDefaultFields = defaultFields.length > 0
+                                ? defaultFields
+                                : [
+                                    { key: 'student_name', label: 'Student Full Name', required: true, enabled: true },
+                                    { key: 'pin_number', label: 'PIN / Roll Number', required: true, enabled: true },
+                                    { key: 'branch', label: 'Department / Branch', required: false, enabled: true },
+                                    { key: 'college', label: 'College', required: false, enabled: true },
+                                    { key: 'year_sem', label: 'Year & Semester', required: false, enabled: true },
+                                    { key: 'phone', label: 'Mobile Number', required: true, enabled: true },
+                                    { key: 'email', label: 'Email ID', required: false, enabled: true },
+                                ];
+
+                            const visibleDefaultFields = activeDefaultFields.filter(f => f.enabled !== false);
+
+                            return (
+                                <form onSubmit={handleSubmitRegistration} className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-4">
+                                    {/* Notice / Intro */}
+                                    <div className="p-3 bg-indigo-50/70 rounded-xl border border-indigo-100 flex items-center justify-between gap-2">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                                                <Check size={13} strokeWidth={3} />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-bold text-indigo-950">Student Profile Information</p>
+                                                <p className="text-[11px] text-indigo-700/80 font-medium">Pre-filled from your profile. You can edit any details below if needed.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Pre-filled & Editable Default Fields */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                        {visibleDefaultFields.map(field => {
+                                            const inputType = field.key === 'phone' ? 'tel' : field.key === 'email' ? 'email' : 'text';
+                                            const placeholderMap = {
+                                                student_name: 'e.g. John Doe',
+                                                pin_number: 'e.g. 20230353',
+                                                branch: 'e.g. CSE',
+                                                college: 'e.g. Pydah College of Engineering',
+                                                year_sem: 'e.g. Yr 4 Sem 1',
+                                                phone: 'e.g. 9876543210',
+                                                email: 'e.g. student@gmail.com'
+                                            };
+
+                                            return (
+                                                <div key={field.key} className={field.key === 'student_name' || field.key === 'college' ? 'sm:col-span-2' : ''}>
+                                                    <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
+                                                        {field.label} {field.required && <span className="text-rose-500 font-bold">*</span>}
+                                                    </label>
+                                                    <input
+                                                        type={inputType}
+                                                        required={field.required}
+                                                        value={registerFormData[field.key] ?? ''}
+                                                        onChange={e => setRegisterFormData(prev => ({ ...prev, [field.key]: e.target.value }))}
+                                                        placeholder={placeholderMap[field.key] || `Enter ${field.label}...`}
+                                                        className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-colors"
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Dynamic Questions configured by Admin */}
+                                    {customFields.length > 0 && (
+                                        <div className="space-y-3.5 pt-2 border-t border-slate-100">
+                                            <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Registration Details</h4>
+                                            {customFields.map((field) => {
+                                                const fieldKey = field.id || field.label;
+                                                const fieldValue = registerFormResponses[fieldKey] || '';
+                                                const optionsList = field.options ? field.options.split(',').map(o => o.trim()).filter(Boolean) : [];
+
+                                                return (
+                                                    <div key={fieldKey} className="space-y-1">
+                                                        <label className="block text-xs font-bold text-slate-700">
+                                                            {field.label} {field.required && <span className="text-rose-500 font-black">*</span>}
+                                                        </label>
+
+                                                        {field.type === 'select' ? (
+                                                            <select
+                                                                required={field.required}
+                                                                value={fieldValue}
+                                                                onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+                                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                            >
+                                                                <option value="">Select an option...</option>
+                                                                {optionsList.map(opt => (
+                                                                    <option key={opt} value={opt}>{opt}</option>
+                                                                ))}
+                                                            </select>
+                                                        ) : field.type === 'boolean' ? (
+                                                            <select
+                                                                required={field.required}
+                                                                value={fieldValue}
+                                                                onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+                                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                            >
+                                                                <option value="">Select Yes / No...</option>
+                                                                <option value="Yes">Yes</option>
+                                                                <option value="No">No</option>
+                                                            </select>
+                                                        ) : field.type === 'textarea' ? (
+                                                            <textarea
+                                                                rows={2}
+                                                                required={field.required}
+                                                                value={fieldValue}
+                                                                onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+                                                                placeholder={`Enter ${field.label}...`}
+                                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                            />
+                                                        ) : field.type === 'number' ? (
+                                                            <input
+                                                                type="number"
+                                                                required={field.required}
+                                                                value={fieldValue}
+                                                                onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+                                                                placeholder={`Enter ${field.label}...`}
+                                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                            />
+                                                        ) : (
+                                                            <input
+                                                                type="text"
+                                                                required={field.required}
+                                                                value={fieldValue}
+                                                                onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
+                                                                placeholder={`Enter ${field.label}...`}
+                                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                            />
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* Legacy single custom field support */}
+                                    {customFields.length === 0 && registerModalAnnouncement.custom_registration_field && (
+                                        <div className="space-y-1 pt-2 border-t border-slate-100">
+                                            <label className="block text-xs font-bold text-slate-700">
+                                                {registerModalAnnouncement.custom_registration_field}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={registerFormResponses['custom_registration_field'] || ''}
+                                                onChange={e => setRegisterFormResponses(prev => ({ ...prev, custom_registration_field: e.target.value }))}
+                                                placeholder="Your answer..."
+                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Modal Footer */}
+                                    <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                                        <button
+                                            type="button"
+                                            onClick={() => setRegisterModalAnnouncement(null)}
+                                            className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={registerSubmitting}
+                                            className="px-5 py-2 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white shadow-md shadow-indigo-200 transition-all flex items-center gap-1.5"
+                                        >
+                                            {registerSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Ticket size={14} />}
+                                            {registerSubmitting ? 'Registering...' : 'Confirm Registration'}
+                                        </button>
+                                    </div>
+                                </form>
+                            );
+                        })()}
                     </div>
                 </div>
             )}

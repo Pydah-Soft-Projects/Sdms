@@ -48,12 +48,12 @@ const formatDateForMessage = (dateString = '') => {
   return `${day}-${month}-${year}`;
 };
 
-const logSmsToDb = async ({ studentId, mobileNumber, message, category, templateId, currentYear, currentSemester, status, messageId, errorDetails }) => {
+const logSmsToDb = async ({ studentId, mobileNumber, message, category, templateId, currentYear, currentSemester, status, messageId, errorDetails, sentBy }) => {
   try {
     const query = `
       INSERT INTO sms_logs 
-      (student_id, mobile_number, message, category, template_id, current_year, current_semester, status, message_id, error_details)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (student_id, mobile_number, message, category, template_id, current_year, current_semester, status, message_id, error_details, sent_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const params = [
       studentId || null,
@@ -65,7 +65,8 @@ const logSmsToDb = async ({ studentId, mobileNumber, message, category, template
       currentSemester || null,
       status,
       messageId || null,
-      errorDetails || null
+      errorDetails || null,
+      sentBy || null
     ];
 
     await masterPool.query(query, params);
@@ -78,6 +79,7 @@ const dispatchSms = async ({ to, message, templateId, peId, meta = {} }) => {
   const logPrefix = `[SMS] ${meta?.student?.admissionNumber || 'unknown'}`;
   const student = meta?.student || {};
   const actualTemplateId = templateId || meta?.templateId || null;
+  const sentBy = meta?.sentBy || meta?.user || meta?.sent_by || meta?.raisedBy || meta?.raised_by || null;
 
   if (!to) {
     console.log(`${logPrefix} ⚠️ SKIPPED - No destination number provided`);
@@ -103,7 +105,8 @@ const dispatchSms = async ({ to, message, templateId, peId, meta = {} }) => {
       currentSemester: student.currentSemester,
       status: 'Sent',
       messageId: 'TEST-MODE-' + Date.now(),
-      errorDetails: 'Test Mode Simulation'
+      errorDetails: 'Test Mode Simulation',
+      sentBy
     });
 
     return {
@@ -206,7 +209,8 @@ const dispatchSms = async ({ to, message, templateId, peId, meta = {} }) => {
         currentYear: student.currentYear,
         currentSemester: student.currentSemester,
         status: 'Failed',
-        errorDetails: `HTTP ${response.status}: ${text}`
+        errorDetails: `HTTP ${response.status}: ${text}`,
+        sentBy
       });
 
       return result;
@@ -244,7 +248,8 @@ const dispatchSms = async ({ to, message, templateId, peId, meta = {} }) => {
         currentYear: student.currentYear,
         currentSemester: student.currentSemester,
         status: 'Sent',
-        messageId: messageIdMatch[1]
+        messageId: messageIdMatch[1],
+        sentBy
       });
 
       return {
@@ -272,7 +277,8 @@ const dispatchSms = async ({ to, message, templateId, peId, meta = {} }) => {
         currentYear: student.currentYear,
         currentSemester: student.currentSemester,
         status: 'Sent',
-        messageId: null
+        messageId: null,
+        sentBy
       });
 
       return {
@@ -315,7 +321,8 @@ const dispatchSms = async ({ to, message, templateId, peId, meta = {} }) => {
         currentYear: student.currentYear,
         currentSemester: student.currentSemester,
         status: 'Failed',
-        errorDetails: relevantText
+        errorDetails: relevantText,
+        sentBy
       });
 
       return {
@@ -340,7 +347,8 @@ const dispatchSms = async ({ to, message, templateId, peId, meta = {} }) => {
         currentYear: student.currentYear,
         currentSemester: student.currentSemester,
         status: 'Sent',
-        messageId: null
+        messageId: null,
+        sentBy
       });
 
       return {
@@ -363,7 +371,8 @@ const dispatchSms = async ({ to, message, templateId, peId, meta = {} }) => {
       currentYear: student.currentYear,
       currentSemester: student.currentSemester,
       status: 'Failed',
-      errorDetails: 'Unknown Response: ' + relevantText.substring(0, 200)
+      errorDetails: 'Unknown Response: ' + relevantText.substring(0, 200),
+      sentBy
     });
 
     return {
@@ -385,7 +394,8 @@ const dispatchSms = async ({ to, message, templateId, peId, meta = {} }) => {
       currentYear: student.currentYear,
       currentSemester: student.currentSemester,
       status: 'Failed',
-      errorDetails: error.message || String(error)
+      errorDetails: error.message || String(error),
+      sentBy
     });
 
     return {
@@ -535,7 +545,8 @@ const convertTemplateToDLT = (template, variables) => {
 exports.sendAbsenceNotification = async ({
   student,
   attendanceDate,
-  notificationSettings = null
+  notificationSettings = null,
+  sentBy = null
 }) => {
   const logPrefix = `[SMS] ${student.admission_number || 'unknown'}`;
   const parentMobile = resolveParentContact(student);
@@ -600,6 +611,7 @@ exports.sendAbsenceNotification = async ({
     meta: {
       category: 'Attendance',
       template: 'attendance_absent',
+      sentBy: sentBy || null,
       student: {
         id: student.id,
         admissionNumber: student.admission_number,

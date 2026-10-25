@@ -423,23 +423,24 @@ function SmsReport() {
         </div>
 
         {/* SMS Logs Table */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        {/* SMS Logs Table */}
+        <div className="flex-1 overflow-y-auto overflow-x-auto">
           {logsLoading ? (
             <div className="flex justify-center py-12"><Loader2 className="animate-spin text-blue-500" /></div>
           ) : logs.length === 0 ? (
             <p className="text-center py-12 text-xs text-gray-500">No SMS logs found for the selected filters.</p>
           ) : (
-            <table className="w-full text-xs table-fixed">
+            <table className="w-full text-xs table-fixed min-w-[950px]">
               <thead className="bg-gray-50 sticky top-0 text-gray-600 font-semibold border-b z-10 shadow-2xs">
                 <tr>
                   <th className="w-[72px] px-3 py-2.5 text-left whitespace-nowrap">Status</th>
-                  <th className="w-[110px] px-3 py-2.5 text-left whitespace-nowrap">Date</th>
+                  <th className="w-[105px] px-3 py-2.5 text-left whitespace-nowrap">Date</th>
+                  <th className="w-[125px] px-3 py-2.5 text-left whitespace-nowrap">Raised By</th>
                   <th className="w-[95px] px-3 py-2.5 text-left whitespace-nowrap">Category</th>
                   <th className="w-[110px] px-3 py-2.5 text-left whitespace-nowrap">Template Name</th>
                   <th className="w-[95px] px-3 py-2.5 text-left whitespace-nowrap">Mobile</th>
-                  <th className="w-[165px] px-3 py-2.5 text-left">Student</th>
-                  <th className="w-[165px] px-3 py-2.5 text-left">Course / Branch</th>
-                  <th className="w-[115px] px-2.5 py-2.5 text-center whitespace-nowrap">Year & Sem</th>
+                  <th className="w-[185px] px-3 py-2.5 text-left">Student</th>
+                  <th className="w-[115px] px-3 py-2.5 text-left">Course</th>
                   <th className="px-3 py-2.5 text-left">Message</th>
                 </tr>
               </thead>
@@ -475,6 +476,17 @@ function SmsReport() {
                         );
                       })()}
                     </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {log.raised_by && log.raised_by !== 'System Generated' && log.raised_by !== 'System' ? (
+                        <div className="font-semibold text-gray-900 leading-tight truncate" title={log.raised_by}>
+                          {log.raised_by}
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                          System Generated
+                        </span>
+                      )}
+                    </td>
                     <td className="px-3 py-2 whitespace-nowrap font-semibold text-gray-800 truncate" title={getCategoryDisplayName(log)}>
                       {getCategoryDisplayName(log)}
                     </td>
@@ -493,26 +505,30 @@ function SmsReport() {
                           {log.admission_number}
                         </div>
                       )}
+                      {/* Student branch & current year & sem details below the student name */}
+                      {(log.branch || log.current_year || log.current_semester) && (
+                        <div
+                          className="text-[11px] text-gray-600 font-medium leading-tight mt-0.5 truncate flex items-center gap-1"
+                          title={`${log.branch || ''}${log.current_year ? ` • Year ${log.current_year}` : ''}${log.current_semester ? ` • Sem ${log.current_semester}` : ''}`}
+                        >
+                          {log.branch && <span className="text-gray-700 font-semibold">{log.branch}</span>}
+                          {log.branch && (log.current_year || log.current_semester) && (
+                            <span className="text-gray-300">•</span>
+                          )}
+                          {log.current_year && <span>Yr {log.current_year}</span>}
+                          {log.current_year && log.current_semester && <span className="text-gray-300">•</span>}
+                          {log.current_semester && <span>Sem {log.current_semester}</span>}
+                        </div>
+                      )}
                     </td>
                     <td className="px-3 py-2">
                       <div className="font-semibold text-gray-900 leading-tight truncate" title={log.course || '-'}>
                         {log.course || '-'}
                       </div>
-                      {log.branch && (
-                        <div className="text-[11px] text-gray-500 font-medium leading-tight truncate mt-0.5" title={log.branch}>
-                          {log.branch}
+                      {log.college && (
+                        <div className="text-[11px] text-gray-400 leading-tight mt-0.5 truncate" title={log.college}>
+                          {log.college}
                         </div>
-                      )}
-                    </td>
-                    <td className="px-2.5 py-2 text-center whitespace-nowrap">
-                      {log.current_year || log.current_semester ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                          {log.current_year ? `Year ${log.current_year}` : '-'}
-                          <span className="mx-1 text-slate-300">•</span>
-                          {log.current_semester ? `Sem ${log.current_semester}` : '-'}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 font-medium">-</span>
                       )}
                     </td>
                     <td className="px-3 py-2 truncate text-gray-600 group-hover:text-blue-600 transition-colors" title={log.message}>
@@ -583,8 +599,8 @@ function SmsReport() {
             </div>
 
             <div className="p-5 space-y-4 text-xs">
-              {/* Status & Category */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Status, Raised By & Category */}
+              <div className="grid grid-cols-3 gap-2.5">
                 <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
                   <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Delivery Status</span>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -596,8 +612,16 @@ function SmsReport() {
                   </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
+                  <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Raised By</span>
+                  <p className="font-semibold text-gray-800 text-[11px] truncate" title={selectedLog.raised_by || selectedLog.sent_by || 'System Generated'}>
+                    {selectedLog.raised_by && selectedLog.raised_by !== 'System Generated' && selectedLog.raised_by !== 'System'
+                      ? selectedLog.raised_by
+                      : 'System Generated'}
+                  </p>
+                </div>
+                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
                   <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Category / Template</span>
-                  <p className="font-semibold text-gray-800">
+                  <p className="font-semibold text-gray-800 text-[11px] truncate" title={getCategoryDisplayName(selectedLog)}>
                     {getCategoryDisplayName(selectedLog)}
                     {getTemplateName(selectedLog) !== '-' && (
                       <span className="text-blue-600 font-medium ml-1">({getTemplateName(selectedLog)})</span>

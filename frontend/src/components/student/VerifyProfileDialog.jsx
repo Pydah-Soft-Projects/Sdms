@@ -86,10 +86,38 @@ const categorizeField = (field) => {
     return 'other';
 };
 
-// System fields that shouldn't be edited by students directly
-const READ_ONLY_KEYS = ['batch', 'course', 'branch', 'admission_number', 'pin_no', 'current_year', 'current_semester', 'stud_type', 'student_status', 'scholar_status', 'certificates_status'];
+// System fields and restricted fields that shouldn't be edited by students directly
+const READ_ONLY_KEYS = [
+    'batch', 'course', 'branch',
+    'admission_number', 'admission_no', 'admission_date', 'admission date', 'admission_year', 'admission year',
+    'parent_mobile1', 'parent_mobile2', 'parent mobile 1', 'parent mobile 2', 'parent mobile1', 'parent mobile2', 'parent mobile', 'parent_mobile', 'parent phone', 'parent_phone', 'parent phone 1', 'parent phone 2',
+    'pin_no', 'current_year', 'current_semester', 'stud_type', 'student_status', 'scholar_status', 'certificates_status'
+];
 
-export const VerifyProfileDialog = ({ isOpen, onClose, studentData }) => {
+const isFieldReadOnly = (field) => {
+    if (!field) return false;
+    const lowerKey = String(field.key || '').trim().toLowerCase();
+    const lowerLabel = String(field.label || '').trim().toLowerCase();
+
+    // Direct check in READ_ONLY_KEYS
+    if (READ_ONLY_KEYS.includes(lowerKey) || READ_ONLY_KEYS.includes(lowerLabel)) return true;
+
+    // Admission date / number / year
+    if (lowerKey.includes('admission') || lowerLabel.includes('admission')) return true;
+
+    // Parent mobile / phone / contact editing
+    if (
+        (lowerKey.includes('parent') && (lowerKey.includes('mobile') || lowerKey.includes('phone') || lowerKey.includes('contact') || lowerKey.includes('no') || lowerKey.includes('num'))) ||
+        (lowerLabel.includes('parent') && (lowerLabel.includes('mobile') || lowerLabel.includes('phone') || lowerLabel.includes('contact') || lowerLabel.includes('no') || lowerLabel.includes('num')))
+    ) {
+        return true;
+    }
+
+    // Pattern matches against other keys (except student_status)
+    return READ_ONLY_KEYS.some(k => (lowerKey.includes(k) || lowerLabel.includes(k)) && k !== 'student_status');
+};
+
+export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSubmitted }) => {
     const [formData, setFormData] = useState({});
     const [originalData, setOriginalData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -382,7 +410,10 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData }) => {
 
     const hasChanges = () => {
         for (const key in formData) {
-            if (formData[key] !== originalData[key]) return true;
+            if (formData[key] !== originalData[key]) {
+                const field = formFields.find(f => f.key === key) || { key };
+                if (!isFieldReadOnly(field)) return true;
+            }
         }
         return false;
     };
@@ -394,6 +425,9 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData }) => {
             const changes = {};
             for (const key in formData) {
                 if (formData[key] !== originalData[key]) {
+                    const field = formFields.find(f => f.key === key) || { key };
+                    if (isFieldReadOnly(field)) continue;
+
                     // Apply gender normalization to changes too
                     if (key === 'gender') {
                         const g = String(formData[key]).toUpperCase();
@@ -420,8 +454,9 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData }) => {
             });
 
             if (res.data?.success) {
-                toast.success('Profile change request submitted successfully. It will be reviewed by admin.');
+                toast.success('Profile change request submitted successfully. It will be reviewed for approval.');
                 setPendingRequest({ status: 'pending', requested_changes: changedFields });
+                if (onRequestSubmitted) onRequestSubmitted();
             } else {
                 toast.error(res.data?.message || 'Failed to submit request');
             }
@@ -458,11 +493,9 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData }) => {
     if (!isOpen) return null;
 
     const availableTabs = [
-        { id: 'personal', label: 'Personal Data', icon: User, fields: groupedFields.personal },
-        { id: 'academic', label: 'Academic Info', icon: GraduationCap, fields: groupedFields.academic },
-        { id: 'contact', label: 'Contact Details', icon: Phone, fields: groupedFields.contact },
-        { id: 'address', label: 'Address & Location', icon: MapPin, fields: groupedFields.address },
-        { id: 'other', label: 'Other', icon: FileText, fields: groupedFields.other },
+        { id: 'personal', step: 1, label: 'Personal Info', shortLabel: 'Personal', icon: User, fields: groupedFields.personal },
+        { id: 'contact', step: 2, label: 'Contact Details', shortLabel: 'Contact', icon: Phone, fields: groupedFields.contact },
+        { id: 'address', step: 3, label: 'Address & Location', shortLabel: 'Address', icon: MapPin, fields: groupedFields.address }
     ].filter(tab => tab.fields && tab.fields.length > 0);
 
     // If activeTab is hidden, switch to the first available
@@ -470,26 +503,31 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData }) => {
         setActiveTab(availableTabs[0].id);
     }
 
+    const currentStepIndex = availableTabs.findIndex(t => t.id === activeTab);
+    const prevTab = currentStepIndex > 0 ? availableTabs[currentStepIndex - 1] : null;
+    const nextTab = currentStepIndex < availableTabs.length - 1 ? availableTabs[currentStepIndex + 1] : null;
+
     const renderField = (field) => {
         if (!field) return null;
         const lowerKey = String(field.key || '').toLowerCase();
         const lowerLabel = String(field.label || '').toLowerCase();
 
         // Comprehensive check for read only
-        const isReadOnly = READ_ONLY_KEYS.includes(lowerKey) ||
-            READ_ONLY_KEYS.some(k => lowerLabel.includes(k) && k !== 'student_status');
+        const isReadOnly = isFieldReadOnly(field);
 
         const value = formData[field.key] || '';
+        const isFullWidth = field.type === 'textarea' || lowerKey.includes('address') || lowerLabel.includes('address');
 
         return (
-            <div className="group mb-5">
-                <div className="flex items-center justify-between mb-2 px-1">
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] transition-colors group-focus-within:text-indigo-600">
-                        {field.label} {field.required && <span className="text-red-500">*</span>}
+            <div className={`space-y-1 sm:space-y-1.5 ${isFullWidth ? 'sm:col-span-2' : ''}`}>
+                <div className="flex items-center justify-between">
+                    <label className="text-[9px] sm:text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1 truncate">
+                        <span>{field.label}</span>
+                        {field.required && !isReadOnly && <span className="text-rose-500 font-bold">*</span>}
                     </label>
                     {isReadOnly && (
-                        <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <Lock size={10} /> READ ONLY
+                        <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 sm:px-2 py-0.5 rounded-md flex items-center gap-1 shrink-0">
+                            <Lock size={9} /> Locked
                         </span>
                     )}
                 </div>
@@ -501,25 +539,25 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData }) => {
                         onChange={handleChange}
                         disabled={!!pendingRequest || isReadOnly}
                         rows={2}
-                        className={`w-full px-4 py-2.5 border rounded-2xl text-[12px] sm:text-[13px] font-bold text-gray-900 transition-all duration-300 outline-none resize-none
+                        className={`w-full px-2.5 py-1.5 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all outline-none resize-none
                             ${isReadOnly
-                                ? 'bg-gray-50/50 border-gray-100 text-gray-400 cursor-not-allowed italic'
+                                ? 'bg-slate-100/80 border border-slate-200 text-slate-400 cursor-not-allowed select-none'
                                 : !!pendingRequest
-                                    ? 'bg-gray-50/50 border-gray-100'
-                                    : 'bg-white border-gray-200 hover:border-gray-300 focus:border-indigo-500 focus:ring-[4px] focus:ring-indigo-500/10 shadow-sm'}`}
-                    ></textarea>
+                                    ? 'bg-slate-50 border border-slate-200 text-slate-600 cursor-not-allowed'
+                                    : 'bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-xs'}`}
+                    />
                 ) : field.type === 'select' || field.type === 'radio' ? (
                     <select
                         name={field.key}
                         value={value}
                         onChange={handleChange}
                         disabled={!!pendingRequest || isReadOnly}
-                        className={`w-full px-4 py-2.5 border rounded-2xl text-[12px] sm:text-[13px] font-bold text-gray-900 transition-all duration-300 outline-none appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%236B7280%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:16px_16px] bg-[right_1rem_center] bg-no-repeat
+                        className={`w-full px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all outline-none
                             ${isReadOnly
-                                ? 'bg-gray-50/50 border-gray-100 text-gray-400 cursor-not-allowed italic'
+                                ? 'bg-slate-100/80 border border-slate-200 text-slate-400 cursor-not-allowed'
                                 : !!pendingRequest
-                                    ? 'bg-gray-50/50 border-gray-100'
-                                    : 'bg-white border-gray-200 hover:border-gray-300 focus:border-indigo-500 focus:ring-[4px] focus:ring-indigo-500/10 shadow-sm'}`}
+                                    ? 'bg-slate-50 border border-slate-200 text-slate-600 cursor-not-allowed'
+                                    : 'bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-xs'}`}
                     >
                         <option value="">Select an option</option>
                         {(field.options || []).map((opt, i) => (
@@ -533,12 +571,12 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData }) => {
                         value={value}
                         onChange={handleChange}
                         disabled={!!pendingRequest || isReadOnly}
-                        className={`w-full px-4 py-2.5 border rounded-2xl text-[12px] sm:text-[13px] font-bold text-gray-900 transition-all duration-300 outline-none
+                        className={`w-full px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all outline-none
                             ${isReadOnly
-                                ? 'bg-gray-50/50 border-gray-100 text-gray-400 cursor-not-allowed italic'
+                                ? 'bg-slate-100/80 border border-slate-200 text-slate-400 cursor-not-allowed'
                                 : !!pendingRequest
-                                    ? 'bg-gray-50/50 border-gray-100'
-                                    : 'bg-white border-gray-200 hover:border-gray-300 focus:border-indigo-500 focus:ring-[4px] focus:ring-indigo-500/10 shadow-sm'}`}
+                                    ? 'bg-slate-50 border border-slate-200 text-slate-600 cursor-not-allowed'
+                                    : 'bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-xs'}`}
                     />
                 )}
             </div>
@@ -546,236 +584,180 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData }) => {
     };
 
     const modalContent = (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center sm:p-6 bg-black/40 backdrop-blur-md animate-fade-in custom-scrollbar overflow-y-auto">
-            <div className="bg-white sm:rounded-[24px] rounded-none shadow-2xl w-full h-[100dvh] sm:h-auto sm:max-h-[85vh] max-w-5xl flex flex-col relative my-auto sm:border border-white/20 overflow-hidden"
-                onClick={(e) => e.stopPropagation()}>
-
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+            <div
+                className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[92dvh] sm:max-h-[88vh] border border-slate-100 overflow-hidden my-auto"
+                onClick={(e) => e.stopPropagation()}
+            >
                 {/* Header Section */}
-                <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-indigo-900 px-4 sm:px-8 py-4 sm:py-6 shrink-0 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4"></div>
+                <div className="px-3.5 sm:px-6 py-2.5 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-xl bg-indigo-50 border border-indigo-100/80 text-indigo-600 flex items-center justify-center shrink-0">
+                            <User size={16} className="sm:w-5 sm:h-5" />
+                        </div>
+                        <div className="min-w-0">
+                            <h3 className="text-xs sm:text-base font-black text-slate-900 leading-tight truncate">Edit Profile Details</h3>
+                            <p className="text-[9px] sm:text-xs text-slate-500 font-medium truncate">Submitted edits require administrative approval.</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 rounded-xl transition-colors cursor-pointer shrink-0 ml-2"
+                        aria-label="Close dialog"
+                    >
+                        <X size={16} className="sm:w-5 sm:h-5" />
+                    </button>
+                </div>
 
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 relative z-10 pr-8 sm:pr-0">
-                        <div className="flex items-center gap-3 sm:gap-4">
-                            <div className="relative group shrink-0">
-                                <div className="h-12 w-12 sm:h-20 sm:w-20 rounded-[14px] sm:rounded-2xl border-2 sm:border-[3px] border-white/20 bg-white shadow-xl overflow-hidden flex items-center justify-center relative">
-                                    {studentData?.student_photo ? (
-                                        <img
-                                            src={studentData.student_photo}
-                                            alt={studentData.student_name}
-                                            className="h-full w-full object-cover"
-                                        />
-                                    ) : (
-                                        <User className="text-gray-300 w-6 h-6 sm:w-8 sm:h-8" />
-                                    )}
-                                </div>
+                {/* Status Notice if request is pending */}
+                {pendingRequest && (
+                    <div className="px-3 sm:px-6 pt-2 pb-1 shrink-0">
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 flex items-start gap-2 sm:gap-3 shadow-2xs">
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5">
+                                <Clock size={13} className="sm:w-4 sm:h-4" />
                             </div>
-                            <div>
-                                <h2 className="text-lg sm:text-2xl font-black text-white tracking-tight heading-font">Profile Verification</h2>
-                                <p className="text-[10px] sm:text-sm font-medium text-indigo-100 mt-0.5 sm:mt-1 flex items-center gap-2 leading-snug">
-                                    Compare your official records and request changes if needed.
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                    <h4 className="font-bold text-amber-950 text-[11px] sm:text-sm">Change Request Pending Approval</h4>
+                                    <span className="px-1.5 py-0.5 text-[8px] sm:text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-900 rounded-full">
+                                        Under Review
+                                    </span>
+                                </div>
+                                <p className="text-[9px] sm:text-xs text-amber-800 font-medium mt-0.5 leading-relaxed">
+                                    Your requested updates are under review for approval.
                                 </p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="absolute right-0 top-0 sm:relative p-1.5 sm:p-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-full transition-all text-white/70 hover:text-white backdrop-blur group active:scale-95">
-                            <X size={18} className="sm:h-5 sm:w-5 group-hover:rotate-90 transition-transform duration-300" />
-                        </button>
+                    </div>
+                )}
+
+                {/* Steps 1, 2, 3 Navigation Bar - Only show numbers on mobile */}
+                <div className="px-3 sm:px-6 py-2 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50/80 shrink-0">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                        {availableTabs.map((tab, idx) => {
+                            const isActive = activeTab === tab.id;
+                            const stepNum = idx + 1;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`p-1 sm:px-3 sm:py-1.5 rounded-full sm:rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                                        isActive
+                                            ? 'bg-white text-indigo-700 shadow-xs border border-indigo-100/90 font-black'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                                    }`}
+                                    title={`Step ${stepNum}: ${tab.label}`}
+                                >
+                                    <span className={`w-7 h-7 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
+                                        isActive
+                                            ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
+                                            : 'bg-slate-200/90 text-slate-700'
+                                    }`}>
+                                        {stepNum}
+                                    </span>
+                                    <span className="hidden md:inline text-xs font-bold pr-1">{tab.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Active Step Indicator Name */}
+                    <div className="text-[10px] sm:text-xs font-bold text-slate-700 flex items-center gap-1.5 shrink-0 bg-white px-2.5 py-1 rounded-xl border border-slate-200/70 shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                        <span className="text-indigo-700 font-black">Step {currentStepIndex + 1}:</span>
+                        <span className="text-slate-800 truncate max-w-[120px] sm:max-w-none">
+                            {availableTabs[currentStepIndex]?.label}
+                        </span>
                     </div>
                 </div>
 
-                {/* Status Banners */}
-                <div className="px-4 sm:px-8 pt-4 sm:pt-6 pb-2 shrink-0 bg-gray-50/50">
-                    {pendingRequest && (
-                        <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex gap-4 shadow-sm items-start">
-                            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
-                                <Clock className="text-indigo-600" size={20} />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-indigo-900 text-sm">Change Request Pending</h4>
-                                <p className="text-sm text-indigo-700/80 mt-1 font-medium leading-relaxed">
-                                    A request to update your profile is currently under review by the administration. You will be notified once it is processed.
-                                </p>
+                {/* Form Content */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-5 md:p-6 bg-white">
+                    {loadingConfig ? (
+                        <div className="animate-pulse space-y-3">
+                            <div className="h-4 w-36 bg-slate-200 rounded"></div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                {[1, 2, 3, 4].map(i => <div key={i} className="h-12 bg-slate-100 rounded-xl"></div>)}
                             </div>
                         </div>
+                    ) : (
+                        <form id="profile-edit-form" onSubmit={handleSubmit}>
+                            {availableTabs.map(tab => (
+                                <div key={tab.id} className={activeTab === tab.id ? 'block animate-in fade-in duration-200' : 'hidden'}>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
+                                        {tab.fields.map((field, idx) => (
+                                            <React.Fragment key={field.key || idx}>
+                                                {renderField(field)}
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </form>
                     )}
                 </div>
 
-                <div className="flex flex-col md:flex-row flex-1 overflow-hidden min-h-[250px] sm:min-h-[350px]">
-                    {/* Sidebar Tabs */}
-                    <div className="w-full md:w-64 shrink-0 border-r border-gray-100 bg-gray-50/50 p-6 overflow-y-auto no-scrollbar hidden md:block">
-                        {loadingConfig ? (
-                            <div className="animate-pulse space-y-4">
-                                {[1, 2, 3, 4].map(i => <div key={i} className="h-12 bg-gray-200 rounded-xl"></div>)}
-                            </div>
+                {/* Modern Footer with Step Navigation */}
+                <div className="px-3 sm:px-6 py-2.5 sm:py-3.5 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 shrink-0">
+                    <div className="text-[9px] sm:text-[11px] text-slate-500 font-medium text-center sm:text-left w-full sm:w-auto">
+                        {hasChanges() ? (
+                            <span className="text-indigo-600 font-bold flex items-center gap-1.5 justify-center sm:justify-start">
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                                Changes detected. Ready to submit for approval.
+                            </span>
+                        ) : pendingRequest ? (
+                            <span className="text-amber-800 font-bold flex items-center gap-1.5 justify-center sm:justify-start">
+                                <Clock size={12} className="text-amber-600 shrink-0" />
+                                Existing request pending review.
+                            </span>
                         ) : (
-                            <nav className="space-y-2">
-                                {availableTabs.map(tab => (
-                                    <button
-                                        key={tab.id}
-                                        type="button"
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-bold text-sm transition-all duration-200 ${activeTab === tab.id
-                                            ? 'bg-white text-indigo-700 shadow-sm border border-gray-200/60'
-                                            : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-transparent'
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <tab.icon size={18} className={activeTab === tab.id ? 'text-indigo-500' : 'text-gray-400'} />
-                                            {tab.label}
-                                        </div>
-                                        {activeTab === tab.id && <ChevronRight size={16} className="text-indigo-400" />}
-                                    </button>
-                                ))}
-                            </nav>
-                        )}
-
-                        <div className="mt-8 pt-8 border-t border-gray-200/60">
-                            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 p-4 rounded-2xl border border-indigo-100/50">
-                                <h5 className="font-bold text-indigo-900 text-xs uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                    <Users size={12} /> Support
-                                </h5>
-                                <p className="text-xs text-indigo-800/70 leading-relaxed font-medium">
-                                    If you are unable to change a restricted field (like Branch or Course), please contact the administration office directly.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Mobile Tabs */}
-                    <div className="md:hidden flex flex-col border-b border-gray-100 bg-gray-50/50 shrink-0">
-                        {/* Progress Steps Indicator */}
-                        <div className="px-4 pt-4 pb-4">
-                            <div className="flex items-center justify-between relative">
-                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-200 rounded-full"></div>
-                                <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-indigo-500 rounded-full transition-all duration-300" style={{ width: `${(availableTabs.findIndex(t => t.id === activeTab) / (availableTabs.length - 1)) * 100}%` }}></div>
-                                {availableTabs.map((tab, idx) => {
-                                    const isActive = tab.id === activeTab;
-                                    const isPast = availableTabs.findIndex(t => t.id === activeTab) > idx;
-                                    return (
-                                        <div
-                                            key={`step-${tab.id}`}
-                                            className="relative z-10 bg-gray-50/50 px-1 cursor-pointer"
-                                            onClick={() => setActiveTab(tab.id)}
-                                        >
-                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all ${isActive ? 'bg-indigo-600 border-indigo-600 text-white shadow-md scale-110' : isPast ? 'bg-indigo-100 border-indigo-500 text-indigo-700' : 'bg-white border-gray-300 text-gray-400'}`}>
-                                                {isPast ? <Check size={12} /> : (idx + 1)}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            <div className="text-center mt-3">
-                                <span className="text-xs font-bold text-indigo-900">{availableTabs.find(t => t.id === activeTab)?.label}</span>
-                                <span className="text-[10px] text-gray-500 ml-1">Step {availableTabs.findIndex(t => t.id === activeTab) + 1} of {availableTabs.length}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Form Area */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 md:p-8 bg-white relative pb-32 sm:pb-8">
-                        {loadingConfig ? (
-                            <div className="animate-pulse space-y-6">
-                                <div className="h-6 w-1/3 bg-gray-200 rounded"></div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    {[1, 2, 3, 4].map(i => <div key={i} className="h-10 bg-gray-100 rounded-lg"></div>)}
-                                </div>
-                            </div>
-                        ) : (
-                            <form id="profile-verify-form" onSubmit={handleSubmit}>
-                                {availableTabs.map(tab => (
-                                    <div key={tab.id} className={`space-y-6 ${activeTab === tab.id ? 'block animate-fade-in' : 'hidden'}`}>
-                                        <div className="border-b border-gray-100 pb-4 mb-6">
-                                            <h3 className="text-lg font-black text-gray-900 heading-font">{tab.label}</h3>
-                                            <p className="text-sm font-medium text-gray-500">Edit or review these fields.</p>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {tab.fields.map((field, idx) => (
-                                                <div key={idx} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
-                                                    {renderField(field)}
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {/* Mobile Navigation Buttons (Next / Prev) */}
-                                        <div className="md:hidden flex items-center justify-between pt-6 pb-2 border-t border-gray-100 mt-6 md:mt-0 md:border-t-0 md:pt-0">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const currentIndex = availableTabs.findIndex(t => t.id === activeTab);
-                                                    if (currentIndex > 0) setActiveTab(availableTabs[currentIndex - 1].id);
-                                                    document.querySelector('.custom-scrollbar').scrollTo({ top: 0, behavior: 'smooth' });
-                                                }}
-                                                className={`px-4 py-2.5 text-sm font-bold rounded-xl transition-all ${availableTabs.findIndex(t => t.id === activeTab) === 0 ? 'invisible' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                            >
-                                                Previous
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const currentIndex = availableTabs.findIndex(t => t.id === activeTab);
-                                                    if (currentIndex < availableTabs.length - 1) setActiveTab(availableTabs[currentIndex + 1].id);
-                                                    document.querySelector('.custom-scrollbar').scrollTo({ top: 0, behavior: 'smooth' });
-                                                }}
-                                                className={`px-6 py-2.5 text-sm font-bold rounded-xl transition-all bg-indigo-600 text-white shadow-md hover:bg-indigo-700 hover:shadow-lg flex items-center gap-2 ${availableTabs.findIndex(t => t.id === activeTab) === availableTabs.length - 1 ? 'hidden' : 'flex'}`}
-                                            >
-                                                Next Step <ChevronRight size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </form>
+                            <span>Edit fields across Steps 1-3 and click Submit.</span>
                         )}
                     </div>
-                </div>
 
-                {/* Footer - Inline Mobile Buttons */}
-                <div className="p-4 sm:p-6 pb-[40px] sm:pb-6 border-t border-gray-100 shrink-0 bg-white flex flex-col sm:flex-row items-center justify-between sm:rounded-b-[24px] gap-4 mb-20 sm:mb-0 mt-auto">
-                    <p className="text-xs font-semibold text-gray-400 hidden lg:block">Secure Profile Verification</p>
+                    <div className="flex items-center justify-between sm:justify-end gap-1.5 sm:gap-2.5 w-full sm:w-auto">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="px-2.5 sm:px-4 py-2 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-700 hover:bg-slate-200 bg-slate-200/70 sm:bg-transparent rounded-xl transition-colors cursor-pointer text-center"
+                        >
+                            Cancel
+                        </button>
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-row items-center gap-2 sm:gap-4 w-full sm:w-auto shrink-0">
-                        {/* Verify Button */}
-                        {!pendingRequest && (
+                        {/* Step Navigation Button (Next Step) */}
+                        {nextTab && (
                             <button
                                 type="button"
-                                onClick={handleMarkVerified}
-                                disabled={hasChanges() || isVerifying || loadingConfig}
-                                className={`flex-1 sm:flex-none px-2 sm:px-8 py-2.5 sm:py-3 text-[11px] sm:text-sm font-bold rounded-xl shadow-sm flex items-center justify-center gap-1.5 sm:gap-2 transition-all outline-none focus:ring-4 active:scale-[0.98] shrink-0 ${!hasChanges() && !loadingConfig && !isVerifying
-                                    ? 'bg-gradient-to-r from-emerald-50 to-green-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 hover:shadow-md hover:-translate-y-0.5 focus:ring-emerald-500/30'
-                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                                    }`}
+                                onClick={() => setActiveTab(nextTab.id)}
+                                className="px-2.5 sm:px-3.5 py-2 sm:py-2 text-[10px] sm:text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
                             >
-                                <Check className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0" />
-                                <span className="whitespace-nowrap truncate">{isVerifying ? 'Verifying...' : 'Verified'}</span>
+                                <span>Next: Step {currentStepIndex + 2}</span>
+                                <ChevronRight size={13} />
                             </button>
                         )}
 
-                        {/* Submit Button */}
                         {!pendingRequest ? (
                             <button
                                 type="submit"
-                                form="profile-verify-form"
+                                form="profile-edit-form"
                                 disabled={!hasChanges() || isSubmitting || loadingConfig}
-                                className={`flex-1 sm:flex-none px-2 sm:px-8 py-2.5 sm:py-3 text-[11px] sm:text-sm font-bold rounded-xl shadow-sm flex items-center justify-center gap-1.5 sm:gap-2 transition-all outline-none focus:ring-4 active:scale-[0.98] ${hasChanges() && !isSubmitting
-                                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white hover:shadow-lg hover:shadow-indigo-500/20 hover:-translate-y-0.5 focus:ring-indigo-500/30'
-                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                                    }`}
+                                className={`px-3 sm:px-5 py-2 sm:py-2 text-[10px] sm:text-xs font-black uppercase tracking-tight rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 text-center ${
+                                    hasChanges() && !isSubmitting
+                                        ? 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white shadow-indigo-200 cursor-pointer'
+                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                                }`}
                             >
-                                <Save className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0" />
-                                <span className="whitespace-nowrap truncate">{isSubmitting ? 'Sending...' : 'Submit'}</span>
+                                <Save size={13} className="shrink-0" />
+                                <span className="whitespace-nowrap">{isSubmitting ? 'Sending...' : 'Submit Request'}</span>
                             </button>
                         ) : (
-                            <div className="flex-1 sm:flex-none px-2 sm:px-8 py-2.5 sm:py-3 text-[11px] sm:text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 bg-indigo-50 text-indigo-500 border border-indigo-100 shadow-inner truncate">
-                                <CheckCircle className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0" /> <span className="whitespace-nowrap">Pending</span>
+                            <div className="px-2.5 sm:px-4 py-2 sm:py-2 text-[10px] sm:text-xs font-bold rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center gap-1.5 border border-amber-200 text-center">
+                                <Clock size={13} className="shrink-0 text-amber-600" />
+                                <span className="whitespace-nowrap">Pending Approval</span>
                             </div>
                         )}
-
-                        {/* Close Button */}
-                        <button type="button" onClick={onClose} className="px-5 sm:px-6 py-2.5 sm:py-3 text-[11px] sm:text-sm font-bold text-gray-600 hover:text-gray-900 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl transition-all outline-none focus:ring-4 focus:ring-gray-100 text-center active:scale-[0.98] shrink-0">
-                            Close
-                        </button>
                     </div>
                 </div>
             </div>

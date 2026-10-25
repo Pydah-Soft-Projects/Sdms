@@ -37,10 +37,34 @@ exports.createAnnouncement = async (req, res) => {
             target_branch,
             target_year,
             target_semester,
-            expires_at
+            expires_at,
+            requires_registration,
+            max_seats,
+            registration_deadline,
+            custom_registration_field,
+            registration_form_fields
         } = req.body;
 
         const createdBy = req.user?.id || 1;
+
+        const reqReg = (requires_registration === '1' || requires_registration === 1 || requires_registration === true || requires_registration === 'true') ? 1 : 0;
+        const parsedMaxSeats = reqReg && max_seats && parseInt(max_seats, 10) > 0 ? parseInt(max_seats, 10) : null;
+        const parsedRegDeadline = reqReg && registration_deadline && registration_deadline !== 'null' ? registration_deadline : null;
+        const customField = reqReg && custom_registration_field && custom_registration_field.trim() ? custom_registration_field.trim() : null;
+
+        let parsedFormFields = null;
+        if (reqReg && registration_form_fields) {
+            if (typeof registration_form_fields === 'string') {
+                try {
+                    JSON.parse(registration_form_fields);
+                    parsedFormFields = registration_form_fields;
+                } catch (e) {
+                    parsedFormFields = null;
+                }
+            } else if (Array.isArray(registration_form_fields)) {
+                parsedFormFields = JSON.stringify(registration_form_fields);
+            }
+        }
 
         let imageUrl = null;
 
@@ -84,8 +108,8 @@ exports.createAnnouncement = async (req, res) => {
 
         const [result] = await masterPool.query(
             `INSERT INTO announcements 
-            (title, content, image_url, target_college, target_batch, target_course, target_branch, target_year, target_semester, created_by, audience_count, expires_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (title, content, image_url, target_college, target_batch, target_course, target_branch, target_year, target_semester, created_by, audience_count, expires_at, requires_registration, max_seats, registration_deadline, custom_registration_field, registration_form_fields) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 title,
                 content,
@@ -98,7 +122,12 @@ exports.createAnnouncement = async (req, res) => {
                 target_semester || null,
                 createdBy,
                 audienceCount,
-                parsedExpiresAt
+                parsedExpiresAt,
+                reqReg,
+                parsedMaxSeats,
+                parsedRegDeadline,
+                customField,
+                parsedFormFields
             ]
         );
 
@@ -168,11 +197,23 @@ exports.getAnnouncements = async (req, res) => {
                 a.audience_count,
                 a.is_active,
                 a.expires_at,
+                a.requires_registration,
+                a.max_seats,
+                a.registration_deadline,
+                a.custom_registration_field,
+                a.registration_form_fields,
                 a.created_at,
                 a.updated_at,
-                u.username as created_by_name 
+                u.username as created_by_name,
+                COALESCE(reg.registered_count, 0) as registered_count
             FROM announcements a
             LEFT JOIN admins u ON a.created_by = u.id
+            LEFT JOIN (
+                SELECT announcement_id, COUNT(*) as registered_count 
+                FROM announcement_registrations 
+                WHERE status = 'confirmed' 
+                GROUP BY announcement_id
+            ) reg ON a.id = reg.announcement_id
             WHERE 1=1
         `;
         const params = [];
@@ -188,10 +229,33 @@ exports.getAnnouncements = async (req, res) => {
         const [rows] = await masterPool.query(query, params);
 
         const baseUrl = `${req.protocol}://${req.get('host')}`;
-        const data = rows.map(ann => ({
-            ...ann,
-            image_url: ann.external_image_url || (ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null)
-        }));
+        const data = rows.map(ann => {
+            const registeredCount = Number(ann.registered_count || 0);
+            const maxSeats = ann.max_seats ? Number(ann.max_seats) : null;
+            const availableSeats = maxSeats !== null ? Math.max(0, maxSeats - registeredCount) : null;
+            const isFull = maxSeats !== null ? registeredCount >= maxSeats : false;
+
+            let parsedFields = [];
+            if (ann.registration_form_fields) {
+                try {
+                    parsedFields = typeof ann.registration_form_fields === 'string'
+                        ? JSON.parse(ann.registration_form_fields)
+                        : ann.registration_form_fields;
+                } catch (e) {
+                    parsedFields = [];
+                }
+            }
+
+            return {
+                ...ann,
+                registration_form_fields: parsedFields,
+                registered_count: registeredCount,
+                max_seats: maxSeats,
+                available_seats: availableSeats,
+                is_full: isFull,
+                image_url: ann.external_image_url || (ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null)
+            };
+        });
 
         res.json({
             success: true,
@@ -229,7 +293,45 @@ exports.getStudentAnnouncements = async (req, res) => {
 
         // Fetch active announcements (order by created_at DESC)
         const [rows] = await masterPool.query(
-            'SELECT id, title, content, (image_url IS NOT NULL AND image_url != "") as has_image, created_at, expires_at, is_active, target_college, target_batch, target_course, target_branch, target_year, target_semester FROM announcements WHERE is_active = 1 ORDER BY created_at DESC'
+            `SELECT 
+                a.id, 
+                a.title, 
+                a.content, 
+                (a.image_url IS NOT NULL AND a.image_url != "") as has_image, 
+                a.created_at, 
+                a.expires_at, 
+                a.requires_registration,
+                a.max_seats,
+                a.registration_deadline,
+                a.custom_registration_field,
+                a.registration_form_fields,
+                a.is_active, 
+                a.target_college, 
+                a.target_batch, 
+                a.target_course, 
+                a.target_branch, 
+                a.target_year, 
+                a.target_semester,
+                COALESCE(reg.registered_count, 0) as registered_count,
+                my_reg.id as my_registration_id,
+                my_reg.status as my_registration_status,
+                my_reg.registered_at as my_registered_at,
+                my_reg.custom_field_value as my_custom_response,
+                my_reg.form_responses as my_form_responses
+            FROM announcements a
+            LEFT JOIN (
+                SELECT announcement_id, COUNT(*) as registered_count 
+                FROM announcement_registrations 
+                WHERE status = 'confirmed' 
+                GROUP BY announcement_id
+            ) reg ON a.id = reg.announcement_id
+            LEFT JOIN announcement_registrations my_reg 
+                ON a.id = my_reg.announcement_id 
+                AND my_reg.student_id = ? 
+                AND my_reg.status = 'confirmed'
+            WHERE a.is_active = 1 
+            ORDER BY a.created_at DESC`,
+            [student ? student.id : 0]
         );
 
         let matchedAnnouncements = rows;
@@ -243,10 +345,51 @@ exports.getStudentAnnouncements = async (req, res) => {
         }
 
         const baseUrl = `${req.protocol}://${req.get('host')}`;
-        const pagedData = matchedAnnouncements.slice(offset, offset + limit).map(ann => ({
-            ...ann,
-            image_url: ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null
-        }));
+        const pagedData = matchedAnnouncements.slice(offset, offset + limit).map(ann => {
+            const registeredCount = Number(ann.registered_count || 0);
+            const maxSeats = ann.max_seats ? Number(ann.max_seats) : null;
+            const availableSeats = maxSeats !== null ? Math.max(0, maxSeats - registeredCount) : null;
+            const isFull = maxSeats !== null ? registeredCount >= maxSeats : false;
+
+            let parsedFields = [];
+            if (ann.registration_form_fields) {
+                try {
+                    parsedFields = typeof ann.registration_form_fields === 'string'
+                        ? JSON.parse(ann.registration_form_fields)
+                        : ann.registration_form_fields;
+                } catch (e) {
+                    parsedFields = [];
+                }
+            }
+
+            let myResponses = {};
+            if (ann.my_form_responses) {
+                try {
+                    myResponses = typeof ann.my_form_responses === 'string'
+                        ? JSON.parse(ann.my_form_responses)
+                        : ann.my_form_responses;
+                } catch (e) {
+                    myResponses = {};
+                }
+            }
+
+            return {
+                ...ann,
+                registration_form_fields: parsedFields,
+                registered_count: registeredCount,
+                max_seats: maxSeats,
+                available_seats: availableSeats,
+                is_full: isFull,
+                is_registered: Boolean(ann.my_registration_id),
+                my_registration: ann.my_registration_id ? {
+                    id: ann.my_registration_id,
+                    registered_at: ann.my_registered_at,
+                    custom_field_value: ann.my_custom_response,
+                    form_responses: myResponses
+                } : null,
+                image_url: ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null
+            };
+        });
 
         res.json({
             success: true,
@@ -340,8 +483,32 @@ exports.updateAnnouncement = async (req, res) => {
             target_year,
             target_semester,
             existing_image_url,
-            expires_at
+            expires_at,
+            requires_registration,
+            max_seats,
+            registration_deadline,
+            custom_registration_field,
+            registration_form_fields
         } = req.body;
+
+        const reqReg = (requires_registration === '1' || requires_registration === 1 || requires_registration === true || requires_registration === 'true') ? 1 : 0;
+        const parsedMaxSeats = reqReg && max_seats && parseInt(max_seats, 10) > 0 ? parseInt(max_seats, 10) : null;
+        const parsedRegDeadline = reqReg && registration_deadline && registration_deadline !== 'null' ? registration_deadline : null;
+        const customField = reqReg && custom_registration_field && custom_registration_field.trim() ? custom_registration_field.trim() : null;
+
+        let parsedFormFields = null;
+        if (reqReg && registration_form_fields) {
+            if (typeof registration_form_fields === 'string') {
+                try {
+                    JSON.parse(registration_form_fields);
+                    parsedFormFields = registration_form_fields;
+                } catch (e) {
+                    parsedFormFields = null;
+                }
+            } else if (Array.isArray(registration_form_fields)) {
+                parsedFormFields = JSON.stringify(registration_form_fields);
+            }
+        }
 
         let imageClause = '';
         const imageParam = [];
@@ -399,7 +566,12 @@ exports.updateAnnouncement = async (req, res) => {
                 target_year = ?, 
                 target_semester = ?,
                 audience_count = ?,
-                expires_at = ?
+                expires_at = ?,
+                requires_registration = ?,
+                max_seats = ?,
+                registration_deadline = ?,
+                custom_registration_field = ?,
+                registration_form_fields = ?
             WHERE id = ?`,
             [
                 title,
@@ -413,6 +585,11 @@ exports.updateAnnouncement = async (req, res) => {
                 target_semester || null,
                 audienceCount,
                 parsedExpiresAt,
+                reqReg,
+                parsedMaxSeats,
+                parsedRegDeadline,
+                customField,
+                parsedFormFields,
                 id
             ]
         );
@@ -682,6 +859,7 @@ exports.sendSMSAnnouncement = async (req, res) => {
                                 peId: process.env.SMS_PE_ID,
                                 meta: {
                                     category: 'SMS Template',
+                                    sentBy: req.user?.name || req.user?.username || req.user?.email || 'Administrator',
                                     student: {
                                         id: student.id,
                                         admissionNumber: student.admission_number,
@@ -719,6 +897,143 @@ exports.sendSMSAnnouncement = async (req, res) => {
     }
 };
 
+exports.getSMSHistory = async (req, res) => {
+    try {
+        const { date_from, date_to, template_id, search } = req.query;
+        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+        const offset = (page - 1) * limit;
+
+        let whereClause = "WHERE (sl.category = 'SMS Template' OR sl.category = 'General' OR sl.category IS NULL OR sl.template_id IS NOT NULL)";
+        const params = [];
+
+        if (date_from) {
+            whereClause += " AND DATE(sl.sent_at) >= ?";
+            params.push(date_from);
+        }
+        if (date_to) {
+            whereClause += " AND DATE(sl.sent_at) <= ?";
+            params.push(date_to);
+        }
+        if (template_id) {
+            whereClause += " AND sl.template_id = ?";
+            params.push(template_id);
+        }
+        if (search) {
+            whereClause += " AND (sl.message LIKE ? OR sl.sent_by LIKE ? OR t.name LIKE ? OR sl.template_id LIKE ?)";
+            params.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`);
+        }
+
+        // 1. Overall all-time summary (unfiltered totals till date for Announcements SMS)
+        const [overallRows] = await masterPool.query(`
+            SELECT 
+                COUNT(*) as total_sent_all_time,
+                SUM(CASE WHEN status IN ('Sent', 'Delivered') THEN 1 ELSE 0 END) as sent_count_all_time,
+                SUM(CASE WHEN status = 'Failed' THEN 1 ELSE 0 END) as failed_count_all_time,
+                COUNT(DISTINCT template_id) as templates_used_all_time,
+                MIN(sent_at) as earliest_sent_at,
+                MAX(sent_at) as latest_sent_at
+            FROM sms_logs
+            WHERE (category = 'SMS Template' OR category = 'General' OR category IS NULL OR template_id IS NOT NULL)
+        `);
+
+        // 2. Count distinct action groups for pagination
+        const [countRows] = await masterPool.query(`
+            SELECT COUNT(*) as total FROM (
+                SELECT 1
+                FROM sms_logs sl
+                LEFT JOIN (
+                    SELECT template_id, MAX(name) as name
+                    FROM sms_templates
+                    GROUP BY template_id
+                ) t ON sl.template_id = t.template_id
+                ${whereClause}
+                GROUP BY DATE(sl.sent_at), sl.template_id, t.name, COALESCE(NULLIF(TRIM(sl.sent_by), ''), 'System Generated')
+            ) as grouped
+        `, params);
+
+        const totalActions = Number(countRows[0]?.total || 0);
+
+        // 3. Grouped history rows by date & template & sender
+        const [historyRows] = await masterPool.query(`
+            SELECT 
+                DATE(sl.sent_at) as send_date,
+                DATE(sl.sent_at) as action_date,
+                sl.template_id,
+                COALESCE(t.name, 'Custom / Direct') as template_name,
+                COUNT(*) as total_count,
+                SUM(CASE WHEN sl.status IN ('Sent', 'Delivered') THEN 1 ELSE 0 END) as sent_count,
+                SUM(CASE WHEN sl.status = 'Failed' THEN 1 ELSE 0 END) as failed_count,
+                MIN(sl.sent_at) as first_sent_at,
+                MAX(sl.sent_at) as last_sent_at,
+                COALESCE(NULLIF(TRIM(MAX(sl.sent_by)), ''), 'System Generated') as sent_by,
+                SUBSTRING(MAX(sl.message), 1, 300) as sample_message
+            FROM sms_logs sl
+            LEFT JOIN (
+                SELECT template_id, MAX(name) as name
+                FROM sms_templates
+                GROUP BY template_id
+            ) t ON sl.template_id = t.template_id
+            ${whereClause}
+            GROUP BY DATE(sl.sent_at), sl.template_id, t.name, COALESCE(NULLIF(TRIM(sl.sent_by), ''), 'System Generated')
+            ORDER BY last_sent_at DESC
+            LIMIT ? OFFSET ?
+        `, [...params, limit, offset]);
+
+        // 4. Per-template breakdown stats (every template with count till date)
+        const [perTemplateRows] = await masterPool.query(`
+            SELECT 
+                t.template_id,
+                t.name as template_name,
+                COUNT(sl.id) as total_sent,
+                SUM(CASE WHEN sl.status IN ('Sent', 'Delivered') THEN 1 ELSE 0 END) as sent_count,
+                SUM(CASE WHEN sl.status = 'Failed' THEN 1 ELSE 0 END) as failed_count,
+                MAX(sl.sent_at) as last_used_at
+            FROM sms_templates t
+            LEFT JOIN sms_logs sl ON sl.template_id = t.template_id
+            GROUP BY t.id, t.name, t.template_id
+            ORDER BY total_sent DESC
+        `);
+
+        res.json({
+            success: true,
+            data: {
+                summary: {
+                    total_sent_all_time: Number(overallRows[0]?.total_sent_all_time || 0),
+                    sent_count_all_time: Number(overallRows[0]?.sent_count_all_time || 0),
+                    failed_count_all_time: Number(overallRows[0]?.failed_count_all_time || 0),
+                    templates_used_all_time: Number(overallRows[0]?.templates_used_all_time || 0),
+                    earliest_sent_at: overallRows[0]?.earliest_sent_at,
+                    latest_sent_at: overallRows[0]?.latest_sent_at
+                },
+                history: historyRows.map(r => ({
+                    ...r,
+                    total_count: Number(r.total_count),
+                    sent_count: Number(r.sent_count),
+                    failed_count: Number(r.failed_count)
+                })),
+                perTemplate: perTemplateRows.map(r => ({
+                    template_id: r.template_id,
+                    template_name: r.template_name,
+                    total_sent: Number(r.total_sent),
+                    sent_count: Number(r.sent_count),
+                    failed_count: Number(r.failed_count),
+                    last_used_at: r.last_used_at
+                })),
+                pagination: {
+                    page,
+                    limit,
+                    total: totalActions,
+                    totalPages: Math.ceil(totalActions / limit) || 0
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Failed to fetch SMS history:', error);
+        res.status(500).json({ success: false, message: 'Server error while fetching SMS history' });
+    }
+};
+
 exports.getAnnouncementImage = async (req, res) => {
     try {
         const { id } = req.params;
@@ -753,3 +1068,300 @@ exports.getAnnouncementImage = async (req, res) => {
         res.status(500).send('Error serving image');
     }
 };
+
+/**
+ * Admin: Get registration candidates & seat management summary for an announcement
+ */
+exports.getAnnouncementRegistrations = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [annRows] = await masterPool.query(
+            `SELECT a.*, COALESCE(reg.registered_count, 0) as registered_count
+             FROM announcements a
+             LEFT JOIN (
+                 SELECT announcement_id, COUNT(*) as registered_count 
+                 FROM announcement_registrations 
+                 WHERE status = 'confirmed' 
+                 GROUP BY announcement_id
+             ) reg ON a.id = reg.announcement_id
+             WHERE a.id = ? LIMIT 1`,
+            [id]
+        );
+
+        if (!annRows || annRows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Announcement not found' });
+        }
+
+        const announcement = annRows[0];
+
+        const [registrations] = await masterPool.query(
+            `SELECT 
+                ar.id,
+                ar.announcement_id,
+                ar.student_id,
+                COALESCE(NULLIF(ar.student_name, ''), s.student_name, 'Unknown Student') as student_name,
+                COALESCE(NULLIF(ar.pin_number, ''), s.pin_no, s.admission_number, 'N/A') as pin_number,
+                COALESCE(ar.college, s.college) as college,
+                COALESCE(ar.branch, s.branch) as branch,
+                COALESCE(ar.current_year, s.current_year) as current_year,
+                COALESCE(ar.current_semester, s.current_semester) as current_semester,
+                COALESCE(NULLIF(ar.phone, ''), s.student_mobile) as phone,
+                COALESCE(NULLIF(ar.email, ''), s.email) as email,
+                ar.custom_field_value,
+                ar.form_responses,
+                ar.registered_at,
+                ar.status
+             FROM announcement_registrations ar
+             LEFT JOIN students s ON ar.student_id = s.id
+             WHERE ar.announcement_id = ?
+             ORDER BY ar.registered_at ASC`,
+            [id]
+        );
+
+        let formFields = [];
+        if (announcement.registration_form_fields) {
+            try {
+                formFields = typeof announcement.registration_form_fields === 'string'
+                    ? JSON.parse(announcement.registration_form_fields)
+                    : announcement.registration_form_fields;
+            } catch (e) {
+                formFields = [];
+            }
+        }
+
+        const parsedRegistrations = registrations.map(r => {
+            let responses = {};
+            if (r.form_responses) {
+                try {
+                    responses = typeof r.form_responses === 'string'
+                        ? JSON.parse(r.form_responses)
+                        : r.form_responses;
+                } catch (e) {
+                    responses = {};
+                }
+            }
+            return {
+                ...r,
+                form_responses: responses
+            };
+        });
+
+        const maxSeats = announcement.max_seats ? Number(announcement.max_seats) : null;
+        const confirmedList = parsedRegistrations.filter(r => r.status === 'confirmed');
+        const registeredCount = confirmedList.length;
+        const availableSeats = maxSeats !== null ? Math.max(0, maxSeats - registeredCount) : null;
+        const isFull = maxSeats !== null ? registeredCount >= maxSeats : false;
+
+        res.json({
+            success: true,
+            data: {
+                announcement: {
+                    id: announcement.id,
+                    title: announcement.title,
+                    content: announcement.content,
+                    requires_registration: Boolean(announcement.requires_registration),
+                    max_seats: maxSeats,
+                    registration_deadline: announcement.registration_deadline,
+                    custom_registration_field: announcement.custom_registration_field,
+                    registration_form_fields: formFields,
+                    registered_count: registeredCount,
+                    available_seats: availableSeats,
+                    is_full: isFull
+                },
+                registrations: parsedRegistrations
+            }
+        });
+    } catch (error) {
+        console.error('Get announcement registrations error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch candidate registrations' });
+    }
+};
+
+/**
+ * Student: Register for an announcement event
+ */
+exports.registerForAnnouncement = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            custom_field_value,
+            phone,
+            email,
+            student_name: submittedName,
+            pin_number: submittedPin,
+            college: submittedCollege,
+            branch: submittedBranch,
+            year_sem: submittedYearSem,
+            form_responses
+        } = req.body;
+        const { admission_number, admissionNumber, id: tokenUserId } = req.user || {};
+        const studentAdmNum = admission_number || admissionNumber;
+
+        let responsesJson = null;
+        if (form_responses) {
+            responsesJson = typeof form_responses === 'string' ? form_responses : JSON.stringify(form_responses);
+        }
+
+        // 1. Fetch announcement with seat info
+        const [annRows] = await masterPool.query(
+            `SELECT a.*, COALESCE(reg.registered_count, 0) as registered_count
+             FROM announcements a
+             LEFT JOIN (
+                 SELECT announcement_id, COUNT(*) as registered_count 
+                 FROM announcement_registrations 
+                 WHERE status = 'confirmed' 
+                 GROUP BY announcement_id
+             ) reg ON a.id = reg.announcement_id
+             WHERE a.id = ? AND a.is_active = 1 LIMIT 1`,
+            [id]
+        );
+
+        if (!annRows || annRows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Announcement not found or is currently inactive' });
+        }
+
+        const announcement = annRows[0];
+        if (!announcement.requires_registration) {
+            return res.status(400).json({ success: false, message: 'Registration is not enabled for this announcement' });
+        }
+
+        // Deadline check
+        if (announcement.registration_deadline && new Date(announcement.registration_deadline) < new Date()) {
+            return res.status(400).json({ success: false, message: 'Registration deadline has passed' });
+        }
+
+        // Seat capacity check
+        if (announcement.max_seats && Number(announcement.registered_count) >= Number(announcement.max_seats)) {
+            return res.status(400).json({ success: false, message: 'All seats are booked. Registrations are full.' });
+        }
+
+        // 2. Fetch student details
+        const [studentRows] = await masterPool.query(
+            `SELECT id, student_name, admission_number, pin_no, college, branch, current_year, current_semester, student_mobile, email 
+             FROM students 
+             WHERE admission_number = ? OR admission_no = ? OR id = ? 
+             LIMIT 1`,
+            [studentAdmNum || '', studentAdmNum || '', tokenUserId || 0]
+        );
+
+        if (!studentRows || studentRows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Student profile not found. Please log in as a student.' });
+        }
+
+        const student = studentRows[0];
+        const finalName = (submittedName || student.student_name || '').trim();
+        const finalPin = (submittedPin || student.pin_no || student.admission_number || 'N/A').trim();
+        const finalCollege = submittedCollege || student.college || null;
+        const finalBranch = submittedBranch || student.branch || null;
+        const finalPhone = phone || student.student_mobile || null;
+        const finalEmail = email || student.email || null;
+
+        // 3. Check existing registration
+        const [existingReg] = await masterPool.query(
+            'SELECT id, status FROM announcement_registrations WHERE announcement_id = ? AND student_id = ? LIMIT 1',
+            [id, student.id]
+        );
+
+        if (existingReg.length > 0) {
+            if (existingReg[0].status === 'confirmed') {
+                return res.status(400).json({ success: false, message: 'You are already registered for this event' });
+            } else {
+                // Re-confirm previously cancelled registration
+                await masterPool.query(
+                    `UPDATE announcement_registrations SET 
+                        status = 'confirmed', 
+                        student_name = ?,
+                        pin_number = ?,
+                        college = ?,
+                        branch = ?,
+                        phone = ?, 
+                        email = ?, 
+                        custom_field_value = ?, 
+                        form_responses = ?,
+                        registered_at = NOW() 
+                     WHERE id = ?`,
+                    [finalName, finalPin, finalCollege, finalBranch, finalPhone, finalEmail, custom_field_value || null, responsesJson, existingReg[0].id]
+                );
+                return res.json({ success: true, message: 'Registration confirmed successfully' });
+            }
+        }
+
+        // 4. Insert new registration
+        await masterPool.query(
+            `INSERT INTO announcement_registrations 
+             (announcement_id, student_id, student_name, pin_number, college, branch, current_year, current_semester, phone, email, custom_field_value, form_responses, status) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed')`,
+            [
+                id,
+                student.id,
+                finalName,
+                finalPin,
+                finalCollege,
+                finalBranch,
+                submittedYearSem || student.current_year || null,
+                student.current_semester || null,
+                finalPhone,
+                finalEmail,
+                custom_field_value || null,
+                responsesJson
+            ]
+        );
+
+        res.status(201).json({
+            success: true,
+            message: 'Successfully registered for the event!'
+        });
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ success: false, message: 'Failed to complete registration' });
+    }
+};
+
+/**
+ * Student: Cancel own registration
+ */
+exports.cancelMyRegistration = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { admission_number, admissionNumber, id: tokenUserId } = req.user || {};
+        const studentAdmNum = admission_number || admissionNumber;
+
+        const [studentRows] = await masterPool.query(
+            'SELECT id FROM students WHERE admission_number = ? OR admission_no = ? OR id = ? LIMIT 1',
+            [studentAdmNum || '', studentAdmNum || '', tokenUserId || 0]
+        );
+
+        if (!studentRows || studentRows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Student profile not found' });
+        }
+
+        const studentId = studentRows[0].id;
+        await masterPool.query(
+            'DELETE FROM announcement_registrations WHERE announcement_id = ? AND student_id = ?',
+            [id, studentId]
+        );
+
+        res.json({ success: true, message: 'Registration cancelled successfully' });
+    } catch (error) {
+        console.error('Cancel registration error:', error);
+        res.status(500).json({ success: false, message: 'Failed to cancel registration' });
+    }
+};
+
+/**
+ * Admin: Remove/delete a candidate registration
+ */
+exports.removeCandidateRegistration = async (req, res) => {
+    try {
+        const { id, registrationId } = req.params;
+        await masterPool.query(
+            'DELETE FROM announcement_registrations WHERE id = ? AND announcement_id = ?',
+            [registrationId, id]
+        );
+        res.json({ success: true, message: 'Candidate registration removed successfully' });
+    } catch (error) {
+        console.error('Remove registration error:', error);
+        res.status(500).json({ success: false, message: 'Failed to remove registration' });
+    }
+};
+

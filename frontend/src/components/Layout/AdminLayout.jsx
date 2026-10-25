@@ -97,6 +97,7 @@ const NAV_ITEMS = [
         label: "Profile Requests",
         icon: ClipboardList,
         permission: FRONTEND_MODULES.STUDENTS,
+        actions: ['view_profile_requests', 'edit_profile_requests'],
         action: 'view_profile_requests'
       },
       {

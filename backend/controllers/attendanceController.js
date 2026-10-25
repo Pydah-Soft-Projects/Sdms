@@ -1849,6 +1849,7 @@ exports.markAttendance = async (req, res) => {
     );
 
     const adminId = req.admin?.id || null;
+    const markingUser = req.user?.name || req.user?.username || req.admin?.username || 'Staff';
 
     let updatedCount = 0;
     let insertedCount = 0;
@@ -1913,7 +1914,7 @@ exports.markAttendance = async (req, res) => {
         updatedCount += 1;
 
         if (record.status === 'absent' && shouldSendSms) {
-          smsQueue.push({ student, attendanceDate: normalizedDate });
+          smsQueue.push({ student, attendanceDate: normalizedDate, sentBy: markingUser });
         }
       } else {
         // Build INSERT query - include year/semester only if table has those columns
@@ -1979,7 +1980,7 @@ exports.markAttendance = async (req, res) => {
         insertedCount += 1;
 
         if (record.status === 'absent' && shouldSendSms) {
-          smsQueue.push({ student, attendanceDate: normalizedDate });
+          smsQueue.push({ student, attendanceDate: normalizedDate, sentBy: markingUser });
         }
       }
     }
@@ -2064,7 +2065,8 @@ exports.markAttendance = async (req, res) => {
           try {
             const smsResult = await sendAbsenceNotification({
               ...payload,
-              notificationSettings
+              notificationSettings,
+              sentBy: payload.sentBy || markingUser
             });
 
             // Web notification is now handled separately for all statuses
@@ -3373,7 +3375,8 @@ exports.retrySms = async (req, res) => {
         parent_mobile1: resolvedMobile
       },
       attendanceDate: normalizedDate,
-      notificationSettings
+      notificationSettings,
+      sentBy: req.user?.name || req.user?.username || req.admin?.username || 'Staff'
     });
 
     // Send Web Notification

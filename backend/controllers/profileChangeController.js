@@ -190,7 +190,26 @@ exports.submitRequest = async (req, res) => {
             return res.status(400).json({ success: false, message: 'No changes provided' });
         }
 
-        const result = await insertPendingRequest(admissionNumber, requested_changes);
+        // Restrict fields that students are not allowed to edit directly
+        const restrictedPatterns = [
+            'admission_date', 'admission date', 'admission_no', 'admission_number', 'admission year', 'admission_year',
+            'parent_mobile', 'parent mobile', 'parent_phone', 'parent phone', 'parent phone 1', 'parent phone 2',
+            'batch', 'course', 'branch', 'pin_no', 'current_year', 'current_semester'
+        ];
+        const cleanedChanges = {};
+        for (const [key, val] of Object.entries(requested_changes)) {
+            const lowerKey = key.toLowerCase();
+            const isRestricted = restrictedPatterns.some(p => lowerKey.includes(p));
+            if (!isRestricted) {
+                cleanedChanges[key] = val;
+            }
+        }
+
+        if (Object.keys(cleanedChanges).length === 0) {
+            return res.status(400).json({ success: false, message: 'No editable changes provided' });
+        }
+
+        const result = await insertPendingRequest(admissionNumber, cleanedChanges);
         if (result.conflict) {
             return res.status(400).json({ success: false, message: 'You already have a pending change request' });
         }
@@ -738,7 +757,7 @@ exports.updateRequestStatus = async (req, res) => {
             const validStudentColumns = [
                 'student_name', 'student_mobile', 'father_name', 'dob', 'adhar_no',
                 'parent_mobile1', 'parent_mobile2', 'student_address', 'city_village',
-                'mandal_name', 'district', 'caste', 'gender', 'blood_group'
+                'mandal_name', 'district', 'caste', 'gender', 'blood_group', 'email', 'pin_no'
             ];
 
             // Mapping dictionary from common form keys/JSON keys -> Database columns
@@ -755,12 +774,21 @@ exports.updateRequestStatus = async (req, res) => {
                 'student_name': 'student_name',
                 'father_name': 'father_name',
                 'student_mobile': 'student_mobile',
+                'mobile': 'student_mobile',
                 'student_address': 'student_address',
                 'city_village': 'city_village',
                 'mandal_name': 'mandal_name',
                 'district': 'district',
                 'parent_mobile1': 'parent_mobile1',
-                'parent_mobile2': 'parent_mobile2'
+                'parent_mobile2': 'parent_mobile2',
+                'email': 'email',
+                'email_id': 'email',
+                'email address': 'email',
+                'pin': 'pin_no',
+                'pin_no': 'pin_no',
+                'pin_number': 'pin_no',
+                'roll_no': 'pin_no',
+                'roll number': 'pin_no'
             };
 
             const updates = [];

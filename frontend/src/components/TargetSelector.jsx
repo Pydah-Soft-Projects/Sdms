@@ -521,7 +521,7 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                 <div className="flex-1 overflow-y-auto space-y-4 pr-1">
                     <p className="text-xs text-slate-500">Leave fields empty to target everyone.</p>
 
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <MultiSelect
                             label="Colleges"
                             placeholder="All Colleges"
@@ -546,22 +546,20 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                                 onChange={vals => setFormData({ ...formData, target_batch: vals })}
                             />
                         )}
-                    </div>
-                    <MultiSelect
-                        label="Programs"
-                        placeholder="All Programs"
-                        options={availableCourses}
-                        selected={formData.target_course}
-                        onChange={vals => setFormData({ ...formData, target_course: vals })}
-                    />
-                    <MultiSelect
-                        label="Branches"
-                        placeholder="All Branches"
-                        options={availableBranches}
-                        selected={formData.target_branch}
-                        onChange={vals => setFormData({ ...formData, target_branch: vals })}
-                    />
-                    <div className="grid grid-cols-2 gap-4">
+                        <MultiSelect
+                            label="Programs"
+                            placeholder="All Programs"
+                            options={availableCourses}
+                            selected={formData.target_course}
+                            onChange={vals => setFormData({ ...formData, target_course: vals })}
+                        />
+                        <MultiSelect
+                            label="Branches"
+                            placeholder="All Branches"
+                            options={availableBranches}
+                            selected={formData.target_branch}
+                            onChange={vals => setFormData({ ...formData, target_branch: vals })}
+                        />
                         <MultiSelect
                             label="Years"
                             placeholder="All Years"

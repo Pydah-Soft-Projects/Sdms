@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import useAuthStore from "../../store/authStore";
 import LogoutConfirmModal from "../LogoutConfirmModal";
+import NotificationIcon from "../Notifications/NotificationIcon";
 import {
   MODULE_ROUTE_MAP,
   getModuleKeyForPath,
@@ -743,6 +744,12 @@ const AdminLayout = () => {
           <Outlet />
         </div>
       </main>
+
+      {Object.values(USER_ROLES).includes(user?.role) && (
+        <div className="fixed top-4 right-4 z-[90]">
+          <NotificationIcon />
+        </div>
+      )}
 
       {/* 3. Mobile Navigation Bar (Docked at Bottom) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100/50 z-[80] pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2.5rem] transition-all duration-500">

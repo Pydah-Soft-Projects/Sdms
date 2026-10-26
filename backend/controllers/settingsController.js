@@ -1,5 +1,6 @@
 const { masterPool } = require('../config/database');
 const { logAudit } = require('../services/auditLogService');
+const { ROLE_LABELS } = require('../constants/rbac');
 
 const auditSettingChange = (req, settingKey, details) => {
   logAudit(req, {
@@ -47,7 +48,16 @@ Login URL: {{loginUrl}}`,
   attendance_absent: {
     key: 'attendance_absent',
     defaultSmsTemplate: `Dear Parent, {#var#} is absent today i.e., on {#var#}Principal, PYDAH.`
+  },
+  pin_update: {
+    key: 'pin_update',
+    defaultRecipientRoles: ['college_ao', 'office_assistant']
   }
+};
+const NOTIFICATION_RECIPIENT_ROLES = {
+  ...ROLE_LABELS,
+  admin: 'Admin',
+  staff: 'Staff'
 };
 
 /**
@@ -70,6 +80,12 @@ exports.getNotificationSettings = async (req, res) => {
         const key = item.key.replace('notification_', '');
         try {
           settingsObj[key] = JSON.parse(item.value);
+          if (
+            key === 'pin_update' &&
+            !Array.isArray(settingsObj[key]?.recipientRoles)
+          ) {
+            settingsObj[key].recipientRoles = NOTIFICATION_TYPES.pin_update.defaultRecipientRoles;
+          }
         } catch (e) {
           // If parsing fails, use default
           const type = Object.values(NOTIFICATION_TYPES).find(t => t.key === key);
@@ -80,7 +96,8 @@ exports.getNotificationSettings = async (req, res) => {
               smsEnabled: true,
               emailSubject: type.defaultEmailSubject,
               emailTemplate: type.defaultEmailTemplate,
-              smsTemplate: type.defaultSmsTemplate
+              smsTemplate: type.defaultSmsTemplate,
+              recipientRoles: type.defaultRecipientRoles
             };
           }
         }
@@ -96,14 +113,16 @@ exports.getNotificationSettings = async (req, res) => {
           smsEnabled: true,
           emailSubject: type.defaultEmailSubject,
           emailTemplate: type.defaultEmailTemplate,
-          smsTemplate: type.defaultSmsTemplate
+          smsTemplate: type.defaultSmsTemplate,
+          recipientRoles: type.defaultRecipientRoles
         };
       }
     });
 
     res.json({
       success: true,
-      data: settingsObj
+      data: settingsObj,
+      availableRoles: Object.entries(NOTIFICATION_RECIPIENT_ROLES).map(([key, label]) => ({ key, label }))
     });
   } catch (error) {
     console.error('Get notification settings error:', error);
@@ -150,7 +169,12 @@ exports.updateNotificationSettings = async (req, res) => {
         smsEnabled: value.smsEnabled !== false,
         emailSubject: value.emailSubject || NOTIFICATION_TYPES[key].defaultEmailSubject,
         emailTemplate: value.emailTemplate || NOTIFICATION_TYPES[key].defaultEmailTemplate,
-        smsTemplate: value.smsTemplate || NOTIFICATION_TYPES[key].defaultSmsTemplate
+        smsTemplate: value.smsTemplate || NOTIFICATION_TYPES[key].defaultSmsTemplate,
+        ...(key === 'pin_update' && {
+          recipientRoles: Array.isArray(value.recipientRoles)
+            ? [...new Set(value.recipientRoles.filter((role) => NOTIFICATION_RECIPIENT_ROLES[role]))]
+            : NOTIFICATION_TYPES.pin_update.defaultRecipientRoles
+        })
       };
 
       settingsToSave.push({
@@ -202,7 +226,11 @@ exports.getNotificationSetting = async (typeKey) => {
 
     if (settings && settings.length > 0 && settings[0].value) {
       try {
-        return JSON.parse(settings[0].value);
+        const parsed = JSON.parse(settings[0].value);
+        if (typeKey === 'pin_update' && !Array.isArray(parsed.recipientRoles)) {
+          parsed.recipientRoles = NOTIFICATION_TYPES.pin_update.defaultRecipientRoles;
+        }
+        return parsed;
       } catch (e) {
         // Return default if parsing fails
         const type = NOTIFICATION_TYPES[typeKey];
@@ -213,7 +241,8 @@ exports.getNotificationSetting = async (typeKey) => {
             smsEnabled: true,
             emailSubject: type.defaultEmailSubject,
             emailTemplate: type.defaultEmailTemplate,
-            smsTemplate: type.defaultSmsTemplate
+            smsTemplate: type.defaultSmsTemplate,
+            recipientRoles: type.defaultRecipientRoles
           };
         }
       }
@@ -228,7 +257,8 @@ exports.getNotificationSetting = async (typeKey) => {
         smsEnabled: true,
         emailSubject: type.defaultEmailSubject,
         emailTemplate: type.defaultEmailTemplate,
-        smsTemplate: type.defaultSmsTemplate
+        smsTemplate: type.defaultSmsTemplate,
+        recipientRoles: type.defaultRecipientRoles
       };
     }
 

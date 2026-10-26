@@ -18,6 +18,7 @@ const {
 } = require('../services/academicProgression');
 const sectionAssignmentService = require('../services/sectionAssignmentService');
 const { writeAuditLog, logAudit } = require('../services/auditLogService');
+const { notifyPinUpdates } = require('../services/notificationService');
 const {
   getRegistrationScholarshipFilterClause,
   buildRegistrationScholarshipAssignedSumSql,
@@ -4720,6 +4721,17 @@ exports.updatePinNumber = async (req, res) => {
 
     clearStudentsCache();
 
+    try {
+      const [updatedStudents] = await masterPool.query(
+        `SELECT student_name, admission_number, pin_no, college_id, course_id, branch_id
+         FROM students WHERE admission_number = ? LIMIT 1`,
+        [admissionNumber]
+      );
+      await notifyPinUpdates(updatedStudents);
+    } catch (notificationError) {
+      console.error('Failed to create PIN update notifications:', notificationError);
+    }
+
     console.log('[PIN UPDATE] ✅ SUCCESS - PIN updated to:', pinNumber);
 
     res.json({
@@ -7247,15 +7259,45 @@ exports.bulkUpdatePinNumbers = async (req, res) => {
 
     // Verify which students were actually found (optional - can be skipped for performance)
     // This is a trade-off: verification adds time but provides accurate notFoundCount
+    let foundStudents = [];
+    let fetchedStudentsForUpdates = false;
     if (updates.length <= 1000) {
       // Only verify for smaller batches to avoid performance hit
       const admissionNumbers = updates.map(u => u.admissionNumber);
-      const [foundStudents] = await connection.query(
-        'SELECT admission_number FROM students WHERE admission_number IN (?)',
+      [foundStudents] = await connection.query(
+        `SELECT student_name, admission_number, pin_no, college_id, course_id, branch_id
+         FROM students WHERE admission_number IN (?)`,
         [admissionNumbers]
       );
+      fetchedStudentsForUpdates = true;
       const foundSet = new Set(foundStudents.map(s => s.admission_number));
       notFoundCount = admissionNumbers.filter(an => !foundSet.has(an)).length;
+    }
+
+    if (successCount > 0) {
+      try {
+        if (!fetchedStudentsForUpdates) {
+          for (let index = 0; index < updates.length; index += 500) {
+            const admissionNumbers = updates
+              .slice(index, index + 500)
+              .map((update) => update.admissionNumber);
+            const [studentBatch] = await connection.query(
+              `SELECT student_name, admission_number, pin_no, college_id, course_id, branch_id
+               FROM students WHERE admission_number IN (?)`,
+              [admissionNumbers]
+            );
+            foundStudents.push(...studentBatch);
+          }
+        }
+
+        const expectedPins = new Map(updates.map((update) => [update.admissionNumber, update.params[0]]));
+        const updatedStudents = foundStudents.filter(
+          (student) => expectedPins.get(student.admission_number) === student.pin_no
+        );
+        await notifyPinUpdates(updatedStudents);
+      } catch (notificationError) {
+        console.error('Failed to create bulk PIN update notifications:', notificationError);
+      }
     }
 
     // Clean up uploaded file

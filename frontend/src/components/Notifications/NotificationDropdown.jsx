@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react'; // Fixed dependencies
+import React, { useEffect, useRef, useState } from 'react';
 import { Bell, Check, Trash2, X } from 'lucide-react';
 import useNotificationStore from '../../store/notificationStore';
 import { formatDistanceToNow } from 'date-fns';
 
 const NotificationDropdown = ({ isOpen, onClose }) => {
+    const [expandedNotificationId, setExpandedNotificationId] = useState(null);
     const {
         notifications,
         unreadCount,
@@ -47,7 +48,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
     return (
         <div
             ref={dropdownRef}
-            className="absolute right-0 bottom-full mb-4 w-80 md:w-96 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-5 duration-200"
+            className="absolute right-0 top-full mt-4 w-80 md:w-96 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-5 duration-200"
         >
             {/* Header */}
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 backdrop-blur-sm">
@@ -104,9 +105,23 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                                         <h4 className={`text-sm font-medium ${!notification.is_read ? 'text-gray-900' : 'text-gray-700'}`}>
                                             {notification.title || 'Notification'}
                                         </h4>
-                                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                                        <p className={`text-xs text-gray-500 mt-0.5 ${
+                                            expandedNotificationId === notification.id
+                                                ? 'whitespace-pre-line break-words'
+                                                : 'line-clamp-2'
+                                        }`}>
                                             {notification.message}
                                         </p>
+                                        {notification.message?.length > 160 && (
+                                            <button
+                                                onClick={() => setExpandedNotificationId(
+                                                    expandedNotificationId === notification.id ? null : notification.id
+                                                )}
+                                                className="text-[10px] text-blue-600 hover:text-blue-700 mt-1"
+                                            >
+                                                {expandedNotificationId === notification.id ? 'Show less' : 'Show details'}
+                                            </button>
+                                        )}
                                         <span className="text-[10px] text-gray-400 mt-2 block">
                                             {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                                         </span>

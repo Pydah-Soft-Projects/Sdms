@@ -569,7 +569,12 @@ export default function QrStudentView() {
                         <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center">
                             <AlertCircle size={24} className="text-rose-600" />
                         </div>
-                        <h2 className="text-base sm:text-lg font-bold text-slate-900">Student Not Found</h2>
+                        <h2 className="text-base sm:text-lg font-bold text-slate-900">
+                            {publicError.toLowerCase().includes('expired') ||
+                            publicError.toLowerCase().includes('validity')
+                                ? 'QR Link Expired'
+                                : 'Student Not Found'}
+                        </h2>
                         <p className="text-xs sm:text-sm text-slate-500 max-w-md">{publicError}</p>
                     </div>
                 )}

@@ -131,6 +131,7 @@ const ALL_STUDENT_FIELDS = [
     { key: 'adhar_no', label: 'Aadhar Number' },
     { key: 'college', label: 'College' },
     { key: 'batch', label: 'Batch' },
+    { key: 'validity', label: 'Validity' },
     { key: 'course', label: 'Program' },
     { key: 'branch', label: 'Branch' },
     { key: 'current_year', label: 'Current Year' },
@@ -182,6 +183,92 @@ const buildFilteredStudent = (student, fieldKeys) => {
     });
     return result;
 };
+
+const getStudentValidity = (student) => {
+    if (student.validity != null && String(student.validity).trim()) {
+        if (typeof student.validity === 'object' && student.validity.value != null) {
+            return String(student.validity.value).trim();
+        }
+        return String(student.validity).trim();
+    }
+
+    for (const rawData of [student.student_data, student.custom_fields]) {
+        let data = rawData;
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch (error) {
+                continue;
+            }
+        }
+        if (!data || typeof data !== 'object' || Array.isArray(data)) continue;
+
+        const validityField = Object.entries(data).find(([key, value]) => (
+            key.toLowerCase().replace(/[^a-z0-9]/g, '') === 'validity' &&
+            value != null &&
+            String(value).trim()
+        ));
+        const validityValue = validityField?.[1];
+        if (validityValue && typeof validityValue === 'object' && validityValue.value != null) {
+            return String(validityValue.value).trim();
+        }
+        if (validityValue) return String(validityValue).trim();
+    }
+
+    return '';
+};
+
+const isStudentValidityExpired = (validity) => {
+    if (!validity) return true;
+
+    const normalized = String(validity)
+        .replace(/^(valid\s*)?(up\s*to|upto|until|till)\s*/i, '')
+        .replace(/,$/, '')
+        .trim();
+    let validThrough;
+    const monthYearMatch = normalized.match(
+        /\b(January|February|March|April|May|June|July|August|September|October|November|December)[,\s-]+(\d{4})\b/i
+    );
+    const numericMonthYearMatch = normalized.match(/^(\d{1,2})[/-](\d{4})$/);
+    const yearMatch = normalized.match(/^(\d{4})$/);
+    const numericDateMatch = normalized.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+
+    if (monthYearMatch) {
+        const monthIndex = new Date(`${monthYearMatch[1]} 1, ${monthYearMatch[2]}`).getMonth();
+        validThrough = new Date(Number(monthYearMatch[2]), monthIndex + 1, 0, 23, 59, 59, 999);
+    } else if (numericMonthYearMatch) {
+        const month = Number(numericMonthYearMatch[1]);
+        if (month < 1 || month > 12) return true;
+        validThrough = new Date(Number(numericMonthYearMatch[2]), month, 0, 23, 59, 59, 999);
+    } else if (yearMatch) {
+        validThrough = new Date(Number(yearMatch[1]), 11, 31, 23, 59, 59, 999);
+    } else if (numericDateMatch) {
+        const day = Number(numericDateMatch[1]);
+        const month = Number(numericDateMatch[2]);
+        const year = Number(numericDateMatch[3]);
+        validThrough = new Date(year, month - 1, day, 23, 59, 59, 999);
+        if (validThrough.getDate() !== day || validThrough.getMonth() !== month - 1) return true;
+    } else {
+        const parsedDate = new Date(normalized);
+        if (Number.isNaN(parsedDate.getTime())) return true;
+        validThrough = new Date(
+            parsedDate.getFullYear(),
+            parsedDate.getMonth(),
+            parsedDate.getDate(),
+            23,
+            59,
+            59,
+            999
+        );
+    }
+
+    return Date.now() > validThrough.getTime();
+};
+
+const attachStudentValidity = (student) => ({
+    ...student,
+    validity: getStudentValidity(student)
+});
 
 /**
  * GET /api/settings/qr-config
@@ -512,6 +599,15 @@ exports.getPublicStudentData = async (req, res) => {
         if (!student) {
             return res.status(404).json({ success: false, message: 'Student not found' });
         }
+        const studentWithValidity = attachStudentValidity(student);
+        if (isStudentValidityExpired(studentWithValidity.validity)) {
+            return res.status(410).json({
+                success: false,
+                message: studentWithValidity.validity
+                    ? `This QR link expired on ${studentWithValidity.validity}.`
+                    : 'This student does not have a valid QR expiry date.'
+            });
+        }
 
         // Get public fields config
         await ensureQrConfigTable();
@@ -528,10 +624,10 @@ exports.getPublicStudentData = async (req, res) => {
 
         // Default public fields if not configured
         if (publicFieldKeys.length === 0) {
-            publicFieldKeys = ['student_name', 'admission_no', 'college', 'course', 'branch', 'current_year', 'current_semester', 'student_status'];
+            publicFieldKeys = ['student_name', 'admission_no', 'college', 'course', 'branch', 'current_year', 'current_semester', 'student_status', 'validity'];
         }
 
-        const publicData = buildFilteredStudent(student, publicFieldKeys);
+        const publicData = buildFilteredStudent(studentWithValidity, publicFieldKeys);
 
         // Always ensure name is present
         if (!publicData.student_name && student.student_name) {
@@ -644,6 +740,15 @@ exports.verifyQrAccess = async (req, res) => {
 
         if (!student) {
             return res.status(404).json({ success: false, message: 'Student not found' });
+        }
+        student = attachStudentValidity(student);
+        if (isStudentValidityExpired(student.validity)) {
+            return res.status(410).json({
+                success: false,
+                message: student.validity
+                    ? `This QR link expired on ${student.validity}.`
+                    : 'This student does not have a valid QR expiry date.'
+            });
         }
 
         // 4. Get QR role config for this role

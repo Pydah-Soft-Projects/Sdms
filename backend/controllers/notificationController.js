@@ -1,16 +1,31 @@
 const { masterPool } = require('../config/database');
+const { ROLE_LABELS } = require('../constants/rbac');
+
+const STAFF_NOTIFICATION_ROLES = new Set([
+    ...Object.keys(ROLE_LABELS),
+    'admin',
+    'staff'
+]);
+
+const getNotificationRecipient = (req) => {
+    const role = String(req.user?.role || '').toLowerCase();
+    if (role === 'student') {
+        return { id: req.user.id, mobileNumber: 'WEB' };
+    }
+    if (STAFF_NOTIFICATION_ROLES.has(role)) {
+        return { id: req.user.id, mobileNumber: 'WEB_STAFF' };
+    }
+    return null;
+};
 
 /**
- * Get notifications for a student
- * Fetches "WEB" type messages from sms_logs
+ * Get web notifications for the authenticated student or supported staff role.
  */
 exports.getNotifications = async (req, res) => {
     try {
-        const studentId = req.user.id;
-        const { role } = req.user;
-
-        if (role !== 'student') {
-            return res.status(403).json({ success: false, message: 'Only students can access notifications' });
+        const recipient = getNotificationRecipient(req);
+        if (!recipient) {
+            return res.status(403).json({ success: false, message: 'Notifications are not available for this account' });
         }
 
         // Pagination
@@ -23,10 +38,10 @@ exports.getNotifications = async (req, res) => {
         const [rows] = await masterPool.query(
             `SELECT id, message, status, sent_at as created_at, category, message_id as data
        FROM sms_logs 
-       WHERE student_id = ? AND mobile_number = 'WEB'
+       WHERE student_id = ? AND mobile_number = ?
        ORDER BY sent_at DESC
        LIMIT ? OFFSET ?`,
-            [studentId, limit, offset]
+            [recipient.id, recipient.mobileNumber, limit, offset]
         );
 
         const notifications = rows.map(row => {
@@ -55,8 +70,8 @@ exports.getNotifications = async (req, res) => {
             `SELECT COUNT(*) as total, 
        SUM(CASE WHEN status != 'Read' THEN 1 ELSE 0 END) as unread_count
        FROM sms_logs 
-       WHERE student_id = ? AND mobile_number = 'WEB'`,
-            [studentId]
+       WHERE student_id = ? AND mobile_number = ?`,
+            [recipient.id, recipient.mobileNumber]
         );
 
         const total = countResult[0].total;
@@ -85,14 +100,17 @@ exports.getNotifications = async (req, res) => {
  */
 exports.markAsRead = async (req, res) => {
     try {
-        const studentId = req.user.id;
+        const recipient = getNotificationRecipient(req);
+        if (!recipient) {
+            return res.status(403).json({ success: false, message: 'Notifications are not available for this account' });
+        }
         const notificationId = req.params.id;
 
         await masterPool.query(
             `UPDATE sms_logs 
        SET status = 'Read' 
-       WHERE id = ? AND student_id = ? AND mobile_number = 'WEB'`,
-            [notificationId, studentId]
+       WHERE id = ? AND student_id = ? AND mobile_number = ?`,
+            [notificationId, recipient.id, recipient.mobileNumber]
         );
 
         res.json({ success: true, message: 'Notification marked as read' });
@@ -107,13 +125,16 @@ exports.markAsRead = async (req, res) => {
  */
 exports.markAllAsRead = async (req, res) => {
     try {
-        const studentId = req.user.id;
+        const recipient = getNotificationRecipient(req);
+        if (!recipient) {
+            return res.status(403).json({ success: false, message: 'Notifications are not available for this account' });
+        }
 
         await masterPool.query(
             `UPDATE sms_logs 
        SET status = 'Read' 
-       WHERE student_id = ? AND mobile_number = 'WEB' AND status != 'Read'`,
-            [studentId]
+       WHERE student_id = ? AND mobile_number = ? AND status != 'Read'`,
+            [recipient.id, recipient.mobileNumber]
         );
 
         res.json({ success: true, message: 'All notifications marked as read' });
@@ -128,13 +149,16 @@ exports.markAllAsRead = async (req, res) => {
  */
 exports.deleteNotification = async (req, res) => {
     try {
-        const studentId = req.user.id;
+        const recipient = getNotificationRecipient(req);
+        if (!recipient) {
+            return res.status(403).json({ success: false, message: 'Notifications are not available for this account' });
+        }
         const notificationId = req.params.id;
 
         await masterPool.query(
             `DELETE FROM sms_logs 
-       WHERE id = ? AND student_id = ? AND mobile_number = 'WEB'`,
-            [notificationId, studentId]
+       WHERE id = ? AND student_id = ? AND mobile_number = ?`,
+            [notificationId, recipient.id, recipient.mobileNumber]
         );
 
         res.json({ success: true, message: 'Notification removed' });
@@ -149,12 +173,15 @@ exports.deleteNotification = async (req, res) => {
  */
 exports.clearAllNotifications = async (req, res) => {
     try {
-        const studentId = req.user.id;
+        const recipient = getNotificationRecipient(req);
+        if (!recipient) {
+            return res.status(403).json({ success: false, message: 'Notifications are not available for this account' });
+        }
 
         await masterPool.query(
             `DELETE FROM sms_logs 
-       WHERE student_id = ? AND mobile_number = 'WEB'`,
-            [studentId]
+       WHERE student_id = ? AND mobile_number = ?`,
+            [recipient.id, recipient.mobileNumber]
         );
 
         res.json({ success: true, message: 'All notifications cleared' });

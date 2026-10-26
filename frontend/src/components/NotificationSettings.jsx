@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../config/api';
+import { ROLE_LABELS } from '../constants/rbac';
 
 const NOTIFICATION_TYPES = {
   USER_CREATION: {
@@ -63,6 +64,14 @@ Login URL: {{loginUrl}}`,
     description: 'Notification sent to parents when a student is marked absent',
     channels: ['sms'],
     defaultSmsTemplate: `Dear Parent, {#var#} is absent today i.e., on {#var#}Principal, PYDAH.`
+  },
+  PIN_UPDATE: {
+    key: 'pin_update',
+    label: 'ID Card PIN Updates',
+    icon: Bell,
+    description: 'Dashboard alerts when student PIN numbers are updated for ID cards',
+    channels: [],
+    defaultRecipientRoles: ['college_ao', 'office_assistant']
   }
 };
 
@@ -70,6 +79,9 @@ const NotificationSettings = ({ readOnly = false }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({});
+  const [availableRoles, setAvailableRoles] = useState(
+    Object.entries(ROLE_LABELS).map(([key, label]) => ({ key, label }))
+  );
   const [activeTab, setActiveTab] = useState('user_creation');
 
   useEffect(() => {
@@ -82,6 +94,9 @@ const NotificationSettings = ({ readOnly = false }) => {
       const response = await api.get('/settings/notifications');
       if (response.data?.success) {
         setSettings(response.data.data || {});
+        if (Array.isArray(response.data.availableRoles)) {
+          setAvailableRoles(response.data.availableRoles);
+        }
       }
     } catch (error) {
       console.error('Failed to load notification settings:', error);
@@ -95,7 +110,8 @@ const NotificationSettings = ({ readOnly = false }) => {
           smsEnabled: type.channels.includes('sms'),
           emailSubject: type.defaultEmailSubject,
           emailTemplate: type.defaultEmailTemplate,
-          smsTemplate: type.defaultSmsTemplate
+          smsTemplate: type.defaultSmsTemplate,
+          recipientRoles: type.defaultRecipientRoles
         };
       });
       setSettings(defaultSettings);
@@ -165,7 +181,7 @@ const NotificationSettings = ({ readOnly = false }) => {
             Notification Settings
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Configure SMS and Email templates for various notifications
+            Configure notification channels, recipients, and templates
           </p>
         </div>
         {!readOnly && (
@@ -278,6 +294,44 @@ const NotificationSettings = ({ readOnly = false }) => {
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
+
+                {activeType.key === 'pin_update' && (
+                  <div className="p-4 border border-gray-200 rounded-lg">
+                    <h4 className="font-medium text-gray-900">Dashboard alert recipients</h4>
+                    <p className="text-xs text-gray-500 mt-1 mb-3">
+                      Selected roles receive alerts only for PIN updates within their assigned student scope.
+                    </p>
+                    <div className="grid max-h-64 grid-cols-1 gap-x-4 gap-y-2 overflow-y-auto pr-2 sm:grid-cols-2">
+                      {availableRoles.map((role) => {
+                        const configuredRoles = getSetting(
+                          activeType.key,
+                          'recipientRoles',
+                          activeType.defaultRecipientRoles
+                        );
+                        const selectedRoles = Array.isArray(configuredRoles)
+                          ? configuredRoles
+                          : activeType.defaultRecipientRoles;
+                        return (
+                          <label key={role.key} className="flex items-center gap-2 text-sm text-gray-700">
+                            <input
+                              type="checkbox"
+                              checked={selectedRoles.includes(role.key)}
+                              disabled={readOnly}
+                              onChange={(event) => {
+                                const nextRoles = event.target.checked
+                                  ? [...selectedRoles, role.key]
+                                  : selectedRoles.filter((selectedRole) => selectedRole !== role.key);
+                                updateSetting(activeType.key, 'recipientRoles', nextRoles);
+                              }}
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            {role.label}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Channel Selection */}
                 <div className="grid grid-cols-2 gap-4">
@@ -417,4 +471,3 @@ const NotificationSettings = ({ readOnly = false }) => {
 };
 
 export default NotificationSettings;
-

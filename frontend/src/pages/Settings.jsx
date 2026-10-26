@@ -1349,9 +1349,13 @@ const Settings = () => {
       setQrConfigLoading(true);
       const response = await api.get('/settings/qr-config');
       if (response.data.success) {
+        const configuredFields = response.data.data.availableFields || [];
+        const availableFields = configuredFields.some((field) => field.key === 'validity')
+          ? configuredFields
+          : [...configuredFields, { key: 'validity', label: 'Validity' }];
         setQrRoleConfigs(response.data.data.roleConfigs || {});
         setQrPublicFields(response.data.data.publicFields || []);
-        setQrAvailableFields(response.data.data.availableFields || []);
+        setQrAvailableFields(availableFields);
       }
     } catch (error) {
       console.error('Failed to fetch QR config', error);
@@ -8030,4 +8034,3 @@ const EmptyState = () => (
 );
 
 export default Settings;
-

@@ -184,7 +184,7 @@ const buildFilteredStudent = (student, fieldKeys) => {
     return result;
 };
 
-const getStudentValidity = (student) => {
+const getStoredStudentValidity = (student) => {
     if (student.validity != null && String(student.validity).trim()) {
         if (typeof student.validity === 'object' && student.validity.value != null) {
             return String(student.validity.value).trim();
@@ -216,6 +216,177 @@ const getStudentValidity = (student) => {
     }
 
     return '';
+};
+
+const getParsedStudentData = (student) => {
+    for (const rawData of [student.student_data, student.custom_fields]) {
+        let data = rawData;
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch (error) {
+                continue;
+            }
+        }
+        if (data && typeof data === 'object' && !Array.isArray(data)) return data;
+    }
+    return {};
+};
+
+const getCardCourseDuration = async (student) => {
+    const studentData = getParsedStudentData(student);
+    const explicitYears = Number(
+        student.total_years ??
+        student.totalYears ??
+        student.course_years ??
+        student.courseYears ??
+        studentData.total_years ??
+        studentData.totalYears
+    );
+    if (!Number.isNaN(explicitYears) && explicitYears > 0 && explicitYears <= 10) {
+        return explicitYears;
+    }
+
+    const courseId = student.course_id ?? student.courseId;
+    const branchId = student.branch_id ?? student.branchId;
+    const courseName = student.course || student.course_name || '';
+    const branchName = student.branch || student.branch_name || '';
+    let courseLevel = student.level || student.course_level || '';
+
+    if (courseId != null || courseName) {
+        const [courseRows] = await masterPool.query(
+            `SELECT c.total_years AS course_years, cb.total_years AS branch_years
+             FROM courses c
+             LEFT JOIN course_branches cb ON cb.course_id = c.id
+               AND ((? IS NOT NULL AND cb.id = ?) OR (? <> '' AND cb.name = ?))
+             WHERE (? IS NOT NULL AND c.id = ?)
+                OR (? IS NULL AND ? <> '' AND c.name = ?)
+             LIMIT 1`,
+            [
+                branchId ?? null, branchId ?? null, branchName, branchName,
+                courseId ?? null, courseId ?? null,
+                courseId ?? null, courseName, courseName
+            ]
+        );
+        const course = courseRows[0];
+        const configuredYears = Number(course?.branch_years || course?.course_years);
+        if (!Number.isNaN(configuredYears) && configuredYears > 0 && configuredYears <= 10) {
+            return configuredYears;
+        }
+    }
+
+    const fullText = `${courseName} ${courseLevel} ${branchName}`.toLowerCase();
+    if (
+        fullText.includes('pharm-d(pb)') ||
+        fullText.includes('pharm d (pb)') ||
+        fullText.includes('pharm d pb') ||
+        fullText.includes('post baccalaureate') ||
+        fullText.includes('post-baccalaureate')
+    ) return 3;
+
+    if (
+        fullText.includes('pharm.d') ||
+        fullText.includes('pharm d') ||
+        fullText.includes('pharmd') ||
+        fullText.includes('doctor of pharmacy')
+    ) return 6;
+
+    if (
+        fullText.includes('diploma in agricultural engineering') ||
+        fullText.includes('agricultural engineering') ||
+        fullText.includes('dae-kkd') ||
+        fullText.includes('daekkd') ||
+        fullText.includes('dae')
+    ) return 3;
+
+    if (
+        fullText.includes('diploma in agriculture') ||
+        fullText.includes('diploma in animal husbandry') ||
+        fullText.includes('diploma in fisheries') ||
+        fullText.includes('dap') ||
+        fullText.includes('dah') ||
+        fullText.includes('dfs')
+    ) return 2;
+
+    if (
+        fullText.includes('m.tech') ||
+        fullText.includes('mtech') ||
+        fullText.includes('m.pharm') ||
+        fullText.includes('mpharm') ||
+        fullText.includes('m.pharmacy') ||
+        fullText.includes('mca') ||
+        fullText.includes('mba') ||
+        fullText.includes('m.sc') ||
+        fullText.includes('msc') ||
+        fullText.includes('m.com') ||
+        fullText.includes('mcom') ||
+        fullText.includes('post graduate') ||
+        fullText.includes('master') ||
+        String(courseLevel).toLowerCase() === 'pg'
+    ) return 2;
+
+    if (
+        fullText.includes('diploma') ||
+        fullText.includes('polytechnic') ||
+        String(courseLevel).toLowerCase() === 'diploma'
+    ) return 3;
+
+    if (
+        fullText.includes('b.sc') ||
+        fullText.includes('bsc') ||
+        fullText.includes('b.com') ||
+        fullText.includes('bcom') ||
+        fullText.includes('b.a') ||
+        fullText.includes('ba') ||
+        fullText.includes('bba') ||
+        fullText.includes('bca') ||
+        fullText.includes('b.voc') ||
+        fullText.includes('bvoc') ||
+        fullText.includes('degree')
+    ) return 3;
+
+    if (
+        fullText.includes('b.tech') ||
+        fullText.includes('btech') ||
+        fullText.includes('b.pharm') ||
+        fullText.includes('bpharm') ||
+        fullText.includes('b.pharmacy') ||
+        fullText.includes('b.e.') ||
+        fullText.includes('b.e') ||
+        fullText.includes('engineering')
+    ) return 4;
+
+    return 4;
+};
+
+const getStudentValidity = async (student) => {
+    const storedValidity = getStoredStudentValidity(student);
+    if (storedValidity) return storedValidity;
+
+    const studentData = getParsedStudentData(student);
+    const batchField = Object.entries(studentData).find(([key]) => (
+        ['batch', 'batchyear', 'academicyear', 'admissionyear'].includes(
+            key.toLowerCase().replace(/[^a-z0-9]/g, '')
+        )
+    ))?.[1];
+    const batchValue = batchField && typeof batchField === 'object' && batchField.value != null
+        ? batchField.value
+        : batchField;
+    const batch = student.batch || batchValue || '';
+    const batchText = String(batch).trim();
+    let startYear = 2026;
+    const fourDigitYears = batchText.match(/\b(20\d{2})\b/g);
+    if (fourDigitYears?.length) {
+        startYear = Number(fourDigitYears[0]);
+    } else {
+        const numericYear = parseInt(batchText, 10);
+        if (!Number.isNaN(numericYear) && numericYear > 2000 && numericYear < 2100) {
+            startYear = numericYear;
+        }
+    }
+
+    const duration = await getCardCourseDuration(student);
+    return `Upto May ${startYear + duration}`;
 };
 
 const isStudentValidityExpired = (validity) => {
@@ -265,9 +436,9 @@ const isStudentValidityExpired = (validity) => {
     return Date.now() > validThrough.getTime();
 };
 
-const attachStudentValidity = (student) => ({
+const attachStudentValidity = async (student) => ({
     ...student,
-    validity: getStudentValidity(student)
+    validity: await getStudentValidity(student)
 });
 
 /**
@@ -599,7 +770,7 @@ exports.getPublicStudentData = async (req, res) => {
         if (!student) {
             return res.status(404).json({ success: false, message: 'Student not found' });
         }
-        const studentWithValidity = attachStudentValidity(student);
+        const studentWithValidity = await attachStudentValidity(student);
         if (isStudentValidityExpired(studentWithValidity.validity)) {
             return res.status(410).json({
                 success: false,
@@ -741,7 +912,7 @@ exports.verifyQrAccess = async (req, res) => {
         if (!student) {
             return res.status(404).json({ success: false, message: 'Student not found' });
         }
-        student = attachStudentValidity(student);
+        student = await attachStudentValidity(student);
         if (isStudentValidityExpired(student.validity)) {
             return res.status(410).json({
                 success: false,

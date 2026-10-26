@@ -1810,17 +1810,29 @@ exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [result] = await masterPool.query(
-      'UPDATE rbac_users SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+    const [userRows] = await masterPool.query(
+      'SELECT id, role FROM rbac_users WHERE id = ?',
       [id]
     );
 
-    if (result.affectedRows === 0) {
+    if (!userRows || userRows.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'User not found'
       });
     }
+
+    if (userRows[0].role === USER_ROLES.SUPER_ADMIN) {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot deactivate Super Admin users'
+      });
+    }
+
+    const [result] = await masterPool.query(
+      'UPDATE rbac_users SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [id]
+    );
 
     logAudit(req, {
       actionType: 'DEACTIVATE',

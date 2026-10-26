@@ -82,6 +82,7 @@ const FacultyTimetable = lazy(() => import('./pages/faculty/FacultyTimetable'));
 
 // Event Pages (Lazy Loaded)
 const EventCalendar = lazy(() => import('./pages/admin/EventCalendar'));
+const EventCalendarView = lazy(() => import('./pages/admin/EventCalendarView'));
 const EventRegistrations = lazy(() => import('./pages/admin/EventRegistrations'));
 const StudentCalendar = lazy(() => import('./pages/student/StudentCalendar'));
 const StudentTimetable = lazy(() => import('./pages/student/StudentTimetable'));
@@ -279,6 +280,7 @@ function App() {
             <Route path="announcements" element={<Announcements />} />
             <Route path="student-history" element={<StudentHistory />} />
             <Route path="events" element={<EventCalendar />} />
+            <Route path="calendar" element={<EventCalendarView />} />
             <Route path="events/:eventId/registrations" element={<EventRegistrations />} />
             <Route path="services/config" element={<ServicesConfig />} />
             <Route path="services/add" element={<AddServiceWizard />} />

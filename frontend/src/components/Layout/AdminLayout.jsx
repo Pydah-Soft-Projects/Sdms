@@ -258,6 +258,12 @@ const NAV_ITEMS = [
         icon: Calendar,
         permission: FRONTEND_MODULES.ANNOUNCEMENTS,
       },
+      {
+        path: "/calendar",
+        label: "Examination Notifications",
+        icon: Calendar,
+        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+      },
     ],
   },
   {

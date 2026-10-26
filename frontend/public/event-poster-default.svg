@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" fill="none">
+  <defs>
+    <linearGradient id="background" x1="38" y1="10" x2="1167" y2="383" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07143D"/>
+      <stop offset=".5" stop-color="#101B58"/>
+      <stop offset="1" stop-color="#071638"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="55" y1="80" x2="1115" y2="310" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00E8FF"/>
+      <stop offset=".52" stop-color="#438EFF"/>
+      <stop offset="1" stop-color="#A34BFF"/>
+    </linearGradient>
+    <linearGradient id="megaphone" x1="505" y1="92" x2="685" y2="205" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#9DF6FF"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="matrix(0 170 -235 0 600 140)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#08DFFF" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#08DFFF" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.5" fill="#59EFFF" fill-opacity=".65"/>
+    </pattern>
+  </defs>
+  <path fill="url(#background)" d="M0 0h1200v380H0z"/>
+  <path fill="url(#glow)" d="M0 0h1200v380H0z"/>
+  <path d="M0 0h1200v92c-115-34-207-25-302 23-102 52-163 55-258 17-94-37-174-47-285-13C225 153 137 161 0 119V0Z" fill="#172765" fill-opacity=".58"/>
+  <path d="M0 380V279c130 37 225 30 317-17 105-54 178-60 279-22 93 36 168 43 273 9 121-39 220-42 331-7v138H0Z" fill="#131E59" fill-opacity=".88"/>
+  <path d="M-24 225C110 180 137 58 262 20c93-28 191-12 267 37 59 39 87 52 154 45" stroke="url(#wave)" stroke-opacity=".72" stroke-width="3"/>
+  <path d="M-28 246C108 199 150 83 270 45c90-28 173-10 244 35 62 39 101 60 169 52" stroke="#00DDF4" stroke-opacity=".38" stroke-width="1.5"/>
+  <path d="M1225 161c-125-42-169-104-289-121-94-13-188 11-251 63-47 39-79 56-136 55" stroke="url(#wave)" stroke-opacity=".72" stroke-width="3"/>
+  <path d="M1228 185c-119-40-174-85-287-101-95-14-171 12-236 62-50 38-94 57-153 57" stroke="#53DFFF" stroke-opacity=".35" stroke-width="1.5"/>
+  <path d="M0 0h350L180 177H0zM1200 0H960l-166 167h406zM0 380h265l176-161H0zM1200 380H933l-151-158h418z" fill="url(#dots)" opacity=".55"/>
+  <g stroke="#39DFF5" stroke-opacity=".55" stroke-width="2">
+    <path d="M0 70h83l47-47h117"/>
+    <path d="M0 91h59l64-64h87"/>
+    <path d="M1200 60h-74l-39-39h-125"/>
+    <path d="M1200 85h-52l-56-56h-93"/>
+    <path d="M0 322h93l52 49h118"/>
+    <path d="M1200 316h-76l-57 54H952"/>
+    <path d="M68 276h91l32 32h82M1041 293h82l35-35h42"/>
+  </g>
+  <g fill="#5DEBFF">
+    <circle cx="247" cy="23" r="4"/><circle cx="210" cy="27" r="3"/>
+    <circle cx="961" cy="21" r="4"/><circle cx="1033" cy="29" r="3"/>
+    <circle cx="261" cy="340" r="3"/><circle cx="936" cy="346" r="4"/>
+    <circle cx="74" cy="184" r="2.5"/><circle cx="1123" cy="200" r="2.5"/>
+  </g>
+  <circle cx="600" cy="139" r="133" fill="#06133B" fill-opacity=".9" stroke="#04E4F3" stroke-width="5"/>
+  <circle cx="600" cy="139" r="119" stroke="#4BF2FF" stroke-opacity=".72" stroke-width="2"/>
+  <circle cx="600" cy="139" r="108" stroke="#728DFF" stroke-opacity=".55" stroke-width="1"/>
+  <path d="M509 139a91 91 0 0 1 182 0" stroke="#13DFF4" stroke-opacity=".35" stroke-width="2"/>
+  <g fill="#65ECFF">
+    <circle cx="600" cy="20" r="3"/><circle cx="719" cy="139" r="3"/>
+    <circle cx="600" cy="258" r="3"/><circle cx="481" cy="139" r="3"/>
+  </g>
+  <g transform="translate(0 2)">
+    <path d="m535 126 116-43v112l-116-43v-26Z" fill="url(#megaphone)"/>
+    <path d="m535 137-25 1a15 15 0 0 0 0 30h25v-31Z" fill="#F8FFFF"/>
+    <path d="m548 155 18 46a13 13 0 0 0 24-9l-11-27-31-10Z" fill="#B5F8FF"/>
+    <path d="M658 105c18 17 18 46 0 63M674 91c27 25 27 66 0 91" stroke="#F4FFFF" stroke-linecap="round" stroke-width="8"/>
+    <path d="M528 125v47" stroke="#42E9F7" stroke-linecap="round" stroke-width="3"/>
+  </g>
+  <path d="m478 280 9 18 20 3-14 14 3 20-18-10-18 10 3-20-14-14 20-3 9-18Z" fill="#6DEEFF" fill-opacity=".8"/>
+  <path d="m722 280 7 14 16 2-12 11 3 16-14-8-14 8 3-16-12-11 16-2 7-14Z" fill="#A6A9FF" fill-opacity=".8"/>
+  <text x="600" y="344" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="800" letter-spacing="2" text-anchor="middle">EVENT</text>
+  <path d="M388 358h114M698 358h114" stroke="url(#wave)" stroke-linecap="round" stroke-width="3"/>
+</svg>

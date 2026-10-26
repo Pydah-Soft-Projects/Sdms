@@ -106,42 +106,47 @@ const getAllClubStudents = async (params) => {
 };
 
 const getSeminarHallRequests = async () => {
-    const response = await api.get('/clubs/seminar-halls');
+    const response = await api.get('/seminar-halls/requests');
     return response.data;
 };
 
 const getSeminarHalls = async () => {
-    const response = await api.get('/clubs/seminar-halls/list');
+    const response = await api.get('/seminar-halls/halls');
     return response.data;
 };
 
 const createSeminarHall = async (hallData) => {
-    const response = await api.post('/clubs/seminar-halls/list', hallData);
+    const response = await api.post('/seminar-halls/halls', hallData);
     return response.data;
 };
 
 const updateSeminarHall = async (hallId, hallData) => {
-    const response = await api.put(`/clubs/seminar-halls/list/${hallId}`, hallData);
+    const response = await api.put(`/seminar-halls/halls/${hallId}`, hallData);
     return response.data;
 };
 
 const deleteSeminarHall = async (hallId) => {
-    const response = await api.delete(`/clubs/seminar-halls/list/${hallId}`);
+    const response = await api.delete(`/seminar-halls/halls/${hallId}`);
     return response.data;
 };
 
 const createSeminarHallRequest = async (requestData) => {
-    const response = await api.post('/clubs/seminar-halls', requestData);
+    const response = await api.post('/seminar-halls/requests', requestData);
     return response.data;
 };
 
 const estimateSeminarHallAudience = async (scope) => {
-    const response = await api.post('/clubs/seminar-halls/estimate', scope);
+    const response = await api.post('/seminar-halls/estimate', scope);
     return response.data;
 };
 
 const updateSeminarHallRequestStatus = async (requestId, status, adminRemarks = '') => {
-    const response = await api.patch(`/clubs/seminar-halls/${requestId}`, { status, adminRemarks });
+    const response = await api.patch(`/seminar-halls/requests/${requestId}`, { status, adminRemarks });
+    return response.data;
+};
+
+const getSeminarHallClubs = async () => {
+    const response = await api.get('/seminar-halls/clubs');
     return response.data;
 };
 
@@ -185,6 +190,7 @@ export default {
     getAllClubStudents,
     getSeminarHallRequests,
     getSeminarHalls,
+    getSeminarHallClubs,
     createSeminarHall,
     updateSeminarHall,
     deleteSeminarHall,

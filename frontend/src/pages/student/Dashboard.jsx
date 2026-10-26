@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, User, CheckCircle, Smartphone, MapPin, BarChart3, Clock, Vote, FileText, ArrowRight, Calendar, X, Users, AlertCircle, RefreshCw, BadgeCheck, ShieldAlert, Sparkles, LogOut, ChevronRight, IndianRupee, Megaphone, Award, Bell } from 'lucide-react';
+import { BookOpen, User, CheckCircle, Smartphone, MapPin, BarChart3, Clock, Vote, FileText, ArrowRight, Calendar, X, Users, AlertCircle, RefreshCw, BadgeCheck, ShieldAlert, Sparkles, LogOut, ChevronRight, IndianRupee, Megaphone, Award, Bell, Ticket } from 'lucide-react';
 import { SkeletonBox, SkeletonCard } from '../../components/SkeletonLoader';
 import { VerifyProfileDialog } from '../../components/student/VerifyProfileDialog';
 import TopHeaderBar from '../../components/student/TopHeaderBar';
@@ -11,6 +11,7 @@ import clubService from '../../services/clubService';
 import { toast } from 'react-hot-toast';
 import { getTicketAppUrl } from '../../utils/ticketAppUrl';
 import { navigateToCrtApp } from '../../utils/crtAppUrl';
+import EventPoster from '../../components/EventPoster';
 import {
     RiCheckboxCircleLine,
     RiBookOpenLine,
@@ -60,6 +61,8 @@ const Dashboard = () => {
     const hasCheckedAnnouncements = useRef(false);
     const [showEventModal, setShowEventModal] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [eventRegistrationResponses, setEventRegistrationResponses] = useState({});
+    const [eventRegistrationSubmitting, setEventRegistrationSubmitting] = useState(false);
     const [showBirthday, setShowBirthday] = useState(false);
     const [showVerifyProfile, setShowVerifyProfile] = useState(false);
 
@@ -588,8 +591,18 @@ const Dashboard = () => {
             });
         });
 
+        events
+            .filter(event => String(event.event_type || '').toLowerCase() === 'event')
+            .forEach(event => {
+                items.push({
+                    type: 'event',
+                    date: new Date(event.event_date),
+                    data: event
+                });
+            });
+
         return items.sort((a, b) => b.date - a.date);
-    }, [polls, announcements]);
+    }, [polls, announcements, events]);
 
     // Filter Upcoming Events
     const upcomingEvents = useMemo(() => {
@@ -599,6 +612,78 @@ const Dashboard = () => {
             .filter(e => new Date(e.event_date) >= now)
             .sort((a, b) => new Date(a.event_date) - new Date(b.event_date));
     }, [events]);
+
+    const parseEventRegistrationFields = (fields) => {
+        if (Array.isArray(fields)) return fields;
+        if (typeof fields !== 'string' || !fields.trim()) return [];
+        try {
+            const parsed = JSON.parse(fields);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+            console.error('Failed to parse event registration fields:', error);
+            return [];
+        }
+    };
+
+    const openEventDetails = (event) => {
+        setSelectedEvent(event);
+        setShowEventModal(true);
+        const profile = studentData || user || {};
+        const profileValues = {
+            name: profile.student_name || profile.name || '',
+            pin: profile.admission_number || profile.pin_no || '',
+            college: profile.college || '',
+            branch: profile.branch || '',
+            year: [profile.current_year ? `Year ${profile.current_year}` : '', profile.current_semester ? `Semester ${profile.current_semester}` : ''].filter(Boolean).join(' / ') || profile.batch || '',
+            phone: profile.student_mobile || profile.phone || '',
+            email: profile.email || ''
+        };
+        const responses = {};
+        parseEventRegistrationFields(event.registration_form_fields).forEach(field => {
+            const identifier = `${field.id || ''} ${field.label || ''}`.toLowerCase();
+            let value = '';
+            if (identifier.includes('name')) value = profileValues.name;
+            else if (identifier.includes('pin') || identifier.includes('roll')) value = profileValues.pin;
+            else if (identifier.includes('college')) value = profileValues.college;
+            else if (identifier.includes('branch') || identifier.includes('department')) value = profileValues.branch;
+            else if (identifier.includes('year') || identifier.includes('semester')) value = profileValues.year;
+            else if (identifier.includes('mobile') || identifier.includes('phone')) value = profileValues.phone;
+            else if (identifier.includes('email')) value = profileValues.email;
+            responses[field.id || field.label] = value;
+        });
+        setEventRegistrationResponses(responses);
+    };
+
+    const handleEventRegistration = async (e) => {
+        e.preventDefault();
+        if (!selectedEvent) return;
+        const fields = parseEventRegistrationFields(selectedEvent.registration_form_fields);
+        for (const field of fields) {
+            if (field.required && !String(eventRegistrationResponses[field.id || field.label] || '').trim()) {
+                toast.error(`Please complete: ${field.label}`);
+                return;
+            }
+        }
+
+        setEventRegistrationSubmitting(true);
+        try {
+            const response = await api.post(`/events/${selectedEvent.id}/register`, {
+                form_responses: eventRegistrationResponses
+            });
+            toast.success(response.data?.message || 'Successfully registered for the event');
+            const updatedEvent = {
+                ...selectedEvent,
+                my_registration_id: selectedEvent.my_registration_id || 'registered',
+                registered_count: Number(selectedEvent.registered_count || 0) + 1
+            };
+            setSelectedEvent(updatedEvent);
+            setEvents(current => current.map(event => event.id === updatedEvent.id ? updatedEvent : event));
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to register for this event');
+        } finally {
+            setEventRegistrationSubmitting(false);
+        }
+    };
 
 
     // Helpers
@@ -972,8 +1057,8 @@ const Dashboard = () => {
 
             {/* Event Details Modal */}
             {showEventModal && selectedEvent && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-in relative border border-gray-100 max-h-[85vh] flex flex-col my-auto">
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-in relative border border-gray-100 max-h-[78vh] max-h-[78dvh] flex flex-col my-auto">
                         <button
                             onClick={() => setShowEventModal(false)}
                             className="absolute top-3 right-3 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-colors z-20 shadow-md backdrop-blur-md cursor-pointer"
@@ -982,54 +1067,127 @@ const Dashboard = () => {
                             <X size={18} />
                         </button>
 
-                        <div className="bg-sky-500 p-4 sm:p-6 text-white relative overflow-hidden shrink-0">
-                            <div className="relative z-10 space-y-2 pr-6">
+                        <div className="bg-sky-500 px-4 py-3 sm:px-5 sm:py-4 text-white relative overflow-hidden shrink-0">
+                            <div className="relative z-10 space-y-1.5 pr-6">
                                 <div className="flex items-center gap-2">
-                                    <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-[10px] font-semibold backdrop-blur-sm border border-white/10 uppercase tracking-wide">
+                                    <span className="px-2 py-0.5 rounded-full bg-white/20 text-[9px] font-semibold backdrop-blur-sm border border-white/10 uppercase tracking-wide">
                                         {selectedEvent.event_type}
                                     </span>
                                 </div>
-                                <h3 className="text-base sm:text-xl font-bold leading-snug break-words">{selectedEvent.title}</h3>
-                                <div className="flex items-center gap-2 text-white/90 text-xs sm:text-sm">
-                                    <div className="flex items-center gap-1.5">
-                                        <Calendar size={14} />
-                                        <span>{new Date(selectedEvent.event_date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                                <h3 className="text-sm sm:text-lg font-bold leading-snug break-words">{selectedEvent.title}</h3>
+                                <div className="flex items-center gap-2 text-white/90 text-[11px] sm:text-xs">
+                                    <div className="flex items-center gap-1">
+                                        <Calendar size={13} />
+                                        <span>{new Date(selectedEvent.event_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-100">
-                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-semibold">Start Time</p>
-                                    <div className="flex items-center gap-1.5 text-gray-900 font-medium text-xs sm:text-sm">
-                                        <Clock size={16} className="text-accent-dark" />
+                        <div className="p-3 sm:p-4 space-y-3 overflow-y-auto flex-1 custom-scrollbar">
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="bg-gray-50 p-2 sm:p-2.5 rounded-lg border border-gray-100">
+                                    <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-0.5 font-semibold">Start Time</p>
+                                    <div className="flex items-center gap-1.5 text-gray-900 font-medium text-[11px] sm:text-xs">
+                                        <Clock size={14} className="text-accent-dark" />
                                         {selectedEvent.start_time ? formatTime(selectedEvent.start_time) : 'All Day'}
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-100">
-                                    <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1 font-semibold">End Time</p>
-                                    <div className="flex items-center gap-1.5 text-gray-900 font-medium text-xs sm:text-sm">
-                                        <Clock size={16} className="text-accent-dark" />
+                                <div className="bg-gray-50 p-2 sm:p-2.5 rounded-lg border border-gray-100">
+                                    <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-0.5 font-semibold">End Time</p>
+                                    <div className="flex items-center gap-1.5 text-gray-900 font-medium text-[11px] sm:text-xs">
+                                        <Clock size={14} className="text-accent-dark" />
                                         {selectedEvent.end_time ? formatTime(selectedEvent.end_time) : 'N/A'}
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <h4 className="text-[10px] font-bold text-gray-900 mb-1.5 uppercase tracking-wide">Description</h4>
-                                <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-100 max-h-36 overflow-y-auto custom-scrollbar">
-                                    <p className="text-gray-600 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">
+                                <h4 className="text-[9px] font-bold text-gray-900 mb-1 uppercase tracking-wide">Description</h4>
+                                <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100 max-h-20 overflow-y-auto custom-scrollbar">
+                                    <p className="text-gray-600 text-[11px] leading-relaxed whitespace-pre-wrap">
                                         {cleanEventDescription(selectedEvent.description) || 'No description provided.'}
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="pt-3 border-t border-gray-100 flex justify-end">
+                            {selectedEvent.requires_registration && (
+                                <section className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3 space-y-2.5">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <h4 className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
+                                                <Ticket size={14} className="text-indigo-600" /> Event Registration
+                                            </h4>
+                                            <p className="mt-0.5 text-[10px] text-slate-500">
+                                                {selectedEvent.registered_count || 0}
+                                                {selectedEvent.max_seats ? ` of ${selectedEvent.max_seats} seats filled` : ' registered'}
+                                            </p>
+                                        </div>
+                                        {selectedEvent.registration_deadline && (
+                                            <span className="text-right text-[9px] font-semibold text-slate-500">
+                                                Deadline<br />
+                                                {new Date(selectedEvent.registration_deadline).toLocaleString()}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {selectedEvent.my_registration_id ? (
+                                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-[11px] font-semibold text-emerald-700">
+                                            You are registered for this event.
+                                        </div>
+                                    ) : (
+                                        <form onSubmit={handleEventRegistration} className="space-y-2.5">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-2">
+                                            {parseEventRegistrationFields(selectedEvent.registration_form_fields).map((field, index) => (
+                                                <label key={field.id || index} className="block min-w-0 text-[10px] font-semibold text-slate-700">
+                                                    {field.label}{field.required && <span className="text-rose-500"> *</span>}
+                                                    {field.type === 'textarea' ? (
+                                                        <textarea
+                                                            required={Boolean(field.required)}
+                                                            value={eventRegistrationResponses[field.id || field.label] || ''}
+                                                            onChange={e => setEventRegistrationResponses(current => ({
+                                                                ...current,
+                                                                [field.id || field.label]: e.target.value
+                                                            }))}
+                                                            rows={3}
+                                                            className="mt-0.5 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-normal"
+                                                        />
+                                                    ) : (
+                                                        <input
+                                                            required={Boolean(field.required)}
+                                                            value={eventRegistrationResponses[field.id || field.label] || ''}
+                                                            onChange={e => setEventRegistrationResponses(current => ({
+                                                                ...current,
+                                                                [field.id || field.label]: e.target.value
+                                                            }))}
+                                                            className="mt-0.5 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-normal"
+                                                        />
+                                                    )}
+                                                </label>
+                                            ))}
+                                            </div>
+                                            {selectedEvent.registration_deadline && new Date(selectedEvent.registration_deadline) < new Date() ? (
+                                                <p className="rounded-lg bg-rose-50 p-3 text-xs font-semibold text-rose-700">Registration deadline has passed.</p>
+                                            ) : selectedEvent.max_seats && Number(selectedEvent.registered_count) >= Number(selectedEvent.max_seats) ? (
+                                                <p className="rounded-lg bg-rose-50 p-3 text-xs font-semibold text-rose-700">Registration is full.</p>
+                                            ) : (
+                                                <button
+                                                    type="submit"
+                                                    disabled={eventRegistrationSubmitting}
+                                                    className="w-full rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-50"
+                                                >
+                                                    {eventRegistrationSubmitting ? 'Please wait…' : 'Register for Event'}
+                                                </button>
+                                            )}
+                                        </form>
+                                    )}
+                                </section>
+                            )}
+
+                            <div className="pt-2 border-t border-gray-100 flex justify-end">
                                 <button
                                     onClick={() => setShowEventModal(false)}
-                                    className="px-5 py-2 bg-sky-500 text-white rounded-xl font-bold hover:bg-sky-700 transition-colors shadow-md text-xs sm:text-sm uppercase tracking-wider"
+                                    className="px-4 py-1.5 bg-sky-500 text-white rounded-lg font-bold hover:bg-sky-700 transition-colors shadow-md text-[10px] uppercase tracking-wider"
                                 >
                                     Close Details
                                 </button>
@@ -1307,26 +1465,30 @@ const Dashboard = () => {
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
                         <h2 className="text-base font-bold text-slate-900">Campus Events</h2>
-                        <Link to="/student/announcements" className="text-xs font-bold text-[#2563eb] hover:underline flex items-center gap-1">
+                        <Link to="/student/announcements?tab=events" className="text-xs font-bold text-[#2563eb] hover:underline flex items-center gap-1">
                             View All <ArrowRight size={14} />
                         </Link>
                     </div>
 
                     {/* Horizontal Scrolling Side-by-Side Cards */}
-                    <div className="flex items-stretch gap-3 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth snap-x" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    <div className="flex items-stretch gap-3 overflow-x-auto no-scrollbar py-1 px-2 sm:px-0 scroll-smooth snap-x" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                         {feedItems.length > 0 ? (
                             feedItems.map((item, index) => {
                                 const isPoll = item.type === 'poll';
+                                const isEvent = item.type === 'event';
                                 const data = item.data;
                                 const title = isPoll ? data.question : data.title;
                                 const content = isPoll ? (data.has_voted ? 'Voted' : 'Poll active') : data.content;
-                                const dateStr = formatShortDate(data.created_at);
+                                const dateStr = formatShortDate(isEvent ? data.event_date : data.created_at);
 
                                 return (
                                     <div
-                                        key={isPoll ? `poll-${data.id}` : `ann-${data.id}`}
+                                        key={`${item.type}-${data.id}`}
                                         onClick={() => {
                                             if (isPoll) navigate('/student/announcements');
+                                            else if (isEvent) {
+                                                openEventDetails(data);
+                                            }
                                             else {
                                                 setCurrentAnnouncement(data);
                                                 setShowAnnouncement(true);
@@ -1337,16 +1499,25 @@ const Dashboard = () => {
                                         <div>
                                             {/* Card Image Banner */}
                                             <div className="h-28 w-full bg-slate-900 relative overflow-hidden shrink-0">
-                                                <img
-                                                    src={data.image_url || '/images/announcement-fallback.jpg'}
-                                                    alt={title}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                    onError={(e) => {
-                                                        if (e.currentTarget.src !== window.location.origin + '/images/announcement-fallback.jpg') {
-                                                            e.currentTarget.src = '/images/announcement-fallback.jpg';
-                                                        }
-                                                    }}
-                                                />
+                                                {isEvent ? (
+                                                    <EventPoster event={data} className="group-hover:scale-105 transition-transform duration-300" />
+                                                ) : (
+                                                    <img
+                                                        src={data.image_url || '/images/announcement-fallback.jpg'}
+                                                        alt={title}
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                        onError={(e) => {
+                                                            if (e.currentTarget.src !== window.location.origin + '/images/announcement-fallback.jpg') {
+                                                                e.currentTarget.src = '/images/announcement-fallback.jpg';
+                                                            }
+                                                        }}
+                                                    />
+                                                )}
+                                                <span className={`absolute top-2 left-2 rounded-md px-2 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm ${
+                                                    isEvent ? 'bg-purple-600/95' : isPoll ? 'bg-amber-500/95' : 'bg-indigo-600/95'
+                                                }`}>
+                                                    {isEvent ? 'Event' : isPoll ? 'Poll' : 'Announcement'}
+                                                </span>
                                             </div>
 
                                             {/* Card Content */}
@@ -1363,7 +1534,7 @@ const Dashboard = () => {
 
                                         {/* Card Footer: Action Hint */}
                                         <div className="px-3 pb-3 pt-1 flex items-center justify-between text-[11px] font-bold text-[#2563eb]">
-                                            <span>{isPoll ? 'Vote in Poll' : 'Read Update'}</span>
+                                            <span>{isPoll ? 'Vote in Poll' : isEvent ? (data.requires_registration ? 'View & Register' : 'View Event') : 'Read Update'}</span>
                                             <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                                         </div>
                                     </div>
@@ -1424,7 +1595,7 @@ const Dashboard = () => {
 
                     {/* Horizontal Scrolling Club Cards */}
                     <div
-                        className="flex items-stretch gap-3 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth snap-x"
+                        className="flex items-stretch gap-3 overflow-x-auto no-scrollbar py-1 px-2 sm:px-0 scroll-smooth snap-x"
                         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                     >
                         {clubs.length > 0 ? (
@@ -1678,10 +1849,7 @@ const Dashboard = () => {
                                 {upcomingEvents.slice(0, 3).map((event) => (
                                     <div
                                         key={event.id}
-                                        onClick={() => {
-                                            setSelectedEvent(event);
-                                            setShowEventModal(true);
-                                        }}
+                                        onClick={() => openEventDetails(event)}
                                         className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 border border-slate-100 transition-all cursor-pointer"
                                     >
                                         <div className="w-9 h-9 bg-sky-50 text-sky-700 rounded-xl flex flex-col items-center justify-center border border-sky-100 shrink-0">

@@ -37,34 +37,16 @@ exports.createAnnouncement = async (req, res) => {
             target_branch,
             target_year,
             target_semester,
-            expires_at,
-            requires_registration,
-            max_seats,
-            registration_deadline,
-            custom_registration_field,
-            registration_form_fields
+            expires_at
         } = req.body;
 
         const createdBy = req.user?.id || 1;
 
-        const reqReg = (requires_registration === '1' || requires_registration === 1 || requires_registration === true || requires_registration === 'true') ? 1 : 0;
-        const parsedMaxSeats = reqReg && max_seats && parseInt(max_seats, 10) > 0 ? parseInt(max_seats, 10) : null;
-        const parsedRegDeadline = reqReg && registration_deadline && registration_deadline !== 'null' ? registration_deadline : null;
-        const customField = reqReg && custom_registration_field && custom_registration_field.trim() ? custom_registration_field.trim() : null;
-
-        let parsedFormFields = null;
-        if (reqReg && registration_form_fields) {
-            if (typeof registration_form_fields === 'string') {
-                try {
-                    JSON.parse(registration_form_fields);
-                    parsedFormFields = registration_form_fields;
-                } catch (e) {
-                    parsedFormFields = null;
-                }
-            } else if (Array.isArray(registration_form_fields)) {
-                parsedFormFields = JSON.stringify(registration_form_fields);
-            }
-        }
+        const reqReg = 0;
+        const parsedMaxSeats = null;
+        const parsedRegDeadline = null;
+        const customField = null;
+        const parsedFormFields = null;
 
         let imageUrl = null;
 
@@ -197,23 +179,11 @@ exports.getAnnouncements = async (req, res) => {
                 a.audience_count,
                 a.is_active,
                 a.expires_at,
-                a.requires_registration,
-                a.max_seats,
-                a.registration_deadline,
-                a.custom_registration_field,
-                a.registration_form_fields,
                 a.created_at,
                 a.updated_at,
-                u.username as created_by_name,
-                COALESCE(reg.registered_count, 0) as registered_count
+                u.username as created_by_name
             FROM announcements a
             LEFT JOIN admins u ON a.created_by = u.id
-            LEFT JOIN (
-                SELECT announcement_id, COUNT(*) as registered_count 
-                FROM announcement_registrations 
-                WHERE status = 'confirmed' 
-                GROUP BY announcement_id
-            ) reg ON a.id = reg.announcement_id
             WHERE 1=1
         `;
         const params = [];
@@ -230,29 +200,16 @@ exports.getAnnouncements = async (req, res) => {
 
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         const data = rows.map(ann => {
-            const registeredCount = Number(ann.registered_count || 0);
-            const maxSeats = ann.max_seats ? Number(ann.max_seats) : null;
-            const availableSeats = maxSeats !== null ? Math.max(0, maxSeats - registeredCount) : null;
-            const isFull = maxSeats !== null ? registeredCount >= maxSeats : false;
-
-            let parsedFields = [];
-            if (ann.registration_form_fields) {
-                try {
-                    parsedFields = typeof ann.registration_form_fields === 'string'
-                        ? JSON.parse(ann.registration_form_fields)
-                        : ann.registration_form_fields;
-                } catch (e) {
-                    parsedFields = [];
-                }
-            }
-
             return {
                 ...ann,
-                registration_form_fields: parsedFields,
-                registered_count: registeredCount,
-                max_seats: maxSeats,
-                available_seats: availableSeats,
-                is_full: isFull,
+                requires_registration: false,
+                registration_form_fields: [],
+                registered_count: 0,
+                max_seats: null,
+                registration_deadline: null,
+                custom_registration_field: null,
+                available_seats: null,
+                is_full: false,
                 image_url: ann.external_image_url || (ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null)
             };
         });
@@ -300,38 +257,16 @@ exports.getStudentAnnouncements = async (req, res) => {
                 (a.image_url IS NOT NULL AND a.image_url != "") as has_image, 
                 a.created_at, 
                 a.expires_at, 
-                a.requires_registration,
-                a.max_seats,
-                a.registration_deadline,
-                a.custom_registration_field,
-                a.registration_form_fields,
                 a.is_active, 
                 a.target_college, 
                 a.target_batch, 
                 a.target_course, 
                 a.target_branch, 
                 a.target_year, 
-                a.target_semester,
-                COALESCE(reg.registered_count, 0) as registered_count,
-                my_reg.id as my_registration_id,
-                my_reg.status as my_registration_status,
-                my_reg.registered_at as my_registered_at,
-                my_reg.custom_field_value as my_custom_response,
-                my_reg.form_responses as my_form_responses
+                a.target_semester
             FROM announcements a
-            LEFT JOIN (
-                SELECT announcement_id, COUNT(*) as registered_count 
-                FROM announcement_registrations 
-                WHERE status = 'confirmed' 
-                GROUP BY announcement_id
-            ) reg ON a.id = reg.announcement_id
-            LEFT JOIN announcement_registrations my_reg 
-                ON a.id = my_reg.announcement_id 
-                AND my_reg.student_id = ? 
-                AND my_reg.status = 'confirmed'
             WHERE a.is_active = 1 
-            ORDER BY a.created_at DESC`,
-            [student ? student.id : 0]
+            ORDER BY a.created_at DESC`
         );
 
         let matchedAnnouncements = rows;
@@ -346,47 +281,18 @@ exports.getStudentAnnouncements = async (req, res) => {
 
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         const pagedData = matchedAnnouncements.slice(offset, offset + limit).map(ann => {
-            const registeredCount = Number(ann.registered_count || 0);
-            const maxSeats = ann.max_seats ? Number(ann.max_seats) : null;
-            const availableSeats = maxSeats !== null ? Math.max(0, maxSeats - registeredCount) : null;
-            const isFull = maxSeats !== null ? registeredCount >= maxSeats : false;
-
-            let parsedFields = [];
-            if (ann.registration_form_fields) {
-                try {
-                    parsedFields = typeof ann.registration_form_fields === 'string'
-                        ? JSON.parse(ann.registration_form_fields)
-                        : ann.registration_form_fields;
-                } catch (e) {
-                    parsedFields = [];
-                }
-            }
-
-            let myResponses = {};
-            if (ann.my_form_responses) {
-                try {
-                    myResponses = typeof ann.my_form_responses === 'string'
-                        ? JSON.parse(ann.my_form_responses)
-                        : ann.my_form_responses;
-                } catch (e) {
-                    myResponses = {};
-                }
-            }
-
             return {
                 ...ann,
-                registration_form_fields: parsedFields,
-                registered_count: registeredCount,
-                max_seats: maxSeats,
-                available_seats: availableSeats,
-                is_full: isFull,
-                is_registered: Boolean(ann.my_registration_id),
-                my_registration: ann.my_registration_id ? {
-                    id: ann.my_registration_id,
-                    registered_at: ann.my_registered_at,
-                    custom_field_value: ann.my_custom_response,
-                    form_responses: myResponses
-                } : null,
+                requires_registration: false,
+                registration_form_fields: [],
+                registered_count: 0,
+                max_seats: null,
+                registration_deadline: null,
+                custom_registration_field: null,
+                available_seats: null,
+                is_full: false,
+                is_registered: false,
+                my_registration: null,
                 image_url: ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null
             };
         });
@@ -483,32 +389,14 @@ exports.updateAnnouncement = async (req, res) => {
             target_year,
             target_semester,
             existing_image_url,
-            expires_at,
-            requires_registration,
-            max_seats,
-            registration_deadline,
-            custom_registration_field,
-            registration_form_fields
+            expires_at
         } = req.body;
 
-        const reqReg = (requires_registration === '1' || requires_registration === 1 || requires_registration === true || requires_registration === 'true') ? 1 : 0;
-        const parsedMaxSeats = reqReg && max_seats && parseInt(max_seats, 10) > 0 ? parseInt(max_seats, 10) : null;
-        const parsedRegDeadline = reqReg && registration_deadline && registration_deadline !== 'null' ? registration_deadline : null;
-        const customField = reqReg && custom_registration_field && custom_registration_field.trim() ? custom_registration_field.trim() : null;
-
-        let parsedFormFields = null;
-        if (reqReg && registration_form_fields) {
-            if (typeof registration_form_fields === 'string') {
-                try {
-                    JSON.parse(registration_form_fields);
-                    parsedFormFields = registration_form_fields;
-                } catch (e) {
-                    parsedFormFields = null;
-                }
-            } else if (Array.isArray(registration_form_fields)) {
-                parsedFormFields = JSON.stringify(registration_form_fields);
-            }
-        }
+        const reqReg = 0;
+        const parsedMaxSeats = null;
+        const parsedRegDeadline = null;
+        const customField = null;
+        const parsedFormFields = null;
 
         let imageClause = '';
         const imageParam = [];
@@ -1364,4 +1252,3 @@ exports.removeCandidateRegistration = async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to remove registration' });
     }
 };
-

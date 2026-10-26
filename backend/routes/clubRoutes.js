@@ -34,20 +34,6 @@ const getPagePermission = (assignment, pageKey) => {
     return { read: legacyAccess, write: legacyAccess };
 };
 
-const requireAnyClubPermission = (...permissions) => (req, res, next) => {
-    const user = req.user || req.admin;
-    const hasRequiredPermission = permissions.some(permission => hasPermission(user?.permissions, 'clubs', permission));
-    if (hasRequiredPermission) return next();
-    const requiresMutation = permissions.some(permission => permission !== 'view_seminar_halls' && permission !== 'view');
-    const hasExplicitSeminarGrant = ['view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls']
-        .some(permission => hasPermission(user?.permissions, 'clubs', permission));
-    if (requiresMutation && hasExplicitSeminarGrant) {
-        return res.status(403).json({ success: false, message: 'The required Seminar Hall permission is not assigned' });
-    }
-    if (isGlobalAdmin(user)) return next();
-    return res.status(403).json({ success: false, message: 'Club permission required' });
-};
-
 const requireClubPage = (pageKey = null, access = 'read') => async (req, res, next) => {
     const user = req.user || req.admin;
     if (isGlobalAdmin(user)) return next();
@@ -57,10 +43,7 @@ const requireClubPage = (pageKey = null, access = 'read') => async (req, res, ne
     const globalPermissions = pageKey
         ? CLUB_PAGE_PERMISSIONS[pageKey]?.[access] || []
         : [
-            ...Object.values(CLUB_PAGE_PERMISSIONS).flatMap(pagePermissions => pagePermissions.read),
-            'view_seminar_halls',
-            'create_seminar_hall_request',
-            'manage_seminar_halls'
+            ...Object.values(CLUB_PAGE_PERMISSIONS).flatMap(pagePermissions => pagePermissions.read)
         ];
     if (globalPermissions.some(permission => hasPermission(user.permissions, 'clubs', permission))) {
         return next();
@@ -126,8 +109,6 @@ router.get('/roles', verifyToken, requireClubPage('settings', 'read'), clubContr
 router.get('/check-hrms-user', verifyToken, clubController.checkHrmsUserAccount);
 router.get('/students/search', verifyToken, requireClubPage('students', 'read'), clubController.searchStudents);
 router.get('/students/all', verifyToken, requireClubPage('students', 'read'), clubController.getAllClubStudents);
-router.get('/seminar-halls/list', verifyToken, requireAnyClubPermission('view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls', 'view'), clubController.getSeminarHalls);
-router.get('/seminar-halls', verifyToken, requireAnyClubPermission('view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls', 'view'), clubController.getSeminarHallRequests);
 router.get('/:clubId/image', clubController.getClubImage);
 router.get('/:clubId', verifyToken, requireClubPage(), clubController.getClubDetails);
 
@@ -135,12 +116,6 @@ router.get('/:clubId', verifyToken, requireClubPage(), clubController.getClubDet
 router.post('/:clubId/join', verifyToken, isStudent, clubController.joinClub);
 
 // Admin
-router.post('/seminar-halls/list', verifyToken, requireAnyClubPermission('manage_seminar_halls'), clubController.createSeminarHall);
-router.put('/seminar-halls/list/:hallId', verifyToken, requireAnyClubPermission('manage_seminar_halls'), clubController.updateSeminarHall);
-router.delete('/seminar-halls/list/:hallId', verifyToken, requireAnyClubPermission('manage_seminar_halls'), clubController.deleteSeminarHall);
-router.post('/seminar-halls/estimate', verifyToken, requireAnyClubPermission('create_seminar_hall_request'), clubController.getSeminarHallAudienceEstimate);
-router.post('/seminar-halls', verifyToken, requireAnyClubPermission('create_seminar_hall_request'), clubController.createSeminarHallRequest);
-router.patch('/seminar-halls/:requestId', verifyToken, requireAnyClubPermission('manage_seminar_halls'), clubController.updateSeminarHallRequestStatus);
 router.post('/', verifyToken, isAdmin, upload.single('image'), clubController.createClub);
 router.post('/roles', verifyToken, isAdmin, clubController.createClubRole);
 router.put('/roles/:roleId', verifyToken, isAdmin, clubController.updateClubRole);

@@ -113,32 +113,4 @@ router.put(
     announcementController.updateAnnouncement
 );
 
-// Event Registrations & Seat Management Routes
-router.get(
-    '/:id/registrations',
-    authMiddleware,
-    verifyPermission('announcements', 'view'),
-    announcementController.getAnnouncementRegistrations
-);
-
-router.delete(
-    '/:id/registrations/:registrationId',
-    authMiddleware,
-    verifyPermission('announcements', 'edit'),
-    announcementController.removeCandidateRegistration
-);
-
-// Student Register / Cancel Registration
-router.post(
-    '/:id/register',
-    authMiddleware,
-    announcementController.registerForAnnouncement
-);
-
-router.delete(
-    '/:id/register',
-    authMiddleware,
-    announcementController.cancelMyRegistration
-);
-
 module.exports = router;

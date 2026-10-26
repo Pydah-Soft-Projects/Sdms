@@ -1,6 +1,15 @@
 const { masterPool } = require('../config/database');
 const { getNotificationSetting } = require('../controllers/settingsController');
 const { ROLE_LABELS } = require('../constants/rbac');
+const { sendBrevoEmail } = require('../utils/emailService');
+
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+}[character]));
 
 const parseScopeIds = (value, fallback) => {
     let ids = [];
@@ -30,11 +39,22 @@ const createWebNotification = async ({
     try {
         const fullMessage = title ? `**${title}**\n${message}` : message;
 
-        await masterPool.query(
-            `INSERT INTO sms_logs (student_id, mobile_number, message, category, status, message_id)
-       VALUES (?, ?, ?, ?, 'Sent', ?)`,
-            [recipientId, mobileNumber, fullMessage, category, data ? JSON.stringify(data) : null]
-        );
+        try {
+            await masterPool.query(
+                `INSERT INTO sms_logs (student_id, mobile_number, message, category, status, notification_data)
+         VALUES (?, ?, ?, ?, 'Sent', ?)`,
+                [recipientId, mobileNumber, fullMessage, category, data ? JSON.stringify(data) : null]
+            );
+        } catch (error) {
+            if (error.code !== 'ER_BAD_FIELD_ERROR') throw error;
+
+            console.warn('sms_logs.notification_data is missing; saving notification without structured data until migration is applied.');
+            await masterPool.query(
+                `INSERT INTO sms_logs (student_id, mobile_number, message, category, status, message_id)
+         VALUES (?, ?, ?, ?, 'Sent', NULL)`,
+                [recipientId, mobileNumber, fullMessage, category]
+            );
+        }
         return true;
     } catch (error) {
         console.error('Error creating web notification:', error);
@@ -65,13 +85,14 @@ exports.createNotification = async ({ studentId, title, message, category = 'Gen
     return created;
 };
 
-exports.createStaffNotification = async ({ userId, title, message, category = 'General' }) => (
+exports.createStaffNotification = async ({ userId, title, message, category = 'General', data = null }) => (
     createWebNotification({
         recipientId: userId,
         mobileNumber: 'WEB_STAFF',
         title,
         message,
-        category
+        category,
+        data
     })
 );
 
@@ -86,7 +107,7 @@ exports.notifyPinUpdates = async (students) => {
     if (setting?.enabled === false || recipientRoles.length === 0) return;
 
     const [recipients] = await masterPool.query(
-        `SELECT id, role, college_id, course_id, branch_id,
+        `SELECT id, name, email, role, college_id, course_id, branch_id,
                 college_ids, course_ids, branch_ids, all_courses, all_branches
          FROM rbac_users
          WHERE is_active = 1 AND LOWER(TRIM(role)) IN (?)`,
@@ -105,19 +126,80 @@ exports.notifyPinUpdates = async (students) => {
 
         if (scopedStudents.length === 0) continue;
 
-        const studentLines = scopedStudents.slice(0, 100).map((student) => (
-            `${student.student_name || 'Student'} (${student.admission_number}): ${student.pin_no}`
-        ));
-        if (scopedStudents.length > studentLines.length) {
-            studentLines.push(`...and ${scopedStudents.length - studentLines.length} more student(s).`);
+        const groups = new Map();
+        for (const student of scopedStudents) {
+            const group = {
+                college: student.college || (student.college_id ? `College ${student.college_id}` : 'Unassigned College'),
+                batch: student.batch || 'Unassigned Batch',
+                course: student.course || (student.course_id ? `Course ${student.course_id}` : 'Unassigned Course'),
+                branch: student.branch || (student.branch_id ? `Branch ${student.branch_id}` : 'Unassigned Branch')
+            };
+            const groupKey = [group.college, group.batch, group.course, group.branch].join('|');
+            if (!groups.has(groupKey)) groups.set(groupKey, { ...group, studentCount: 0 });
+            groups.get(groupKey).studentCount += 1;
         }
 
-        await exports.createStaffNotification({
+        const title = 'ID Card PIN numbers updated';
+        const message = `PIN numbers were updated for ${scopedStudents.length} student(s). Issue their ID cards by group below.`;
+        const notificationCreated = await exports.createStaffNotification({
             userId: recipient.id,
-            title: 'ID Card PIN numbers updated',
-            message: `PIN numbers were updated for ${scopedStudents.length} student(s):\n${studentLines.join('\n')}`,
-            category: 'ID Card'
+            title,
+            message,
+            category: 'ID Card',
+            data: {
+                type: 'pin_update',
+                totalStudents: scopedStudents.length,
+                groups: Array.from(groups.values()),
+                students: scopedStudents.map((student) => ({
+                    name: student.student_name || '',
+                    admissionNumber: student.admission_number || '',
+                    pinNumber: student.pin_no || '',
+                    college: student.college || '',
+                    batch: student.batch || '',
+                    course: student.course || '',
+                    branch: student.branch || ''
+                }))
+            }
         });
+
+        if (!notificationCreated) {
+            console.error(`Failed to create PIN update notification for staff user ${recipient.id}`);
+        }
+
+        if (recipient.email) {
+            const groupHtml = Array.from(groups.values()).map((group) => `
+                <section style="margin:16px 0;padding:12px;border:1px solid #e5e7eb;border-radius:8px;">
+                    <h3 style="margin:0 0 4px;">${escapeHtml(group.college)}</h3>
+                    <p style="margin:0 0 10px;color:#4b5563;">${escapeHtml([group.batch, group.course, group.branch].join(' · '))}</p>
+                    <p style="margin:0;">${group.studentCount} student(s) need ID cards issued.</p>
+                </section>
+            `).join('');
+
+            try {
+                console.info(`Sending PIN update email to staff user ${recipient.id} for ${scopedStudents.length} student(s).`);
+                const emailResult = await sendBrevoEmail({
+                    to: recipient.email,
+                    toName: recipient.name || recipient.email,
+                    subject: title,
+                    htmlContent: `
+                        <div style="font-family:Arial,sans-serif;color:#1f2937;line-height:1.5;">
+                            <h2>${escapeHtml(title)}</h2>
+                            <p>PIN numbers were updated for <strong>${scopedStudents.length}</strong> student(s) within your assigned scope. Please issue their ID cards.</p>
+                            ${groupHtml}
+                        </div>
+                    `
+                });
+                if (emailResult.success) {
+                    console.info(`PIN update email sent successfully to staff user ${recipient.id}.`);
+                } else {
+                    console.error(`PIN update email failed for staff user ${recipient.id}: ${emailResult.message}`);
+                }
+            } catch (error) {
+                console.error(`PIN update email failed for staff user ${recipient.id}:`, error);
+            }
+        } else {
+            console.warn(`Skipping PIN update email for staff user ${recipient.id}: no email address is configured`);
+        }
     }
 };
 

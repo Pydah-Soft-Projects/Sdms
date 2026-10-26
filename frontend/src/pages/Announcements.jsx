@@ -1029,7 +1029,7 @@ const Announcements = () => {
         </div>
     );
 
-    const pageTitle = activeTab === 'polls' ? 'Polls' : activeTab === 'sms' ? 'SMS' : activeTab === 'calendar' ? 'Events' : 'Announcements';
+    const pageTitle = activeTab === 'polls' ? 'Polls' : activeTab === 'sms' ? 'SMS' : activeTab === 'calendar' ? 'Calendar' : 'Announcements';
 
     useEffect(() => {
         document.title = `${pageTitle} | Pydah Super Admin`;
@@ -2228,37 +2228,6 @@ const Announcements = () => {
                                                                     <span>⏱️ Auto-expires on <strong>{new Date(formData.custom_expiry_date).toLocaleString()}</strong>.</span>
                                                                 )}
                                                             </p>
-                                                        </div>
-
-                                                        {/* Turn On Registrations Option (Clean & Simple) */}
-                                                        <div className={`p-4 rounded-2xl border transition-all ${formData.requires_registration ? 'bg-indigo-50 border-indigo-200 shadow-sm' : 'bg-gray-50 border-gray-200'}`}>
-                                                            <div className="flex items-center justify-between gap-3">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className={`p-2.5 rounded-xl ${formData.requires_registration ? 'bg-indigo-600 text-white shadow-sm' : 'bg-gray-200 text-gray-500'}`}>
-                                                                        <Ticket size={20} />
-                                                                    </div>
-                                                                    <div>
-                                                                        <label
-                                                                            className="text-sm font-bold text-gray-900 cursor-pointer block"
-                                                                            onClick={() => setFormData({ ...formData, requires_registration: !formData.requires_registration })}
-                                                                        >
-                                                                            Enable Student Registrations
-                                                                        </label>
-                                                                        <p className="text-xs text-gray-500">
-                                                                            Collect candidate registrations, manage seats, and configure custom form fields in Step 2
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                                <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        checked={formData.requires_registration}
-                                                                        onChange={(e) => setFormData({ ...formData, requires_registration: e.target.checked })}
-                                                                        className="sr-only peer"
-                                                                    />
-                                                                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                                                                </label>
-                                                            </div>
                                                         </div>
 
                                                         <div>

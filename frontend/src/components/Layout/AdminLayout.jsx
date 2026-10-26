@@ -247,7 +247,13 @@ const NAV_ITEMS = [
         permission: FRONTEND_MODULES.ANNOUNCEMENTS,
       },
       {
-        path: "/announcements?tab=events",
+        path: "/announcements?tab=calendar",
+        label: "Calendar",
+        icon: Calendar,
+        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+      },
+      {
+        path: "/events",
         label: "Events",
         icon: Calendar,
         permission: FRONTEND_MODULES.ANNOUNCEMENTS,
@@ -280,16 +286,14 @@ const NAV_ITEMS = [
         icon: Settings,
         permission: FRONTEND_MODULES.CLUBS,
         action: 'view_settings'
-      },
-      {
-        path: "/clubs/seminar-halls",
-        label: "Seminar Hall Requests",
-        icon: Building2,
-        permission: FRONTEND_MODULES.CLUBS,
-        actions: ['view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls'],
-        action: 'view_seminar_halls'
       }
     ]
+  },
+  {
+    path: "/seminar-halls",
+    icon: Building2,
+    label: "Seminar Hall Requests",
+    permission: FRONTEND_MODULES.SEMINAR_HALLS,
   },
   {
     path: "/services",
@@ -335,8 +339,7 @@ const CLUB_ADMIN_PAGE_BY_PATH = {
 const CLUB_PERMISSION_BY_PATH = {
   '/clubs': ['view', 'manage'],
   '/clubs/students': ['view_students', 'manage_students'],
-  '/clubs/settings': ['view_settings', 'manage_settings'],
-  '/clubs/seminar-halls': ['view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls', 'view']
+  '/clubs/settings': ['view_settings', 'manage_settings']
 };
 
 const AdminLayout = () => {
@@ -415,14 +418,6 @@ const AdminLayout = () => {
       if (item.subItems) {
         const filteredSubItems = item.subItems.filter((subItem) => {
           if (!subItem.permission) return true;
-
-          if (item.permission === FRONTEND_MODULES.CLUBS && subItem.path === '/clubs/seminar-halls') {
-            if (isFullAccessRole(user?.role)) return true;
-            const backendModules = FRONTEND_TO_BACKEND_MAP[subItem.permission];
-            return backendModules?.some(backendModule => (subItem.actions || [subItem.action]).some(action =>
-              hasPermission(user?.permissions, backendModule, action)
-            )) || false;
-          }
 
           if (item.permission === FRONTEND_MODULES.CLUBS && user?.clubRoles?.length) {
             const pageKey = CLUB_ADMIN_PAGE_BY_PATH[subItem.path];
@@ -635,7 +630,7 @@ const AdminLayout = () => {
                           let isSubActive = false;
                           if (subItem.path.includes('?')) {
                             isSubActive = currentFullPath === subItem.path || 
-                              (subItem.path.endsWith('?tab=events') && currentFullPath === '/announcements?tab=calendar');
+                              (subItem.path.endsWith('?tab=calendar') && currentFullPath === '/announcements?tab=events');
                           } else {
                             if (subItem.path === '/announcements') {
                               isSubActive = location.pathname === '/announcements' && (!location.search || location.search === '?tab=announcements');

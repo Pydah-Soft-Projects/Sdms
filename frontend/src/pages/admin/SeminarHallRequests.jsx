@@ -185,11 +185,9 @@ const MultiSelectField = ({ label, options, selected, onChange, placeholder, dis
 const SeminarHallRequests = () => {
     const user = useAuthStore(state => state.user);
     const isAdmin = ['admin', 'super_admin', 'superadmin'].includes(String(user?.role || '').toLowerCase());
-    const hasExplicitSeminarGrant = ['view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls']
-        .some(action => hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, action));
-    const canManage = hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage_seminar_halls') || (isAdmin && !hasExplicitSeminarGrant);
-    const canCreateRequest = hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'create_seminar_hall_request') || (isAdmin && !hasExplicitSeminarGrant);
-    const canView = canManage || canCreateRequest || hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'view_seminar_halls') || hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'view');
+    const canManage = hasPermission(user?.permissions, BACKEND_MODULES.SEMINAR_HALLS, 'manage_seminar_halls') || isAdmin;
+    const canCreateRequest = hasPermission(user?.permissions, BACKEND_MODULES.SEMINAR_HALLS, 'create_seminar_hall_request') || canManage;
+    const canView = canCreateRequest || hasPermission(user?.permissions, BACKEND_MODULES.SEMINAR_HALLS, 'view_seminar_halls');
     const [showRequestForm, setShowRequestForm] = useState(false);
     const [showHallForm, setShowHallForm] = useState(false);
     const [requests, setRequests] = useState([]);
@@ -237,7 +235,7 @@ const SeminarHallRequests = () => {
 
     const loadClubs = async () => {
         try {
-            const response = await clubService.getClubs();
+            const response = await clubService.getSeminarHallClubs();
             setClubs(response.data || []);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Could not load clubs');

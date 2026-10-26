@@ -35,14 +35,29 @@ exports.getNotifications = async (req, res) => {
 
         // Fetch notifications where mobile_number = 'WEB'
         // Map status 'Sent' -> Unread, 'Read' -> Read
-        const [rows] = await masterPool.query(
-            `SELECT id, message, status, sent_at as created_at, category, message_id as data
+        let rows;
+        try {
+            [rows] = await masterPool.query(
+                `SELECT id, message, status, sent_at as created_at, category,
+                        COALESCE(notification_data, message_id) as data
        FROM sms_logs 
        WHERE student_id = ? AND mobile_number = ?
        ORDER BY sent_at DESC
        LIMIT ? OFFSET ?`,
-            [recipient.id, recipient.mobileNumber, limit, offset]
-        );
+                [recipient.id, recipient.mobileNumber, limit, offset]
+            );
+        } catch (error) {
+            if (error.code !== 'ER_BAD_FIELD_ERROR') throw error;
+            console.warn('sms_logs.notification_data is missing; reading legacy notification records.');
+            [rows] = await masterPool.query(
+                `SELECT id, message, status, sent_at as created_at, category, message_id as data
+         FROM sms_logs
+         WHERE student_id = ? AND mobile_number = ?
+         ORDER BY sent_at DESC
+         LIMIT ? OFFSET ?`,
+                [recipient.id, recipient.mobileNumber, limit, offset]
+            );
+        }
 
         const notifications = rows.map(row => {
             // Extract title from message (format: **Title**\nMessage)
@@ -55,20 +70,30 @@ exports.getNotifications = async (req, res) => {
                 message = row.message.substring(titleMatch[0].length);
             }
 
+            let data = row.data;
+            if (typeof data === 'string') {
+                try {
+                    data = JSON.parse(data);
+                } catch (error) {
+                    data = row.data;
+                }
+            }
+
             return {
                 id: row.id,
                 title,
                 message,
-                is_read: row.status === 'Read' ? 1 : 0,
+                is_read: ['Read', 'Completed'].includes(row.status) ? 1 : 0,
+                is_completed: row.status === 'Completed',
                 created_at: row.created_at,
                 category: row.category,
-                data: row.data
+                data
             };
         });
 
         const [countResult] = await masterPool.query(
             `SELECT COUNT(*) as total, 
-       SUM(CASE WHEN status != 'Read' THEN 1 ELSE 0 END) as unread_count
+       SUM(CASE WHEN status NOT IN ('Read', 'Completed') THEN 1 ELSE 0 END) as unread_count
        FROM sms_logs 
        WHERE student_id = ? AND mobile_number = ?`,
             [recipient.id, recipient.mobileNumber]
@@ -92,6 +117,31 @@ exports.getNotifications = async (req, res) => {
     } catch (error) {
         console.error('Error fetching notifications:', error);
         res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+exports.markAsCompleted = async (req, res) => {
+    try {
+        const recipient = getNotificationRecipient(req);
+        if (!recipient || recipient.mobileNumber !== 'WEB_STAFF') {
+            return res.status(403).json({ success: false, message: 'Staff notifications only' });
+        }
+
+        const [result] = await masterPool.query(
+            `UPDATE sms_logs
+             SET status = 'Completed'
+             WHERE id = ? AND student_id = ? AND mobile_number = ?
+               AND category = 'ID Card'`,
+            [req.params.id, recipient.id, recipient.mobileNumber]
+        );
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'ID card notification not found' });
+        }
+
+        res.json({ success: true, message: 'ID card notification marked as issued' });
+    } catch (error) {
+        console.error('Error completing ID card notification:', error);
+        res.status(500).json({ success: false, message: 'Failed to complete notification' });
     }
 };
 
@@ -133,7 +183,7 @@ exports.markAllAsRead = async (req, res) => {
         await masterPool.query(
             `UPDATE sms_logs 
        SET status = 'Read' 
-       WHERE student_id = ? AND mobile_number = ? AND status != 'Read'`,
+       WHERE student_id = ? AND mobile_number = ? AND status NOT IN ('Read', 'Completed')`,
             [recipient.id, recipient.mobileNumber]
         );
 

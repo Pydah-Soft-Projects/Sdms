@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
 import {
   Users,
   ClipboardList,
@@ -28,11 +29,12 @@ import {
   Settings,
   GraduationCap
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../config/api';
+import toast from 'react-hot-toast';
 import { useStudentStats } from '../hooks/useStudents';
 import useAuthStore from '../store/authStore';
-import { BACKEND_MODULES, hasPermission, isFullAccessRole } from '../constants/rbac';
+import { BACKEND_MODULES, hasPermission, isFullAccessRole, ROLE_LABELS } from '../constants/rbac';
 import DashboardSkeleton from '../components/skeletons/DashboardSkeleton';
 import {
   ResponsiveContainer,
@@ -200,9 +202,12 @@ const AttendanceBarTooltip = ({ active, payload, label }) => {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const userPermissions = user?.permissions || {};
   const isAdmin = isFullAccessRole(user?.role);
+  const [completingDashboardAlertId, setCompletingDashboardAlertId] = useState(null);
+  const [selectedDashboardAlert, setSelectedDashboardAlert] = useState(null);
 
   const [attendancePeriod, setAttendancePeriod] = useState('today');
   const [showBreakdownModal, setShowBreakdownModal] = useState(false);
@@ -276,6 +281,38 @@ const Dashboard = () => {
     staleTime: 3 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
+
+  const normalizedRole = String(user?.role || '').toLowerCase();
+  const dashboardAlertQueryKey = ['dashboard', 'pin-update-alerts', user?.id];
+  const { data: dashboardAlerts = [] } = useQuery({
+    queryKey: dashboardAlertQueryKey,
+    queryFn: async () => {
+      const response = await api.get('/web-notifications', {
+        params: { page: 1, limit: 100 }
+      });
+      return (response.data?.notifications || []).filter(
+        (notification) => notification.title === 'ID Card PIN numbers updated' && !notification.is_completed
+      );
+    },
+    enabled: Boolean(user?.id && (ROLE_LABELS[normalizedRole] || normalizedRole === 'staff')),
+    refetchInterval: 60000,
+    staleTime: 30000
+  });
+
+  const markDashboardAlertIssued = async (notificationId) => {
+    setCompletingDashboardAlertId(notificationId);
+    try {
+      await api.patch(`/web-notifications/${notificationId}/complete`);
+      queryClient.setQueryData(dashboardAlertQueryKey, (alerts = []) => (
+        alerts.filter((notification) => notification.id !== notificationId)
+      ));
+      toast.success('ID card alert marked as issued');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to mark ID cards as issued');
+    } finally {
+      setCompletingDashboardAlertId(null);
+    }
+  };
 
   // Announcements data for dashboard card (fetched from database/API)
   const { data: rawAnnouncements = [], isLoading: loadingAnnouncements } = useQuery({
@@ -676,6 +713,81 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {selectedDashboardAlert && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-3 sm:p-5"
+          onClick={() => setSelectedDashboardAlert(null)}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pin-update-students-title"
+            className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-gray-100 p-4 sm:p-5">
+              <div>
+                <h2 id="pin-update-students-title" className="text-base font-bold text-gray-900">
+                  Students needing ID cards
+                </h2>
+                <p className="mt-1 text-xs text-gray-500">
+                  {selectedDashboardAlert.title} · {selectedDashboardAlert.data?.totalStudents || 0} students
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedDashboardAlert(null)}
+                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                aria-label="Close student details"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="overflow-auto p-4 sm:p-5">
+              {Array.isArray(selectedDashboardAlert.data?.students) && selectedDashboardAlert.data.students.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[640px] text-left text-xs">
+                    <thead className="bg-gray-50 text-[10px] uppercase tracking-wide text-gray-500">
+                      <tr>
+                        <th className="px-3 py-2.5 font-semibold">Student</th>
+                        <th className="px-3 py-2.5 font-semibold">Admission No.</th>
+                        <th className="px-3 py-2.5 font-semibold">PIN</th>
+                        <th className="px-3 py-2.5 font-semibold">College</th>
+                        <th className="px-3 py-2.5 font-semibold">Batch / Course / Branch</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {selectedDashboardAlert.data.students.map((student, index) => (
+                        <tr key={`${student.admissionNumber}-${index}`} className="text-gray-700">
+                          <td className="px-3 py-2.5 font-medium text-gray-900">{student.name || '—'}</td>
+                          <td className="px-3 py-2.5">{student.admissionNumber || '—'}</td>
+                          <td className="px-3 py-2.5">{student.pinNumber || '—'}</td>
+                          <td className="px-3 py-2.5">{student.college || '—'}</td>
+                          <td className="px-3 py-2.5">{[student.batch, student.course, student.branch].filter(Boolean).join(' · ') || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+                  Student details are unavailable for this older alert. New alerts will include the student list.
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end border-t border-gray-100 p-3 sm:p-4">
+              <button
+                type="button"
+                onClick={() => setSelectedDashboardAlert(null)}
+                className="rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800"
+              >
+                Close
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
       {/* 2. Top Row: 5 KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
         
@@ -820,6 +932,89 @@ const Dashboard = () => {
         </div>
 
       </div>
+
+      {dashboardAlerts.length > 0 && (
+        <section className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4" aria-label="ID card PIN update alerts">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="text-sm font-bold text-gray-800">ID Card PIN update alerts</h2>
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-700">
+              {dashboardAlerts.length} pending
+            </span>
+          </div>
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {dashboardAlerts.map((notification) => {
+              const groups = Array.isArray(notification.data?.groups) ? notification.data.groups : [];
+              const totalStudents = notification.data?.totalStudents || groups.reduce(
+                (total, group) => total + (group.studentCount || group.students?.length || 0),
+                0
+              );
+              const createdAt = new Date(notification.created_at);
+              const alertTime = Number.isNaN(createdAt.getTime())
+                ? ''
+                : formatDistanceToNow(createdAt, { addSuffix: true });
+
+              return (
+                <div
+                  key={notification.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedDashboardAlert(notification)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setSelectedDashboardAlert(notification);
+                    }
+                  }}
+                  className="cursor-pointer rounded-lg border border-gray-100 bg-gray-50/70 p-3 transition hover:border-blue-200 hover:bg-blue-50/30 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  aria-label={`View students for ${notification.title}`}
+                >
+                  <div className="flex items-start gap-2.5">
+                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
+                          <h3 className="text-xs font-semibold text-gray-800">{notification.title}</h3>
+                          <p className="mt-0.5 text-[11px] text-gray-500">
+                            {totalStudents ? `${totalStudents} student${totalStudents === 1 ? '' : 's'} need ID cards issued.` : notification.message}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={completingDashboardAlertId === notification.id}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            markDashboardAlertIssued(notification.id);
+                          }}
+                          className="inline-flex shrink-0 items-center justify-center gap-1.5 self-start rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60 sm:self-auto"
+                        >
+                          <CheckCircle size={13} />
+                          {completingDashboardAlertId === notification.id ? 'Updating…' : 'Mark Issued'}
+                        </button>
+                      </div>
+
+                      {groups.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {groups.map((group, groupIndex) => (
+                            <span
+                              key={`${group.college}-${group.batch}-${group.course}-${group.branch}-${groupIndex}`}
+                              className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-600"
+                            >
+                              {[group.college, group.batch, group.course, group.branch].filter(Boolean).join(' · ')}
+                              {' — '}{group.studentCount || 0}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {alertTime && <p className="mt-2 text-[10px] text-gray-400">{alertTime}</p>}
+                      <p className="mt-1 text-[10px] font-medium text-blue-600">Click to view student details</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* 3. Middle Section: Attendance Status, Calendar, Announcements, Registration Status */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">

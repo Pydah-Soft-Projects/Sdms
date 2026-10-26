@@ -7,10 +7,7 @@ import {
     ChevronDown,
     Clock,
     CalendarCheck,
-    MapPin,
-    AlertCircle,
     X,
-    Filter,
     Layers,
     BookOpen,
     Award,
@@ -19,11 +16,14 @@ import {
     Tag,
     Search,
     ChevronRight as ArrowRightIcon,
-    CalendarDays
+    CalendarDays,
+    LayoutGrid,
+    Users
 } from 'lucide-react';
 import api from '../../config/api';
 import toast from 'react-hot-toast';
 import { SkeletonBox } from '../../components/SkeletonLoader';
+import EventPoster from '../../components/EventPoster';
 
 const EVENT_TYPES = [
     { key: 'all', label: 'All Events', icon: Layers, badgeBg: 'bg-gray-900 text-white', activeTab: 'bg-gray-900 text-white shadow-md' },
@@ -50,12 +50,25 @@ const cleanEventDescription = (desc) => {
     return String(desc).replace(/\[.*?\]\s*/g, '').trim();
 };
 
+const parseRegistrationFields = (fields) => {
+    if (!fields) return [];
+    try {
+        const parsed = typeof fields === 'string' ? JSON.parse(fields) : fields;
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        return [];
+    }
+};
+
 const StudentCalendar = () => {
     const location = useLocation();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedType, setSelectedType] = useState('all');
+    const [viewMode, setViewMode] = useState('cards');
+    const [registrationResponses, setRegistrationResponses] = useState({});
+    const [registrationSubmitting, setRegistrationSubmitting] = useState(false);
 
     const [calendarDays, setCalendarDays] = useState([]);
     const [showEventModal, setShowEventModal] = useState(false);
@@ -218,6 +231,12 @@ const StudentCalendar = () => {
         return filtered.sort((a, b) => parseLocalDate(a.event_date) - parseLocalDate(b.event_date));
     }, [currentMonthEvents, selectedType]);
 
+    const visibleEvents = useMemo(() => {
+        return events
+            .filter(e => selectedType === 'all' || (e.event_type || 'other').toLowerCase() === selectedType)
+            .sort((a, b) => parseLocalDate(a.event_date) - parseLocalDate(b.event_date));
+    }, [events, selectedType]);
+
     const filteredDayEvents = useMemo(() => {
         if (!selectedDayInfo?.events) return [];
         if (!daySearchQuery.trim()) return selectedDayInfo.events;
@@ -228,6 +247,69 @@ const StudentCalendar = () => {
             (e.event_type || '').toLowerCase().includes(query)
         );
     }, [selectedDayInfo, daySearchQuery]);
+
+    const handleEventRegistration = async () => {
+        if (!selectedEvent) return;
+        setRegistrationSubmitting(true);
+        try {
+            const response = await api.post(`/events/${selectedEvent.id}/register`, {
+                form_responses: registrationResponses
+            });
+            toast.success(response.data?.message || 'Registration confirmed');
+            const updateRegistration = (event) => event.id === selectedEvent.id
+                ? {
+                    ...event,
+                    my_registration_id: event.my_registration_id || 'registered',
+                    registered_count: Number(event.registered_count || 0) + 1
+                }
+                : event;
+            setEvents(current => current.map(updateRegistration));
+            setSelectedEvent(current => current ? updateRegistration(current) : current);
+            setRegistrationResponses({});
+            try {
+                const refreshed = await api.get('/events/student');
+                const updatedEvents = refreshed.data?.data || [];
+                setEvents(updatedEvents);
+                setSelectedEvent(updatedEvents.find(event => event.id === selectedEvent.id) || selectedEvent);
+            } catch (refreshError) {
+                console.error('Failed to refresh events after registration:', refreshError);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to register for this event');
+        } finally {
+            setRegistrationSubmitting(false);
+        }
+    };
+
+    const handleCancelRegistration = async () => {
+        if (!selectedEvent || !window.confirm('Cancel your registration for this event?')) return;
+        setRegistrationSubmitting(true);
+        try {
+            await api.delete(`/events/${selectedEvent.id}/register`);
+            toast.success('Registration cancelled');
+            const updateRegistration = (event) => event.id === selectedEvent.id
+                ? {
+                    ...event,
+                    my_registration_id: null,
+                    registered_count: Math.max(0, Number(event.registered_count || 0) - 1)
+                }
+                : event;
+            setEvents(current => current.map(updateRegistration));
+            setSelectedEvent(current => current ? updateRegistration(current) : current);
+            try {
+                const refreshed = await api.get('/events/student');
+                const updatedEvents = refreshed.data?.data || [];
+                setEvents(updatedEvents);
+                setSelectedEvent(updatedEvents.find(event => event.id === selectedEvent.id) || selectedEvent);
+            } catch (refreshError) {
+                console.error('Failed to refresh events after cancellation:', refreshError);
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to cancel registration');
+        } finally {
+            setRegistrationSubmitting(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-slate-50/50 p-4 md:p-6 space-y-6 animate-fade-in text-gray-800">
@@ -260,14 +342,29 @@ const StudentCalendar = () => {
                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                         <div>
                             <h1 className="text-lg sm:text-xl font-extrabold text-[#1e3a8a] heading-font tracking-tight">
-                                Event Calendar
+                                Events
                             </h1>
                         </div>
 
-                        {/* Controls Container: Month Navigator & Type Dropdown strictly INLINE on 1 row */}
+                        {/* View controls and event type filter */}
                         <div className="flex flex-row items-center gap-2 w-full lg:w-auto">
-                            {/* Month Navigator */}
-                            <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200 shadow-xs flex-1 sm:flex-initial justify-between">
+                            <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('cards')}
+                                    className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-bold ${viewMode === 'cards' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-white'}`}
+                                >
+                                    <LayoutGrid size={14} /> Cards
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('calendar')}
+                                    className={`flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-bold ${viewMode === 'calendar' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-white'}`}
+                                >
+                                    <CalendarDays size={14} /> Calendar
+                                </button>
+                            </div>
+                            {viewMode === 'calendar' && <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200 shadow-xs flex-1 sm:flex-initial justify-between">
                                 <button
                                     onClick={handlePrevMonth}
                                     className="p-1.5 hover:bg-white hover:shadow-xs rounded-lg transition-all text-gray-700 active:scale-95 shrink-0"
@@ -285,7 +382,7 @@ const StudentCalendar = () => {
                                 >
                                     <ChevronRight size={16} />
                                 </button>
-                            </div>
+                            </div>}
 
                             {/* Type Dropdown strictly inline right beside Month Selector */}
                             <div className="relative flex-1 sm:w-48 min-w-0">
@@ -308,7 +405,56 @@ const StudentCalendar = () => {
 
 
 
-                    {/* Main Content Layout */}
+                    {viewMode === 'cards' ? (
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                            {visibleEvents.map(event => {
+                                const style = getEventTypeStyle(event.event_type);
+                                return (
+                                    <button
+                                        key={event.id}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedEvent(event);
+                                            setRegistrationResponses({});
+                                            setShowEventModal(true);
+                                        }}
+                                        className="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+                                    >
+                                        <div className="mb-4 h-40 overflow-hidden rounded-xl">
+                                            <EventPoster event={event} />
+                                        </div>
+                                        <div className="flex items-center justify-between gap-3">
+                                            <span className={`rounded-full border px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider ${style.badge}`}>
+                                                {event.event_type || 'other'}
+                                            </span>
+                                            <span className="text-xs font-semibold text-gray-500">
+                                                {formatDateRange(event.event_date, event.end_date)}
+                                            </span>
+                                        </div>
+                                        <h2 className="mt-3 text-base font-extrabold text-slate-900 group-hover:text-blue-700">{event.title}</h2>
+                                        <p className="mt-1 min-h-[3.75rem] line-clamp-3 text-sm leading-relaxed text-slate-500">
+                                            {cleanEventDescription(event.description) || 'No description provided.'}
+                                        </p>
+                                        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
+                                            <span className="flex items-center gap-1.5"><Clock size={13} />{event.start_time ? formatTime(event.start_time) : 'All day'}</span>
+                                            {event.requires_registration && (
+                                                <span className="flex items-center gap-1.5 font-semibold text-indigo-600">
+                                                    {event.my_registration_id ? 'Registered' : `${event.registered_count || 0}${event.max_seats ? ` / ${event.max_seats}` : ''} registered`}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                            {visibleEvents.length === 0 && (
+                                <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white py-16 text-center text-slate-500">
+                                    <CalendarDays className="mx-auto mb-3 text-slate-300" size={32} />
+                                    No events found.
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                    /* Main Content Layout */
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
                         {/* Calendar Grid Container */}
@@ -319,6 +465,7 @@ const StudentCalendar = () => {
                                     <div key={d} className="py-1.5 sm:py-2 text-center text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600">{d}</div>
                                 ))}
                             </div>
+                            )}
 
                             {/* Date Cells */}
                             <div className="grid grid-cols-7 auto-rows-fr bg-slate-200/40 gap-[1px]">
@@ -498,6 +645,7 @@ const StudentCalendar = () => {
 
                         </div>
                     </div>
+                    )}
 
                     {/* DAY EVENTS OVERVIEW MODAL (Triggered when user clicks "+X more" or a day cell) */}
                     {showDayModal && selectedDayInfo && (
@@ -621,6 +769,9 @@ const StudentCalendar = () => {
                                 </div>
 
                                 <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
+                                    <div className="h-44 overflow-hidden rounded-xl">
+                                        <EventPoster event={selectedEvent} />
+                                    </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100">
                                             <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 font-bold">Start Time</p>
@@ -648,6 +799,79 @@ const StudentCalendar = () => {
                                         </div>
                                     </div>
 
+                                    {selectedEvent.requires_registration && (
+                                        <section className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div>
+                                                    <h4 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                                                        <Users size={16} className="text-indigo-600" /> Event Registration
+                                                    </h4>
+                                                    <p className="mt-1 text-xs text-slate-500">
+                                                        {selectedEvent.registered_count || 0}
+                                                        {selectedEvent.max_seats ? ` of ${selectedEvent.max_seats} seats filled` : ' registered'}
+                                                    </p>
+                                                </div>
+                                                {selectedEvent.registration_deadline && (
+                                                    <span className="text-right text-[10px] font-semibold text-slate-500">
+                                                        Deadline<br />
+                                                        {new Date(selectedEvent.registration_deadline).toLocaleString()}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {selectedEvent.my_registration_id ? (
+                                                <div className="mt-3 flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                                                    <span className="text-xs font-semibold text-emerald-700">You are registered for this event.</span>
+                                                    <button
+                                                        type="button"
+                                                        disabled={registrationSubmitting}
+                                                        onClick={handleCancelRegistration}
+                                                        className="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                                    >
+                                                        {registrationSubmitting ? 'Please wait…' : 'Cancel'}
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {parseRegistrationFields(selectedEvent.registration_form_fields).map((field, index) => (
+                                                        <label key={field.id || index} className="mt-3 block text-xs font-semibold text-slate-700">
+                                                            {field.label}{field.required ? ' *' : ''}
+                                                            {field.type === 'textarea' ? (
+                                                                <textarea
+                                                                    value={registrationResponses[field.id || field.label] || ''}
+                                                                    onChange={e => setRegistrationResponses(prev => ({ ...prev, [field.id || field.label]: e.target.value }))}
+                                                                    className="mt-1 w-full rounded-lg border border-slate-200 p-2 text-sm font-normal"
+                                                                    rows={3}
+                                                                />
+                                                            ) : (
+                                                                <input
+                                                                    value={registrationResponses[field.id || field.label] || ''}
+                                                                    onChange={e => setRegistrationResponses(prev => ({ ...prev, [field.id || field.label]: e.target.value }))}
+                                                                    className="mt-1 w-full rounded-lg border border-slate-200 p-2 text-sm font-normal"
+                                                                />
+                                                            )}
+                                                        </label>
+                                                    ))}
+                                                    <button
+                                                        type="button"
+                                                        disabled={registrationSubmitting ||
+                                                            (selectedEvent.max_seats && Number(selectedEvent.registered_count) >= Number(selectedEvent.max_seats)) ||
+                                                            (selectedEvent.registration_deadline && new Date(selectedEvent.registration_deadline) < new Date())}
+                                                        onClick={handleEventRegistration}
+                                                        className="mt-4 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                    >
+                                                        {registrationSubmitting
+                                                            ? 'Please wait…'
+                                                            : selectedEvent.max_seats && Number(selectedEvent.registered_count) >= Number(selectedEvent.max_seats)
+                                                                ? 'Registration full'
+                                                                : selectedEvent.registration_deadline && new Date(selectedEvent.registration_deadline) < new Date()
+                                                                    ? 'Registration closed'
+                                                                    : 'Register for Event'}
+                                                    </button>
+                                                </>
+                                            )}
+                                        </section>
+                                    )}
+
                                     <div className="pt-3 border-t border-gray-100 flex justify-end">
                                         <button
                                             onClick={() => setShowEventModal(false)}
@@ -667,4 +891,3 @@ const StudentCalendar = () => {
 };
 
 export default StudentCalendar;
-

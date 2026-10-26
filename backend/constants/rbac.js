@@ -81,7 +81,8 @@ const MODULES = {
   ANNOUNCEMENTS: 'announcements',
   FACULTY_MANAGEMENT: 'faculty_management',
   FACULTY_ACADEMICS: 'faculty_academics',
-  CLUBS: 'clubs'
+  CLUBS: 'clubs',
+  SEMINAR_HALLS: 'seminar_halls'
 };
 
 // Granular Permissions for each module
@@ -270,14 +271,19 @@ const MODULE_PERMISSIONS = {
     }
   },
   [MODULES.CLUBS]: {
-    permissions: ['view', 'manage', 'view_students', 'manage_students', 'view_settings', 'manage_settings', 'view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls'],
+    permissions: ['view', 'manage', 'view_students', 'manage_students', 'view_settings', 'manage_settings'],
     labels: {
       view: 'View Club Management',
       manage: 'Manage Club Management',
       view_students: 'View Members',
       manage_students: 'Manage Members',
       view_settings: 'View Club Settings',
-      manage_settings: 'Manage Club Settings',
+      manage_settings: 'Manage Club Settings'
+    }
+  },
+  [MODULES.SEMINAR_HALLS]: {
+    permissions: ['view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls'],
+    labels: {
       view_seminar_halls: 'View Seminar Hall Requests',
       create_seminar_hall_request: 'Create Seminar Hall Request',
       manage_seminar_halls: 'Manage Seminar Hall Requests'
@@ -302,7 +308,8 @@ const MODULE_LABELS = {
   [MODULES.ANNOUNCEMENTS]: 'Announcements',
   [MODULES.FACULTY_MANAGEMENT]: 'Faculty Management',
   [MODULES.FACULTY_ACADEMICS]: 'Faculty Academics',
-  [MODULES.CLUBS]: 'Student Clubs'
+  [MODULES.CLUBS]: 'Student Clubs',
+  [MODULES.SEMINAR_HALLS]: 'Seminar Hall Requests'
 };
 
 // All modules as array
@@ -600,10 +607,6 @@ const parsePermissions = (permissionsJson) => {
           if (hasGranularKeys) {
             // New format - individual permissions
             moduleDef.permissions.forEach(perm => {
-              if (module === MODULES.CLUBS && perm === 'create_seminar_hall_request' && parsed[module]?.[perm] === undefined) {
-                permissions[module][perm] = !!parsed[module]?.manage_seminar_halls;
-                return;
-              }
               if (module === MODULES.STUDENT_MANAGEMENT) {
                 if (perm === 'view_scholarship' && parsed[module]?.view_scholarship === undefined) {
                   // Default to same as before: enabled if user has view or edit student permission
@@ -632,6 +635,17 @@ const parsePermissions = (permissionsJson) => {
             });
           }
         }
+      }
+    });
+
+    const legacyClubPermissions = parsed[MODULES.CLUBS] || {};
+    const seminarPermissions = permissions[MODULES.SEMINAR_HALLS];
+    ['view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls'].forEach(permission => {
+      if (
+        legacyClubPermissions[permission] !== undefined &&
+        parsed[MODULES.SEMINAR_HALLS]?.[permission] === undefined
+      ) {
+        seminarPermissions[permission] = Boolean(legacyClubPermissions[permission]);
       }
     });
 

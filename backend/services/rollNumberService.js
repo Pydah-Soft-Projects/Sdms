@@ -47,14 +47,22 @@ const buildStudentSearchCondition = (search, tableAlias = 'students') => {
   }
 
   const searchPattern = `%${term}%`;
+  const normalizedPinTerm = term.replace(/[\s-]+/g, '');
   const alias = tableAlias || 'students';
   const col = (name) => `${alias}.${name}`;
+  const normalizedPinClause = normalizedPinTerm
+    ? `OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(${col('pin_no')}, ''), '-', ''), ' ', ''), CHAR(9), ''), CHAR(10), ''), CHAR(13), '') LIKE ?`
+    : '';
+  const params = [searchPattern, searchPattern, searchPattern];
+  if (normalizedPinTerm) params.push(`%${normalizedPinTerm}%`);
+  params.push(searchPattern, searchPattern);
 
   return {
     clause: ` AND (
       ${col('admission_number')} LIKE ?
       OR ${col('admission_no')} LIKE ?
       OR ${col('pin_no')} LIKE ?
+      ${normalizedPinClause}
       OR ${col('student_name')} LIKE ?
       OR EXISTS (
         SELECT 1 FROM student_roll_numbers srn
@@ -62,7 +70,7 @@ const buildStudentSearchCondition = (search, tableAlias = 'students') => {
         AND srn.roll_number LIKE ?
       )
     )`,
-    params: [searchPattern, searchPattern, searchPattern, searchPattern, searchPattern]
+    params
   };
 };
 

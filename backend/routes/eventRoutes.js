@@ -19,6 +19,20 @@ router.get(
     eventController.getEvents
 );
 
+router.get(
+    '/:id/registrations',
+    authMiddleware,
+    verifyPermission('announcements', 'view'),
+    eventController.getEventRegistrations
+);
+
+router.delete(
+    '/:id/registrations/:registrationId',
+    authMiddleware,
+    verifyPermission('announcements', 'edit'),
+    eventController.removeEventRegistration
+);
+
 router.put(
     '/:id',
     authMiddleware,
@@ -46,5 +60,8 @@ router.get(
     authMiddleware,
     eventController.getStudentEvents
 );
+
+router.post('/:id/register', authMiddleware, eventController.registerForEvent);
+router.delete('/:id/register', authMiddleware, eventController.cancelEventRegistration);
 
 module.exports = router;

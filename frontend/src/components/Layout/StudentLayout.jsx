@@ -389,7 +389,7 @@ const StudentLayout = ({ children }) => {
         { icon: RiSparklingLine, activeIcon: RiSparklingFill, label: 'AI Assistant', path: '/student/ai-assistant' },
         { icon: RiMegaphoneLine, activeIcon: RiMegaphoneFill, label: 'Announcements', path: '/student/announcements' },
         { icon: RiGroupLine, activeIcon: RiGroupFill, label: 'Clubs', path: '/student/clubs' },
-        { icon: RiCalendarEventLine, activeIcon: RiCalendarEventFill, label: 'Event Calendar', path: '/student/events' },
+        { icon: RiCalendarEventLine, activeIcon: RiCalendarEventFill, label: 'Events', path: '/student/events' },
         { icon: RiCheckboxCircleLine, activeIcon: RiCheckboxCircleFill, label: 'Attendance', path: '/student/attendance' },
         { icon: RiBookOpenLine, activeIcon: RiBookOpenFill, label: 'CRT Training Portal', path: '/crt-portal', isCrtApp: true },
         { icon: RiMapPinLine, activeIcon: RiMapPinFill, label: 'Internship', path: '/student/internship' },

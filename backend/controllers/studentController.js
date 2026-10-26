@@ -4067,17 +4067,21 @@ exports.updateStudent = async (req, res) => {
     }
 
 
-    // Extract new PIN if explicitly provided to check for uniqueness
+    // Prefer the canonical field when the payload also contains stale legacy aliases.
     let newPinNo = null;
     if (studentData && typeof studentData === 'object') {
-      const explicitPinKeys = new Set(['pin_no', 'pin', 'pin_number', 'pinnumber']);
-      for (const [key, value] of Object.entries(studentData)) {
-        const normalizedKey = normalizeHeaderKeyForLookup(key);
-        if (explicitPinKeys.has(normalizedKey) && value && String(value).trim() !== '') {
-          newPinNo = String(value).trim();
-          break;
-        }
-      }
+      const entries = Object.entries(studentData);
+      const canonicalPin = entries.find(([key, value]) =>
+        normalizeHeaderKeyForLookup(key) === 'pinno' &&
+        value != null &&
+        String(value).trim() !== ''
+      );
+      const pinEntry = canonicalPin || entries.find(([key, value]) =>
+        ['pin', 'pinnumber'].includes(normalizeHeaderKeyForLookup(key)) &&
+        value != null &&
+        String(value).trim() !== ''
+      );
+      if (pinEntry) newPinNo = String(pinEntry[1]).trim();
     }
 
     if (newPinNo && newPinNo !== currentStudent.pin_no) {
@@ -4588,6 +4592,20 @@ exports.updateStudent = async (req, res) => {
 
     clearStudentsCache();
 
+    if (auditChanges.pin_no?.to) {
+      try {
+        const [updatedStudents] = await masterPool.query(
+          `SELECT student_name, admission_number, pin_no, college, batch, course, branch,
+                  college_id, course_id, branch_id
+           FROM students WHERE admission_number = ? LIMIT 1`,
+          [admissionNumber]
+        );
+        await notifyPinUpdates(updatedStudents);
+      } catch (notificationError) {
+        console.error('Failed to create PIN update notifications:', notificationError);
+      }
+    }
+
     // Prepare updated student object for instant admissions DB sync
     const updatedStudentObj = {
       ...existingStudent,
@@ -4723,7 +4741,8 @@ exports.updatePinNumber = async (req, res) => {
 
     try {
       const [updatedStudents] = await masterPool.query(
-        `SELECT student_name, admission_number, pin_no, college_id, course_id, branch_id
+        `SELECT student_name, admission_number, pin_no, college, batch, course, branch,
+                college_id, course_id, branch_id
          FROM students WHERE admission_number = ? LIMIT 1`,
         [admissionNumber]
       );
@@ -7265,7 +7284,8 @@ exports.bulkUpdatePinNumbers = async (req, res) => {
       // Only verify for smaller batches to avoid performance hit
       const admissionNumbers = updates.map(u => u.admissionNumber);
       [foundStudents] = await connection.query(
-        `SELECT student_name, admission_number, pin_no, college_id, course_id, branch_id
+        `SELECT student_name, admission_number, pin_no, college, batch, course, branch,
+                college_id, course_id, branch_id
          FROM students WHERE admission_number IN (?)`,
         [admissionNumbers]
       );
@@ -7282,7 +7302,8 @@ exports.bulkUpdatePinNumbers = async (req, res) => {
               .slice(index, index + 500)
               .map((update) => update.admissionNumber);
             const [studentBatch] = await connection.query(
-              `SELECT student_name, admission_number, pin_no, college_id, course_id, branch_id
+              `SELECT student_name, admission_number, pin_no, college, batch, course, branch,
+                      college_id, course_id, branch_id
                FROM students WHERE admission_number IN (?)`,
               [admissionNumbers]
             );

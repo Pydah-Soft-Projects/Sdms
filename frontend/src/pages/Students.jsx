@@ -11,7 +11,6 @@ import {
   UserCog,
   Plus,
   Users,
-  LayoutGrid,
   CheckCircle,
   TrendingUp,
   ChevronDown,
@@ -367,12 +366,6 @@ const Students = () => {
   const showMeritColumn = canViewStudents && !isCashier;
   // Check if user has access to Attendance module
   const canViewAttendance = hasModuleAccess(userPermissions, FRONTEND_MODULES.ATTENDANCE);
-  const canViewSectionPartition =
-    isFullAccessRole(user?.role) ||
-    user?.role === 'admin' ||
-    user?.role === 'super_admin' ||
-    hasModuleAccess(userPermissions, FRONTEND_MODULES.SECTION_PARTITION) ||
-    (Array.isArray(user?.modules) && user.modules.includes(FRONTEND_MODULES.SECTION_PARTITION));
   const canAddRemarks = user?.role === 'super_admin' || user?.role === 'admin' || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'add_remarks');
   const canManageRemarks = user?.role === 'super_admin' || user?.role === 'admin' || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'manage_remarks');
 
@@ -3118,24 +3111,6 @@ const Students = () => {
               >
                 <UserCog size={16} />
                 <span>Update PIN</span>
-              </button>
-            )}
-
-            {canViewSectionPartition && (
-              <button
-                onClick={() => {
-                  const params = new URLSearchParams();
-                  if (filters.college) params.set('college', filters.college);
-                  if (filters.course) params.set('course', filters.course);
-                  if (filters.branch) params.set('branch', filters.branch);
-                  if (filters.batch) params.set('batch', filters.batch);
-                  navigate(`/section-partition${params.toString() ? `?${params.toString()}` : ''}`);
-                }}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
-                title="Manage student sections and PIN range allocation"
-              >
-                <LayoutGrid size={16} />
-                <span>Section Management</span>
               </button>
             )}
 

@@ -12,6 +12,7 @@ async function createSmsLogsTable() {
       current_semester INT,
       status VARCHAR(20) DEFAULT 'Sent',
       message_id VARCHAR(100),
+      notification_data JSON NULL,
       sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       error_details TEXT,
       INDEX idx_student_id (student_id),

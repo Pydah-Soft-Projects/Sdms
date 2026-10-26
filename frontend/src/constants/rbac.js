@@ -21,7 +21,8 @@ export const BACKEND_MODULES = {
   SERVICES: 'services',
   FACULTY_MANAGEMENT: 'faculty_management',
   FACULTY_ACADEMICS: 'faculty_academics',
-  CLUBS: 'clubs'
+  CLUBS: 'clubs',
+  SEMINAR_HALLS: 'seminar_halls'
 };
 
 // Granular Permissions for each module
@@ -206,14 +207,19 @@ export const MODULE_PERMISSIONS = {
     }
   },
   [BACKEND_MODULES.CLUBS]: {
-    permissions: ['view', 'manage', 'view_students', 'manage_students', 'view_settings', 'manage_settings', 'view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls'],
+    permissions: ['view', 'manage', 'view_students', 'manage_students', 'view_settings', 'manage_settings'],
     labels: {
       view: 'View Club Management',
       manage: 'Manage Club Management',
       view_students: 'View Members',
       manage_students: 'Manage Members',
       view_settings: 'View Club Settings',
-      manage_settings: 'Manage Club Settings',
+      manage_settings: 'Manage Club Settings'
+    }
+  },
+  [BACKEND_MODULES.SEMINAR_HALLS]: {
+    permissions: ['view_seminar_halls', 'create_seminar_hall_request', 'manage_seminar_halls'],
+    labels: {
       view_seminar_halls: 'View Seminar Hall Requests',
       create_seminar_hall_request: 'Create Seminar Hall Request',
       manage_seminar_halls: 'Manage Seminar Hall Requests'
@@ -236,7 +242,8 @@ export const MODULE_LABELS = {
   [BACKEND_MODULES.ANNOUNCEMENTS]: 'Announcements',
   [BACKEND_MODULES.SERVICES]: 'Services',
   [BACKEND_MODULES.FACULTY_MANAGEMENT]: 'Faculty Management',
-  [BACKEND_MODULES.CLUBS]: 'Student Clubs'
+  [BACKEND_MODULES.CLUBS]: 'Student Clubs',
+  [BACKEND_MODULES.SEMINAR_HALLS]: 'Seminar Hall Requests'
 };
 
 // Frontend navigation keys
@@ -257,7 +264,8 @@ export const FRONTEND_MODULES = {
   ANNOUNCEMENTS: 'announcements',
   SERVICES: 'services',
   FACULTY_MANAGEMENT: 'faculty_management',
-  CLUBS: 'clubs'
+  CLUBS: 'clubs',
+  SEMINAR_HALLS: 'seminar_halls'
 };
 
 // Map frontend navigation keys to backend permission keys
@@ -278,7 +286,8 @@ export const FRONTEND_TO_BACKEND_MAP = {
   [FRONTEND_MODULES.ANNOUNCEMENTS]: [BACKEND_MODULES.ANNOUNCEMENTS],
   [FRONTEND_MODULES.SERVICES]: [BACKEND_MODULES.SERVICES],
   [FRONTEND_MODULES.FACULTY_MANAGEMENT]: [BACKEND_MODULES.FACULTY_MANAGEMENT],
-  [FRONTEND_MODULES.CLUBS]: [BACKEND_MODULES.CLUBS]
+  [FRONTEND_MODULES.CLUBS]: [BACKEND_MODULES.CLUBS],
+  [FRONTEND_MODULES.SEMINAR_HALLS]: [BACKEND_MODULES.SEMINAR_HALLS]
 };
 
 // Map backend module keys to frontend navigation keys (reverse mapping)
@@ -296,7 +305,8 @@ export const BACKEND_TO_FRONTEND_MAP = {
   [BACKEND_MODULES.ANNOUNCEMENTS]: FRONTEND_MODULES.ANNOUNCEMENTS,
   [BACKEND_MODULES.SERVICES]: FRONTEND_MODULES.SERVICES,
   [BACKEND_MODULES.FACULTY_MANAGEMENT]: FRONTEND_MODULES.FACULTY_MANAGEMENT,
-  [BACKEND_MODULES.CLUBS]: FRONTEND_MODULES.CLUBS
+  [BACKEND_MODULES.CLUBS]: FRONTEND_MODULES.CLUBS,
+  [BACKEND_MODULES.SEMINAR_HALLS]: FRONTEND_MODULES.SEMINAR_HALLS
 };
 
 // Route map for navigation
@@ -318,6 +328,7 @@ export const MODULE_ROUTE_MAP = {
   [FRONTEND_MODULES.SERVICES]: '/services',
   [FRONTEND_MODULES.FACULTY_MANAGEMENT]: '/faculty-management',
   [FRONTEND_MODULES.CLUBS]: '/clubs',
+  [FRONTEND_MODULES.SEMINAR_HALLS]: '/seminar-halls',
   attendance_monitoring: '/attendance-monitoring'
 };
 
@@ -340,6 +351,7 @@ export const getModuleKeyForPath = (path = '/') => {
   if (path.startsWith('/announcements')) return FRONTEND_MODULES.ANNOUNCEMENTS;
   if (path.startsWith('/services')) return FRONTEND_MODULES.SERVICES;
   if (path.startsWith('/faculty-management')) return FRONTEND_MODULES.FACULTY_MANAGEMENT;
+  if (path.startsWith('/seminar-halls') || path.startsWith('/clubs/seminar-halls')) return FRONTEND_MODULES.SEMINAR_HALLS;
   if (path.startsWith('/clubs')) return FRONTEND_MODULES.CLUBS;
   if (path.startsWith('/attendance-monitoring')) return FRONTEND_MODULES.ATTENDANCE;
   return null;

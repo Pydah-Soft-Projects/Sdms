@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Loader2, Megaphone, Calendar, BarChart2, CheckCircle, Clock, AlertCircle, X, RefreshCw, ChevronRight, Ticket, Users, Check, AlertTriangle, Send, User } from 'lucide-react';
 import { SkeletonBox } from '../../components/SkeletonLoader';
 import api from '../../config/api';
 import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
+import EventPoster from '../../components/EventPoster';
 
 const formatTarget = (val) => {
     if (!val) return 'Notice';
@@ -21,13 +23,29 @@ const formatTarget = (val) => {
     return String(val);
 };
 
+const parseEventRegistrationFields = (fields) => {
+    if (Array.isArray(fields)) return fields;
+    if (typeof fields !== 'string' || !fields.trim()) return [];
+    try {
+        const parsed = JSON.parse(fields);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
 const StudentAnnouncements = () => {
     const { user } = useAuthStore();
-    const [activeTab, setActiveTab] = useState('announcements');
+    const [searchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') === 'events' ? 'events' : 'announcements');
     const [loading, setLoading] = useState(true);
     const [announcements, setAnnouncements] = useState([]);
     const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
     const [polls, setPolls] = useState([]);
+    const [events, setEvents] = useState([]);
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [eventRegistrationResponses, setEventRegistrationResponses] = useState({});
+    const [eventRegistrationSubmitting, setEventRegistrationSubmitting] = useState(false);
     const [votingId, setVotingId] = useState(null);
 
     // Event Registration state
@@ -48,7 +66,7 @@ const StudentAnnouncements = () => {
     // Pagination & Caching states
     const [hasMore, setHasMore] = useState(true);
     const [isFetchingMore, setIsFetchingMore] = useState(false);
-    const [dataFetched, setDataFetched] = useState({ announcements: false, polls: false });
+    const [dataFetched, setDataFetched] = useState({ announcements: false, polls: false, events: false });
 
     // Refs to eliminate stale closures and race conditions in infinite scroll
     const offsetRef = useRef(0);
@@ -130,8 +148,28 @@ const StudentAnnouncements = () => {
             fetchAnnouncements();
         } else if (activeTab === 'polls' && !dataFetched.polls) {
             fetchPolls();
+        } else if (activeTab === 'events' && !dataFetched.events) {
+            fetchEvents();
         }
-    }, [activeTab, dataFetched.announcements, dataFetched.polls, fetchAnnouncements]);
+    }, [activeTab, dataFetched.announcements, dataFetched.polls, dataFetched.events, fetchAnnouncements]);
+
+    const fetchEvents = async () => {
+        setLoading(true);
+        try {
+            const response = await api.get('/events/student');
+            if (response.data.success) {
+                setEvents((response.data.data || [])
+                    .filter(event => String(event.event_type || '').toLowerCase() === 'event')
+                    .sort((a, b) => new Date(b.event_date) - new Date(a.event_date)));
+                setDataFetched(prev => ({ ...prev, events: true }));
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Failed to load events');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchPolls = async (isRefresh = false) => {
         setLoading(true);
@@ -152,8 +190,93 @@ const StudentAnnouncements = () => {
     const handleRefresh = () => {
         if (activeTab === 'announcements') {
             fetchAnnouncements(true);
+        } else if (activeTab === 'events') {
+            fetchEvents();
         } else {
             fetchPolls(true);
+        }
+    };
+
+    const openEventRegistration = (event) => {
+        const initialResponses = {};
+        const profileValues = {
+            name: user?.student_name || user?.name || '',
+            pin: user?.admission_number || user?.pin_no || '',
+            college: user?.college || '',
+            branch: user?.branch || '',
+            year: [user?.current_year ? `Year ${user.current_year}` : '', user?.current_semester ? `Semester ${user.current_semester}` : ''].filter(Boolean).join(' / ') || user?.batch || '',
+            phone: user?.student_mobile || user?.phone || '',
+            email: user?.email || ''
+        };
+        parseEventRegistrationFields(event.registration_form_fields).forEach(field => {
+            const identifier = `${field.id || ''} ${field.label || ''}`.toLowerCase();
+            let value = '';
+            if (identifier.includes('name')) value = profileValues.name;
+            else if (identifier.includes('pin') || identifier.includes('roll')) value = profileValues.pin;
+            else if (identifier.includes('college')) value = profileValues.college;
+            else if (identifier.includes('branch') || identifier.includes('department')) value = profileValues.branch;
+            else if (identifier.includes('year') || identifier.includes('semester')) value = profileValues.year;
+            else if (identifier.includes('mobile') || identifier.includes('phone')) value = profileValues.phone;
+            else if (identifier.includes('email')) value = profileValues.email;
+            initialResponses[field.id || field.label] = value;
+        });
+        setEventRegistrationResponses(initialResponses);
+    };
+
+    const handleEventRegistration = async (e) => {
+        e.preventDefault();
+        if (!selectedEvent) return;
+        const fields = parseEventRegistrationFields(selectedEvent.registration_form_fields);
+        for (const field of fields) {
+            if (field.required && !String(eventRegistrationResponses[field.id || field.label] || '').trim()) {
+                toast.error(`Please complete: ${field.label}`);
+                return;
+            }
+        }
+
+        setEventRegistrationSubmitting(true);
+        try {
+            const response = await api.post(`/events/${selectedEvent.id}/register`, {
+                form_responses: eventRegistrationResponses
+            });
+            toast.success(response.data?.message || 'Successfully registered for the event');
+            setSelectedEvent(current => current ? {
+                ...current,
+                my_registration_id: current.my_registration_id || 'registered',
+                registered_count: Number(current.registered_count || 0) + 1
+            } : current);
+            setEvents(current => current.map(event => event.id === selectedEvent.id ? {
+                ...event,
+                my_registration_id: event.my_registration_id || 'registered',
+                registered_count: Number(event.registered_count || 0) + 1
+            } : event));
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to register for this event');
+        } finally {
+            setEventRegistrationSubmitting(false);
+        }
+    };
+
+    const handleEventRegistrationCancel = async () => {
+        if (!selectedEvent || !window.confirm('Cancel your registration for this event?')) return;
+        setEventRegistrationSubmitting(true);
+        try {
+            const response = await api.delete(`/events/${selectedEvent.id}/register`);
+            toast.success(response.data?.message || 'Registration cancelled');
+            setSelectedEvent(current => current ? {
+                ...current,
+                my_registration_id: null,
+                registered_count: Math.max(0, Number(current.registered_count || 0) - 1)
+            } : current);
+            setEvents(current => current.map(event => event.id === selectedEvent.id ? {
+                ...event,
+                my_registration_id: null,
+                registered_count: Math.max(0, Number(event.registered_count || 0) - 1)
+            } : event));
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to cancel registration');
+        } finally {
+            setEventRegistrationSubmitting(false);
         }
     };
 
@@ -373,11 +496,12 @@ const StudentAnnouncements = () => {
         }
     };
 
-    if (loading && announcements.length === 0 && polls.length === 0) {
+    if (loading && announcements.length === 0 && polls.length === 0 && events.length === 0) {
         return (
             <div className="animate-pulse bg-gray-50/50 min-h-screen">
                 <div className="sticky top-0 bg-white/95 border-b border-slate-100 px-3 sm:px-6 py-2 flex items-center justify-center">
                     <div className="flex gap-1 w-full max-w-md bg-slate-100/90 p-1 rounded-xl">
+                        <SkeletonBox height="h-8" className="flex-1 rounded-lg" />
                         <SkeletonBox height="h-8" className="flex-1 rounded-lg" />
                         <SkeletonBox height="h-8" className="flex-1 rounded-lg" />
                     </div>
@@ -410,6 +534,14 @@ const StudentAnnouncements = () => {
                     >
                         <Megaphone size={13} className="shrink-0" />
                         <span className="truncate">Announcements</span>
+                    </button>
+                    <button
+                        id="tab-events"
+                        onClick={() => setActiveTab('events')}
+                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap min-w-0 ${activeTab === 'events' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200/60' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'}`}
+                    >
+                        <Calendar size={13} className="shrink-0" />
+                        <span className="truncate">Events</span>
                     </button>
                     <button
                         id="tab-polls"
@@ -449,6 +581,7 @@ const StudentAnnouncements = () => {
                                         {ann.image_url ? (
                                             <div className="w-full h-44 sm:h-48 bg-slate-100 overflow-hidden relative shrink-0">
                                                 <img src={ann.image_url} alt={ann.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                <span className="absolute top-2.5 right-2.5 bg-indigo-600/95 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">Announcement</span>
                                                 <div className="absolute bottom-2.5 left-2.5 z-10">
                                                     <span className="bg-indigo-600/95 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
                                                         {formatTarget(ann.target_college)}
@@ -458,6 +591,7 @@ const StudentAnnouncements = () => {
                                         ) : (
                                             <div className="w-full h-44 sm:h-48 bg-slate-900 overflow-hidden relative shrink-0">
                                                 <img src="/images/announcement-fallback.jpg" alt={ann.title} className="w-full h-full object-cover" />
+                                                <span className="absolute top-2.5 right-2.5 bg-indigo-600/95 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">Announcement</span>
                                                 <div className="absolute bottom-2.5 left-2.5 z-10">
                                                     <span className="bg-indigo-600/95 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
                                                         {formatTarget(ann.target_college)}
@@ -527,6 +661,71 @@ const StudentAnnouncements = () => {
                                 <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest py-4">All caught up</p>
                             )}
                         </>
+                    )}
+                </div>
+            )}
+
+            {/* ══ EVENTS ══ */}
+            {activeTab === 'events' && (
+                <div>
+                    {loading && events.length === 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                            {Array.from({ length: 4 }).map((_, index) => (
+                                <div key={index} className="rounded-2xl border border-slate-100 bg-white p-3 space-y-3">
+                                    <SkeletonBox height="h-44" className="w-full rounded-xl" />
+                                    <SkeletonBox height="h-4" width="w-2/3" />
+                                    <SkeletonBox height="h-3" width="w-1/3" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : events.length === 0 ? (
+                        <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-100">
+                            <div className="mx-auto w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-400 mb-3">
+                                <Calendar size={26} />
+                            </div>
+                            <h3 className="text-base font-black text-slate-800 tracking-tight">No Events</h3>
+                            <p className="text-slate-400 font-medium text-xs mt-1">There are no upcoming campus events right now.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                            {events.map(event => (
+                                <button
+                                    key={event.id}
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedEvent(event);
+                                        openEventRegistration(event);
+                                    }}
+                                    className="rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full bg-white text-left"
+                                >
+                                    <div className="w-full h-44 sm:h-48 overflow-hidden relative shrink-0">
+                                        <EventPoster event={event} className="group-hover:scale-105 transition-transform duration-500" />
+                                        <span className="absolute top-2.5 right-2.5 bg-purple-600/95 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">Event</span>
+                                    </div>
+                                    <div className="p-4 flex-1 flex flex-col justify-between">
+                                        <div>
+                                            <div className="flex items-center justify-between gap-2 text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">
+                                                <span className="inline-flex items-center gap-1.5">
+                                                    <Calendar size={12} className="text-indigo-500 shrink-0" />
+                                                    {new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </span>
+                                                {event.requires_registration && (
+                                                    event.my_registration_id
+                                                        ? <span className="text-emerald-700">Registered</span>
+                                                        : <span className="text-indigo-700"><Ticket size={10} className="inline" /> Register</span>
+                                                )}
+                                            </div>
+                                            <h3 className="text-sm font-black text-slate-900 line-clamp-2 group-hover:text-indigo-700">{event.title}</h3>
+                                            <p className="mt-1 text-xs text-slate-500 line-clamp-3">{event.description || 'No description provided.'}</p>
+                                        </div>
+                                        <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                                            <span>{event.start_time || 'All day'}</span>
+                                            {event.requires_registration && <span>{event.registered_count || 0}{event.max_seats ? ` / ${event.max_seats}` : ''} registered</span>}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
                     )}
                 </div>
             )}
@@ -676,6 +875,111 @@ const StudentAnnouncements = () => {
 
             </div>
             {/* ── Detail Modal (bottom-sheet on mobile, centered on desktop) ── */}
+            {selectedEvent && (
+                <div
+                    className="fixed inset-0 z-[85] flex items-end sm:items-center justify-center sm:p-4 bg-gray-900/60 backdrop-blur-sm animate-fade-in"
+                    onClick={() => setSelectedEvent(null)}
+                >
+                    <div
+                        className="bg-white w-full sm:rounded-[2rem] sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] flex flex-col overflow-hidden border border-white/80 rounded-t-[2rem] shadow-2xl"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <span className="inline-flex px-2.5 py-1 rounded-lg bg-purple-100 text-purple-700 text-[9px] uppercase font-black tracking-widest">Event</span>
+                                <h2 className="mt-2 text-base sm:text-xl font-black text-slate-900">{selectedEvent.title}</h2>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {new Date(selectedEvent.event_date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+                                    {selectedEvent.start_time ? ` · ${selectedEvent.start_time}` : ' · All day'}
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedEvent(null)}
+                                className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200"
+                                aria-label="Close event"
+                            >
+                                <X size={17} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+                            <div className="h-44 sm:h-56 overflow-hidden rounded-xl">
+                                <EventPoster event={selectedEvent} />
+                            </div>
+                            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{selectedEvent.description || 'No description provided.'}</p>
+                            {selectedEvent.requires_registration && (
+                                <section className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <h3 className="flex items-center gap-2 text-sm font-black text-slate-900"><Ticket size={16} className="text-indigo-600" /> Event Registration</h3>
+                                            <p className="mt-1 text-xs text-slate-500">
+                                                {selectedEvent.registered_count || 0}
+                                                {selectedEvent.max_seats ? ` of ${selectedEvent.max_seats} seats filled` : ' registered'}
+                                            </p>
+                                        </div>
+                                        {selectedEvent.registration_deadline && (
+                                            <span className="text-right text-[10px] font-semibold text-slate-500">
+                                                Deadline<br />{new Date(selectedEvent.registration_deadline).toLocaleString()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {selectedEvent.my_registration_id ? (
+                                        <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                                            <span className="flex items-center gap-2 text-xs font-bold text-emerald-700"><CheckCircle size={15} /> You are registered.</span>
+                                            <button
+                                                type="button"
+                                                disabled={eventRegistrationSubmitting}
+                                                onClick={handleEventRegistrationCancel}
+                                                className="rounded-lg px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 disabled:opacity-50"
+                                            >
+                                                Cancel registration
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <form onSubmit={handleEventRegistration} className="space-y-3">
+                                            {parseEventRegistrationFields(selectedEvent.registration_form_fields).map((field, index) => (
+                                                <label key={field.id || index} className="block text-xs font-bold text-slate-700">
+                                                    {field.label}{field.required && <span className="text-rose-500"> *</span>}
+                                                    {field.type === 'textarea' ? (
+                                                        <textarea
+                                                            required={Boolean(field.required)}
+                                                            value={eventRegistrationResponses[field.id || field.label] || ''}
+                                                            onChange={e => setEventRegistrationResponses(current => ({ ...current, [field.id || field.label]: e.target.value }))}
+                                                            rows={3}
+                                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-normal"
+                                                        />
+                                                    ) : (
+                                                        <input
+                                                            required={Boolean(field.required)}
+                                                            value={eventRegistrationResponses[field.id || field.label] || ''}
+                                                            onChange={e => setEventRegistrationResponses(current => ({ ...current, [field.id || field.label]: e.target.value }))}
+                                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-normal"
+                                                        />
+                                                    )}
+                                                </label>
+                                            ))}
+                                            {selectedEvent.registration_deadline && new Date(selectedEvent.registration_deadline) < new Date() ? (
+                                                <p className="rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700">Registration deadline has passed.</p>
+                                            ) : selectedEvent.max_seats && Number(selectedEvent.registered_count) >= Number(selectedEvent.max_seats) ? (
+                                                <p className="rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700">Registration is full.</p>
+                                            ) : (
+                                                <button
+                                                    type="submit"
+                                                    disabled={eventRegistrationSubmitting}
+                                                    className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-50"
+                                                >
+                                                    {eventRegistrationSubmitting ? 'Please wait…' : 'Register for Event'}
+                                                </button>
+                                            )}
+                                        </form>
+                                    )}
+                                </section>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {selectedAnnouncement && (
                 <div
                     className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center sm:p-4 bg-gray-900/60 backdrop-blur-sm animate-fade-in"

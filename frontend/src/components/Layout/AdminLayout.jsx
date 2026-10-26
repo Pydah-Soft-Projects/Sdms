@@ -247,12 +247,6 @@ const NAV_ITEMS = [
         permission: FRONTEND_MODULES.ANNOUNCEMENTS,
       },
       {
-        path: "/announcements?tab=calendar",
-        label: "Calendar",
-        icon: Calendar,
-        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
-      },
-      {
         path: "/events",
         label: "Events",
         icon: Calendar,
@@ -635,8 +629,7 @@ const AdminLayout = () => {
                           const currentFullPath = location.pathname + location.search;
                           let isSubActive = false;
                           if (subItem.path.includes('?')) {
-                            isSubActive = currentFullPath === subItem.path || 
-                              (subItem.path.endsWith('?tab=calendar') && currentFullPath === '/announcements?tab=events');
+                            isSubActive = currentFullPath === subItem.path;
                           } else {
                             if (subItem.path === '/announcements') {
                               isSubActive = location.pathname === '/announcements' && (!location.search || location.search === '?tab=announcements');

@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, Plus, Users, X } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Clock, Users, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../config/api';
-import EventPoster from '../../components/EventPoster';
 
 const toDateKey = (value) => {
     if (!value) return '';
@@ -29,7 +27,6 @@ const hasEventTargets = (event) => (
 );
 
 const EventCalendarView = () => {
-    const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentMonth, setCurrentMonth] = useState(() => {
@@ -37,6 +34,7 @@ const EventCalendarView = () => {
         return new Date(now.getFullYear(), now.getMonth(), 1);
     });
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [selectedDateEvents, setSelectedDateEvents] = useState(null);
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -152,20 +150,61 @@ const EventCalendarView = () => {
                             {calendarDays.map((cell, index) => (
                                 <div
                                     key={cell?.dateKey || `empty-${index}`}
-                                    className={`min-h-20 border-b border-r border-gray-100 p-1 sm:min-h-28 sm:p-2 ${cell?.isToday ? 'bg-blue-50/60' : ''}`}
+                                    onClick={() => {
+                                        if (cell?.events?.length) {
+                                            setSelectedDateEvents(cell);
+                                        }
+                                    }}
+                                    className={`h-28 sm:h-36 border-b border-r border-gray-100 p-1 sm:p-1.5 flex flex-col overflow-hidden transition-colors ${
+                                        cell?.isToday ? 'bg-blue-50/60' : cell ? 'bg-white' : 'bg-gray-50/40'
+                                    } ${cell?.events?.length ? 'cursor-pointer hover:bg-amber-50/20' : ''}`}
                                 >
                                     {cell && (
                                         <>
-                                            <span className={`mb-1 inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${cell.isToday ? 'bg-blue-600 text-white' : 'text-gray-700'}`}>
-                                                {cell.day}
-                                            </span>
-                                            <div className="space-y-1">
+                                            <div className="flex items-center justify-between shrink-0 mb-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (cell.events.length) {
+                                                            setSelectedDateEvents(cell);
+                                                        }
+                                                    }}
+                                                    className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition-all ${
+                                                        cell.isToday
+                                                            ? 'bg-blue-600 text-white font-bold shadow-xs'
+                                                            : cell.events.length > 0
+                                                            ? 'text-gray-900 font-bold hover:bg-blue-100 hover:text-blue-700'
+                                                            : 'text-gray-700'
+                                                    }`}
+                                                    title={cell.events.length > 0 ? `Click to view all ${cell.events.length} notifications` : undefined}
+                                                >
+                                                    {cell.day}
+                                                </button>
+                                                {cell.events.length > 0 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedDateEvents(cell);
+                                                        }}
+                                                        className="text-[10px] font-bold text-amber-800 bg-amber-100/90 hover:bg-amber-200 border border-amber-200 rounded-md px-1.5 py-0.5 transition"
+                                                        title={`View all ${cell.events.length} notifications`}
+                                                    >
+                                                        {cell.events.length}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 overflow-y-auto space-y-1 pr-0.5 custom-scrollbar min-h-0 [scrollbar-width:thin]">
                                                 {cell.events.map((event) => (
                                                     <button
                                                         key={event.id}
                                                         type="button"
-                                                        onClick={() => setSelectedEvent(event)}
-                                                        className="block w-full truncate rounded border border-amber-200 bg-amber-100 px-1 py-1 text-left text-[9px] leading-tight text-amber-800 hover:bg-amber-200 sm:text-[10px]"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedEvent(event);
+                                                        }}
+                                                        className="block w-full truncate rounded border border-amber-200 bg-amber-100 px-1 py-1 text-left text-[9px] leading-tight text-amber-800 hover:bg-amber-200 sm:text-[10px] shrink-0"
                                                         title={event.title}
                                                     >
                                                         {event.title}
@@ -181,16 +220,6 @@ const EventCalendarView = () => {
                 </section>
 
                 <aside className="space-y-4">
-                    <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-                        <button
-                            type="button"
-                            onClick={() => navigate('/events')}
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-                        >
-                            <Plus size={17} /> Add Event
-                        </button>
-                    </section>
-
                     <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm" aria-label="Upcoming examination notifications">
                         <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-gray-800">
                             <Clock size={16} className="text-gray-500" /> Upcoming Examinations
@@ -250,19 +279,128 @@ const EventCalendarView = () => {
                             </button>
                         </div>
                         <div className="space-y-4 p-4 sm:p-5">
-                            <div className="h-48 overflow-hidden rounded-xl bg-gray-100">
-                                <EventPoster event={selectedEvent} />
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="rounded-md bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+                                    EXAMINATION NOTIFICATION
+                                </span>
+                                <span className="text-xs font-semibold text-gray-500 flex items-center gap-1">
+                                    <CalendarDays size={13} className="text-blue-600" />
+                                    {new Date(selectedEvent.event_date).toLocaleDateString()}
+                                    {selectedEvent.end_date && toDateKey(selectedEvent.end_date) !== toDateKey(selectedEvent.event_date)
+                                        ? ` – ${new Date(selectedEvent.end_date).toLocaleDateString()}`
+                                        : ''}
+                                    {selectedEvent.start_time ? ` · ${selectedEvent.start_time}` : ''}
+                                </span>
                             </div>
-                            <p className="text-sm text-gray-600">
-                                {new Date(selectedEvent.event_date).toLocaleDateString()}
-                                {selectedEvent.end_date && toDateKey(selectedEvent.end_date) !== toDateKey(selectedEvent.event_date)
-                                    ? ` – ${new Date(selectedEvent.end_date).toLocaleDateString()}`
-                                    : ''}
-                                {selectedEvent.start_time ? ` · ${selectedEvent.start_time}` : ''}
-                            </p>
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
-                                {selectedEvent.description || 'No description provided.'}
-                            </p>
+                            <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-4">
+                                <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+                                    {selectedEvent.description || 'No description provided.'}
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            )}
+
+            {/* Day All Notifications Popup */}
+            {selectedDateEvents && (
+                <div
+                    className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 p-3 sm:p-5 animate-fade-in"
+                    onClick={() => setSelectedDateEvents(null)}
+                >
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="day-notifications-title"
+                        className="w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+                        onClick={(event) => event.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 bg-slate-50/80">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-base shadow-xs">
+                                    {selectedDateEvents.day}
+                                </div>
+                                <div>
+                                    <h2 id="day-notifications-title" className="text-base sm:text-lg font-bold text-gray-900">
+                                        {new Date(`${selectedDateEvents.dateKey}T00:00:00`).toLocaleDateString(undefined, {
+                                            weekday: 'long',
+                                            month: 'long',
+                                            day: 'numeric',
+                                            year: 'numeric'
+                                        })}
+                                    </h2>
+                                    <p className="text-xs text-gray-500 font-medium">
+                                        {selectedDateEvents.events.length} {selectedDateEvents.events.length === 1 ? 'examination notification' : 'examination notifications'}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setSelectedDateEvents(null)}
+                                className="rounded-lg p-2 text-gray-500 hover:bg-gray-200/70 hover:text-gray-800 transition"
+                                aria-label="Close"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* List of all notifications for this date */}
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 custom-scrollbar">
+                            {selectedDateEvents.events.map((event, idx) => (
+                                <div
+                                    key={event.id || idx}
+                                    className="rounded-xl border border-amber-200 bg-amber-50/40 p-4 space-y-2.5 hover:bg-amber-50/70 transition shadow-2xs"
+                                >
+                                    <div className="flex flex-wrap items-start justify-between gap-2">
+                                        <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug">
+                                            {event.title}
+                                        </h3>
+                                        <span className="shrink-0 rounded bg-amber-100 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-800 uppercase tracking-wide">
+                                            EXAM
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 font-medium pt-0.5">
+                                        <span className="flex items-center gap-1 text-slate-700">
+                                            <CalendarDays size={13} className="text-blue-600" />
+                                            {new Date(event.event_date).toLocaleDateString()}
+                                            {event.end_date && toDateKey(event.end_date) !== toDateKey(event.event_date)
+                                                ? ` – ${new Date(event.end_date).toLocaleDateString()}`
+                                                : ''}
+                                        </span>
+                                        {event.start_time && (
+                                            <span className="flex items-center gap-1 text-slate-700">
+                                                <Clock size={13} className="text-blue-600" />
+                                                {event.start_time}{event.end_time ? ` – ${event.end_time}` : ''}
+                                            </span>
+                                        )}
+                                        <span className="flex items-center gap-1 text-slate-500">
+                                            <Users size={13} className="text-slate-400" />
+                                            {hasEventTargets(event) ? 'Targeted Students' : 'All Students'}
+                                        </span>
+                                    </div>
+
+                                    {event.description && (
+                                        <div className="rounded-lg bg-white/90 border border-amber-100/90 p-3 mt-1.5">
+                                            <p className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed text-gray-700">
+                                                {event.description}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="border-t border-gray-100 px-5 py-3 bg-gray-50/70 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedDateEvents(null)}
+                                className="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold transition"
+                            >
+                                Close
+                            </button>
                         </div>
                     </section>
                 </div>

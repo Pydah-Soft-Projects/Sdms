@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, Search, Ticket, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Download, MapPin, Search, Ticket, Trash2, Users } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import toast from 'react-hot-toast';
 import api from '../../config/api';
@@ -9,6 +9,45 @@ const getOptionValues = (registrations, key) => (
     [...new Set(registrations.map(registration => registration[key]).filter(Boolean))]
         .sort((a, b) => String(a).localeCompare(String(b)))
 );
+
+const getEventTypeColor = (type) => {
+    switch (String(type || '').toLowerCase()) {
+        case 'workshop':
+            return 'bg-purple-50 text-purple-700 border-purple-200';
+        case 'seminar':
+            return 'bg-blue-50 text-blue-700 border-blue-200';
+        case 'cultural':
+            return 'bg-pink-50 text-pink-700 border-pink-200';
+        case 'sports':
+            return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        case 'exam':
+            return 'bg-amber-50 text-amber-700 border-amber-200';
+        default:
+            return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    }
+};
+
+const getTargetSummary = (ev) => {
+    if (!ev) return 'All Students';
+    const parts = [];
+    const parse = (val) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        try {
+            const p = JSON.parse(val);
+            return Array.isArray(p) ? p : [p];
+        } catch {
+            return [val];
+        }
+    };
+    const courses = parse(ev.target_course);
+    const branches = parse(ev.target_branch);
+    const years = parse(ev.target_year);
+    if (courses.length) parts.push(courses.join(', '));
+    if (branches.length) parts.push(branches.join(', '));
+    if (years.length) parts.push(years.map(y => `Yr ${y}`).join(', '));
+    return parts.length ? parts.join(' · ') : 'All Students';
+};
 
 const EventRegistrations = () => {
     const { eventId } = useParams();
@@ -125,36 +164,117 @@ const EventRegistrations = () => {
         </label>
     );
 
+    const isExam = String(event?.event_type || '').toLowerCase() === 'exam';
+
     return (
         <div className="min-h-screen space-y-5 bg-gray-50/50 p-4 sm:p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-3">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/events')}
-                        className="mt-1 rounded-lg border border-slate-200 bg-white p-2 text-slate-600 hover:bg-slate-50"
-                        aria-label="Back to events"
-                    >
-                        <ArrowLeft size={18} />
-                    </button>
-                    <div>
-                        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900 sm:text-2xl">
-                            <Ticket className="text-indigo-600" /> Event Registrations
-                        </h1>
-                        <p className="mt-1 text-sm text-slate-500">
-                            {event?.title || 'Loading event…'}
-                            {event?.event_date ? ` · ${new Date(event.event_date).toLocaleDateString()}` : ''}
-                        </p>
-                    </div>
-                </div>
+            {/* Top Navigation */}
+            <div>
                 <button
                     type="button"
-                    onClick={exportRegistrations}
-                    disabled={loading || filteredRegistrations.length === 0}
-                    className="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto"
+                    onClick={() => navigate('/events')}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs hover:bg-slate-50 transition"
+                    aria-label="Back to events"
                 >
-                    <Download size={16} /> Export Excel
+                    <ArrowLeft size={14} /> Back to Events
                 </button>
+            </div>
+
+            {/* Prominent Event Details Hero Card */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                    <div className="space-y-3 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${getEventTypeColor(event?.event_type)}`}>
+                                {event?.event_type || 'Event'}
+                            </span>
+                            {event?.registration_deadline && (
+                                <span className="text-xs text-rose-600 font-medium bg-rose-50 border border-rose-200/60 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                    <Clock size={12} /> Deadline: {new Date(event.registration_deadline).toLocaleDateString()}
+                                </span>
+                            )}
+                            {event?.is_full && (
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-red-100 text-red-700 uppercase tracking-wider">
+                                    Seats Full
+                                </span>
+                            )}
+                        </div>
+
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                                {event?.title || (loading ? 'Loading Event…' : 'Event Registrations')}
+                            </h1>
+                            {event?.description && (
+                                <p className="mt-2 text-sm text-slate-600 line-clamp-3 leading-relaxed max-w-4xl">
+                                    {event.description}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Event Metadata Chips */}
+                        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1 text-xs text-slate-600 font-medium">
+                            {event?.event_date && (
+                                <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-2.5 py-1.5 rounded-lg text-slate-700">
+                                    <Calendar size={14} className="text-indigo-600 shrink-0" />
+                                    <span className="font-bold">Date:</span>
+                                    {new Date(event.event_date).toLocaleDateString()}
+                                    {event.end_date && event.end_date !== event.event_date ? ` – ${new Date(event.end_date).toLocaleDateString()}` : ''}
+                                </span>
+                            )}
+                            {event?.start_time && (
+                                <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-2.5 py-1.5 rounded-lg text-slate-700">
+                                    <Clock size={14} className="text-indigo-600 shrink-0" />
+                                    <span className="font-bold">Time:</span> {event.start_time}{event.end_time ? ` – ${event.end_time}` : ''}
+                                </span>
+                            )}
+                            {event?.location && (
+                                <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-2.5 py-1.5 rounded-lg text-slate-700">
+                                    <MapPin size={14} className="text-indigo-600 shrink-0" />
+                                    {event.location}
+                                </span>
+                            )}
+                            <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 px-2.5 py-1.5 rounded-lg text-slate-700">
+                                <Users size={14} className="text-indigo-600 shrink-0" />
+                                <span className="font-bold">Audience:</span> {getTargetSummary(event)}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Right side: Poster (if not exam) + Metric Stats + Export */}
+                    <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-center lg:items-end justify-between gap-4 border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100 shrink-0">
+                        {event?.image_url && !isExam && (
+                            <img
+                                src={event.image_url}
+                                alt={event.title}
+                                className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl object-cover border border-slate-200 shadow-xs"
+                            />
+                        )}
+                        <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                            <div className="flex-1 sm:flex-none bg-indigo-50/90 border border-indigo-100 rounded-xl px-4 py-2.5 text-center min-w-[110px]">
+                                <div className="text-[10px] font-bold uppercase tracking-wider text-indigo-700">Registered</div>
+                                <div className="text-2xl font-black text-indigo-900 mt-0.5">
+                                    {event?.registered_count ?? registrations.length}
+                                </div>
+                            </div>
+                            {event?.max_seats ? (
+                                <div className="flex-1 sm:flex-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center min-w-[110px]">
+                                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Max Capacity</div>
+                                    <div className="text-2xl font-black text-slate-800 mt-0.5">
+                                        {event.max_seats}
+                                    </div>
+                                </div>
+                            ) : null}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={exportRegistrations}
+                            disabled={loading || filteredRegistrations.length === 0}
+                            className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <Download size={16} /> Export Excel
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">

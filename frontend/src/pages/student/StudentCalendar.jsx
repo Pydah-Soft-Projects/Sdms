@@ -465,7 +465,6 @@ const StudentCalendar = () => {
                                     <div key={d} className="py-1.5 sm:py-2 text-center text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600">{d}</div>
                                 ))}
                             </div>
-                            )}
 
                             {/* Date Cells */}
                             <div className="grid grid-cols-7 auto-rows-fr bg-slate-200/40 gap-[1px]">

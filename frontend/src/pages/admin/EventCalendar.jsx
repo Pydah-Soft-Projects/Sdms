@@ -261,9 +261,11 @@ const EventCalendar = ({ isEmbedded = false }) => {
                         onClick={() => handleViewEvent(event)}
                         className="group rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
                     >
-                        <div className="mb-4 h-40 overflow-hidden rounded-xl">
-                            <EventPoster event={event} />
-                        </div>
+                        {String(event.event_type || '').toLowerCase() !== 'exam' && (
+                            <div className="mb-4 h-40 overflow-hidden rounded-xl">
+                                <EventPoster event={event} />
+                            </div>
+                        )}
                         <div className="flex items-start justify-between gap-3">
                             <span className={`rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase ${getEventTypeColor(event.event_type)}`}>
                                 {event.event_type || 'other'}
@@ -574,9 +576,11 @@ const EventCalendar = ({ isEmbedded = false }) => {
                             </button>
                         </div>
                         <div className="space-y-5 overflow-y-auto p-5">
-                            <div className="h-48 overflow-hidden rounded-xl">
-                                <EventPoster event={selectedEvent} />
-                            </div>
+                            {String(selectedEvent.event_type || '').toLowerCase() !== 'exam' && (
+                                <div className="h-48 overflow-hidden rounded-xl">
+                                    <EventPoster event={selectedEvent} />
+                                </div>
+                            )}
                             <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
                                 {selectedEvent.description || 'No description provided.'}
                             </p>

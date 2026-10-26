@@ -10,6 +10,10 @@ const EventPoster = ({ event, className = '' }) => {
     setImageFailed(false);
   }, [imageUrl]);
 
+  if (String(event?.event_type || '').toLowerCase() === 'exam') {
+    return null;
+  }
+
   if (imageUrl && !imageFailed) {
     return (
       <img

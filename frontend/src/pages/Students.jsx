@@ -119,7 +119,6 @@ import {
 import { resolveRegistrationBranchYear } from '../config/registrationBranchYear';
 import { buildCasteSelectOptions } from '../config/casteConfig';
 import useCasteCategories from '../hooks/useCasteCategories';
-import DuplicateMobileWarningModal from '../components/Students/DuplicateMobileWarningModal';
 import {
   hasDuplicateStudentParentMobile,
   checkSameStudentAndParentMobile
@@ -468,7 +467,6 @@ const Students = () => {
   const [showPhotoViewer, setShowPhotoViewer] = useState(false);
   const [photoUploadTab, setPhotoUploadTab] = useState('file');
   const [revealedMobiles, setRevealedMobiles] = useState({});
-  const [warningModalStudent, setWarningModalStudent] = useState(null);
   const [filterSameMobilesOnly, setFilterSameMobilesOnly] = useState(false);
   const toggleRevealMobile = useCallback((fieldKey) => {
     setRevealedMobiles((prev) => ({
@@ -2442,6 +2440,21 @@ const Students = () => {
     setPermitEndingDate(formatDateToLocalISO(student.permit_ending_date) || '');
     setPermitRemarks(student.permit_remarks || '');
     setShowModal(true);
+    const dupCheck = hasDuplicateStudentParentMobile(stageSyncedStudent);
+    if (dupCheck.hasDuplicate) {
+      toast(`⚠️ Student mobile and ${dupCheck.matchedLabel} are identical. Please update them.`, {
+        id: 'duplicate-mobile-warning',
+        duration: 5000,
+        style: {
+          border: '1px solid #f59e0b',
+          padding: '10px 14px',
+          color: '#78350f',
+          background: '#fffbeb',
+          fontSize: '12px',
+          fontWeight: 600
+        }
+      });
+    }
   };
 
   const handleViewHistory = (student) => {
@@ -3795,10 +3808,6 @@ const Students = () => {
                           ) {
                             return;
                           }
-                          if (isDuplicateMobile) {
-                            setWarningModalStudent(student);
-                            return;
-                          }
                           if (!isCashier) {
                             handleViewDetails(student);
                           } else if (canAddRemarks || canManageRemarks) {
@@ -3846,13 +3855,19 @@ const Students = () => {
                                 {student.student_name || '-'}
                               </div>
                               {isDuplicateMobile && (
-                                <span
-                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs whitespace-nowrap"
-                                  title={`Student mobile and ${dupMobileCheck.matchedLabel} are identical (${dupMobileCheck.number}). Click to resolve.`}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleViewDetails(student);
+                                    setEditMode(true);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 shadow-2xs whitespace-nowrap cursor-pointer transition-colors"
+                                  title={`Student mobile and ${dupMobileCheck.matchedLabel} are identical (${dupMobileCheck.number}). Click to open profile and update.`}
                                 >
                                   <AlertTriangle size={11} className="text-amber-600 animate-pulse flex-shrink-0" />
                                   Same Mobile
-                                </span>
+                                </button>
                               )}
                             </div>
                           </td>
@@ -4023,9 +4038,7 @@ const Students = () => {
                         <div
                           className="flex-1 min-w-0"
                           onClick={() => {
-                            if (isDuplicateMobile) {
-                              setWarningModalStudent(student);
-                            } else if (!isCashier) {
+                            if (!isCashier) {
                               handleViewDetails(student);
                             }
                           }}
@@ -4034,9 +4047,18 @@ const Students = () => {
                             <div className="flex items-center justify-between gap-2">
                               <h3 className="font-semibold text-gray-900 text-base truncate">{student.student_name || '-'}</h3>
                               {isDuplicateMobile && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 whitespace-nowrap flex-shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleViewDetails(student);
+                                    setEditMode(true);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 whitespace-nowrap flex-shrink-0 cursor-pointer"
+                                  title="Click to open profile and update duplicate mobile"
+                                >
                                   <AlertTriangle size={11} className="text-amber-600 animate-pulse" /> Same Mobile
-                                </span>
+                                </button>
                               )}
                             </div>
                           )}
@@ -4177,27 +4199,10 @@ const Students = () => {
                       {/* Action Button */}
                       {!isCashier && (
                         <button
-                          onClick={() => {
-                            if (isDuplicateMobile) {
-                              setWarningModalStudent(student);
-                            } else {
-                              handleViewDetails(student);
-                            }
-                          }}
-                          className={`w-full mt-2 py-2 px-4 rounded-lg active:scale-98 transition-colors touch-manipulation font-medium text-sm flex items-center justify-center gap-1.5 ${
-                            isDuplicateMobile
-                              ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm shadow-amber-200'
-                              : 'bg-blue-600 hover:bg-blue-700 text-white'
-                          }`}
+                          onClick={() => handleViewDetails(student)}
+                          className="w-full mt-2 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation font-medium text-sm"
                         >
-                          {isDuplicateMobile ? (
-                            <>
-                              <AlertTriangle size={15} />
-                              <span>View Warning & Fix Mobile</span>
-                            </>
-                          ) : (
-                            <span>View Details</span>
-                          )}
+                          View Details
                         </button>
                       )}
                     </div>
@@ -6118,26 +6123,6 @@ const Students = () => {
         }}
         colleges={colleges}
         coursesWithLevels={coursesWithLevels}
-      />
-
-      {/* Duplicate Student-Parent Mobile Warning Modal */}
-      <DuplicateMobileWarningModal
-        isOpen={!!warningModalStudent}
-        student={warningModalStudent}
-        onClose={() => setWarningModalStudent(null)}
-        onViewDetails={(student) => {
-          setWarningModalStudent(null);
-          handleViewDetails(student);
-        }}
-        onChangeMobile={(student) => {
-          setWarningModalStudent(null);
-          handleViewDetails(student);
-          setEditMode(true);
-          toast('Please update either the student or parent mobile number.', {
-            icon: '⚠️',
-            duration: 5000
-          });
-        }}
       />
 
       {/* Rejoin Modal */}

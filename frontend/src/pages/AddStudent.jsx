@@ -12,6 +12,7 @@ import { getCourseType, getCertificatesForCourse as getCertificatesForCourseShar
 import useStudentQuotas from '../hooks/useStudentQuotas';
 import useCasteCategories from '../hooks/useCasteCategories';
 import { buildCasteSelectOptions } from '../config/casteConfig';
+import { checkSameStudentAndParentMobile } from '../utils/mobileValidation';
 const STUDENT_STATUS_OPTIONS = [
   'Regular',
   'Discontinued from the second year',
@@ -94,6 +95,14 @@ const AddStudent = () => {
     student_photo: '',
     remarks: ''
   });
+
+  const mobileValidation = useMemo(() => {
+    return checkSameStudentAndParentMobile(
+      studentData.student_mobile,
+      studentData.parent_mobile1,
+      studentData.parent_mobile2
+    );
+  }, [studentData.student_mobile, studentData.parent_mobile1, studentData.parent_mobile2]);
 
   useEffect(() => {
     const loadColleges = async () => {
@@ -954,6 +963,11 @@ const AddStudent = () => {
       }
     }
 
+    if (mobileValidation.hasDuplicate) {
+      toast.error(`Student mobile number and ${mobileValidation.matchedLabel} cannot be the same.`);
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -1458,8 +1472,17 @@ const AddStudent = () => {
                   value={studentData.student_mobile}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border rounded-lg focus:ring-2 focus:border-transparent outline-none touch-manipulation min-h-[44px] ${
+                    mobileValidation.hasDuplicate
+                      ? 'border-red-500 bg-red-50/20 focus:ring-red-400'
+                      : 'border-gray-300 focus:ring-primary-500'
+                  }`}
                 />
+                {mobileValidation.hasDuplicate && (
+                  <p className="mt-1 text-xs text-red-600 font-medium flex items-center gap-1">
+                    ⚠️ Cannot be identical to parent mobile
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1471,8 +1494,17 @@ const AddStudent = () => {
                   value={studentData.parent_mobile1}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border rounded-lg focus:ring-2 focus:border-transparent outline-none touch-manipulation min-h-[44px] ${
+                    mobileValidation.hasDuplicate && mobileValidation.matchedField === 'parent_mobile1'
+                      ? 'border-red-500 bg-red-50/20 focus:ring-red-400'
+                      : 'border-gray-300 focus:ring-primary-500'
+                  }`}
                 />
+                {mobileValidation.hasDuplicate && mobileValidation.matchedField === 'parent_mobile1' && (
+                  <p className="mt-1 text-xs text-red-600 font-medium flex items-center gap-1">
+                    ⚠️ Cannot be identical to student mobile
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1483,8 +1515,17 @@ const AddStudent = () => {
                   name="parent_mobile2"
                   value={studentData.parent_mobile2}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className={`w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border rounded-lg focus:ring-2 focus:border-transparent outline-none touch-manipulation min-h-[44px] ${
+                    mobileValidation.hasDuplicate && mobileValidation.matchedField === 'parent_mobile2'
+                      ? 'border-red-500 bg-red-50/20 focus:ring-red-400'
+                      : 'border-gray-300 focus:ring-primary-500'
+                  }`}
                 />
+                {mobileValidation.hasDuplicate && mobileValidation.matchedField === 'parent_mobile2' && (
+                  <p className="mt-1 text-xs text-red-600 font-medium flex items-center gap-1">
+                    ⚠️ Cannot be identical to student mobile
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

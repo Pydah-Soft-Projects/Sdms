@@ -52,6 +52,9 @@ export const useStudents = ({
           else if (key === 'dateFrom') queryParams.append('filter_dateFrom', formattedVal);
           else if (key === 'dateTo') queryParams.append('filter_dateTo', formattedVal);
           else if (key === 'pinNumberStatus') queryParams.append('filter_pinNumberStatus', formattedVal);
+          else if (key === 'sameMobiles' || key === 'same_mobiles' || key === 'filter_same_mobiles') {
+            queryParams.append('filter_same_mobiles', String(formattedVal));
+          }
           else if (key.startsWith('filter_')) {
             queryParams.append(key, formattedVal);
           } else if (key.startsWith('field_')) {
@@ -86,11 +89,16 @@ export const useStudents = ({
       const response = await api.get(`/students?${queryParams.toString()}`);
       const fetchedStudents = response.data?.data || [];
       const totalCount = response.data?.pagination?.total || fetchedStudents.length;
+      const duplicateMobilesCount = response.data?.duplicateMobilesCount 
+        ?? response.data?.pagination?.duplicateMobilesCount 
+        ?? 0;
 
       return {
         students: fetchedStudents,
+        duplicateMobilesCount: Number(duplicateMobilesCount) || 0,
         pagination: {
           total: totalCount,
+          duplicateMobilesCount: Number(duplicateMobilesCount) || 0,
           limit: response.data?.pagination?.limit || pageSize,
           offset: response.data?.pagination?.offset || 0,
           totalPages: pageSize === 'all' || pageSize === 'ALL'

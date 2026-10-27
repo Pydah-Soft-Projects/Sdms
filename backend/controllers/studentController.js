@@ -65,6 +65,7 @@ const {
 const { computeRegistrationStages, parseStudentData, aggregateRegistrationOverallFromStudents, computeRegistrationGroupAggregates, enrichRegistrationAbstractRows, hasOptionalRegistrationStages, buildRegistrationStatusLabelMap, resolveOptionalStagesForStudent } = require('../services/registrationStages');
 const { extractBatchStartYear, formatAcademicYearLabel } = require('../services/studentScholarshipSync');
 const crypto = require('crypto');
+const { checkSameStudentAndParentMobile } = require('../utils/mobileValidation');
 
 // In-memory cache for settings that are hit on every request
 const _settingsCache = createCache(5 * 60 * 1000); // 5 minute TTL
@@ -2255,6 +2256,15 @@ exports.previewBulkUploadStudents = async (req, res) => {
         issues.push('Student name is required');
       }
 
+      const mobileCheck = checkSameStudentAndParentMobile(
+        sanitized.student_mobile,
+        sanitized.parent_mobile1,
+        sanitized.parent_mobile2
+      );
+      if (mobileCheck.hasDuplicate) {
+        issues.push(`Student mobile number and ${mobileCheck.matchedLabel} cannot be the same`);
+      }
+
       const courseValidation = validateCourseBranch(sanitized, courseIndex);
       if (courseValidation.issues.length > 0) {
         issues.push(...courseValidation.issues);
@@ -2625,6 +2635,15 @@ exports.commitBulkUploadStudents = async (req, res) => {
 
       if (!sanitized.student_name && !isExisting) {
         errors.push('Student name is required');
+      }
+
+      const mobileCheck = checkSameStudentAndParentMobile(
+        sanitized.student_mobile,
+        sanitized.parent_mobile1,
+        sanitized.parent_mobile2
+      );
+      if (mobileCheck.hasDuplicate) {
+        errors.push(`Student mobile number and ${mobileCheck.matchedLabel} cannot be the same`);
       }
 
       const courseValidation = validateCourseBranch(sanitized, courseIndex);
@@ -3047,6 +3066,29 @@ exports.commitBulkUploadStudents = async (req, res) => {
   }
 };
 
+const buildSameMobileConditionSql = (alias = 's') => {
+  const prefix = alias ? `${alias}.` : '';
+  const sMob = `COALESCE(${prefix}student_mobile, JSON_UNQUOTE(JSON_EXTRACT(${prefix}student_data, '$.student_mobile')), '')`;
+  const pMob1 = `COALESCE(${prefix}parent_mobile1, JSON_UNQUOTE(JSON_EXTRACT(${prefix}student_data, '$.parent_mobile1')), '')`;
+  const pMob2 = `COALESCE(${prefix}parent_mobile2, JSON_UNQUOTE(JSON_EXTRACT(${prefix}student_data, '$.parent_mobile2')), '')`;
+
+  const cleanSMob = `REGEXP_REPLACE(${sMob}, '[^0-9]', '')`;
+  const cleanPMob1 = `REGEXP_REPLACE(${pMob1}, '[^0-9]', '')`;
+  const cleanPMob2 = `REGEXP_REPLACE(${pMob2}, '[^0-9]', '')`;
+
+  return `(
+    (
+      LENGTH(${cleanSMob}) >= 5 AND LENGTH(${cleanPMob1}) >= 5 
+      AND RIGHT(${cleanSMob}, 10) = RIGHT(${cleanPMob1}, 10)
+    )
+    OR
+    (
+      LENGTH(${cleanSMob}) >= 5 AND LENGTH(${cleanPMob2}) >= 5 
+      AND RIGHT(${cleanSMob}, 10) = RIGHT(${cleanPMob2}, 10)
+    )
+  )`;
+};
+
 // Get all students
 exports.getAllStudents = async (req, res) => {
   try {
@@ -3417,6 +3459,19 @@ exports.getAllStudents = async (req, res) => {
       }
     });
 
+    const isFilterSameMobiles = normalizedOtherFilters.filter_same_mobiles === 'true' ||
+      normalizedOtherFilters.filter_same_mobiles === '1' ||
+      normalizedOtherFilters.same_mobiles === 'true' ||
+      req.query.same_mobiles === 'true' ||
+      req.query.filter_same_mobiles === 'true';
+
+    const sameMobileConditionSelectSql = buildSameMobileConditionSql('s');
+    const sameMobileConditionCountSql = buildSameMobileConditionSql('students');
+
+    if (isFilterSameMobiles) {
+      query += ` AND ${sameMobileConditionSelectSql}`;
+    }
+
     const normalizedSortBy = typeof sort_by === 'string' ? sort_by.trim().toLowerCase() : '';
     const normalizedSortOrder = typeof sort_order === 'string' ? sort_order.trim().toLowerCase() : 'asc';
     const safeSortOrder = normalizedSortOrder === 'desc' ? 'DESC' : 'ASC';
@@ -3448,8 +3503,11 @@ exports.getAllStudents = async (req, res) => {
       });
     }
 
-    // Get total count
-    let countQuery = 'SELECT COUNT(*) as total FROM students WHERE 1=1';
+    // Get total count and duplicate mobiles count
+    let countQuery = `SELECT 
+      COUNT(*) as total,
+      SUM(CASE WHEN ${sameMobileConditionCountSql} THEN 1 ELSE 0 END) as duplicate_mobiles_total
+    FROM students WHERE 1=1`;
     const countParams = [];
 
     // Apply user scope filtering to count query
@@ -3634,6 +3692,10 @@ exports.getAllStudents = async (req, res) => {
       }
     });
 
+    if (isFilterSameMobiles) {
+      countQuery += ` AND ${sameMobileConditionCountSql}`;
+    }
+
     const [countResult] = await masterPool.query(countQuery, countParams);
 
     let parsedStudents;
@@ -3792,13 +3854,16 @@ exports.getAllStudents = async (req, res) => {
     }
 
     const totalCount = countResult?.[0]?.total || 0;
+    const duplicateMobilesTotal = Number(countResult?.[0]?.duplicate_mobiles_total) || 0;
     const totalPages = fetchAll ? 1 : (pageSize > 0 ? Math.ceil(totalCount / pageSize) : 1);
 
     const responsePayload = {
       success: true,
       data: parsedStudents,
+      duplicateMobilesCount: duplicateMobilesTotal,
       pagination: {
         total: totalCount,
+        duplicateMobilesCount: duplicateMobilesTotal,
         limit: fetchAll ? null : pageSize,
         offset: fetchAll ? 0 : pageOffset,
         totalPages: totalPages,
@@ -4193,6 +4258,50 @@ exports.updateStudent = async (req, res) => {
 
     const oldParentMobile = existingStudent.parent_mobile1 || existingStudentData.parent_mobile1 || existingStudentData['Parent Mobile Number 1'] || '';
     const newParentMobile = studentData.parent_mobile1 || studentData['Parent Mobile Number 1'] || mutableStudentData.parent_mobile1 || '';
+
+    // Validate that student mobile and parent mobile numbers are not the same
+    const hasStudentMobileInPayload =
+      studentData.student_mobile !== undefined ||
+      studentData['Student Mobile number'] !== undefined ||
+      studentData['Student Mobile Number'] !== undefined ||
+      studentData.mobile_number !== undefined ||
+      studentData.phone !== undefined;
+
+    const hasParentMobile1InPayload =
+      studentData.parent_mobile1 !== undefined ||
+      studentData['Parent Mobile Number 1'] !== undefined ||
+      studentData['Parent Mobile 1'] !== undefined ||
+      studentData.father_mobile !== undefined ||
+      studentData.father_phone !== undefined;
+
+    const hasParentMobile2InPayload =
+      studentData.parent_mobile2 !== undefined ||
+      studentData['Parent Mobile Number 2'] !== undefined ||
+      studentData['Parent Mobile 2'] !== undefined ||
+      studentData.mother_mobile !== undefined ||
+      studentData.mother_phone !== undefined;
+
+    const effectiveStudentMobile = hasStudentMobileInPayload
+      ? (studentData.student_mobile || studentData['Student Mobile number'] || studentData['Student Mobile Number'] || studentData.mobile_number || studentData.phone || '')
+      : (existingStudent.student_mobile || existingStudentData.student_mobile || existingStudentData['Student Mobile number'] || existingStudentData['Student Mobile Number'] || '');
+
+    const effectiveParentMobile1 = hasParentMobile1InPayload
+      ? (studentData.parent_mobile1 || studentData['Parent Mobile Number 1'] || studentData['Parent Mobile 1'] || studentData.father_mobile || studentData.father_phone || '')
+      : (existingStudent.parent_mobile1 || existingStudentData.parent_mobile1 || existingStudentData['Parent Mobile Number 1'] || '');
+
+    const effectiveParentMobile2 = hasParentMobile2InPayload
+      ? (studentData.parent_mobile2 || studentData['Parent Mobile Number 2'] || studentData['Parent Mobile 2'] || studentData.mother_mobile || studentData.mother_phone || '')
+      : (existingStudent.parent_mobile2 || existingStudentData.parent_mobile2 || existingStudentData['Parent Mobile Number 2'] || '');
+
+    if (hasStudentMobileInPayload || hasParentMobile1InPayload || hasParentMobile2InPayload) {
+      const mobileDupCheck = checkSameStudentAndParentMobile(effectiveStudentMobile, effectiveParentMobile1, effectiveParentMobile2);
+      if (mobileDupCheck.hasDuplicate) {
+        return res.status(400).json({
+          success: false,
+          message: `Student mobile number and ${mobileDupCheck.matchedLabel} cannot be the same`
+        });
+      }
+    }
 
     // Normalize mobile numbers for comparison (remove spaces, dashes, etc.)
     const normalizeMobile = (mobile) => {
@@ -5851,6 +5960,19 @@ exports.createStudent = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: 'Student with this admission number already exists'
+      });
+    }
+
+    // Validate that student mobile and parent mobile numbers are not the same
+    const sMobile = incomingData.student_mobile || incomingData['Student Mobile number'] || incomingData['Student Mobile Number'] || incomingData.mobile_number || incomingData.phone;
+    const pMobile1 = incomingData.parent_mobile1 || incomingData['Parent Mobile Number 1'] || incomingData['Parent Mobile 1'] || incomingData.father_mobile || incomingData.father_phone;
+    const pMobile2 = incomingData.parent_mobile2 || incomingData['Parent Mobile Number 2'] || incomingData['Parent Mobile 2'] || incomingData.mother_mobile || incomingData.mother_phone;
+
+    const mobileCheck = checkSameStudentAndParentMobile(sMobile, pMobile1, pMobile2);
+    if (mobileCheck.hasDuplicate) {
+      return res.status(400).json({
+        success: false,
+        message: `Student mobile number and ${mobileCheck.matchedLabel} cannot be the same`
       });
     }
 

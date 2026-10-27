@@ -119,6 +119,11 @@ import {
 import { resolveRegistrationBranchYear } from '../config/registrationBranchYear';
 import { buildCasteSelectOptions } from '../config/casteConfig';
 import useCasteCategories from '../hooks/useCasteCategories';
+import DuplicateMobileWarningModal from '../components/Students/DuplicateMobileWarningModal';
+import {
+  hasDuplicateStudentParentMobile,
+  checkSameStudentAndParentMobile
+} from '../utils/mobileValidation';
 
 const formatRegistrationStatusLabel = (status) => {
   const normalized = String(status || '').trim().toLowerCase();
@@ -463,6 +468,8 @@ const Students = () => {
   const [showPhotoViewer, setShowPhotoViewer] = useState(false);
   const [photoUploadTab, setPhotoUploadTab] = useState('file');
   const [revealedMobiles, setRevealedMobiles] = useState({});
+  const [warningModalStudent, setWarningModalStudent] = useState(null);
+  const [filterSameMobilesOnly, setFilterSameMobilesOnly] = useState(false);
   const toggleRevealMobile = useCallback((fieldKey) => {
     setRevealedMobiles((prev) => ({
       ...prev,
@@ -640,6 +647,13 @@ const Students = () => {
 
   // Use React Query to fetch students
   // Only enable students query after filters are loaded
+  const combinedFilters = useMemo(() => {
+    return {
+      ...memoizedFilters,
+      ...(filterSameMobilesOnly ? { same_mobiles: 'true' } : {})
+    };
+  }, [memoizedFilters, filterSameMobilesOnly]);
+
   const {
     data: studentsData,
     isLoading,
@@ -649,7 +663,7 @@ const Students = () => {
   } = useStudents({
     page: currentPage,
     pageSize: pageSize,
-    filters: memoizedFilters,
+    filters: combinedFilters,
     search: debouncedSearch,
     enabled: !filtersLoading // Disable until filters are loaded
   });
@@ -741,6 +755,24 @@ const Students = () => {
       return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
   }, [students, sortConfig]);
+
+  // Server-computed overall count of students with duplicate student and parent mobile numbers
+  const duplicateMobilesCount = useMemo(() => {
+    if (studentsData?.duplicateMobilesCount !== undefined) {
+      return Number(studentsData.duplicateMobilesCount) || 0;
+    }
+    if (studentsData?.pagination?.duplicateMobilesCount !== undefined) {
+      return Number(studentsData.pagination.duplicateMobilesCount) || 0;
+    }
+    if (!students || !Array.isArray(students)) return 0;
+    return students.filter(s => hasDuplicateStudentParentMobile(s).hasDuplicate).length;
+  }, [studentsData, students]);
+
+  // Filter students based on duplicate mobile toggle if active
+  const displayedStudents = useMemo(() => {
+    if (!filterSameMobilesOnly) return sortedStudents;
+    return sortedStudents.filter(s => hasDuplicateStudentParentMobile(s).hasDuplicate);
+  }, [sortedStudents, filterSameMobilesOnly]);
 
   // Compute year and semester dropdown options for the student edit panel
   // Based on the selected student's course+branch structure + additional year from branch metadata
@@ -1980,6 +2012,7 @@ const Students = () => {
     setFilters({});
     setSearchTerm('');
     setAvailableFields([]);
+    setFilterSameMobilesOnly(false);
     setCurrentPage(1);
     skipFilterFetchRef.current = true;
   };
@@ -2082,6 +2115,19 @@ const Students = () => {
       setEditingCell(null);
       setCellEditValue('');
       return;
+    }
+
+    if (['student_mobile', 'parent_mobile1', 'parent_mobile2'].includes(field)) {
+      const candidateStudentMobile = field === 'student_mobile' ? newValue : (student.student_mobile || '');
+      const candidateP1 = field === 'parent_mobile1' ? newValue : (student.parent_mobile1 || '');
+      const candidateP2 = field === 'parent_mobile2' ? newValue : (student.parent_mobile2 || '');
+      const dupCheck = checkSameStudentAndParentMobile(candidateStudentMobile, candidateP1, candidateP2);
+      if (dupCheck.hasDuplicate) {
+        toast.error(`Student mobile number and ${dupCheck.matchedLabel} cannot be the same.`);
+        setEditingCell(null);
+        setCellEditValue('');
+        return;
+      }
     }
 
     // Save the change immediately
@@ -2460,6 +2506,17 @@ const Students = () => {
         toast.error(`${field.label} is required`);
         return;
       }
+    }
+
+    // Validate that student mobile and parent mobile numbers are not the same
+    const sameMobileCheck = checkSameStudentAndParentMobile(
+      editData.student_mobile ?? editData['Student Mobile Number'] ?? editData['Student Mobile number'] ?? selectedStudent?.student_mobile,
+      editData.parent_mobile1 ?? editData['Parent Mobile Number 1'] ?? editData['Parent Mobile 1'] ?? selectedStudent?.parent_mobile1,
+      editData.parent_mobile2 ?? editData['Parent Mobile Number 2'] ?? editData['Parent Mobile 2'] ?? selectedStudent?.parent_mobile2
+    );
+    if (sameMobileCheck.hasDuplicate) {
+      toast.error(`Student mobile number and ${sameMobileCheck.matchedLabel} cannot be the same. Please provide distinct numbers.`);
+      return;
     }
 
     // Check if student status is being changed to "Rejoined"
@@ -3238,7 +3295,26 @@ const Students = () => {
                   })}
                 </div>
               )}
-              {(Object.keys(filters).length > 0 || searchTerm) && (
+              {duplicateMobilesCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterSameMobilesOnly(prev => !prev);
+                    setCurrentPage(1);
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                    filterSameMobilesOnly
+                      ? 'bg-amber-600 text-white shadow-xs ring-2 ring-amber-300'
+                      : 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100'
+                  }`}
+                  title={filterSameMobilesOnly ? 'Click to show all students' : 'Click to filter only students with duplicate mobile numbers'}
+                >
+                  <AlertTriangle size={13} className={filterSameMobilesOnly ? 'text-white' : 'text-amber-600 animate-pulse'} />
+                  <span>Same Mobiles ({duplicateMobilesCount.toLocaleString()})</span>
+                  {filterSameMobilesOnly && <X size={12} className="ml-0.5" />}
+                </button>
+              )}
+              {(Object.keys(filters).length > 0 || searchTerm || filterSameMobilesOnly) && (
                 <button
                   onClick={clearFilters}
                   className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
@@ -3695,12 +3771,19 @@ const Students = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedStudents.map((student, index) => {
+                  {displayedStudents.map((student, index) => {
+                    const dupMobileCheck = hasDuplicateStudentParentMobile(student);
+                    const isDuplicateMobile = dupMobileCheck.hasDuplicate;
+
                     return (
                       <tr
                         key={student.admission_number}
                         style={{ animationDelay: `${Math.min(index, 25) * 22}ms` }}
-                        className="border-b border-gray-100 hover:bg-blue-50/40 transition-colors cursor-pointer row-cascade"
+                        className={`border-b transition-colors cursor-pointer row-cascade ${
+                          isDuplicateMobile
+                            ? 'border-amber-200 bg-amber-50/75 hover:bg-amber-100/80 border-l-4 border-l-amber-500'
+                            : 'border-gray-100 hover:bg-blue-50/40'
+                        }`}
                         onClick={(e) => {
                           // Don't trigger view modal if interacting with inputs/selects/inline editors
                           if (
@@ -3710,6 +3793,10 @@ const Students = () => {
                             e.target.closest('input') ||
                             e.target.closest('textarea')
                           ) {
+                            return;
+                          }
+                          if (isDuplicateMobile) {
+                            setWarningModalStudent(student);
                             return;
                           }
                           if (!isCashier) {
@@ -3723,7 +3810,12 @@ const Students = () => {
                           }
                         }}
                       >
-                        <td className="py-3 px-3 text-center sticky left-0 bg-white z-10 border-r border-gray-200" onClick={(e) => e.stopPropagation()}>
+                        <td
+                          className={`py-3 px-3 text-center sticky left-0 z-10 border-r ${
+                            isDuplicateMobile ? 'bg-amber-50/95 border-amber-200' : 'bg-white border-gray-200'
+                          }`}
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <input
                             type="checkbox"
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
@@ -3733,7 +3825,11 @@ const Students = () => {
                           />
                         </td>
                         {canViewField('student_photo') && (
-                          <td className="py-2 px-3 sticky left-12 bg-white z-10 border-r border-gray-200">
+                          <td
+                            className={`py-2 px-3 sticky left-12 z-10 border-r ${
+                              isDuplicateMobile ? 'bg-amber-50/95 border-amber-200' : 'bg-white border-gray-200'
+                            }`}
+                          >
                             <div className="flex items-center justify-center mx-auto">
                               <StudentAvatar
                                 admissionNumber={student.admission_number}
@@ -3745,8 +3841,19 @@ const Students = () => {
                         )}
                         {canViewField('student_name') && (
                           <td className="py-2.5 px-3 text-xs text-gray-900 leading-snug w-52 min-w-[170px] max-w-[210px]">
-                            <div className="font-semibold text-gray-900 truncate hover:text-blue-600 transition-colors max-w-[200px]" title={student.student_name}>
-                              {student.student_name || '-'}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <div className="font-semibold text-gray-900 truncate hover:text-blue-600 transition-colors max-w-[170px]" title={student.student_name}>
+                                {student.student_name || '-'}
+                              </div>
+                              {isDuplicateMobile && (
+                                <span
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs whitespace-nowrap"
+                                  title={`Student mobile and ${dupMobileCheck.matchedLabel} are identical (${dupMobileCheck.number}). Click to resolve.`}
+                                >
+                                  <AlertTriangle size={11} className="text-amber-600 animate-pulse flex-shrink-0" />
+                                  Same Mobile
+                                </span>
+                              )}
                             </div>
                           </td>
                         )}
@@ -3877,12 +3984,19 @@ const Students = () => {
 
             {/* Mobile Card View */}
             <div className="lg:hidden space-y-3 p-3 sm:p-4">
-              {sortedStudents.map((student, index) => {
+              {displayedStudents.map((student, index) => {
+                const dupMobileCheck = hasDuplicateStudentParentMobile(student);
+                const isDuplicateMobile = dupMobileCheck.hasDuplicate;
+
                 return (
                   <div
                     key={student.admission_number}
                     style={{ animationDelay: `${Math.min(index, 25) * 25}ms` }}
-                    className="bg-white border border-gray-200/90 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 hover:border-indigo-200 row-cascade"
+                    className={`rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 row-cascade ${
+                      isDuplicateMobile
+                        ? 'bg-amber-50/70 border-2 border-amber-400 hover:border-amber-500'
+                        : 'bg-white border border-gray-200/90 hover:border-indigo-200'
+                    }`}
                   >
                     <div className="p-4 space-y-3">
                       {/* Header with Photo and Checkbox */}
@@ -3906,9 +4020,25 @@ const Students = () => {
                             />
                           </div>
                         )}
-                        <div className="flex-1 min-w-0" onClick={() => !isCashier && handleViewDetails(student)}>
+                        <div
+                          className="flex-1 min-w-0"
+                          onClick={() => {
+                            if (isDuplicateMobile) {
+                              setWarningModalStudent(student);
+                            } else if (!isCashier) {
+                              handleViewDetails(student);
+                            }
+                          }}
+                        >
                           {canViewField('student_name') && (
-                            <h3 className="font-semibold text-gray-900 text-base truncate">{student.student_name || '-'}</h3>
+                            <div className="flex items-center justify-between gap-2">
+                              <h3 className="font-semibold text-gray-900 text-base truncate">{student.student_name || '-'}</h3>
+                              {isDuplicateMobile && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 whitespace-nowrap flex-shrink-0">
+                                  <AlertTriangle size={11} className="text-amber-600 animate-pulse" /> Same Mobile
+                                </span>
+                              )}
+                            </div>
                           )}
                           {canViewField('admission_number') && (
                             <p className="text-sm text-gray-600 mt-1">{student.admission_number || '-'}</p>
@@ -4047,10 +4177,27 @@ const Students = () => {
                       {/* Action Button */}
                       {!isCashier && (
                         <button
-                          onClick={() => handleViewDetails(student)}
-                          className="w-full mt-2 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation font-medium text-sm"
+                          onClick={() => {
+                            if (isDuplicateMobile) {
+                              setWarningModalStudent(student);
+                            } else {
+                              handleViewDetails(student);
+                            }
+                          }}
+                          className={`w-full mt-2 py-2 px-4 rounded-lg active:scale-98 transition-colors touch-manipulation font-medium text-sm flex items-center justify-center gap-1.5 ${
+                            isDuplicateMobile
+                              ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm shadow-amber-200'
+                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          }`}
                         >
-                          View Details
+                          {isDuplicateMobile ? (
+                            <>
+                              <AlertTriangle size={15} />
+                              <span>View Warning & Fix Mobile</span>
+                            </>
+                          ) : (
+                            <span>View Details</span>
+                          )}
                         </button>
                       )}
                     </div>
@@ -4302,6 +4449,59 @@ const Students = () => {
               </div>
             )}
 
+            {/* Same Mobile Number Alert Banner */}
+            {(() => {
+              const currentStudMob = editMode
+                ? (editData.student_mobile ?? editData['Student Mobile Number'] ?? selectedStudent?.student_mobile)
+                : (selectedStudent?.student_mobile || selectedStudent?.student_data?.['Student Mobile Number']);
+              const currentP1 = editMode
+                ? (editData.parent_mobile1 ?? editData['Parent Mobile Number 1'] ?? editData['Parent Mobile 1'] ?? selectedStudent?.parent_mobile1)
+                : (selectedStudent?.parent_mobile1 || selectedStudent?.student_data?.['Parent Mobile Number 1']);
+              const currentP2 = editMode
+                ? (editData.parent_mobile2 ?? editData['Parent Mobile Number 2'] ?? editData['Parent Mobile 2'] ?? selectedStudent?.parent_mobile2)
+                : (selectedStudent?.parent_mobile2 || selectedStudent?.student_data?.['Parent Mobile Number 2']);
+              const dupCheck = checkSameStudentAndParentMobile(currentStudMob, currentP1, currentP2);
+
+              if (!dupCheck.hasDuplicate) return null;
+
+              return (
+                <div className="mx-6 mt-3 p-3.5 bg-amber-50/95 border-2 border-amber-400 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-2xs shrink-0 animate-fade-in">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                      <AlertTriangle size={18} className="animate-pulse" />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="font-extrabold text-amber-950">
+                        Duplicate Mobile Detected:
+                      </span>
+                      <span className="text-amber-800 font-semibold">
+                        Student mobile &amp; <span className="font-bold underline">{dupCheck.matchedLabel}</span> are identical
+                      </span>
+                      <span className="text-amber-400 font-bold">|</span>
+                      <span className="font-mono font-bold bg-amber-100 text-amber-950 px-2 py-0.5 rounded border border-amber-300">
+                        {dupCheck.number}
+                      </span>
+                      <span className="text-amber-700 text-[11px]">
+                        (Must be distinct numbers for SMS, OTPs &amp; parent alerts)
+                      </span>
+                    </div>
+                  </div>
+                  {!editMode && canEditStudents && !isCashier && (
+                    <button
+                      onClick={() => {
+                        handleEdit();
+                        setActiveStudentTab('details');
+                      }}
+                      className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-1.5 rounded-xl transition-all shadow-md shadow-amber-200 flex items-center gap-1 shrink-0 active:scale-95"
+                    >
+                      <Edit size={12} />
+                      <span>Change Number Now</span>
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Tabs Navigation Bar */}
             <div className="bg-white border-b border-gray-200/80 px-6 shrink-0 shadow-2xs mt-2">
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
@@ -4490,30 +4690,61 @@ const Students = () => {
                               <span className="font-bold text-gray-900">{formatDate(editData.dob || selectedStudent?.dob)}</span>
                             )}
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Mobile Number</span>
-                            {editMode ? (
-                              <input
-                                type="tel"
-                                value={editData.student_mobile || ''}
-                                onChange={(e) => updateEditField('student_mobile', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
-                              />
-                            ) : (
-                              <div className="flex items-center gap-1 font-mono font-bold text-gray-900">
-                                <span>
-                                  {revealedMobiles['student_mobile']
-                                    ? (editData.student_mobile || selectedStudent?.student_mobile || '-')
-                                    : maskMobileNumber(editData.student_mobile || selectedStudent?.student_mobile || '-')}
-                                </span>
-                                {(editData.student_mobile || selectedStudent?.student_mobile) && (
-                                  <button onClick={() => toggleRevealMobile('student_mobile')} className="text-blue-600 p-0.5 hover:bg-blue-50 rounded">
-                                    {revealedMobiles['student_mobile'] ? <EyeOff size={11} /> : <Eye size={11} />}
-                                  </button>
+                          {(() => {
+                            const curStud = editMode
+                              ? (editData.student_mobile ?? editData['Student Mobile Number'] ?? selectedStudent?.student_mobile)
+                              : (selectedStudent?.student_mobile || selectedStudent?.student_data?.['Student Mobile Number']);
+                            const curP1 = editMode
+                              ? (editData.parent_mobile1 ?? editData['Parent Mobile Number 1'] ?? editData['Parent Mobile 1'] ?? selectedStudent?.parent_mobile1)
+                              : (selectedStudent?.parent_mobile1 || selectedStudent?.student_data?.['Parent Mobile Number 1']);
+                            const curP2 = editMode
+                              ? (editData.parent_mobile2 ?? editData['Parent Mobile Number 2'] ?? editData['Parent Mobile 2'] ?? selectedStudent?.parent_mobile2)
+                              : (selectedStudent?.parent_mobile2 || selectedStudent?.student_data?.['Parent Mobile Number 2']);
+                            const isDup = checkSameStudentAndParentMobile(curStud, curP1, curP2);
+
+                            return (
+                              <div className="flex flex-col items-end">
+                                <div className="flex justify-between items-center w-full">
+                                  <span className="text-gray-500 font-semibold">Mobile Number</span>
+                                  {editMode ? (
+                                    <input
+                                      type="tel"
+                                      value={editData.student_mobile || ''}
+                                      onChange={(e) => updateEditField('student_mobile', e.target.value)}
+                                      className={`px-1.5 py-0.5 border rounded text-[11px] font-bold text-right w-28 ${
+                                        isDup.hasDuplicate
+                                          ? 'border-red-500 bg-red-50 text-red-900 focus:ring-1 focus:ring-red-500'
+                                          : 'border-gray-300'
+                                      }`}
+                                    />
+                                  ) : (
+                                    <div className="flex items-center gap-1 font-mono font-bold text-gray-900">
+                                      <span>
+                                        {revealedMobiles['student_mobile']
+                                          ? (editData.student_mobile || selectedStudent?.student_mobile || '-')
+                                          : maskMobileNumber(editData.student_mobile || selectedStudent?.student_mobile || '-')}
+                                      </span>
+                                      {(editData.student_mobile || selectedStudent?.student_mobile) && (
+                                        <button onClick={() => toggleRevealMobile('student_mobile')} className="text-blue-600 p-0.5 hover:bg-blue-50 rounded">
+                                          {revealedMobiles['student_mobile'] ? <EyeOff size={11} /> : <Eye size={11} />}
+                                        </button>
+                                      )}
+                                      {isDup.hasDuplicate && (
+                                        <span className="text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.5 rounded">
+                                          Same as Parent
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                {editMode && isDup.hasDuplicate && (
+                                  <span className="text-[10px] text-red-600 font-bold mt-0.5">
+                                    Matches {isDup.matchedLabel}
+                                  </span>
                                 )}
                               </div>
-                            )}
-                          </div>
+                            );
+                          })()}
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500 font-semibold">Aadhaar No</span>
                             {editMode ? (
@@ -4712,30 +4943,58 @@ const Students = () => {
                               <span className="font-bold text-gray-900 truncate max-w-[120px]">{editData.father_name || selectedStudent?.father_name || '-'}</span>
                             )}
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Father Mobile</span>
-                            {editMode ? (
-                              <input
-                                type="tel"
-                                value={editData.parent_mobile1 || ''}
-                                onChange={(e) => updateEditField('parent_mobile1', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
-                              />
-                            ) : (
-                              <div className="flex items-center gap-1 font-mono font-bold text-gray-900">
-                                <span>
-                                  {revealedMobiles['parent_mobile1']
-                                    ? (editData.parent_mobile1 || selectedStudent?.parent_mobile1 || '-')
-                                    : maskMobileNumber(editData.parent_mobile1 || selectedStudent?.parent_mobile1 || '-')}
-                                </span>
-                                {(editData.parent_mobile1 || selectedStudent?.parent_mobile1) && (
-                                  <button onClick={() => toggleRevealMobile('parent_mobile1')} className="text-orange-600 p-0.5 hover:bg-orange-50 rounded">
-                                    {revealedMobiles['parent_mobile1'] ? <EyeOff size={11} /> : <Eye size={11} />}
-                                  </button>
+                          {(() => {
+                            const curStud = editMode
+                              ? (editData.student_mobile ?? editData['Student Mobile Number'] ?? selectedStudent?.student_mobile)
+                              : (selectedStudent?.student_mobile || selectedStudent?.student_data?.['Student Mobile Number']);
+                            const curP1 = editMode
+                              ? (editData.parent_mobile1 ?? editData['Parent Mobile Number 1'] ?? editData['Parent Mobile 1'] ?? selectedStudent?.parent_mobile1)
+                              : (selectedStudent?.parent_mobile1 || selectedStudent?.student_data?.['Parent Mobile Number 1']);
+                            const p1Match = checkSameStudentAndParentMobile(curStud, curP1, null).hasDuplicate;
+
+                            return (
+                              <div className="flex flex-col items-end">
+                                <div className="flex justify-between items-center w-full">
+                                  <span className="text-gray-500 font-semibold">Father Mobile</span>
+                                  {editMode ? (
+                                    <input
+                                      type="tel"
+                                      value={editData.parent_mobile1 || ''}
+                                      onChange={(e) => updateEditField('parent_mobile1', e.target.value)}
+                                      className={`px-1.5 py-0.5 border rounded text-[11px] font-bold text-right w-28 ${
+                                        p1Match
+                                          ? 'border-red-500 bg-red-50 text-red-900 focus:ring-1 focus:ring-red-500'
+                                          : 'border-gray-300'
+                                      }`}
+                                    />
+                                  ) : (
+                                    <div className="flex items-center gap-1 font-mono font-bold text-gray-900">
+                                      <span>
+                                        {revealedMobiles['parent_mobile1']
+                                          ? (editData.parent_mobile1 || selectedStudent?.parent_mobile1 || '-')
+                                          : maskMobileNumber(editData.parent_mobile1 || selectedStudent?.parent_mobile1 || '-')}
+                                      </span>
+                                      {(editData.parent_mobile1 || selectedStudent?.parent_mobile1) && (
+                                        <button onClick={() => toggleRevealMobile('parent_mobile1')} className="text-orange-600 p-0.5 hover:bg-orange-50 rounded">
+                                          {revealedMobiles['parent_mobile1'] ? <EyeOff size={11} /> : <Eye size={11} />}
+                                        </button>
+                                      )}
+                                      {p1Match && (
+                                        <span className="text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.5 rounded">
+                                          Same as Student
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                {editMode && p1Match && (
+                                  <span className="text-[10px] text-red-600 font-bold mt-0.5">
+                                    Matches Student Mobile
+                                  </span>
                                 )}
                               </div>
-                            )}
-                          </div>
+                            );
+                          })()}
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500 font-semibold">Mother Name</span>
                             {editMode ? (
@@ -4749,30 +5008,58 @@ const Students = () => {
                               <span className="font-bold text-gray-900 truncate max-w-[120px]">{editData.mother_name || selectedStudent?.student_data?.mother_name || selectedStudent?.mother_name || '-'}</span>
                             )}
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Mother Mobile</span>
-                            {editMode ? (
-                              <input
-                                type="tel"
-                                value={editData.parent_mobile2 || ''}
-                                onChange={(e) => updateEditField('parent_mobile2', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
-                              />
-                            ) : (
-                              <div className="flex items-center gap-1 font-mono font-bold text-gray-900">
-                                <span>
-                                  {revealedMobiles['parent_mobile2']
-                                    ? (editData.parent_mobile2 || selectedStudent?.parent_mobile2 || '-')
-                                    : maskMobileNumber(editData.parent_mobile2 || selectedStudent?.parent_mobile2 || '-')}
-                                </span>
-                                {(editData.parent_mobile2 || selectedStudent?.parent_mobile2) && (
-                                  <button onClick={() => toggleRevealMobile('parent_mobile2')} className="text-orange-600 p-0.5 hover:bg-orange-50 rounded">
-                                    {revealedMobiles['parent_mobile2'] ? <EyeOff size={11} /> : <Eye size={11} />}
-                                  </button>
+                          {(() => {
+                            const curStud = editMode
+                              ? (editData.student_mobile ?? editData['Student Mobile Number'] ?? selectedStudent?.student_mobile)
+                              : (selectedStudent?.student_mobile || selectedStudent?.student_data?.['Student Mobile Number']);
+                            const curP2 = editMode
+                              ? (editData.parent_mobile2 ?? editData['Parent Mobile Number 2'] ?? editData['Parent Mobile 2'] ?? selectedStudent?.parent_mobile2)
+                              : (selectedStudent?.parent_mobile2 || selectedStudent?.student_data?.['Parent Mobile Number 2']);
+                            const p2Match = checkSameStudentAndParentMobile(curStud, null, curP2).hasDuplicate;
+
+                            return (
+                              <div className="flex flex-col items-end">
+                                <div className="flex justify-between items-center w-full">
+                                  <span className="text-gray-500 font-semibold">Mother Mobile</span>
+                                  {editMode ? (
+                                    <input
+                                      type="tel"
+                                      value={editData.parent_mobile2 || ''}
+                                      onChange={(e) => updateEditField('parent_mobile2', e.target.value)}
+                                      className={`px-1.5 py-0.5 border rounded text-[11px] font-bold text-right w-28 ${
+                                        p2Match
+                                          ? 'border-red-500 bg-red-50 text-red-900 focus:ring-1 focus:ring-red-500'
+                                          : 'border-gray-300'
+                                      }`}
+                                    />
+                                  ) : (
+                                    <div className="flex items-center gap-1 font-mono font-bold text-gray-900">
+                                      <span>
+                                        {revealedMobiles['parent_mobile2']
+                                          ? (editData.parent_mobile2 || selectedStudent?.parent_mobile2 || '-')
+                                          : maskMobileNumber(editData.parent_mobile2 || selectedStudent?.parent_mobile2 || '-')}
+                                      </span>
+                                      {(editData.parent_mobile2 || selectedStudent?.parent_mobile2) && (
+                                        <button onClick={() => toggleRevealMobile('parent_mobile2')} className="text-orange-600 p-0.5 hover:bg-orange-50 rounded">
+                                          {revealedMobiles['parent_mobile2'] ? <EyeOff size={11} /> : <Eye size={11} />}
+                                        </button>
+                                      )}
+                                      {p2Match && (
+                                        <span className="text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.5 rounded">
+                                          Same as Student
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                {editMode && p2Match && (
+                                  <span className="text-[10px] text-red-600 font-bold mt-0.5">
+                                    Matches Student Mobile
+                                  </span>
                                 )}
                               </div>
-                            )}
-                          </div>
+                            );
+                          })()}
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500 font-semibold">Preferred Mobile</span>
                             {editMode ? (
@@ -5831,6 +6118,26 @@ const Students = () => {
         }}
         colleges={colleges}
         coursesWithLevels={coursesWithLevels}
+      />
+
+      {/* Duplicate Student-Parent Mobile Warning Modal */}
+      <DuplicateMobileWarningModal
+        isOpen={!!warningModalStudent}
+        student={warningModalStudent}
+        onClose={() => setWarningModalStudent(null)}
+        onViewDetails={(student) => {
+          setWarningModalStudent(null);
+          handleViewDetails(student);
+        }}
+        onChangeMobile={(student) => {
+          setWarningModalStudent(null);
+          handleViewDetails(student);
+          setEditMode(true);
+          toast('Please update either the student or parent mobile number.', {
+            icon: '⚠️',
+            duration: 5000
+          });
+        }}
       />
 
       {/* Rejoin Modal */}

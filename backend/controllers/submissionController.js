@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const { writeAuditLog } = require('../services/auditLogService');
 const { flattenStudentData, isValidProfileValue, getProfileFieldKeys } = require('../utils/profileCompletionHelper');
+const { checkSameStudentAndParentMobile } = require('../utils/mobileValidation');
 
 // Configure multer for file uploads
 const upload = multer({
@@ -1209,6 +1210,19 @@ exports.submitForm = async (req, res) => {
     }
 
     console.log('Form found and active:', forms[0].form_name);
+
+    // Validate that student mobile and parent mobile numbers are not the same
+    const sMobile = formData.student_mobile || formData['Student Mobile number'] || formData['Student Mobile Number'] || formData.mobile_number || formData.phone;
+    const pMobile1 = formData.parent_mobile1 || formData['Parent Mobile Number 1'] || formData['Parent Mobile 1'] || formData.father_mobile || formData.father_phone;
+    const pMobile2 = formData.parent_mobile2 || formData['Parent Mobile Number 2'] || formData['Parent Mobile 2'] || formData.mother_mobile || formData.mother_phone;
+
+    const mobileCheck = checkSameStudentAndParentMobile(sMobile, pMobile1, pMobile2);
+    if (mobileCheck.hasDuplicate) {
+      return res.status(400).json({
+        success: false,
+        message: `Student mobile number and ${mobileCheck.matchedLabel} cannot be the same`
+      });
+    }
 
     const submissionId = uuidv4();
 

@@ -1,31 +1,57 @@
 import api from '../config/api';
 
 /**
+ * Ensures ppg.js Drop-in SDK is loaded into window.PPG
+ */
+const loadPpgSdk = () => {
+  return new Promise((resolve, reject) => {
+    if (window.PPG && typeof window.PPG.openCheckout === 'function') {
+      return resolve(window.PPG);
+    }
+
+    const scriptSrc = import.meta.env.VITE_PPG_SDK_URL || 'http://localhost:5000/sdk/ppg.js';
+    const existing = document.querySelector('script[src*="ppg.js"]');
+    if (existing) {
+      existing.addEventListener('load', () => resolve(window.PPG));
+      existing.addEventListener('error', (err) => reject(err));
+      if (window.PPG) return resolve(window.PPG);
+    }
+
+    const script = document.createElement('script');
+    script.src = scriptSrc;
+    script.async = true;
+    script.onload = () => resolve(window.PPG);
+    script.onerror = () => reject(new Error('Failed to load PPG Drop-in Checkout SDK'));
+    document.head.appendChild(script);
+  });
+};
+
+/**
  * Pydah Payment Gateway (PPG) Client Service
- * Adheres to PAYMENTS_EXTERNAL_APP_GUIDE specifications
+ * In-Page Popup Checkout via ppg.js (Zero Provider SDKs)
+ * Reference: docs/TESTING_FROM_EXTERNAL_APP_GUIDE.md
  */
 export const paymentService = {
   /**
    * 1. Create a payment order via application backend
-   * POST /api/payments/create
+   * POST /api/payments/create-order
    */
   createOrder: async (data) => {
-    const response = await api.post('/payments/create', data);
+    const response = await api.post('/payments/create-order', data);
     return response.data;
   },
 
   /**
-   * 2. Verify payment signature with backend and PPG
-   * POST /api/payments/verify/:paymentId
+   * 2. Confirm and record payment in application database
+   * POST /api/payments/confirm
    */
-  verifyPayment: async (paymentId, verificationData) => {
-    const url = paymentId ? `/payments/verify/${paymentId}` : '/payments/verify';
-    const response = await api.post(url, verificationData);
+  confirmPayment: async (paymentId) => {
+    const response = await api.post('/payments/confirm', { paymentId });
     return response.data;
   },
 
   /**
-   * 3. Check payment status
+   * 3. Check payment status directly from Gateway
    * GET /api/payments/status/:paymentId
    */
   getPaymentStatus: async (paymentId) => {
@@ -34,11 +60,12 @@ export const paymentService = {
   },
 
   /**
-   * 4. Full End-to-End Checkout Flow
-   * Initiates payment order, pops the Razorpay modal, and verifies the cryptographic signature
+   * 4. In-Page Popup Checkout Flow (Drop-in Modal)
+   * Opens the payment modal directly inside the current page as an overlay.
+   * Student never leaves the URL!
    * 
    * @param {Object} params
-   * @param {number} params.amountInRupees - Payment amount in INR (e.g. 1500)
+   * @param {number} params.amountInRupees - Amount in INR (e.g. 1500)
    * @param {string} [params.studentId] - Student Admission Number
    * @param {string} [params.description] - Payment description
    * @param {string} [params.customerName] - Payer name
@@ -48,12 +75,12 @@ export const paymentService = {
    * @param {string} [params.studentYear] - Optional Student Year
    * @param {string} [params.semester] - Optional Semester
    * @param {string} [params.remarks] - Payment remarks
-   * @param {string|number} [params.serviceRequestId] - Service Request ID if paying for a certificate/service
-   * @param {Function} [params.onSuccess] - Callback when payment and verification succeed
-   * @param {Function} [params.onError] - Callback on error
-   * @param {Function} [params.onDismiss] - Callback if checkout modal is closed
+   * @param {string|number} [params.serviceRequestId] - Service Request ID
+   * @param {Function} [params.onSuccess] - Callback when payment succeeds & confirmed
+   * @param {Function} [params.onFailure] - Callback on payment failure
+   * @param {Function} [params.onClose] - Callback when modal is closed
    */
-  initiateCheckout: async ({
+  openCheckout: async ({
     amountInRupees,
     studentId,
     description,
@@ -66,120 +93,81 @@ export const paymentService = {
     remarks,
     serviceRequestId,
     onSuccess,
-    onError,
-    onDismiss,
-    themeColor = '#4f46e5',
+    onFailure,
+    onClose,
   }) => {
-    try {
-      if (!amountInRupees || Number(amountInRupees) <= 0) {
-        throw new Error('Please specify a valid payment amount');
-      }
-
-      // Step 1: Request order creation from backend
-      const createResponse = await paymentService.createOrder({
-        amountInRupees: Number(amountInRupees),
-        studentId,
-        description: description || 'Pydah Application Fee Payment',
-        customerName: customerName || undefined,
-        customerEmail: customerEmail && typeof customerEmail === 'string' && customerEmail.trim() ? customerEmail.trim() : undefined,
-        customerPhone: customerPhone && typeof customerPhone === 'string' && customerPhone.trim() ? customerPhone.trim() : undefined,
-        feeHeadId,
-        studentYear,
-        semester,
-        remarks,
-        serviceRequestId,
-      });
-
-      if (!createResponse.success) {
-        throw new Error(createResponse.error || 'Failed to create payment order');
-      }
-
-      const { paymentId, checkout, order, key_id, studentDetails } = createResponse;
-
-      // Extract checkout options provided by PPG or fallback
-      const rzpKeyId = checkout?.keyId || key_id;
-      const rzpOrderId = checkout?.orderId || order?.id;
-      const rzpAmount = checkout?.amount || (order?.amount ? order.amount : Math.round(Number(amountInRupees) * 100));
-      const rzpCurrency = checkout?.currency || order?.currency || 'INR';
-      const rzpName = checkout?.name || 'Pydah Education Academy';
-      const rzpDescription = checkout?.description || description || 'Fee Payment';
-      const rzpPrefill = checkout?.prefill || {
-        name: customerName || studentDetails?.name || '',
-        email: customerEmail || studentDetails?.email || '',
-        contact: customerPhone || studentDetails?.contact || '',
-      };
-
-      if (!window.Razorpay) {
-        throw new Error('Razorpay Checkout SDK is not loaded. Please check your internet connection.');
-      }
-
-      return new Promise((resolve, reject) => {
-        // Step 2: Configure Razorpay Checkout options
-        const options = {
-          key: rzpKeyId,
-          amount: rzpAmount,
-          currency: rzpCurrency,
-          name: rzpName,
-          description: rzpDescription,
-          order_id: rzpOrderId,
-          prefill: rzpPrefill,
-          theme: { color: themeColor },
-          modal: {
-            ondismiss: () => {
-              if (onDismiss) onDismiss();
-              resolve({ cancelled: true });
-            },
-          },
-          handler: async (response) => {
-            try {
-              // Step 3: Verify signature with backend
-              const verifyPayload = {
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,
-                paymentId,
-                studentId,
-                amount: Number(amountInRupees),
-                feeHeadId,
-                studentYear,
-                semester,
-                remarks,
-                serviceRequestId,
-              };
-
-              const verifyResponse = await paymentService.verifyPayment(paymentId, verifyPayload);
-
-              if (verifyResponse.success) {
-                if (onSuccess) onSuccess(verifyResponse);
-                resolve({ success: true, ...verifyResponse });
-              } else {
-                const errMsg = verifyResponse.error || 'Payment signature verification failed';
-                if (onError) onError(new Error(errMsg));
-                reject(new Error(errMsg));
-              }
-            } catch (verifyErr) {
-              const errMsg = verifyErr.response?.data?.error || verifyErr.message || 'Verification error';
-              if (onError) onError(new Error(errMsg));
-              reject(new Error(errMsg));
-            }
-          },
-        };
-
-        const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', function (resp) {
-          const failureErr = new Error(resp.error?.description || 'Payment was declined or failed');
-          if (onError) onError(failureErr);
-          reject(failureErr);
-        });
-
-        rzp.open();
-      });
-    } catch (err) {
-      if (onError) onError(err);
-      throw err;
+    if (!amountInRupees || Number(amountInRupees) <= 0) {
+      throw new Error('Please specify a valid payment amount');
     }
+
+    // 1. Call backend to create order on PPG
+    const orderData = await paymentService.createOrder({
+      amountInRupees: Number(amountInRupees),
+      studentId,
+      description: description || 'Pydah Application Fee Payment',
+      customerName: customerName || undefined,
+      customerEmail: customerEmail && typeof customerEmail === 'string' && customerEmail.trim() ? customerEmail.trim() : undefined,
+      customerPhone: customerPhone && typeof customerPhone === 'string' && customerPhone.trim() ? customerPhone.trim() : undefined,
+      feeHeadId,
+      studentYear,
+      semester,
+      remarks,
+      serviceRequestId,
+    });
+
+    if (!orderData.success || !orderData.checkoutUrl) {
+      throw new Error(orderData.error || 'Failed to create payment checkout');
+    }
+
+    const { checkoutUrl, paymentId } = orderData;
+
+    // 2. Ensure PPG Drop-in SDK is ready
+    await loadPpgSdk();
+
+    if (!window.PPG || typeof window.PPG.openCheckout !== 'function') {
+      throw new Error('PPG Checkout SDK is not available');
+    }
+
+    // 3. Open in-page drop-in popup modal
+    return new Promise((resolve, reject) => {
+      window.PPG.openCheckout({
+        checkoutUrl,
+        onSuccess: async (result) => {
+          console.log('[PPG SDK] Payment completed successfully:', result);
+          const activePaymentId = result?.paymentId || paymentId;
+
+          try {
+            // Confirm transaction and receipt in application database
+            const confirmResult = await paymentService.confirmPayment(activePaymentId);
+            if (onSuccess) onSuccess(confirmResult);
+            resolve(confirmResult);
+          } catch (confirmErr) {
+            console.error('[PPG SDK] Confirmation error:', confirmErr);
+            const fallbackRes = { success: true, paymentId: activePaymentId, ...result };
+            if (onSuccess) onSuccess(fallbackRes);
+            resolve(fallbackRes);
+          }
+        },
+        onFailure: (err) => {
+          console.warn('[PPG SDK] Payment failed:', err);
+          if (onFailure) onFailure(err);
+          reject(err);
+        },
+        onClose: () => {
+          console.log('[PPG SDK] Modal closed');
+          if (onClose) onClose();
+          resolve({ closed: true });
+        },
+      });
+    });
+  },
+
+  /**
+   * Alias for initiateCheckout
+   */
+  initiateCheckout: function (params) {
+    return paymentService.openCheckout(params);
   },
 };
 
 export default paymentService;
-

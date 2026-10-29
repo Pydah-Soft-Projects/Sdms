@@ -163,6 +163,38 @@ const FeeManagement = () => {
         fetchFeeDetails();
     }, [user]);
 
+    // Handle return from PPG Hosted Checkout (?paymentId=...&status=SUCCEEDED)
+    useEffect(() => {
+        const searchParams = new URLSearchParams(window.location.search);
+        const paymentId = searchParams.get('paymentId');
+        const pStatus = searchParams.get('status');
+
+        if (paymentId) {
+            // Clean the query string from address bar without reloading
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            if (pStatus === 'SUCCEEDED' || !pStatus) {
+                paymentService.confirmPayment(paymentId)
+                    .then((res) => {
+                        fetchFeeDetails();
+                        const rcpt = res.receiptNumber || res.transaction?.receiptNumber;
+                        if (rcpt) {
+                            toast.success(`Payment verified! Receipt: ${rcpt}`, { duration: 6000 });
+                        } else {
+                            toast.success('Payment verified and recorded successfully!');
+                        }
+                    })
+                    .catch((err) => {
+                        console.error('Payment confirmation error:', err);
+                        fetchFeeDetails();
+                        toast.error(err.response?.data?.error || err.message || 'Payment confirmation error');
+                    });
+            } else if (pStatus === 'FAILED' || pStatus === 'CANCELLED') {
+                toast.error('Payment was cancelled or failed at the gateway.');
+            }
+        }
+    }, []);
+
     const formatNumber = (amount) => {
         const val = Number(amount) || 0;
         return new Intl.NumberFormat('en-IN').format(val);
@@ -383,7 +415,7 @@ const FeeManagement = () => {
         setPaymentModalOpen(true);
     };
 
-    // Trigger payment via paymentService (PPG + Razorpay Checkout)
+    // Trigger payment via PPG Drop-in Checkout Popup (In-page Modal)
     const handleConfirmPayment = async () => {
         const num = Number(payAmountInput);
         if (!num || isNaN(num) || num <= 0) {
@@ -398,7 +430,7 @@ const FeeManagement = () => {
 
         try {
             setIsProcessingPayment(true);
-            await paymentService.initiateCheckout({
+            await paymentService.openCheckout({
                 amountInRupees: num,
                 studentId: user?.admission_number,
                 description: `${paymentTarget.title} - Year ${paymentTarget.studentYear}`,
@@ -411,26 +443,28 @@ const FeeManagement = () => {
                 remarks: paymentTarget.remarks,
                 serviceRequestId: paymentTarget.serviceRequestId,
                 onSuccess: (res) => {
-                    const rcpt = res.receiptNumber || res.transaction?.receiptNumber;
+                    const rcpt = res?.receiptNumber || res?.transaction?.receiptNumber;
                     if (rcpt) {
-                        toast.success(`Payment verified! Receipt: ${rcpt}`);
+                        toast.success(`Payment verified! Receipt: ${rcpt}`, { duration: 6000 });
                     } else {
-                        toast.success('Payment completed and verified successfully!');
+                        toast.success('Payment verified and recorded successfully!');
                     }
                     setPaymentModalOpen(false);
                     setIsProcessingPayment(false);
                     fetchFeeDetails();
                 },
-                onError: (err) => {
-                    toast.error(err.message || 'Payment failed or cancelled');
+                onFailure: (err) => {
+                    console.error('Payment checkout failure:', err);
+                    toast.error(err?.message || 'Payment failed at gateway');
                     setIsProcessingPayment(false);
                 },
-                onDismiss: () => {
+                onClose: () => {
                     setIsProcessingPayment(false);
                 }
             });
         } catch (err) {
             console.error('Payment checkout error:', err);
+            toast.error(err.response?.data?.error || err.message || 'Payment initiation failed');
             setIsProcessingPayment(false);
         }
     };
@@ -999,7 +1033,7 @@ const FeeManagement = () => {
                                 </div>
                                 <div>
                                     <h3 className="text-sm sm:text-base font-bold leading-tight">Pay Fees Online</h3>
-                                    <p className="text-[10px] sm:text-[11px] text-indigo-100">Pydah Payment Gateway (PPG)</p>
+                                    <p className="text-[10px] sm:text-[11px] text-indigo-100">Pydah Payment Gateway • Hosted Checkout</p>
                                 </div>
                             </div>
                             <button
@@ -1117,7 +1151,7 @@ const FeeManagement = () => {
                                 ) : (
                                     <>
                                         <CreditCard size={14} />
-                                        <span>Proceed to Pay ₹{formatNumber(payAmountInput || 0)}</span>
+                                        <span>Proceed to Checkout (₹{formatNumber(payAmountInput || 0)})</span>
                                     </>
                                 )}
                             </button>

@@ -39,6 +39,92 @@ async function callPpg(path, options = {}) {
 }
 
 /**
+ * Helper: Post-payment synchronizations (Club fees & Service requests)
+ */
+async function postPaymentSync({ finalFeeHeadId, remarks, studentId, studentRecord, serviceRequestId }) {
+  // 1. Update Club Membership Status if this is a Club Fee payment
+  const clubFeeHead = finalFeeHeadId ? await FeeHead.findById(finalFeeHeadId).select('name') : null;
+  const clubFeeRemark = String(remarks || '').match(/^\s*Club Fee\s*[:\-–]\s*(.+)$/i);
+
+  if (remarks && (clubFeeHead?.name === 'Club Fee' || clubFeeRemark) && studentRecord) {
+    try {
+      const clubName = (clubFeeRemark ? clubFeeRemark[1] : remarks).trim();
+      if (clubName) {
+        const [clubs] = await masterPool.query('SELECT id, membership_fee FROM clubs WHERE name = ?', [clubName]);
+        if (clubs.length > 0) {
+          const clubId = clubs[0].id;
+          const requiredFee = Number(clubs[0].membership_fee) || 0;
+
+          const clubFeeRemarks = [clubName, `Club Fee: ${clubName}`, `Club Fee - ${clubName}`];
+          const cancelledFeeQuery = {
+            studentId,
+            remarks: { $in: clubFeeRemarks },
+            status: 'cancelled',
+          };
+          if (finalFeeHeadId) cancelledFeeQuery.feeHead = finalFeeHeadId;
+          await StudentFee.updateMany(cancelledFeeQuery, { $set: { status: 'active' } });
+
+          const txs = await Transaction.find({
+            studentId,
+            transactionType: 'DEBIT',
+            status: { $nin: ['cancelled', 'transferred'] },
+            remarks: { $regex: new RegExp(clubName, 'i') },
+          });
+          const totalPaid = txs.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+
+          if (totalPaid >= requiredFee) {
+            await masterPool.query(
+              'UPDATE club_members SET status = ?, payment_status = ? WHERE club_id = ? AND student_id = ?',
+              ['approved', 'paid', clubId, studentRecord.id]
+            );
+
+            const [chan] = await masterPool.query('SELECT id FROM chat_channels WHERE club_id = ? AND is_active = 1 LIMIT 1', [clubId]);
+            if (chan.length) {
+              await masterPool.query(
+                'INSERT IGNORE INTO chat_channel_members (channel_id, member_type, student_id) VALUES (?, ?, ?)',
+                [chan[0].id, 'student', studentRecord.id]
+              ).catch(() => {});
+            }
+            console.log(`[PAYMENT] Club fee satisfied & member approved for student ${studentId}, club: ${clubName}`);
+          }
+        }
+      }
+    } catch (clubErr) {
+      console.error('[PAYMENT] Club membership update error:', clubErr);
+    }
+  }
+
+  // 2. Update Service Request Status if applicable
+  const activeServiceReqId = serviceRequestId;
+  if (activeServiceReqId) {
+    try {
+      await masterPool.query('UPDATE service_requests SET payment_status = ?, status = ? WHERE id = ?', [
+        'paid',
+        'processing',
+        activeServiceReqId,
+      ]);
+      console.log(`[PAYMENT] Updated Service Request #${activeServiceReqId} to PAID / PROCESSING`);
+    } catch (serviceErr) {
+      console.error('[PAYMENT] Error updating service request:', serviceErr);
+    }
+  } else if (remarks && remarks.toLowerCase().includes('service request')) {
+    const match = remarks.match(/Ref:\s*(\d+)/i) || remarks.match(/SR-(\d+)/i);
+    if (match && match[1]) {
+      try {
+        await masterPool.query('UPDATE service_requests SET payment_status = ?, status = ? WHERE id = ?', [
+          'paid',
+          'processing',
+          match[1],
+        ]);
+        console.log(`[PAYMENT] Updated Service Request #${match[1]} to PAID from remarks`);
+      } catch (e) {
+        console.error('[PAYMENT] Error updating service request from remarks:', e);
+      }
+    }
+  }
+}
+
+/**
  * Endpoint 1: Create a Payment Order
  * POST /api/payments/create
  * Legacy alias: POST /api/payments/create-order
@@ -59,6 +145,7 @@ exports.createOrder = async (req, res) => {
       customerEmail,
       customerPhone,
       serviceRequestId,
+      returnUrl,
     } = req.body;
 
     const amountVal = amountInRupees !== undefined ? Number(amountInRupees) : Number(amount);
@@ -101,14 +188,14 @@ exports.createOrder = async (req, res) => {
 
     const { appKey, appSecret } = getPpgConfig();
 
-    // 2. PRIMARY FLOW: Pydah Payment Gateway (PPG) Integration
+    // 2. PRIMARY FLOW: Pydah Payment Gateway (PPG) Hosted Checkout Integration
     if (appKey && appSecret) {
       // PPG stores money in integer minor units (paise). ₹1,500.00 = 150000 paise.
       const amountInPaise = Math.round(amountVal * 100);
       const businessReference = referenceId || (studentId ? `SDMS-${studentId.replace(/\s+/g, '')}-${Date.now()}` : `REF-${Date.now()}`);
       const idempotencyKey = `idemp-${businessReference}`;
 
-      console.log(`[PAYMENT -> PPG] Creating payment order for reference: ${businessReference}, amount: ₹${amountVal}`);
+      console.log(`[PAYMENT -> PPG] Creating hosted payment order for reference: ${businessReference}, amount: ₹${amountVal}`);
 
       // Sanitize customer details (PPG Zod validator rejects empty strings for email)
       const customer = {};
@@ -125,6 +212,8 @@ exports.createOrder = async (req, res) => {
         customer.phone = cleanPhone.slice(0, 20);
       }
 
+      const defaultReturnUrl = returnUrl || (process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',')[0] + '/student/fees' : 'http://localhost:5173/student/fees');
+
       const ppgResponse = await callPpg('payments', {
         method: 'POST',
         headers: {
@@ -136,6 +225,7 @@ exports.createOrder = async (req, res) => {
           currency: 'INR',
           description: description || remarks || 'SDMS Online Fee Payment',
           customer,
+          returnUrl: defaultReturnUrl,
           notes: {
             studentId: studentId ? String(studentId) : '',
             feeHeadId: feeHeadId ? String(feeHeadId) : '',
@@ -161,6 +251,11 @@ exports.createOrder = async (req, res) => {
       return res.status(201).json({
         success: true,
         paymentId: ppgData.paymentId,
+        checkoutUrl: ppgData.checkoutUrl,
+        businessReference: ppgData.businessReference,
+        status: ppgData.status,
+        amount: ppgData.amount,
+        currency: ppgData.currency,
         checkout: ppgData.checkout,
         // Backwards compatibility mappings for older frontend callers:
         order: {
@@ -234,7 +329,138 @@ exports.createOrder = async (req, res) => {
 };
 
 /**
- * Endpoint 2: Verify Payment Signature and Record Transaction
+ * Endpoint 2: Hosted Checkout Confirmation (Verify & Record from redirect)
+ * POST /api/payments/confirm
+ * GET /api/payments/confirm/:paymentId
+ */
+exports.confirmPayment = async (req, res) => {
+  try {
+    const paymentId = req.params.paymentId || req.body.paymentId;
+    if (!paymentId) {
+      return res.status(400).json({ success: false, error: 'Payment ID is required' });
+    }
+
+    // 1. Check if transaction is already recorded in MongoDB
+    const existingTx = await Transaction.findOne({
+      $or: [
+        { ppgPaymentId: paymentId },
+        { gatewayPaymentId: paymentId },
+      ],
+    });
+
+    if (existingTx) {
+      return res.json({
+        success: true,
+        message: 'Payment already recorded',
+        status: 'SUCCEEDED',
+        transaction: existingTx,
+        receiptNumber: existingTx.receiptNumber,
+      });
+    }
+
+    // 2. Fetch authoritative payment details from PPG
+    const ppgRes = await callPpg(`payments/${paymentId}`);
+    if (!ppgRes.ok || !ppgRes.data?.success) {
+      return res.status(ppgRes.status || 400).json({
+        success: false,
+        error: ppgRes.data?.error?.message || ppgRes.data?.message || 'Failed to verify payment status with PPG',
+      });
+    }
+
+    const payment = ppgRes.data.data;
+    if (payment.status !== 'SUCCEEDED') {
+      return res.json({
+        success: false,
+        status: payment.status,
+        message: `Payment status is ${payment.status}`,
+      });
+    }
+
+    // 3. Extract metadata stored in notes
+    const notes = payment.notes || {};
+    const studentId = notes.studentId;
+    const finalFeeHeadId = notes.feeHeadId || null;
+    const studentYear = notes.studentYear;
+    const semester = notes.semester;
+    const serviceRequestId = notes.serviceRequestId;
+    const remarks = notes.remarks || payment.description || 'Paid via PPG Hosted Checkout';
+    const payAmount = payment.amount ? payment.amount / 100 : 0;
+    const providerPaymentId = payment.providerPaymentId || payment.providerOrderId || paymentId;
+
+    // 4. Resolve Student from MySQL
+    let studentRecord = null;
+    if (studentId) {
+      try {
+        const [rows] = await masterPool.query(
+          'SELECT s.id, s.student_name, s.course, s.current_year, s.current_semester, s.admission_number FROM students s WHERE s.admission_number = ?',
+          [studentId]
+        );
+        if (rows && rows.length > 0) studentRecord = rows[0];
+      } catch (e) {
+        console.warn('[CONFIRM PAYMENT] Student lookup warning:', e.message);
+      }
+    }
+
+    // 5. Allocate Receipt Number via Fees Service
+    let receiptNumber = null;
+    try {
+      receiptNumber = await allocateReceiptNumber({
+        studentId: studentId || studentRecord?.admission_number,
+        feeHeadId: finalFeeHeadId,
+        allocate: true,
+      });
+    } catch (e) {
+      console.warn('[CONFIRM PAYMENT] Receipt allocation warning:', e.message);
+    }
+
+    // 6. Record Transaction in MongoDB
+    const newTx = new Transaction({
+      studentId: studentId || studentRecord?.admission_number || '',
+      studentName: studentRecord?.student_name || payment.customer?.name || '',
+      amount: Number(payAmount),
+      transactionType: 'DEBIT',
+      paymentMode: 'UPI',
+      referenceNo: providerPaymentId,
+      gatewayPaymentId: providerPaymentId,
+      ppgPaymentId: paymentId,
+      referenceOrderId: payment.providerOrderId || undefined,
+      receiptNumber: receiptNumber || undefined,
+      remarks,
+      feeHead: finalFeeHeadId,
+      studentYear: (studentYear || studentRecord?.current_year)?.toString(),
+      semester: (semester || studentRecord?.current_semester)?.toString(),
+      paymentDate: payment.paidAt ? new Date(payment.paidAt) : new Date(),
+      collectedBy: 'Paid through UPI',
+      collectedByName: 'Paid through UPI',
+    });
+
+    await newTx.save();
+    console.log(`[CONFIRM PAYMENT] Transaction recorded: ${newTx._id} for student ${studentId} (Amount: ₹${payAmount}, Receipt: ${receiptNumber})`);
+
+    // 7. Update Club Membership Status or Service Request if applicable
+    await postPaymentSync({
+      finalFeeHeadId,
+      remarks,
+      studentId,
+      studentRecord,
+      serviceRequestId,
+    });
+
+    return res.json({
+      success: true,
+      message: 'Payment confirmed & recorded successfully',
+      status: 'SUCCEEDED',
+      transaction: newTx,
+      receiptNumber: newTx.receiptNumber,
+    });
+  } catch (err) {
+    console.error('[CONFIRM PAYMENT] Error:', err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+/**
+ * Endpoint 3: Direct Verify Payment Signature (for backwards compatibility)
  * POST /api/payments/verify/:paymentId
  * Legacy alias: POST /api/payments/verify
  */
@@ -294,7 +520,7 @@ exports.verifyPayment = async (req, res) => {
     let verifiedViaPpg = false;
     let ppgVerifiedData = null;
 
-    // 2. PRIMARY FLOW: Cryptographic Verification via PPG
+    // 2. Cryptographic Verification via PPG
     if (appKey && appSecret && activePaymentId) {
       console.log(`[PAYMENT -> PPG] Verifying payment ${activePaymentId} with PPG gateway...`);
 
@@ -323,19 +549,15 @@ exports.verifyPayment = async (req, res) => {
         payAmount = ppgVerifiedData.amount / 100;
       }
     } else {
-      // 3. FALLBACK FLOW: Direct Razorpay signature verification
-      console.warn('[PAYMENT] Verifying via local direct Razorpay signature fallback...');
-
+      // 3. Fallback signature verification
       let paymentConfig = null;
-      let student = null;
-
       if (studentId) {
         const [students] = await masterPool.query(
           'SELECT s.id, s.student_name, s.course, s.student_data FROM students s WHERE s.admission_number = ?',
           [studentId]
         );
         if (students && students.length > 0) {
-          student = students[0];
+          const student = students[0];
           let collegeName = 'Pydah Group';
           if (student.student_data) {
             try {
@@ -371,12 +593,12 @@ exports.verifyPayment = async (req, res) => {
       }
     }
 
-    // 4. Fetch Student Info from MySQL for Transaction Record
+    // 4. Fetch Student Info from MySQL
     let studentRecord = null;
     if (studentId) {
       try {
         const [rows] = await masterPool.query(
-          'SELECT s.id, s.student_name, s.course, s.current_year, s.current_semester FROM students s WHERE s.admission_number = ?',
+          'SELECT s.id, s.student_name, s.course, s.current_year, s.current_semester, s.admission_number FROM students s WHERE s.admission_number = ?',
           [studentId]
         );
         if (rows && rows.length > 0) {
@@ -442,87 +664,16 @@ exports.verifyPayment = async (req, res) => {
     });
 
     await newTransaction.save();
-    console.log(`[PAYMENT] Transaction recorded: ${newTransaction._id} for student ${studentId} (Amount: ₹${payAmount})`);
+    console.log(`[PAYMENT] Transaction recorded: ${newTransaction._id} for student ${studentId} (Amount: ₹${payAmount}, Receipt: ${receiptNumber})`);
 
-    // 7. Update Club Membership Status if this is a Club Fee payment
-    const clubFeeHead = finalFeeHeadId ? await FeeHead.findById(finalFeeHeadId).select('name') : null;
-    const clubFeeRemark = String(remarks || '').match(/^\s*Club Fee\s*[:\-–]\s*(.+)$/i);
-
-    if (remarks && (clubFeeHead?.name === 'Club Fee' || clubFeeRemark) && studentRecord) {
-      try {
-        const clubName = (clubFeeRemark ? clubFeeRemark[1] : remarks).trim();
-        if (clubName) {
-          const [clubs] = await masterPool.query('SELECT id, membership_fee FROM clubs WHERE name = ?', [clubName]);
-          if (clubs.length > 0) {
-            const clubId = clubs[0].id;
-            const requiredFee = Number(clubs[0].membership_fee) || 0;
-
-            const clubFeeRemarks = [clubName, `Club Fee: ${clubName}`, `Club Fee - ${clubName}`];
-            const cancelledFeeQuery = {
-              studentId,
-              remarks: { $in: clubFeeRemarks },
-              status: 'cancelled',
-            };
-            if (finalFeeHeadId) cancelledFeeQuery.feeHead = finalFeeHeadId;
-            await StudentFee.updateMany(cancelledFeeQuery, { $set: { status: 'active' } });
-
-            const txs = await Transaction.find({
-              studentId,
-              transactionType: 'DEBIT',
-              status: { $nin: ['cancelled', 'transferred'] },
-              remarks: { $regex: new RegExp(clubName, 'i') },
-            });
-            const totalPaid = txs.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
-
-            if (totalPaid >= requiredFee) {
-              await masterPool.query(
-                'UPDATE club_members SET status = ?, payment_status = ? WHERE club_id = ? AND student_id = ?',
-                ['approved', 'paid', clubId, studentRecord.id]
-              );
-
-              const [chan] = await masterPool.query('SELECT id FROM chat_channels WHERE club_id = ? AND is_active = 1 LIMIT 1', [clubId]);
-              if (chan.length) {
-                await masterPool.query(
-                  'INSERT IGNORE INTO chat_channel_members (channel_id, member_type, student_id) VALUES (?, ?, ?)',
-                  [chan[0].id, 'student', studentRecord.id]
-                ).catch(() => {});
-              }
-              console.log(`[PAYMENT] Club fee satisfied & member approved for student ${studentId}, club: ${clubName}`);
-            }
-          }
-        }
-      } catch (clubErr) {
-        console.error('[PAYMENT] Club membership update error:', clubErr);
-      }
-    }
-
-    // 8. Update Service Request Status if applicable
-    if (activeServiceReqId) {
-      try {
-        await masterPool.query('UPDATE service_requests SET payment_status = ?, status = ? WHERE id = ?', [
-          'paid',
-          'processing',
-          activeServiceReqId,
-        ]);
-        console.log(`[PAYMENT] Updated Service Request #${activeServiceReqId} to PAID / PROCESSING`);
-      } catch (serviceErr) {
-        console.error('[PAYMENT] Error updating service request:', serviceErr);
-      }
-    } else if (remarks && remarks.toLowerCase().includes('service request')) {
-      const match = remarks.match(/Ref:\s*(\d+)/i) || remarks.match(/SR-(\d+)/i);
-      if (match && match[1]) {
-        try {
-          await masterPool.query('UPDATE service_requests SET payment_status = ?, status = ? WHERE id = ?', [
-            'paid',
-            'processing',
-            match[1],
-          ]);
-          console.log(`[PAYMENT] Updated Service Request #${match[1]} to PAID from remarks`);
-        } catch (e) {
-          console.error('[PAYMENT] Error updating service request from remarks:', e);
-        }
-      }
-    }
+    // 7. Post-payment sync
+    await postPaymentSync({
+      finalFeeHeadId,
+      remarks,
+      studentId,
+      studentRecord,
+      serviceRequestId: activeServiceReqId,
+    });
 
     return res.json({
       success: true,
@@ -538,7 +689,7 @@ exports.verifyPayment = async (req, res) => {
 };
 
 /**
- * Endpoint 3: Status Check
+ * Endpoint 4: Status Check
  * GET /api/payments/status/:paymentId
  */
 exports.getPaymentStatus = async (req, res) => {
@@ -562,7 +713,7 @@ exports.getPaymentStatus = async (req, res) => {
 };
 
 /**
- * Endpoint 4: Inbound Webhook Listener
+ * Endpoint 5: Inbound Webhook Listener
  * POST /api/payments/webhook
  */
 exports.handleWebhook = async (req, res) => {
@@ -573,22 +724,26 @@ exports.handleWebhook = async (req, res) => {
     console.log(`[PPG Webhook] Event received: ${event?.event}`, event?.data);
 
     if (event?.event === 'payment.succeeded') {
-      const { paymentId, providerPaymentId, amount, notes } = event.data || {};
+      const { paymentId, providerPaymentId, amount, notes, description } = event.data || {};
 
-      if (providerPaymentId) {
+      if (providerPaymentId || paymentId) {
         const existingTx = await Transaction.findOne({
           $or: [
-            { gatewayPaymentId: providerPaymentId },
+            ...(providerPaymentId ? [{ gatewayPaymentId: providerPaymentId }] : []),
             ...(paymentId ? [{ ppgPaymentId: paymentId }] : []),
           ],
         });
 
         if (!existingTx && notes?.studentId) {
-          console.log(`[PPG Webhook] Auto-reconciling unrecorded transaction: ${providerPaymentId}`);
+          console.log(`[PPG Webhook] Auto-reconciling unrecorded transaction: ${providerPaymentId || paymentId}`);
           let webhookStudentName = '';
+          let studentRecord = null;
           try {
-            const [rows] = await masterPool.query('SELECT student_name FROM students WHERE admission_number = ?', [notes.studentId]);
-            if (rows && rows.length > 0) webhookStudentName = rows[0].student_name || '';
+            const [rows] = await masterPool.query('SELECT s.id, s.student_name, s.admission_number FROM students WHERE admission_number = ?', [notes.studentId]);
+            if (rows && rows.length > 0) {
+              studentRecord = rows[0];
+              webhookStudentName = rows[0].student_name || '';
+            }
           } catch (e) {}
 
           let webhookReceiptNumber = null;
@@ -606,11 +761,11 @@ exports.handleWebhook = async (req, res) => {
             amount: amount ? amount / 100 : 0,
             transactionType: 'DEBIT',
             paymentMode: 'UPI',
-            referenceNo: providerPaymentId,
-            gatewayPaymentId: providerPaymentId,
+            referenceNo: providerPaymentId || paymentId,
+            gatewayPaymentId: providerPaymentId || paymentId,
             ppgPaymentId: paymentId || null,
             receiptNumber: webhookReceiptNumber || undefined,
-            remarks: notes.remarks || 'PPG Asynchronous Webhook Settlement',
+            remarks: notes.remarks || description || 'PPG Asynchronous Webhook Settlement',
             feeHead: notes.feeHeadId || null,
             studentYear: notes.studentYear || undefined,
             semester: notes.semester || undefined,
@@ -619,6 +774,14 @@ exports.handleWebhook = async (req, res) => {
             collectedByName: 'Paid through UPI',
           });
           await newTx.save();
+
+          await postPaymentSync({
+            finalFeeHeadId: notes.feeHeadId || null,
+            remarks: notes.remarks || description,
+            studentId: notes.studentId,
+            studentRecord,
+            serviceRequestId: notes.serviceRequestId,
+          });
         }
       }
     }

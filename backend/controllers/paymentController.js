@@ -6,6 +6,7 @@ const FeeHead = require('../MongoDb-Models/FeeHead');
 const StudentFee = require('../MongoDb-Models/StudentFee');
 const { masterPool } = require('../config/database');
 const mongoose = require('mongoose');
+const { allocateReceiptNumber } = require('../services/receiptService');
 
 // PPG Gateway Settings
 const getPpgConfig = () => ({
@@ -405,7 +406,20 @@ exports.verifyPayment = async (req, res) => {
       }
     }
 
-    // 6. Record Transaction in MongoDB
+    // 6. Allocate Receipt Number and Record Transaction in MongoDB
+    let receiptNumber = req.body.receiptNumber;
+    if (!receiptNumber) {
+      try {
+        receiptNumber = await allocateReceiptNumber({
+          studentId: studentId || studentRecord?.admission_number,
+          feeHeadId: finalFeeHeadId,
+          allocate: true,
+        });
+      } catch (rcptErr) {
+        console.warn('[PAYMENT] Error allocating receipt number:', rcptErr.message);
+      }
+    }
+
     const resolvedStudentName = (studentRecord?.student_name || req.body.customerName || '').trim();
     const newTransaction = new Transaction({
       studentId: studentId || studentRecord?.admission_number || '',
@@ -417,6 +431,7 @@ exports.verifyPayment = async (req, res) => {
       gatewayPaymentId: rzpPaymentId,
       ppgPaymentId: activePaymentId || null,
       referenceOrderId: rzpOrderId,
+      receiptNumber: receiptNumber || undefined,
       remarks: finalRemarks,
       feeHead: finalFeeHeadId,
       studentYear: (studentYear || studentRecord?.current_year)?.toString(),
@@ -514,6 +529,7 @@ exports.verifyPayment = async (req, res) => {
       message: 'Payment verified successfully and recorded',
       data: ppgVerifiedData,
       transaction: newTransaction,
+      receiptNumber: newTransaction.receiptNumber,
     });
   } catch (error) {
     console.error('Error verifying payment:', error);
@@ -575,6 +591,15 @@ exports.handleWebhook = async (req, res) => {
             if (rows && rows.length > 0) webhookStudentName = rows[0].student_name || '';
           } catch (e) {}
 
+          let webhookReceiptNumber = null;
+          try {
+            webhookReceiptNumber = await allocateReceiptNumber({
+              studentId: notes.studentId,
+              feeHeadId: notes.feeHeadId || null,
+              allocate: true,
+            });
+          } catch (e) {}
+
           const newTx = new Transaction({
             studentId: notes.studentId,
             studentName: webhookStudentName,
@@ -584,6 +609,7 @@ exports.handleWebhook = async (req, res) => {
             referenceNo: providerPaymentId,
             gatewayPaymentId: providerPaymentId,
             ppgPaymentId: paymentId || null,
+            receiptNumber: webhookReceiptNumber || undefined,
             remarks: notes.remarks || 'PPG Asynchronous Webhook Settlement',
             feeHead: notes.feeHeadId || null,
             studentYear: notes.studentYear || undefined,

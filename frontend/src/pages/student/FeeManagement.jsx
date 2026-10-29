@@ -411,7 +411,12 @@ const FeeManagement = () => {
                 remarks: paymentTarget.remarks,
                 serviceRequestId: paymentTarget.serviceRequestId,
                 onSuccess: (res) => {
-                    toast.success('Payment completed and verified successfully!');
+                    const rcpt = res.receiptNumber || res.transaction?.receiptNumber;
+                    if (rcpt) {
+                        toast.success(`Payment verified! Receipt: ${rcpt}`);
+                    } else {
+                        toast.success('Payment completed and verified successfully!');
+                    }
                     setPaymentModalOpen(false);
                     setIsProcessingPayment(false);
                     fetchFeeDetails();
@@ -885,14 +890,21 @@ const FeeManagement = () => {
                                                 )}
                                             </td>
                                             <td className="py-3.5 px-4 text-center">
-                                                <span className="inline-block px-2.5 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-700">
-                                                    {tx.paymentMode || 'Cash'}
-                                                </span>
-                                                {(tx.referenceNo || tx.gatewayPaymentId) && (
-                                                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                                                        {tx.referenceNo || tx.gatewayPaymentId}
-                                                    </div>
-                                                )}
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className="inline-block px-2.5 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-700">
+                                                        {tx.paymentMode || 'Cash'}
+                                                    </span>
+                                                    {tx.receiptNumber && (
+                                                        <span className="inline-block px-2 py-0.5 rounded-md border border-indigo-200 bg-indigo-50 text-[9.5px] font-mono font-bold text-indigo-700">
+                                                            {tx.receiptNumber}
+                                                        </span>
+                                                    )}
+                                                    {(tx.referenceNo || tx.gatewayPaymentId) && (
+                                                        <div className="text-[10px] text-slate-400 font-mono">
+                                                            {tx.referenceNo || tx.gatewayPaymentId}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="py-3.5 px-4 text-center">
                                                 <span className="text-slate-600 font-semibold">
@@ -944,6 +956,11 @@ const FeeManagement = () => {
                                         <span className="px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-700">
                                             {tx.paymentMode || 'Cash'}
                                         </span>
+                                        {tx.receiptNumber && (
+                                            <span className="px-2 py-0.5 rounded border border-indigo-200 bg-indigo-50 text-[10px] font-mono font-bold text-indigo-700">
+                                                {tx.receiptNumber}
+                                            </span>
+                                        )}
                                         <span className="text-[10px] text-slate-500 font-semibold">
                                             Y{tx.studentYear || selectedYear} • S{tx.semester || '1'}
                                         </span>

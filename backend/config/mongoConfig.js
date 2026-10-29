@@ -1,30 +1,27 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// Disable buffering so queries fail-fast immediately instead of hanging for 10 seconds when offline/disconnected
-mongoose.set('bufferCommands', false);
-
 const MONGO_CLIENT_OPTIONS = {
-  serverSelectionTimeoutMS: 3000, // Fail fast in 3s instead of 30s default
-  connectTimeoutMS: 3000,
-  socketTimeoutMS: 5000,
+  serverSelectionTimeoutMS: 5000,
+  connectTimeoutMS: 5000,
+  socketTimeoutMS: 10000,
   maxPoolSize: 5,
   minPoolSize: 1,
-  bufferCommands: false,
 };
 
 const connectDB = async () => {
-  if (!process.env.MONGO_URI) {
-    console.warn('⚠️ MONGO_URI is not defined. Skipping default MongoDB connection.');
+  const uri = process.env.MONGO_URI || process.env.FEE_MONGO_URI;
+  if (!uri) {
+    console.warn('⚠️ Neither MONGO_URI nor FEE_MONGO_URI is defined. Skipping Fee DB connection.');
     return null;
   }
 
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, MONGO_CLIENT_OPTIONS);
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    const conn = await mongoose.connect(uri, MONGO_CLIENT_OPTIONS);
+    console.log(`✅ Fee DB Connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
-    console.error(`❌ Error connecting to MongoDB: ${error.message}`);
+    console.error(`❌ Error connecting to Fee DB: ${error.message}`);
     // We don't exit the process here to allow the MySQL server to keep running
     return null;
   }
@@ -86,4 +83,3 @@ const getHostelConnection = () => {
 };
 
 module.exports = { connectDB, getHRMSConnection, getHostelConnection };
-

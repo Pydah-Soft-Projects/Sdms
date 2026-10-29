@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { serviceService } from '../../services/serviceService';
 import { toast } from 'react-hot-toast';
-import { FileText, Clock, CheckCircle, AlertCircle, Download, CreditCard, X, Plus, Trash2 } from 'lucide-react';
+import { FileText, Clock, CheckCircle, AlertCircle, Download, X, Plus, Trash2 } from 'lucide-react';
 import { SkeletonBox } from '../../components/SkeletonLoader';
 import api from '../../config/api';
 import useAuthStore from '../../store/authStore';
@@ -59,101 +59,6 @@ const Services = () => {
             toast.error(error.response?.data?.message || 'Request failed');
         } finally {
             setSubmitting(false);
-        }
-    };
-
-    // Load Razorpay Script
-    const loadRazorpayScript = () => {
-        return new Promise((resolve) => {
-            const script = document.createElement('script');
-            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-            script.onload = () => resolve(true);
-            script.onerror = () => resolve(false);
-            document.body.appendChild(script);
-        });
-    };
-
-    const handlePayment = async (request) => {
-        if (!window.confirm(`Proceed to pay ₹${request.service_price} for ${request.service_name}?`)) return;
-
-        try {
-            const toastId = toast.loading('Initializing payment...');
-
-            const resScript = await loadRazorpayScript();
-            if (!resScript) {
-                toast.dismiss(toastId);
-                toast.error('Razorpay SDK failed to load');
-                return;
-            }
-
-            // 1. Create Order
-            const orderResponse = await api.post('/payments/create-order', {
-                studentId: user?.admission_number,
-                amount: request.service_price,
-                remarks: `Service Request Payment: ${request.service_name} (Ref: ${request.id})`,
-                serviceRequestId: request.id,
-                serviceName: request.service_name,
-                studentYear: user?.current_year,
-                semester: user?.current_semester
-            });
-
-            if (!orderResponse.data.success) {
-                toast.dismiss(toastId);
-                toast.error(orderResponse.data.message || 'Order creation failed');
-                return;
-            }
-
-            const { order, key_id, studentDetails } = orderResponse.data;
-
-            // 2. Open Razorpay
-            const options = {
-                key: key_id,
-                amount: order.amount,
-                currency: order.currency,
-                name: 'Pydah Group',
-                description: `Payment for ${request.service_name}`,
-                order_id: order.id,
-                handler: async (response) => {
-                    try {
-                        toast.loading('Verifying payment...', { id: toastId });
-                        // 3. Verify Payment
-                        const verifyRes = await api.post('/payments/verify', {
-                            ...response,
-                            studentId: user?.admission_number,
-                            amount: request.service_price,
-                            remarks: `Service Request Payment: ${request.service_name} (Ref: ${request.id})`,
-                            serviceRequestId: request.id,
-                            studentYear: user?.current_year,
-                            semester: user?.current_semester
-                        });
-
-                        if (verifyRes.data.success) {
-                            toast.success('Payment successful!', { id: toastId });
-                            fetchData(); // Refresh to update status
-                        } else {
-                            toast.error(verifyRes.data.message || 'Verification failed', { id: toastId });
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        toast.error('Payment verification failed', { id: toastId });
-                    }
-                },
-                prefill: {
-                    name: studentDetails?.name || user?.name || '',
-                    email: studentDetails?.email || '',
-                    contact: studentDetails?.contact || ''
-                },
-                theme: {
-                    color: '#2563EB'
-                }
-            };
-
-            const paymentObject = new window.Razorpay(options);
-            paymentObject.open();
-
-        } catch (error) {
-            console.error(error);
-            toast.error('Payment initialization failed');
         }
     };
 
@@ -359,12 +264,7 @@ const Services = () => {
                                                         >
                                                             <Trash2 size={16} />
                                                         </button>
-                                                        <button
-                                                            onClick={() => handlePayment(req)}
-                                                            className="inline-flex items-center gap-1 text-xs text-white font-medium bg-blue-600 px-3 py-1.5 rounded hover:bg-blue-700 transition shadow-sm"
-                                                        >
-                                                            <CreditCard size={12} /> Pay Now
-                                                        </button>
+                                                        
                                                     </div>
                                                 ) : req.status === 'ready_to_collect' ? (
                                                     <span className="text-xs text-purple-600 font-medium">Ready for Collection</span>
@@ -444,12 +344,7 @@ const Services = () => {
                                                     >
                                                         <Trash2 size={12} /> Delete
                                                     </button>
-                                                    <button
-                                                        onClick={() => handlePayment(req)}
-                                                        className="text-xs text-white font-medium bg-blue-600 px-3 py-1.5 rounded hover:bg-blue-700 transition shadow-sm flex items-center gap-1"
-                                                    >
-                                                        <CreditCard size={12} /> Pay Now
-                                                    </button>
+                                                    
                                                 </div>
                                             ) : req.status === 'ready_to_collect' ? (
                                                 <span className="text-xs text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded">Ready</span>

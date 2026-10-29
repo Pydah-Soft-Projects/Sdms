@@ -49,6 +49,15 @@ const transactionSchema = mongoose.Schema({
     unique: true,
     sparse: true
   },
+  ppgPaymentId: {
+    type: String, // Pydah Payment Gateway Transaction ID
+    sparse: true,
+    index: true
+  },
+  referenceOrderId: {
+    type: String, // Razorpay or PPG Gateway Order ID
+    sparse: true
+  },
   remarks: {
     type: String,
   },

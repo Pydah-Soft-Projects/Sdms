@@ -7,10 +7,16 @@ import {
     ChevronDown,
     ChevronUp,
     Calendar,
-    Receipt
+    Receipt,
+    CreditCard,
+    CheckCircle2,
+    X,
+    AlertCircle
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import useAuthStore from '../../store/authStore';
 import api from '../../config/api';
+import paymentService from '../../services/paymentService';
 
 const isClubFeeInvoice = (invoice) => {
     const feeHeadName = String(typeof invoice?.feeHead === 'object' ? invoice.feeHead?.name || '' : '').trim().toLowerCase();
@@ -115,7 +121,11 @@ const FeeManagement = () => {
     const [txModeFilter, setTxModeFilter] = useState('All');
     const [txHeadFilter, setTxHeadFilter] = useState('All');
 
-
+    // Online Payment Modal State
+    const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [paymentTarget, setPaymentTarget] = useState(null);
+    const [payAmountInput, setPayAmountInput] = useState('');
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
     // Expandable years for breakdown accordions
     const [expandedYears, setExpandedYears] = useState({});
@@ -179,23 +189,23 @@ const FeeManagement = () => {
     const yearStatsMap = useMemo(() => {
         const map = {};
         availableYears.forEach(yr => {
-            const yrFees = (fees || []).filter(f => Number(f.studentYear) === yr);
-            const yrTransactions = (transactions || []).filter(tx => {
-                if (tx.status && tx.status !== 'active') return false;
-                if (tx.studentYear) return Number(tx.studentYear) === yr;
-                return false;
-            });
-
             let total = 0;
-            yrFees.forEach(f => {
-                if (f.amount > 0 && f.status !== 'cancelled') {
-                    total += Number(f.amount) || 0;
+            let paid = 0;
+            let concession = 0;
+
+            (fees || []).forEach(f => {
+                if (Number(f.studentYear) === Number(yr)) {
+                    if (f.status !== 'cancelled') {
+                        total += Number(f.amount) || 0;
+                    }
                 }
             });
 
-            let paid = 0;
-            let concession = 0;
-            yrTransactions.forEach(tx => {
+            (transactions || []).forEach(tx => {
+                if (tx.status && tx.status !== 'active') return;
+                const txYr = Number(tx.studentYear);
+                if (txYr && txYr !== Number(yr)) return;
+
                 const amt = Number(tx.amount) || 0;
                 if (tx.transactionType === 'CREDIT' || isCredit(tx)) {
                     concession += amt;
@@ -298,42 +308,133 @@ const FeeManagement = () => {
         });
     };
 
+    // Calculate totals for a given array of invoices
     const getYearTotals = (invoices) => {
         let totalFee = 0;
-        let t1DueTotal = 0;
-        let t2DueTotal = 0;
-        let paidTotal = 0;
-        let concessionTotal = 0;
-        let balanceTotal = 0;
+        let paid = 0;
+        let concession = 0;
+        let balance = 0;
 
-        invoices.forEach(item => {
-            totalFee += item.totalFee;
-            t1DueTotal += item.t1DueNum;
-            t2DueTotal += item.t2DueNum;
-            paidTotal += item.paid;
-            concessionTotal += item.concession;
-            balanceTotal += item.balance;
+        invoices.forEach(row => {
+            totalFee += row.totalFee || 0;
+            paid += row.paid || 0;
+            concession += row.concession || 0;
+            balance += row.balance || 0;
         });
+
+        const term1Target = Math.round(totalFee / 2);
+        const term2Target = totalFee - term1Target;
+        const t1Bal = Math.max(0, term1Target - paid);
+        const paidForT2 = Math.max(0, paid - term1Target);
+        const t2Bal = Math.max(0, term2Target - paidForT2);
 
         return {
             totalFee,
-            t1Due: t1DueTotal > 0 ? formatNumber(t1DueTotal) : '0',
-            t2Due: t2DueTotal > 0 ? formatNumber(t2DueTotal) : '0',
-            paid: paidTotal,
-            concession: concessionTotal,
-            balance: balanceTotal
+            paid,
+            concession,
+            balance,
+            t1Due: t1Bal > 0 ? formatNumber(t1Bal) : '—',
+            t2Due: t2Bal > 0 ? formatNumber(t2Bal) : '—'
         };
     };
 
-    const currentYearInvoices = useMemo(() => getInvoicesForYear(selectedYear), [fees, transactions, selectedYear, feeStatusFilter]);
-    const tableTotals = useMemo(() => getYearTotals(currentYearInvoices), [currentYearInvoices]);
+    // Open Payment Modal for a single invoice row
+    const openPaymentModal = (row) => {
+        const parsedServiceId = (row.feeHead?.code === 'SSF' && row.remarks)
+            ? (row.remarks.match(/\(Ref:\s*(\d+)\)/)?.[1] || row.remarks.match(/SR-(\d+)/)?.[1] || null)
+            : null;
 
-    // Filter transactions for the selected year
+        setPaymentTarget({
+            title: row.headTitle,
+            feeHeadId: row.feeHead?._id || row.feeHead,
+            studentYear: row.studentYear,
+            semester: row.semester || 1,
+            totalFee: row.totalFee,
+            paid: row.paid,
+            balance: row.balance,
+            t1DueNum: row.t1DueNum || 0,
+            t2DueNum: row.t2DueNum || 0,
+            remarks: row.remarks || row.headTitle,
+            serviceRequestId: parsedServiceId,
+        });
+        setPayAmountInput(String(row.balance));
+        setPaymentModalOpen(true);
+    };
+
+    // Open Payment Modal for the total Year balance
+    const openYearPaymentModal = (yr, yrTotals, yrInvoices) => {
+        const pendingInvoices = yrInvoices.filter(i => i.balance > 0);
+        const firstPending = pendingInvoices[0];
+
+        setPaymentTarget({
+            title: `Year ${yr} Dues (${pendingInvoices.map(i => i.headTitle).join(', ') || 'Academic Fees'})`,
+            feeHeadId: firstPending?.feeHead?._id || firstPending?.feeHead,
+            studentYear: yr,
+            semester: firstPending?.semester || 1,
+            totalFee: yrTotals.totalFee,
+            paid: yrTotals.paid,
+            balance: yrTotals.balance,
+            t1DueNum: 0,
+            t2DueNum: 0,
+            remarks: `Year ${yr} Fee Payment`,
+            serviceRequestId: null,
+        });
+        setPayAmountInput(String(yrTotals.balance));
+        setPaymentModalOpen(true);
+    };
+
+    // Trigger payment via paymentService (PPG + Razorpay Checkout)
+    const handleConfirmPayment = async () => {
+        const num = Number(payAmountInput);
+        if (!num || isNaN(num) || num <= 0) {
+            toast.error('Please enter a valid payment amount');
+            return;
+        }
+
+        if (paymentTarget?.balance && num > paymentTarget.balance) {
+            toast.error(`Payment amount cannot exceed the balance due of ₹${formatNumber(paymentTarget.balance)}`);
+            return;
+        }
+
+        try {
+            setIsProcessingPayment(true);
+            await paymentService.initiateCheckout({
+                amountInRupees: num,
+                studentId: user?.admission_number,
+                description: `${paymentTarget.title} - Year ${paymentTarget.studentYear}`,
+                customerName: user?.student_name || user?.name || studentDetails?.studentName,
+                customerEmail: user?.student_email || user?.email,
+                customerPhone: user?.student_mobile || user?.mobile,
+                feeHeadId: paymentTarget.feeHeadId,
+                studentYear: paymentTarget.studentYear,
+                semester: paymentTarget.semester,
+                remarks: paymentTarget.remarks,
+                serviceRequestId: paymentTarget.serviceRequestId,
+                onSuccess: (res) => {
+                    toast.success('Payment completed and verified successfully!');
+                    setPaymentModalOpen(false);
+                    setIsProcessingPayment(false);
+                    fetchFeeDetails();
+                },
+                onError: (err) => {
+                    toast.error(err.message || 'Payment failed or cancelled');
+                    setIsProcessingPayment(false);
+                },
+                onDismiss: () => {
+                    setIsProcessingPayment(false);
+                }
+            });
+        } catch (err) {
+            console.error('Payment checkout error:', err);
+            setIsProcessingPayment(false);
+        }
+    };
+
+    // Filter transactions for the selected year and mode/head filters
     const currentYearTransactions = useMemo(() => {
         let list = (transactions || []).filter(tx => {
-            if (tx.status && tx.status !== 'active') return false;
-            if (tx.studentYear) return Number(tx.studentYear) === selectedYear;
-            return false;
+            if (!tx.studentYear) return Number(selectedYear) === 4;
+            return Number(tx.studentYear) === Number(selectedYear);
         });
 
         if (txModeFilter !== 'All') {
@@ -341,10 +442,7 @@ const FeeManagement = () => {
         }
 
         if (txHeadFilter !== 'All') {
-            list = list.filter(tx => {
-                const headName = tx.feeHead?.name || '';
-                return headName.toLowerCase() === txHeadFilter.toLowerCase();
-            });
+            list = list.filter(tx => (tx.feeHead?.name || '').toLowerCase() === txHeadFilter.toLowerCase());
         }
 
         return list;
@@ -357,10 +455,6 @@ const FeeManagement = () => {
         });
         return Array.from(heads);
     }, [transactions]);
-
-
-
-
 
     if (loading) {
         return (
@@ -428,7 +522,7 @@ const FeeManagement = () => {
                                     <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar py-0.5 min-w-0">
                                         <span className="font-bold text-[11px] sm:text-xs text-slate-800 shrink-0">Y{yr}</span>
                                         {isPaid ? (
-                                            <span className="px-1.5 py-0.5 rounded text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 shrink-0">
+                                             <span className="px-1.5 py-0.5 rounded text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 shrink-0">
                                                 PAID
                                             </span>
                                         ) : (
@@ -440,18 +534,33 @@ const FeeManagement = () => {
                                             Total: {formatNumber(yrStats.total)} • Paid: {formatNumber(yrStats.paid)}
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-slate-500">
-                                        <span className="text-[11px] font-semibold hidden sm:inline">
-                                            {isExpanded ? 'Collapse' : 'Expand'}
-                                        </span>
-                                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                    <div className="flex items-center gap-2">
+                                        {!isPaid && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openYearPaymentModal(yr, yrTotals, yrInvoices);
+                                                }}
+                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition shrink-0 cursor-pointer"
+                                            >
+                                                <CreditCard size={12} />
+                                                <span>Pay Due</span>
+                                            </button>
+                                        )}
+                                        <div className="flex items-center gap-1.5 text-slate-500">
+                                            <span className="text-[11px] font-semibold hidden sm:inline">
+                                                {isExpanded ? 'Collapse' : 'Expand'}
+                                            </span>
+                                            {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* Accordion Body */}
                                 {isExpanded && (
-                                    <div className="border-t border-slate-200">
-                                        {/* Desktop Table View */}
+                                    <div className="border-t border-slate-200 bg-white">
+                                        {/* Desktop Table View for Fee Breakdown */}
                                         <div className="hidden md:block overflow-x-auto">
                                             <table className="w-full text-left text-xs">
                                                 <thead className="bg-slate-50/70 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
@@ -464,6 +573,7 @@ const FeeManagement = () => {
                                                         <th className="py-3 px-4 text-right text-purple-600">CONCESSION</th>
                                                         <th className="py-3 px-4 text-right">BALANCE</th>
                                                         <th className="py-3 px-4 text-center">STATUS</th>
+                                                        <th className="py-3 px-4 text-center">ACTION</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-100">
@@ -514,11 +624,29 @@ const FeeManagement = () => {
                                                                         </span>
                                                                     )}
                                                                 </td>
+                                                                <td className="py-3.5 px-4 text-center">
+                                                                    {row.balance > 0 ? (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => openPaymentModal(row)}
+                                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs hover:shadow transition-all transform active:scale-95 cursor-pointer"
+                                                                            title={`Pay dues for ${row.headTitle}`}
+                                                                        >
+                                                                            <CreditCard size={12} />
+                                                                            <span>Pay Now</span>
+                                                                        </button>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                                                            <CheckCircle2 size={12} />
+                                                                            <span>Clear</span>
+                                                                        </span>
+                                                                    )}
+                                                                </td>
                                                             </tr>
                                                         ))
                                                     ) : (
                                                         <tr>
-                                                            <td colSpan={8} className="py-6 text-center text-slate-400 text-xs">
+                                                            <td colSpan={9} className="py-6 text-center text-slate-400 text-xs">
                                                                 No fee records found for Year {yr}.
                                                             </td>
                                                         </tr>
@@ -548,7 +676,30 @@ const FeeManagement = () => {
                                                             <td className="py-3.5 px-4 text-right font-black text-rose-600 text-sm">
                                                                 {formatNumber(yrTotals.balance)}
                                                             </td>
-                                                            <td className="py-3.5 px-4"></td>
+                                                            <td className="py-3.5 px-4 text-center">
+                                                                {yrTotals.balance <= 0 ? (
+                                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                                                        PAID
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-50 text-rose-600 border border-rose-200">
+                                                                        DUE
+                                                                    </span>
+                                                                )}
+                                                            </td>
+                                                            <td className="py-3.5 px-4 text-center">
+                                                                {yrTotals.balance > 0 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => openYearPaymentModal(yr, yrTotals, yrInvoices)}
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs hover:shadow transition-all transform active:scale-95 cursor-pointer"
+                                                                        title="Pay total dues for this year"
+                                                                    >
+                                                                        <CreditCard size={12} />
+                                                                        <span>Pay All Due</span>
+                                                                    </button>
+                                                                )}
+                                                            </td>
                                                         </tr>
                                                     )}
                                                 </tbody>
@@ -618,6 +769,20 @@ const FeeManagement = () => {
                                                                 <div className="font-black text-rose-600">{formatNumber(row.balance)}</div>
                                                             </div>
                                                         </div>
+
+                                                        {/* Mobile Pay Button */}
+                                                        {row.balance > 0 && (
+                                                            <div className="mt-2.5 flex justify-end">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openPaymentModal(row)}
+                                                                    className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition"
+                                                                >
+                                                                    <CreditCard size={13} />
+                                                                    <span>Pay Now (₹{formatNumber(row.balance)})</span>
+                                                                </button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))
                                             ) : (
@@ -679,18 +844,16 @@ const FeeManagement = () => {
                     </div>
                 </div>
 
-                {/* Desktop Transaction Table (Action buttons removed as requested) */}
+                {/* Desktop Transaction Table */}
                 <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left text-xs">
                         <thead className="bg-slate-50/70 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
                             <tr>
-                                <th className="py-3 px-4">DATE</th>
-                                <th className="py-3 px-4">DESCRIPTION</th>
-                                <th className="py-3 px-4">RECEIPT NO</th>
-                                <th className="py-3 px-4 text-center">MODE</th>
+                                <th className="py-3 px-4">TRANSACTION DATE</th>
+                                <th className="py-3 px-4">FEE HEAD</th>
+                                <th className="py-3 px-4 text-center">MODE & REF</th>
                                 <th className="py-3 px-4 text-center">YEAR / SEM</th>
-                                <th className="py-3 px-4 text-right">AMOUNT</th>
-                                <th className="py-3 px-4">REMARKS</th>
+                                <th className="py-3 px-4 text-right">AMOUNT PAID</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -698,32 +861,30 @@ const FeeManagement = () => {
                                 currentYearTransactions.map((tx, idx) => {
                                     const txDate = tx.paymentDate ? new Date(tx.paymentDate) : null;
                                     const dateStr = txDate
-                                        ? txDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).replace(/ /g, '-')
+                                        ? txDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
                                         : '—';
                                     const timeStr = txDate
-                                        ? txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                                        ? txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
                                         : '';
 
                                     const isCon = tx.transactionType === 'CREDIT' || isCredit(tx);
+                                    const isOnline = (tx.paymentMode || '').toLowerCase().includes('upi') ||
+                                        (tx.paymentMode || '').toLowerCase().includes('online') ||
+                                        tx.gatewayPaymentId;
 
                                     return (
                                         <tr key={tx._id || idx} className="hover:bg-slate-50/60 transition-colors">
-                                            <td className="py-3.5 px-4 whitespace-nowrap">
+                                            <td className="py-3.5 px-4">
                                                 <div className="font-bold text-slate-800">{dateStr}</div>
-                                                <div className="text-[11px] text-slate-400">{timeStr}</div>
-                                                {tx.referenceDate && (
-                                                    <div className="text-[10px] text-blue-500 font-medium">
-                                                        Ref: {tx.referenceDate}
-                                                    </div>
-                                                )}
+                                                <div className="text-[10px] text-slate-400">{timeStr}</div>
                                             </td>
                                             <td className="py-3.5 px-4 font-bold text-slate-800">
                                                 {tx.feeHead?.name || (isCon ? 'Scholarship / Concession' : 'Fee Payment')}
+                                                {tx.remarks && (
+                                                    <div className="text-[10px] text-slate-400 font-normal mt-0.5">{tx.remarks}</div>
+                                                )}
                                             </td>
-                                            <td className="py-3.5 px-4 font-mono text-slate-600 text-[11px]">
-                                                {tx.receiptNumber || '—'}
-                                            </td>
-                                            <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                                            <td className="py-3.5 px-4 text-center">
                                                 <span className="inline-block px-2.5 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-700">
                                                     {tx.paymentMode || 'Cash'}
                                                 </span>
@@ -733,21 +894,20 @@ const FeeManagement = () => {
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="py-3.5 px-4 text-center font-medium text-slate-600">
-                                                Yr {tx.studentYear || selectedYear}
+                                            <td className="py-3.5 px-4 text-center">
+                                                <span className="text-slate-600 font-semibold">
+                                                    Y{tx.studentYear || selectedYear} • S{tx.semester || '1'}
+                                                </span>
                                             </td>
-                                            <td className={`py-3.5 px-4 text-right font-black text-sm ${isCon ? 'text-purple-600' : 'text-emerald-600'}`}>
-                                                +{formatNumber(tx.amount)}
-                                            </td>
-                                            <td className="py-3.5 px-4 text-slate-500 text-[11px] max-w-xs truncate" title={tx.remarks}>
-                                                {tx.remarks || '—'}
+                                            <td className={`py-3.5 px-4 text-right font-black ${isCon ? 'text-purple-600' : 'text-emerald-600'}`}>
+                                                ₹{formatNumber(tx.amount)}
                                             </td>
                                         </tr>
                                     );
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className="py-8 text-center text-slate-400 text-xs">
+                                    <td colSpan={5} className="py-6 text-center text-slate-400 text-xs">
                                         No transaction records found for Year {selectedYear}.
                                     </td>
                                 </tr>
@@ -756,49 +916,37 @@ const FeeManagement = () => {
                     </table>
                 </div>
 
-                {/* Mobile Transaction Cards */}
+                {/* Mobile Card List View for Transactions */}
                 <div className="md:hidden divide-y divide-slate-100 p-3 sm:p-4 space-y-3">
                     {currentYearTransactions.length > 0 ? (
                         currentYearTransactions.map((tx, idx) => {
                             const txDate = tx.paymentDate ? new Date(tx.paymentDate) : null;
                             const dateStr = txDate
-                                ? txDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                                ? txDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
                                 : '—';
-                            const timeStr = txDate
-                                ? txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-                                : '';
-
                             const isCon = tx.transactionType === 'CREDIT' || isCredit(tx);
 
                             return (
                                 <div key={tx._id || idx} className="pt-3 first:pt-0">
-                                    <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-start justify-between gap-2 mb-1.5">
                                         <div>
                                             <p className="font-bold text-slate-800 text-xs">
                                                 {tx.feeHead?.name || (isCon ? 'Scholarship / Concession' : 'Fee Payment')}
                                             </p>
-                                            <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
-                                                <span>{dateStr}</span>
-                                                <span>•</span>
-                                                <span>{timeStr}</span>
-                                                <span>•</span>
-                                                <span className="font-medium text-slate-600">Yr {tx.studentYear || selectedYear}</span>
-                                            </div>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">{dateStr}</p>
                                         </div>
-                                        <div className={`text-right font-black text-sm ${isCon ? 'text-purple-600' : 'text-emerald-600'}`}>
-                                            +{formatNumber(tx.amount)}
-                                        </div>
+                                        <p className={`font-black text-sm shrink-0 ${isCon ? 'text-purple-600' : 'text-emerald-600'}`}>
+                                            ₹{formatNumber(tx.amount)}
+                                        </p>
                                     </div>
 
-                                    <div className="flex items-center gap-2 mt-2">
+                                    <div className="flex flex-wrap items-center gap-2 mt-2">
                                         <span className="px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-700">
                                             {tx.paymentMode || 'Cash'}
                                         </span>
-                                        {tx.receiptNumber && (
-                                            <span className="text-[10px] font-mono text-slate-500">
-                                                #{tx.receiptNumber}
-                                            </span>
-                                        )}
+                                        <span className="text-[10px] text-slate-500 font-semibold">
+                                            Y{tx.studentYear || selectedYear} • S{tx.semester || '1'}
+                                        </span>
                                         {(tx.referenceNo || tx.gatewayPaymentId) && (
                                             <span className="text-[10px] font-mono text-slate-400">
                                                 {tx.referenceNo || tx.gatewayPaymentId}
@@ -821,6 +969,145 @@ const FeeManagement = () => {
                     )}
                 </div>
             </div>
+
+            {/* Online Payment Modal */}
+            {paymentModalOpen && paymentTarget && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+                    <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
+                        {/* Modal Header */}
+                        <div className="p-4 sm:p-5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white flex items-center justify-between">
+                            <div className="flex items-center gap-2.5">
+                                <div className="p-2 bg-white/10 rounded-xl backdrop-blur-xs">
+                                    <CreditCard size={18} className="text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm sm:text-base font-bold leading-tight">Pay Fees Online</h3>
+                                    <p className="text-[10px] sm:text-[11px] text-indigo-100">Pydah Payment Gateway (PPG)</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                disabled={isProcessingPayment}
+                                onClick={() => setPaymentModalOpen(false)}
+                                className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-5 sm:p-6 space-y-4">
+                            {/* Details Summary Card */}
+                            <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 space-y-2">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div>
+                                        <div className="text-[10px] uppercase font-bold text-slate-400">Fee Description</div>
+                                        <div className="text-xs sm:text-sm font-bold text-slate-800">{paymentTarget.title}</div>
+                                    </div>
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                                        Year {paymentTarget.studentYear}
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 text-xs">
+                                    <div>
+                                        <div className="text-[9px] uppercase font-semibold text-slate-400">Total</div>
+                                        <div className="font-bold text-slate-700">₹{formatNumber(paymentTarget.totalFee)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[9px] uppercase font-semibold text-slate-400">Paid</div>
+                                        <div className="font-bold text-emerald-600">₹{formatNumber(paymentTarget.paid)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[9px] uppercase font-bold text-slate-400">Balance Due</div>
+                                        <div className="font-extrabold text-rose-600">₹{formatNumber(paymentTarget.balance)}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Amount Input */}
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                                    <span>Amount to Pay</span>
+                                    <span className="text-[10px] font-normal text-slate-400">INR (₹)</span>
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">₹</span>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max={paymentTarget.balance}
+                                        value={payAmountInput}
+                                        onChange={(e) => setPayAmountInput(e.target.value)}
+                                        disabled={isProcessingPayment}
+                                        placeholder="Enter amount"
+                                        className="w-full pl-8 pr-4 py-2.5 text-base font-bold text-slate-800 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                    />
+                                </div>
+
+                                {/* Quick Amount Pills */}
+                                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPayAmountInput(String(paymentTarget.balance))}
+                                        className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition cursor-pointer"
+                                    >
+                                        Full Balance (₹{formatNumber(paymentTarget.balance)})
+                                    </button>
+                                    {paymentTarget.t1DueNum > 0 && paymentTarget.t1DueNum < paymentTarget.balance && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setPayAmountInput(String(paymentTarget.t1DueNum))}
+                                            className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                                        >
+                                            Term 1 (₹{formatNumber(paymentTarget.t1DueNum)})
+                                        </button>
+                                    )}
+                                    {paymentTarget.t2DueNum > 0 && paymentTarget.t2DueNum < paymentTarget.balance && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setPayAmountInput(String(paymentTarget.t2DueNum))}
+                                            className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                                        >
+                                            Term 2 (₹{formatNumber(paymentTarget.t2DueNum)})
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Actions */}
+                        <div className="p-4 sm:px-6 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                            <button
+                                type="button"
+                                disabled={isProcessingPayment}
+                                onClick={() => setPaymentModalOpen(false)}
+                                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200/60 rounded-xl transition cursor-pointer"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isProcessingPayment || !payAmountInput || Number(payAmountInput) <= 0}
+                                onClick={handleConfirmPayment}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow transition transform active:scale-95 cursor-pointer"
+                            >
+                                {isProcessingPayment ? (
+                                    <>
+                                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        <span>Processing...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CreditCard size={14} />
+                                        <span>Proceed to Pay ₹{formatNumber(payAmountInput || 0)}</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

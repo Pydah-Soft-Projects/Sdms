@@ -35,7 +35,7 @@ const parentRoutes = require("./routes/parentRoutes");
 const studentFeedbackPortalRoutes = require("./routes/studentFeedbackPortalRoutes");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 // Middleware
 // Allow multiple origins via FRONTEND_URLS env var (comma separated), or single FRONTEND_URL
@@ -410,16 +410,16 @@ const startServer = async () => {
   try {
     console.log("🔄 Starting server...");
 
+    // Connect to MongoDB
+    const { connectDB, getHRMSConnection } = require("./config/mongoConfig");
+    await connectDB();
+    getHRMSConnection();
+
     // Bind IPv4 explicitly so deploy health checks to 127.0.0.1:PORT succeed
     const server = app.listen(PORT, "0.0.0.0", () => {
       console.log(`✅ Server running on: http://127.0.0.1:${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV || "development"}`);
     });
-
-    // Connect to MongoDB
-    const { connectDB, getHRMSConnection } = require("./config/mongoConfig");
-    await connectDB();
-    getHRMSConnection();
 
     // Test database and S3 connections AFTER server starts (async)
     setTimeout(async () => {

@@ -66,6 +66,8 @@ export const paymentService = {
    * 
    * @param {Object} params
    * @param {number} params.amountInRupees - Amount in INR (e.g. 1500)
+   * @param {string} [params.collegeCode] - Optional College Code (e.g. "PCE")
+   * @param {string} [params.courseCode] - Optional Course Code (e.g. "BTECH")
    * @param {string} [params.studentId] - Student Admission Number
    * @param {string} [params.description] - Payment description
    * @param {string} [params.customerName] - Payer name
@@ -82,6 +84,10 @@ export const paymentService = {
    */
   openCheckout: async ({
     amountInRupees,
+    collegeCode,
+    courseCode,
+    college,
+    course,
     studentId,
     description,
     customerName,
@@ -103,8 +109,12 @@ export const paymentService = {
     // 1. Call backend to create order on PPG
     const orderData = await paymentService.createOrder({
       amountInRupees: Number(amountInRupees),
+      collegeCode: collegeCode || college || undefined,
+      courseCode: courseCode || course || undefined,
+      college: collegeCode || college || undefined,
+      course: courseCode || course || undefined,
       studentId,
-      description: description || 'Pydah Application Fee Payment',
+      description: description || 'Semester Tuition Fee',
       customerName: customerName || undefined,
       customerEmail: customerEmail && typeof customerEmail === 'string' && customerEmail.trim() ? customerEmail.trim() : undefined,
       customerPhone: customerPhone && typeof customerPhone === 'string' && customerPhone.trim() ? customerPhone.trim() : undefined,

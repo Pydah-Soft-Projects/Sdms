@@ -217,8 +217,18 @@ exports.getStudentFeeDetails = async (req, res) => {
     // Note: custom_fields column might not exist, so we use student_data
     const [students] = await masterPool.query(
       `SELECT 
-         s.student_name, s.course, s.branch, s.batch, s.current_year, s.current_semester, s.student_data
-       FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id
+         s.id, s.admission_number, s.student_name, s.course, s.branch, s.batch, s.current_year, s.current_semester,
+         COALESCE(s.college_id, colleges.id) as resolved_college_id,
+         COALESCE(s.course_id, courses.id) as resolved_course_id,
+         colleges.code as college_code,
+         colleges.name as college_name,
+         courses.code as course_code,
+         courses.name as course_name,
+         s.student_data
+       FROM students s 
+       LEFT JOIN colleges ON (s.college_id = colleges.id OR s.college COLLATE utf8mb4_unicode_ci = colleges.name COLLATE utf8mb4_unicode_ci)
+       LEFT JOIN courses ON (s.course_id = courses.id OR (s.course COLLATE utf8mb4_unicode_ci = courses.name COLLATE utf8mb4_unicode_ci AND (courses.college_id = colleges.id OR courses.college_id IS NULL)))
+       LEFT JOIN course_branches ON s.branch_id = course_branches.id
        WHERE s.admission_number = ?`,
       [studentId]
     );
@@ -567,7 +577,10 @@ exports.getStudentFeeDetails = async (req, res) => {
           branch: student.branch,
           batch: student.batch,
           currentYear: student.current_year,
-          currentSemester: student.current_semester
+          currentSemester: student.current_semester,
+          collegeCode: student.college_code || student.resolved_college_id,
+          courseCode: student.course_code || student.resolved_course_id,
+          collegeName: student.college_name || collegeName,
       },
       summary: {
         totalFee,

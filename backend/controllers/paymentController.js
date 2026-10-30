@@ -135,6 +135,10 @@ exports.createOrder = async (req, res) => {
       studentId,
       amount,
       amountInRupees,
+      collegeCode,
+      courseCode,
+      college,
+      course,
       feeHeadId,
       studentYear,
       semester,
@@ -154,28 +158,56 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Valid payment amount is required' });
     }
 
-    // 1. Fetch Student Details (if studentId provided) to enrich customer info
+    // 1. Fetch Student Details (if studentId provided) to enrich customer info & dynamic multi-tenant routing
     let student = null;
     let collegeName = 'Pydah Group';
     let studentName = customerName || '';
     let studentEmail = customerEmail || '';
     let studentContact = customerPhone || '';
+    let resolvedCollege = collegeCode || college || null;
+    let resolvedCourse = courseCode || course || null;
 
     if (studentId) {
       try {
         const [students] = await masterPool.query(
-          'SELECT s.student_name, s.course, s.branch, s.student_data FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id WHERE s.admission_number = ?',
-          [studentId]
+          `SELECT 
+             s.id, s.admission_number, s.student_name, s.current_year, s.current_semester,
+             s.course, s.branch, s.college,
+             COALESCE(s.college_id, col.id) as resolved_college_id,
+             COALESCE(s.course_id, c.id) as resolved_course_id,
+             col.code as college_code,
+             col.name as college_name,
+             c.code as course_code,
+             c.name as course_name,
+             cb.code as branch_code,
+             cb.name as branch_name,
+             s.student_data
+           FROM students s
+           LEFT JOIN colleges col ON (s.college_id = col.id OR s.college COLLATE utf8mb4_unicode_ci = col.name COLLATE utf8mb4_unicode_ci)
+           LEFT JOIN courses c ON (s.course_id = c.id OR (s.course COLLATE utf8mb4_unicode_ci = c.name COLLATE utf8mb4_unicode_ci AND (c.college_id = col.id OR c.college_id IS NULL)))
+           LEFT JOIN course_branches cb ON (s.branch_id = cb.id OR (s.branch COLLATE utf8mb4_unicode_ci = cb.name COLLATE utf8mb4_unicode_ci AND cb.course_id = c.id))
+           WHERE s.admission_number = ? OR s.admission_no = ?
+           LIMIT 1`,
+          [studentId, studentId]
         );
 
         if (students && students.length > 0) {
           student = students[0];
           studentName = studentName || student.student_name || '';
 
+          // Dynamically resolve college & course codes for PPG dynamic routing
+          if (!resolvedCollege) {
+            resolvedCollege = student.college_code || student.resolved_college_id;
+          }
+          if (!resolvedCourse) {
+            resolvedCourse = student.course_code || student.resolved_course_id;
+          }
+
+          if (student.college_name) collegeName = student.college_name;
+
           if (student.student_data) {
             const sd = typeof student.student_data === 'string' ? JSON.parse(student.student_data) : student.student_data;
-            if (sd.college) collegeName = sd.college;
-            else if (sd.College) collegeName = sd.College;
+            if (!collegeName && (sd.college || sd.College)) collegeName = sd.college || sd.College;
 
             studentEmail = studentEmail || sd.student_email || sd.email || sd.Student_Email || '';
             studentContact = studentContact || sd.student_mobile || sd.mobile || sd.parent_mobile1 || sd.Student_Mobile || '';
@@ -188,14 +220,14 @@ exports.createOrder = async (req, res) => {
 
     const { appKey, appSecret } = getPpgConfig();
 
-    // 2. PRIMARY FLOW: Pydah Payment Gateway (PPG) Hosted Checkout Integration
+    // 2. PRIMARY FLOW: Pydah Payment Gateway (PPG) Multi-Tenant Hosted Checkout Integration
     if (appKey && appSecret) {
       // PPG stores money in integer minor units (paise). ₹1,500.00 = 150000 paise.
       const amountInPaise = Math.round(amountVal * 100);
       const businessReference = referenceId || (studentId ? `SDMS-${studentId.replace(/\s+/g, '')}-${Date.now()}` : `REF-${Date.now()}`);
       const idempotencyKey = `idemp-${businessReference}`;
 
-      console.log(`[PAYMENT -> PPG] Creating hosted payment order for reference: ${businessReference}, amount: ₹${amountVal}`);
+      console.log(`[PAYMENT -> PPG] Creating hosted payment order for reference: ${businessReference}, amount: ₹${amountVal}, college: ${resolvedCollege}, course: ${resolvedCourse}`);
 
       // Sanitize customer details (PPG Zod validator rejects empty strings for email)
       const customer = {};
@@ -214,28 +246,39 @@ exports.createOrder = async (req, res) => {
 
       const defaultReturnUrl = returnUrl || (process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',')[0] + '/student/fees' : 'http://localhost:5173/student/fees');
 
+      // Build payload strictly following PPG External App Integration Guide
+      const ppgBody = {
+        businessReference,
+        amount: amountInPaise,
+        currency: 'INR',
+        description: description || remarks || 'Semester Tuition Fee',
+        customer,
+        returnUrl: defaultReturnUrl,
+        notes: {
+          studentId: studentId ? String(studentId) : '',
+          feeHeadId: feeHeadId ? String(feeHeadId) : '',
+          studentYear: studentYear ? String(studentYear) : '',
+          semester: semester ? String(semester) : '',
+          serviceRequestId: serviceRequestId ? String(serviceRequestId) : '',
+          remarks: remarks ? String(remarks) : '',
+        },
+        idempotencyKey,
+      };
+
+      // Multi-tenant routing fields
+      if (resolvedCollege) {
+        ppgBody.college = resolvedCollege;
+      }
+      if (resolvedCourse) {
+        ppgBody.course = resolvedCourse;
+      }
+
       const ppgResponse = await callPpg('payments', {
         method: 'POST',
         headers: {
           'X-Idempotency-Key': idempotencyKey,
         },
-        body: JSON.stringify({
-          businessReference,
-          amount: amountInPaise,
-          currency: 'INR',
-          description: description || remarks || 'SDMS Online Fee Payment',
-          customer,
-          returnUrl: defaultReturnUrl,
-          notes: {
-            studentId: studentId ? String(studentId) : '',
-            feeHeadId: feeHeadId ? String(feeHeadId) : '',
-            studentYear: studentYear ? String(studentYear) : '',
-            semester: semester ? String(semester) : '',
-            serviceRequestId: serviceRequestId ? String(serviceRequestId) : '',
-            remarks: remarks ? String(remarks) : '',
-          },
-          idempotencyKey,
-        }),
+        body: JSON.stringify(ppgBody),
       });
 
       if (!ppgResponse.ok || !ppgResponse.data?.success) {

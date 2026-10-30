@@ -432,9 +432,11 @@ const FeeManagement = () => {
             setIsProcessingPayment(true);
             await paymentService.openCheckout({
                 amountInRupees: num,
+                collegeCode: user?.college_code || studentDetails?.collegeCode || user?.college || undefined,
+                courseCode: user?.course_code || studentDetails?.courseCode || user?.course || undefined,
                 studentId: user?.admission_number,
                 description: `${paymentTarget.title} - Year ${paymentTarget.studentYear}`,
-                customerName: user?.student_name || user?.name || studentDetails?.studentName,
+                customerName: user?.student_name || user?.name || studentDetails?.name || studentDetails?.studentName,
                 customerEmail: user?.student_email || user?.email,
                 customerPhone: user?.student_mobile || user?.mobile,
                 feeHeadId: paymentTarget.feeHeadId,

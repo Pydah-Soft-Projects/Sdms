@@ -14,6 +14,7 @@ import {
     AlertCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { SkeletonBox } from '../../components/SkeletonLoader';
 import useAuthStore from '../../store/authStore';
 import api from '../../config/api';
 import paymentService from '../../services/paymentService';
@@ -499,9 +500,55 @@ const FeeManagement = () => {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[420px] gap-3">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
-                <p className="text-xs font-semibold text-slate-400">Loading Fee Ledger...</p>
+            <div className="w-full space-y-6 animate-pulse font-sans text-slate-800 pb-12">
+                {/* Header Skeleton */}
+                <div className="flex items-center justify-between gap-4 pb-1">
+                    <div className="space-y-2">
+                        <SkeletonBox height="h-6" width="w-48" className="rounded-lg bg-slate-200" />
+                        <SkeletonBox height="h-3" width="w-64" className="rounded bg-slate-100 hidden sm:block" />
+                    </div>
+                    <SkeletonBox height="h-8" width="w-28" className="rounded-xl bg-slate-200" />
+                </div>
+
+                {/* Main Accordion Skeleton Container */}
+                <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xs divide-y divide-slate-100">
+                    {[1, 2, 3].map((item) => (
+                        <div key={item} className="p-4 sm:p-5 space-y-3.5">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                    <SkeletonBox height="h-5" width="w-10" className="rounded-md bg-slate-200" />
+                                    <SkeletonBox height="h-5" width="w-20" className="rounded-md bg-slate-200" />
+                                    <SkeletonBox height="h-4" width="w-36" className="rounded bg-slate-100 hidden sm:block" />
+                                </div>
+                                <SkeletonBox height="h-4" width="w-6" className="rounded-full bg-slate-200" />
+                            </div>
+                            {item === 1 && (
+                                <div className="pt-2 space-y-2">
+                                    <SkeletonBox height="h-20" width="w-full" className="rounded-xl bg-slate-100" />
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                {/* Transactions Table Skeleton */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-5 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div className="flex items-center gap-3">
+                            <SkeletonBox height="h-9" width="w-9" className="rounded-xl bg-slate-200" />
+                            <SkeletonBox height="h-5" width="w-40" className="rounded-lg bg-slate-200" />
+                        </div>
+                        <div className="flex gap-2">
+                            <SkeletonBox height="h-8" width="w-24" className="rounded-xl bg-slate-100" />
+                            <SkeletonBox height="h-8" width="w-28" className="rounded-xl bg-slate-100" />
+                        </div>
+                    </div>
+                    <div className="space-y-2.5 pt-1">
+                        {[1, 2, 3, 4].map((i) => (
+                            <SkeletonBox key={i} height="h-12" width="w-full" className="rounded-xl bg-slate-100" />
+                        ))}
+                    </div>
+                </div>
             </div>
         );
     }
@@ -521,7 +568,7 @@ const FeeManagement = () => {
     }
 
     return (
-        <div className="space-y-6 animate-fade-in pb-12 font-sans text-slate-800">
+        <div className="w-full space-y-6 animate-fade-in pb-12 font-sans text-slate-800">
             {/* Fee Dues Breakdown Section with Expandable Year Accordions */}
             <div className="space-y-4">
                 {/* Section Header */}
@@ -568,7 +615,7 @@ const FeeManagement = () => {
                                             </span>
                                         ) : (
                                             <span className="px-1.5 py-0.5 rounded text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200 shrink-0">
-                                                BAL: {formatNumber(yrStats.balance)}
+                                                DUE
                                             </span>
                                         )}
                                         <span className="text-[8.5px] sm:text-[10px] text-slate-400 font-medium whitespace-nowrap">
@@ -576,19 +623,6 @@ const FeeManagement = () => {
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {!isPaid && (
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openYearPaymentModal(yr, yrTotals, yrInvoices);
-                                                }}
-                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition shrink-0 cursor-pointer"
-                                            >
-                                                <CreditCard size={12} />
-                                                <span>Pay Due</span>
-                                            </button>
-                                        )}
                                         <div className="flex items-center gap-1.5 text-slate-500">
                                             <span className="text-[11px] font-semibold hidden sm:inline">
                                                 {isExpanded ? 'Collapse' : 'Expand'}

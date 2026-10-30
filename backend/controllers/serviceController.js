@@ -841,12 +841,39 @@ exports.downloadCertificate = async (req, res) => {
         };
         const replaceVariables = (text) => {
           if (!text) return "";
-          // First handle {{variable}} syntax
-          let processed = text.replace(/{{(.*?)}}/g, (match, p1) => {
+          const inputSize = Math.min(Math.max(parseInt(config.input_field_size) || 10, 4), 30);
+          const defaultBlank = "_".repeat(inputSize);
+
+          // 1. Sanitize tabs and carriage returns
+          let processed = text.replace(/[\t\r]/g, " ");
+
+          // 2. Clean inner content of alignment tags [right]...[/right], etc.
+          processed = processed.replace(/\[(left|center|right|justify)\]([\s\S]*?)\[\/\1\]/gi, (match, tag, inner) => {
+            return `[${tag}]${inner.trim()}[/${tag}]`;
+          });
+
+          // 3. Handle ___ with input validation size, fill values if provided or collapse consecutive ___ into a single fitting blank
+          let blankIdx = 0;
+          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{3,}/g, (match, customLen) => {
+            blankIdx++;
+            const val = studentData[`field_${blankIdx}`] || studentData[`input_field_${blankIdx}`] || studentData[`blank_${blankIdx}`];
+            if (val !== undefined && val !== null && String(val).trim() !== "") {
+              return String(val);
+            }
+            const len = customLen ? Math.min(Math.max(parseInt(customLen), 4), 40) : inputSize;
+            return "_".repeat(len);
+          });
+
+          // 4. Normalize long runs of spaces (4 or more spaces) into clean blank underline
+          processed = processed.replace(/ {4,}/g, ` ${defaultBlank} `);
+          processed = processed.replace(/  +/g, " ");
+
+          // 5. Handle {{variable}} syntax
+          processed = processed.replace(/{{(.*?)}}/g, (match, p1) => {
             const key = p1.trim();
             return studentData[key] !== undefined ? studentData[key] : match;
           });
-          // Then handle @[label](variable) or @variable syntax
+          // 6. Handle @[label](variable) or @variable syntax
           processed = processed.replace(/@\[.*?\]\((.*?)\)/g, (match, p1) => {
             return studentData[p1] !== undefined ? studentData[p1] : match;
           });
@@ -910,6 +937,37 @@ exports.downloadCertificate = async (req, res) => {
   }
 };
 
+// Fixed character lengths for system variables in blank preview
+const VARIABLE_FIXED_CHARS = {
+  student_name: 24,
+  name: 24,
+  admission_number: 12,
+  pin_no: 12,
+  ht_no: 12,
+  father_name: 22,
+  mother_name: 22,
+  guardian_name: 22,
+  dob: 10,
+  date_of_birth: 10,
+  course: 10,
+  branch: 22,
+  current_year: 4,
+  year: 4,
+  current_semester: 4,
+  semester: 4,
+  academic_year: 11,
+  admission_date: 10,
+  date: 10,
+  current_date: 10,
+  principal_signature: 20,
+  college_name: 30,
+  gender: 6,
+  caste: 6,
+  religion: 8,
+  student_mobile: 10,
+  phone_number: 10,
+};
+
 // Preview Template (Admin)
 exports.previewTemplate = async (req, res) => {
   try {
@@ -925,31 +983,33 @@ exports.previewTemplate = async (req, res) => {
 
     // Blank Student Data (for template structure preview)
     const blankStudent = {
-      student_name: "{{student_name}}",
-      admission_number: "{{admission_number}}",
-      father_name: "{{parent_name}}", // Mapping to parent_name as requested
-      current_year: "{{current_year}}",
-      current_semester: "{{current_semester}}",
-      course: "{{course}}",
-      branch: "{{branch}}",
-      student_mobile: "{{student_mobile}}",
-      parent_mobile1: "{{parent_mobile}}",
-      academic_year: "{{academic_year}}",
-      pin_no: "{{pin_no}}",
-      dob: "{{dob}}",
+      student_name: "_".repeat(VARIABLE_FIXED_CHARS.student_name),
+      admission_number: "_".repeat(VARIABLE_FIXED_CHARS.admission_number),
+      father_name: "_".repeat(VARIABLE_FIXED_CHARS.father_name),
+      mother_name: "_".repeat(VARIABLE_FIXED_CHARS.mother_name),
+      current_year: "_".repeat(VARIABLE_FIXED_CHARS.current_year),
+      current_semester: "_".repeat(VARIABLE_FIXED_CHARS.current_semester),
+      course: "_".repeat(VARIABLE_FIXED_CHARS.course),
+      branch: "_".repeat(VARIABLE_FIXED_CHARS.branch),
+      student_mobile: "_".repeat(10),
+      parent_mobile1: "_".repeat(10),
+      academic_year: "_".repeat(VARIABLE_FIXED_CHARS.academic_year),
+      pin_no: "_".repeat(VARIABLE_FIXED_CHARS.pin_no),
+      dob: "_".repeat(VARIABLE_FIXED_CHARS.dob),
       email: "{{email}}",
-      religion: "{{religion}}",
-      caste: "{{caste}}",
-      gender: "{{gender}}",
-      admission_date: "{{admission_date}}",
+      religion: "Hindu",
+      caste: "OC",
+      gender: "Male",
+      admission_date: "_".repeat(VARIABLE_FIXED_CHARS.admission_date),
       serial_no: "{{serial_no}}",
       mole_1: "{{mole_1}}",
       mole_2: "{{mole_2}}",
-      conduct: "{{conduct}}",
+      conduct: "Good",
       date_of_leaving: "{{date_of_leaving}}",
-      promoted: "{{promoted}}",
+      promoted: "Promoted",
       date: new Date().toLocaleDateString(),
       college_name: "Pydah College of Engineering",
+      principal_signature: "Principal Signature",
     };
 
     // Blank Request Data
@@ -1060,15 +1120,33 @@ exports.previewTemplate = async (req, res) => {
         };
         const replaceVariables = (text) => {
           if (!text) return "";
-          // First handle ___ (three underscores) as input field placeholders
-          let processed = text.replace(/___/g, "________________"); // Convert to underlined space
+          const inputSize = Math.min(Math.max(parseInt(config.input_field_size) || 10, 4), 30);
+          const defaultBlank = "_".repeat(inputSize);
 
-          // Then handle {{variable}} syntax
+          // 1. Sanitize tabs and carriage returns
+          let processed = text.replace(/[\t\r]/g, " ");
+
+          // 2. Clean inner content of alignment tags [right]...[/right], etc.
+          processed = processed.replace(/\[(left|center|right|justify)\]([\s\S]*?)\[\/\1\]/gi, (match, tag, inner) => {
+            return `[${tag}]${inner.trim()}[/${tag}]`;
+          });
+
+          // 3. Handle ___ with input validation size, collapse consecutive ___ into a single fitting blank
+          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{3,}/g, (match, customLen) => {
+            const len = customLen ? Math.min(Math.max(parseInt(customLen), 4), 40) : inputSize;
+            return "_".repeat(len);
+          });
+
+          // 4. Normalize long runs of spaces (4 or more spaces) into clean blank underline
+          processed = processed.replace(/ {4,}/g, ` ${defaultBlank} `);
+          processed = processed.replace(/  +/g, " ");
+
+          // 5. Handle {{variable}} syntax
           processed = processed.replace(/{{(.*?)}}/g, (match, p1) => {
             const key = p1.trim();
             return data[key] !== undefined ? data[key] : match;
           });
-          // Then handle @[label](variable) or @variable syntax
+          // 6. Handle @[label](variable) or @variable syntax
           processed = processed.replace(/@\[.*?\]\((.*?)\)/g, (match, p1) => {
             return data[p1] !== undefined ? data[p1] : match;
           });

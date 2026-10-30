@@ -156,6 +156,14 @@ exports.getAvailableVariables = async (req, res) => {
         example: "info@pydah.edu.in",
       },
 
+      // Signature Variables
+      {
+        name: "principal_signature",
+        label: "Principal Signature",
+        category: "Signatures",
+        example: "Principal Signature",
+      },
+
       // Date Variables
       {
         name: "date",

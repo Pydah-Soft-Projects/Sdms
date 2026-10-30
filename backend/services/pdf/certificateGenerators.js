@@ -1227,16 +1227,19 @@ const generateTemplatedCertificate = async (
   const renderSection = (content, yPosition, additionalSpacing = 15) => {
     if (!content || content.trim() === "") return yPosition;
 
-    const lines = content.split("\n");
+    const rawLines = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
     let y = yPosition;
 
-    lines.forEach((line, index) => {
-      if (line.trim() === "") {
-        y += 10; // Add spacing for empty lines
+    rawLines.forEach((line) => {
+      // 1. Sanitize tabs & unprintable chars that corrupt PDFKit (turns into TM symbols)
+      const sanitized = line.replace(/[\t\r]/g, " ");
+
+      if (sanitized.trim() === "") {
+        y += 10; // Spacing for empty lines
         return;
       }
 
-      // Validate font size
+      // 2. Validate font size & line spacing
       const fontSize = Math.min(
         Math.max(parseInt(template.font_size) || 12, 8),
         24,
@@ -1246,34 +1249,63 @@ const generateTemplatedCertificate = async (
         10,
       );
 
-      // Check if we have space for the line (prevent footer overlap)
+      // 3. Alignment fallback: default to "left" for standard certificate body flow
+      const defaultAlign =
+        template.middle_alignment &&
+        ["left", "center", "right", "justify"].includes(template.middle_alignment.toLowerCase())
+          ? template.middle_alignment.toLowerCase()
+          : "left";
+
+      let lineAlignment = defaultAlign;
+      let cleanLine = sanitized;
+
+      // 4. Match alignment tags [left]...[/left], [center]...[/center], [right]...[/right], [justify]...[/justify]
+      const tagMatch = sanitized.match(/^\s*\[(left|center|right|justify)\]([\s\S]*?)\[\/\1\]\s*$/i);
+      if (tagMatch) {
+        lineAlignment = tagMatch[1].toLowerCase();
+        cleanLine = tagMatch[2];
+      }
+
+      // 5. Clean cleanLine: trim edges appropriately based on alignment
+      cleanLine = cleanLine.replace(/[\t\r]/g, " ");
+      if (lineAlignment === "right" || lineAlignment === "center") {
+        cleanLine = cleanLine.trim();
+      } else {
+        cleanLine = cleanLine.trimStart();
+      }
+
+      if (!cleanLine || cleanLine.trim() === "") {
+        y += 10;
+        return;
+      }
+
+      // 6. Check space to prevent footer overlap
       const lineHeight =
-        doc.heightOfString(line, {
+        doc.heightOfString(cleanLine, {
           width: contentWidth,
-          align: "justify",
+          align: lineAlignment,
           lineGap: lineGap,
         }) + 5;
 
       if (y + lineHeight > maxContentY) {
-        // Skip rendering if it would overlap with footer
         return;
       }
 
-      // Render text with proper positioning
+      // 7. Render clean, perfectly aligned text
       doc
         .font("Helvetica")
         .fontSize(fontSize)
         .fillColor("#000000")
-        .text(line, paddingLeft, y, {
+        .text(cleanLine, paddingLeft, y, {
           width: contentWidth,
-          align: "justify",
+          align: lineAlignment,
           lineGap: lineGap,
         });
 
       y += lineHeight;
     });
 
-    return y + additionalSpacing; // Use dynamic section spacing
+    return y + additionalSpacing;
   };
 
   // Validate spacing values

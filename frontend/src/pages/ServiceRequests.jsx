@@ -106,32 +106,122 @@ const ServiceRequests = () => {
         ]
     };
 
-    // Helper to determine dynamic fields based on service type
+    // Helper to determine dynamic fields based on service type and template content
     const getTemplateFields = (serviceId) => {
         if (!serviceId) return [];
         const service = services.find(s => s.id == serviceId);
         if (!service) return TEMPLATE_SCHEMAS.default;
 
-        // 1. check for admin_fields from DB
+        // 1. Check for admin_fields from DB if explicitly configured
         if (service.admin_fields && Array.isArray(service.admin_fields) && service.admin_fields.length > 0) {
-            // If DB provides fields, we wrap them in a generic schema
             return [{
                 section: 'Details',
                 fields: [
-                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true },
+                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true },
                     { name: 'student_name', label: 'Student Name', type: 'text', required: true },
-                    ...service.admin_fields // Mix in the configured fields
+                    ...service.admin_fields
                 ]
             }];
         }
 
-        // 2. heuristic matching
+        // 2. Predefined static template types
         const name = (service.name || '').toLowerCase();
         const type = service.template_type || '';
 
         if (type === 'study_certificate' || name.includes('study')) return TEMPLATE_SCHEMAS.study_certificate;
         if (type === 'custodian_certificate' || name.includes('custodian')) return TEMPLATE_SCHEMAS.custodian_certificate;
         if (type === 'refund_application' || name.includes('refund')) return TEMPLATE_SCHEMAS.refund_application;
+
+        // 3. Dynamic template handling: generate fields based on template content, variables, and blanks
+        let config = service.template_config || {};
+        if (typeof config === 'string') {
+            try { config = JSON.parse(config); } catch (e) { config = {}; }
+        }
+
+        const content = ((config.top_content || '') + '\n' + (config.middle_content || '') + '\n' + (config.bottom_content || '')).trim();
+
+        if (content) {
+            const sections = [];
+
+            // Section 1: Student Details (always present)
+            const studentFields = [
+                { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true, placeholder: 'Enter Admission Number' },
+                { name: 'student_name', label: 'Student Name', type: 'text', required: true, placeholder: 'Enter Student Name' },
+                { name: 'father_name', label: "Father's Name", type: 'text', placeholder: "Enter Father's Name" },
+            ];
+
+            if (/@mother_name|mother_name|mother/i.test(content)) {
+                studentFields.push({ name: 'mother_name', label: "Mother's Name", type: 'text', placeholder: "Enter Mother's Name" });
+            }
+            if (/@dob|@date_of_birth|dob|date_of_birth/i.test(content)) {
+                studentFields.push({ name: 'dob', label: 'Date of Birth', type: 'text', placeholder: 'DD/MM/YYYY' });
+            }
+
+            sections.push({
+                section: 'Student Details',
+                fields: studentFields,
+            });
+
+            // Section 2: Academic Details (if template references course/branch/year/semester)
+            const academicFields = [];
+            if (/@course|course|b\.tech|programme|degree/i.test(content)) {
+                academicFields.push({ name: 'course', label: 'Course / Program', type: 'text', placeholder: 'e.g. B.Tech' });
+            }
+            if (/@branch|branch|department/i.test(content)) {
+                academicFields.push({ name: 'branch', label: 'Branch / Department', type: 'text', placeholder: 'e.g. CSE' });
+            }
+            if (/@current_year|@year|current_year|year/i.test(content)) {
+                academicFields.push({ name: 'current_year', label: 'Year', type: 'text', className: 'w-1/2', placeholder: 'e.g. IV' });
+            }
+            if (/@current_semester|@semester|current_semester|semester/i.test(content)) {
+                academicFields.push({ name: 'current_semester', label: 'Semester', type: 'text', className: 'w-1/2', placeholder: 'e.g. I' });
+            }
+            if (/@academic_year|academic_year/i.test(content)) {
+                academicFields.push({ name: 'academic_year', label: 'Academic Year', type: 'text', placeholder: 'e.g. 2024-2025' });
+            }
+
+            if (academicFields.length > 0) {
+                sections.push({
+                    section: 'Academic Details',
+                    fields: academicFields,
+                });
+            }
+
+            // Section 3: Certificate Input Fields (blanks in template: ___ or runs of underscores)
+            const blankMatches = content.match(/(?:___(?:\[\d+\])?(?:\s*___)*)+|_{3,}/g) || [];
+            const blankVarCount = Array.isArray(config.blank_variables) ? config.blank_variables.length : 0;
+            const totalBlanks = Math.max(blankMatches.length, blankVarCount);
+
+            if (totalBlanks > 0) {
+                const inputFields = [];
+                for (let i = 1; i <= totalBlanks; i++) {
+                    const customName = config.blank_variables && config.blank_variables[i - 1]
+                        ? (typeof config.blank_variables[i - 1] === 'string' ? config.blank_variables[i - 1] : config.blank_variables[i - 1].label || config.blank_variables[i - 1].name)
+                        : null;
+                    const label = customName || `Input Field ${i}`;
+                    inputFields.push({
+                        name: `field_${i}`,
+                        label: label,
+                        type: 'text',
+                        placeholder: `Enter value for ${label} (e.g. ${i})`,
+                    });
+                }
+                sections.push({
+                    section: 'Certificate Input Fields',
+                    fields: inputFields,
+                });
+            }
+
+            // Section 4: Additional Details
+            sections.push({
+                section: 'Additional Details',
+                fields: [
+                    { name: 'purpose', label: 'Purpose/Note', type: 'text', placeholder: 'e.g. Higher Studies, Verification' }
+                ]
+            });
+
+            return sections;
+        }
 
         return TEMPLATE_SCHEMAS.default;
     };
@@ -148,12 +238,14 @@ const ServiceRequests = () => {
                     ...prev,
                     student_name: s.student_name || prev.student_name || '',
                     father_name: s.father_name || prev.father_name || '',
+                    mother_name: s.mother_name || prev.mother_name || '',
+                    dob: s.dob || prev.dob || '',
                     course: s.course || prev.course || '',
                     branch: s.branch || prev.branch || '',
                     current_year: s.current_year || prev.current_year || '',
                     current_semester: s.current_semester || prev.current_semester || '',
-                    academic_year: s.academic_year || prev.academic_year || '', // Try to fill if exists
-                    gender: s.gender || prev.gender || '', // Keep hidden fields just in case
+                    academic_year: s.academic_year || prev.academic_year || '',
+                    gender: s.gender || prev.gender || '',
                 }));
                 console.log('Student loaded:', s);
             }

@@ -11,6 +11,7 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  AlignJustify,
   Type,
   Space,
 } from "lucide-react";
@@ -18,6 +19,42 @@ import { serviceService } from "../../services/serviceService";
 import { certificateTemplateService } from "../../services/certificateTemplateService";
 import CertificateDesigner from "./CertificateDesigner";
 import api from "../../config/api";
+
+// Default System Variables with specific fixed display lengths
+const DEFAULT_SYSTEM_VARIABLES = [
+  { name: "student_name", label: "Student Name", fixedChars: 24, minWidth: 150, example: "JOHN DOE" },
+  { name: "name", label: "Name", fixedChars: 24, minWidth: 150, example: "JOHN DOE" },
+  { name: "father_name", label: "Father Name", fixedChars: 22, minWidth: 140, example: "ROBERT DOE" },
+  { name: "mother_name", label: "Mother Name", fixedChars: 22, minWidth: 140, example: "MARY DOE" },
+  { name: "guardian_name", label: "Guardian Name", fixedChars: 22, minWidth: 140, example: "GUARDIAN NAME" },
+  { name: "dob", label: "Date of Birth", fixedChars: 10, minWidth: 75, example: "01/01/2000" },
+  { name: "date_of_birth", label: "Date of Birth", fixedChars: 10, minWidth: 75, example: "01/01/2000" },
+  { name: "admission_number", label: "Admission Number", fixedChars: 12, minWidth: 90, example: "2024001" },
+  { name: "pin_no", label: "PIN Number", fixedChars: 12, minWidth: 90, example: "21A91A0501" },
+  { name: "ht_no", label: "HT Number", fixedChars: 12, minWidth: 90, example: "21A91A0501" },
+  { name: "course", label: "Course", fixedChars: 10, minWidth: 70, example: "B.Tech" },
+  { name: "branch", label: "Branch", fixedChars: 22, minWidth: 140, example: "Computer Science" },
+  { name: "current_year", label: "Current Year", fixedChars: 4, minWidth: 40, example: "IV" },
+  { name: "year", label: "Year", fixedChars: 4, minWidth: 40, example: "IV" },
+  { name: "current_semester", label: "Current Semester", fixedChars: 4, minWidth: 40, example: "I" },
+  { name: "semester", label: "Semester", fixedChars: 4, minWidth: 40, example: "I" },
+  { name: "academic_year", label: "Academic Year", fixedChars: 11, minWidth: 85, example: "2024-2025" },
+  { name: "admission_date", label: "Admission Date", fixedChars: 10, minWidth: 75, example: "01/08/2021" },
+  { name: "principal_signature", label: "Principal Signature", fixedChars: 20, minWidth: 140, example: "Principal Signature" },
+  { name: "date", label: "Current Date", fixedChars: 10, minWidth: 75, example: new Date().toLocaleDateString() },
+  { name: "current_date", label: "Current Date", fixedChars: 10, minWidth: 75, example: new Date().toLocaleDateString() },
+  { name: "college_name", label: "College Name", fixedChars: 30, minWidth: 180, example: "Pydah College of Engineering" },
+  { name: "gender", label: "Gender", fixedChars: 6, minWidth: 50, example: "Male" },
+  { name: "caste", label: "Caste", fixedChars: 6, minWidth: 50, example: "OC" },
+  { name: "religion", label: "Religion", fixedChars: 8, minWidth: 60, example: "Hindu" },
+  { name: "student_mobile", label: "Student Mobile", fixedChars: 10, minWidth: 80, example: "9876543210" },
+  { name: "phone_number", label: "Phone Number", fixedChars: 10, minWidth: 80, example: "9876543210" },
+];
+
+const VARIABLE_SPECS = DEFAULT_SYSTEM_VARIABLES.reduce((acc, v) => {
+  acc[v.name] = v;
+  return acc;
+}, {});
 
 const AddServiceWizard = () => {
   const navigate = useNavigate();
@@ -27,6 +64,43 @@ const AddServiceWizard = () => {
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+
+  const contentInputRef = React.useRef(null);
+  const [activeCursorPos, setActiveCursorPos] = useState({ start: 0, end: 0 });
+
+  const applyLineAlignment = (alignment) => {
+    const content = templateData.middle_content || "";
+    const textarea = contentInputRef.current;
+    const selStart = textarea ? textarea.selectionStart : activeCursorPos.start;
+    const selEnd = textarea ? textarea.selectionEnd : activeCursorPos.end;
+
+    const lines = content.split("\n");
+    if (lines.length === 0) return;
+
+    const textBeforeStart = content.slice(0, selStart);
+    const startLineIdx = textBeforeStart.split("\n").length - 1;
+    const textBeforeEnd = content.slice(0, selEnd);
+    const endLineIdx = textBeforeEnd.split("\n").length - 1;
+
+    const newLines = lines.map((line, idx) => {
+      if (idx >= startLineIdx && idx <= endLineIdx) {
+        let cleanText = line.replace(/^\s*\[(left|center|right|justify)\]([\s\S]*?)\[\/\1\]\s*$/i, "$2");
+        cleanText = cleanText.replace(/\t+/g, " ").trim();
+        const currentTagMatch = line.match(/^\s*\[(left|center|right|justify)\]/i);
+        if (currentTagMatch && currentTagMatch[1].toLowerCase() === alignment) {
+          return cleanText;
+        }
+        return `[${alignment}]${cleanText}[/${alignment}]`;
+      }
+      return line;
+    });
+
+    const newContent = newLines.join("\n");
+    setTemplateData((prev) => ({
+      ...prev,
+      middle_content: newContent,
+    }));
+  };
 
   // Consolidated State
   const [serviceData, setServiceData] = useState({
@@ -42,7 +116,7 @@ const AddServiceWizard = () => {
     middle_content: "",
     bottom_content: "",
     top_alignment: "center",
-    middle_alignment: "center",
+    middle_alignment: "left",
     bottom_alignment: "center",
     padding_left: 40,
     padding_right: 40,
@@ -61,20 +135,22 @@ const AddServiceWizard = () => {
     blank_variables: [],
     page_size: "A4",
     page_orientation: "portrait",
+    input_field_size: 10,
   });
 
   // Preview state for final review
   const [finalPreviewJson, setFinalPreviewJson] = useState(null);
 
   // Available variables for autocomplete
-  const [variables, setVariables] = useState([]);
+  const [variables, setVariables] = useState(DEFAULT_SYSTEM_VARIABLES);
 
   // Fetch variables on mount
   useEffect(() => {
     const fetchVariables = async () => {
       try {
         const response = await certificateTemplateService.getVariables();
-        setVariables(response.data.systemVariables || []);
+        const list = response.data?.data?.systemVariables || response.data?.systemVariables || [];
+        if (list.length > 0) setVariables(list);
       } catch (error) {
         console.error("Error fetching variables:", error);
       }
@@ -156,6 +232,9 @@ const AddServiceWizard = () => {
           top_content: template.top_content || "",
           middle_content: template.middle_content || "",
           bottom_content: template.bottom_content || "",
+          top_alignment: template.top_alignment || "center",
+          middle_alignment: template.middle_alignment || "left",
+          bottom_alignment: template.bottom_alignment || "center",
           padding_left: template.padding_left || 40,
           padding_right: template.padding_right || 40,
           padding_top: template.padding_top || 40,
@@ -164,6 +243,7 @@ const AddServiceWizard = () => {
           footer_height: template.footer_height || 60,
           font_size: template.font_size || 12,
           line_spacing: template.line_spacing || 2,
+          input_field_size: template.input_field_size || 10,
           blank_variables: template.blank_variables || [],
           page_size: template.page_size || "A4",
           page_orientation: template.page_orientation || "portrait",
@@ -349,65 +429,96 @@ const AddServiceWizard = () => {
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Service Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={serviceData.name}
-              onChange={(e) =>
-                setServiceData({ ...serviceData, name: e.target.value })
-              }
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="e.g., Transfer Certificate"
-            />
+        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-200 space-y-5 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Service Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={serviceData.name}
+                onChange={(e) => {
+                  // Restriction: only letters and spaces allowed
+                  const lettersOnly = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+                  setServiceData({ ...serviceData, name: lettersOnly });
+                }}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                placeholder="e.g., Transfer Certificate (Letters only)"
+              />
+              <p className="text-[11px] text-gray-500 mt-1">
+                Letters only restriction: only alphabetic characters and spaces are allowed.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Select College <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={serviceData.college_id || ""}
+                onChange={(e) =>
+                  setServiceData({ ...serviceData, college_id: e.target.value })
+                }
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
+              >
+                <option value="">-- Choose a college --</option>
+                {colleges.map((college) => {
+                  const optionValue = String(college.id);
+                  return (
+                    <option key={college.id} value={optionValue}>
+                      {college.name}
+                    </option>
+                  );
+                })}
+              </select>
+              <p className="text-xs text-gray-500 mt-1.5">
+                The certificate will use this college's header and footer images
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Price (₹) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                value={serviceData.price}
+                onChange={(e) =>
+                  setServiceData({ ...serviceData, price: e.target.value })
+                }
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                placeholder="e.g., 100"
+              />
+            </div>
+
+            <div className="pt-2 sm:pt-6">
+              <label className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition">
+                <input
+                  type="checkbox"
+                  id="is_active"
+                  checked={serviceData.is_active}
+                  onChange={(e) =>
+                    setServiceData({ ...serviceData, is_active: e.target.checked })
+                  }
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
+                />
+                <div>
+                  <span className="text-sm font-semibold text-gray-800 block">
+                    Active Service
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    Immediately available to students in the portal
+                  </span>
+                </div>
+              </label>
+            </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select College <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={serviceData.college_id || ""}
-              onChange={(e) =>
-                setServiceData({ ...serviceData, college_id: e.target.value })
-              }
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            >
-              <option value="">-- Choose a college --</option>
-              {colleges.map((college) => {
-                const optionValue = String(college.id);
-                return (
-                  <option key={college.id} value={optionValue}>
-                    {college.name}
-                  </option>
-                );
-              })}
-            </select>
-            <p className="text-xs text-gray-500 mt-1">
-              The certificate will use this college's header and footer images
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Price (₹) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={serviceData.price}
-              onChange={(e) =>
-                setServiceData({ ...serviceData, price: e.target.value })
-              }
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="e.g., 100"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Description
             </label>
             <textarea
@@ -415,25 +526,10 @@ const AddServiceWizard = () => {
               onChange={(e) =>
                 setServiceData({ ...serviceData, description: e.target.value })
               }
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
               rows="3"
               placeholder="Brief description of the service"
             />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="is_active"
-              checked={serviceData.is_active}
-              onChange={(e) =>
-                setServiceData({ ...serviceData, is_active: e.target.checked })
-              }
-              className="w-4 h-4 text-blue-600 rounded"
-            />
-            <label htmlFor="is_active" className="text-sm text-gray-700">
-              Active (Available to students)
-            </label>
           </div>
         </div>
 
@@ -479,11 +575,18 @@ const AddServiceWizard = () => {
       ? getImageUrl(selectedCollege.footer_image_url)
       : null;
 
-    // Format variables for react-mentions
-    const mentionData = variables.map((v) => ({
-      id: v.name,
-      display: `@${v.name}`,
-    }));
+    // Format variables for react-mentions (including principal_signature)
+    const activeVariables = variables && variables.length > 0 ? variables : DEFAULT_SYSTEM_VARIABLES;
+    const mentionData = [
+      ...activeVariables.map((v) => ({
+        id: v.name,
+        display: `@${v.name}`,
+      })),
+      {
+        id: "principal_signature",
+        display: "@principal_signature",
+      },
+    ].filter((v, i, self) => self.findIndex((t) => t.id === v.id) === i);
 
     // Mention style for autocomplete with whitespace preservation
     const getMentionStyle = (alignment = "center") => ({
@@ -532,30 +635,86 @@ const AddServiceWizard = () => {
       },
     });
 
-    // Process content to show input fields for ___ and replace @ variables
-    const processContentForPreview = (content, alignment = "center") => {
+    // Process content to show input fields for ___ and replace @ variables with individual line alignment
+    const processContentForPreview = (content, defaultAlignment = "left") => {
       if (!content) return "";
 
-      // Escape HTML but preserve spaces and line breaks
-      let processed = content
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/ /g, "&nbsp;") // Preserve spaces
-        .replace(/\n/g, "<br/>"); // Preserve line breaks
+      const lines = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+      return (
+        <div className="w-full">
+          {lines.map((line, idx) => {
+            let lineAlign = defaultAlignment;
+            let text = line.replace(/[\t\r]/g, " ");
 
-      // Replace @variable with styled variable (after HTML escaping)
-      processed = processed.replace(/@(\w+)/g, (match, varName) => {
-        return `<span class="inline-block bg-green-100 text-green-800 px-2 py-0.5 rounded text-sm font-mono">${match}</span>`;
-      });
+            const tagMatch = text.match(/^\s*\[(left|center|right|justify)\]([\s\S]*?)\[\/\1\]\s*$/i);
+            if (tagMatch) {
+              lineAlign = tagMatch[1].toLowerCase();
+              text = tagMatch[2];
+            }
 
-      // Replace ___ with styled input field placeholder
-      processed = processed.replace(
-        /___/g,
-        '<span class="inline-block border-b-2 border-blue-400 px-8 py-1 mx-1 bg-blue-50">[Input Field]</span>',
+            if (lineAlign === "right" || lineAlign === "center") {
+              text = text.trim();
+            }
+
+            // Normalize runs of 4 or more spaces into an input blank
+            text = text.replace(/ {4,}/g, " ___ ");
+
+            let processed = text
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+
+            // Represent all @ variables with specific fixed length for each field
+            const replaceVariableWithSpec = (varKey, rawMatch) => {
+              const cleanKey = varKey.replace(/^@/, "").trim();
+              const spec = VARIABLE_SPECS[cleanKey] || { fixedChars: 12, minWidth: 80 };
+              if (cleanKey === "principal_signature") {
+                return `<span class="inline-block border-b-2 border-slate-700 text-center font-semibold text-slate-800 mx-1 px-2" style="min-width: 140px;">[Principal Signature]</span>`;
+              }
+              return `<span class="inline-block border-b-2 border-blue-600 font-bold text-blue-900 mx-0.5 px-1 bg-blue-50/70 text-center underline underline-offset-4 decoration-blue-600 decoration-2" style="min-width: ${spec.minWidth}px;" title="Variable: @${cleanKey} (${spec.fixedChars} chars)">@${cleanKey}</span>`;
+            };
+
+            // 1. Handle react-mentions syntax: @[@display](id) or @[display](id)
+            processed = processed.replace(/@\[@?([^\]]+)\]\(([^\)]+)\)/g, (match, display, id) => {
+              return replaceVariableWithSpec(id || display, match);
+            });
+
+            // 2. Handle handlebars syntax: {{varName}}
+            processed = processed.replace(/{{([^}]+)}}/g, (match, varName) => {
+              return replaceVariableWithSpec(varName, match);
+            });
+
+            // 3. Handle standard @varName syntax
+            processed = processed.replace(/@(\w+)/g, (match, varName) => {
+              return replaceVariableWithSpec(varName, match);
+            });
+
+            const inputSize = templateData.input_field_size || 10;
+            // Clean, fitting underline
+            processed = processed.replace(
+              /(?:___(?:\[(\d+)\])?(?:&nbsp;|\s)*)+|_{3,}/g,
+              (match) => {
+                const isMulti = match.includes("&nbsp;") || match.includes(" ") || match.length > 5;
+                const width = isMulti ? Math.min(Math.max(inputSize * 8, 80), 130) : Math.min(Math.max(inputSize * 5, 45), 75);
+                return `<span class="inline-block border-b border-gray-900 align-baseline mx-1" style="min-width:${width}px;height:1em;" title="Input Field">&nbsp;</span>`;
+              }
+            );
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  textAlign: lineAlign,
+                  minHeight: "1.3em",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                }}
+                dangerouslySetInnerHTML={{ __html: processed || "&nbsp;" }}
+              />
+            );
+          })}
+        </div>
       );
-
-      return <div dangerouslySetInnerHTML={{ __html: processed }} />;
     };
 
     return (
@@ -588,130 +747,297 @@ const AddServiceWizard = () => {
             </button>
           </div>
         </div>
+        {/* Microsoft Word Style Top Ribbon Bar - Evenly Aligned on One Row */}
+        <div className="bg-slate-100 border-b border-slate-300 px-3 py-2 flex items-center justify-evenly text-xs flex-shrink-0 shadow-2xs w-full overflow-hidden">
+          {/* Section 1: Typography */}
+          <div className="flex items-center gap-1.5 pr-3 border-r border-slate-300 flex-shrink-0">
+            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+              <Type size={12} className="text-blue-600" /> Typography
+            </span>
+            <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded px-1 py-0.5 shadow-2xs">
+                <span className="text-[10px] text-slate-500">Size:</span>
+                <input
+                  type="number"
+                  min="8"
+                  max="24"
+                  value={templateData.font_size || 12}
+                  onChange={(e) =>
+                    setTemplateData({
+                      ...templateData,
+                      font_size: parseInt(e.target.value) || 12,
+                    })
+                  }
+                  className="w-7 text-center text-xs font-semibold text-slate-800 outline-none"
+                />
+                <span className="text-[9px] text-slate-400">px</span>
+              </div>
+              <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded px-1 py-0.5 shadow-2xs">
+                <span className="text-[10px] text-slate-500">Line:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="3"
+                  step="0.1"
+                  value={templateData.line_spacing || 1.5}
+                  onChange={(e) =>
+                    setTemplateData({
+                      ...templateData,
+                      line_spacing: parseFloat(e.target.value) || 1.5,
+                    })
+                  }
+                  className="w-7 text-center text-xs font-semibold text-slate-800 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Entire Text & Word Line Alignment */}
+          <div className="flex items-center gap-2 pr-3 border-r border-slate-300 flex-shrink-0">
+            {/* Entire Text Alignment */}
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold text-slate-700">Text:</span>
+              <div className="flex items-center bg-white border border-slate-200 rounded p-0.5 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setTemplateData({ ...templateData, middle_alignment: "left" })}
+                  className={`p-1 rounded transition ${templateData.middle_alignment === "left" ? "bg-blue-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100"}`}
+                  title="Align Entire Text Left"
+                >
+                  <AlignLeft size={12} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTemplateData({ ...templateData, middle_alignment: "center" })}
+                  className={`p-1 rounded transition ${templateData.middle_alignment === "center" ? "bg-blue-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100"}`}
+                  title="Align Entire Text Center"
+                >
+                  <AlignCenter size={12} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTemplateData({ ...templateData, middle_alignment: "right" })}
+                  className={`p-1 rounded transition ${templateData.middle_alignment === "right" ? "bg-blue-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100"}`}
+                  title="Align Entire Text Right"
+                >
+                  <AlignRight size={12} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTemplateData({ ...templateData, middle_alignment: "justify" })}
+                  className={`p-1 rounded transition ${templateData.middle_alignment === "justify" ? "bg-blue-600 text-white font-bold" : "text-slate-600 hover:bg-slate-100"}`}
+                  title="Justify Entire Text"
+                >
+                  <AlignJustify size={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* Word-Style Line Alignment */}
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold text-slate-700 flex items-center gap-0.5">
+                <span className="px-1 py-0.2 bg-blue-100 text-blue-800 rounded text-[9px] font-bold">Word</span>
+                Line:
+              </span>
+              <div className="flex items-center bg-white border border-slate-200 rounded p-0.5 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => applyLineAlignment("left")}
+                  className="p-1 rounded text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition"
+                  title="Align Cursor Line Left"
+                >
+                  <AlignLeft size={12} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyLineAlignment("center")}
+                  className="p-1 rounded text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition"
+                  title="Align Cursor Line Center"
+                >
+                  <AlignCenter size={12} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyLineAlignment("right")}
+                  className="p-1 rounded text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition"
+                  title="Align Cursor Line Right"
+                >
+                  <AlignRight size={12} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyLineAlignment("justify")}
+                  className="p-1 rounded text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition"
+                  title="Justify Cursor Line"
+                >
+                  <AlignJustify size={12} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Content Vertical Spacing */}
+          <div className="flex items-center gap-1.5 pr-3 border-r border-slate-300 flex-shrink-0">
+            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+              <Space size={12} className="text-blue-600" /> Spacing
+            </span>
+            <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded px-1 py-0.5 shadow-2xs">
+              <span className="text-[10px] text-slate-500">Pad:</span>
+              <input
+                type="number"
+                value={templateData.middle_section_padding || 20}
+                onChange={(e) =>
+                  setTemplateData({
+                    ...templateData,
+                    middle_section_padding: parseInt(e.target.value) || 20,
+                  })
+                }
+                className="w-7 text-center text-xs font-semibold text-slate-800 outline-none"
+              />
+              <span className="text-[9px] text-slate-400">px</span>
+            </div>
+          </div>
+
+          {/* Section 4: Page Margins */}
+          <div className="flex items-center gap-1.5 pr-3 border-r border-slate-300 flex-shrink-0">
+            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+              Margins (px)
+            </span>
+            <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded px-1 py-0.5 shadow-2xs">
+              <span className="text-[10px] text-slate-500 font-medium">L:</span>
+              <input
+                type="number"
+                value={templateData.padding_left || 40}
+                onChange={(e) =>
+                  setTemplateData({
+                    ...templateData,
+                    padding_left: parseInt(e.target.value) || 40,
+                  })
+                }
+                className="w-6 text-center text-xs font-semibold text-slate-800 outline-none"
+              />
+              <span className="text-[10px] text-slate-500 font-medium ml-0.5">R:</span>
+              <input
+                type="number"
+                value={templateData.padding_right || 40}
+                onChange={(e) =>
+                  setTemplateData({
+                    ...templateData,
+                    padding_right: parseInt(e.target.value) || 40,
+                  })
+                }
+                className="w-6 text-center text-xs font-semibold text-slate-800 outline-none"
+              />
+              <span className="text-[10px] text-slate-500 font-medium ml-0.5">T:</span>
+              <input
+                type="number"
+                value={templateData.padding_top || 40}
+                onChange={(e) =>
+                  setTemplateData({
+                    ...templateData,
+                    padding_top: parseInt(e.target.value) || 40,
+                  })
+                }
+                className="w-6 text-center text-xs font-semibold text-slate-800 outline-none"
+              />
+              <span className="text-[10px] text-slate-500 font-medium ml-0.5">B:</span>
+              <input
+                type="number"
+                value={templateData.padding_bottom || 40}
+                onChange={(e) =>
+                  setTemplateData({
+                    ...templateData,
+                    padding_bottom: parseInt(e.target.value) || 40,
+                  })
+                }
+                className="w-6 text-center text-xs font-semibold text-slate-800 outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Section 5: Header & Footer Size */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+              Header/Footer (px)
+            </span>
+            <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded px-1 py-0.5 shadow-2xs">
+              <span className="text-[10px] text-slate-500 font-medium">Hdr:</span>
+              <input
+                type="number"
+                value={templateData.header_height || 80}
+                onChange={(e) =>
+                  setTemplateData({
+                    ...templateData,
+                    header_height: parseInt(e.target.value) || 80,
+                  })
+                }
+                className="w-7 text-center text-xs font-semibold text-slate-800 outline-none"
+              />
+              <span className="text-[10px] text-slate-500 font-medium ml-0.5">Ftr:</span>
+              <input
+                type="number"
+                value={templateData.footer_height || 60}
+                onChange={(e) =>
+                  setTemplateData({
+                    ...templateData,
+                    footer_height: parseInt(e.target.value) || 60,
+                  })
+                }
+                className="w-7 text-center text-xs font-semibold text-slate-800 outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Section 6: Input Size Validation */}
+          <div className="flex items-center gap-1.5 pl-3 border-l border-slate-300 flex-shrink-0">
+            <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+              Input Size:
+            </span>
+            <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded px-1 py-0.5 shadow-2xs">
+              <input
+                type="number"
+                min="4"
+                max="30"
+                value={templateData.input_field_size || 10}
+                onChange={(e) =>
+                  setTemplateData({
+                    ...templateData,
+                    input_field_size: Math.min(Math.max(parseInt(e.target.value) || 10, 4), 30),
+                  })
+                }
+                className="w-7 text-center text-xs font-semibold text-slate-800 outline-none"
+              />
+              <span className="text-[9px] text-slate-400">chars</span>
+            </div>
+          </div>
+        </div>
 
         {/* Split View: Input Fields + Live Preview */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Side: Input Fields and Controls */}
           <div className="w-1/2 overflow-y-auto bg-gray-50 p-6 border-r wizard-sidebar-scroll">
-            <div className="max-w-2xl mx-auto space-y-4">
-              {/* Top Section Input */}
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-semibold text-gray-900">
-                    Top Section (Optional)
-                  </label>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          top_alignment: "left",
-                        })
-                      }
-                      className={`p-1.5 rounded ${templateData.top_alignment === "left" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}
-                      title="Align Left"
-                    >
-                      <AlignLeft size={12} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          top_alignment: "center",
-                        })
-                      }
-                      className={`p-1.5 rounded ${templateData.top_alignment === "center" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}
-                      title="Align Center"
-                    >
-                      <AlignCenter size={12} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          top_alignment: "right",
-                        })
-                      }
-                      className={`p-1.5 rounded ${templateData.top_alignment === "right" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}
-                      title="Align Right"
-                    >
-                      <AlignRight size={12} />
-                    </button>
+            <div className="w-full space-y-4">
+              {/* Single Certificate Content Box */}
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                      <FileText size={16} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-900">
+                        Certificate Content <span className="text-red-500">*</span>
+                      </label>
+                      <p className="text-[11px] text-gray-500">
+                        Enter body text, student variables (@), blanks (___), and align text or lines
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <MentionsInput
-                  value={templateData.top_content}
-                  onChange={(e) =>
-                    setTemplateData({
-                      ...templateData,
-                      top_content: e.target.value,
-                    })
-                  }
-                  style={getMentionStyle(
-                    templateData.top_alignment || "center",
-                  )}
-                  placeholder="Type @ to see variables, ___ for input fields"
-                >
-                  <Mention
-                    trigger="@"
-                    data={mentionData}
-                    style={{ backgroundColor: "#dbeafe" }}
-                  />
-                </MentionsInput>
-              </div>
 
-              {/* Middle Section Input */}
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-semibold text-gray-900">
-                    Middle Section (Required) *
-                  </label>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          middle_alignment: "left",
-                        })
-                      }
-                      className={`p-1.5 rounded ${templateData.middle_alignment === "left" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}
-                      title="Align Left"
-                    >
-                      <AlignLeft size={12} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          middle_alignment: "center",
-                        })
-                      }
-                      className={`p-1.5 rounded ${templateData.middle_alignment === "center" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}
-                      title="Align Center"
-                    >
-                      <AlignCenter size={12} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          middle_alignment: "right",
-                        })
-                      }
-                      className={`p-1.5 rounded ${templateData.middle_alignment === "right" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}
-                      title="Align Right"
-                    >
-                      <AlignRight size={12} />
-                    </button>
-                  </div>
-                </div>
+                {/* MentionsInput Editor */}
                 <MentionsInput
+                  inputRef={contentInputRef}
                   value={templateData.middle_content}
                   onChange={(e) =>
                     setTemplateData({
@@ -719,18 +1045,32 @@ const AddServiceWizard = () => {
                       middle_content: e.target.value,
                     })
                   }
+                  onSelect={(e) => {
+                    setActiveCursorPos({
+                      start: e.target.selectionStart,
+                      end: e.target.selectionEnd,
+                    });
+                  }}
+                  onClick={(e) => {
+                    setActiveCursorPos({
+                      start: e.target.selectionStart,
+                      end: e.target.selectionEnd,
+                    });
+                  }}
+                  onKeyUp={(e) => {
+                    setActiveCursorPos({
+                      start: e.target.selectionStart,
+                      end: e.target.selectionEnd,
+                    });
+                  }}
                   style={{
-                    ...getMentionStyle(
-                      templateData.middle_alignment || "center",
-                    ),
+                    ...getMentionStyle(templateData.middle_alignment || "center"),
                     control: {
-                      ...getMentionStyle(
-                        templateData.middle_alignment || "center",
-                      ).control,
-                      minHeight: 150,
+                      ...getMentionStyle(templateData.middle_alignment || "center").control,
+                      minHeight: 220,
                     },
                   }}
-                  placeholder="Type @ to see variables, ___ for input fields"
+                  placeholder="Type certificate text here. Use @ for variables (e.g. @student_name), ___ for input fields."
                 >
                   <Mention
                     trigger="@"
@@ -738,307 +1078,18 @@ const AddServiceWizard = () => {
                     style={{ backgroundColor: "#dbeafe" }}
                   />
                 </MentionsInput>
-              </div>
 
-              {/* Bottom Section Input */}
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-xs font-semibold text-gray-900">
-                    Bottom Section (Optional)
-                  </label>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          bottom_alignment: "left",
-                        })
-                      }
-                      className={`p-1.5 rounded ${templateData.bottom_alignment === "left" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}
-                      title="Align Left"
-                    >
-                      <AlignLeft size={12} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          bottom_alignment: "center",
-                        })
-                      }
-                      className={`p-1.5 rounded ${templateData.bottom_alignment === "center" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}
-                      title="Align Center"
-                    >
-                      <AlignCenter size={12} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          bottom_alignment: "right",
-                        })
-                      }
-                      className={`p-1.5 rounded ${templateData.bottom_alignment === "right" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-600"}`}
-                      title="Align Right"
-                    >
-                      <AlignRight size={12} />
-                    </button>
-                  </div>
+                <p className="text-[11px] text-slate-500">
+                  Tip: Put cursor on any line and click a <strong>Line Alignment</strong> button to align that line individually (like in Microsoft Word).
+                </p>
+              </div>
+              {/* Word-Style Clean Help Box */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl p-3.5 flex items-start gap-3 shadow-2xs">
+                <span className="text-lg">💡</span>
+                <div className="text-[11px] text-slate-700 leading-relaxed">
+                  <span className="font-bold text-slate-900 block mb-0.5">Microsoft Word-Style Toolbar Above:</span>
+                  All certificate formatting controls (<span className="font-semibold text-blue-700">Typography, Alignments, Margins, Spacing, and Header/Footer</span>) are organized in the top ribbon bar above. Type <code className="bg-white px-1.5 py-0.5 rounded border border-blue-200 text-blue-900 font-bold">@</code> to autocomplete variables (including <code className="bg-white px-1.5 py-0.5 rounded border border-blue-200 text-blue-900 font-bold">@principal_signature</code>) and <code className="bg-white px-1.5 py-0.5 rounded border border-blue-200 text-blue-900 font-bold">___</code> for fillable blanks.
                 </div>
-                <MentionsInput
-                  value={templateData.bottom_content}
-                  onChange={(e) =>
-                    setTemplateData({
-                      ...templateData,
-                      bottom_content: e.target.value,
-                    })
-                  }
-                  style={getMentionStyle(
-                    templateData.bottom_alignment || "center",
-                  )}
-                  placeholder="Type @ to see variables, ___ for input fields"
-                >
-                  <Mention
-                    trigger="@"
-                    data={mentionData}
-                    style={{ backgroundColor: "#dbeafe" }}
-                  />
-                </MentionsInput>
-              </div>
-
-              {/* Typography Controls */}
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <h4 className="text-xs font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Type size={14} /> Typography
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Font Size (px)
-                    </label>
-                    <input
-                      type="number"
-                      min="8"
-                      max="24"
-                      value={templateData.font_size || 12}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          font_size: parseInt(e.target.value) || 12,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Line Spacing
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="3"
-                      step="0.1"
-                      value={templateData.line_spacing || 1.5}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          line_spacing: parseFloat(e.target.value) || 1.5,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Section Padding Controls */}
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <h4 className="text-xs font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Space size={14} /> Section Spacing (px)
-                </h4>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Top
-                    </label>
-                    <input
-                      type="number"
-                      value={templateData.top_section_padding || 10}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          top_section_padding: parseInt(e.target.value) || 10,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Middle
-                    </label>
-                    <input
-                      type="number"
-                      value={templateData.middle_section_padding || 20}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          middle_section_padding:
-                            parseInt(e.target.value) || 20,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Bottom
-                    </label>
-                    <input
-                      type="number"
-                      value={templateData.bottom_section_padding || 10}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          bottom_section_padding:
-                            parseInt(e.target.value) || 10,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Page Padding Controls */}
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <h4 className="text-xs font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <Space size={14} /> Page Margins (px)
-                </h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Left
-                    </label>
-                    <input
-                      type="number"
-                      value={templateData.padding_left || 40}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          padding_left: parseInt(e.target.value) || 40,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Right
-                    </label>
-                    <input
-                      type="number"
-                      value={templateData.padding_right || 40}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          padding_right: parseInt(e.target.value) || 40,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Top
-                    </label>
-                    <input
-                      type="number"
-                      value={templateData.padding_top || 40}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          padding_top: parseInt(e.target.value) || 40,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Bottom
-                    </label>
-                    <input
-                      type="number"
-                      value={templateData.padding_bottom || 40}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          padding_bottom: parseInt(e.target.value) || 40,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Header/Footer Size Controls */}
-              <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-                <h4 className="text-xs font-semibold text-gray-900 mb-3">
-                  Header & Footer Size (px)
-                </h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Header Height
-                    </label>
-                    <input
-                      type="number"
-                      value={templateData.header_height || 80}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          header_height: parseInt(e.target.value) || 80,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-gray-600 mb-1">
-                      Footer Height
-                    </label>
-                    <input
-                      type="number"
-                      value={templateData.footer_height || 60}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          footer_height: parseInt(e.target.value) || 60,
-                        })
-                      }
-                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Help Box */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <h4 className="text-xs font-semibold text-blue-900 mb-2">
-                  💡 Quick Tips
-                </h4>
-                <ul className="text-[10px] text-blue-800 space-y-1">
-                  <li>• Type @ to see autocomplete with variables</li>
-                  <li>• Type ___ (3 underscores) for input fields</li>
-                  <li>• Adjust margins, spacing, and fonts</li>
-                  <li>• Preview updates in real-time</li>
-                </ul>
               </div>
             </div>
           </div>
@@ -1076,30 +1127,11 @@ const AddServiceWizard = () => {
                     </div>
                   )}
 
-                  {/* Top Content */}
-                  {templateData.top_content && (
-                    <div
-                      className="text-gray-800"
-                      style={{
-                        textAlign: templateData.top_alignment || "center",
-                        paddingBottom: `${templateData.top_section_padding || 10}px`,
-                      }}
-                    >
-                      <div className="whitespace-pre-wrap">
-                        {processContentForPreview(
-                          templateData.top_content,
-                          templateData.top_alignment,
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Middle Content */}
+                  {/* Certificate Content */}
                   {templateData.middle_content && (
                     <div
                       className="text-gray-800"
                       style={{
-                        textAlign: templateData.middle_alignment || "center",
                         paddingTop: `${templateData.middle_section_padding || 20}px`,
                         paddingBottom: `${templateData.middle_section_padding || 20}px`,
                       }}
@@ -1107,25 +1139,7 @@ const AddServiceWizard = () => {
                       <div className="whitespace-pre-wrap">
                         {processContentForPreview(
                           templateData.middle_content,
-                          templateData.middle_alignment,
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Bottom Content */}
-                  {templateData.bottom_content && (
-                    <div
-                      className="text-gray-800"
-                      style={{
-                        textAlign: templateData.bottom_alignment || "center",
-                        paddingTop: `${templateData.bottom_section_padding || 10}px`,
-                      }}
-                    >
-                      <div className="whitespace-pre-wrap">
-                        {processContentForPreview(
-                          templateData.bottom_content,
-                          templateData.bottom_alignment,
+                          templateData.middle_alignment || "left",
                         )}
                       </div>
                     </div>
@@ -1146,11 +1160,6 @@ const AddServiceWizard = () => {
                       />
                     </div>
                   )}
-
-                  {/* Preview Badge */}
-                  <div className="absolute top-4 right-4 bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full border border-green-200 shadow-sm uppercase tracking-wider">
-                    LIVE PREVIEW
-                  </div>
 
                   {/* Placeholder when empty */}
                   {!templateData.middle_content && (
@@ -1303,7 +1312,7 @@ const AddServiceWizard = () => {
       className={
         currentStep === 2
           ? ""
-          : "p-6 max-w-4xl mx-auto space-y-6 animate-fade-in"
+          : "p-6 sm:p-8 w-full max-w-full space-y-6 animate-fade-in"
       }
     >
       {/* Header - Hide on Step 2 */}

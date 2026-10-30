@@ -1,27 +1,30 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+// Disable buffering so queries fail-fast immediately instead of hanging for 10 seconds when offline/disconnected
+mongoose.set('bufferCommands', false);
+
 const MONGO_CLIENT_OPTIONS = {
-  serverSelectionTimeoutMS: 5000,
-  connectTimeoutMS: 5000,
-  socketTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 3000, // Fail fast in 3s instead of 30s default
+  connectTimeoutMS: 3000,
+  socketTimeoutMS: 5000,
   maxPoolSize: 5,
   minPoolSize: 1,
+  bufferCommands: false,
 };
 
 const connectDB = async () => {
-  const uri = process.env.MONGO_URI || process.env.FEE_MONGO_URI;
-  if (!uri) {
-    console.warn('⚠️ Neither MONGO_URI nor FEE_MONGO_URI is defined. Skipping Fee DB connection.');
+  if (!process.env.MONGO_URI) {
+    console.warn('⚠️ MONGO_URI is not defined. Skipping default MongoDB connection.');
     return null;
   }
 
   try {
-    const conn = await mongoose.connect(uri, MONGO_CLIENT_OPTIONS);
-    console.log(`✅ Fee DB Connected: ${conn.connection.host}`);
+    const conn = await mongoose.connect(process.env.MONGO_URI, MONGO_CLIENT_OPTIONS);
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
-    console.error(`❌ Error connecting to Fee DB: ${error.message}`);
+    console.error(`❌ Error connecting to MongoDB: ${error.message}`);
     // We don't exit the process here to allow the MySQL server to keep running
     return null;
   }
@@ -29,6 +32,7 @@ const connectDB = async () => {
 
 let hrmsConnection = null;
 let hostelConnection = null;
+let libraryConnection = null;
 
 const getHRMSConnection = () => {
   if (hrmsConnection) return hrmsConnection;
@@ -82,4 +86,37 @@ const getHostelConnection = () => {
   }
 };
 
-module.exports = { connectDB, getHRMSConnection, getHostelConnection };
+const getLibraryConnection = () => {
+  if (libraryConnection && libraryConnection.readyState === 1) {
+    return libraryConnection;
+  }
+
+  const uri = process.env.LIBRARY_MONGO_URI ||
+              process.env.LIBRARY_MONGODB_URI ||
+              process.env.MONGO_LIBRARY_URI ||
+              process.env.LIBRARY_DB_URI ||
+              process.env.LIBRARY_URL;
+
+  if (!uri) {
+    return null;
+  }
+
+  try {
+    libraryConnection = mongoose.createConnection(uri, MONGO_CLIENT_OPTIONS);
+
+    libraryConnection.on('connected', () => {
+      console.log(`✅ Library MongoDB Connected`);
+    });
+
+    libraryConnection.on('error', (err) => {
+      console.error(`❌ Library MongoDB Connection Error: ${err.message}`);
+    });
+
+    return libraryConnection;
+  } catch (error) {
+    console.error(`❌ Error creating Library MongoDB connection: ${error.message}`);
+    return null;
+  }
+};
+
+module.exports = { connectDB, getHRMSConnection, getHostelConnection, getLibraryConnection };

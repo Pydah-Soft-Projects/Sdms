@@ -219,6 +219,7 @@ app.use("/api/internship", require("./internship/internshipRoutes"));
 app.use("/api/profile-changes", require("./routes/profileChangeRoutes"));
 app.use("/api/certificate-borrow", require("./routes/certificateBorrowRoutes"));
 app.use("/api/qr", require("./routes/qrRoutes")); // Public QR verify endpoint
+app.use("/api/library", require("./routes/libraryRoutes"));
 
 // AI Integration Routes for Central pydah-ai Engine
 const aiIntegrationRoutes = require("./ai_integration/routes");
@@ -286,6 +287,7 @@ app.use("/internship", require("./internship/internshipRoutes"));
 app.use("/profile-changes", require("./routes/profileChangeRoutes"));
 app.use("/certificate-borrow", require("./routes/certificateBorrowRoutes"));
 app.use("/qr", require("./routes/qrRoutes"));
+app.use("/library", require("./routes/libraryRoutes"));
 
 // Root API endpoint
 app.get("/api", (req, res) => {

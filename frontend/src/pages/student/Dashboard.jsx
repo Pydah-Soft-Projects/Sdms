@@ -23,7 +23,8 @@ import {
     RiFolderLine,
     RiServiceLine,
     RiSparklingLine,
-    RiTicketLine
+    RiTicketLine,
+    RiBook2Line
 } from 'react-icons/ri';
 
 const Dashboard = () => {
@@ -828,6 +829,15 @@ const Dashboard = () => {
                 iconBg: 'bg-[#fce7f3]',
                 iconColor: 'text-[#db2777]',
                 enabled: isEnabled('services')
+            },
+            {
+                key: 'library',
+                label: 'Library',
+                path: '/student/library',
+                icon: RiBook2Line,
+                iconBg: 'bg-[#ecfdf5]',
+                iconColor: 'text-[#059669]',
+                enabled: isEnabled('library')
             },
             {
                 key: 'my-tickets',

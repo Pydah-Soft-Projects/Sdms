@@ -404,7 +404,7 @@ exports.createRequestByAdmin = async (req, res) => {
       );
     } else {
       // Create New Student
-      const [res] = await masterPool.execute(
+      const [insertStudentRes] = await masterPool.execute(
         `INSERT INTO students (
                     admission_number, student_name, father_name, student_mobile,
                     course, branch, current_year, current_semester,
@@ -425,7 +425,7 @@ exports.createRequestByAdmin = async (req, res) => {
           student_address || null,
         ],
       );
-      student_id = res.insertId;
+      student_id = insertStudentRes.insertId;
     }
 
     // Verify service
@@ -444,7 +444,7 @@ exports.createRequestByAdmin = async (req, res) => {
     // Create request as PAID immediately
     const [result] = await masterPool.execute(
       "INSERT INTO service_requests (student_id, service_id, status, payment_status, request_data, created_at, request_date) VALUES (?, ?, ?, ?, ?, NOW(), NOW())",
-      [student.id, service_id, "pending", "paid", request_data],
+      [student_id, service_id, "pending", "paid", request_data],
     );
 
     res.status(201).json({

@@ -285,18 +285,21 @@ const AddServiceWizard = () => {
   const generatePreview = async () => {
     // Logic to prepare preview URL for final review
     try {
+      const selectedCollegeId = serviceData.college_id || templateData.college_id;
       const blob = await serviceService.previewTemplate({
         template_type: "dynamic",
         service_name: serviceData.name,
+        college_id: selectedCollegeId,
         template_config: {
           ...templateData,
-          // If URLs are needed, they are in templateData or resolved by backend
+          college_id: selectedCollegeId,
         },
       });
       const url = URL.createObjectURL(blob);
       setFinalPreviewJson(url);
     } catch (e) {
-      console.error(e);
+      console.error("Preview generation error:", e);
+      toast.error("Failed to generate preview: " + (e.response?.data?.message || e.message));
     }
   };
 

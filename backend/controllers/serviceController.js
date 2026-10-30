@@ -8,16 +8,27 @@ const FeeHead = require('../MongoDb-Models/FeeHead');
 const StudentFee = require('../MongoDb-Models/StudentFee');
 const Transaction = require('../MongoDb-Models/Transaction');
 
+// Helper to check admin/staff privilege (supports admin, super_admin, subadmin, etc.)
+const isAuthorizedStaffOrAdmin = (user) => {
+  if (!user) return false;
+  const role = String(user.role || '').toLowerCase();
+  return (
+    role === 'admin' ||
+    role === 'super_admin' ||
+    role === 'superadmin' ||
+    role === 'subadmin' ||
+    role === 'sub_admin' ||
+    Boolean(user.isAdmin || user.is_admin) ||
+    (role !== 'student' && role !== 'parent')
+  );
+};
+
 // --- Services Configuration (Admin) ---
 
 // Get all services (Admin sees all, Students see active only)
 exports.getServices = async (req, res) => {
   try {
-    const isAdmin =
-      req.user &&
-      (req.user.role === "admin" ||
-        req.user.role === "super_admin" ||
-        req.user.isAdmin);
+    const isAdmin = isAuthorizedStaffOrAdmin(req.user);
     let query = "SELECT * FROM services";
     const params = [];
 
@@ -727,10 +738,7 @@ exports.downloadCertificate = async (req, res) => {
   try {
     const { id } = req.params; // request id
     const student_id = req.user.id;
-    const isAdmin =
-      req.user.role === "admin" ||
-      req.user.role === "super_admin" ||
-      req.user.isAdmin;
+    const isAdmin = isAuthorizedStaffOrAdmin(req.user);
 
     // Fetch request with service and student details
     const query = `
@@ -972,10 +980,7 @@ const VARIABLE_FIXED_CHARS = {
 exports.previewTemplate = async (req, res) => {
   try {
     const { template_type, service_name } = req.body;
-    const isAdmin =
-      req.user.role === "admin" ||
-      req.user.role === "super_admin" ||
-      req.user.isAdmin;
+    const isAdmin = isAuthorizedStaffOrAdmin(req.user);
 
     if (!isAdmin) {
       return res.status(403).json({ success: false, message: "Unauthorized" });
@@ -1043,24 +1048,20 @@ exports.previewTemplate = async (req, res) => {
 
     try {
       let target;
-      if (config.college_id) {
+      const targetCollegeId = config.college_id || req.body.college_id;
+      if (targetCollegeId) {
         const [specCollege] = await masterPool.execute(
-          "SELECT * FROM colleges WHERE id = ?",
-          [config.college_id],
+          "SELECT * FROM colleges WHERE id = ? LIMIT 1",
+          [targetCollegeId],
         );
         if (specCollege.length > 0) target = specCollege[0];
       }
 
       if (!target) {
         const [colleges] = await masterPool.execute(
-          "SELECT * FROM colleges WHERE is_active = 1",
+          "SELECT * FROM colleges WHERE is_active = 1 LIMIT 1",
         );
-        if (colleges.length > 0) {
-          target =
-            colleges.find((c) =>
-              c.name.includes("Pydah College of Engineering"),
-            ) || colleges[0];
-        }
+        if (colleges.length > 0) target = colleges[0];
       }
 
       if (target) {

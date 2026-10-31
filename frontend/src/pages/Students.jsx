@@ -15,6 +15,8 @@ import {
   TrendingUp,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   ArrowUpDown,
   Key,
   FileSpreadsheet,
@@ -4422,39 +4424,7 @@ const Students = () => {
               </div>
             </div>
 
-            {/* Profile Completion Alert Banner */}
-            {profileCompletion.percentage < 100 && (
-              <div className="mx-6 mt-3 p-3 bg-orange-50/90 border border-orange-200/90 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-2xs shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-                    <AlertTriangle size={18} />
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="font-extrabold text-gray-900">Profile completion is {profileCompletion.percentage}%</span>
-                    <span className="text-gray-300 font-bold">|</span>
-                    <span className="font-semibold text-gray-600">{profileCompletion.missingFields?.length || 0} fields are missing</span>
-                    <div className="flex flex-wrap gap-1.5 ml-2">
-                      {profileCompletion.missingFields?.slice(0, 4).map((f) => (
-                        <span key={f} className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-orange-800 border border-orange-200 shadow-2xs">
-                          {f}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                {!editMode && canEditStudents && !isCashier && (
-                  <button
-                    onClick={handleEdit}
-                    className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-1.5 rounded-xl transition-all shadow-md shadow-orange-200 flex items-center gap-1 shrink-0 active:scale-95"
-                  >
-                    <span>Complete Profile</span>
-                    <span>&rarr;</span>
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Same Mobile Number Alert Banner */}
+            {/* Inline Alert Banners (Profile Completion & Duplicate Mobile) */}
             {(() => {
               const currentStudMob = editMode
                 ? (editData.student_mobile ?? editData['Student Mobile Number'] ?? selectedStudent?.student_mobile)
@@ -4467,71 +4437,103 @@ const Students = () => {
                 : (selectedStudent?.parent_mobile2 || selectedStudent?.student_data?.['Parent Mobile Number 2']);
               const dupCheck = checkSameStudentAndParentMobile(currentStudMob, currentP1, currentP2);
 
-              if (!dupCheck.hasDuplicate) return null;
+              const showProfileAlert = profileCompletion.percentage < 100;
+              const showDupAlert = Boolean(dupCheck.hasDuplicate);
+
+              if (!showProfileAlert && !showDupAlert) return null;
 
               return (
-                <div className="mx-6 mt-3 p-3.5 bg-amber-50/95 border-2 border-amber-400 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-2xs shrink-0 animate-fade-in">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                      <AlertTriangle size={18} className="animate-pulse" />
+                <div className={`mx-4 sm:mx-6 mt-2 grid grid-cols-1 ${showProfileAlert && showDupAlert ? 'md:grid-cols-2' : ''} gap-2 shrink-0`}>
+                  {/* Profile Completion Alert Banner */}
+                  {showProfileAlert && (
+                    <div className="py-1.5 px-3 bg-orange-50/80 border border-orange-200/90 rounded-xl flex items-center justify-between gap-2 shadow-2xs">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <AlertTriangle size={14} className="text-orange-500 shrink-0" />
+                        <div className="flex items-center gap-1.5 text-xs min-w-0">
+                          <span className="font-extrabold text-gray-900 whitespace-nowrap">
+                            Profile {profileCompletion.percentage}%
+                          </span>
+                          <span className="text-gray-300 font-bold">•</span>
+                          <span className="text-gray-600 whitespace-nowrap">
+                            {profileCompletion.missingFields?.length || 0} missing:
+                          </span>
+                          <span className="font-semibold text-orange-900 truncate" title={profileCompletion.missingFields?.join(', ')}>
+                            {profileCompletion.missingFields?.slice(0, 2).join(', ')}{(profileCompletion.missingFields?.length || 0) > 2 ? '...' : ''}
+                          </span>
+                        </div>
+                      </div>
+                      {!editMode && canEditStudents && !isCashier && (
+                        <button
+                          onClick={handleEdit}
+                          className="text-[11px] font-bold text-orange-700 hover:text-orange-950 bg-orange-100 hover:bg-orange-200 px-2.5 py-0.5 rounded-lg transition-colors shrink-0 whitespace-nowrap flex items-center gap-1 active:scale-95 ml-2"
+                        >
+                          <span>Complete</span>
+                          <span>&rarr;</span>
+                        </button>
+                      )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <span className="font-extrabold text-amber-950">
-                        Duplicate Mobile Detected:
-                      </span>
-                      <span className="text-amber-800 font-semibold">
-                        Student mobile &amp; <span className="font-bold underline">{dupCheck.matchedLabel}</span> are identical
-                      </span>
-                      <span className="text-amber-400 font-bold">|</span>
-                      <span className="font-mono font-bold bg-amber-100 text-amber-950 px-2 py-0.5 rounded border border-amber-300">
-                        {dupCheck.number}
-                      </span>
-                      <span className="text-amber-700 text-[11px]">
-                        (Must be distinct numbers for SMS, OTPs &amp; parent alerts)
-                      </span>
+                  )}
+
+                  {/* Duplicate Mobile Alert Banner */}
+                  {showDupAlert && (
+                    <div className="py-1.5 px-3 bg-amber-50/90 border border-amber-300/90 rounded-xl flex items-center justify-between gap-2 shadow-2xs animate-fade-in">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <AlertTriangle size={14} className="text-amber-600 shrink-0 animate-pulse" />
+                        <div className="flex items-center gap-1.5 text-xs min-w-0">
+                          <span className="font-extrabold text-amber-950 whitespace-nowrap">
+                            Duplicate Mobile:
+                          </span>
+                          <span className="text-amber-800 font-semibold truncate" title={`Student mobile & ${dupCheck.matchedLabel} are identical (${dupCheck.number})`}>
+                            Student &amp; <span className="underline">{dupCheck.matchedLabel}</span>
+                          </span>
+                          <span className="font-mono font-bold bg-amber-100 text-amber-950 px-1.5 py-0.2 rounded text-[11px] border border-amber-200 shrink-0">
+                            {dupCheck.number}
+                          </span>
+                        </div>
+                      </div>
+                      {!editMode && canEditStudents && !isCashier && (
+                        <button
+                          onClick={() => {
+                            handleEdit();
+                            setActiveStudentTab('details');
+                          }}
+                          className="text-[11px] font-bold text-amber-800 hover:text-amber-950 bg-amber-200/90 hover:bg-amber-300 px-2.5 py-0.5 rounded-lg transition-colors shrink-0 whitespace-nowrap flex items-center gap-1 active:scale-95 ml-2"
+                        >
+                          <Edit size={10} />
+                          <span>Change</span>
+                        </button>
+                      )}
                     </div>
-                  </div>
-                  {!editMode && canEditStudents && !isCashier && (
-                    <button
-                      onClick={() => {
-                        handleEdit();
-                        setActiveStudentTab('details');
-                      }}
-                      className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-1.5 rounded-xl transition-all shadow-md shadow-amber-200 flex items-center gap-1 shrink-0 active:scale-95"
-                    >
-                      <Edit size={12} />
-                      <span>Change Number Now</span>
-                    </button>
                   )}
                 </div>
               );
             })()}
 
-            {/* Tabs Navigation Bar */}
-            <div className="bg-white border-b border-gray-200/80 px-6 shrink-0 shadow-2xs mt-2">
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
+            {/* Tabs Navigation Bar - Fitted within section */}
+            <div className="bg-white border-b border-gray-200/80 px-4 sm:px-6 shrink-0 shadow-2xs mt-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 py-2">
                 <button
                   onClick={() => setActiveStudentTab('details')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                     activeStudentTab === 'details'
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
-                  <User size={15} />
+                  <User size={14} />
                   <span>Overview</span>
                 </button>
 
                 {canViewField('registration_status') && (
                   <button
                     onClick={() => setActiveStudentTab('registration')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                       activeStudentTab === 'registration'
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
-                    <GraduationCap size={15} />
+                    <GraduationCap size={14} />
                     <span>Registration</span>
                   </button>
                 )}
@@ -4539,13 +4541,13 @@ const Students = () => {
                 {canViewAttendance && (
                   <button
                     onClick={() => setActiveStudentTab('attendance')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                       activeStudentTab === 'attendance'
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
-                    <Calendar size={15} />
+                    <Calendar size={14} />
                     <span>Attendance</span>
                   </button>
                 )}
@@ -4553,13 +4555,13 @@ const Students = () => {
                 {canViewScholarship && (
                   <button
                     onClick={() => setActiveStudentTab('scholarship')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                       activeStudentTab === 'scholarship'
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
-                    <CreditCard size={15} />
+                    <CreditCard size={14} />
                     <span>Fees & Scholarship</span>
                   </button>
                 )}
@@ -4567,63 +4569,63 @@ const Students = () => {
                 {canViewMeritStatus && (
                   <button
                     onClick={() => setActiveStudentTab('merit_status')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                       activeStudentTab === 'merit_status'
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
-                    <Award size={15} />
+                    <Award size={14} />
                     <span>Merit Status</span>
                   </button>
                 )}
 
                 <button
                   onClick={() => setActiveStudentTab('transport_hostel')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                     activeStudentTab === 'transport_hostel'
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
-                  <Bus size={15} />
+                  <Bus size={14} />
                   <span>Transport/Hostel</span>
                 </button>
 
                 {canViewSms && (
                   <button
                     onClick={() => setActiveStudentTab('sms_tracking')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                       activeStudentTab === 'sms_tracking'
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
-                    <MessageSquare size={15} />
+                    <MessageSquare size={14} />
                     <span>Communication</span>
                   </button>
                 )}
                 <button
                   onClick={() => setActiveStudentTab('history')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                     activeStudentTab === 'history'
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
-                  <History size={15} />
+                  <History size={14} />
                   <span>History</span>
                 </button>
 
                 <button
                   onClick={() => setActiveStudentTab('parent_activity')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                     activeStudentTab === 'parent_activity'
                       ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
-                  <Eye size={15} />
+                  <Eye size={14} />
                   <span>Parent Activity</span>
                 </button>
               </div>
@@ -5518,22 +5520,7 @@ const Students = () => {
                     </div>
                   </div>
 
-                  {/* Bottom Informational Banner (Image 2 style) */}
-                  <div className="bg-blue-50/80 border border-blue-100 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-blue-900 shadow-2xs">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                        <Info size={18} />
-                      </div>
-                      <div>
-                        <p className="font-extrabold">Additional Information</p>
-                        <p className="text-gray-600 font-medium">View student's documents, examination records, fee history and more in respective tabs.</p>
-                      </div>
-                    </div>
-                    <span className="text-gray-500 font-medium text-[11px] shrink-0">
-                      For any data corrections, please use Edit Profile or contact the Academic Office.
-                    </span>
                   </div>
-                </div>
               )}
 
               {/* Other Tabs Rendering (Keep exact functionality) */}

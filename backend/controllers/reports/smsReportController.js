@@ -90,6 +90,7 @@ exports.getSmsReport = async (req, res) => {
         sl.template_id = t.template_id
         OR (sl.category = 'SMS Template' AND sl.template_id IS NULL AND sl.message LIKE CONCAT('%', SUBSTRING_INDEX(t.content, '{#var#}', 1), '%'))
       )
+      ${joinClause}
       ${dateWhere}
       GROUP BY t.id, t.name, t.template_id`,
       dateParams

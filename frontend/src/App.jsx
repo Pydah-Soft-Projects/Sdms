@@ -69,6 +69,7 @@ const Transport = lazy(() => import('./pages/student/Transport'));
 const InternshipStudent = lazy(() => import('./internship/InternshipStudent'));
 const MyProfileRequests = lazy(() => import('./pages/student/MyProfileRequests'));
 const MyDocuments = lazy(() => import('./pages/student/MyDocuments'));
+const StudentLibrary = lazy(() => import('./pages/student/Library'));
 
 // Faculty Pages (v2.0, Lazy Loaded)
 const FacultyLayout = lazy(() => import('./components/Layout/FacultyLayout'));
@@ -333,6 +334,7 @@ function App() {
             <Route path="ai-assistant" element={<AiAssistant />} />
             <Route path="academic-content" element={<StudentAcademicContent />} />
             <Route path="internal-marks" element={<StudentInternalMarks />} />
+            <Route path="library" element={<StudentLibrary />} />
           </Route>
 
           {/* Protected Parent Routes */}

@@ -44,7 +44,9 @@ import {
     RiAwardLine,
     RiAwardFill,
     RiSparklingLine,
-    RiSparklingFill
+    RiSparklingFill,
+    RiBook2Line,
+    RiBook2Fill
 } from 'react-icons/ri';
 import useAuthStore from '../../store/authStore';
 import api from '../../config/api';
@@ -324,10 +326,13 @@ const StudentLayout = ({ children }) => {
         }
     }, [location.pathname, isPending]);
 
-    // If AI Assistant is disabled in layout settings, block direct access to /student/ai-assistant
+    // If AI Assistant or Library is disabled in layout settings, block direct access
     useEffect(() => {
-        if (layoutSettings && (layoutSettings['ai-assistant'] === false || layoutSettings.ai_assistant === false)) {
-            if (location.pathname === '/student/ai-assistant') {
+        if (layoutSettings) {
+            if ((layoutSettings['ai-assistant'] === false || layoutSettings.ai_assistant === false) && location.pathname === '/student/ai-assistant') {
+                navigate('/student/dashboard', { replace: true });
+            }
+            if (layoutSettings.library === false && location.pathname === '/student/library') {
                 navigate('/student/dashboard', { replace: true });
             }
         }
@@ -396,6 +401,7 @@ const StudentLayout = ({ children }) => {
         { icon: RiCalendar2Line, activeIcon: RiCalendar2Fill, label: 'Time Table', path: '/student/timetable' },
         { icon: RiFileList3Line, activeIcon: RiFileList3Fill, label: 'Sem Registration', path: '/student/semester-registration' },
         { icon: RiServiceLine, activeIcon: RiServiceFill, label: 'Services', path: '/student/services' },
+        { icon: RiBook2Line, activeIcon: RiBook2Fill, label: 'Library', path: '/student/library' },
         { icon: RiTicketLine, activeIcon: RiTicketFill, label: 'Maintenance', path: '/student/my-tickets', isExternal: true, isTicketApp: true },
         { icon: RiBusLine, activeIcon: RiBusFill, label: 'Transport', path: '/student/transport' },
         { icon: RiWallet3Line, activeIcon: RiWallet3Fill, label: 'Fee Management', path: '/student/fees' },

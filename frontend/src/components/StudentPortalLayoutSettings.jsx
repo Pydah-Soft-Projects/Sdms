@@ -19,7 +19,8 @@ import {
     Bus,
     Wallet,
     Award,
-    Sparkles
+    Sparkles,
+    BookMarked
 } from 'lucide-react';
 import api from '../config/api';
 
@@ -41,7 +42,8 @@ const StudentPortalLayoutSettings = ({ readOnly = false }) => {
         feedback: true,
         transport: false,
         fees: false,
-        scholarship: true
+        scholarship: true,
+        library: true
     });
 
     useEffect(() => {
@@ -97,6 +99,7 @@ const StudentPortalLayoutSettings = ({ readOnly = false }) => {
         { key: 'semester-registration', label: 'Sem Registration', icon: FileText, description: 'Semester enrollment and documentation' },
         { key: 'services', label: 'Services', icon: Briefcase, description: 'Certificate requests and student services' },
         { key: 'my-tickets', label: 'Maintenance', icon: Ticket, description: 'Raise and track maintenance tickets' },
+        { key: 'library', label: 'Library', icon: BookMarked, description: 'Browse college library catalog, book search, and copy availability' },
         { key: 'feedback', label: 'Feed Back', icon: MessageSquare, description: 'Feedback forms for faculty and courses' },
         { key: 'transport', label: 'Transport', icon: Bus, description: 'College bus routes and tracking' },
         { key: 'fees', label: 'Fee Management', icon: Wallet, description: 'Fee payments and receipts' },

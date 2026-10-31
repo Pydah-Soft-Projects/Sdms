@@ -2,6 +2,7 @@ const { masterPool } = require('../config/database');
 const {
   USER_ROLES,
   createDefaultPermissions,
+  createSuperAdminPermissions,
   parsePermissions,
   ROLE_LABELS,
   ALL_MODULES,
@@ -18,6 +19,7 @@ const CONFIGURABLE_ROLES = [
 ];
 
 const ROLE_DESCRIPTIONS = {
+  [USER_ROLES.SUPER_ADMIN]: 'Full system access with complete administrative privileges across all modules, settings, and branches',
   [USER_ROLES.COLLEGE_PRINCIPAL]: 'Manages overall college operations and has oversight of all programs and branches',
   [USER_ROLES.COLLEGE_AO]: 'Administrative officer responsible for college-level operations and record management',
   [USER_ROLES.COLLEGE_ATTENDER]: 'Basic access for attendance tracking and daily record management',
@@ -85,8 +87,11 @@ const ensureRoleConfigTable = async () => {
  * Used by createUser and getRoleConfig
  */
 const getPermissionsForRole = async (roleKey) => {
-  if (!roleKey || roleKey === USER_ROLES.SUPER_ADMIN) {
+  if (!roleKey) {
     return null;
+  }
+  if (roleKey === USER_ROLES.SUPER_ADMIN || roleKey === 'admin') {
+    return createSuperAdminPermissions();
   }
   try {
     const [rows] = await masterPool.query(
@@ -107,6 +112,7 @@ const getPermissionsForRole = async (roleKey) => {
 /** Check if a role exists (main app built-in or custom in DB only; ticket app roles not included) */
 const roleExistsInConfig = async (roleKey) => {
   if (!roleKey) return false;
+  if (roleKey === USER_ROLES.SUPER_ADMIN || roleKey === 'admin') return true;
   try {
     const [r] = await masterPool.query('SELECT is_deleted FROM rbac_role_config WHERE role_key = ?', [roleKey]);
     if (r && r.length > 0) {
@@ -160,6 +166,20 @@ exports.getRoleConfigs = async (req, res) => {
     });
 
     const configs = [];
+
+    // 1. Super Admin: Root system role with full unrestricted access (all permissions enabled)
+    configs.push({
+      role_key: USER_ROLES.SUPER_ADMIN,
+      label: ROLE_LABELS[USER_ROLES.SUPER_ADMIN] || 'Super Admin',
+      description: ROLE_DESCRIPTIONS[USER_ROLES.SUPER_ADMIN] || 'Full system access with complete administrative privileges across all modules, settings, and branches',
+      permissions: createSuperAdminPermissions(),
+      updated_at: null,
+      is_custom: false,
+      is_system: true,
+      can_edit: false,
+      can_delete: false
+    });
+
     CONFIGURABLE_ROLES.forEach(roleKey => {
       const stored = byRole[roleKey];
       if (stored && stored.is_deleted) return;
@@ -175,12 +195,15 @@ exports.getRoleConfigs = async (req, res) => {
         description: (stored && stored.description) || ROLE_DESCRIPTIONS[roleKey] || '',
         permissions,
         updated_at: stored?.updated_at || null,
-        is_custom: false
+        is_custom: false,
+        is_system: false,
+        can_edit: true,
+        can_delete: true
       });
     });
 
     rows.forEach(r => {
-      if (!CONFIGURABLE_ROLES.includes(r.role_key) && !TICKET_APP_ROLES.includes(r.role_key)) {
+      if (!CONFIGURABLE_ROLES.includes(r.role_key) && !TICKET_APP_ROLES.includes(r.role_key) && r.role_key !== USER_ROLES.SUPER_ADMIN && r.role_key !== 'admin') {
         if (Number(r.is_deleted || 0) === 1) return;
         let permissions = createDefaultPermissions();
         if (byRole[r.role_key] && byRole[r.role_key].permissions) {
@@ -194,7 +217,10 @@ exports.getRoleConfigs = async (req, res) => {
           description: r.description || '',
           permissions,
           updated_at: r.updated_at || null,
-          is_custom: true
+          is_custom: true,
+          is_system: false,
+          can_edit: true,
+          can_delete: true
         });
       }
     });
@@ -242,6 +268,20 @@ exports.getRoleConfigByRole = async (req, res) => {
   try {
     await ensureRoleConfigTable();
     const { roleKey } = req.params;
+    if (roleKey === USER_ROLES.SUPER_ADMIN || roleKey === 'admin') {
+      return res.json({
+        success: true,
+        data: {
+          role_key: USER_ROLES.SUPER_ADMIN,
+          label: ROLE_LABELS[USER_ROLES.SUPER_ADMIN] || 'Super Admin',
+          description: ROLE_DESCRIPTIONS[USER_ROLES.SUPER_ADMIN] || 'Full system access with complete administrative privileges across all modules, settings, and branches',
+          permissions: createSuperAdminPermissions(),
+          is_system: true,
+          can_edit: false,
+          can_delete: false
+        }
+      });
+    }
     const exists = await roleExistsInConfig(roleKey);
     if (!exists) {
       return res.status(400).json({ success: false, message: 'Invalid role' });
@@ -280,6 +320,9 @@ exports.updateRoleConfig = async (req, res) => {
   try {
     await ensureRoleConfigTable();
     const { roleKey } = req.params;
+    if (roleKey === USER_ROLES.SUPER_ADMIN || roleKey === 'admin') {
+      return res.status(400).json({ success: false, message: 'Super Admin is a system-protected role and cannot be modified.' });
+    }
     const { label: bodyLabel, description: bodyDescription, permissions: rawPermissions, propagateToExistingUsers = true } = req.body || {};
 
     const permissions = parsePermissions(rawPermissions || createDefaultPermissions());
@@ -381,6 +424,10 @@ exports.deleteRoleConfig = async (req, res) => {
 
     if (!roleKey) {
       return res.status(400).json({ success: false, message: 'Role key is required' });
+    }
+
+    if (roleKey === USER_ROLES.SUPER_ADMIN || roleKey === 'admin') {
+      return res.status(400).json({ success: false, message: 'Super Admin is a system-protected role and cannot be deleted.' });
     }
 
     // 1. Unassign users who currently have this role in rbac_users

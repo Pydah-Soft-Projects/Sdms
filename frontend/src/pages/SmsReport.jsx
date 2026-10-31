@@ -207,13 +207,20 @@ function SmsReport() {
       const found = templates.find((t) => String(t.template_id) === String(log.template_id));
       if (found?.name) return found.name;
     }
+    const normalizeTemplateText = (value) => String(value || '').toLocaleLowerCase().replace(/\s+/g, ' ').trim();
+    const normalizedMessage = normalizeTemplateText(log.message);
     const matched = templates.find((t) => {
       if (!t.content) return false;
       const parts = t.content.split(/\{#var#\}|\{\{.*?\}\}/);
       const snippet = (parts.find((p) => p.trim().length >= 8) || parts[0] || '').trim();
-      return snippet && log.message && log.message.includes(snippet);
+      return snippet && normalizedMessage.includes(normalizeTemplateText(snippet));
     });
     if (matched?.name) return matched.name;
+    if (String(log.category || '').toLowerCase() === 'otp') {
+      if (normalizedMessage.includes('parent portal otp')) return 'Parent Portal OTP';
+      if (normalizedMessage.includes('semester registration')) return 'Semester Registration OTP';
+      return 'OTP SMS';
+    }
     return '-';
   };
 

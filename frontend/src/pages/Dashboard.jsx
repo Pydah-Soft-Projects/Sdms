@@ -27,7 +27,12 @@ import {
   ExternalLink,
   Database,
   Settings,
-  GraduationCap
+  GraduationCap,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Eye,
+  CreditCard
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../config/api';
@@ -208,6 +213,9 @@ const Dashboard = () => {
   const isAdmin = isFullAccessRole(user?.role);
   const [completingDashboardAlertId, setCompletingDashboardAlertId] = useState(null);
   const [selectedDashboardAlert, setSelectedDashboardAlert] = useState(null);
+  const [showAllDashboardAlerts, setShowAllDashboardAlerts] = useState(false);
+  const [alertStudentSearch, setAlertStudentSearch] = useState('');
+  const [completingAllAlerts, setCompletingAllAlerts] = useState(false);
 
   const [attendancePeriod, setAttendancePeriod] = useState('today');
   const [showBreakdownModal, setShowBreakdownModal] = useState(false);
@@ -313,6 +321,93 @@ const Dashboard = () => {
       setCompletingDashboardAlertId(null);
     }
   };
+
+  const markAllDashboardAlertsIssued = async () => {
+    if (!dashboardAlerts.length) return;
+    setCompletingAllAlerts(true);
+    try {
+      try {
+        await api.patch('/web-notifications/complete-all-id-cards');
+      } catch (err) {
+        await Promise.all(
+          dashboardAlerts.map((a) => api.patch(`/web-notifications/${a.id}/complete`))
+        );
+      }
+      queryClient.setQueryData(dashboardAlertQueryKey, []);
+      toast.success('All ID card alerts marked as issued');
+      setSelectedDashboardAlert(null);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to mark ID cards as issued');
+    } finally {
+      setCompletingAllAlerts(false);
+    }
+  };
+
+  const allAlertStudents = useMemo(() => {
+    const map = new Map();
+    dashboardAlerts.forEach((alert) => {
+      const students = Array.isArray(alert.data?.students) ? alert.data.students : [];
+      students.forEach((s) => {
+        const key = s.admissionNumber || s.pinNumber || s.name;
+        if (key && !map.has(key)) {
+          map.set(key, {
+            ...s,
+            alertId: alert.id,
+            alertTitle: alert.title,
+            alertCreatedAt: alert.created_at
+          });
+        }
+      });
+    });
+    return Array.from(map.values());
+  }, [dashboardAlerts]);
+
+  const totalPendingStudents = allAlertStudents.length || dashboardAlerts.reduce((sum, a) => {
+    const groups = Array.isArray(a.data?.groups) ? a.data.groups : [];
+    return sum + (a.data?.totalStudents || groups.reduce((acc, g) => acc + (g.studentCount || 0), 0) || 1);
+  }, 0);
+
+  const aggregatedGroups = useMemo(() => {
+    const map = new Map();
+    dashboardAlerts.forEach((alert) => {
+      const groups = Array.isArray(alert.data?.groups) ? alert.data.groups : [];
+      if (groups.length > 0) {
+        groups.forEach((g) => {
+          const key = [g.college, g.batch, g.course, g.branch].filter(Boolean).join(' · ');
+          if (!map.has(key)) {
+            map.set(key, { ...g, label: key, studentCount: 0 });
+          }
+          map.get(key).studentCount += (g.studentCount || g.students?.length || 1);
+        });
+      } else if (Array.isArray(alert.data?.students)) {
+        alert.data.students.forEach((s) => {
+          const key = [s.college, s.batch, s.course, s.branch].filter(Boolean).join(' · ') || 'General';
+          if (!map.has(key)) {
+            map.set(key, { college: s.college, batch: s.batch, course: s.course, branch: s.branch, label: key, studentCount: 0 });
+          }
+          map.get(key).studentCount += 1;
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [dashboardAlerts]);
+
+  const modalStudents = useMemo(() => {
+    if (!selectedDashboardAlert) return [];
+    const list = selectedDashboardAlert.isAll
+      ? (selectedDashboardAlert.students || allAlertStudents)
+      : (Array.isArray(selectedDashboardAlert.data?.students) ? selectedDashboardAlert.data.students : []);
+    if (!alertStudentSearch.trim()) return list;
+    const q = alertStudentSearch.toLowerCase().trim();
+    return list.filter((s) =>
+      (s.name && s.name.toLowerCase().includes(q)) ||
+      (s.admissionNumber && s.admissionNumber.toLowerCase().includes(q)) ||
+      (s.pinNumber && s.pinNumber.toLowerCase().includes(q)) ||
+      (s.college && s.college.toLowerCase().includes(q)) ||
+      (s.branch && s.branch.toLowerCase().includes(q)) ||
+      (s.course && s.course.toLowerCase().includes(q))
+    );
+  }, [selectedDashboardAlert, allAlertStudents, alertStudentSearch]);
 
   // Announcements data for dashboard card (fetched from database/API)
   const { data: rawAnnouncements = [], isLoading: loadingAnnouncements } = useQuery({
@@ -722,29 +817,71 @@ const Dashboard = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="pin-update-students-title"
-            className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            className="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3 border-b border-gray-100 p-4 sm:p-5">
               <div>
-                <h2 id="pin-update-students-title" className="text-base font-bold text-gray-900">
-                  Students needing ID cards
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2 id="pin-update-students-title" className="text-base font-bold text-gray-900">
+                    {selectedDashboardAlert.isAll ? 'Complete Student Details Needing ID Cards' : 'Students Needing ID Cards'}
+                  </h2>
+                  <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                    {modalStudents.length} student{modalStudents.length === 1 ? '' : 's'}
+                  </span>
+                </div>
                 <p className="mt-1 text-xs text-gray-500">
-                  {selectedDashboardAlert.title} · {selectedDashboardAlert.data?.totalStudents || 0} students
+                  {selectedDashboardAlert.isAll
+                    ? `Showing all ${allAlertStudents.length} pending students across ${dashboardAlerts.length} batch${dashboardAlerts.length === 1 ? '' : 'es'}`
+                    : `${selectedDashboardAlert.title} · ${selectedDashboardAlert.data?.totalStudents || (selectedDashboardAlert.data?.students?.length || 0)} students`}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedDashboardAlert(null)}
-                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
-                aria-label="Close student details"
-              >
-                <X size={18} />
-              </button>
+
+              <div className="flex items-center gap-2">
+                {!selectedDashboardAlert.isAll && dashboardAlerts.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAlertStudentSearch('');
+                      setSelectedDashboardAlert({
+                        isAll: true,
+                        title: 'All Pending ID Cards',
+                        students: allAlertStudents,
+                        totalStudents: totalPendingStudents
+                      });
+                    }}
+                    className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+                  >
+                    <Eye size={13} /> View All ({totalPendingStudents})
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedDashboardAlert(null)}
+                  className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                  aria-label="Close student details"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
+
+            {/* Search filter within popup */}
+            <div className="border-b border-gray-100 bg-gray-50/50 px-4 py-2.5 sm:px-5">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={alertStudentSearch}
+                  onChange={(e) => setAlertStudentSearch(e.target.value)}
+                  placeholder="Search student by name, admission no, PIN, or branch..."
+                  className="w-full rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-xs text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
             <div className="overflow-auto p-4 sm:p-5">
-              {Array.isArray(selectedDashboardAlert.data?.students) && selectedDashboardAlert.data.students.length > 0 ? (
+              {modalStudents.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[640px] text-left text-xs">
                     <thead className="bg-gray-50 text-[10px] uppercase tracking-wide text-gray-500">
@@ -757,11 +894,11 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {selectedDashboardAlert.data.students.map((student, index) => (
-                        <tr key={`${student.admissionNumber}-${index}`} className="text-gray-700">
+                      {modalStudents.map((student, index) => (
+                        <tr key={`${student.admissionNumber || student.pinNumber || index}-${index}`} className="text-gray-700 hover:bg-gray-50/60">
                           <td className="px-3 py-2.5 font-medium text-gray-900">{student.name || '—'}</td>
-                          <td className="px-3 py-2.5">{student.admissionNumber || '—'}</td>
-                          <td className="px-3 py-2.5">{student.pinNumber || '—'}</td>
+                          <td className="px-3 py-2.5 font-mono text-[11px] text-gray-600">{student.admissionNumber || '—'}</td>
+                          <td className="px-3 py-2.5 font-mono font-semibold text-blue-700">{student.pinNumber || '—'}</td>
                           <td className="px-3 py-2.5">{student.college || '—'}</td>
                           <td className="px-3 py-2.5">{[student.batch, student.course, student.branch].filter(Boolean).join(' · ') || '—'}</td>
                         </tr>
@@ -771,18 +908,48 @@ const Dashboard = () => {
                 </div>
               ) : (
                 <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-                  Student details are unavailable for this older alert. New alerts will include the student list.
+                  {alertStudentSearch ? 'No students found matching your search.' : 'Student details are unavailable for this alert.'}
                 </p>
               )}
             </div>
-            <div className="flex justify-end border-t border-gray-100 p-3 sm:p-4">
-              <button
-                type="button"
-                onClick={() => setSelectedDashboardAlert(null)}
-                className="rounded-lg bg-gray-900 px-4 py-2 text-xs font-semibold text-white hover:bg-gray-800"
-              >
-                Close
-              </button>
+
+            <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/60 p-3 sm:p-4">
+              <span className="text-[11px] text-gray-500">
+                Showing {modalStudents.length} student{modalStudents.length === 1 ? '' : 's'}
+              </span>
+              <div className="flex items-center gap-2">
+                {selectedDashboardAlert.isAll ? (
+                  <button
+                    type="button"
+                    disabled={completingAllAlerts}
+                    onClick={markAllDashboardAlertsIssued}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 transition"
+                  >
+                    <CheckCircle size={14} />
+                    {completingAllAlerts ? 'Updating…' : 'Mark All Issued'}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={completingDashboardAlertId === selectedDashboardAlert.id}
+                    onClick={() => {
+                      markDashboardAlertIssued(selectedDashboardAlert.id);
+                      setSelectedDashboardAlert(null);
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 transition"
+                  >
+                    <CheckCircle size={14} />
+                    {completingDashboardAlertId === selectedDashboardAlert.id ? 'Updating…' : 'Mark This Alert Issued'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedDashboardAlert(null)}
+                  className="rounded-lg bg-gray-800 px-4 py-2 text-xs font-semibold text-white hover:bg-gray-700 transition"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </section>
         </div>
@@ -934,84 +1101,226 @@ const Dashboard = () => {
       </div>
 
       {dashboardAlerts.length > 0 && (
-        <section className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4" aria-label="ID card PIN update alerts">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="text-sm font-bold text-gray-800">ID Card PIN update alerts</h2>
-            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-semibold text-blue-700">
-              {dashboardAlerts.length} pending
-            </span>
+        <section className="rounded-2xl border border-gray-200/90 bg-white p-4 shadow-sm sm:p-5" aria-label="ID card PIN update alerts">
+          {/* Section Header */}
+          <div className="mb-4 flex flex-col gap-3 border-b border-gray-100 pb-3.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <CreditCard size={18} />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-sm font-bold text-gray-900 sm:text-base">ID Card PIN update alerts</h2>
+                  <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                    {totalPendingStudents} student{totalPendingStudents === 1 ? '' : 's'} pending
+                  </span>
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                    {dashboardAlerts.length} batch{dashboardAlerts.length === 1 ? '' : 'es'}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-gray-500">
+                  PIN numbers were updated. Review student details in the pop-up modal or mark as issued.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => {
+                  setAlertStudentSearch('');
+                  setSelectedDashboardAlert({
+                    isAll: true,
+                    title: 'All Pending ID Cards',
+                    students: allAlertStudents,
+                    totalStudents: totalPendingStudents
+                  });
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+              >
+                <Eye size={13} />
+                View Complete Details ({totalPendingStudents})
+              </button>
+
+              <button
+                type="button"
+                disabled={completingAllAlerts}
+                onClick={markAllDashboardAlertsIssued}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+              >
+                <CheckCircle size={13} />
+                {completingAllAlerts ? 'Updating…' : 'Mark All Issued'}
+              </button>
+            </div>
           </div>
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-            {dashboardAlerts.map((notification) => {
-              const groups = Array.isArray(notification.data?.groups) ? notification.data.groups : [];
-              const totalStudents = notification.data?.totalStudents || groups.reduce(
-                (total, group) => total + (group.studentCount || group.students?.length || 0),
-                0
-              );
-              const createdAt = new Date(notification.created_at);
-              const alertTime = Number.isNaN(createdAt.getTime())
-                ? ''
-                : formatDistanceToNow(createdAt, { addSuffix: true });
 
-              return (
-                <div
-                  key={notification.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setSelectedDashboardAlert(notification)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      setSelectedDashboardAlert(notification);
-                    }
-                  }}
-                  className="cursor-pointer rounded-lg border border-gray-100 bg-gray-50/70 p-3 transition hover:border-blue-200 hover:bg-blue-50/30 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                  aria-label={`View students for ${notification.title}`}
+          {/* Consolidated Single Section Card */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => {
+              setAlertStudentSearch('');
+              setSelectedDashboardAlert({
+                isAll: true,
+                title: 'All Pending ID Cards',
+                students: allAlertStudents,
+                totalStudents: totalPendingStudents
+              });
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setAlertStudentSearch('');
+                setSelectedDashboardAlert({
+                  isAll: true,
+                  title: 'All Pending ID Cards',
+                  students: allAlertStudents,
+                  totalStudents: totalPendingStudents
+                });
+              }
+            }}
+            className="cursor-pointer rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-white p-3.5 transition hover:border-blue-300 hover:shadow-sm sm:p-4"
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="text-xs font-semibold text-gray-900 sm:text-sm">
+                    {totalPendingStudents} Student{totalPendingStudents === 1 ? '' : 's'} need ID cards issued
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-gray-600">
+                  Updated across {aggregatedGroups.length} branch group{aggregatedGroups.length === 1 ? '' : 's'}. Click here or any alert batch to view complete details in the pop-up modal.
+                </p>
+
+                {/* Aggregated Group Badges */}
+                {aggregatedGroups.length > 0 && (
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {aggregatedGroups.slice(0, 5).map((group, idx) => (
+                      <span
+                        key={`agg-group-${idx}`}
+                        className="rounded-md border border-blue-200/80 bg-white px-2 py-0.5 text-[10px] font-medium text-gray-700 shadow-2xs"
+                      >
+                        {group.label} — <strong className="text-blue-700">{group.studentCount}</strong>
+                      </span>
+                    ))}
+                    {aggregatedGroups.length > 5 && (
+                      <span className="rounded-md bg-blue-100/70 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                        +{aggregatedGroups.length - 5} more branches
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 self-start sm:self-center">
+                <span>Click to view complete details</span>
+                <ArrowRight size={14} />
+              </div>
+            </div>
+          </div>
+
+          {/* Batches Preview List with View More toggle */}
+          <div className="mt-3.5">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-xs font-semibold text-gray-700">
+                Recent Alert Batches ({dashboardAlerts.length})
+              </h3>
+              {dashboardAlerts.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllDashboardAlerts(!showAllDashboardAlerts)}
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 hover:text-blue-800"
                 >
-                  <div className="flex items-start gap-2.5">
-                    <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="min-w-0">
-                          <h3 className="text-xs font-semibold text-gray-800">{notification.title}</h3>
-                          <p className="mt-0.5 text-[11px] text-gray-500">
-                            {totalStudents ? `${totalStudents} student${totalStudents === 1 ? '' : 's'} need ID cards issued.` : notification.message}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          disabled={completingDashboardAlertId === notification.id}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            markDashboardAlertIssued(notification.id);
-                          }}
-                          className="inline-flex shrink-0 items-center justify-center gap-1.5 self-start rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60 sm:self-auto"
-                        >
-                          <CheckCircle size={13} />
-                          {completingDashboardAlertId === notification.id ? 'Updating…' : 'Mark Issued'}
-                        </button>
-                      </div>
+                  {showAllDashboardAlerts ? (
+                    <>
+                      Show Less <ChevronUp size={14} />
+                    </>
+                  ) : (
+                    <>
+                      View More ({dashboardAlerts.length - 3} more) <ChevronDown size={14} />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
 
-                      {groups.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {groups.map((group, groupIndex) => (
-                            <span
-                              key={`${group.college}-${group.batch}-${group.course}-${group.branch}-${groupIndex}`}
-                              className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-600"
-                            >
-                              {[group.college, group.batch, group.course, group.branch].filter(Boolean).join(' · ')}
-                              {' — '}{group.studentCount || 0}
-                            </span>
-                          ))}
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+              {(showAllDashboardAlerts ? dashboardAlerts : dashboardAlerts.slice(0, 3)).map((notification) => {
+                const groups = Array.isArray(notification.data?.groups) ? notification.data.groups : [];
+                const totalStudents = notification.data?.totalStudents || groups.reduce(
+                  (total, group) => total + (group.studentCount || group.students?.length || 0),
+                  0
+                );
+                const createdAt = new Date(notification.created_at);
+                const alertTime = Number.isNaN(createdAt.getTime())
+                  ? ''
+                  : formatDistanceToNow(createdAt, { addSuffix: true });
+
+                return (
+                  <div
+                    key={notification.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      setAlertStudentSearch('');
+                      setSelectedDashboardAlert(notification);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setAlertStudentSearch('');
+                        setSelectedDashboardAlert(notification);
+                      }
+                    }}
+                    className="cursor-pointer rounded-lg border border-gray-100 bg-gray-50/70 p-3 transition hover:border-blue-200 hover:bg-blue-50/30 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    aria-label={`View students for ${notification.title}`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="min-w-0">
+                            <h4 className="text-xs font-semibold text-gray-800">{notification.title}</h4>
+                            <p className="mt-0.5 text-[11px] text-gray-500">
+                              {totalStudents ? `${totalStudents} student${totalStudents === 1 ? '' : 's'} need ID cards issued.` : notification.message}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={completingDashboardAlertId === notification.id}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              markDashboardAlertIssued(notification.id);
+                            }}
+                            className="inline-flex shrink-0 items-center justify-center gap-1.5 self-start rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60 sm:self-auto"
+                          >
+                            <CheckCircle size={13} />
+                            {completingDashboardAlertId === notification.id ? 'Updating…' : 'Mark Issued'}
+                          </button>
                         </div>
-                      )}
-                      {alertTime && <p className="mt-2 text-[10px] text-gray-400">{alertTime}</p>}
-                      <p className="mt-1 text-[10px] font-medium text-blue-600">Click to view student details</p>
+
+                        {groups.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {groups.map((group, groupIndex) => (
+                              <span
+                                key={`${group.college}-${group.batch}-${group.course}-${group.branch}-${groupIndex}`}
+                                className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-600"
+                              >
+                                {[group.college, group.batch, group.course, group.branch].filter(Boolean).join(' · ')}
+                                {' — '}{group.studentCount || 0}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {alertTime && <p className="mt-2 text-[10px] text-gray-400">{alertTime}</p>}
+                        <p className="mt-1 text-[10px] font-medium text-blue-600">Click to view student details</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </section>
       )}

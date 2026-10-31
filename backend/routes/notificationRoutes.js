@@ -16,6 +16,7 @@ router.patch('/:id/read', notificationController.markAsRead);
 router.patch('/read-all', notificationController.markAllAsRead);
 
 // Mark an ID card notification as issued/completed
+router.patch('/complete-all-id-cards', notificationController.markAllIdCardsAsCompleted);
 router.patch('/:id/complete', notificationController.markAsCompleted);
 
 // Clear all notifications

@@ -145,6 +145,33 @@ exports.markAsCompleted = async (req, res) => {
     }
 };
 
+exports.markAllIdCardsAsCompleted = async (req, res) => {
+    try {
+        const recipient = getNotificationRecipient(req);
+        if (!recipient || recipient.mobileNumber !== 'WEB_STAFF') {
+            return res.status(403).json({ success: false, message: 'Staff notifications only' });
+        }
+
+        const [result] = await masterPool.query(
+            `UPDATE sms_logs
+             SET status = 'Completed'
+             WHERE student_id = ? AND mobile_number = ?
+               AND category = 'ID Card'
+               AND status != 'Completed'`,
+            [recipient.id, recipient.mobileNumber]
+        );
+
+        res.json({
+            success: true,
+            message: `${result.affectedRows} ID card notification(s) marked as issued`,
+            count: result.affectedRows
+        });
+    } catch (error) {
+        console.error('Error completing all ID card notifications:', error);
+        res.status(500).json({ success: false, message: 'Failed to complete all ID card notifications' });
+    }
+};
+
 /**
  * Mark a notification as read
  */

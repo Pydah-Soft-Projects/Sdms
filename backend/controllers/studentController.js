@@ -3068,9 +3068,11 @@ exports.commitBulkUploadStudents = async (req, res) => {
 
 const buildSameMobileConditionSql = (alias = 's') => {
   const prefix = alias ? `${alias}.` : '';
-  const sMob = `COALESCE(${prefix}student_mobile, JSON_UNQUOTE(JSON_EXTRACT(${prefix}student_data, '$.student_mobile')), '')`;
-  const pMob1 = `COALESCE(${prefix}parent_mobile1, JSON_UNQUOTE(JSON_EXTRACT(${prefix}student_data, '$.parent_mobile1')), '')`;
-  const pMob2 = `COALESCE(${prefix}parent_mobile2, JSON_UNQUOTE(JSON_EXTRACT(${prefix}student_data, '$.parent_mobile2')), '')`;
+  const safeJsonExtract = (path) =>
+    `CASE WHEN ${prefix}student_data IS NOT NULL AND JSON_VALID(${prefix}student_data) THEN JSON_UNQUOTE(JSON_EXTRACT(${prefix}student_data, '${path}')) ELSE NULL END`;
+  const sMob = `COALESCE(${prefix}student_mobile, ${safeJsonExtract('$.student_mobile')}, '')`;
+  const pMob1 = `COALESCE(${prefix}parent_mobile1, ${safeJsonExtract('$.parent_mobile1')}, '')`;
+  const pMob2 = `COALESCE(${prefix}parent_mobile2, ${safeJsonExtract('$.parent_mobile2')}, '')`;
 
   const cleanSMob = `REGEXP_REPLACE(${sMob}, '[^0-9]', '')`;
   const cleanPMob1 = `REGEXP_REPLACE(${pMob1}, '[^0-9]', '')`;
@@ -3454,7 +3456,7 @@ exports.getAllStudents = async (req, res) => {
         const fieldName = key.replace('filter_field_', '');
         // Escape field name for JSON path (handle spaces and special chars)
         const escapedFieldName = fieldName.replace(/"/g, '\\"');
-        query += ` AND JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."${escapedFieldName}"')) = ?`;
+        query += ` AND s.student_data IS NOT NULL AND JSON_VALID(s.student_data) AND JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."${escapedFieldName}"')) = ?`;
         params.push(value);
       }
     });
@@ -3687,7 +3689,7 @@ exports.getAllStudents = async (req, res) => {
         const fieldName = key.replace('filter_field_', '');
         // Escape field name for JSON path (handle spaces and special chars)
         const escapedFieldName = fieldName.replace(/"/g, '\\"');
-        countQuery += ` AND JSON_UNQUOTE(JSON_EXTRACT(student_data, '$."${escapedFieldName}"')) = ?`;
+        countQuery += ` AND student_data IS NOT NULL AND JSON_VALID(student_data) AND JSON_UNQUOTE(JSON_EXTRACT(student_data, '$."${escapedFieldName}"')) = ?`;
         countParams.push(value);
       }
     });
@@ -4559,6 +4561,12 @@ exports.updateStudent = async (req, res) => {
     if (dataForJson['Student Photo'] && typeof dataForJson['Student Photo'] === 'string' && dataForJson['Student Photo'].startsWith('data:image/')) {
       delete dataForJson['Student Photo'];
     }
+    // Safeguard: Strip any remaining data:image base64 fields to prevent student_data bloat
+    Object.keys(dataForJson).forEach(k => {
+      if (typeof dataForJson[k] === 'string' && dataForJson[k].startsWith('data:image/')) {
+        delete dataForJson[k];
+      }
+    });
 
     const serializedStudentData = JSON.stringify(dataForJson);
     const studentDataChanged = !jsonPayloadsEqual(dataForJson, existingStudentData);

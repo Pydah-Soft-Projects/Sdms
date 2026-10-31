@@ -1121,7 +1121,7 @@ exports.getAttendance = async (req, res) => {
           s.student_name LIKE ?
           OR s.pin_no LIKE ?
           OR srn.roll_number LIKE ?
-          OR (s.student_data IS NOT NULL AND (
+          OR (s.student_data IS NOT NULL AND JSON_VALID(s.student_data) AND (
             JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Student Name"')) LIKE ?
             OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."student_name"')) LIKE ?
             OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."PIN Number"')) LIKE ?
@@ -1140,7 +1140,7 @@ exports.getAttendance = async (req, res) => {
         AND (
           s.parent_mobile1 LIKE ?
           OR s.parent_mobile2 LIKE ?
-          OR (s.student_data IS NOT NULL AND (
+          OR (s.student_data IS NOT NULL AND JSON_VALID(s.student_data) AND (
             JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Parent Mobile Number 1"')) LIKE ?
             OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Parent Mobile Number 2"')) LIKE ?
           ))
@@ -1302,7 +1302,7 @@ exports.getAttendance = async (req, res) => {
           s.student_name LIKE ?
           OR s.pin_no LIKE ?
           OR srn.roll_number LIKE ?
-          OR (s.student_data IS NOT NULL AND (
+          OR (s.student_data IS NOT NULL AND JSON_VALID(s.student_data) AND (
             JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Student Name"')) LIKE ?
             OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."student_name"')) LIKE ?
             OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."PIN Number"')) LIKE ?
@@ -1321,7 +1321,7 @@ exports.getAttendance = async (req, res) => {
         AND (
           s.parent_mobile1 LIKE ?
           OR s.parent_mobile2 LIKE ?
-          OR (s.student_data IS NOT NULL AND (
+          OR (s.student_data IS NOT NULL AND JSON_VALID(s.student_data) AND (
             JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Parent Mobile Number 1"')) LIKE ?
             OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Parent Mobile Number 2"')) LIKE ?
           ))
@@ -1581,13 +1581,15 @@ exports.deleteAttendanceForDate = async (req, res) => {
       const keyword = `%${studentName}%`;
       whereConditions.push(`(
         s.student_name LIKE ?
-        OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Student Name"')) LIKE ?
-        OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."student_name"')) LIKE ?
         OR s.pin_no LIKE ?
         OR srn.roll_number LIKE ?
-        OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."PIN Number"')) LIKE ?
-        OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Pin Number"')) LIKE ?
-        OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."pin_number"')) LIKE ?
+        OR (s.student_data IS NOT NULL AND JSON_VALID(s.student_data) AND (
+          JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Student Name"')) LIKE ?
+          OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."student_name"')) LIKE ?
+          OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."PIN Number"')) LIKE ?
+          OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Pin Number"')) LIKE ?
+          OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."pin_number"')) LIKE ?
+        ))
       )`);
       params.push(keyword, keyword, keyword, keyword, keyword, keyword, keyword, keyword);
     }
@@ -1597,10 +1599,12 @@ exports.deleteAttendanceForDate = async (req, res) => {
       whereConditions.push(`(
         s.parent_mobile1 LIKE ?
         OR s.parent_mobile2 LIKE ?
-        OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Parent Mobile 1"')) LIKE ?
-        OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Parent Mobile 2"')) LIKE ?
-        OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."parent_mobile1"')) LIKE ?
-        OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."parent_mobile2"')) LIKE ?
+        OR (s.student_data IS NOT NULL AND JSON_VALID(s.student_data) AND (
+          JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Parent Mobile 1"')) LIKE ?
+          OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."Parent Mobile 2"')) LIKE ?
+          OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."parent_mobile1"')) LIKE ?
+          OR JSON_UNQUOTE(JSON_EXTRACT(s.student_data, '$."parent_mobile2"')) LIKE ?
+        ))
       )`);
       params.push(mobileLike, mobileLike, mobileLike, mobileLike, mobileLike, mobileLike);
     }

@@ -1,5 +1,10 @@
-﻿const { masterPool, academicPool } = require('../config/database');
+const { masterPool, academicPool } = require('../config/database');
 const crypto = require('crypto');
+
+const generateStudentToken = (studentId, publicationId, subjectName) => {
+    const raw = `${studentId}-${publicationId}-${String(subjectName || '').trim().toLowerCase()}`;
+    return 'anon_' + crypto.createHash('sha256').update(raw).digest('hex').slice(0, 12);
+};
 
 const resolveStudent = async (studentId) => {
     const [rows] = await masterPool.query(
@@ -54,8 +59,39 @@ exports.getActivePublications = async (req, res) => {
             };
         }).filter(p => p.mappedStaffSubjects.length > 0);
 
+        // Check already submitted subjects for this student across publications
+        const pubsWithSubmissions = await Promise.all(filtered.map(async (pub) => {
+            const tokenToSubject = {};
+            (pub.mappedStaffSubjects || []).forEach(s => {
+                if (s.subjectName) {
+                    const token = generateStudentToken(studentId, pub.id, s.subjectName);
+                    tokenToSubject[token] = s.subjectName;
+                }
+            });
+
+            const tokens = Object.keys(tokenToSubject);
+            let submittedSubjects = [];
+            if (tokens.length > 0) {
+                try {
+                    const [subRows] = await academicPool.query(
+                        `SELECT student_token_hash FROM ap_feedback_responses 
+                         WHERE publication_id = ? AND student_token_hash IN (${tokens.map(() => '?').join(',')})`,
+                        [pub.id, ...tokens]
+                    );
+                    submittedSubjects = subRows.map(r => tokenToSubject[r.student_token_hash]).filter(Boolean);
+                } catch (subErr) {
+                    console.error('[StudentFeedback] checking existing submissions error:', subErr);
+                }
+            }
+
+            return {
+                ...pub,
+                submittedSubjects
+            };
+        }));
+
         res.json({
-            success: true, data: filtered,
+            success: true, data: pubsWithSubmissions,
             student: {
                 id: student.id, college_id: student.college_id,
                 college: student.college_name, branch: student.branch_name,
@@ -124,15 +160,28 @@ exports.submitFeedback = async (req, res) => {
         if (!pubs.length) return res.status(400).json({ success: false, message: 'Session not active' });
 
         const pub = pubs[0];
-        const unitsCovered  = answers['unitsCovered']  != null ? String(answers['unitsCovered'])  : null;
-        const facultyRating = answers['facultyRating'] != null ? Number(answers['facultyRating']) : null;
-        const unitStatus    = answers['unitStatus']    != null ? String(answers['unitStatus'])    : null;
-        const token = 'anon_' + crypto.createHash('sha256').update(
-            studentId + '-' + publicationId + '-' + subjectName + '-' + facultyName + '-' + Date.now()
-        ).digest('hex').slice(0, 12);
+        const token = generateStudentToken(studentId, publicationId, subjectName);
 
         conn = await academicPool.pool.getConnection();
         await conn.beginTransaction();
+
+        // Validate that feedback for this subject has not already been submitted by this student
+        const [existing] = await conn.query(
+            'SELECT id FROM ap_feedback_responses WHERE publication_id = ? AND student_token_hash = ? LIMIT 1',
+            [publicationId, token]
+        );
+        if (existing.length > 0) {
+            await conn.rollback();
+            return res.status(400).json({
+                success: false,
+                message: 'Feedback for this subject has already been submitted.'
+            });
+        }
+
+        const unitsCovered  = answers['unitsCovered']  != null ? String(answers['unitsCovered'])  : null;
+        const facultyRating = answers['facultyRating'] != null ? Number(answers['facultyRating']) : null;
+        const unitStatus    = answers['unitStatus']    != null ? String(answers['unitStatus'])    : null;
+
         await conn.query(
             `INSERT INTO ap_feedback_responses
                 (publication_id, form_id, college_id, branch_name, academic_year, semester,

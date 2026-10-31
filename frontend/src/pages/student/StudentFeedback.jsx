@@ -53,11 +53,24 @@ const getInitials = (name) => {
 };
 
 /* ── localStorage helpers for duplicate-submission prevention ──────── */
-const getStoredToken = (pubId, subjectName, facultyName) =>
-    localStorage.getItem(`fb_token_${pubId}_${subjectName}_${facultyName}`);
+const getSubjectKey = (pubId, subjectName) =>
+    `fb_sub_${pubId}_${String(subjectName || '').trim().toLowerCase()}`;
 
-const storeToken = (pubId, subjectName, facultyName, token) =>
-    localStorage.setItem(`fb_token_${pubId}_${subjectName}_${facultyName}`, token);
+const getStoredToken = (pubId, subjectName, facultyName) => {
+    if (!pubId || !subjectName) return null;
+    return (
+        localStorage.getItem(getSubjectKey(pubId, subjectName)) ||
+        (facultyName ? localStorage.getItem(`fb_token_${pubId}_${subjectName}_${facultyName}`) : null)
+    );
+};
+
+const storeToken = (pubId, subjectName, facultyName, token) => {
+    const val = token || 'submitted';
+    localStorage.setItem(getSubjectKey(pubId, subjectName), val);
+    if (facultyName) {
+        localStorage.setItem(`fb_token_${pubId}_${subjectName}_${facultyName}`, val);
+    }
+};
 
 /* ── Rating descriptions ───────────────────────────────────────────── */
 const RATING_DESCRIPTIONS = {
@@ -175,7 +188,7 @@ const StudentFeedback = () => {
     const [error, setError] = useState(null);
     const [publications, setPublications] = useState([]);
     const [studentInfo, setStudentInfo] = useState(null);
-    const [, forceUpdate] = useState(0);
+    const [submittedMap, setSubmittedMap] = useState({});
 
     // Search and tab filter
     const [searchQuery, setSearchQuery] = useState('');
@@ -196,8 +209,25 @@ const StudentFeedback = () => {
         try {
             const res = await api.get('/student-feedback/publications');
             if (res.data.success) {
-                setPublications(res.data.data || []);
+                const pubs = res.data.data || [];
+                setPublications(pubs);
                 setStudentInfo(res.data.student || null);
+
+                // Build initial submittedMap from server response and localStorage
+                const subMap = {};
+                pubs.forEach((pub) => {
+                    (pub.submittedSubjects || []).forEach((subjName) => {
+                        const key = `${pub.id}_${String(subjName).trim().toLowerCase()}`;
+                        subMap[key] = true;
+                    });
+                    (pub.mappedStaffSubjects || []).forEach((subj) => {
+                        const key = `${pub.id}_${String(subj.subjectName).trim().toLowerCase()}`;
+                        if (getStoredToken(pub.id, subj.subjectName, subj.facultyName)) {
+                            subMap[key] = true;
+                        }
+                    });
+                });
+                setSubmittedMap(subMap);
             } else {
                 setError(res.data.message || 'Could not load feedback sessions.');
             }
@@ -213,8 +243,23 @@ const StudentFeedback = () => {
         fetchPublications();
     }, [fetchPublications]);
 
+    /* ── Submission check helper ── */
+    const isSubmitted = useCallback(
+        (pub, subject) => {
+            if (!pub || !subject || !subject.subjectName) return false;
+            const key = `${pub.id}_${String(subject.subjectName).trim().toLowerCase()}`;
+            if (submittedMap[key]) return true;
+            return !!getStoredToken(pub.id, subject.subjectName, subject.facultyName);
+        },
+        [submittedMap]
+    );
+
     /* ── Open form modal ── */
     const handleOpenForm = async (pub, subject) => {
+        if (isSubmitted(pub, subject)) {
+            toast.error('Feedback for this subject has already been submitted.');
+            return;
+        }
         setModalPub(pub);
         setModalSubject(subject);
         setResponses({});
@@ -247,6 +292,11 @@ const StudentFeedback = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        if (isSubmitted(modalPub, modalSubject)) {
+            toast.error('Feedback for this subject has already been submitted.');
+            return;
+        }
+
         const missing = formQuestions.filter((q) => q.isRequired && (responses[q.id] === undefined || responses[q.id] === ''));
         if (missing.length > 0) {
             toast.error(`Please answer all required questions (${missing.length} remaining).`);
@@ -275,12 +325,13 @@ const StudentFeedback = () => {
 
             if (res.data.success) {
                 storeToken(modalPub.id, modalSubject.subjectName, modalSubject.facultyName, res.data.token);
+                const subKey = `${modalPub.id}_${String(modalSubject.subjectName).trim().toLowerCase()}`;
+                setSubmittedMap((prev) => ({ ...prev, [subKey]: true }));
                 toast.success('Feedback submitted successfully! Thank you.', {
                     icon: '✅',
                     duration: 3500,
                 });
                 handleCloseModal();
-                forceUpdate((n) => n + 1);
             } else {
                 toast.error(res.data.message || 'Submission failed.');
             }
@@ -291,12 +342,6 @@ const StudentFeedback = () => {
             setSubmitting(false);
         }
     };
-
-    /* ── Submission check helper ── */
-    const isSubmitted = useCallback(
-        (pub, subject) => !!getStoredToken(pub.id, subject.subjectName, subject.facultyName),
-        []
-    );
 
     const formatDate = (iso) => {
         if (!iso) return '—';

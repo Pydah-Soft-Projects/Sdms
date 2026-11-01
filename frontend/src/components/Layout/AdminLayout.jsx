@@ -25,9 +25,7 @@ import {
   ChevronUp,
   ChevronsLeft,
   ChevronsRight,
-  DollarSign,
-  Ticket,
-  FolderTree,
+  DollarSign,
   Megaphone,
   Smartphone,
   Calendar,
@@ -65,8 +63,6 @@ import {
   USER_ROLES,
 } from "../../constants/rbac";
 import toast from "react-hot-toast";
-import { getTicketAppUrl } from "../../utils/ticketAppUrl";
-import { navigateToCrtApp } from "../../utils/crtAppUrl";
 
 const NAV_ITEMS = [
   {
@@ -361,7 +357,6 @@ const AdminLayout = () => {
     });
     return initial;
   });
-  const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
   const [moreMenuOpen, setMoreMenuOpen] = useState(false); // New: For mobile "More" menu
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
@@ -385,15 +380,6 @@ const AdminLayout = () => {
 
     // Legacy staff users with modules array
     return Array.isArray(user.modules) ? user.modules : [];
-  }, [user]);
-
-  // Whether user has access to any workspace item (e.g. Ticket/Maintenance Management).
-  // Only show the Workspace section in sidebar when they have access.
-  const hasWorkspaceAccess = useMemo(() => {
-    if (!user) return false;
-    if (isFullAccessRole(user.role)) return true;
-    if (user.permissions && hasModuleAccess(user.permissions, FRONTEND_MODULES.TICKETS)) return true;
-    return Array.isArray(user.modules) && user.modules.includes(FRONTEND_MODULES.TICKETS);
   }, [user]);
 
   // Filter navigation items based on user's allowed modules
@@ -493,7 +479,6 @@ const AdminLayout = () => {
   // Close workspace dropdown when sidebar collapses
   useEffect(() => {
     if (sidebarCollapsed) {
-      setWorkspaceDropdownOpen(false);
     }
   }, [sidebarCollapsed]);
 
@@ -611,7 +596,6 @@ const AdminLayout = () => {
                   <div key={item.path} className="space-y-1">
                     <button
                       onClick={() => {
-                        setWorkspaceDropdownOpen(false);
                         toggleSubmenu(item.path);
                       }}
                       className={`w-full flex items-center justify-between rounded-lg transition-all duration-200 gap-3 px-3 py-2.5 min-h-[44px]
@@ -677,46 +661,6 @@ const AdminLayout = () => {
 
           {/* Footer of Sidebar */}
           <div className={`border-t border-white/10 ${sidebarCollapsed ? "p-2" : "p-4"} space-y-4`}>
-            {hasWorkspaceAccess && (
-              <div className="space-y-1">
-                <button
-                  onClick={() => setWorkspaceDropdownOpen(!workspaceDropdownOpen)}
-                  className={`w-full flex items-center justify-between rounded-lg transition-all duration-200 gap-3 px-3 py-2.5 min-h-[44px]
-                    ${workspaceDropdownOpen ? "bg-white/5 text-white font-medium shadow-sm" : "text-gray-100/90 hover:bg-white/10 hover:text-white"}`}
-                >
-                  <div className="flex items-center gap-2 flex-1">
-                    <FolderTree size={18} className="flex-shrink-0" />
-                    {!sidebarCollapsed && <span className="text-xs font-medium">Workspace</span>}
-                  </div>
-                  {!sidebarCollapsed && (workspaceDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-                </button>
-
-                {workspaceDropdownOpen && !sidebarCollapsed && (
-                  <div className="ml-2 space-y-0.5 pl-6 py-2 border-l-2 border-indigo-500/50 bg-gradient-to-r from-white/5 to-transparent rounded-r-md">
-                    {/* Maintenance Management Link */}
-                    {(isFullAccessRole(user?.role) || (user?.permissions && hasModuleAccess(user.permissions, FRONTEND_MODULES.TICKETS)) || (Array.isArray(user?.modules) && user.modules.includes(FRONTEND_MODULES.TICKETS))) && (
-                      <a
-                        href={getTicketAppUrl('/task-management')}
-                        className="flex items-center rounded-md transition-all duration-200 gap-2 px-2 py-1.5 text-[11px] font-medium text-gray-200/80 hover:bg-white/10 hover:text-white hover:translate-x-1 min-h-[32px]"
-                      >
-                        <Ticket size={14} className="text-gray-400" />
-                        <span>Maintenance Management</span>
-                      </a>
-                    )}
-                    {isFullAccessRole(user?.role) && (
-                      <button
-                        type="button"
-                        onClick={() => navigateToCrtApp('/admin/dashboard')}
-                        className="w-full flex items-center rounded-md transition-all duration-200 gap-2 px-2 py-1.5 text-[11px] font-medium text-gray-200/80 hover:bg-white/10 hover:text-white hover:translate-x-1 min-h-[32px] text-left"
-                      >
-                        <Briefcase size={14} className="text-gray-400" />
-                        <span>CRT Training Portal</span>
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
             <div className={`flex items-center ${sidebarCollapsed ? "flex-col gap-3" : "justify-between"}`}>
               <Link to="/profile" onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false); }} className="flex items-center gap-2 min-w-0">
                 <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
@@ -838,34 +782,6 @@ const AdminLayout = () => {
             </div>
 
             <div className="space-y-4 pt-6 border-t border-gray-100">
-              {/* Workspace Links in Mobile Menu */}
-              {hasWorkspaceAccess && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between px-2">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Workspaces</p>
-                    <div className="h-px bg-gray-100 flex-1 ml-4" />
-                  </div>
-                  <div className="grid grid-cols-1 gap-2">
-                    {(isFullAccessRole(user?.role) || (user?.permissions && hasModuleAccess(user.permissions, FRONTEND_MODULES.TICKETS)) || (Array.isArray(user?.modules) && user.modules.includes(FRONTEND_MODULES.TICKETS))) && (
-                      <a
-                        href={getTicketAppUrl('/task-management')}
-                        className="group flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 text-indigo-700 font-bold active:scale-[0.98] transition-all shadow-sm"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2.5 rounded-xl bg-white shadow-sm group-hover:scale-110 transition-transform">
-                            <Ticket size={20} className="text-indigo-600" />
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm">Maintenance Management</span>
-                            <span className="text-[10px] text-indigo-500/70 font-medium">External Application</span>
-                          </div>
-                        </div>
-                        <ChevronRight size={18} className="text-indigo-300" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
 
               <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50/80 border border-gray-100 shadow-inner">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg ring-4 ring-white">

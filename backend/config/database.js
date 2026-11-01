@@ -124,6 +124,46 @@ if (isAcademicConfigured) {
   };
 }
 
+const isExamConfigured = Boolean(process.env.EXAM_DB_HOST && process.env.EXAM_DB_NAME);
+
+let examPoolRaw = null;
+let examPool = null;
+
+if (isExamConfigured) {
+  // EMS (Examination Portal) DB connection pool - STRICTLY READ-ONLY from EXAM_DB_* in .env
+  examPoolRaw = mysql.createPool({
+    host: process.env.EXAM_DB_HOST,
+    user: process.env.EXAM_DB_USER,
+    password: process.env.EXAM_DB_PASSWORD || '',
+    database: process.env.EXAM_DB_NAME,
+    port: parseInt(process.env.EXAM_DB_PORT, 10) || 3306,
+    connectionLimit: 15,
+    ...sharedPoolOptions,
+    ssl: process.env.EXAM_DB_SSL === 'true' ? {
+      rejectUnauthorized: false,
+    } : false,
+  });
+
+  examPoolRaw.on('connection', (connection) => {
+    connection.query('SET time_zone = "+05:30"');
+  });
+
+  examPool = wrapPoolWithRetry(examPoolRaw.promise());
+} else {
+  // Safe stub when not configured in .env
+  examPool = {
+    query: async () => {
+      throw new Error('EMS DB is not configured in .env (EXAM_DB_* missing)');
+    },
+    execute: async () => {
+      throw new Error('EMS DB is not configured in .env (EXAM_DB_* missing)');
+    },
+    getConnection: async () => {
+      throw new Error('EMS DB is not configured in .env (EXAM_DB_* missing)');
+    }
+  };
+}
+
 // Admissions DB connection pool (sync SDMS changes to Admissions database)
 const admissionsPoolRaw = mysql.createPool({
   host: process.env.ADMISSIONS_DB_HOST || process.env.DB_HOST || 'localhost',
@@ -178,6 +218,19 @@ const testConnection = async (retries = 3) => {
     }
   }
 
+  // Test and log EMS connectivity
+  if (!isExamConfigured) {
+    console.log('ℹ️  EMS DB: Not configured in .env (EXAM_DB_* missing)');
+  } else {
+    try {
+      const eConn = await examPool.getConnection();
+      eConn.release();
+      console.log(`📊 EMS DB Connected: ${process.env.EXAM_DB_NAME} @ ${process.env.EXAM_DB_HOST} [Source: EXAM_DB_* in .env]`);
+    } catch (err) {
+      console.warn(`⚠️  EMS DB Connection Failed: ${err.message} [Target: ${process.env.EXAM_DB_NAME} @ ${process.env.EXAM_DB_HOST}]`);
+    }
+  }
+
   return dbConnected;
 };
 
@@ -185,6 +238,7 @@ module.exports = {
   masterPool,
   stagingPool,
   academicPool,
+  examPool,
   admissionsPool,
   // Backward compat: default pool points to master
   pool: masterPool,

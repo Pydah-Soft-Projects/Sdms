@@ -4,7 +4,7 @@ const studentController = require('../controllers/studentController');
 const { forgotPasswordRateLimit } = require('../middleware/forgotPasswordRateLimit');
 
 const authMiddleware = require('../middleware/auth');
-const { attachUserScope, verifyPermission, allowStudentOwnProfileOrPermission } = require('../middleware/rbac');
+const { attachUserScope, verifyPermission, verifyPermissionAny, allowStudentOwnProfileOrPermission } = require('../middleware/rbac');
 const { MODULES } = require('../constants/rbac');
 const multer = require('multer');
 
@@ -307,7 +307,11 @@ router.post('/otp/verify', authMiddleware, studentController.verifyOtp);
 router.get(
   '/:admissionNumber/sms-logs',
   authMiddleware,
-  verifyPermission(MODULES.STUDENT_MANAGEMENT, 'view_sms'),
+  verifyPermissionAny([
+    [MODULES.STUDENT_MANAGEMENT, 'view_sms'],
+    [MODULES.STUDENT_MANAGEMENT, 'view'],
+    [MODULES.STUDENT_MANAGEMENT, 'view_details']
+  ]),
   attachUserScope,
   studentController.getStudentSmsLogs
 );

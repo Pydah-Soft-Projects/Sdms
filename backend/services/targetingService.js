@@ -7,25 +7,40 @@ const TARGET_FIELDS = [
   'target_semester'
 ];
 
-const serializeTarget = (target) => {
-  if (Array.isArray(target) && target.length > 0) {
-    return JSON.stringify(target);
+const parseTarget = (value) => {
+  if (value === null || value === undefined || value === '') return [];
+  if (Array.isArray(value)) {
+    return value.flatMap(v => parseTarget(v)).map(v => String(v).trim()).filter(Boolean);
   }
-  return null;
+  if (typeof value === 'number') {
+    return [String(value).trim()];
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return [];
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.flatMap(v => parseTarget(v)).map(v => String(v).trim()).filter(Boolean);
+      }
+      if (parsed !== null && parsed !== undefined && typeof parsed !== 'object') {
+        return [String(parsed).trim()];
+      }
+    } catch {
+      // Not JSON
+    }
+    // Check if it's comma-separated or plain text
+    if (trimmed.includes(',')) {
+      return trimmed.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    return [trimmed];
+  }
+  return [String(value).trim()].filter(Boolean);
 };
 
-const parseTarget = (value) => {
-  if (!value) return [];
-  if (Array.isArray(value)) return value.filter(Boolean);
-  if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value);
-      return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
-    } catch {
-      return value.trim() ? [value.trim()] : [];
-    }
-  }
-  return [];
+const serializeTarget = (target) => {
+  const parsed = parseTarget(target);
+  return parsed.length > 0 ? JSON.stringify(parsed) : null;
 };
 
 const parseTargetsFromRow = (row) => ({
@@ -43,6 +58,14 @@ const isGlobalTarget = (targets = {}) =>
     return !Array.isArray(values) || values.length === 0;
   });
 
+const normalizeTargetValue = (v) =>
+  String(v || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/\(ai\)/i, '-ai')
+    .replace(/\s*&\s*/g, '&');
+
 const matchesStudent = (student, targets = {}) => {
   if (!student) return false;
   if (isGlobalTarget(targets)) return true;
@@ -59,7 +82,9 @@ const matchesStudent = (student, targets = {}) => {
   return checks.every(([field, value]) => {
     const allowed = targets[field];
     if (!Array.isArray(allowed) || allowed.length === 0) return true;
-    return allowed.includes(value);
+    if (!value && value !== 0) return false;
+    const normValue = normalizeTargetValue(value);
+    return allowed.some(a => normalizeTargetValue(a) === normValue);
   });
 };
 
@@ -78,8 +103,9 @@ const matchesFilters = (filters = {}, targets = {}) => {
   return checks.every(([field, value]) => {
     const allowed = targets[field];
     if (!Array.isArray(allowed) || allowed.length === 0) return true;
-    if (!value) return allowed.length > 0;
-    return allowed.includes(value);
+    if (!value && value !== 0) return allowed.length > 0;
+    const normValue = normalizeTargetValue(value);
+    return allowed.some(a => normalizeTargetValue(a) === normValue);
   });
 };
 

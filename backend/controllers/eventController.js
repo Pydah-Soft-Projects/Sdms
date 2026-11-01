@@ -160,7 +160,29 @@ exports.getEvents = async (req, res) => {
     try {
         const query = `
             SELECT 
-                e.*, 
+                e.id,
+                e.title,
+                e.description,
+                DATE_FORMAT(e.event_date, '%Y-%m-%d') AS event_date,
+                DATE_FORMAT(e.end_date, '%Y-%m-%d') AS end_date,
+                e.start_time,
+                e.end_time,
+                e.event_type,
+                e.created_by,
+                e.target_college,
+                e.target_batch,
+                e.target_course,
+                e.target_branch,
+                e.target_year,
+                e.target_semester,
+                e.is_active,
+                e.created_at,
+                e.updated_at,
+                e.requires_registration,
+                e.max_seats,
+                e.registration_deadline,
+                e.registration_form_fields,
+                e.image_url,
                 u.username as created_by_name,
                 COALESCE(reg.registered_count, 0) AS registered_count
             FROM events e
@@ -181,7 +203,31 @@ exports.getEvents = async (req, res) => {
             if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
             console.warn('event_registrations table is missing; returning events without registration counts until its migration is applied.');
             [rows] = await masterPool.query(`
-                SELECT e.*, u.username as created_by_name, 0 AS registered_count
+                SELECT 
+                e.id,
+                e.title,
+                e.description,
+                DATE_FORMAT(e.event_date, '%Y-%m-%d') AS event_date,
+                DATE_FORMAT(e.end_date, '%Y-%m-%d') AS end_date,
+                e.start_time,
+                e.end_time,
+                e.event_type,
+                e.created_by,
+                e.target_college,
+                e.target_batch,
+                e.target_course,
+                e.target_branch,
+                e.target_year,
+                e.target_semester,
+                e.is_active,
+                e.created_at,
+                e.updated_at,
+                e.requires_registration,
+                e.max_seats,
+                e.registration_deadline,
+                e.registration_form_fields,
+                e.image_url,
+                u.username as created_by_name, 0 AS registered_count
                 FROM events e
                 LEFT JOIN admins u ON e.created_by = u.id
                 ORDER BY e.event_date DESC
@@ -200,13 +246,22 @@ exports.getEvents = async (req, res) => {
 
 exports.getStudentEvents = async (req, res) => {
     try {
-        const { admission_number, admissionNumber } = req.user;
+        const { admission_number, admissionNumber, id } = req.user || {};
         const studentAdmNum = admission_number || admissionNumber;
 
-        const [studentRows] = await masterPool.query(
-            'SELECT id, college, course, branch, batch, current_year, current_semester, student_status FROM students WHERE admission_number = ? OR admission_no = ?',
-            [studentAdmNum, studentAdmNum]
-        );
+        let studentRows = [];
+        if (studentAdmNum) {
+            [studentRows] = await masterPool.query(
+                'SELECT id, college, course, branch, batch, current_year, current_semester, student_status FROM students WHERE admission_number = ? OR admission_no = ?',
+                [studentAdmNum, studentAdmNum]
+            );
+        }
+        if (studentRows.length === 0 && id) {
+            [studentRows] = await masterPool.query(
+                'SELECT id, college, course, branch, batch, current_year, current_semester, student_status FROM students WHERE id = ?',
+                [id]
+            );
+        }
 
         if (studentRows.length === 0) {
             return res.status(404).json({ success: false, message: 'Student not found' });
@@ -217,7 +272,31 @@ exports.getStudentEvents = async (req, res) => {
         let rows;
         try {
             [rows] = await masterPool.query(
-                `SELECT e.*, COALESCE(reg.registered_count, 0) AS registered_count,
+                `SELECT 
+                    e.id,
+                    e.title,
+                    e.description,
+                    DATE_FORMAT(e.event_date, '%Y-%m-%d') AS event_date,
+                    DATE_FORMAT(e.end_date, '%Y-%m-%d') AS end_date,
+                    e.start_time,
+                    e.end_time,
+                    e.event_type,
+                    e.created_by,
+                    e.target_college,
+                    e.target_batch,
+                    e.target_course,
+                    e.target_branch,
+                    e.target_year,
+                    e.target_semester,
+                    e.is_active,
+                    e.created_at,
+                    e.updated_at,
+                    e.requires_registration,
+                    e.max_seats,
+                    e.registration_deadline,
+                    e.registration_form_fields,
+                    e.image_url,
+                    COALESCE(reg.registered_count, 0) AS registered_count,
                     mine.id AS my_registration_id, mine.status AS my_registration_status
              FROM events e
              LEFT JOIN (
@@ -236,7 +315,31 @@ exports.getStudentEvents = async (req, res) => {
             if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
             console.warn('event_registrations table is missing; returning student events without registration details until its migration is applied.');
             [rows] = await masterPool.query(
-                `SELECT e.*, 0 AS registered_count,
+                `SELECT 
+                    e.id,
+                    e.title,
+                    e.description,
+                    DATE_FORMAT(e.event_date, '%Y-%m-%d') AS event_date,
+                    DATE_FORMAT(e.end_date, '%Y-%m-%d') AS end_date,
+                    e.start_time,
+                    e.end_time,
+                    e.event_type,
+                    e.created_by,
+                    e.target_college,
+                    e.target_batch,
+                    e.target_course,
+                    e.target_branch,
+                    e.target_year,
+                    e.target_semester,
+                    e.is_active,
+                    e.created_at,
+                    e.updated_at,
+                    e.requires_registration,
+                    e.max_seats,
+                    e.registration_deadline,
+                    e.registration_form_fields,
+                    e.image_url,
+                    0 AS registered_count,
                         NULL AS my_registration_id, NULL AS my_registration_status
                  FROM events e
                  WHERE e.is_active = 1
@@ -252,7 +355,13 @@ exports.getStudentEvents = async (req, res) => {
 
         res.json({
             success: true,
-            data: matchedEvents
+            data: matchedEvents.map(event => ({
+                ...event,
+                requires_registration: Boolean(event.requires_registration),
+                max_seats: event.max_seats ? Number(event.max_seats) : null,
+                registered_count: Number(event.registered_count || 0),
+                is_full: event.max_seats ? Number(event.registered_count || 0) >= Number(event.max_seats) : false
+            }))
         });
 
     } catch (error) {
@@ -324,6 +433,23 @@ exports.updateEvent = async (req, res) => {
                 id
             ]
         );
+
+        // Sync updated event description to existing event notifications in sms_logs
+        if (title) {
+            try {
+                const datePart = event_date ? `Date: ${event_date}` : '';
+                const descPart = description && description.trim() ? description.trim() : 'Check event calendar for details.';
+                const updatedMsg = `**New Event: ${title}**\n${datePart ? `${datePart}\n${descPart}` : descPart}`;
+                await masterPool.query(
+                    `UPDATE sms_logs 
+                     SET message = ? 
+                     WHERE category = 'Event' AND message LIKE ?`,
+                    [updatedMsg, `%**New Event: ${title}**%`]
+                );
+            } catch (syncErr) {
+                console.warn('Failed to sync updated event description to sms_logs:', syncErr.message);
+            }
+        }
 
         res.json({ success: true, message: 'Event updated' });
     } catch (error) {
@@ -623,11 +749,26 @@ const notifyTargetedStudents = async (event) => {
         }
     };
 
+    // Format complete event notification message
+    let eventMessage = '';
+    if (event.event_date) {
+        const d = new Date(event.event_date);
+        if (!isNaN(d.getTime())) {
+            eventMessage += `Date: ${d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+            if (event.start_time) eventMessage += ` (${String(event.start_time).slice(0, 5)})`;
+        }
+    }
+    if (event.description && event.description.trim()) {
+        eventMessage += eventMessage ? `\n${event.description.trim()}` : event.description.trim();
+    } else {
+        eventMessage += eventMessage ? '\nCheck event calendar for details.' : 'Check event calendar for details.';
+    }
+
     // Send Web Notifications
     const studentIds = students.map(s => s.id);
     await createBroadcastNotification(studentIds, {
         title: `New Event: ${event.title}`,
-        message: event.description ? event.description.substring(0, 100) : 'Check event calendar',
+        message: eventMessage,
         category: 'Event'
     });
 

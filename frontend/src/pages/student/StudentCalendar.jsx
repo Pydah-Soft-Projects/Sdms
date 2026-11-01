@@ -36,13 +36,32 @@ const EVENT_TYPES = [
 
 const parseLocalDate = (dateVal) => {
     if (!dateVal) return null;
-    if (typeof dateVal === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateVal)) {
-        const [y, m, day] = dateVal.split('-').map(n => parseInt(n, 10));
-        return new Date(y, m - 1, day);
+    if (typeof dateVal === 'string') {
+        const clean = dateVal.trim();
+        const dateMatch = clean.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (dateMatch) {
+            const y = parseInt(dateMatch[1], 10);
+            const m = parseInt(dateMatch[2], 10);
+            const day = parseInt(dateMatch[3], 10);
+            return new Date(y, m - 1, day);
+        }
     }
     const d = new Date(dateVal);
     if (isNaN(d.getTime())) return null;
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+};
+
+const parseExamTitle = (title) => {
+    if (!title) return { code: '', subject: '', regulation: '' };
+    const match = String(title).match(/^Paper:\s*([A-Za-z0-9_-]+)\s*-\s*(.+?)(?:\s*\(([^)]+)\))?$/i);
+    if (match) {
+        return {
+            code: match[1].trim(),
+            subject: match[2].trim(),
+            regulation: match[3] ? match[3].trim() : ''
+        };
+    }
+    return { code: '', subject: title, regulation: '' };
 };
 
 const cleanEventDescription = (desc) => {
@@ -420,9 +439,32 @@ const StudentCalendar = () => {
                                         }}
                                         className="group rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
                                     >
-                                        <div className="mb-4 h-40 overflow-hidden rounded-xl">
-                                            <EventPoster event={event} />
-                                        </div>
+                                        {event.image_url ? (
+                                            <div className="mb-4 h-40 overflow-hidden rounded-xl">
+                                                <EventPoster event={event} />
+                                            </div>
+                                        ) : event.event_type === 'exam' ? (
+                                            <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 flex items-center justify-between">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0">
+                                                        <Award size={18} />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Exam Schedule</p>
+                                                        <p className="text-xs font-semibold text-amber-900 truncate">
+                                                            {event.target_branch ? `${event.target_branch} • Year ${event.target_year || ''}` : 'Examination'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold border border-amber-200 shrink-0">
+                                                    Exam
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div className="mb-4 h-40 overflow-hidden rounded-xl">
+                                                <EventPoster event={event} />
+                                            </div>
+                                        )}
                                         <div className="flex items-center justify-between gap-3">
                                             <span className={`rounded-full border px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wider ${style.badge}`}>
                                                 {event.event_type || 'other'}
@@ -437,7 +479,7 @@ const StudentCalendar = () => {
                                         </p>
                                         <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
                                             <span className="flex items-center gap-1.5"><Clock size={13} />{event.start_time ? formatTime(event.start_time) : 'All day'}</span>
-                                            {event.requires_registration && (
+                                            {Boolean(event.requires_registration) && (
                                                 <span className="flex items-center gap-1.5 font-semibold text-indigo-600">
                                                     {event.my_registration_id ? 'Registered' : `${event.registered_count || 0}${event.max_seats ? ` / ${event.max_seats}` : ''} registered`}
                                                 </span>
@@ -677,7 +719,7 @@ const StudentCalendar = () => {
                                             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                             <input
                                                 type="text"
-                                                placeholder="Search events on this date..."
+                                                placeholder="Search subject code, paper name, or branch..."
                                                 value={daySearchQuery}
                                                 onChange={(e) => setDaySearchQuery(e.target.value)}
                                                 className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
@@ -690,6 +732,14 @@ const StudentCalendar = () => {
                                 <div className="p-4 sm:p-6 overflow-y-auto space-y-3 flex-1 custom-scrollbar">
                                     {filteredDayEvents.map(ev => {
                                         const style = getEventTypeStyle(ev.event_type);
+                                        const isExam = String(ev.event_type || '').toLowerCase() === 'exam';
+                                        const parsedExam = isExam ? parseExamTitle(ev.title) : { code: '', subject: ev.title, regulation: '' };
+                                        const rawCleanDesc = cleanEventDescription(ev.description);
+                                        // Hide boilerplate repetition like "Subject exam paper: ..."
+                                        const meaningfulDesc = rawCleanDesc && !rawCleanDesc.toLowerCase().startsWith('subject exam paper:') && rawCleanDesc !== ev.title
+                                            ? rawCleanDesc
+                                            : '';
+
                                         return (
                                             <div
                                                 key={ev.id}
@@ -697,36 +747,83 @@ const StudentCalendar = () => {
                                                     setSelectedEvent(ev);
                                                     setShowEventModal(true);
                                                 }}
-                                                className="p-3 sm:p-4 rounded-xl border border-gray-200 bg-white hover:bg-slate-50 hover:border-blue-300 shadow-2xs hover:shadow-sm transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-2.5 group"
+                                                className="p-3.5 sm:p-4 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50/90 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group relative overflow-hidden"
                                             >
-                                                <div className="space-y-1 flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className={`text-[9px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider border ${style.badge}`}>
-                                                            {ev.event_type || 'other'}
+                                                {/* Left Accent Bar */}
+                                                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${
+                                                    isExam ? 'bg-amber-500' :
+                                                    ev.event_type === 'holiday' ? 'bg-rose-500' :
+                                                    ev.event_type === 'academic' ? 'bg-blue-500' :
+                                                    'bg-purple-500'
+                                                }`} />
+
+                                                <div className="pl-2 space-y-1.5 flex-1 min-w-0">
+                                                    {/* Meta Badges Row */}
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className={`text-[9px] px-2 py-0.5 rounded-full uppercase font-extrabold tracking-wider border ${style.badge}`}>
+                                                            {ev.event_type || 'Event'}
                                                         </span>
+                                                        {parsedExam.code && (
+                                                            <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-900 font-mono text-[10px] font-bold border border-amber-200 shadow-2xs">
+                                                                {parsedExam.code}
+                                                            </span>
+                                                        )}
                                                         {ev.start_time && (
-                                                            <span className="text-[11px] text-gray-500 font-medium flex items-center gap-1">
-                                                                <Clock size={12} /> {formatTime(ev.start_time)}
+                                                            <span className="text-[11px] text-slate-500 font-semibold flex items-center gap-1">
+                                                                <Clock size={12} className="text-slate-400" />
+                                                                {formatTime(ev.start_time)}{ev.end_time ? ` – ${formatTime(ev.end_time)}` : ''}
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <h4 className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors text-xs sm:text-sm truncate">
-                                                        {ev.title}
+
+                                                    {/* Clean Title */}
+                                                    <h4 className="font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors text-xs sm:text-sm leading-snug">
+                                                        {parsedExam.subject || ev.title}
                                                     </h4>
-                                                    {ev.description && (
-                                                        <p className="text-[11px] sm:text-xs text-gray-500 line-clamp-2">{cleanEventDescription(ev.description)}</p>
+
+                                                    {/* Academic & Regulation Metadata */}
+                                                    <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-500 font-medium pt-0.5">
+                                                        {ev.target_course && (
+                                                            <span className="text-slate-700 font-bold">{ev.target_course}</span>
+                                                        )}
+                                                        {ev.target_branch && (
+                                                            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200/60">
+                                                                {ev.target_branch}
+                                                            </span>
+                                                        )}
+                                                        {(ev.target_year || ev.target_semester) && (
+                                                            <span className="text-slate-500 text-[10px]">
+                                                                {ev.target_year ? `Year ${ev.target_year}` : ''}{ev.target_semester ? ` • Sem ${ev.target_semester}` : ''}
+                                                            </span>
+                                                        )}
+                                                        {parsedExam.regulation && (
+                                                            <span className="text-slate-400 text-[10px]">
+                                                                ({parsedExam.regulation})
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    {meaningfulDesc && (
+                                                        <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-2 mt-1">{meaningfulDesc}</p>
                                                     )}
                                                 </div>
 
-                                                <button className="px-3 py-1 text-[11px] font-semibold bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-colors shrink-0 self-start md:self-center">
-                                                    View Details
-                                                </button>
+                                                {/* Action Pill */}
+                                                <div className="pl-2 sm:pl-0 shrink-0 self-end sm:self-center">
+                                                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 group-hover:bg-blue-600 group-hover:text-white rounded-xl transition-all shadow-2xs">
+                                                        View Details
+                                                        <ArrowRightIcon size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                                                    </span>
+                                                </div>
                                             </div>
                                         );
                                     })}
 
                                     {filteredDayEvents.length === 0 && (
-                                        <p className="text-center py-6 text-xs text-gray-400">No matching events found</p>
+                                        <div className="text-center py-10">
+                                            <CalendarIcon className="mx-auto mb-2 text-slate-300" size={32} />
+                                            <p className="text-xs text-slate-400 font-medium">No matching events found</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -768,9 +865,64 @@ const StudentCalendar = () => {
                                 </div>
 
                                 <div className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 custom-scrollbar">
-                                    <div className="h-44 overflow-hidden rounded-xl">
-                                        <EventPoster event={selectedEvent} />
-                                    </div>
+                                    {/* Event Media or Targeted Exam Details */}
+                                    {selectedEvent.image_url ? (
+                                        <div className="h-44 sm:h-52 overflow-hidden rounded-xl border border-slate-100 shadow-xs">
+                                            <EventPoster event={selectedEvent} />
+                                        </div>
+                                    ) : selectedEvent.event_type === 'exam' ? (
+                                        <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80">
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm shrink-0">
+                                                    <Award size={22} />
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-wider border border-amber-200">
+                                                            Official Exam Notification
+                                                        </span>
+                                                        {selectedEvent.target_college && (
+                                                            <span className="text-[11px] font-bold text-amber-900 truncate">
+                                                                {selectedEvent.target_college}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 mt-2 text-xs text-amber-900 font-semibold flex-wrap">
+                                                        {selectedEvent.target_course && (
+                                                            <span className="bg-white px-2 py-0.5 rounded-md border border-amber-200 shadow-2xs">
+                                                                Course: {selectedEvent.target_course}
+                                                            </span>
+                                                        )}
+                                                        {selectedEvent.target_branch && (
+                                                            <span className="bg-white px-2 py-0.5 rounded-md border border-amber-200 shadow-2xs">
+                                                                Branch: {selectedEvent.target_branch}
+                                                            </span>
+                                                        )}
+                                                        {selectedEvent.target_year && (
+                                                            <span className="bg-white px-2 py-0.5 rounded-md border border-amber-200 shadow-2xs">
+                                                                Year: {selectedEvent.target_year}
+                                                            </span>
+                                                        )}
+                                                        {selectedEvent.target_semester && (
+                                                            <span className="bg-white px-2 py-0.5 rounded-md border border-amber-200 shadow-2xs">
+                                                                Sem: {selectedEvent.target_semester}
+                                                            </span>
+                                                        )}
+                                                        {selectedEvent.target_batch && (
+                                                            <span className="bg-white px-2 py-0.5 rounded-md border border-amber-200 shadow-2xs">
+                                                                Batch: {selectedEvent.target_batch}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="h-44 overflow-hidden rounded-xl border border-slate-100 shadow-xs">
+                                            <EventPoster event={selectedEvent} />
+                                        </div>
+                                    )}
+
                                     <div className="grid grid-cols-2 gap-3">
                                         <div className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100">
                                             <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1 font-bold">Start Time</p>
@@ -790,7 +942,9 @@ const StudentCalendar = () => {
                                     </div>
 
                                     <div>
-                                        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">Description</h4>
+                                        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                                            {selectedEvent.event_type === 'exam' ? 'Exam Details & Instructions' : 'Description'}
+                                        </h4>
                                         <div className="bg-slate-50 p-3 sm:p-4 rounded-xl border border-slate-100 max-h-36 overflow-y-auto custom-scrollbar">
                                             <p className="text-gray-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">
                                                 {cleanEventDescription(selectedEvent.description) || 'No additional description provided for this event.'}
@@ -798,7 +952,7 @@ const StudentCalendar = () => {
                                         </div>
                                     </div>
 
-                                    {selectedEvent.requires_registration && (
+                                    {Boolean(selectedEvent.requires_registration) && (
                                         <section className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-4">
                                             <div className="flex items-start justify-between gap-3">
                                                 <div>

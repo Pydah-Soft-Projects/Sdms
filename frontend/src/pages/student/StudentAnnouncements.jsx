@@ -608,7 +608,7 @@ const StudentAnnouncements = () => {
                                                         <Calendar size={12} className="text-indigo-500 shrink-0" />
                                                         <span>{new Date(ann.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                                     </div>
-                                                    {ann.requires_registration && (
+                                                    {Boolean(ann.requires_registration) && (
                                                         ann.is_registered ? (
                                                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                                 <CheckCircle size={10} /> Registered
@@ -635,7 +635,7 @@ const StudentAnnouncements = () => {
                                             </div>
                                             <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider">
                                                 <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                                                    {ann.requires_registration && !ann.is_registered ? (
+                                                    {Boolean(ann.requires_registration) && !ann.is_registered ? (
                                                         <span className="text-indigo-600 flex items-center gap-1">Register Now <ChevronRight size={12} /></span>
                                                     ) : (
                                                         <span className="flex items-center gap-1">Read More <ChevronRight size={12} /></span>
@@ -709,7 +709,7 @@ const StudentAnnouncements = () => {
                                                     <Calendar size={12} className="text-indigo-500 shrink-0" />
                                                     {new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                 </span>
-                                                {event.requires_registration && (
+                                                {Boolean(event.requires_registration) && (
                                                     event.my_registration_id
                                                         ? <span className="text-emerald-700">Registered</span>
                                                         : <span className="text-indigo-700"><Ticket size={10} className="inline" /> Register</span>
@@ -720,7 +720,7 @@ const StudentAnnouncements = () => {
                                         </div>
                                         <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between text-[11px] font-semibold text-slate-400">
                                             <span>{event.start_time || 'All day'}</span>
-                                            {event.requires_registration && <span>{event.registered_count || 0}{event.max_seats ? ` / ${event.max_seats}` : ''} registered</span>}
+                                            {Boolean(event.requires_registration) && <span>{event.registered_count || 0}{event.max_seats ? ` / ${event.max_seats}` : ''} registered</span>}
                                         </div>
                                     </div>
                                 </button>
@@ -907,7 +907,7 @@ const StudentAnnouncements = () => {
                                 <EventPoster event={selectedEvent} />
                             </div>
                             <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{selectedEvent.description || 'No description provided.'}</p>
-                            {selectedEvent.requires_registration && (
+                            {Boolean(selectedEvent.requires_registration) && (
                                 <section className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-4">
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
@@ -1029,7 +1029,7 @@ const StudentAnnouncements = () => {
                                 )}
 
                                 {/* Event Registration & Seats Block */}
-                                {selectedAnnouncement.requires_registration && (
+                                {Boolean(selectedAnnouncement.requires_registration) && (
                                     <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/40 border border-indigo-100/90 shadow-xs space-y-4">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2.5">

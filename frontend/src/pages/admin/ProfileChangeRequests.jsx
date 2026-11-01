@@ -19,7 +19,8 @@ import {
     XCircle,
     BookOpen,
     Layers,
-    Sparkles
+    Sparkles,
+    UserCheck
 } from 'lucide-react';
 import api, { getStaticFileUrl } from '../../config/api';
 import toast from 'react-hot-toast';
@@ -391,12 +392,82 @@ export const ProfileChangeRequests = () => {
         return key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
     };
 
+        // 🎯 Dynamically computed counts based on active college / course / branch filters
+    const activeFilterSummary = useMemo(() => {
+        const globalSummary = abstractData?.summary || abstractData?.data?.summary || {
+            pending: 0,
+            approved: 0,
+            rejected: 0,
+            total: 0
+        };
+
+        if (collegeFilter) {
+            const colObj = (collegesList || []).find(c =>
+                (c.college || '').trim().toLowerCase() === collegeFilter.trim().toLowerCase()
+            );
+            if (colObj) {
+                if (courseFilter) {
+                    const prog = (colObj.programs || []).find(p =>
+                        (p.course || '').trim().toLowerCase() === courseFilter.trim().toLowerCase()
+                    );
+                    if (prog) {
+                        if (branchFilter) {
+                            const br = (prog.branches || []).find(b =>
+                                (b.branch || '').trim().toLowerCase() === branchFilter.trim().toLowerCase()
+                            );
+                            if (br) {
+                                return {
+                                    pending: br.pending || 0,
+                                    approved: br.approved || 0,
+                                    rejected: br.rejected || 0,
+                                    total: br.total || 0,
+                                    isFiltered: true
+                                };
+                            }
+                        }
+                        return {
+                            pending: prog.pending || 0,
+                            approved: prog.approved || 0,
+                            rejected: prog.rejected || 0,
+                            total: prog.total || 0,
+                            isFiltered: true
+                        };
+                    }
+                }
+                return {
+                    pending: colObj.pending || 0,
+                    approved: colObj.approved || 0,
+                    rejected: colObj.rejected || 0,
+                    total: colObj.total || 0,
+                    isFiltered: true
+                };
+            }
+        } else if (courseFilter) {
+            let pending = 0, approved = 0, rejected = 0, total = 0;
+            (collegesList || []).forEach(col => {
+                const prog = (col.programs || []).find(p =>
+                    (p.course || '').trim().toLowerCase() === courseFilter.trim().toLowerCase()
+                );
+                if (prog) {
+                    pending += (prog.pending || 0);
+                    approved += (prog.approved || 0);
+                    rejected += (prog.rejected || 0);
+                    total += (prog.total || 0);
+                }
+            });
+            return { pending, approved, rejected, total, isFiltered: true };
+        }
+
+        return { ...globalSummary, isFiltered: false };
+    }, [abstractData, collegesList, collegeFilter, courseFilter, branchFilter]);
+
     const hasActiveFilters = Boolean(collegeFilter || courseFilter || branchFilter || statusFilter !== 'pending' || searchTerm);
+    const tableColSpan = (statusFilter === 'approved' || statusFilter === 'rejected') ? 8 : statusFilter === 'all' ? 7 : 6;
 
     return (
         <div className="space-y-6 pb-12">
             {/* 1. Header Banner with Live Stats & Light Executive Colors */}
-            <div className="bg-white p-5 sm:p-6 rounded-2xl border border-gray-100 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">
                     <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-600 flex items-center justify-center text-white shadow-sm shadow-indigo-100 shrink-0">
                         <Layers size={22} />
@@ -490,17 +561,17 @@ export const ProfileChangeRequests = () => {
             </div>
 
             {/* 3. Filters & Controls */}
-            <div className="bg-white rounded-2xl shadow-xs border border-gray-100 p-5 space-y-4">
+            <div className="bg-white rounded-2xl shadow-xs border border-gray-100 p-3.5 sm:p-4 space-y-3">
                 {/* Search & Status Tabs */}
                 <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
                     <div className="relative flex-1">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
                         <input
                             type="text"
-                            placeholder="Search by student name, PIN / admission number, course, branch, or updated fields..."
+                            placeholder="Search by student name, PIN, admission number, reviewer, course, branch..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-9 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-xs sm:text-sm bg-gray-50/40 focus:bg-white"
+                            className="w-full pl-9 pr-9 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-xs sm:text-sm bg-gray-50/40 focus:bg-white"
                         />
                         {searchTerm && (
                             <button
@@ -516,18 +587,20 @@ export const ProfileChangeRequests = () => {
                     {/* Status Tabs */}
                     <div className="inline-flex p-1 bg-gray-100/90 rounded-xl shrink-0 overflow-x-auto">
                         {[
-                            { id: 'pending', label: 'Pending', count: abstractData?.summary?.pending },
-                            { id: 'approved', label: 'Approved', count: abstractData?.summary?.approved },
-                            { id: 'rejected', label: 'Rejected', count: abstractData?.summary?.rejected },
-                            { id: 'all', label: 'All Requests', count: abstractData?.summary?.total },
+                            { id: 'pending', label: 'Pending', count: activeFilterSummary.pending, totalCount: abstractData?.summary?.pending },
+                            { id: 'approved', label: 'Approved', count: activeFilterSummary.approved, totalCount: abstractData?.summary?.approved },
+                            { id: 'rejected', label: 'Rejected', count: activeFilterSummary.rejected, totalCount: abstractData?.summary?.rejected },
+                            { id: 'all', label: 'All Requests', count: activeFilterSummary.total, totalCount: abstractData?.summary?.total },
                         ].map((tab) => {
                             const isActive = statusFilter === tab.id;
+                            const isFiltered = activeFilterSummary.isFiltered && tab.count !== tab.totalCount;
                             return (
                                 <button
                                     key={tab.id}
                                     type="button"
                                     onClick={() => handleStatusChange(tab.id)}
-                                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                                    title={isFiltered ? `${tab.count} matching in this selection (${(tab.totalCount || 0).toLocaleString()} across all colleges)` : `${(tab.count || 0).toLocaleString()} total`}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                                         isActive
                                             ? 'bg-white text-indigo-700 shadow-xs'
                                             : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
@@ -565,7 +638,7 @@ export const ProfileChangeRequests = () => {
                         <select
                             value={collegeFilter}
                             onChange={(e) => handleCollegeChange(e.target.value)}
-                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white cursor-pointer"
+                            className="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white cursor-pointer"
                         >
                             <option value="">All Colleges ({collegesList.length || 7}) - {((abstractData?.summary?.pending ?? 0)).toLocaleString()} pending</option>
                             {collegesList.map((c) => (
@@ -592,7 +665,7 @@ export const ProfileChangeRequests = () => {
                         <select
                             value={courseFilter}
                             onChange={(e) => handleCourseChange(e.target.value)}
-                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white cursor-pointer"
+                            className="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white cursor-pointer"
                         >
                             <option value="">
                                 {collegeFilter
@@ -622,7 +695,7 @@ export const ProfileChangeRequests = () => {
                             value={branchFilter}
                             onChange={(e) => handleBranchChange(e.target.value)}
                             disabled={!courseFilter && availableBranches.length === 0}
-                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white cursor-pointer disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+                            className="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white cursor-pointer disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
                         >
                             <option value="">
                                 {!courseFilter ? 'Select Course to view branches' : 'All Branches'}
@@ -706,29 +779,42 @@ export const ProfileChangeRequests = () => {
 
                 <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50/80">
-                            <tr>
-                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Student Details</th>
-                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">College</th>
-                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Course & Branch</th>
-                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Year & Batch</th>
-                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Requested Changes</th>
-                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Submitted Date</th>
-                                <th className="px-5 py-3.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-5 py-3.5 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
+                        <thead className="bg-gray-50/80 sticky top-0 z-10">
+                            <tr className="border-b border-gray-200/80">
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Student Details</th>
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">College & Program</th>
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Requested Changes</th>
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Submitted</th>
+                                {statusFilter === 'approved' && (
+                                    <>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Approved Time</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Approved By</th>
+                                    </>
+                                )}
+                                {statusFilter === 'rejected' && (
+                                    <>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Rejected Time</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Rejected By</th>
+                                    </>
+                                )}
+                                {statusFilter === 'all' && (
+                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Review Details</th>
+                                )}
+                                <th className="px-3 py-2.5 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">Action</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="8" className="px-6 py-16 text-center text-gray-500">
+                                    <td colSpan={tableColSpan} className="px-6 py-16 text-center text-gray-500">
                                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-3"></div>
                                         <p className="text-xs font-semibold text-gray-600">Loading student requests...</p>
                                     </td>
                                 </tr>
                             ) : filteredRequests.length === 0 ? (
                                 <tr>
-                                    <td colSpan="8" className="px-6 py-16 text-center text-gray-500">
+                                    <td colSpan={tableColSpan} className="px-6 py-16 text-center text-gray-500">
                                         <div className="bg-gray-50 rounded-2xl w-14 h-14 flex items-center justify-center mx-auto mb-3 border border-gray-100">
                                             <AlertCircle size={28} className="text-gray-400" />
                                         </div>
@@ -757,16 +843,16 @@ export const ProfileChangeRequests = () => {
                                     const photoSrc = getPhotoSrc(req.student_photo);
 
                                     return (
-                                        <tr key={req.id} className="hover:bg-gray-50/60 transition-colors">
+                                        <tr key={req.id} className="hover:bg-indigo-50/20 transition-colors border-b border-gray-100 last:border-b-0">
                                             {/* Column 1: Student Details with Photo */}
-                                            <td className="px-5 py-4 whitespace-nowrap">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="relative h-11 w-11 shrink-0">
+                                            <td className="px-3.5 py-2 whitespace-nowrap">
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className="relative h-8 w-8 shrink-0">
                                                         {photoSrc ? (
                                                             <img
                                                                 src={photoSrc}
                                                                 alt={req.student_name || 'Student'}
-                                                                className="h-11 w-11 rounded-xl object-cover border border-gray-200 shadow-2xs"
+                                                                className="h-8 w-8 rounded-lg object-cover border border-gray-200 shadow-2xs"
                                                                 onError={(e) => {
                                                                     e.currentTarget.style.display = 'none';
                                                                     const fb = e.currentTarget.parentElement?.querySelector('.avatar-fallback');
@@ -775,95 +861,82 @@ export const ProfileChangeRequests = () => {
                                                             />
                                                         ) : null}
                                                         <div
-                                                            className="avatar-fallback h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-2xs"
+                                                            className="avatar-fallback h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-[11px] shadow-2xs"
                                                             style={{ display: photoSrc ? 'none' : 'flex' }}
                                                         >
                                                             {initial}
                                                         </div>
                                                     </div>
-                                                    <div>
-                                                        <div className="text-xs sm:text-sm font-bold text-gray-900 leading-tight">
+                                                    <div className="min-w-0">
+                                                        <div className="text-xs font-bold text-gray-900 leading-snug truncate max-w-[170px]" title={req.student_name}>
                                                             {req.student_name || 'Unknown Student'}
                                                         </div>
-                                                        <div className="text-[11px] text-gray-500 font-mono mt-0.5 flex items-center gap-2">
+                                                        <div className="text-[10px] text-gray-500 font-mono flex items-center gap-1.5 leading-none mt-0.5">
                                                             <span>Adm: {req.admission_number}</span>
                                                             {req.pin_no && (
-                                                                <span className="text-indigo-600 font-semibold">• PIN: {req.pin_no}</span>
+                                                                <span className="text-indigo-600 font-semibold">• {req.pin_no}</span>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
 
-                                            {/* Column 2: College */}
-                                            <td className="px-5 py-4">
-                                                <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800">
-                                                    <Building2 size={13} className="text-indigo-600 shrink-0" />
-                                                    <span className="max-w-[210px] truncate" title={req.college}>
+                                            {/* Column 2: Single Cell for College, Course, Branch & Year */}
+                                            <td className="px-3.5 py-2">
+                                                <div className="max-w-[210px] space-y-0.5">
+                                                    <div className="text-xs font-bold text-gray-800 truncate" title={req.college}>
                                                         {req.college || '—'}
-                                                    </span>
-                                                </div>
-                                            </td>
-
-                                            {/* Column 3: Course & Branch */}
-                                            <td className="px-5 py-4 whitespace-nowrap">
-                                                <div className="space-y-1">
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                                                        {req.course || '—'}
-                                                    </span>
-                                                    <div className="text-xs font-semibold text-gray-800">
-                                                        {req.branch || '—'}
                                                     </div>
-                                                </div>
-                                            </td>
-
-                                            {/* Column 4: Year & Batch */}
-                                            <td className="px-5 py-4 whitespace-nowrap">
-                                                <div className="space-y-1">
-                                                    {(req.current_year || req.current_semester) ? (
-                                                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-100">
-                                                            Year {req.current_year || '—'} • Sem {req.current_semester || '—'}
+                                                    <div className="flex items-center gap-1 text-[11px] text-gray-600 truncate flex-wrap">
+                                                        <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">
+                                                            {req.course || '—'}
                                                         </span>
-                                                    ) : (
-                                                        <span className="text-xs text-gray-400">—</span>
-                                                    )}
-                                                    {req.batch && (
-                                                        <div className="text-[11px] text-gray-500 font-medium">
-                                                            Batch: {req.batch}
+                                                        <span className="font-medium text-gray-700 truncate" title={req.branch}>
+                                                            {req.branch || '—'}
+                                                        </span>
+                                                    </div>
+                                                    {(req.current_year || req.batch) && (
+                                                        <div className="text-[10px] text-gray-400 font-medium">
+                                                            {req.current_year ? `Year ${req.current_year}` : ''}
+                                                            {req.current_semester ? ` • Sem ${req.current_semester}` : ''}
+                                                            {req.batch ? ` (Batch ${req.batch})` : ''}
                                                         </div>
                                                     )}
                                                 </div>
                                             </td>
 
-                                            {/* Column 5: Requested Changes */}
-                                            <td className="px-5 py-4">
-                                                <div className="flex flex-wrap gap-1 max-w-xs">
-                                                    {changeKeys.slice(0, 3).map((key) => (
+                                            {/* Column 3: Requested Changes */}
+                                            <td className="px-3.5 py-2">
+                                                <div className="flex flex-wrap gap-1 max-w-[160px]">
+                                                    {changeKeys.slice(0, 2).map((key) => (
                                                         <span
                                                             key={key}
-                                                            className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-indigo-700 border border-blue-100"
+                                                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-indigo-700 border border-blue-100"
                                                         >
                                                             {formatKey(key)}
                                                         </span>
                                                     ))}
-                                                    {changeKeys.length > 3 && (
-                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-gray-100 text-gray-600">
-                                                            +{changeKeys.length - 3} more
+                                                    {changeKeys.length > 2 && (
+                                                        <span
+                                                            className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-bold bg-gray-100 text-gray-600"
+                                                            title={changeKeys.slice(2).map(formatKey).join(', ')}
+                                                        >
+                                                            +{changeKeys.length - 2}
                                                         </span>
                                                     )}
                                                 </div>
                                             </td>
 
-                                            {/* Column 6: Submitted Date */}
-                                            <td className="px-5 py-4 whitespace-nowrap text-xs text-gray-500">
-                                                <div className="font-medium text-gray-800">
+                                            {/* Column 4: Submitted Date */}
+                                            <td className="px-3.5 py-2 whitespace-nowrap text-xs text-gray-500">
+                                                <div className="font-semibold text-gray-800 text-[11px]">
                                                     {new Date(req.created_at).toLocaleDateString('en-US', {
                                                         month: 'short',
                                                         day: 'numeric',
                                                         year: 'numeric'
                                                     })}
                                                 </div>
-                                                <div className="text-[10px] text-gray-400 mt-0.5">
+                                                <div className="text-[10px] text-gray-400">
                                                     {new Date(req.created_at).toLocaleTimeString('en-US', {
                                                         hour: '2-digit',
                                                         minute: '2-digit'
@@ -871,9 +944,113 @@ export const ProfileChangeRequests = () => {
                                                 </div>
                                             </td>
 
-                                            {/* Column 7: Status */}
-                                            <td className="px-5 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
+                                            {/* Dynamic Columns: Approved Time & Approved By */}
+                                            {statusFilter === 'approved' && (
+                                                <>
+                                                    <td className="px-3.5 py-2 whitespace-nowrap text-xs">
+                                                        <div className="font-semibold text-gray-900 text-[11px] flex items-center gap-1">
+                                                            <Clock size={11} className="text-emerald-600 shrink-0" />
+                                                            <span>
+                                                                {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleDateString('en-US', {
+                                                                    month: 'short',
+                                                                    day: 'numeric',
+                                                                    year: 'numeric'
+                                                                })}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-[10px] font-semibold text-emerald-600 pl-3.5">
+                                                            {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleTimeString('en-US', {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-3.5 py-2 whitespace-nowrap">
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[10px] font-bold shadow-2xs">
+                                                            <UserCheck size={11} className="text-emerald-600 shrink-0" />
+                                                            <span>{req.reviewed_by || 'Admin'}</span>
+                                                        </span>
+                                                    </td>
+                                                </>
+                                            )}
+
+                                            {/* Dynamic Columns: Rejected Time & Rejected By */}
+                                            {statusFilter === 'rejected' && (
+                                                <>
+                                                    <td className="px-3.5 py-2 whitespace-nowrap text-xs">
+                                                        <div className="font-semibold text-gray-900 text-[11px] flex items-center gap-1">
+                                                            <Clock size={11} className="text-rose-500 shrink-0" />
+                                                            <span>
+                                                                {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleDateString('en-US', {
+                                                                    month: 'short',
+                                                                    day: 'numeric',
+                                                                    year: 'numeric'
+                                                                })}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-[10px] font-semibold text-rose-600 pl-3.5">
+                                                            {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleTimeString('en-US', {
+                                                                hour: '2-digit',
+                                                                minute: '2-digit'
+                                                            })}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-3.5 py-2 whitespace-nowrap">
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200/80 text-[10px] font-bold shadow-2xs">
+                                                            <UserCheck size={11} className="text-rose-600 shrink-0" />
+                                                            <span>{req.reviewed_by || 'Admin'}</span>
+                                                        </span>
+                                                    </td>
+                                                </>
+                                            )}
+
+                                            {/* Dynamic Column: All Statuses Review Details */}
+                                            {statusFilter === 'all' && (
+                                                <td className="px-3.5 py-2 whitespace-nowrap text-xs">
+                                                    {req.status === 'approved' ? (
+                                                        <div className="space-y-0.5">
+                                                            <div className="font-semibold text-gray-900 text-[11px] flex items-center gap-1">
+                                                                <Clock size={11} className="text-emerald-600 shrink-0" />
+                                                                <span>
+                                                                    {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                                </span>
+                                                                <span className="text-[10px] text-gray-400 font-normal">
+                                                                    {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                                </span>
+                                                            </div>
+                                                            <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200/60 text-[10px] font-bold">
+                                                                <UserCheck size={10} className="text-emerald-600 shrink-0" />
+                                                                <span>{req.reviewed_by || 'Admin'}</span>
+                                                            </div>
+                                                        </div>
+                                                    ) : req.status === 'rejected' ? (
+                                                        <div className="space-y-0.5">
+                                                            <div className="font-semibold text-gray-900 text-[11px] flex items-center gap-1">
+                                                                <Clock size={11} className="text-rose-500 shrink-0" />
+                                                                <span>
+                                                                    {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                                </span>
+                                                                <span className="text-[10px] text-gray-400 font-normal">
+                                                                    {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                                                </span>
+                                                            </div>
+                                                            <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-rose-50 text-rose-800 border border-rose-200/60 text-[10px] font-bold">
+                                                                <UserCheck size={10} className="text-rose-600 shrink-0" />
+                                                                <span>{req.reviewed_by || 'Admin'}</span>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-[10px] text-amber-600 font-medium italic flex items-center gap-1">
+                                                            <Clock size={11} className="text-amber-500 shrink-0" />
+                                                            <span>Awaiting review</span>
+                                                        </span>
+                                                    )}
+                                                </td>
+                                            )}
+
+                                            {/* Column: Status */}
+                                            <td className="px-3 py-2 whitespace-nowrap text-center">
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${
                                                     req.status === 'approved'
                                                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                                         : req.status === 'rejected'
@@ -891,8 +1068,8 @@ export const ProfileChangeRequests = () => {
                                                 </span>
                                             </td>
 
-                                            {/* Column 8: Action */}
-                                            <td className="px-5 py-4 whitespace-nowrap text-right">
+                                            {/* Column: Action */}
+                                            <td className="px-3.5 py-2 whitespace-nowrap text-right">
                                                 <button
                                                     type="button"
                                                     onClick={async () => {
@@ -906,9 +1083,9 @@ export const ProfileChangeRequests = () => {
                                                             console.error("Failed to fetch original student data:", err);
                                                         }
                                                     }}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 hover:border-indigo-400 hover:bg-indigo-50/50 rounded-xl text-xs font-bold text-gray-700 hover:text-indigo-700 transition-all shadow-2xs cursor-pointer"
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 hover:border-indigo-400 hover:bg-indigo-50/50 rounded-lg text-[11px] font-bold text-gray-700 hover:text-indigo-700 transition-all shadow-2xs cursor-pointer"
                                                 >
-                                                    <Eye size={14} />
+                                                    <Eye size={12} />
                                                     <span>Review</span>
                                                 </button>
                                             </td>
@@ -1197,21 +1374,49 @@ export const ProfileChangeRequests = () => {
 
                             {/* Prior Review Details if already processed */}
                             {selectedRequest.status !== 'pending' && (
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-xs space-y-2">
-                                    <p className="font-bold text-gray-700 uppercase text-[10px] tracking-wider">Review History</p>
+                                <div className={`p-4 rounded-xl border text-xs space-y-2.5 ${
+                                    selectedRequest.status === 'approved'
+                                        ? 'bg-emerald-50/50 border-emerald-200'
+                                        : 'bg-rose-50/50 border-rose-200'
+                                }`}>
+                                    <p className={`font-bold uppercase text-[10px] tracking-wider flex items-center gap-1.5 ${
+                                        selectedRequest.status === 'approved' ? 'text-emerald-800' : 'text-rose-800'
+                                    }`}>
+                                        {selectedRequest.status === 'approved' ? (
+                                            <>
+                                                <CheckCircle2 size={13} className="text-emerald-600" />
+                                                <span>Approval History</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <XCircle size={13} className="text-rose-600" />
+                                                <span>Rejection History</span>
+                                            </>
+                                        )}
+                                    </p>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <span className="text-gray-400 block text-[10px]">Reviewed By</span>
-                                            <span className="font-semibold text-gray-800">{selectedRequest.reviewed_by || 'Admin'}</span>
+                                            <span className="text-gray-500 block text-[10px] font-medium">
+                                                {selectedRequest.status === 'approved' ? 'Approved By' : 'Rejected By'}
+                                            </span>
+                                            <span className="font-bold text-gray-900 flex items-center gap-1.5 mt-0.5">
+                                                <UserCheck size={13} className={selectedRequest.status === 'approved' ? 'text-emerald-600' : 'text-rose-600'} />
+                                                <span>{selectedRequest.reviewed_by || 'Admin'}</span>
+                                            </span>
                                         </div>
                                         <div>
-                                            <span className="text-gray-400 block text-[10px]">Updated At</span>
-                                            <span className="font-semibold text-gray-800">{new Date(selectedRequest.updated_at || selectedRequest.created_at).toLocaleString()}</span>
+                                            <span className="text-gray-500 block text-[10px] font-medium">
+                                                {selectedRequest.status === 'approved' ? 'Approved Time' : 'Rejected Time'}
+                                            </span>
+                                            <span className="font-bold text-gray-900 flex items-center gap-1.5 mt-0.5">
+                                                <Clock size={13} className="text-gray-400" />
+                                                <span>{new Date(selectedRequest.updated_at || selectedRequest.created_at).toLocaleString()}</span>
+                                            </span>
                                         </div>
                                         {selectedRequest.comments && (
-                                            <div className="col-span-2">
-                                                <span className="text-gray-400 block text-[10px]">Comments</span>
-                                                <span className="font-medium text-gray-700">{selectedRequest.comments}</span>
+                                            <div className="col-span-2 mt-1 pt-2 border-t border-gray-200/70">
+                                                <span className="text-gray-500 block text-[10px] font-medium">Comments / Reason</span>
+                                                <span className="font-medium text-gray-800 italic block mt-0.5">{selectedRequest.comments}</span>
                                             </div>
                                         )}
                                     </div>

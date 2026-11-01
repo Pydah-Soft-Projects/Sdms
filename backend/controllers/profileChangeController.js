@@ -665,9 +665,10 @@ exports.getAllRequests = async (req, res) => {
             conditions.push(`(
                 s.student_name LIKE ? OR s.admission_number LIKE ? OR s.pin_no LIKE ? OR
                 s.course LIKE ? OR s.branch LIKE ? OR s.college LIKE ? OR
+                p.reviewed_by LIKE ? OR
                 CAST(p.requested_changes AS CHAR) LIKE ?
             )`);
-            params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+            params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
         }
 
         if (req.userScope) {

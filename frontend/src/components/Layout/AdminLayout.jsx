@@ -67,6 +67,7 @@ import {
 import toast from "react-hot-toast";
 import { getTicketAppUrl } from "../../utils/ticketAppUrl";
 import { navigateToCrtApp } from "../../utils/crtAppUrl";
+import PydahAiChat from "../PydahAiChat";
 
 const NAV_ITEMS = [
   {
@@ -346,6 +347,7 @@ const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const isSuperAdmin = ['super_admin', 'superadmin'].includes(String(user?.role || '').toLowerCase());
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [expandedItems, setExpandedItems] = useState(() => {
@@ -743,6 +745,17 @@ const AdminLayout = () => {
         <div className="fixed top-4 right-4 z-[90]">
           <NotificationIcon />
         </div>
+      )}
+
+      {/* Pydah AI Floating Assistant - Available across all admin routes for Super Admin */}
+      {isSuperAdmin && (
+        <PydahAiChat
+          mode="widget"
+          title="Pydah Admin Assistant"
+          assistantId="admin-assistant"
+          welcomeMessage="Hi! How can I help you today?"
+          position="bottom-right"
+        />
       )}
 
       {/* 3. Mobile Navigation Bar (Docked at Bottom) */}

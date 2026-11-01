@@ -41,6 +41,7 @@ import { useStudentStats } from '../hooks/useStudents';
 import useAuthStore from '../store/authStore';
 import { BACKEND_MODULES, hasPermission, isFullAccessRole, ROLE_LABELS } from '../constants/rbac';
 import DashboardSkeleton from '../components/skeletons/DashboardSkeleton';
+
 import {
   ResponsiveContainer,
   BarChart,
@@ -211,6 +212,7 @@ const Dashboard = () => {
   const { user } = useAuthStore();
   const userPermissions = user?.permissions || {};
   const isAdmin = isFullAccessRole(user?.role);
+  const isSuperAdmin = ['super_admin', 'superadmin'].includes(String(user?.role || '').toLowerCase());
   const [completingDashboardAlertId, setCompletingDashboardAlertId] = useState(null);
   const [selectedDashboardAlert, setSelectedDashboardAlert] = useState(null);
   const [showAllDashboardAlerts, setShowAllDashboardAlerts] = useState(false);

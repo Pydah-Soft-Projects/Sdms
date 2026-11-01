@@ -59,7 +59,6 @@ import { getTicketAppUrl } from '../../utils/ticketAppUrl';
 import { resolveRegistrationBranchYear } from '../../config/registrationBranchYear';
 import { computeRegistrationStageDisplays, isRegistrationPortalUnlocked } from '../../config/registrationStages.jsx';
 import TopHeaderBar from '../student/TopHeaderBar';
-import PydahAiChat from '../PydahAiChat';
 import LogoutConfirmModal from '../LogoutConfirmModal';
 
 const StudentLayout = ({ children }) => {
@@ -391,7 +390,6 @@ const StudentLayout = ({ children }) => {
 
     const navItems = [
         { icon: RiHome4Line, activeIcon: RiHome4Fill, label: 'Dashboard', path: '/student/dashboard' },
-        { icon: RiSparklingLine, activeIcon: RiSparklingFill, label: 'AI Assistant', path: '/student/ai-assistant' },
         { icon: RiMegaphoneLine, activeIcon: RiMegaphoneFill, label: 'Announcements', path: '/student/announcements' },
         { icon: RiGroupLine, activeIcon: RiGroupFill, label: 'Clubs', path: '/student/clubs' },
         { icon: RiCalendarEventLine, activeIcon: RiCalendarEventFill, label: 'Events', path: '/student/events' },
@@ -633,16 +631,7 @@ const StudentLayout = ({ children }) => {
                 </div>
             </main>
 
-            {/* Pydah AI Floating Assistant - ONLY rendered for logged-in students with active token when enabled in layout settings */}
-            {user && (layoutSettings ? (layoutSettings['ai-assistant'] !== false && layoutSettings.ai_assistant !== false) : true) && (
-                <PydahAiChat
-                    mode="widget"
-                    title="Pydah Student Assistant"
-                    welcomeMessage="Hi! How can I help you with your timetable, attendance, or courses today?"
-                    position="bottom-right"
-                />
-            )}
-
+            
             {/* Logout Confirmation Modal */}
             <LogoutConfirmModal
                 isOpen={isLogoutModalOpen}

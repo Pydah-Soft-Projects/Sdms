@@ -768,15 +768,6 @@ const Dashboard = () => {
                 enabled: true
             },
             {
-                key: 'ai-assistant',
-                label: 'AI Assistant',
-                path: '/student/ai-assistant',
-                icon: Sparkles,
-                iconBg: 'bg-[#f5f3ff]',
-                iconColor: 'text-[#7c3aed]',
-                enabled: isEnabled('ai-assistant') && layoutSettings?.ai_assistant !== false
-            },
-            {
                 key: 'semester-registration',
                 label: 'Sem Reg.',
                 path: '/student/semester-registration',

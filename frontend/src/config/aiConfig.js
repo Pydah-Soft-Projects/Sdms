@@ -12,5 +12,5 @@ export const getAiApiBaseUrl = () => {
   }
 
   // Default to localhost in development, fallback to production hosted URL
-  return import.meta.env.DEV ? 'http://localhost:8000' : 'https://pydah-ai-api.onrender.com';
+  return import.meta.env.DEV ? 'http://localhost:8000' : 'https://nemo-ai.pydah.edu.in';
 };

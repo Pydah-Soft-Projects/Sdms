@@ -223,6 +223,10 @@ app.use("/api/library", require("./routes/libraryRoutes"));
 
 // AI Integration Routes for Central pydah-ai Engine
 const aiIntegrationRoutes = require("./ai_integration/routes");
+app.use("/ai-tools", aiIntegrationRoutes);
+app.use("/api/ai-tools", aiIntegrationRoutes);
+app.use("/api/v1/ai-tools", aiIntegrationRoutes);
+app.use("/ai/tools", aiIntegrationRoutes);
 app.use("/execute-tool", aiIntegrationRoutes);
 app.use("/execute_tool", aiIntegrationRoutes);
 app.use("/api/execute-tool", aiIntegrationRoutes);
@@ -341,6 +345,21 @@ app.get("/api/debug/routes", (req, res) => {
     }
   });
   res.json({ routes });
+});
+
+// Health and root status endpoints
+app.get("/", (req, res) => {
+  res.json({
+    status: "online",
+    service: "Pydah Student Management Backend API",
+    version: "2.0.0",
+    ai_tools_endpoint: "/ai-tools",
+    execute_tool_endpoint: "/execute-tool"
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
 // Small debug/health endpoint - non-sensitive

@@ -13,6 +13,7 @@ function checkStudentAccess(userContext, targetStudentIdentifier) {
   // Administrative, Staff, & Faculty roles have system-wide access
   const privilegedRoles = [
     "super_admin",
+    "superadmin",
     "admin",
     "staff",
     "employee",

@@ -325,6 +325,23 @@ exports.updateEvent = async (req, res) => {
             ]
         );
 
+        // Sync updated event description to existing event notifications in sms_logs
+        if (title) {
+            try {
+                const datePart = event_date ? `Date: ${event_date}` : '';
+                const descPart = description && description.trim() ? description.trim() : 'Check event calendar for details.';
+                const updatedMsg = `**New Event: ${title}**\n${datePart ? `${datePart}\n${descPart}` : descPart}`;
+                await masterPool.query(
+                    `UPDATE sms_logs 
+                     SET message = ? 
+                     WHERE category = 'Event' AND message LIKE ?`,
+                    [updatedMsg, `%**New Event: ${title}**%`]
+                );
+            } catch (syncErr) {
+                console.warn('Failed to sync updated event description to sms_logs:', syncErr.message);
+            }
+        }
+
         res.json({ success: true, message: 'Event updated' });
     } catch (error) {
         console.error('Update event error:', error);
@@ -623,11 +640,26 @@ const notifyTargetedStudents = async (event) => {
         }
     };
 
+    // Format complete event notification message
+    let eventMessage = '';
+    if (event.event_date) {
+        const d = new Date(event.event_date);
+        if (!isNaN(d.getTime())) {
+            eventMessage += `Date: ${d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+            if (event.start_time) eventMessage += ` (${String(event.start_time).slice(0, 5)})`;
+        }
+    }
+    if (event.description && event.description.trim()) {
+        eventMessage += eventMessage ? `\n${event.description.trim()}` : event.description.trim();
+    } else {
+        eventMessage += eventMessage ? '\nCheck event calendar for details.' : 'Check event calendar for details.';
+    }
+
     // Send Web Notifications
     const studentIds = students.map(s => s.id);
     await createBroadcastNotification(studentIds, {
         title: `New Event: ${event.title}`,
-        message: event.description ? event.description.substring(0, 100) : 'Check event calendar',
+        message: eventMessage,
         category: 'Event'
     });
 

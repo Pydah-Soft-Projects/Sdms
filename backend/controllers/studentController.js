@@ -8564,14 +8564,38 @@ exports.changePassword = async (req, res) => {
   }
 };
 
-// Get student SMS logs
+// Get student SMS logs (retrieves all SMS sent till date to the student or their parents)
 exports.getStudentSmsLogs = async (req, res) => {
   try {
     const { admissionNumber } = req.params;
 
-    // First get student ID and scope check
-    let query = 'SELECT id, college, course, branch FROM students WHERE admission_number = ?';
-    let params = [admissionNumber];
+    if (!admissionNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student identifier is required'
+      });
+    }
+
+    const cleanIdentifier = String(admissionNumber).trim();
+
+    // Look up student by admission_number, id, or pin_no
+    let query = `
+      SELECT 
+        id, 
+        admission_number, 
+        pin_no, 
+        student_name, 
+        college, 
+        course, 
+        branch, 
+        student_mobile, 
+        parent_mobile1, 
+        parent_mobile2, 
+        student_data 
+      FROM students 
+      WHERE (admission_number = ? OR id = ? OR pin_no = ?)
+    `;
+    let params = [cleanIdentifier, cleanIdentifier, cleanIdentifier];
 
     // Apply scope check if userScope exists
     if (req.userScope) {
@@ -8582,37 +8606,202 @@ exports.getStudentSmsLogs = async (req, res) => {
       }
     }
 
+    query += ' LIMIT 1';
+
     const [students] = await masterPool.query(query, params);
 
     if (students.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Student not found or you don\'t have permission to view this student'
+        message: "Student not found or you don't have permission to view this student"
       });
     }
 
-    const studentId = students[0].id;
+    const student = students[0];
+    const studentId = student.id;
 
-    // Fetch SMS logs
-    const [logs] = await masterPool.query(
-      `SELECT 
+    // Collect all registered 10-digit mobile numbers for this student and parents
+    const mobileSet = new Set();
+    const addMobile = (num) => {
+      if (!num) return;
+      const digits = String(num).replace(/[^0-9]/g, '');
+      if (digits.length >= 10) {
+        mobileSet.add(digits.slice(-10));
+      }
+    };
+
+    addMobile(student.student_mobile);
+    addMobile(student.parent_mobile1);
+    addMobile(student.parent_mobile2);
+
+    let parsedStudentData = {};
+    try {
+      parsedStudentData = typeof student.student_data === 'string'
+        ? JSON.parse(student.student_data || '{}')
+        : (student.student_data || {});
+    } catch (e) {}
+
+    addMobile(parsedStudentData['Student Mobile Number']);
+    addMobile(parsedStudentData['student_mobile']);
+    addMobile(parsedStudentData['Parent Mobile Number 1']);
+    addMobile(parsedStudentData['Parent Mobile 1']);
+    addMobile(parsedStudentData['parent_mobile1']);
+    addMobile(parsedStudentData['Parent Mobile Number 2']);
+    addMobile(parsedStudentData['Parent Mobile 2']);
+    addMobile(parsedStudentData['parent_mobile2']);
+
+    const mobileList = Array.from(mobileSet);
+
+    // Fetch all SMS logs sent till date to this student:
+    // 1. By student_id
+    // 2. OR by matching any registered mobile number (student mobile, parent mobile 1, parent mobile 2)
+    let logsQuery = `
+      SELECT 
         id, 
         message, 
         category, 
+        template_id,
         current_year, 
         current_semester, 
         status, 
         sent_at, 
-        mobile_number 
+        mobile_number,
+        sent_by,
+        error_details,
+        message_id
       FROM sms_logs 
-      WHERE student_id = ? 
-      ORDER BY sent_at DESC`,
-      [studentId]
-    );
+      WHERE (student_id = ?
+    `;
+    let logsParams = [studentId];
+
+    if (mobileList.length > 0) {
+      logsQuery += ` OR (mobile_number IS NOT NULL AND RIGHT(REPLACE(REPLACE(REPLACE(mobile_number, ' ', ''), '+91', ''), '-', ''), 10) IN (?))`;
+      logsParams.push(mobileList);
+    }
+
+    logsQuery += ') ORDER BY sent_at DESC';
+
+    const [logs] = await masterPool.query(logsQuery, logsParams);
+
+    // For Event logs, collect any event titles from messages: e.g. **New Event: <title>**
+    const eventTitles = [];
+    logs.forEach(log => {
+      if ((log.category === 'Event' || String(log.message || '').startsWith('**New Event:')) && log.message) {
+        const match = log.message.match(/^\*\*New Event:\s*(.*?)\*\*/i);
+        if (match && match[1]) {
+          eventTitles.push(match[1].trim());
+        }
+      }
+    });
+
+    const eventMap = new Map();
+    if (eventTitles.length > 0) {
+      try {
+        const uniqueTitles = Array.from(new Set(eventTitles));
+        const [eventRows] = await masterPool.query(
+          `SELECT id, title, description, event_date, start_time, end_time, event_type, requires_registration 
+           FROM events 
+           WHERE title IN (?)
+           ORDER BY id DESC`,
+          [uniqueTitles]
+        );
+        eventRows.forEach(ev => {
+          if (ev.title && !eventMap.has(ev.title.trim().toLowerCase())) {
+            eventMap.set(ev.title.trim().toLowerCase(), ev);
+          }
+        });
+      } catch (err) {
+        console.warn('Error resolving event details for SMS logs:', err.message);
+      }
+    }
+
+    const enrichedLogs = logs.map(log => {
+      const isWeb = String(log.mobile_number || '').toUpperCase().startsWith('WEB');
+      let message = log.message;
+
+      // Enhance event messages with full description and details from events table
+      if ((log.category === 'Event' || String(message || '').startsWith('**New Event:')) && message) {
+        const match = message.match(/^\*\*New Event:\s*(.*?)\*\*(?:[\r\n\s]+([\s\S]*))?$/i);
+        if (match) {
+          const eventTitle = match[1].trim();
+          const currentBody = (match[2] || '').trim();
+          const eventInfo = eventMap.get(eventTitle.toLowerCase());
+
+          if (eventInfo) {
+            const parts = [];
+            if (eventInfo.event_date) {
+              const d = new Date(eventInfo.event_date);
+              if (!isNaN(d.getTime())) {
+                const formattedDate = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                let timeStr = '';
+                if (eventInfo.start_time) {
+                  timeStr = ` (${eventInfo.start_time.slice(0, 5)}${eventInfo.end_time ? ` - ${eventInfo.end_time.slice(0, 5)}` : ''})`;
+                }
+                parts.push(`Date: ${formattedDate}${timeStr}`);
+              }
+            }
+            if (eventInfo.requires_registration) {
+              parts.push('Online Registration Open');
+            }
+
+            const eventDesc = (eventInfo.description || '').trim();
+            let bodyText = '';
+            if (eventDesc) {
+              bodyText = eventDesc;
+            } else if (currentBody && currentBody.toLowerCase() !== 'check event calendar') {
+              bodyText = currentBody;
+            }
+
+            let fullBody = '';
+            if (parts.length > 0) {
+              fullBody = parts.join(' • ');
+            }
+            if (bodyText) {
+              fullBody = fullBody ? `${fullBody}\n${bodyText}` : bodyText;
+            } else if (!fullBody) {
+              fullBody = 'Check event calendar for details.';
+            }
+
+            message = `**New Event: ${eventTitle}**\n${fullBody}`;
+          }
+        }
+      }
+
+      return {
+        ...log,
+        message,
+        channel: isWeb ? 'WEB' : 'SMS',
+        recipient_mobile: isWeb ? (student.student_mobile || null) : log.mobile_number
+      };
+    });
+
+    // Compute summary stats
+    const smsCount = enrichedLogs.filter(l => l.channel === 'SMS').length;
+    const webCount = enrichedLogs.filter(l => l.channel === 'WEB').length;
+    const totalSent = enrichedLogs.filter(l => String(l.status).toLowerCase() === 'sent' || String(l.status).toLowerCase() === 'delivered').length;
+    const totalFailed = enrichedLogs.filter(l => String(l.status).toLowerCase() === 'failed').length;
+    const totalPending = enrichedLogs.filter(l => String(l.status).toLowerCase() === 'pending').length;
 
     res.json({
       success: true,
-      data: logs
+      data: enrichedLogs,
+      studentDetails: {
+        id: student.id,
+        admission_number: student.admission_number,
+        pin_no: student.pin_no,
+        student_name: student.student_name,
+        student_mobile: student.student_mobile,
+        parent_mobile1: student.parent_mobile1,
+        parent_mobile2: student.parent_mobile2
+      },
+      summary: {
+        total: enrichedLogs.length,
+        smsCount,
+        webCount,
+        sent: totalSent,
+        failed: totalFailed,
+        pending: totalPending
+      }
     });
   } catch (error) {
     console.error('Failed to fetch SMS logs:', error);

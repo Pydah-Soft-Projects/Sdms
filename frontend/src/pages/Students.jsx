@@ -356,8 +356,8 @@ const Students = () => {
   const isCashier = user?.role === USER_ROLES.CASHIER;
   const isSuperAdmin = ['super_admin', 'superadmin', 'Super Admin'].includes(String(user?.role || '').trim());
   const canEditQuota = isSuperAdmin;
-  // SMS tab should be visible for super admin, admin, or users with view_sms permission
-  const canViewSms = user?.role === 'super_admin' || user?.role === 'admin' || isCollegeAo || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'view_sms');
+  // SMS tab should be visible for super admin, admin, college AO, or users with view_sms/view_details/view permissions
+  const canViewSms = isSuperAdmin || user?.role === 'super_admin' || user?.role === 'admin' || isCollegeAo || canViewStudents || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'view_sms') || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'view_details');
   const canViewMeritStatus = user?.role === 'super_admin' || user?.role === 'admin' || isCollegeAo || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'view_merit_status') || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'edit_merit_status');
   const canEditMeritStatus = user?.role === 'super_admin' || user?.role === 'admin' || isCollegeAo || hasModulePermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'edit_merit_status');
   const smPerms = userPermissions?.[BACKEND_MODULES.STUDENT_MANAGEMENT];
@@ -4601,7 +4601,7 @@ const Students = () => {
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
                   >
-                    <MessageSquare size={14} />
+                    <MessageSquare size={15} />
                     <span>Communication</span>
                   </button>
                 )}

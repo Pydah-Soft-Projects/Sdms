@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const profileChangeController = require('../controllers/profileChangeController');
 const authMiddleware = require('../middleware/auth');
-const { verifyPermission, attachUserScope } = require('../middleware/rbac');
+const { verifyPermission, attachUserScope, isSuperAdmin } = require('../middleware/rbac');
 const { hasPermission, MODULES } = require('../constants/rbac');
 
 const requireStudent = (req, res, next) => {
@@ -23,8 +23,8 @@ const canViewProfileRequests = (req, res, next) => {
     }
     const role = (user.role || '').toLowerCase();
     if (
-        role === 'super_admin' ||
-        role === 'admin' ||
+        ['super_admin', 'superadmin', 'admin'].includes(role) ||
+        isSuperAdmin(user) ||
         hasPermission(user.permissions, MODULES.STUDENT_MANAGEMENT, 'view_profile_requests') ||
         hasPermission(user.permissions, MODULES.STUDENT_MANAGEMENT, 'edit_profile_requests')
     ) {
@@ -44,8 +44,8 @@ const canManageProfileRequests = (req, res, next) => {
     }
     const role = (user.role || '').toLowerCase();
     if (
-        role === 'super_admin' ||
-        role === 'admin' ||
+        ['super_admin', 'superadmin', 'admin'].includes(role) ||
+        isSuperAdmin(user) ||
         hasPermission(user.permissions, MODULES.STUDENT_MANAGEMENT, 'edit_profile_requests')
     ) {
         return next();
@@ -68,6 +68,14 @@ router.get(
     verifyPermission(MODULES.REPORTS, 'view_profile_reports'),
     attachUserScope,
     profileChangeController.getProfileCompletionReport
+);
+
+router.get(
+    '/college-abstract',
+    authMiddleware,
+    canViewProfileRequests,
+    attachUserScope,
+    profileChangeController.getCollegeWiseAbstract
 );
 
 router.get(

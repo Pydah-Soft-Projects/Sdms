@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -32,7 +32,8 @@ import {
   ChevronUp,
   Search,
   Eye,
-  CreditCard
+  CreditCard,
+  RotateCw
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../config/api';
@@ -229,6 +230,54 @@ const Dashboard = () => {
   const [courseModalData, setCourseModalData] = useState(null);
   const [courseModalError, setCourseModalError] = useState(null);
   const [courseModalDate, setCourseModalDate] = useState(null);
+  const [showProfileRequestsModal, setShowProfileRequestsModal] = useState(false);
+  const [profileModalSearch, setProfileModalSearch] = useState('');
+  const [expandedProfileColleges, setExpandedProfileColleges] = useState({});
+  const [expandedProfilePrograms, setExpandedProfilePrograms] = useState({});
+
+  // Profile requests abstract data for breakdown modal & card
+  const [profileAbstractData, setProfileAbstractData] = useState(null);
+  const [loadingProfileAbstract, setLoadingProfileAbstract] = useState(false);
+
+  const fetchProfileAbstract = async () => {
+    try {
+      setLoadingProfileAbstract(true);
+      const res = await api.get('/profile-changes/college-abstract');
+      if (res.data?.success) {
+        const payload = res.data.colleges ? res.data : (res.data.data || res.data);
+        setProfileAbstractData(payload);
+      }
+    } catch (err) {
+      console.error('Failed to load profile requests abstract:', err);
+    } finally {
+      setLoadingProfileAbstract(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfileAbstract();
+  }, []);
+
+  // Auto-refresh when modal is opened to ensure data is always fresh
+  useEffect(() => {
+    if (showProfileRequestsModal) {
+      fetchProfileAbstract();
+    }
+  }, [showProfileRequestsModal]);
+
+  const toggleProfileCollege = (collegeName) => {
+    setExpandedProfileColleges((prev) => ({
+      ...prev,
+      [collegeName]: !prev[collegeName]
+    }));
+  };
+
+  const toggleProfileProgram = (progKey) => {
+    setExpandedProfilePrograms((prev) => ({
+      ...prev,
+      [progKey]: !prev[progKey]
+    }));
+  };
 
   const todayObj = useMemo(() => new Date(), []);
   const todayKey = useMemo(() => {
@@ -456,6 +505,33 @@ const Dashboard = () => {
   const serviceRequests = stats?.serviceRequests || { summary: {}, recent: [] };
   const maintenanceTickets = stats?.maintenanceTickets || { summary: {}, recent: [] };
   const profileRequests = stats?.profileRequests || { summary: {}, recent: [] };
+
+  const collegesList = useMemo(() => {
+    return profileAbstractData?.colleges || profileAbstractData?.data?.colleges || [];
+  }, [profileAbstractData]);
+
+  const summaryObj = useMemo(() => {
+    return profileAbstractData?.summary || profileAbstractData?.data?.summary || profileRequests?.summary || {};
+  }, [profileAbstractData, profileRequests]);
+
+  const profilePendingCount = summaryObj.pending ?? (collegesList.reduce((acc, c) => acc + (c.pending || 0), 0)) ?? 0;
+  const profileApprovedCount = summaryObj.approved ?? (collegesList.reduce((acc, c) => acc + (c.approved || 0), 0)) ?? 0;
+  const profileRejectedCount = summaryObj.rejected ?? (collegesList.reduce((acc, c) => acc + (c.rejected || 0), 0)) ?? 0;
+  const profileTotalCount = summaryObj.total ?? (collegesList.reduce((acc, c) => acc + (c.total || 0), 0)) ?? 0;
+
+  const filteredProfileColleges = useMemo(() => {
+    const colleges = collegesList;
+    if (!profileModalSearch.trim()) return colleges;
+    const q = profileModalSearch.toLowerCase().trim();
+    return colleges.filter((c) => {
+      const matchCol = c.college?.toLowerCase().includes(q);
+      const matchProg = c.programs?.some((p) =>
+        p.course?.toLowerCase().includes(q) ||
+        p.branches?.some((b) => b.branch?.toLowerCase().includes(q))
+      );
+      return matchCol || matchProg;
+    });
+  }, [collegesList, profileModalSearch]);
   const registrations = stats?.registrations || { summary: {}, stages: {}, monthly: [], recent: [] };
   const recentActivities = stats?.recentActivities || [];
 
@@ -1050,27 +1126,37 @@ const Dashboard = () => {
 
         {/* Card 5: Profile Requests */}
         <div 
-          onClick={() => navigate('/students/profile-change-requests')}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-pink-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          onClick={() => setShowProfileRequestsModal(true)}
+          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-pink-600 flex items-center justify-center text-white shadow-sm shadow-pink-200">
+              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-100">
                 <UserCheck size={19} />
               </div>
-              <ChevronRight size={18} className="text-pink-500 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight size={18} className="text-indigo-500 group-hover:translate-x-0.5 transition-transform" />
             </div>
             <p className="text-2xl font-bold text-gray-900 leading-none">
-              {(profileRequests.summary?.total || profileRequests.summary?.pending || 1236).toLocaleString()}
+              {(profilePendingCount || profileTotalCount || profileRequests.summary?.total || 1887).toLocaleString()}
             </p>
             <p className="text-xs font-semibold text-gray-600 mt-1.5">
               Profile Requests
             </p>
           </div>
-          <div className="mt-4 pt-2.5 border-t border-gray-100 flex items-center text-[11px] leading-tight">
+          <div className="mt-4 pt-2.5 border-t border-gray-100 flex items-center justify-between text-[11px] leading-tight">
             <span className="text-gray-500 font-medium">
               Pending for Review
             </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowProfileRequestsModal(true);
+              }}
+              className="text-indigo-600 font-semibold hover:underline cursor-pointer"
+            >
+              View Breakdown
+            </button>
           </div>
         </div>
 
@@ -2050,7 +2136,7 @@ const Dashboard = () => {
               <div className="space-y-1.5 text-xs flex-1">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-pink-500" /> Pending
+                    <span className="w-2 h-2 rounded-full bg-amber-500" /> Pending
                   </span>
                   <span className="font-semibold text-gray-900">{(profileRequests.summary?.pending ?? 1236).toLocaleString()}</span>
                 </div>
@@ -2328,6 +2414,280 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+{/* 8. College Profile Requests Abstract Modal */}
+      {showProfileRequestsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] flex flex-col overflow-hidden border border-gray-100">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-slate-50 via-white to-indigo-50/40">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-100">
+                  <UserCheck size={20} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-gray-900">Profile Requests Abstract</h3>
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">
+                      {profilePendingCount.toLocaleString()} Pending
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    College-wise breakdown with programs and branches
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => fetchProfileAbstract()}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                  title="Refresh college abstract data"
+                >
+                  <RotateCw size={17} className={loadingProfileAbstract ? 'animate-spin text-indigo-600' : ''} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowProfileRequestsModal(false)}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              {/* Summary Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3">
+                  <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide">Pending Review</p>
+                  <p className="text-2xl font-black text-amber-900 mt-0.5">
+                    {profilePendingCount.toLocaleString()}
+                  </p>
+                </div>
+                <div className="bg-emerald-50/80 border border-emerald-100 rounded-xl p-3">
+                  <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wide">Approved</p>
+                  <p className="text-2xl font-black text-emerald-900 mt-0.5">
+                    {profileApprovedCount.toLocaleString()}
+                  </p>
+                </div>
+                <div className="bg-rose-50/80 border border-rose-100 rounded-xl p-3">
+                  <p className="text-[11px] font-semibold text-rose-700 uppercase tracking-wide">Rejected</p>
+                  <p className="text-2xl font-black text-rose-900 mt-0.5">
+                    {profileRejectedCount.toLocaleString()}
+                  </p>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                  <p className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">Total Requests</p>
+                  <p className="text-2xl font-black text-slate-800 mt-0.5">
+                    {profileTotalCount.toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Search within colleges */}
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search college, program, or branch..."
+                  value={profileModalSearch}
+                  onChange={(e) => setProfileModalSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+              </div>
+
+              {/* Colleges Accordion List */}
+              {loadingProfileAbstract ? (
+                <div className="py-12 text-center text-gray-500">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+                  <p className="text-xs">Loading college-wise abstract...</p>
+                </div>
+              ) : filteredProfileColleges.length === 0 ? (
+                <div className="py-12 text-center text-gray-400 border border-dashed rounded-xl p-6">
+                  <UserCheck size={36} className="mx-auto mb-2 opacity-40 text-indigo-500" />
+                  <p className="text-sm font-semibold text-gray-700">
+                    {profileModalSearch ? 'No requests match your search criteria' : 'No profile change requests loaded'}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {profileModalSearch ? 'Try a different search query.' : 'Click the button below to reload the college abstract from the server.'}
+                  </p>
+                  {!profileModalSearch && (
+                    <button
+                      type="button"
+                      onClick={() => fetchProfileAbstract()}
+                      className="mt-3 px-3.5 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <RotateCw size={13} />
+                      <span>Retry Fetching Abstract</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredProfileColleges.map((college) => {
+                    const isExpanded = !!expandedProfileColleges[college.college];
+                    return (
+                      <div
+                        key={college.college}
+                        className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-xs hover:border-indigo-200 transition-all"
+                      >
+                        {/* College Header Row */}
+                        <div
+                          onClick={() => toggleProfileCollege(college.college)}
+                          className="p-3.5 bg-gray-50/70 hover:bg-indigo-50/30 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700 shrink-0">
+                              <Building2 size={16} />
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-900 text-sm leading-tight">{college.college}</p>
+                              <p className="text-[11px] text-gray-500 mt-0.5">
+                                {college.programs?.length || 0} Programs • {(college.total || 0).toLocaleString()} Total Requests
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-end sm:self-center">
+                            <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                              {college.pending} Pending
+                            </span>
+                            {college.approved > 0 && (
+                              <span className="px-2 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hidden sm:inline-block">
+                                {college.approved} Approved
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowProfileRequestsModal(false);
+                                navigate(`/students/profile-change-requests?college=${encodeURIComponent(college.college)}&status=pending`);
+                              }}
+                              className="px-2.5 py-1 rounded-md text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors flex items-center gap-1 cursor-pointer"
+                              title="Open requests for this college"
+                            >
+                              <span>View</span>
+                              <ChevronRight size={13} />
+                            </button>
+                            <div className="p-1 text-gray-400">
+                              {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Collapsible Programs List */}
+                        {isExpanded && (
+                          <div className="p-3 bg-white border-t border-gray-100 space-y-2">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">
+                              Programs & Branches Breakdown
+                            </p>
+                            {college.programs?.map((program) => {
+                              const progKey = `${college.college}-${program.course}`;
+                              const isProgExpanded = expandedProfilePrograms[progKey] ?? true;
+                              return (
+                                <div
+                                  key={program.course}
+                                  className="border border-gray-100 rounded-lg p-2.5 bg-gray-50/40"
+                                >
+                                  <div
+                                    onClick={() => toggleProfileProgram(progKey)}
+                                    className="flex items-center justify-between cursor-pointer"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <GraduationCap size={15} className="text-indigo-600 shrink-0" />
+                                      <span className="font-semibold text-xs text-gray-900">{program.course}</span>
+                                      <span className="text-[10px] text-gray-400">({program.branches?.length || 0} branches)</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                                        {program.pending} pending
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setShowProfileRequestsModal(false);
+                                          navigate(`/students/profile-change-requests?college=${encodeURIComponent(college.college)}&course=${encodeURIComponent(program.course)}&status=pending`);
+                                        }}
+                                        className="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold hover:underline cursor-pointer"
+                                      >
+                                        Filter →
+                                      </button>
+                                      {program.branches?.length > 1 && (
+                                        <div className="text-gray-400">
+                                          {isProgExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Branches pills */}
+                                  {isProgExpanded && program.branches?.length > 0 && (
+                                    <div className="mt-2 pt-2 border-t border-gray-200/60 flex flex-wrap gap-1.5">
+                                      {program.branches.map((b) => (
+                                        <button
+                                          key={b.branch}
+                                          type="button"
+                                          onClick={() => {
+                                            setShowProfileRequestsModal(false);
+                                            navigate(`/students/profile-change-requests?college=${encodeURIComponent(college.college)}&course=${encodeURIComponent(program.course)}&branch=${encodeURIComponent(b.branch)}&status=pending`);
+                                          }}
+                                          className="text-[11px] px-2 py-1 rounded bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/40 text-gray-700 transition-all flex items-center gap-1.5 group cursor-pointer"
+                                          title={`Filter by ${b.branch}`}
+                                        >
+                                          <span className="font-medium">{b.branch}</span>
+                                          <span className="font-bold text-[10px] px-1 py-0.2 rounded bg-indigo-100 text-indigo-700 group-hover:bg-indigo-200">
+                                            {b.pending}
+                                          </span>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-3.5 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <span className="text-xs text-gray-500">
+                {collegesList.length} Colleges with Profile Requests
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowProfileRequestsModal(false);
+                    navigate('/students/profile-change-requests');
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm cursor-pointer"
+                >
+                  Go to Profile Requests Page →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowProfileRequestsModal(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
     </div>
   );
 };

@@ -305,7 +305,7 @@ exports.getProfileCompletionReport = async (req, res) => {
                 conditions.push('s.college_id = ?');
                 params.push(parseInt(college, 10));
             } else {
-                conditions.push('s.college = ?');
+                conditions.push('TRIM(s.college) = ?');
                 params.push(String(college).trim());
             }
         }
@@ -595,10 +595,10 @@ exports.getAllRequests = async (req, res) => {
     try {
         const { status, college, batch, course, branch, year, semester, search } = req.query;
         let query = `
-            SELECT p.*, s.student_name, s.admission_number, s.college, s.batch,
+            SELECT p.*, s.student_name, s.admission_number, s.pin_no, s.student_photo, s.college, s.batch,
                    s.course, s.branch, s.current_year, s.current_semester
             FROM profile_change_requests p
-            JOIN students s ON p.admission_number = s.admission_number
+            LEFT JOIN students s ON p.admission_number = s.admission_number
         `;
         const params = [];
         const conditions = [];
@@ -663,11 +663,11 @@ exports.getAllRequests = async (req, res) => {
         if (search && String(search).trim()) {
             const searchTerm = `%${String(search).trim()}%`;
             conditions.push(`(
-                s.student_name LIKE ? OR s.admission_number LIKE ? OR
+                s.student_name LIKE ? OR s.admission_number LIKE ? OR s.pin_no LIKE ? OR
                 s.course LIKE ? OR s.branch LIKE ? OR s.college LIKE ? OR
                 CAST(p.requested_changes AS CHAR) LIKE ?
             )`);
-            params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+            params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
         }
 
         if (req.userScope) {
@@ -681,10 +681,46 @@ exports.getAllRequests = async (req, res) => {
             query += ` WHERE ${conditions.join(' AND ')}`;
         }
 
+        // Count total matching records for pagination
+        let countQuery = `
+            SELECT COUNT(*) as total
+            FROM profile_change_requests p
+            LEFT JOIN students s ON p.admission_number = s.admission_number
+        `;
+        if (conditions.length > 0) {
+            countQuery += ` WHERE ${conditions.join(' AND ')}`;
+        }
+        const [[countRow]] = await masterPool.query(countQuery, params);
+        const total = countRow ? Number(countRow.total) : 0;
+
         query += ' ORDER BY p.created_at DESC';
 
-        const [requests] = await masterPool.query(query, params);
-        res.json({ success: true, data: requests });
+        const isPaginated = req.query.limit !== 'all';
+        const pageNum = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limitNum = isPaginated ? Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 25)) : null;
+        const offsetNum = isPaginated ? (pageNum - 1) * limitNum : 0;
+
+        const dataParams = [...params];
+        if (isPaginated) {
+            query += ' LIMIT ? OFFSET ?';
+            dataParams.push(limitNum, offsetNum);
+        }
+
+        const [requests] = await masterPool.query(query, dataParams);
+        const totalPages = isPaginated ? (limitNum > 0 ? Math.ceil(total / limitNum) : 1) : 1;
+
+        res.json({
+            success: true,
+            data: requests,
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum || total,
+                totalPages: totalPages || 1,
+                hasNextPage: pageNum < totalPages,
+                hasPrevPage: pageNum > 1
+            }
+        });
     } catch (error) {
         console.error('Error fetching all requests:', error);
         res.status(500).json({ success: false, message: 'Server error while fetching requests' });
@@ -951,5 +987,130 @@ exports.markVerified = async (req, res) => {
     } catch (error) {
         console.error('Error marking profile as verified:', error);
         res.status(500).json({ success: false, message: 'Server error while verifying profile' });
+    }
+};
+// Get College-wise Abstract with Programs & Branches
+exports.getCollegeWiseAbstract = async (req, res) => {
+    try {
+        const conditions = [];
+        const params = [];
+
+        if (req.userScope && !req.userScope.unrestricted) {
+            const { conditions: scopeConditions, params: scopeParams } =
+                buildScopeConditions(req.userScope, 's');
+            conditions.push(...scopeConditions);
+            params.push(...scopeParams);
+        }
+
+        let query = `
+            SELECT 
+                COALESCE(NULLIF(TRIM(s.college), ''), 'Unknown') as college,
+                COALESCE(NULLIF(TRIM(s.course), ''), 'General') as course,
+                COALESCE(NULLIF(TRIM(s.branch), ''), 'General') as branch,
+                LOWER(TRIM(COALESCE(p.status, 'pending'))) as status,
+                COUNT(*) as count
+            FROM profile_change_requests p
+            LEFT JOIN students s ON p.admission_number = s.admission_number
+        `;
+
+        if (conditions.length > 0) {
+            query += ` WHERE ${conditions.join(' AND ')}`;
+        }
+
+        query += `
+            GROUP BY s.college, s.course, s.branch, p.status
+            ORDER BY s.college ASC, s.course ASC, s.branch ASC
+        `;
+
+        const [rows] = await masterPool.query(query, params);
+
+        const collegeMap = {};
+        const summary = { total: 0, pending: 0, approved: 0, rejected: 0 };
+
+        rows.forEach(r => {
+            const collegeName = r.college;
+            const courseName = r.course;
+            const branchName = r.branch;
+            const status = (r.status || 'pending').toLowerCase().trim();
+            const count = Number(r.count) || 0;
+
+            summary.total += count;
+            if (status === 'approved') summary.approved += count;
+            else if (status === 'rejected') summary.rejected += count;
+            else summary.pending += count;
+
+            if (!collegeMap[collegeName]) {
+                collegeMap[collegeName] = { 
+                    college: collegeName, 
+                    total: 0, 
+                    pending: 0, 
+                    approved: 0, 
+                    rejected: 0, 
+                    programs: {} 
+                };
+            }
+            const cObj = collegeMap[collegeName];
+            cObj.total += count;
+            if (status === 'approved') cObj.approved += count;
+            else if (status === 'rejected') cObj.rejected += count;
+            else cObj.pending += count;
+
+            if (!cObj.programs[courseName]) {
+                cObj.programs[courseName] = { 
+                    course: courseName, 
+                    total: 0, 
+                    pending: 0, 
+                    approved: 0, 
+                    rejected: 0, 
+                    branches: {} 
+                };
+            }
+            const pObj = cObj.programs[courseName];
+            pObj.total += count;
+            if (status === 'approved') pObj.approved += count;
+            else if (status === 'rejected') pObj.rejected += count;
+            else pObj.pending += count;
+
+            if (!pObj.branches[branchName]) {
+                pObj.branches[branchName] = { 
+                    branch: branchName, 
+                    total: 0, 
+                    pending: 0, 
+                    approved: 0, 
+                    rejected: 0 
+                };
+            }
+            const bObj = pObj.branches[branchName];
+            bObj.total += count;
+            if (status === 'approved') bObj.approved += count;
+            else if (status === 'rejected') bObj.rejected += count;
+            else bObj.pending += count;
+        });
+
+        const colleges = Object.values(collegeMap).map(c => ({
+            college: c.college,
+            total: c.total,
+            pending: c.pending,
+            approved: c.approved,
+            rejected: c.rejected,
+            programs: Object.values(c.programs).map(p => ({
+                course: p.course,
+                total: p.total,
+                pending: p.pending,
+                approved: p.approved,
+                rejected: p.rejected,
+                branches: Object.values(p.branches).sort((a, b) => (b.pending - a.pending) || (b.total - a.total))
+            })).sort((a, b) => (b.pending - a.pending) || (b.total - a.total))
+        })).sort((a, b) => (b.pending - a.pending) || (b.total - a.total));
+
+        res.json({
+            success: true,
+            summary,
+            colleges,
+            data: { summary, colleges }
+        });
+    } catch (error) {
+        console.error('Error fetching college-wise profile requests abstract:', error);
+        res.status(500).json({ success: false, message: 'Server error while fetching college-wise abstract' });
     }
 };

@@ -1121,7 +1121,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            {selectedEvent.requires_registration && (
+                            {Boolean(selectedEvent.requires_registration) && (
                                 <section className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3 space-y-2.5">
                                     <div className="flex items-start justify-between gap-3">
                                         <div>

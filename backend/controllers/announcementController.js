@@ -1,9 +1,16 @@
 const { masterPool } = require('../config/database');
-const { parseTargetsFromRow, matchesStudent } = require('../services/targetingService');
+const { parseTargetsFromRow, matchesStudent, parseTarget } = require('../services/targetingService');
 
 const smsService = require('../services/smsService');
 const pushController = require('./pushController');
 const fs = require('fs');
+// Helper to parse targeting parameters into an array of values
+const parseTargetParam = (val) => {
+    if (!val) return null;
+    const arr = parseTarget(val);
+    return arr && arr.length > 0 ? arr : null;
+};
+
 
 // Helper to delete local file
 const deleteLocalFile = (path) => {
@@ -63,11 +70,7 @@ exports.createAnnouncement = async (req, res) => {
         let countQuery = 'SELECT COUNT(*) as count FROM students WHERE student_status = "Regular"';
         const queryParams = [];
 
-        const parseParam = (val) => {
-            if (!val) return null;
-            if (Array.isArray(val)) return val.length ? val : null;
-            try { const parsed = JSON.parse(val); return parsed.length ? parsed : null; } catch (e) { return null; }
-        };
+        const parseParam = parseTargetParam;
 
         const colleges = parseParam(target_college);
         const batches = parseParam(target_batch);
@@ -235,7 +238,7 @@ exports.getStudentAnnouncements = async (req, res) => {
         let student = null;
         if (studentAdmNum || id) {
             const [studentRows] = await masterPool.query(
-                'SELECT college, course, branch, batch, current_year, current_semester, student_status FROM students WHERE admission_number = ? OR admission_no = ? OR id = ? LIMIT 1',
+                'SELECT id, college, course, branch, batch, current_year, current_semester, student_status FROM students WHERE admission_number = ? OR admission_no = ? OR id = ? LIMIT 1',
                 [studentAdmNum || '', studentAdmNum || '', id || 0]
             );
             if (studentRows && studentRows.length > 0) {
@@ -248,51 +251,106 @@ exports.getStudentAnnouncements = async (req, res) => {
             return res.json({ success: true, data: [], hasMore: false });
         }
 
-        // Fetch active announcements (order by created_at DESC)
-        const [rows] = await masterPool.query(
-            `SELECT 
-                a.id, 
-                a.title, 
-                a.content, 
-                (a.image_url IS NOT NULL AND a.image_url != "") as has_image, 
-                a.created_at, 
-                a.expires_at, 
-                a.is_active, 
-                a.target_college, 
-                a.target_batch, 
-                a.target_course, 
-                a.target_branch, 
-                a.target_year, 
-                a.target_semester
-            FROM announcements a
-            WHERE a.is_active = 1 
-            ORDER BY a.created_at DESC`
-        );
+        // Fetch active announcements with registration details
+        let rows = [];
+        try {
+            [rows] = await masterPool.query(
+                `SELECT 
+                    a.id, 
+                    a.title, 
+                    a.content, 
+                    (a.image_url IS NOT NULL AND a.image_url != "") as has_image, 
+                    a.created_at, 
+                    a.expires_at, 
+                    a.is_active, 
+                    a.target_college, 
+                    a.target_batch, 
+                    a.target_course, 
+                    a.target_branch, 
+                    a.target_year, 
+                    a.target_semester,
+                    a.requires_registration,
+                    a.max_seats,
+                    a.registration_deadline,
+                    a.custom_registration_field,
+                    a.registration_form_fields,
+                    COALESCE(reg.registered_count, 0) AS registered_count,
+                    mine.id AS my_registration_id,
+                    mine.status AS my_registration_status
+                FROM announcements a
+                LEFT JOIN (
+                    SELECT announcement_id, COUNT(*) AS registered_count
+                    FROM announcement_registrations
+                    WHERE status = 'confirmed'
+                    GROUP BY announcement_id
+                ) reg ON reg.announcement_id = a.id
+                LEFT JOIN announcement_registrations mine
+                    ON mine.announcement_id = a.id AND mine.student_id = ? AND mine.status = 'confirmed'
+                WHERE a.is_active = 1 
+                ORDER BY a.created_at DESC`,
+                [student ? student.id : 0]
+            );
+        } catch (dbErr) {
+            [rows] = await masterPool.query(
+                `SELECT 
+                    a.id, 
+                    a.title, 
+                    a.content, 
+                    (a.image_url IS NOT NULL AND a.image_url != "") as has_image, 
+                    a.created_at, 
+                    a.expires_at, 
+                    a.is_active, 
+                    a.target_college, 
+                    a.target_batch, 
+                    a.target_course, 
+                    a.target_branch, 
+                    a.target_year, 
+                    a.target_semester,
+                    a.requires_registration,
+                    a.max_seats,
+                    a.registration_deadline,
+                    a.custom_registration_field,
+                    a.registration_form_fields,
+                    0 AS registered_count,
+                    NULL AS my_registration_id,
+                    NULL AS my_registration_status
+                FROM announcements a
+                WHERE a.is_active = 1 
+                ORDER BY a.created_at DESC`
+            );
+        }
 
         let matchedAnnouncements = rows;
         if (student) {
-            const filtered = rows.filter(ann => {
+            matchedAnnouncements = rows.filter(ann => {
                 const targets = parseTargetsFromRow(ann);
                 return matchesStudent(student, targets);
             });
-            // If student matches specific announcements, use them; if none matched specific filters, fallback to all active to avoid empty state
-            matchedAnnouncements = filtered.length > 0 ? filtered : rows;
         }
 
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         const pagedData = matchedAnnouncements.slice(offset, offset + limit).map(ann => {
+            const requiresReg = Boolean(ann.requires_registration);
+            const registeredCount = Number(ann.registered_count || 0);
+            const maxSeats = ann.max_seats ? Number(ann.max_seats) : null;
+            const isFull = maxSeats ? registeredCount >= maxSeats : false;
+            const isRegistered = Boolean(ann.my_registration_id);
+            let availableSeats = null;
+            if (maxSeats !== null) {
+                availableSeats = Math.max(0, maxSeats - registeredCount);
+            }
             return {
                 ...ann,
-                requires_registration: false,
-                registration_form_fields: [],
-                registered_count: 0,
-                max_seats: null,
-                registration_deadline: null,
-                custom_registration_field: null,
-                available_seats: null,
-                is_full: false,
-                is_registered: false,
-                my_registration: null,
+                requires_registration: requiresReg,
+                registration_form_fields: ann.registration_form_fields ? (typeof ann.registration_form_fields === 'string' ? JSON.parse(ann.registration_form_fields) : ann.registration_form_fields) : [],
+                registered_count: registeredCount,
+                max_seats: maxSeats,
+                registration_deadline: ann.registration_deadline,
+                custom_registration_field: ann.custom_registration_field,
+                available_seats: availableSeats,
+                is_full: isFull,
+                is_registered: isRegistered,
+                my_registration: isRegistered ? { id: ann.my_registration_id, status: ann.my_registration_status } : null,
                 image_url: ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null
             };
         });
@@ -314,14 +372,7 @@ exports.calculateRecipientCount = async (req, res) => {
     try {
         const { target_type, selected_student_ids, target_college, target_batch, target_status, target_course, target_branch, target_year, target_semester } = req.body;
 
-        const parseParam = (val) => {
-            if (!val) return null;
-            if (Array.isArray(val)) return val.length ? val : null;
-            try {
-                const parsed = JSON.parse(val);
-                return parsed.length ? parsed : null;
-            } catch (e) { return null; }
-        };
+        const parseParam = parseTargetParam;
 
         const studentIds = parseParam(selected_student_ids);
         const statuses = parseParam(target_status);
@@ -417,11 +468,7 @@ exports.updateAnnouncement = async (req, res) => {
         let countQuery = 'SELECT COUNT(*) as count FROM students WHERE student_status = "Regular"';
         const queryParams = [];
 
-        const parseParam = (val) => {
-            if (!val) return null;
-            if (Array.isArray(val)) return val.length ? val : null;
-            try { const parsed = JSON.parse(val); return parsed.length ? parsed : null; } catch (e) { return null; }
-        };
+        const parseParam = parseTargetParam;
 
         const colleges = parseParam(target_college);
         const batches = parseParam(target_batch);
@@ -621,14 +668,7 @@ exports.sendSMSAnnouncement = async (req, res) => {
         let query = 'SELECT students.*, colleges.name as college, courses.name as course, course_branches.name as branch FROM students LEFT JOIN colleges ON students.college_id = colleges.id LEFT JOIN courses ON students.course_id = courses.id LEFT JOIN course_branches ON students.branch_id = course_branches.id WHERE 1=1';
         const params = [];
 
-        const parseParam = (val) => {
-            if (!val) return null;
-            if (Array.isArray(val)) return val.length ? val : null;
-            try {
-                const parsed = JSON.parse(val);
-                return parsed.length ? parsed : null;
-            } catch (e) { return null; }
-        };
+        const parseParam = parseTargetParam;
 
         const statuses = parseParam(target_status);
         if (statuses && statuses.length > 0) {

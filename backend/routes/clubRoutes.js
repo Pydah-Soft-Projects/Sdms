@@ -120,14 +120,19 @@ router.post('/', verifyToken, isAdmin, upload.single('image'), clubController.cr
 router.post('/roles', verifyToken, isAdmin, clubController.createClubRole);
 router.put('/roles/:roleId', verifyToken, isAdmin, clubController.updateClubRole);
 router.delete('/roles/:roleId', verifyToken, isAdmin, clubController.deleteClubRole);
+const activityUpload = upload.fields([
+    { name: 'images', maxCount: 20 },
+    { name: 'image', maxCount: 1 }
+]);
+
 router.post('/:clubId/members', verifyToken, requireClubPage('students', 'write'), clubController.addClubMember);
 router.patch('/:clubId/members', verifyToken, requireClubPage('students', 'write'), clubController.updateMembershipStatus); // Body: { studentId, status }
 router.delete('/:clubId/members/:memberId', verifyToken, requireClubPage('students', 'write'), clubController.removeClubMember);
-router.post('/:clubId/activities', verifyToken, requireClubPage('management', 'write'), upload.single('image'), clubController.createActivity);
+router.post('/:clubId/activities', verifyToken, requireClubPage('management', 'write'), activityUpload, clubController.createActivity);
 router.put('/:clubId', verifyToken, requireClubPage('settings', 'write'), upload.single('image'), clubController.updateClub);
 router.delete('/:clubId', verifyToken, isAdmin, clubController.deleteClub);
 router.patch('/:clubId/status', verifyToken, isAdmin, clubController.toggleClubStatus);
-router.put('/:clubId/activities/:activityId', verifyToken, requireClubPage('management', 'write'), upload.single('image'), clubController.updateActivity);
+router.put('/:clubId/activities/:activityId', verifyToken, requireClubPage('management', 'write'), activityUpload, clubController.updateActivity);
 router.delete('/:clubId/activities/:activityId', verifyToken, requireClubPage('management', 'write'), clubController.deleteActivity);
 
 module.exports = router;

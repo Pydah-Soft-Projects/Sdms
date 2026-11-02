@@ -3914,7 +3914,7 @@ exports.getStudentAttendanceHistory = async (req, res) => {
     try {
       [studentRows] = await masterPool.query(
         `SELECT s.id, s.student_name, s.pin_no, s.admission_number, s.stud_type, s.created_at,
-                s.batch, s.course, s.branch, s.college, s.current_year, s.current_semester,
+                s.batch, s.course, s.branch, s.college, s.current_year, s.current_semester, s.section,
                 ${STUDENT_ROLL_NUMBERS_SELECT},
                 col.id as college_id, cb.id as branch_id
          FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id
@@ -4131,31 +4131,116 @@ exports.getStudentAttendanceHistory = async (req, res) => {
         ORDER BY attendance_date ASC
       `,
       [studentId, formatDateKey(queryStartDate), todayKey]
-    );
-
-    // Also fetch attendance records directly from Academic Portal DB (ap_attendance_post_students)
+    );    // Fetch academic attendance and class sessions from Academic Portal DB (academic_portal)
+    // strictly scoped to the student's branch, semester, section, and year from master timetable
+    let dailyRawSessions = [];
     try {
+      let resolvedBranchId = student.branch_id || null;
+      if (!resolvedBranchId && student.branch) {
+        try {
+          const [bRows] = await masterPool.query(
+            'SELECT id FROM course_branches WHERE name = ? OR code = ? LIMIT 1',
+            [student.branch, student.branch]
+          );
+          if (bRows && bRows.length > 0) resolvedBranchId = bRows[0].id;
+        } catch (be) {}
+      }
+
+      const studentSemester = student.current_semester || null;
+      const studentYear = student.current_year || null;
+      const studentSection = student.section ? String(student.section).trim() : null;
+      const queryStartStr = formatDateKey(queryStartDate);
+
       const [apAttRows] = await academicPool.query(
         `
           SELECT 
+            cs.id as session_pk,
             DATE_FORMAT(cs.session_date, '%Y-%m-%d') as attendance_date,
-            LOWER(aps.status) as status,
-            cs.subject_code,
-            cs.subject_name
-          FROM ap_attendance_post_students aps
-          JOIN ap_attendance_posts ap ON aps.attendance_post_id = ap.id
-          JOIN ap_class_sessions cs ON ap.class_session_id = cs.id
-          WHERE (aps.student_db_id = ? OR (aps.admission_number IS NOT NULL AND aps.admission_number != '' AND (aps.admission_number = ? OR aps.admission_number = ?)))
-          ORDER BY cs.session_date ASC
+            cs.day_of_week,
+            cs.start_time,
+            cs.end_time,
+            cs.section_name,
+            cs.branch_id,
+            COALESCE(p.semester_number, cs.semester_number) as semester_number,
+            COALESCE(p.year_of_study, cs.year_of_study) as year_of_study,
+            COALESCE(dta.new_subject_code, cs.subject_code) as subject_code,
+            COALESCE(dta.new_subject_name, cs.subject_name) as subject_name,
+            cs.room_label,
+            cs.period_slot_id,
+            COALESCE(cs.student_ids, te.student_ids) as student_ids,
+            cs.status as session_status,
+            ap.id as attendance_post_id,
+            aps.id as student_post_id,
+            LOWER(aps.status) as student_status,
+            aps.remarks
+          FROM ap_class_sessions cs
+          LEFT JOIN ap_timetable_plans p ON p.id = cs.plan_id
+          LEFT JOIN ap_timetable_entries te ON te.id = cs.timetable_entry_id
+          LEFT JOIN ap_attendance_posts ap ON ap.class_session_id = cs.id
+          LEFT JOIN ap_attendance_post_students aps ON (
+            aps.attendance_post_id = ap.id
+            AND (
+              aps.student_db_id = ? 
+              OR (aps.admission_number IS NOT NULL AND aps.admission_number != '' AND (aps.admission_number = ? OR aps.admission_number = ?))
+            )
+          )
+          LEFT JOIN ap_daily_timetable_activities dta ON (
+            DATE(dta.timetable_date) = DATE(cs.session_date) 
+            AND dta.timing_slot_id = cs.timing_slot_id
+            AND (dta.branch_id IS NULL OR dta.branch_id = cs.branch_id)
+            AND (dta.semester IS NULL OR dta.semester = cs.semester_number)
+          )
+          WHERE (
+            -- Either direct student post
+            aps.id IS NOT NULL
+            -- Or matching the student's scope in master timetable
+            OR (
+              (? IS NULL OR cs.branch_id = ? OR p.branch_id = ?)
+              AND (? IS NULL OR cs.semester_number = ? OR p.semester_number = ?)
+              AND (? IS NULL OR cs.section_name = ? OR p.section_name = ? OR cs.section_name IS NULL OR cs.section_name = '' OR cs.section_name = 'all')
+              AND (? IS NULL OR p.year_of_study = ? OR cs.year_of_study = ?)
+            )
+          )
+          AND cs.session_date >= ?
+          AND cs.session_date <= ?
+          ORDER BY cs.session_date DESC, cs.start_time ASC, cs.id ASC
         `,
-        [studentId, student.admission_number || '', student.pin_no || '']
+        [
+          studentId,
+          student.admission_number || '',
+          student.pin_no || '',
+          resolvedBranchId, resolvedBranchId, resolvedBranchId,
+          studentSemester, studentSemester, studentSemester,
+          studentSection, studentSection, studentSection,
+          studentYear, studentYear, studentYear,
+          queryStartStr,
+          todayKey
+        ]
       );
 
       if (apAttRows && apAttRows.length > 0) {
+        // Filter out any sessions where student_ids is defined for specific students, but doesn't include this student
+        const scopedSessions = apAttRows.filter(row => {
+          if (!row.student_ids) return true;
+          try {
+            const sids = typeof row.student_ids === 'string' ? JSON.parse(row.student_ids) : row.student_ids;
+            if (Array.isArray(sids) && sids.length > 0) {
+              return sids.some(sid => 
+                sid == studentId || 
+                (student.admission_number && sid == student.admission_number) || 
+                (student.pin_no && sid == student.pin_no)
+              );
+            }
+          } catch (e) {}
+          return true;
+        });
+
+        dailyRawSessions = scopedSessions;
+
         const existingKeys = new Set(historyRows.map(r => `${formatDateKey(new Date(r.attendance_date))}_${r.status}`));
-        apAttRows.forEach(apRow => {
-          if (apRow.attendance_date) {
-            const normalizedStatus = apRow.status === 'present' ? 'present' : (apRow.status === 'absent' ? 'absent' : apRow.status);
+        dailyRawSessions.forEach(apRow => {
+          if (apRow.attendance_date && (apRow.student_status === 'present' || apRow.student_status === 'absent')) {
+            const normalizedStatus = apRow.student_status === 'present' ? 'present' : 'absent';
             const key = `${apRow.attendance_date}_${normalizedStatus}`;
             if (!existingKeys.has(key)) {
               existingKeys.add(key);
@@ -4300,6 +4385,122 @@ exports.getStudentAttendanceHistory = async (req, res) => {
       };
     }
 
+    // Build daily attendance structure from academic pool sessions and master attendance records
+    const dailyMap = new Map();
+    let dailyTotalSessions = 0;
+    let dailyPresentSessions = 0;
+    let dailyAbsentSessions = 0;
+    let dailyNotPostedSessions = 0;
+
+    dailyRawSessions.forEach((row) => {
+      const dateKey = row.attendance_date;
+      if (!dateKey) return;
+      if (!dailyMap.has(dateKey)) {
+        dailyMap.set(dateKey, {
+          date: dateKey,
+          total: 0,
+          present: 0,
+          absent: 0,
+          notPosted: 0,
+          percentage: 0,
+          dayStatus: 'not_posted',
+          sessions: []
+        });
+      }
+      const day = dailyMap.get(dateKey);
+      const isPresent = row.student_status === 'present' || row.student_status === 'od';
+      const isAbsent = row.student_status === 'absent' || row.student_status === 'leave';
+      const isNotPosted = !isPresent && !isAbsent;
+
+      day.total++;
+      dailyTotalSessions++;
+      if (isPresent) {
+        day.present++;
+        dailyPresentSessions++;
+      } else if (isAbsent) {
+        day.absent++;
+        dailyAbsentSessions++;
+      } else {
+        day.notPosted++;
+        dailyNotPostedSessions++;
+      }
+
+      day.sessions.push({
+        id: row.student_post_id || row.session_pk || `sess_${dateKey}_${row.start_time}`,
+        subjectCode: row.subject_code || '-',
+        subjectName: row.subject_name || 'Class Session',
+        startTime: row.start_time || null,
+        endTime: row.end_time || null,
+        status: isPresent ? 'present' : (isAbsent ? 'absent' : 'not_posted'),
+        remarks: row.remarks || null,
+        roomLabel: row.room_label || null
+      });
+    });
+
+    // Only fallback to legacy attendance if no academic portal sessions exist at all for student's scope
+    if (dailyMap.size === 0) {
+      (historyRows || []).forEach((hr) => {
+        const dateStr = typeof hr.attendance_date === 'string'
+          ? hr.attendance_date.slice(0, 10)
+          : formatDateKey(new Date(hr.attendance_date));
+        if (!dailyMap.has(dateStr)) {
+          const isPresent = hr.status === 'present';
+          const isAbsent = hr.status === 'absent';
+          if (isPresent || isAbsent) {
+            dailyTotalSessions++;
+            if (isPresent) dailyPresentSessions++;
+            else dailyAbsentSessions++;
+          }
+          dailyMap.set(dateStr, {
+            date: dateStr,
+            total: (isPresent || isAbsent) ? 1 : 0,
+            present: isPresent ? 1 : 0,
+            absent: isAbsent ? 1 : 0,
+            notPosted: 0,
+            percentage: isPresent ? 100 : 0,
+            dayStatus: hr.status || 'present',
+            sessions: [
+              {
+                id: `ar_${dateStr}`,
+                subjectCode: hr.subject_code || 'DAILY',
+                subjectName: hr.subject_name || (hr.status === 'holiday' ? 'Holiday' : 'Daily Attendance'),
+                startTime: null,
+                endTime: null,
+                status: hr.status || 'present',
+                remarks: hr.remarks || null
+              }
+            ]
+          });
+        }
+      });
+    }
+
+    const dailyRecords = Array.from(dailyMap.values()).map(d => {
+      const marked = d.present + d.absent;
+      d.percentage = marked > 0 ? Math.round((d.present / marked) * 100) : 0;
+      if (d.present > 0 && d.absent === 0 && d.notPosted === 0) d.dayStatus = 'present';
+      else if (d.absent > 0 && d.present === 0 && d.notPosted === 0) d.dayStatus = 'absent';
+      else if (d.present === 0 && d.absent === 0 && d.notPosted > 0) d.dayStatus = 'not_posted';
+      else d.dayStatus = 'partial';
+      return d;
+    }).sort((a, b) => b.date.localeCompare(a.date));
+
+    const totalMarked = dailyPresentSessions + dailyAbsentSessions;
+    const overallDailyPct = totalMarked > 0
+      ? Math.round((dailyPresentSessions / totalMarked) * 100)
+      : 0;
+
+    const dailyData = {
+      records: dailyRecords,
+      totals: {
+        totalSessions: dailyTotalSessions,
+        present: dailyPresentSessions,
+        absent: dailyAbsentSessions,
+        notPosted: dailyNotPostedSessions,
+        percentage: overallDailyPct
+      }
+    };
+
     res.json({
       success: true,
       data: {
@@ -4310,10 +4511,13 @@ exports.getStudentAttendanceHistory = async (req, res) => {
           batch: student.batch,
           course: student.course,
           branch: student.branch,
+          college: student.college,
           currentYear: student.current_year,
           currentSemester: student.current_semester,
+          section: student.section,
           attendanceStartDate
         },
+        daily: dailyData,
         weekly: {
           startDate: formatDateKey(weekStart),
           endDate: formatDateKey(weekEnd),

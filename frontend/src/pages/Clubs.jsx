@@ -661,8 +661,12 @@ const Clubs = ({ initialSubPage }) => {
 
     // Activity Modal State
     const [showActivityModal, setShowActivityModal] = useState(false);
+    const [editingActivityId, setEditingActivityId] = useState(null);
     const [activityForm, setActivityForm] = useState({ title: '', description: '', date: '', location: '' });
+    const [activityImageFiles, setActivityImageFiles] = useState([]);
+    const [existingActivityImages, setExistingActivityImages] = useState([]);
     const [savingActivity, setSavingActivity] = useState(false);
+    const [previewModalImage, setPreviewModalImage] = useState(null);
 
     useEffect(() => {
         fetchClubs();
@@ -928,25 +932,91 @@ const Clubs = ({ initialSubPage }) => {
         }
     };
 
-    // Handle adding a new activity to the selected club
-    const handleAddActivity = async (e) => {
+    // Activity handlers: Create, Edit, Delete
+    const handleOpenCreateActivity = () => {
+        setEditingActivityId(null);
+        setActivityForm({ title: '', description: '', date: new Date().toISOString().split('T')[0], location: '' });
+        setActivityImageFiles([]);
+        setExistingActivityImages([]);
+        setShowActivityModal(true);
+    };
+
+    const handleOpenEditActivity = (act) => {
+        setEditingActivityId(act.id);
+        setActivityForm({
+            title: act.title || '',
+            description: act.description || '',
+            date: act.date || (act.posted_at ? new Date(act.posted_at).toISOString().split('T')[0] : ''),
+            location: act.location || ''
+        });
+        const currentImages = Array.isArray(act.images) && act.images.length > 0
+            ? act.images
+            : (act.image_url ? [act.image_url] : []);
+        setExistingActivityImages(currentImages);
+        setActivityImageFiles([]);
+        setShowActivityModal(true);
+    };
+
+    const handleDeleteActivity = async (activityId) => {
+        if (!activityId) return;
+        if (!window.confirm('Are you sure you want to delete this activity? This action cannot be undone.')) {
+            return;
+        }
+        try {
+            const res = await clubService.deleteActivity(selectedClub.id, activityId);
+            if (res.success) {
+                toast.success('Activity deleted successfully');
+                const updated = await clubService.getClubDetails(selectedClub.id);
+                if (updated.success) setSelectedClub(updated.data);
+            } else {
+                toast.error(res.message || 'Failed to delete activity');
+            }
+        } catch (err) {
+            toast.error('Failed to delete activity');
+        }
+    };
+
+    const handleSaveActivity = async (e) => {
         e.preventDefault();
         if (!selectedClub?.id) return;
         setSavingActivity(true);
         try {
-            const res = await clubService.createActivity(selectedClub.id, activityForm);
+            const formData = new FormData();
+            formData.append('title', activityForm.title);
+            formData.append('description', activityForm.description || '');
+            formData.append('date', activityForm.date || '');
+            formData.append('location', activityForm.location || '');
+
+            if (editingActivityId) {
+                formData.append('existing_images', JSON.stringify(existingActivityImages));
+            }
+
+            // Append newly selected images (single or group)
+            activityImageFiles.forEach(file => {
+                formData.append('images', file);
+            });
+
+            let res;
+            if (editingActivityId) {
+                res = await clubService.updateActivity(selectedClub.id, editingActivityId, formData);
+            } else {
+                res = await clubService.createActivity(selectedClub.id, formData);
+            }
+
             if (res.success) {
-                toast.success('Activity added successfully');
+                toast.success(editingActivityId ? 'Activity updated successfully' : 'Activity added successfully');
                 setShowActivityModal(false);
+                setEditingActivityId(null);
                 setActivityForm({ title: '', description: '', date: '', location: '' });
-                // Refresh club details
+                setActivityImageFiles([]);
+                setExistingActivityImages([]);
                 const updated = await clubService.getClubDetails(selectedClub.id);
                 if (updated.success) setSelectedClub(updated.data);
             } else {
-                toast.error(res.message || 'Failed to add activity');
+                toast.error(res.message || 'Failed to save activity');
             }
         } catch (err) {
-            toast.error('Failed to add activity');
+            toast.error('Failed to save activity');
         } finally {
             setSavingActivity(false);
         }
@@ -2137,7 +2207,7 @@ const Clubs = ({ initialSubPage }) => {
                                                     </div>
                                                     {getClubPageAccess(selectedClub?.id, 'management').write && (
                                                         <button
-                                                            onClick={() => setShowActivityModal(true)}
+                                                            onClick={handleOpenCreateActivity}
                                                             className="px-3.5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5 shadow-sm transition-all"
                                                         >
                                                             <Plus size={14} /> Add Activity
@@ -2145,16 +2215,123 @@ const Clubs = ({ initialSubPage }) => {
                                                     )}
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {clubActivities.map((act, i) => (
-                                                        <div key={i} className="p-4 border rounded-xl bg-gray-50/50 space-y-2">
-                                                            <h4 className="font-bold text-sm text-gray-900">{act.title}</h4>
-                                                            <p className="text-xs text-gray-600">{act.description}</p>
-                                                            <div className="flex items-center gap-4 text-xs text-gray-500 pt-2 border-t">
-                                                                <span>ðŸ“… {act.date}</span>
-                                                                {act.location && <span>ðŸ“ {act.location}</span>}
+                                                    {clubActivities.map((act, i) => {
+                                                        const imagesList = Array.isArray(act.images) && act.images.length > 0
+                                                            ? act.images
+                                                            : (act.image_url ? [act.image_url] : []);
+                                                        const canManage = getClubPageAccess(selectedClub?.id, 'management').write;
+
+                                                        return (
+                                                            <div key={act.id || i} className="border border-gray-200 rounded-2xl bg-white shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-all">
+                                                                {/* Image or Group of Images Preview */}
+                                                                {imagesList.length > 0 && (
+                                                                    <div className="relative bg-gray-100 border-b border-gray-100">
+                                                                        {imagesList.length === 1 ? (
+                                                                            <div
+                                                                                onClick={() => setPreviewModalImage(imagesList[0])}
+                                                                                className="h-48 w-full overflow-hidden cursor-pointer group"
+                                                                            >
+                                                                                <img
+                                                                                    src={imagesList[0]}
+                                                                                    alt={act.title}
+                                                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                                                />
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="p-2 bg-gray-50/70">
+                                                                                <div className="grid grid-cols-3 gap-1.5 h-44 rounded-xl overflow-hidden">
+                                                                                    {imagesList.slice(0, 3).map((imgUrl, imgIdx) => (
+                                                                                        <div
+                                                                                            key={imgIdx}
+                                                                                            onClick={() => setPreviewModalImage(imgUrl)}
+                                                                                            className="relative h-full overflow-hidden cursor-pointer group bg-gray-200"
+                                                                                        >
+                                                                                            <img
+                                                                                                src={imgUrl}
+                                                                                                alt=""
+                                                                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                                                            />
+                                                                                            {imgIdx === 2 && imagesList.length > 3 && (
+                                                                                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center text-white font-black text-xs sm:text-sm">
+                                                                                                    +{imagesList.length - 3} more
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    ))}
+                                                                                </div>
+                                                                                <div className="flex items-center justify-between px-1 pt-1.5 text-[11px] text-gray-500 font-medium">
+                                                                                    <span className="flex items-center gap-1">
+                                                                                        <Image size={12} className="text-blue-500" />
+                                                                                        {imagesList.length} photos attached
+                                                                                    </span>
+                                                                                    <span
+                                                                                        className="text-blue-600 text-[10px] hover:underline cursor-pointer"
+                                                                                        onClick={() => setPreviewModalImage(imagesList[0])}
+                                                                                    >
+                                                                                        Click to preview
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                                                                    <div className="space-y-1.5">
+                                                                        <div className="flex items-start justify-between gap-2">
+                                                                            <h4 className="font-bold text-sm text-gray-900 leading-snug">{act.title}</h4>
+                                                                            {canManage && (
+                                                                                <div className="flex items-center gap-1 shrink-0">
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => handleOpenEditActivity(act)}
+                                                                                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                                        title="Edit Activity"
+                                                                                    >
+                                                                                        <Edit2 size={14} />
+                                                                                    </button>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => handleDeleteActivity(act.id)}
+                                                                                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                                        title="Delete Activity"
+                                                                                    >
+                                                                                        <Trash2 size={14} />
+                                                                                    </button>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                        {act.description && (
+                                                                            <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap line-clamp-3">
+                                                                                {act.description}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-500 pt-2.5 border-t border-gray-100">
+                                                                        <div className="flex items-center gap-3">
+                                                                            {(act.date || act.posted_at) && (
+                                                                                <span className="flex items-center gap-1 font-medium">
+                                                                                    <Calendar size={13} className="text-blue-500" />
+                                                                                    {act.date || new Date(act.posted_at).toLocaleDateString()}
+                                                                                </span>
+                                                                            )}
+                                                                            {act.location && (
+                                                                                <span className="flex items-center gap-1 font-medium text-gray-600">
+                                                                                    ?? {act.location}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        {act.posted_at && (
+                                                                            <span className="text-[10px] text-gray-400">
+                                                                                Posted {new Date(act.posted_at).toLocaleDateString()}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                     {clubActivities.length === 0 && (
                                                         <div className="col-span-full py-10 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed">
                                                             <p className="text-sm">No activities published for this club yet.</p>
@@ -3437,16 +3614,26 @@ const Clubs = ({ initialSubPage }) => {
                     </div>
                 </form>
             </Modal>
-            {/* ================= MODAL: ADD ACTIVITY ================= */}
+            {/* ================= MODAL: ADD / EDIT ACTIVITY ================= */}
             <Modal
                 show={showActivityModal}
-                onClose={() => { setShowActivityModal(false); setActivityForm({ title: '', description: '', date: '', location: '' }); }}
-                title="Add Club Activity"
+                onClose={() => {
+                    setShowActivityModal(false);
+                    setEditingActivityId(null);
+                    setActivityForm({ title: '', description: '', date: '', location: '' });
+                    setActivityImageFiles([]);
+                    setExistingActivityImages([]);
+                }}
+                title={editingActivityId ? 'Edit Club Activity' : 'Add Club Activity'}
             >
-                <form onSubmit={handleAddActivity} className="space-y-4">
+                <form onSubmit={handleSaveActivity} className="space-y-4">
                     <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
-                        <p className="font-bold">Adding activity to: <span className="text-blue-600">{selectedClub?.name}</span></p>
+                        <p className="font-bold">
+                            {editingActivityId ? 'Editing activity for: ' : 'Adding activity to: '}
+                            <span className="text-blue-600">{selectedClub?.name}</span>
+                        </p>
                     </div>
+
                     <div className="space-y-1">
                         <label className="text-xs font-bold text-gray-700">Activity Title *</label>
                         <input
@@ -3458,6 +3645,7 @@ const Clubs = ({ initialSubPage }) => {
                             required
                         />
                     </div>
+
                     <div className="space-y-1">
                         <label className="text-xs font-bold text-gray-700">Description</label>
                         <textarea
@@ -3468,6 +3656,7 @@ const Clubs = ({ initialSubPage }) => {
                             className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
+
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-gray-700">Date *</label>
@@ -3490,10 +3679,99 @@ const Clubs = ({ initialSubPage }) => {
                             />
                         </div>
                     </div>
+
+                    {/* Option to add an image or group of images */}
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                                <Image size={14} className="text-blue-600" />
+                                Activity Photos (Single image or group of images)
+                            </label>
+                            {(existingActivityImages.length > 0 || activityImageFiles.length > 0) && (
+                                <span className="text-[11px] font-semibold text-blue-600">
+                                    {existingActivityImages.length + activityImageFiles.length} photo(s) selected
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Existing images list (when editing) */}
+                        {existingActivityImages.length > 0 && (
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Current Photos</span>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {existingActivityImages.map((imgUrl, idx) => (
+                                        <div key={idx} className="relative h-18 rounded-lg overflow-hidden border border-gray-200 group">
+                                            <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => setExistingActivityImages(prev => prev.filter((_, i) => i !== idx))}
+                                                className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 shadow-sm opacity-90 hover:opacity-100 hover:scale-110 transition-all"
+                                                title="Remove photo"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* New images preview list */}
+                        {activityImageFiles.length > 0 && (
+                            <div className="space-y-1">
+                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">New Photos to Upload</span>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {activityImageFiles.map((file, idx) => {
+                                        const previewUrl = URL.createObjectURL(file);
+                                        return (
+                                            <div key={idx} className="relative h-18 rounded-lg overflow-hidden border border-blue-200 group">
+                                                <img src={previewUrl} alt="" className="w-full h-full object-cover" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setActivityImageFiles(prev => prev.filter((_, i) => i !== idx))}
+                                                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 shadow-sm opacity-90 hover:opacity-100 hover:scale-110 transition-all"
+                                                    title="Remove photo"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Upload Area for single or group of images */}
+                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 rounded-xl p-4 cursor-pointer bg-gray-50 hover:bg-blue-50/30 transition-all">
+                            <Upload size={22} className="text-gray-400 mb-1" />
+                            <span className="text-xs font-bold text-gray-700">Choose images to upload</span>
+                            <span className="text-[10px] text-gray-400 mt-0.5">Select a single image or group of images (hold Ctrl/Shift to pick multiple)</span>
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files.length > 0) {
+                                        const newFiles = Array.from(e.target.files);
+                                        setActivityImageFiles(prev => [...prev, ...newFiles]);
+                                        e.target.value = '';
+                                    }
+                                }}
+                                className="hidden"
+                            />
+                        </label>
+                    </div>
+
                     <div className="flex justify-end gap-2 pt-3 border-t">
                         <button
                             type="button"
-                            onClick={() => { setShowActivityModal(false); setActivityForm({ title: '', description: '', date: '', location: '' }); }}
+                            onClick={() => {
+                                setShowActivityModal(false);
+                                setEditingActivityId(null);
+                                setActivityForm({ title: '', description: '', date: '', location: '' });
+                                setActivityImageFiles([]);
+                                setExistingActivityImages([]);
+                            }}
                             className="px-4 py-2 text-xs font-bold text-gray-600 border rounded-lg hover:bg-gray-50"
                         >
                             Cancel
@@ -3501,13 +3779,36 @@ const Clubs = ({ initialSubPage }) => {
                         <button
                             type="submit"
                             disabled={savingActivity}
-                            className="px-5 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-1.5 shadow-sm"
+                            className="px-5 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-1.5 shadow-sm disabled:opacity-50"
                         >
-                            <Plus size={14} /> {savingActivity ? 'Saving...' : 'Add Activity'}
+                            <Plus size={14} /> {savingActivity ? 'Saving...' : (editingActivityId ? 'Update Activity' : 'Add Activity')}
                         </button>
                     </div>
                 </form>
             </Modal>
+
+            {/* Lightbox / Full-screen Image Preview */}
+            {previewModalImage && (
+                <div
+                    className="fixed inset-0 z-[150] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+                    onClick={() => setPreviewModalImage(null)}
+                >
+                    <div className="relative max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-black flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            type="button"
+                            onClick={() => setPreviewModalImage(null)}
+                            className="absolute top-3 right-3 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-md transition-all z-10"
+                        >
+                            <X size={20} />
+                        </button>
+                        <img
+                            src={previewModalImage}
+                            alt=""
+                            className="max-w-full max-h-[85vh] object-contain rounded-xl"
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* ================= MODAL: ADD STUDENT MEMBER DIRECTLY ================= */}
             <Modal

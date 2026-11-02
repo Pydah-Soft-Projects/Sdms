@@ -241,21 +241,23 @@ const getStudentSection = (editData = {}, student = null) => {
   return '';
 };
 
-const getBranchSectionConfig = (coursesWithLevels, courseName, branchName) => {
+const getBranchSectionConfig = (coursesWithLevels = [], courseName, branchName) => {
   if (!branchName) {
     return { enabled: false, items: [] };
   }
 
-  const matchesCourse = (c, val) => !val || c.name === val || String(c.id) === String(val);
-  const matchesBranch = (b, val) => !val || b.name === val || String(b.id) === String(val);
+  const safeCourses = Array.isArray(coursesWithLevels) ? coursesWithLevels : [];
+  const matchesCourse = (c, val) => !val || (c && (c.name === val || String(c.id) === String(val)));
+  const matchesBranch = (b, val) => !val || (b && (b.name === val || String(b.id) === String(val)));
 
   const matchingBranches = [];
   if (courseName) {
-    const courseObj = (coursesWithLevels || []).find((course) => matchesCourse(course, courseName));
+    const courseObj = safeCourses.find((course) => matchesCourse(course, courseName));
     const branchObj = (courseObj?.branches || []).find((branch) => matchesBranch(branch, branchName));
     if (branchObj) matchingBranches.push(branchObj);
   } else {
-    (coursesWithLevels || []).forEach((course) => {
+    safeCourses.forEach((course) => {
+      if (!course) return;
       const branchObj = (course.branches || []).find((branch) => matchesBranch(branch, branchName));
       if (branchObj) matchingBranches.push(branchObj);
     });
@@ -419,20 +421,22 @@ const Students = () => {
   const [editBaseline, setEditBaseline] = useState(null);
 
   const quotaOptions = useMemo(() => {
-    const list = [...(studentQuotas || [])];
+    const list = [...(Array.isArray(studentQuotas) ? studentQuotas : [])];
     const currentCode = editData?.stud_type || selectedStudent?.stud_type;
     if (
       currentCode &&
       !list.some(
         (q) =>
-          String(q.code || '').toLowerCase() === String(currentCode).toLowerCase() ||
-          String(q.name || '').toLowerCase() === String(currentCode).toLowerCase()
+          String(q?.code || '').toLowerCase() === String(currentCode).toLowerCase() ||
+          String(q?.name || '').toLowerCase() === String(currentCode).toLowerCase()
       )
     ) {
       list.unshift({ id: 'current', code: currentCode, name: currentCode });
     }
     return list;
   }, [studentQuotas, editData?.stud_type, selectedStudent?.stud_type]);
+  // Calculate overall statistics
+  const [stats, setStats] = useState({ total: 0, completed: 0, averageCompletion: 0 });
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ student_status: '', level: '' });
   const [colleges, setColleges] = useState([]);
@@ -719,16 +723,19 @@ const Students = () => {
 
   // Sort students based on sortConfig
   const sortedStudents = useMemo(() => {
+    if (!Array.isArray(students)) return [];
     if (!sortConfig.field) return students;
 
     return [...students].sort((a, b) => {
+      if (!a) return 1;
+      if (!b) return -1;
       let aValue, bValue;
       let isNumeric = false;
 
       switch (sortConfig.field) {
         case 'pinNumber':
-          const aPin = String(a.pin_no || '');
-          const bPin = String(b.pin_no || '');
+          const aPin = String(a?.pin_no || '');
+          const bPin = String(b?.pin_no || '');
           const aSeries = extractPinSeries(aPin);
           const bSeries = extractPinSeries(bPin);
 
@@ -765,13 +772,14 @@ const Students = () => {
       return Number(studentsData.pagination.duplicateMobilesCount) || 0;
     }
     if (!students || !Array.isArray(students)) return 0;
-    return students.filter(s => hasDuplicateStudentParentMobile(s).hasDuplicate).length;
+    return students.filter(s => s && hasDuplicateStudentParentMobile(s)?.hasDuplicate).length;
   }, [studentsData, students]);
 
   // Filter students based on duplicate mobile toggle if active
   const displayedStudents = useMemo(() => {
+    if (!Array.isArray(sortedStudents)) return [];
     if (!filterSameMobilesOnly) return sortedStudents;
-    return sortedStudents.filter(s => hasDuplicateStudentParentMobile(s).hasDuplicate);
+    return sortedStudents.filter(s => s && hasDuplicateStudentParentMobile(s)?.hasDuplicate);
   }, [sortedStudents, filterSameMobilesOnly]);
 
   // Compute year and semester dropdown options for the student edit panel
@@ -784,7 +792,7 @@ const Students = () => {
       return ['1', '2', '3', '4'];
     }
 
-    const courseObj = coursesWithLevels.find(c => c.name === courseName);
+    const courseObj = (coursesWithLevels || []).find(c => c && c.name === courseName);
     if (!courseObj) return ['1', '2', '3', '4'];
 
     // Determine total years from branch override or course default
@@ -818,7 +826,7 @@ const Students = () => {
       return ['1', '2'];
     }
 
-    const courseObj = coursesWithLevels.find(c => c.name === courseName);
+    const courseObj = (coursesWithLevels || []).find(c => c && c.name === courseName);
     if (!courseObj) return ['1', '2'];
 
     const branchObj = (courseObj.branches || []).find(b => b.name === branchName);
@@ -846,7 +854,8 @@ const Students = () => {
   }, [editData?.course, editData?.branch, editData?.current_year, selectedStudent?.course, selectedStudent?.branch, selectedStudent?.current_year, coursesWithLevels]);
 
   const batchOptions = useMemo(() => {
-    return [...new Set(quickFilterOptions.batches || [])]
+    const batches = Array.isArray(quickFilterOptions?.batches) ? quickFilterOptions.batches : [];
+    return [...new Set(batches)]
       .filter(Boolean)
       .sort((a, b) => String(b).localeCompare(String(a)));
   }, [quickFilterOptions.batches]);
@@ -870,8 +879,8 @@ const Students = () => {
 
   const showSectionColumn = useMemo(() => {
     if (filterBranchHasSections) return true;
-    return students.some((student) =>
-      getBranchSectionConfig(coursesWithLevels, student.course, student.branch).enabled
+    return (students || []).some((student) =>
+      student && getBranchSectionConfig(coursesWithLevels, student.course, student.branch)?.enabled
     );
   }, [filterBranchHasSections, students, coursesWithLevels]);
 
@@ -1242,14 +1251,18 @@ const Students = () => {
       invalidateStudents();
       setCurrentPage(1);
       // Fetch completion percentage for the new student
-      getStudentCompletionPercentage(newStudent.admission_number).then(percentage => {
-        setCompletionPercentages(prev => ({
-          ...prev,
-          [newStudent.admission_number]: percentage
-        }));
-      });
-      // Clear the state to avoid re-adding on re-renders
-      window.history.replaceState({}, document.title);
+      if (newStudent.admission_number) {
+        getStudentCompletionPercentage(newStudent.admission_number).then(percentage => {
+          setCompletionPercentages(prev => ({
+            ...prev,
+            [newStudent.admission_number]: percentage
+          }));
+        }).catch(() => {});
+      }
+      // Safely clear the state with proper URL to avoid re-adding on re-renders
+      try {
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+      } catch (_) {}
     }
   }, [location.state, invalidateStudents]);
 
@@ -2968,7 +2981,7 @@ const Students = () => {
 
         // Resolve branch_id from coursesWithLevels
         const courseName = newData.course || prev.course;
-        const courseObj = coursesWithLevels.find(c => c.name === courseName);
+        const courseObj = (coursesWithLevels || []).find(c => c && c.name === courseName);
         const branchObj = (courseObj?.branches || []).find(b => b.name === value);
         if (branchObj) {
           // Send branch_id as a numeric string — backend maps it to branch_id column
@@ -2988,8 +3001,15 @@ const Students = () => {
   const isCertificatePresent = (certKey) => {
     // Check in editData first, then selectedStudent.student_data
     const studentData = editData || selectedStudent?.student_data || {};
-    const parsedData = typeof studentData === 'string' ? JSON.parse(studentData || '{}') : studentData;
-    const value = parsedData[certKey];
+    let parsedData = studentData;
+    if (typeof studentData === 'string') {
+      try {
+        parsedData = JSON.parse(studentData || '{}');
+      } catch (_) {
+        parsedData = {};
+      }
+    }
+    const value = parsedData?.[certKey];
     if (value === true || value === 'Yes' || value === 'yes') return true;
     // Also consider any non-empty string as present if it's from a dropdown
     if (typeof value === 'string' && value.trim() !== '' && value.toLowerCase() !== 'no' && value.toLowerCase() !== 'pending') return true;
@@ -3003,8 +3023,15 @@ const Students = () => {
   // overallStatus is passed from the render context (editData.certificates_status)
   const getCertificateStatusDisplay = (certKey, overallStatus) => {
     const studentData = editData || selectedStudent?.student_data || {};
-    const parsedData = typeof studentData === 'string' ? JSON.parse(studentData || '{}') : studentData;
-    const value = parsedData[certKey];
+    let parsedData = studentData;
+    if (typeof studentData === 'string') {
+      try {
+        parsedData = JSON.parse(studentData || '{}');
+      } catch (_) {
+        parsedData = {};
+      }
+    }
+    const value = parsedData?.[certKey];
 
     if (!value || value === false || value === 'No' || value === 'no') {
       // If no individual cert value is stored but the overall status is Verified/Temporary,
@@ -3045,8 +3072,7 @@ const Students = () => {
     });
   };
 
-  // Calculate overall statistics
-  const [stats, setStats] = useState({ total: 0, completed: 0, averageCompletion: 0 });
+// Overall statistics state defined above
 
   const calculateOverallStats = useCallback(async () => {
     if (students.length === 0) {
@@ -3416,8 +3442,8 @@ const Students = () => {
                     .filter(course => {
                       // Filter by level if level is selected
                       if (filters.level) {
-                        const courseInfo = coursesWithLevels.find(c => 
-                          String(c.id) === String(course.id || course) || c.name === (course.name || course)
+                        const courseInfo = (coursesWithLevels || []).find(c => 
+                          c && (String(c.id) === String(course.id || course) || c.name === (course.name || course))
                         );
                         return courseInfo?.level === filters.level;
                       }
@@ -3536,7 +3562,7 @@ const Students = () => {
                 >
                   <option value="">All</option>
                   {(dropdownFilterOptions.category_id || []).map((catId) => {
-                    const cat = casteCategories.find(c => String(c.id) === String(catId));
+                    const cat = (casteCategories || []).find(c => c && String(c.id) === String(catId));
                     return (
                       <option key={catId} value={catId}>{cat ? cat.name : catId}</option>
                     );
@@ -4872,19 +4898,51 @@ const Students = () => {
                             );
                           })()}
 
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Fee Status</span>
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              {selectedStudent?.fee_status || 'No Due'}
-                            </span>
-                          </div>
+                          {(() => {
+                            const rawFee = String(selectedStudent?.fee_status || 'No Due').trim();
+                            const feeLower = rawFee.toLowerCase();
+                            const isFeePending = feeLower === 'pending' || feeLower === 'due' || feeLower.includes('pending') || feeLower.includes('due') || feeLower === 'unpaid';
+                            const isFeePermitted = feeLower === 'permitted' || feeLower === 'partial';
 
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Scholarship</span>
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              Active ({editData.stud_type || selectedStudent?.stud_type || 'LSPOT'})
-                            </span>
-                          </div>
+                            let feeBadgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                            if (isFeePending) {
+                              feeBadgeClass = 'bg-rose-50 text-rose-700 border border-rose-200';
+                            } else if (isFeePermitted) {
+                              feeBadgeClass = 'bg-amber-50 text-amber-700 border border-amber-200';
+                            }
+
+                            return (
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-500 font-semibold">Fee Status</span>
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black capitalize ${feeBadgeClass}`}>
+                                  {rawFee}
+                                </span>
+                              </div>
+                            );
+                          })()}
+
+                          {(() => {
+                            const rawScholar = String(selectedStudent?.scholar_status || editData?.scholar_status || '').trim();
+                            const scholarLower = rawScholar.toLowerCase();
+                            const isScholarPending = scholarLower === 'pending' || scholarLower.includes('pending');
+                            const quota = editData.stud_type || selectedStudent?.stud_type || 'LSPOT';
+
+                            let scholarBadgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                            let scholarLabel = `Active (${quota})`;
+                            if (isScholarPending) {
+                              scholarBadgeClass = 'bg-rose-50 text-rose-700 border border-rose-200';
+                              scholarLabel = `Pending (${quota})`;
+                            }
+
+                            return (
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-500 font-semibold">Scholarship</span>
+                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${scholarBadgeClass}`}>
+                                  {scholarLabel}
+                                </span>
+                              </div>
+                            );
+                          })()}
 
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500 font-semibold">Merit Status</span>
@@ -4905,7 +4963,7 @@ const Students = () => {
                                 className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
                                   selectedStudent?.merit_status === 'yes'
                                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                                    : selectedStudent?.merit_status === 'no'
+                                    : (selectedStudent?.merit_status === 'no' || String(selectedStudent?.merit_status || '').toLowerCase() === 'pending')
                                       ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
                                       : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                                 } ${canViewMeritStatus ? 'cursor-pointer' : 'cursor-default'}`}
@@ -5289,8 +5347,10 @@ const Students = () => {
                               const typeKey = (courseLevel || 'UG').toLowerCase();
                               const certItems = (certificateConfig && certificateConfig[typeKey]) || sharedCertificateConfig[typeKey] || [];
                               const statusToShow = editData.certificates_status || computeOverallCertificateStatus(selectedStudent, certItems);
+                              const isCertPending = String(statusToShow).toLowerCase() === 'pending' || String(statusToShow).toLowerCase().includes('pending');
+                              const certBadgeClass = isCertPending ? 'bg-rose-50 text-rose-700 border border-rose-200' : getCertificateBadgeClass(statusToShow);
                               return (
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black border ${getCertificateBadgeClass(statusToShow)}`}>
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black border ${certBadgeClass}`}>
                                   {statusToShow}
                                 </span>
                               );
@@ -5346,11 +5406,15 @@ const Students = () => {
                                 onChange={(e) => updateEditField('scholar_status', e.target.value)}
                                 className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
                               />
-                            ) : (
-                              <span className="font-bold text-gray-900 capitalize">
-                                {editData.scholar_status || selectedStudent?.scholar_status || 'Regular'}
-                              </span>
-                            )}
+                            ) : (() => {
+                              const sStatus = editData.scholar_status || selectedStudent?.scholar_status || 'Regular';
+                              const isPend = String(sStatus).toLowerCase().includes('pending');
+                              return (
+                                <span className={`font-bold capitalize ${isPend ? 'px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200' : 'text-gray-900'}`}>
+                                  {sStatus}
+                                </span>
+                              );
+                            })()}
                           </div>
 
                           <div className="flex justify-between items-center">
@@ -5504,13 +5568,17 @@ const Students = () => {
                                         <option key={opt} value={opt}>{opt}</option>
                                       ))}
                                     </select>
-                                  ) : (
-                                    <span
-                                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 border ${cellInfo.badgeClass}`}
-                                    >
-                                      {currentCertVal}
-                                    </span>
-                                  )}
+                                  ) : (() => {
+                                      const isPendCert = String(currentCertVal).toLowerCase() === 'pending' || String(currentCertVal).toLowerCase() === 'no';
+                                      const cBadgeClass = isPendCert ? 'bg-red-100 text-red-600 border border-red-200' : cellInfo.badgeClass;
+                                      return (
+                                        <span
+                                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 border ${cBadgeClass}`}
+                                        >
+                                          {currentCertVal}
+                                        </span>
+                                      );
+                                    })()}
                                 </div>
                               );
                             });

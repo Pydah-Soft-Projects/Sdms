@@ -41,7 +41,16 @@ import {
     Layers,
     RotateCcw,
     History,
-    XCircle
+    XCircle,
+    Trophy,
+    Award,
+    LayoutGrid,
+    List,
+    FileDown,
+    ExternalLink,
+    MapPin,
+    User,
+    GraduationCap
 } from 'lucide-react';
 import api from '../config/api';
 import toast from 'react-hot-toast';
@@ -105,6 +114,10 @@ const Announcements = () => {
     };
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'list'
+    const [topperSearchResults, setTopperSearchResults] = useState([]);
+    const [isSearchingTopper, setIsSearchingTopper] = useState(false);
+    const [topperSearchQuery, setTopperSearchQuery] = useState('');
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
     // Data States with instant sessionStorage caching
@@ -177,9 +190,19 @@ const Announcements = () => {
     const initialFormState = {
         title: '',
         content: '',
+        announcement_type: 'announcement', // 'circular' | 'event' | 'poll' | 'announcement' | 'achievement'
         time_limit_option: '3', // '1', '3', '7', '30', 'none', 'custom'
         custom_expiry_date: '',
-        // Event Registration & Seat Management
+        // Circular specific
+        circular_number: '',
+        file: null,
+        file_name: '',
+        file_preview_url: null,
+        existing_file_url: null,
+        // Event specific
+        event_date: '',
+        event_time: '',
+        event_venue: '',
         requires_registration: false,
         max_seats: '',
         registration_deadline: '',
@@ -189,8 +212,19 @@ const Announcements = () => {
         // Poll specific
         question: '',
         options: ['', ''],
+        poll_options: ['', ''],
         start_time: '',
         end_time: '',
+        // Achievement specific (Type 5: Student Achievement Leader board)
+        hackathon_name: '',
+        rank_title: '1st Place / Hackathon Topper',
+        topper_prize: '',
+        topper_name: '',
+        topper_branch: '',
+        topper_year_sem: '',
+        topper_roll_no: '',
+        topper_photo: null,
+        topper_photo_preview: null,
         // SMS Specific
         template_name: '', // For saving template
         template_id: '',
@@ -364,11 +398,84 @@ const Announcements = () => {
         }
     };
 
+    // Strict PDF upload handler for Circular (Type 1)
+    const handleCircularFileChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+            toast.error('Only "PDF" files are allowed for circulars!');
+            e.target.value = '';
+            return;
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            file: file,
+            file_name: file.name,
+            file_preview_url: URL.createObjectURL(file)
+        }));
+        toast.success(`Attached PDF: ${file.name}`);
+    };
+
+    // Topper photo upload handler for Student Achievement Leaderboard (Type 5)
+    const handleTopperPhotoChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setFormData(prev => ({
+            ...prev,
+            topper_photo: file,
+            topper_photo_preview: URL.createObjectURL(file)
+        }));
+    };
+
+    // Auto-search students from DB for Topper selection
+    const handleSearchTopper = async (query) => {
+        setTopperSearchQuery(query);
+        if (!query || query.trim().length < 2) {
+            setTopperSearchResults([]);
+            return;
+        }
+        setIsSearchingTopper(true);
+        try {
+            const res = await api.get(`/announcements/students/search?q=${encodeURIComponent(query.trim())}`);
+            if (res.data.success) {
+                setTopperSearchResults(res.data.data || []);
+            }
+        } catch (e) {
+            console.error('Error searching students:', e);
+        } finally {
+            setIsSearchingTopper(false);
+        }
+    };
+
+    const handleSelectTopperStudent = (student) => {
+        const yearSem = [
+            student.current_year ? `Year ${student.current_year}` : '',
+            student.current_semester ? `Sem ${student.current_semester}` : ''
+        ].filter(Boolean).join(' · ');
+
+        setFormData(prev => ({
+            ...prev,
+            topper_name: student.student_name || '',
+            topper_branch: student.branch || '',
+            topper_year_sem: yearSem || '',
+            topper_roll_no: student.pin_no || student.admission_number || '',
+            topper_photo_preview: student.student_image || prev.topper_photo_preview
+        }));
+        setTopperSearchResults([]);
+        setTopperSearchQuery('');
+        toast.success(`Selected student: ${student.student_name}`);
+    };
+
     const openCreateModal = (type = 'announcements') => {
-        setFormData(initialFormState);
+        setFormData({
+            ...initialFormState,
+            announcement_type: type === 'polls' ? 'poll' : '' // empty so user picks type first!
+        });
         setEditId(null);
-        setFormStep(1);
-        handleTabChange(type);
+        setFormStep(0); // 0 = Ask Type First!
+        handleTabChange(type === 'polls' ? 'polls' : 'announcements');
         setIsCreateModalOpen(true);
     };
 
@@ -469,10 +576,35 @@ const Announcements = () => {
                 return def;
             });
 
+            const itemType = item.announcement_type || 'announcement';
+            let achObj = {};
+            if (item.achievement_data) {
+                achObj = typeof item.achievement_data === 'string' ? JSON.parse(item.achievement_data) : item.achievement_data;
+            }
+
+            let pollOpts = ['', ''];
+            if (item.poll_options) {
+                pollOpts = typeof item.poll_options === 'string' ? JSON.parse(item.poll_options) : item.poll_options;
+            }
+
             setFormData({
                 ...initialFormState,
+                announcement_type: itemType,
                 title: item.title,
-                content: item.content,
+                content: item.content || '',
+                file_name: item.file_name || '',
+                existing_file_url: item.file_url || null,
+                event_date: item.event_date || '',
+                event_time: item.event_time || '',
+                event_venue: item.event_venue || '',
+                poll_options: Array.isArray(pollOpts) && pollOpts.length > 0 ? pollOpts : ['', ''],
+                rank_title: achObj.rank_title || '1st Place / Hackathon Topper',
+                topper_name: achObj.student_name || '',
+                topper_branch: achObj.branch || '',
+                topper_year_sem: achObj.year_sem || '',
+                topper_roll_no: achObj.roll_no || '',
+                topper_prize: achObj.topper_prize || '',
+                topper_photo_preview: achObj.student_photo || item.image_url || null,
                 time_limit_option: timeLimitOpt,
                 custom_expiry_date: customExpiry,
                 requires_registration: Boolean(item.requires_registration),
@@ -535,7 +667,7 @@ const Announcements = () => {
                     target_type: formData.target_type,
                     selected_student_ids: (formData.selected_students || []).map(s => s.id),
                     target_college: formData.target_college,
-                    target_batch: onSmsBroadcast ? [] : formData.target_batch,
+                    target_batch: formData.target_batch,
                     target_status: formData.target_status || [],
                     target_course: formData.target_course,
                     target_branch: formData.target_branch,
@@ -619,14 +751,91 @@ const Announcements = () => {
 
     const handleSubmitAnnouncement = async (e) => {
         e.preventDefault();
-        if (!formData.title || !formData.content) return toast.error('Title and Content required');
+        const type = (formData.announcement_type || 'announcement').toLowerCase();
+
+        // Type-specific field validations
+        if (type === 'circular') {
+            if (!formData.title || !formData.title.trim()) {
+                return toast.error('Please enter the Subject Line for the circular');
+            }
+            if (!formData.file && !formData.existing_file_url && !editId) {
+                return toast.error('Only "PDF" file upload is allowed for circulars. Please select a PDF file.');
+            }
+        } else if (type === 'event') {
+            if (!formData.title || !formData.title.trim()) {
+                return toast.error('Please enter the Event Title');
+            }
+        } else if (type === 'poll') {
+            if (!formData.title || !formData.title.trim()) {
+                return toast.error('Please enter the Poll Question');
+            }
+            const validOptions = (formData.poll_options || []).filter(o => o && o.trim());
+            if (validOptions.length < 2) {
+                return toast.error('Please enter at least 2 poll options');
+            }
+        } else if (type === 'achievement') {
+            if (!formData.title || !formData.title.trim()) {
+                return toast.error('Please enter the Hackathon / Competition Name');
+            }
+            if (!formData.topper_name || !formData.topper_name.trim()) {
+                return toast.error('Student Topper Name is required');
+            }
+            if (!formData.topper_branch || !formData.topper_branch.trim()) {
+                return toast.error('Student Branch is required');
+            }
+            if (!formData.topper_year_sem || !formData.topper_year_sem.trim()) {
+                return toast.error('Student Year & Semester is required');
+            }
+        } else {
+            if (!formData.title || !formData.title.trim()) return toast.error('Title is required');
+            if (!formData.content || !formData.content.trim()) return toast.error('Content is required');
+        }
 
         setLoading(true);
         const data = new FormData();
-        data.append('title', formData.title);
-        data.append('content', formData.content);
-        if (formData.image) data.append('image', formData.image);
-        if (editId && formData.existing_image_url && !formData.image) data.append('existing_image_url', formData.existing_image_url);
+        data.append('announcement_type', type);
+        data.append('title', formData.title.trim());
+        data.append('content', formData.content || '');
+
+        if (type === 'circular') {
+            if (formData.file) {
+                data.append('file', formData.file);
+                data.append('file_name', formData.file_name || formData.file.name);
+            } else if (formData.file_name) {
+                data.append('file_name', formData.file_name);
+            }
+        } else if (type === 'event') {
+            data.append('event_date', formData.event_date || '');
+            data.append('event_time', formData.event_time || '');
+            data.append('event_venue', formData.event_venue || '');
+            if (formData.image) data.append('image', formData.image);
+        } else if (type === 'poll') {
+            const validOptions = (formData.poll_options || []).filter(o => o && o.trim());
+            data.append('poll_options', JSON.stringify(validOptions));
+        } else if (type === 'achievement') {
+            const achievementPayload = {
+                hackathon_name: formData.title.trim(),
+                rank_title: formData.rank_title || '1st Place / Hackathon Topper',
+                topper_prize: formData.topper_prize || '',
+                student_name: formData.topper_name.trim(),
+                branch: formData.topper_branch.trim(),
+                year_sem: formData.topper_year_sem.trim(),
+                roll_no: formData.topper_roll_no || '',
+                student_photo: formData.topper_photo_preview || null
+            };
+            data.append('achievement_data', JSON.stringify(achievementPayload));
+            if (formData.topper_photo) {
+                data.append('image', formData.topper_photo);
+            } else if (formData.image) {
+                data.append('image', formData.image);
+            }
+        } else {
+            if (formData.image) data.append('image', formData.image);
+        }
+
+        if (editId && formData.existing_image_url && !formData.image && !formData.topper_photo) {
+            data.append('existing_image_url', formData.existing_image_url);
+        }
 
         let computedExpiresAt = null;
         if (formData.time_limit_option === 'custom' && formData.custom_expiry_date) {
@@ -1045,15 +1254,49 @@ const Announcements = () => {
                     </h1>
                 </div>
 
-                {activeTab !== 'calendar' && activeTab !== 'sms' && (
-                    <button
-                        onClick={() => openCreateModal(activeTab)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 text-sm shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transform transition-all hover:-translate-y-0.5"
-                    >
-                        <Plus size={18} strokeWidth={3} />
-                        {activeTab === 'polls' ? 'Create New Poll' : 'Create New Announcement'}
-                    </button>
-                )}
+                <div className="flex items-center gap-3">
+                    {/* View Mode Setup: Both Cards and List page setup in the right top corner */}
+                    {activeTab === 'announcements' && (
+                        <div className="bg-gray-100 p-1 rounded-xl flex items-center border border-gray-200 shadow-2xs">
+                            <button
+                                type="button"
+                                onClick={() => setViewMode('cards')}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                    viewMode === 'cards'
+                                        ? 'bg-white text-blue-600 shadow-xs'
+                                        : 'text-gray-500 hover:text-gray-900'
+                                }`}
+                                title="Cards View"
+                            >
+                                <LayoutGrid size={15} />
+                                <span className="hidden sm:inline">Cards View</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setViewMode('list')}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                    viewMode === 'list'
+                                        ? 'bg-white text-blue-600 shadow-xs'
+                                        : 'text-gray-500 hover:text-gray-900'
+                                }`}
+                                title="List View"
+                            >
+                                <List size={15} />
+                                <span className="hidden sm:inline">List View</span>
+                            </button>
+                        </div>
+                    )}
+
+                    {activeTab !== 'calendar' && activeTab !== 'sms' && (
+                        <button
+                            onClick={() => openCreateModal(activeTab)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 text-sm shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transform transition-all hover:-translate-y-0.5"
+                        >
+                            <Plus size={18} strokeWidth={3} />
+                            {activeTab === 'polls' ? 'Create New Poll' : 'Create New Announcement'}
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Content Area */}
@@ -1603,7 +1846,89 @@ const Announcements = () => {
                                                     <TargetSelector formData={formData} setFormData={setFormData} hideTitle={true} isSms={true} />
                                                 </div>
 
-                                                <div className="mt-auto pt-6 border-t border-gray-100 bg-white">
+                                                {/* On-Page Mobile Target Selection */}
+                                                <div className="mt-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl shrink-0 space-y-2.5">
+                                                    <div className="flex items-center justify-between flex-wrap gap-2">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Smartphone size={16} className="text-blue-600" />
+                                                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                                                Send SMS To (Recipient Numbers)
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 text-xs">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSelectedMobileTargets(['student_mobile', 'parent_mobile1'])}
+                                                                className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-all ${
+                                                                    selectedMobileTargets.includes('student_mobile') && selectedMobileTargets.includes('parent_mobile1')
+                                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                                                                        : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200'
+                                                                }`}
+                                                            >
+                                                                Both at a time
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSelectedMobileTargets(['parent_mobile1'])}
+                                                                className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-all ${
+                                                                    selectedMobileTargets.length === 1 && selectedMobileTargets.includes('parent_mobile1')
+                                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                                                                        : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200'
+                                                                }`}
+                                                            >
+                                                                Parent Preferred Only
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setSelectedMobileTargets(['student_mobile'])}
+                                                                className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-all ${
+                                                                    selectedMobileTargets.length === 1 && selectedMobileTargets.includes('student_mobile')
+                                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                                                                        : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200'
+                                                                }`}
+                                                            >
+                                                                Student Only
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                                        {[
+                                                            { key: 'student_mobile', label: 'Student Mobile', desc: 'Send to student' },
+                                                            { key: 'parent_mobile1', label: 'Parent Preferred Number', desc: 'Primary parent contact' },
+                                                            { key: 'parent_mobile2', label: 'Parent Alternate Number', desc: 'Secondary parent contact' }
+                                                        ].map(target => {
+                                                            const isChecked = selectedMobileTargets.includes(target.key);
+                                                            return (
+                                                                <label
+                                                                    key={target.key}
+                                                                    className={`flex items-start gap-2.5 p-2 rounded-xl border cursor-pointer transition-all ${
+                                                                        isChecked
+                                                                            ? 'bg-blue-50/70 border-blue-300 ring-1 ring-blue-300/60 shadow-2xs'
+                                                                            : 'bg-white border-slate-200 hover:bg-slate-50'
+                                                                    }`}
+                                                                >
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={isChecked}
+                                                                        onChange={() => toggleMobileTarget(target.key)}
+                                                                        className="mt-0.5 h-4 w-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                                                                    />
+                                                                    <div className="min-w-0">
+                                                                        <span className="text-xs font-bold text-slate-800 block truncate leading-tight">
+                                                                            {target.label}
+                                                                        </span>
+                                                                        <span className="text-[10px] text-slate-500 block truncate">
+                                                                            {target.desc}
+                                                                        </span>
+                                                                    </div>
+                                                                </label>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-auto pt-4 border-t border-gray-100 bg-white">
                                                     <div className="flex items-center justify-between gap-4">
                                                         <div className="text-sm text-gray-500">
                                                             <p className="font-medium text-gray-700">Ready to broadcast?</p>
@@ -1612,13 +1937,13 @@ const Announcements = () => {
                                                                     ? 'Select a template first'
                                                                     : fetchingCount
                                                                         ? 'Estimate: counting…'
-                                                                        : `Estimate: ${audienceCount ?? 0} students`}
+                                                                        : `Estimate: ${audienceCount ?? 0} students (${selectedMobileTargets.length > 0 ? selectedMobileTargets.map(t => t === 'student_mobile' ? 'Student' : t === 'parent_mobile1' ? 'Parent Preferred' : 'Parent Alternate').join(' + ') : 'No recipient selected'})`}
                                                             </p>
                                                         </div>
                                                         <button
                                                             type="submit"
-                                                            disabled={loading || !selectedTemplate}
-                                                            className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 flex items-center gap-3 shadow-lg hover:shadow-green-500/30 transform transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none min-w-[200px] justify-center"
+                                                            disabled={loading || !selectedTemplate || selectedMobileTargets.length === 0}
+                                                            className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3.5 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 flex items-center gap-3 shadow-lg hover:shadow-green-500/30 transform transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none min-w-[200px] justify-center"
                                                         >
                                                             {loading ? <Loader2 className="animate-spin" /> : <Send size={20} />}
                                                             <span>Send Broadcast</span>
@@ -1637,103 +1962,431 @@ const Announcements = () => {
 
                 {
                     activeTab === 'announcements' && (!fetchingFeed || announcements.length > 0) && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {announcements.map(ann => (
-                                <div
-                                    key={ann.id}
-                                    onClick={() => handleOpenAnnouncementDetails(ann)}
-                                    className={`bg-white rounded-2xl shadow-sm border p-4 group hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between ${!ann.is_active ? 'opacity-75 grayscale' : ''}`}
-                                >
-                                    <div>
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h4 className="font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">{ann.title}</h4>
-                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); toggleStatus(ann.id, ann.is_active, 'announcements'); }}
-                                                    className="p-1.5 hover:bg-gray-100 rounded text-gray-500"
-                                                    title={ann.is_active ? 'Active (Click to hide)' : 'Hidden (Click to show)'}
-                                                >
-                                                    {ann.is_active ? <Eye size={16} /> : <EyeOff size={16} />}
-                                                </button>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); openEditModal(ann, 'announcements'); }}
-                                                    className="p-1.5 hover:bg-blue-50 text-blue-500 rounded"
-                                                    title="Edit announcement"
-                                                >
-                                                    <Pencil size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); handleDelete(ann.id, 'announcements'); }}
-                                                    className="p-1.5 hover:bg-red-50 text-red-500 rounded"
-                                                    title="Delete announcement"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </div>
+                        viewMode === 'cards' ? (
+                            /* ================= CARDS VIEW (GRID) ================= */
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {announcements.map(ann => {
+                                    const type = (ann.announcement_type || 'announcement').toLowerCase();
+                                    const ach = ann.achievement_data || {};
 
-                                        {/* Registration Status Pill */}
-                                        {ann.requires_registration ? (
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                                    <Ticket size={12} className="text-indigo-600" />
-                                                    <span>{ann.registered_count || 0}{ann.max_seats ? `/${ann.max_seats}` : ''} Registered</span>
-                                                </span>
-                                                {ann.is_full ? (
-                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-red-100 text-red-700 uppercase tracking-wider">Seats Full</span>
-                                                ) : ann.max_seats ? (
-                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">
-                                                        {ann.available_seats} seats left
-                                                    </span>
+                                    return (
+                                        <div
+                                            key={ann.id}
+                                            onClick={() => handleOpenAnnouncementDetails(ann)}
+                                            className={`bg-white rounded-2xl shadow-sm border p-4 group hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between ${!ann.is_active ? 'opacity-75 grayscale' : ''} ${type === 'achievement' ? 'border-amber-200 bg-gradient-to-b from-amber-50/20 to-white' : ''}`}
+                                        >
+                                            <div>
+                                                {/* Card Header & Type Badge */}
+                                                <div className="flex justify-between items-start mb-2 gap-2">
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        {type === 'circular' ? (
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                                                                <FileText size={11} /> Circular
+                                                            </span>
+                                                        ) : type === 'event' ? (
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
+                                                                <Calendar size={11} /> Event
+                                                            </span>
+                                                        ) : type === 'poll' ? (
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                <BarChart2 size={11} /> Poll
+                                                            </span>
+                                                        ) : type === 'achievement' ? (
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">
+                                                                <Trophy size={11} className="text-amber-600" /> Leaderboard
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                                                                <Megaphone size={11} /> Notice
+                                                            </span>
+                                                        )}
+
+                                                        {type === 'achievement' && ach.rank_title && (
+                                                            <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                                                                {ach.rank_title}
+                                                            </span>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={e => e.stopPropagation()}>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); toggleStatus(ann.id, ann.is_active, 'announcements'); }}
+                                                            className="p-1.5 hover:bg-gray-100 rounded text-gray-500"
+                                                            title={ann.is_active ? 'Active (Click to hide)' : 'Hidden (Click to show)'}
+                                                        >
+                                                            {ann.is_active ? <Eye size={16} /> : <EyeOff size={16} />}
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); openEditModal(ann, 'announcements'); }}
+                                                            className="p-1.5 hover:bg-blue-50 text-blue-500 rounded"
+                                                            title="Edit announcement"
+                                                        >
+                                                            <Pencil size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); handleDelete(ann.id, 'announcements'); }}
+                                                            className="p-1.5 hover:bg-red-50 text-red-500 rounded"
+                                                            title="Delete announcement"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Headline / Subject Line */}
+                                                <h4 className="font-extrabold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors mb-2">
+                                                    {type === 'circular' && <span className="text-rose-600 mr-1 font-mono text-xs uppercase">Sub:</span>}
+                                                    {ann.title}
+                                                </h4>
+
+                                                {/* Type 1: Circular Card Body (PDF Attachment Box) */}
+                                                {type === 'circular' && (
+                                                    <div className="mb-3 p-3 bg-rose-50/70 border border-rose-100 rounded-xl flex items-center justify-between gap-3">
+                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                            <div className="w-10 h-10 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                                                <FileText size={20} />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs font-bold text-gray-900 truncate">
+                                                                    {ann.file_name || 'Official_Circular.pdf'}
+                                                                </p>
+                                                                <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">Official PDF Document</span>
+                                                            </div>
+                                                        </div>
+                                                        {ann.file_url && (
+                                                            <a
+                                                                href={ann.file_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={e => e.stopPropagation()}
+                                                                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
+                                                            >
+                                                                <FileDown size={13} /> View PDF
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Type 2: Event Details Banner */}
+                                                {type === 'event' && (ann.event_date || ann.event_venue) && (
+                                                    <div className="mb-3 p-2.5 bg-purple-50/80 border border-purple-100 rounded-xl space-y-1 text-xs">
+                                                        {ann.event_date && (
+                                                            <div className="flex items-center gap-1.5 font-bold text-purple-900">
+                                                                <Calendar size={13} className="text-purple-600 shrink-0" />
+                                                                <span>{ann.event_date} {ann.event_time ? `(${ann.event_time})` : ''}</span>
+                                                            </div>
+                                                        )}
+                                                        {ann.event_venue && (
+                                                            <div className="flex items-center gap-1.5 text-purple-700 font-medium">
+                                                                <MapPin size={13} className="text-purple-500 shrink-0" />
+                                                                <span className="truncate">{ann.event_venue}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Type 3: Poll Live Options Preview */}
+                                                {type === 'poll' && Array.isArray(ann.poll_options) && ann.poll_options.length > 0 && (
+                                                    <div className="mb-3 space-y-2 p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl">
+                                                        <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center justify-between">
+                                                            <span>Poll Options</span>
+                                                            <span>{ann.total_votes || 0} Total Votes</span>
+                                                        </div>
+                                                        {ann.poll_options.slice(0, 3).map((opt, optIdx) => {
+                                                            const count = ann.poll_vote_counts?.[optIdx] || 0;
+                                                            const total = ann.total_votes || 1;
+                                                            const percent = ann.total_votes ? Math.round((count / total) * 100) : 0;
+                                                            return (
+                                                                <div key={optIdx} className="text-xs">
+                                                                    <div className="flex justify-between text-[11px] mb-0.5 text-gray-700">
+                                                                        <span className="font-semibold truncate pr-2">{opt}</span>
+                                                                        <span className="font-mono text-gray-500 shrink-0">{count} ({percent}%)</span>
+                                                                    </div>
+                                                                    <div className="h-1.5 w-full bg-emerald-100/60 rounded-full overflow-hidden">
+                                                                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${percent}%` }}></div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        {ann.poll_options.length > 3 && (
+                                                            <span className="text-[10px] text-gray-400 font-medium">+{ann.poll_options.length - 3} more options</span>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Type 5: Student Achievement Leader Board Card */}
+                                                {type === 'achievement' && (
+                                                    <div className="mb-3 p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex items-center gap-3">
+                                                        <div className="relative shrink-0">
+                                                            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-400 shadow-md bg-white">
+                                                                {ach.student_photo || ann.image_url ? (
+                                                                    <img
+                                                                        src={ach.student_photo || ann.image_url}
+                                                                        alt={ach.student_name || 'Topper'}
+                                                                        className="w-full h-full object-cover"
+                                                                    />
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center bg-amber-100 text-amber-700">
+                                                                        <User size={24} />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                                                                <Trophy size={11} />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="min-w-0 flex-1">
+                                                            <h5 className="font-black text-gray-900 text-sm truncate leading-tight">
+                                                                {ach.student_name || 'Student Topper'}
+                                                            </h5>
+                                                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                                                {ach.branch && (
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800">
+                                                                        {ach.branch}
+                                                                    </span>
+                                                                )}
+                                                                {ach.year_sem && (
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800">
+                                                                        {ach.year_sem}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {ach.topper_prize && (
+                                                                <span className="text-[11px] font-black text-amber-800 block mt-1">
+                                                                    🏆 {ach.topper_prize}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Registration Status Pill if enabled */}
+                                                {ann.requires_registration ? (
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                            <Ticket size={12} className="text-indigo-600" />
+                                                            <span>{ann.registered_count || 0}{ann.max_seats ? `/${ann.max_seats}` : ''} Registered</span>
+                                                        </span>
+                                                        {ann.is_full ? (
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-red-100 text-red-700 uppercase tracking-wider">Seats Full</span>
+                                                        ) : ann.max_seats ? (
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">
+                                                                {ann.available_seats} seats left
+                                                            </span>
+                                                        ) : null}
+                                                    </div>
                                                 ) : null}
-                                            </div>
-                                        ) : null}
 
-                                        {ann.image_url ? (
-                                            <AnnouncementImage src={ann.image_url} alt={ann.title} />
-                                        ) : (
-                                            <div className="mb-3 h-36 overflow-hidden rounded-lg bg-slate-900 relative">
-                                                <img
-                                                    src="/images/announcement-fallback.jpg"
-                                                    alt="Announcement"
-                                                    loading="lazy"
-                                                    decoding="async"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            </div>
-                                        )}
-                                        <p className="text-sm text-gray-500 mb-3 line-clamp-2">{ann.content}</p>
-                                    </div>
+                                                {/* Image Banner (for Standard Announcement, Events without custom poster, etc.) */}
+                                                {type !== 'circular' && type !== 'achievement' && ann.image_url && (
+                                                    <AnnouncementImage src={ann.image_url} alt={ann.title} />
+                                                )}
 
-                                    <div>
-                                        <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">
-                                            <div className="flex items-center gap-1.5 font-medium">
-                                                <Clock size={12} className={ann.expires_at && new Date(ann.expires_at) < new Date() ? 'text-red-500' : 'text-blue-500'} />
-                                                {ann.expires_at ? (
-                                                    new Date(ann.expires_at) < new Date() ? (
-                                                        <span className="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">Expired</span>
-                                                    ) : (
-                                                        <span className="text-blue-600 font-semibold">Expires {new Date(ann.expires_at).toLocaleDateString()}</span>
-                                                    )
-                                                ) : (
-                                                    <span className="text-gray-400">No Time Limit</span>
+                                                {/* Text Content */}
+                                                {ann.content && (
+                                                    <p className="text-sm text-gray-500 mb-3 line-clamp-2">{ann.content}</p>
                                                 )}
                                             </div>
-                                            {ann.audience_count > 0 && (
-                                                <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-bold">{ann.audience_count} Reach</span>
+
+                                            <div>
+                                                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">
+                                                    <div className="flex items-center gap-1.5 font-medium">
+                                                        <Clock size={12} className={ann.expires_at && new Date(ann.expires_at) < new Date() ? 'text-red-500' : 'text-blue-500'} />
+                                                        {ann.expires_at ? (
+                                                            new Date(ann.expires_at) < new Date() ? (
+                                                                <span className="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">Expired</span>
+                                                            ) : (
+                                                                <span className="text-blue-600 font-semibold">Expires {new Date(ann.expires_at).toLocaleDateString()}</span>
+                                                            )
+                                                        ) : (
+                                                            <span className="text-gray-400">No Time Limit</span>
+                                                        )}
+                                                    </div>
+                                                    {ann.audience_count > 0 && (
+                                                        <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-bold">{ann.audience_count} Reach</span>
+                                                    )}
+                                                </div>
+                                                <div className="mt-3 pt-2 border-t border-gray-50 flex items-center justify-between text-xs text-blue-600 font-semibold group-hover:translate-x-0.5 transition-transform">
+                                                    <span>{ann.requires_registration ? 'View Registered Candidates' : 'Click to View Details'}</span>
+                                                    <ChevronRight size={14} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                {announcements.length === 0 && !fetchingFeed && (
+                                    <div className="col-span-full text-center py-10 text-gray-500">No announcements found.</div>
+                                )}
+                            </div>
+                        ) : (
+                            /* ================= LIST VIEW (TABLE SETUP) ================= */
+                            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse text-xs">
+                                        <thead>
+                                            <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-[11px]">
+                                                <th className="py-3.5 px-4">Type</th>
+                                                <th className="py-3.5 px-4">Headline / Subject / Topper</th>
+                                                <th className="py-3.5 px-4">Key Details & Attachments</th>
+                                                <th className="py-3.5 px-4">Audience Reach</th>
+                                                <th className="py-3.5 px-4">Expiry / Date</th>
+                                                <th className="py-3.5 px-4">Status</th>
+                                                <th className="py-3.5 px-4 text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            {announcements.map(ann => {
+                                                const type = (ann.announcement_type || 'announcement').toLowerCase();
+                                                const ach = ann.achievement_data || {};
+
+                                                return (
+                                                    <tr
+                                                        key={ann.id}
+                                                        onClick={() => handleOpenAnnouncementDetails(ann)}
+                                                        className="hover:bg-blue-50/40 transition-colors cursor-pointer group"
+                                                    >
+                                                        {/* Type Badge */}
+                                                        <td className="py-3.5 px-4 whitespace-nowrap">
+                                                            {type === 'circular' ? (
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-rose-50 text-rose-700 border border-rose-200">
+                                                                    <FileText size={11} /> Circular
+                                                                </span>
+                                                            ) : type === 'event' ? (
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-purple-50 text-purple-700 border border-purple-200">
+                                                                    <Calendar size={11} /> Event
+                                                                </span>
+                                                            ) : type === 'poll' ? (
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                    <BarChart2 size={11} /> Poll
+                                                                </span>
+                                                            ) : type === 'achievement' ? (
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-300">
+                                                                    <Trophy size={11} /> Leaderboard
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-blue-50 text-blue-700 border border-blue-200">
+                                                                    <Megaphone size={11} /> Notice
+                                                                </span>
+                                                            )}
+                                                        </td>
+
+                                                        {/* Title / Subject / Headline */}
+                                                        <td className="py-3.5 px-4 max-w-xs">
+                                                            <div className="font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                                                                {ann.title}
+                                                            </div>
+                                                            {type === 'achievement' && ach.student_name && (
+                                                                <div className="text-[11px] font-bold text-amber-800 flex items-center gap-1 mt-0.5">
+                                                                    <span>Topper:</span> <strong>{ach.student_name}</strong> ({ach.branch || ''} {ach.year_sem ? `· ${ach.year_sem}` : ''})
+                                                                </div>
+                                                            )}
+                                                            {ann.content && type !== 'achievement' && (
+                                                                <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">{ann.content}</p>
+                                                            )}
+                                                        </td>
+
+                                                        {/* Key Details & Attachments */}
+                                                        <td className="py-3.5 px-4 whitespace-nowrap">
+                                                            {type === 'circular' ? (
+                                                                ann.file_url ? (
+                                                                    <a
+                                                                        href={ann.file_url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={e => e.stopPropagation()}
+                                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-bold text-[11px]"
+                                                                    >
+                                                                        <FileDown size={12} /> {ann.file_name || 'Download PDF'}
+                                                                    </a>
+                                                                ) : (
+                                                                    <span className="text-gray-400">PDF Attached</span>
+                                                                )
+                                                            ) : type === 'event' ? (
+                                                                <div className="text-[11px] text-gray-600">
+                                                                    <div className="font-semibold text-purple-900">{ann.event_date || 'Date TBA'}</div>
+                                                                    {ann.event_venue && <div className="text-gray-400 text-[10px] truncate max-w-[150px]">{ann.event_venue}</div>}
+                                                                </div>
+                                                            ) : type === 'poll' ? (
+                                                                <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
+                                                                    {ann.total_votes || 0} votes · {(ann.poll_options || []).length} options
+                                                                </span>
+                                                            ) : type === 'achievement' ? (
+                                                                <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded text-[11px]">
+                                                                    {ach.rank_title || 'Topper'} {ach.topper_prize ? `· ${ach.topper_prize}` : ''}
+                                                                </span>
+                                                            ) : (
+                                                                ann.has_image ? <span className="text-blue-600 font-medium">Image attached</span> : <span className="text-gray-400">—</span>
+                                                            )}
+                                                        </td>
+
+                                                        {/* Audience Reach */}
+                                                        <td className="py-3.5 px-4 whitespace-nowrap font-bold text-gray-800">
+                                                            {ann.audience_count ? `${Number(ann.audience_count).toLocaleString()} Students` : 'All Students'}
+                                                        </td>
+
+                                                        {/* Expiry / Date */}
+                                                        <td className="py-3.5 px-4 whitespace-nowrap">
+                                                            <div className="text-gray-700 font-medium">
+                                                                {new Date(ann.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                            </div>
+                                                            {ann.expires_at ? (
+                                                                new Date(ann.expires_at) < new Date() ? (
+                                                                    <span className="text-[10px] text-red-600 font-bold uppercase">Expired</span>
+                                                                ) : (
+                                                                    <span className="text-[10px] text-blue-600">Expires {new Date(ann.expires_at).toLocaleDateString()}</span>
+                                                                )
+                                                            ) : (
+                                                                <span className="text-[10px] text-gray-400">No Expiry</span>
+                                                            )}
+                                                        </td>
+
+                                                        {/* Status */}
+                                                        <td className="py-3.5 px-4 whitespace-nowrap">
+                                                            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${ann.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-500'}`}>
+                                                                {ann.is_active ? 'Active' : 'Hidden'}
+                                                            </span>
+                                                        </td>
+
+                                                        {/* Actions */}
+                                                        <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <button
+                                                                    onClick={() => toggleStatus(ann.id, ann.is_active, 'announcements')}
+                                                                    className="p-1.5 hover:bg-gray-100 rounded text-gray-500"
+                                                                    title={ann.is_active ? 'Hide' : 'Show'}
+                                                                >
+                                                                    {ann.is_active ? <Eye size={15} /> : <EyeOff size={15} />}
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => openEditModal(ann, 'announcements')}
+                                                                    className="p-1.5 hover:bg-blue-50 text-blue-600 rounded"
+                                                                    title="Edit"
+                                                                >
+                                                                    <Pencil size={15} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDelete(ann.id, 'announcements')}
+                                                                    className="p-1.5 hover:bg-red-50 text-red-600 rounded"
+                                                                    title="Delete"
+                                                                >
+                                                                    <Trash2 size={15} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            {announcements.length === 0 && (
+                                                <tr>
+                                                    <td colSpan={7} className="text-center py-10 text-gray-400">No announcements found.</td>
+                                                </tr>
                                             )}
-                                        </div>
-                                        <div className="mt-3 pt-2 border-t border-gray-50 flex items-center justify-between text-xs text-blue-600 font-semibold group-hover:translate-x-0.5 transition-transform">
-                                            <span>{ann.requires_registration ? 'View Registered Candidates' : 'Click to View Details'}</span>
-                                            <ChevronRight size={14} />
-                                        </div>
-                                    </div>
+                                        </tbody>
+                                    </table>
                                 </div>
-                            ))}
-                            {announcements.length === 0 && !fetchingFeed && (
-                                <div className="col-span-full text-center py-10 text-gray-500">No announcements found.</div>
-                            )}
-                        </div>
+                            </div>
+                        )
                     )
                 }
 
@@ -1813,7 +2466,13 @@ const Announcements = () => {
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <h2 className="text-xl font-bold text-gray-900">
-                                            {editId ? 'Edit Item' : (activeTab === 'announcements' ? 'New Announcement' : 'New Poll')}
+                                            {editId ? 'Edit Announcement' : formStep === 0 ? 'Create Announcement' : `Create ${
+                                                formData.announcement_type === 'circular' ? 'Circular' :
+                                                formData.announcement_type === 'event' ? 'Event' :
+                                                formData.announcement_type === 'poll' ? 'Poll' :
+                                                formData.announcement_type === 'achievement' ? 'Student Achievement Leader board' :
+                                                'Announcement'
+                                            }`}
                                         </h2>
                                         {activeTab === 'announcements' && formData.requires_registration && (
                                             <span className="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
@@ -1822,9 +2481,11 @@ const Announcements = () => {
                                         )}
                                     </div>
                                     <p className="text-xs text-gray-500">
-                                        {activeTab === 'announcements' && formStep === 2
+                                        {formStep === 0
+                                            ? 'Step 1: Select the announcement type'
+                                            : formStep === 2 && formData.requires_registration
                                             ? 'Step 2: Configure Seat Capacity, Deadlines & Dynamic Registration Questions'
-                                            : 'Configure your broadcast targets and content'}
+                                            : 'Configure announcement fields, media attachments, and audience reach'}
                                     </p>
                                 </div>
                             </div>
@@ -2156,35 +2817,545 @@ const Announcements = () => {
                                             </button>
                                         </div>
                                     </div>
+                                ) : formStep === 0 ? (
+                                    /* =================== STEP 0: ASK ANNOUNCEMENT TYPE FIRST =================== */
+                                    <div className="space-y-6 py-4 animate-fade-in">
+                                        <div className="text-center max-w-xl mx-auto space-y-2">
+                                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200 uppercase tracking-wider">
+                                                Step 1 of 2: Select Type
+                                            </span>
+                                            <h3 className="text-2xl font-black text-gray-900">What would you like to create?</h3>
+                                            <p className="text-sm text-gray-500">
+                                                Choose an announcement type below. Form fields and layout will automatically adjust for your selection.
+                                            </p>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto pt-2">
+                                            {/* Type 1: Circular */}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({ ...prev, announcement_type: 'circular' }));
+                                                    setFormStep(1);
+                                                }}
+                                                className="p-5 rounded-2xl border-2 border-slate-200 hover:border-rose-500 bg-white hover:bg-rose-50/20 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                                            >
+                                                <div>
+                                                    <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                        <FileText size={24} />
+                                                    </div>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-rose-600">Type 1: Circular</h4>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-rose-100 text-rose-700">PDF Only</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                                                        Official notifications. Only PDF documents can be uploaded. Prompts for a Subject Line to display in the headline.
+                                                    </p>
+                                                </div>
+                                                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-rose-600">
+                                                    <span>Create Circular</span>
+                                                    <ChevronRight size={14} />
+                                                </div>
+                                            </button>
+
+                                            {/* Type 2: Events */}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({ ...prev, announcement_type: 'event' }));
+                                                    setFormStep(1);
+                                                }}
+                                                className="p-5 rounded-2xl border-2 border-slate-200 hover:border-purple-600 bg-white hover:bg-purple-50/20 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                                            >
+                                                <div>
+                                                    <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                        <Calendar size={24} />
+                                                    </div>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-purple-600">Type 2: Events</h4>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-purple-100 text-purple-700">Date & Venue</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                                                        Campus events, seminars, fests, workshops with date, time, venue, poster, and optional student seat registration.
+                                                    </p>
+                                                </div>
+                                                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-purple-600">
+                                                    <span>Create Event</span>
+                                                    <ChevronRight size={14} />
+                                                </div>
+                                            </button>
+
+                                            {/* Type 3: Polls */}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({ ...prev, announcement_type: 'poll' }));
+                                                    setFormStep(1);
+                                                }}
+                                                className="p-5 rounded-2xl border-2 border-slate-200 hover:border-emerald-600 bg-white hover:bg-emerald-50/20 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                                            >
+                                                <div>
+                                                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                        <BarChart2 size={24} />
+                                                    </div>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-emerald-600">Type 3: Polls</h4>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">Interactive</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                                                        Interactive campus polls with question, customizable options, voting timeline, and live vote percentage charts.
+                                                    </p>
+                                                </div>
+                                                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-emerald-600">
+                                                    <span>Create Poll</span>
+                                                    <ChevronRight size={14} />
+                                                </div>
+                                            </button>
+
+                                            {/* Type 4: Announcement */}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({ ...prev, announcement_type: 'announcement' }));
+                                                    setFormStep(1);
+                                                }}
+                                                className="p-5 rounded-2xl border-2 border-slate-200 hover:border-blue-600 bg-white hover:bg-blue-50/20 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                                            >
+                                                <div>
+                                                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                        <Megaphone size={24} />
+                                                    </div>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-blue-600">Type 4: Announcement</h4>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-700">Standard</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                                                        Standard college announcement with title, rich message body, image poster attachment, and auto-expiry options.
+                                                    </p>
+                                                </div>
+                                                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-blue-600">
+                                                    <span>Create Announcement</span>
+                                                    <ChevronRight size={14} />
+                                                </div>
+                                            </button>
+
+                                            {/* Type 5: Student Achievement Leader board */}
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({ ...prev, announcement_type: 'achievement' }));
+                                                    setFormStep(1);
+                                                }}
+                                                className="p-5 rounded-2xl border-2 border-amber-300 hover:border-amber-500 bg-gradient-to-br from-amber-50/40 via-white to-amber-50/10 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between sm:col-span-2 lg:col-span-2"
+                                            >
+                                                <div>
+                                                    <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md shadow-amber-200">
+                                                        <Trophy size={24} />
+                                                    </div>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-amber-800 flex items-center gap-1.5">
+                                                            Type 5: Student Achievement Leader board
+                                                        </h4>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                                                            🏆 Hackathon Topper
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-600 leading-relaxed mt-1">
+                                                        Showcase the student topper in hackathons and competitions! Displays their <strong>Photo, Name, Branch, Year & Semester</strong>, prize, and rank.
+                                                    </p>
+                                                </div>
+                                                <div className="mt-4 pt-3 border-t border-amber-100 flex items-center justify-between text-xs font-bold text-amber-700">
+                                                    <span>Create Leaderboard Spotlight</span>
+                                                    <ChevronRight size={14} />
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
                                 ) : (
-                                    /* =================== STEP 1: SAME OLD FLOW WITH REGISTRATION TOGGLE =================== */
+                                    /* =================== STEP 1: DYNAMIC FORM FIELDS BY TYPE =================== */
                                     <>
+                                        {/* Type Selector Pill Header */}
+                                        <div className="flex items-center justify-between p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl mb-4">
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="text-xs font-black uppercase tracking-wider text-blue-900 bg-white px-2.5 py-1 rounded-lg border border-blue-200 shadow-2xs">
+                                                    {formData.announcement_type === 'circular' ? 'Type 1: Circular' :
+                                                     formData.announcement_type === 'event' ? 'Type 2: Event' :
+                                                     formData.announcement_type === 'poll' ? 'Type 3: Poll' :
+                                                     formData.announcement_type === 'achievement' ? 'Type 5: Student Achievement Leader board' :
+                                                     'Type 4: Announcement'}
+                                                </span>
+                                                <span className="text-xs text-blue-700 hidden sm:inline font-medium">
+                                                    {formData.announcement_type === 'circular' ? 'Only PDF upload allowed · Subject line displays in headline' :
+                                                     formData.announcement_type === 'event' ? 'Event details with date, time, venue and optional seat registration' :
+                                                     formData.announcement_type === 'poll' ? 'Campus poll with interactive student options' :
+                                                     formData.announcement_type === 'achievement' ? 'Spotlight hackathon topper with Photo, Name, Branch, Year & Sem' :
+                                                     'Standard general campus announcement'}
+                                                </span>
+                                            </div>
+                                            {!editId && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormStep(0)}
+                                                    className="text-xs font-bold text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50 px-3 py-1 rounded-lg border border-blue-200 transition-colors flex items-center gap-1 shadow-2xs"
+                                                >
+                                                    <ChevronLeft size={13} /> Change Type
+                                                </button>
+                                            )}
+                                        </div>
+
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-4">
-                                                {activeTab === 'announcements' ? (
-                                                    <>
+                                                {/* ================= TYPE 1: CIRCULAR ================= */}
+                                                {formData.announcement_type === 'circular' && (
+                                                    <div className="space-y-4 animate-fade-in">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Subject Line (Headline) <span className="text-rose-500">*</span>
+                                                            </label>
                                                             <input
                                                                 type="text"
-                                                                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                                placeholder="Enter title"
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none font-medium text-sm"
+                                                                placeholder="e.g. Schedule for B.Tech Semester End Regular & Supplementary Examinations"
                                                                 value={formData.title}
                                                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
                                                             />
+                                                            <span className="text-[11px] text-gray-500 mt-1 block">
+                                                                The subject line will be prominently displayed as the headline.
+                                                            </span>
                                                         </div>
+
+                                                        {/* Strictly PDF Document Upload */}
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Upload Circular Document (Only PDF) <span className="text-rose-500">*</span>
+                                                            </label>
+
+                                                            {formData.file || formData.file_name || formData.existing_file_url ? (
+                                                                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3">
+                                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                                        <div className="w-10 h-10 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                                                            <FileText size={20} />
+                                                                        </div>
+                                                                        <div className="min-w-0">
+                                                                            <p className="text-xs font-bold text-gray-900 truncate">
+                                                                                {formData.file_name || formData.file?.name || 'Attached_Circular.pdf'}
+                                                                            </p>
+                                                                            <span className="text-[10px] text-rose-700 font-semibold uppercase tracking-wider block">
+                                                                                {formData.file ? `${(formData.file.size / (1024 * 1024)).toFixed(2)} MB · Valid PDF` : 'Attached PDF Document'}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 shrink-0">
+                                                                        {(formData.file_preview_url || formData.existing_file_url) && (
+                                                                            <a
+                                                                                href={formData.file_preview_url || formData.existing_file_url}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="p-1.5 bg-white text-rose-700 hover:bg-rose-100 rounded-lg border border-rose-200 text-xs font-bold flex items-center gap-1"
+                                                                                title="Preview PDF"
+                                                                            >
+                                                                                <ExternalLink size={13} />
+                                                                            </a>
+                                                                        )}
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setFormData(prev => ({ ...prev, file: null, file_name: '', file_preview_url: null, existing_file_url: null }))}
+                                                                            className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors"
+                                                                            title="Remove File"
+                                                                        >
+                                                                            <Trash2 size={15} />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="border-2 border-dashed border-rose-300 hover:border-rose-500 rounded-xl p-5 text-center cursor-pointer bg-rose-50/30 hover:bg-rose-50/60 transition-colors relative">
+                                                                    <input
+                                                                        type="file"
+                                                                        accept=".pdf,application/pdf"
+                                                                        onChange={handleCircularFileChange}
+                                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                    />
+                                                                    <div className="flex flex-col items-center gap-1.5 text-rose-700">
+                                                                        <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 mb-1">
+                                                                            <FileDown size={22} />
+                                                                        </div>
+                                                                        <span className="text-xs font-bold">Click or drag & drop PDF document</span>
+                                                                        <span className="text-[10px] text-gray-500">Only .pdf files are accepted (max 10MB)</span>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                Summary / Notes (Optional)
+                                                            </label>
                                                             <textarea
-                                                                className="w-full p-2 border border-gray-300 rounded-lg h-32 focus:ring-2 focus:ring-blue-500"
-                                                                placeholder="Enter details..."
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl h-24 focus:ring-2 focus:ring-rose-500 outline-none font-medium text-xs"
+                                                                placeholder="Add brief instructions or summary of the circular for quick student preview..."
                                                                 value={formData.content}
                                                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
                                                             />
                                                         </div>
+
+                                                        {/* Auto-expire */}
+                                                        <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
+                                                            <label className="block text-xs font-bold text-gray-700 flex items-center gap-1.5 uppercase tracking-wider">
+                                                                <Clock size={13} className="text-gray-600" />
+                                                                Display Time Limit (Auto-Expire)
+                                                            </label>
+                                                            <div className="grid grid-cols-5 gap-1.5">
+                                                                {[
+                                                                    { id: '1', label: '1 Day' },
+                                                                    { id: '3', label: '3 Days' },
+                                                                    { id: '7', label: '7 Days' },
+                                                                    { id: 'none', label: 'No Limit' },
+                                                                    { id: 'custom', label: 'Custom' }
+                                                                ].map(opt => (
+                                                                    <button
+                                                                        key={opt.id}
+                                                                        type="button"
+                                                                        onClick={() => setFormData({ ...formData, time_limit_option: opt.id })}
+                                                                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all border text-center ${
+                                                                            formData.time_limit_option === opt.id
+                                                                                ? 'bg-rose-600 text-white border-rose-600 shadow-2xs'
+                                                                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                                                        }`}
+                                                                    >
+                                                                        {opt.label}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                            {formData.time_limit_option === 'custom' && (
+                                                                <input
+                                                                    type="datetime-local"
+                                                                    className="w-full p-2 border border-gray-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-rose-500 bg-white mt-2"
+                                                                    value={formData.custom_expiry_date || ''}
+                                                                    onChange={e => setFormData({ ...formData, custom_expiry_date: e.target.value })}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* ================= TYPE 2: EVENTS ================= */}
+                                                {formData.announcement_type === 'event' && (
+                                                    <div className="space-y-4 animate-fade-in">
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Event Title <span className="text-rose-500">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-sm"
+                                                                placeholder="e.g. National Technical Symposium & Workshop 2026"
+                                                                value={formData.title}
+                                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                                            />
+                                                        </div>
+
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                    Event Date
+                                                                </label>
+                                                                <input
+                                                                    type="date"
+                                                                    className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-xs bg-white"
+                                                                    value={formData.event_date || ''}
+                                                                    onChange={e => setFormData({ ...formData, event_date: e.target.value })}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                    Event Time
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-xs bg-white"
+                                                                    placeholder="e.g. 10:00 AM - 04:30 PM"
+                                                                    value={formData.event_time || ''}
+                                                                    onChange={e => setFormData({ ...formData, event_time: e.target.value })}
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                <MapPin size={13} className="text-purple-600" /> Event Venue / Location
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-xs"
+                                                                placeholder="e.g. Central Auditorium / Seminar Hall B"
+                                                                value={formData.event_venue || ''}
+                                                                onChange={e => setFormData({ ...formData, event_venue: e.target.value })}
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                Event Description / Agenda
+                                                            </label>
+                                                            <textarea
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl h-24 focus:ring-2 focus:ring-purple-500 outline-none font-medium text-xs"
+                                                                placeholder="Event details, schedule, chief guests, topics covered..."
+                                                                value={formData.content}
+                                                                onChange={e => setFormData({ ...formData, content: e.target.value })}
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                Event Poster / Banner Image
+                                                            </label>
+                                                            {formData.existing_image_url && !formData.image && (
+                                                                <div className="mb-2 h-20 w-32 relative group">
+                                                                    <img src={formData.existing_image_url} alt="Current" className="h-full w-full object-cover rounded border" />
+                                                                    <button type="button" onClick={() => setFormData({ ...formData, existing_image_url: null })} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12} /></button>
+                                                                </div>
+                                                            )}
+                                                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-3 text-center cursor-pointer hover:bg-gray-50 transition-colors relative">
+                                                                <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
+                                                                <div className="flex flex-col items-center gap-1 text-gray-500">
+                                                                    <ImageIcon size={20} />
+                                                                    <span className="text-xs">{formData.image ? formData.image.name : 'Click to upload event banner'}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Registration Toggle */}
+                                                        <div className="p-3 bg-purple-50/60 border border-purple-200 rounded-xl flex items-center justify-between">
+                                                            <div>
+                                                                <span className="text-xs font-bold text-purple-900 block">Candidate Registration & Seat Booking</span>
+                                                                <span className="text-[11px] text-purple-700">Allow students to book tickets / seats for this event</span>
+                                                            </div>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={Boolean(formData.requires_registration)}
+                                                                onChange={e => setFormData({ ...formData, requires_registration: e.target.checked })}
+                                                                className="h-5 w-5 rounded text-purple-600 focus:ring-purple-500"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* ================= TYPE 3: POLLS ================= */}
+                                                {formData.announcement_type === 'poll' && (
+                                                    <div className="space-y-4 animate-fade-in">
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Poll Question <span className="text-rose-500">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-medium text-sm"
+                                                                placeholder="e.g. Which programming language should be prioritized for the upcoming winter bootcamp?"
+                                                                value={formData.title}
+                                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+                                                                <span>Poll Options (At least 2 options) <span className="text-rose-500">*</span></span>
+                                                                <span className="text-[10px] text-gray-400 font-mono">{(formData.poll_options || []).length} Options</span>
+                                                            </label>
+                                                            <div className="space-y-2">
+                                                                {(formData.poll_options || ['', '']).map((opt, optIdx) => (
+                                                                    <div key={optIdx} className="flex gap-2 items-center">
+                                                                        <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold shrink-0">
+                                                                            {optIdx + 1}
+                                                                        </span>
+                                                                        <input
+                                                                            type="text"
+                                                                            className="flex-1 p-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-medium"
+                                                                            placeholder={`Option ${optIdx + 1} text...`}
+                                                                            value={opt}
+                                                                            onChange={e => {
+                                                                                const newOpts = [...(formData.poll_options || ['', ''])];
+                                                                                newOpts[optIdx] = e.target.value;
+                                                                                setFormData({ ...formData, poll_options: newOpts });
+                                                                            }}
+                                                                        />
+                                                                        {(formData.poll_options || []).length > 2 && (
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => {
+                                                                                    const newOpts = (formData.poll_options || []).filter((_, idx) => idx !== optIdx);
+                                                                                    setFormData({ ...formData, poll_options: newOpts });
+                                                                                }}
+                                                                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                                                title="Remove option"
+                                                                            >
+                                                                                <MinusCircle size={16} />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                                {(formData.poll_options || []).length < 6 && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setFormData(prev => ({
+                                                                                ...prev,
+                                                                                poll_options: [...(prev.poll_options || ['', '']), '']
+                                                                            }));
+                                                                        }}
+                                                                        className="w-full py-2 border border-dashed border-emerald-300 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-50 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 mt-2 transition-colors"
+                                                                    >
+                                                                        <Plus size={14} /> Add Another Option
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                Poll Expiry / Deadline
+                                                            </label>
+                                                            <input
+                                                                type="datetime-local"
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-medium text-xs bg-white"
+                                                                value={formData.custom_expiry_date || ''}
+                                                                onChange={e => setFormData({ ...formData, custom_expiry_date: e.target.value })}
+                                                            />
+                                                            <span className="text-[11px] text-gray-500 mt-1 block">Students cannot vote after this date & time.</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* ================= TYPE 4: ANNOUNCEMENT (STANDARD) ================= */}
+                                                {formData.announcement_type === 'announcement' && (
+                                                    <div className="space-y-4 animate-fade-in">
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Headline / Title <span className="text-rose-500">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-sm"
+                                                                placeholder="Enter announcement headline"
+                                                                value={formData.title}
+                                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                                            />
+                                                        </div>
+
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Content / Message <span className="text-rose-500">*</span>
+                                                            </label>
+                                                            <textarea
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl h-28 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-xs"
+                                                                placeholder="Enter complete announcement details..."
+                                                                value={formData.content}
+                                                                onChange={e => setFormData({ ...formData, content: e.target.value })}
+                                                            />
+                                                        </div>
+
                                                         <div className="bg-blue-50/50 p-3.5 rounded-xl border border-blue-100 space-y-2">
                                                             <label className="block text-xs font-bold text-gray-700 flex items-center gap-1.5 uppercase tracking-wider">
-                                                                <Clock size={14} className="text-blue-600" />
+                                                                <Clock size={13} className="text-blue-600" />
                                                                 Display Time Limit (Auto-Expire)
                                                             </label>
                                                             <div className="grid grid-cols-5 gap-1.5">
@@ -2217,102 +3388,205 @@ const Announcements = () => {
                                                                     onChange={e => setFormData({ ...formData, custom_expiry_date: e.target.value })}
                                                                 />
                                                             )}
-                                                            <p className="text-[11px] text-gray-500 font-medium">
-                                                                {formData.time_limit_option !== 'none' && formData.time_limit_option !== 'custom' && (
-                                                                    <span>⏱️ Popup & feed notice will be active for <strong>{formData.time_limit_option} days</strong> and then automatically stop displaying to students.</span>
-                                                                )}
-                                                                {formData.time_limit_option === 'none' && (
-                                                                    <span>♾️ Announcement will stay active until manually toggled or deleted.</span>
-                                                                )}
-                                                                {formData.time_limit_option === 'custom' && formData.custom_expiry_date && (
-                                                                    <span>⏱️ Auto-expires on <strong>{new Date(formData.custom_expiry_date).toLocaleString()}</strong>.</span>
-                                                                )}
-                                                            </p>
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Image (Optional)</label>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Image (Optional)</label>
                                                             {formData.existing_image_url && !formData.image && (
                                                                 <div className="mb-2 h-20 w-32 relative group">
                                                                     <img src={formData.existing_image_url} alt="Current" className="h-full w-full object-cover rounded border" />
                                                                     <button type="button" onClick={() => setFormData({ ...formData, existing_image_url: null })} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12} /></button>
                                                                 </div>
                                                             )}
-                                                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:bg-gray-50 transition-colors relative">
+                                                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-3 text-center cursor-pointer hover:bg-gray-50 transition-colors relative">
                                                                 <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
-                                                                <div className="flex flex-col items-center gap-2 text-gray-500">
-                                                                    {formData.previewUrl ? (
-                                                                        <div className="relative w-full h-48 mb-2">
-                                                                            <img src={formData.previewUrl} alt="Preview" className="w-full h-full object-contain rounded-md" />
-                                                                            <div className="text-xs mt-1 text-blue-600 font-semibold">Click to change</div>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <>
-                                                                            <ImageIcon size={24} />
-                                                                            <span className="text-sm">{formData.image ? formData.image.name : 'Click to update image'}</span>
-                                                                        </>
-                                                                    )}
+                                                                <div className="flex flex-col items-center gap-1 text-gray-500">
+                                                                    <ImageIcon size={20} />
+                                                                    <span className="text-xs">{formData.image ? formData.image.name : 'Click to attach image'}</span>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </>
-                                                ) : (
-                                                    <>
+                                                    </div>
+                                                )}
+
+                                                {/* ================= TYPE 5: STUDENT ACHIEVEMENT LEADER BOARD ================= */}
+                                                {formData.announcement_type === 'achievement' && (
+                                                    <div className="space-y-4 animate-fade-in">
                                                         <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Poll Question</label>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Hackathon / Competition Name <span className="text-rose-500">*</span>
+                                                            </label>
                                                             <input
                                                                 type="text"
-                                                                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                                placeholder="Ask something..."
-                                                                value={formData.question}
-                                                                onChange={e => setFormData({ ...formData, question: e.target.value })}
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-sm"
+                                                                placeholder="e.g. Smart India Hackathon 2026 / National Coding Championship"
+                                                                value={formData.title}
+                                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
                                                             />
                                                         </div>
-                                                        <div className="grid grid-cols-2 gap-4">
+
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                             <div>
-                                                                <label className="block text-xs font-semibold text-gray-700 mb-1">Start Time</label>
+                                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                    Rank / Position Title
+                                                                </label>
                                                                 <input
-                                                                    type="datetime-local"
-                                                                    className="w-full p-2 border rounded-lg text-sm"
-                                                                    value={formData.start_time || ''}
-                                                                    onChange={e => setFormData({ ...formData, start_time: e.target.value })}
+                                                                    type="text"
+                                                                    className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs"
+                                                                    placeholder="e.g. 1st Place / Hackathon Topper / Gold Medal"
+                                                                    value={formData.rank_title || ''}
+                                                                    onChange={e => setFormData({ ...formData, rank_title: e.target.value })}
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs font-semibold text-gray-700 mb-1">End Time</label>
+                                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                    Cash Prize / Award Details
+                                                                </label>
                                                                 <input
-                                                                    type="datetime-local"
-                                                                    className="w-full p-2 border rounded-lg text-sm"
-                                                                    value={formData.end_time || ''}
-                                                                    onChange={e => setFormData({ ...formData, end_time: e.target.value })}
+                                                                    type="text"
+                                                                    className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs"
+                                                                    placeholder="e.g. ₹50,000 Cash Prize & Trophy"
+                                                                    value={formData.topper_prize || ''}
+                                                                    onChange={e => setFormData({ ...formData, topper_prize: e.target.value })}
                                                                 />
                                                             </div>
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">Options</label>
-                                                            <div className="space-y-2">
-                                                                {formData.options.map((opt, idx) => (
-                                                                    <div key={idx} className="flex gap-2">
-                                                                        <input
-                                                                            type="text"
-                                                                            className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                                                            placeholder={`Option ${idx + 1}`}
-                                                                            value={opt}
-                                                                            onChange={e => updateOption(idx, e.target.value)}
-                                                                        />
-                                                                        {formData.options.length > 2 && (
-                                                                            <button type="button" onClick={() => removeOption(idx)} className="text-red-500 hover:bg-red-50 p-2 rounded"><MinusCircle size={20} /></button>
-                                                                        )}
+
+                                                        {/* Topper Spotlight Box */}
+                                                        <div className="p-4 bg-gradient-to-br from-amber-50/60 to-orange-50/30 border-2 border-amber-300/80 rounded-2xl space-y-3">
+                                                            <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                                                                <h5 className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                                                                    <Trophy size={14} className="text-amber-600" /> Student Topper Details (Photo, Name, Branch, Year & Sem)
+                                                                </h5>
+                                                                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                                                                    Required
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Quick Database Search */}
+                                                            <div className="relative">
+                                                                <label className="block text-[11px] font-bold text-gray-600 mb-1">
+                                                                    🔍 Quick Student Auto-Fill (Search by Name or PIN):
+                                                                </label>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="Type student name or roll number to auto-fill..."
+                                                                        value={topperSearchQuery}
+                                                                        onChange={e => handleSearchTopper(e.target.value)}
+                                                                        className="w-full text-xs p-2 pl-3 pr-8 border border-amber-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 outline-none"
+                                                                    />
+                                                                    {isSearchingTopper && (
+                                                                        <Loader2 size={13} className="animate-spin text-amber-600 absolute right-2.5 top-2.5" />
+                                                                    )}
+                                                                </div>
+
+                                                                {topperSearchResults.length > 0 && (
+                                                                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-gray-100">
+                                                                        {topperSearchResults.map(s => (
+                                                                            <div
+                                                                                key={s.id}
+                                                                                onClick={() => handleSelectTopperStudent(s)}
+                                                                                className="p-2.5 hover:bg-amber-50 cursor-pointer flex items-center justify-between text-xs"
+                                                                            >
+                                                                                <div>
+                                                                                    <span className="font-bold text-gray-900 block">{s.student_name}</span>
+                                                                                    <span className="text-[10px] text-gray-500">PIN: {s.pin_no || s.admission_number} · {s.branch} · Year {s.current_year}</span>
+                                                                                </div>
+                                                                                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">Select</span>
+                                                                            </div>
+                                                                        ))}
                                                                     </div>
-                                                                ))}
-                                                                {formData.options.length < 6 && (
-                                                                    <button type="button" onClick={addOption} className="text-blue-600 text-sm font-semibold flex items-center gap-1 mt-2">
-                                                                        <PlusCircle size={16} /> Add Option
-                                                                    </button>
                                                                 )}
                                                             </div>
+
+                                                            {/* Photo & Inputs Row */}
+                                                            <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
+                                                                <div className="flex flex-col items-center shrink-0">
+                                                                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-400 shadow-md bg-white relative group">
+                                                                        {formData.topper_photo_preview ? (
+                                                                            <img src={formData.topper_photo_preview} alt="Topper" className="w-full h-full object-cover" />
+                                                                        ) : (
+                                                                            <div className="w-full h-full flex items-center justify-center bg-amber-100 text-amber-600">
+                                                                                <User size={28} />
+                                                                            </div>
+                                                                        )}
+                                                                        <label className="absolute inset-0 bg-black/40 text-white flex items-center justify-center text-[9px] font-bold opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-center p-1">
+                                                                            Change Photo
+                                                                            <input type="file" accept="image/*" onChange={handleTopperPhotoChange} className="hidden" />
+                                                                        </label>
+                                                                    </div>
+                                                                    <label className="text-[10px] font-bold text-amber-800 mt-1 cursor-pointer hover:underline">
+                                                                        Upload Photo
+                                                                        <input type="file" accept="image/*" onChange={handleTopperPhotoChange} className="hidden" />
+                                                                    </label>
+                                                                </div>
+
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1 w-full">
+                                                                    <div>
+                                                                        <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
+                                                                            Student Full Name <span className="text-rose-500">*</span>
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
+                                                                            placeholder="e.g. K. Rajesh Kumar"
+                                                                            value={formData.topper_name || ''}
+                                                                            onChange={e => setFormData({ ...formData, topper_name: e.target.value })}
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
+                                                                            Branch / Department <span className="text-rose-500">*</span>
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
+                                                                            placeholder="e.g. CSE / ECE / AI&DS"
+                                                                            value={formData.topper_branch || ''}
+                                                                            onChange={e => setFormData({ ...formData, topper_branch: e.target.value })}
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
+                                                                            Year & Semester <span className="text-rose-500">*</span>
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
+                                                                            placeholder="e.g. 3rd Year, 1st Sem (III-I)"
+                                                                            value={formData.topper_year_sem || ''}
+                                                                            onChange={e => setFormData({ ...formData, topper_year_sem: e.target.value })}
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
+                                                                            Roll No / PIN (Optional)
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
+                                                                            placeholder="e.g. 21A91A0501"
+                                                                            value={formData.topper_roll_no || ''}
+                                                                            onChange={e => setFormData({ ...formData, topper_roll_no: e.target.value })}
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    </>
+
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                Project Name & Achievement Description
+                                                            </label>
+                                                            <textarea
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl h-20 focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs"
+                                                                placeholder="Project title, mentor, problem statement solved, key highlights..."
+                                                                value={formData.content}
+                                                                onChange={e => setFormData({ ...formData, content: e.target.value })}
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </div>
                                             <TargetSelector formData={formData} setFormData={setFormData} />
@@ -2324,8 +3598,8 @@ const Announcements = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        if (!formData.title?.trim() || !formData.content?.trim()) {
-                                                            return toast.error('Please enter Title and Content first');
+                                                        if (!formData.title?.trim()) {
+                                                            return toast.error('Please enter Title first');
                                                         }
                                                         setFormStep(2);
                                                     }}
@@ -2341,7 +3615,7 @@ const Announcements = () => {
                                                     className="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all disabled:opacity-70"
                                                 >
                                                     {loading ? <Loader2 className="animate-spin" /> : <Send size={18} />}
-                                                    {loading ? (formData.image ? 'Uploading post...' : 'Submitting...') : (editId ? 'Update' : (activeTab === 'announcements' ? 'Post' : 'Create Poll'))}
+                                                    {loading ? (formData.image || formData.file ? 'Uploading...' : 'Submitting...') : (editId ? 'Update' : 'Publish')}
                                                 </button>
                                             )}
                                         </div>
@@ -2486,14 +3760,40 @@ const Announcements = () => {
                         </div>
                         <div className="p-5 space-y-4">
                             <p className="text-sm text-gray-600">
-                                Choose one or more number types to receive this SMS broadcast.
+                                Choose one or more number types to receive this SMS broadcast:
                             </p>
+
+                            <div className="flex items-center justify-end gap-1 mb-1 text-xs">
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedMobileTargets(['student_mobile', 'parent_mobile1'])}
+                                    className="text-xs font-semibold text-blue-600 hover:underline px-1.5"
+                                >
+                                    Both at a time
+                                </button>
+                                <span className="text-gray-300">|</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedMobileTargets(['parent_mobile1'])}
+                                    className="text-xs font-semibold text-blue-600 hover:underline px-1.5"
+                                >
+                                    Parent Only
+                                </button>
+                                <span className="text-gray-300">|</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedMobileTargets(['student_mobile'])}
+                                    className="text-xs font-semibold text-blue-600 hover:underline px-1.5"
+                                >
+                                    Student Only
+                                </button>
+                            </div>
 
                             <div className="space-y-2">
                                 {[
-                                    { key: 'student_mobile', label: 'Student Mobile Number' },
-                                    { key: 'parent_mobile1', label: 'Parent 1 Mobile Number 1' },
-                                    { key: 'parent_mobile2', label: 'Parent 1 Mobile Number 2' }
+                                    { key: 'student_mobile', label: 'Student Mobile Number (Student)' },
+                                    { key: 'parent_mobile1', label: 'Parent Preferred Number (Parent Mobile 1)' },
+                                    { key: 'parent_mobile2', label: 'Parent Alternate Number (Parent Mobile 2)' }
                                 ].map((target) => (
                                     <label key={target.key} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
                                         <input
@@ -2686,7 +3986,86 @@ const Announcements = () => {
                         <div className="p-6 overflow-y-auto space-y-6 bg-gray-50/50">
                             {/* Announcement Content & Image Preview */}
                             <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs space-y-4">
-                                {selectedAnnouncementForView.image_url && (
+                                {/* Type 1: Circular PDF Preview Box */}
+                                {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'circular' && selectedAnnouncementForView.file_url && (
+                                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-12 h-12 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                                <FileText size={24} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <h4 className="text-sm font-bold text-gray-900 truncate">
+                                                    {selectedAnnouncementForView.file_name || 'Attached_Circular.pdf'}
+                                                </h4>
+                                                <span className="text-xs text-rose-700 font-semibold uppercase tracking-wider block">Official Circular PDF Attachment</span>
+                                            </div>
+                                        </div>
+                                        <a
+                                            href={selectedAnnouncementForView.file_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs shrink-0 transition-colors"
+                                        >
+                                            <FileDown size={14} /> Open / Download PDF
+                                        </a>
+                                    </div>
+                                )}
+
+                                {/* Type 5: Student Achievement Leader Board Card */}
+                                {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'achievement' && selectedAnnouncementForView.achievement_data && (() => {
+                                    const ach = typeof selectedAnnouncementForView.achievement_data === 'string' ? JSON.parse(selectedAnnouncementForView.achievement_data) : selectedAnnouncementForView.achievement_data;
+                                    return (
+                                        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-400 bg-white shrink-0 shadow-md">
+                                                {ach.student_photo || selectedAnnouncementForView.image_url ? (
+                                                    <img src={ach.student_photo || selectedAnnouncementForView.image_url} alt={ach.student_name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-amber-600 bg-amber-100">
+                                                        <User size={28} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-1">
+                                                    🏆 {ach.rank_title || 'Hackathon Topper'}
+                                                </span>
+                                                <h3 className="text-base font-black text-slate-900 leading-tight">
+                                                    {ach.student_name}
+                                                </h3>
+                                                <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                                    {ach.branch && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800">{ach.branch}</span>}
+                                                    {ach.year_sem && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800">{ach.year_sem}</span>}
+                                                    {ach.roll_no && <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-700 font-mono">{ach.roll_no}</span>}
+                                                </div>
+                                                {ach.topper_prize && (
+                                                    <p className="text-xs font-black text-amber-900 mt-1">
+                                                        Award: {ach.topper_prize}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* Type 2: Event Details Banner */}
+                                {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'event' && (selectedAnnouncementForView.event_date || selectedAnnouncementForView.event_venue) && (
+                                    <div className="p-3 bg-purple-50/80 border border-purple-200 rounded-2xl text-xs space-y-1">
+                                        {selectedAnnouncementForView.event_date && (
+                                            <div className="flex items-center gap-1.5 font-bold text-purple-900">
+                                                <Calendar size={13} className="text-purple-600" />
+                                                <span>Event Date: {selectedAnnouncementForView.event_date} {selectedAnnouncementForView.event_time ? `(${selectedAnnouncementForView.event_time})` : ''}</span>
+                                            </div>
+                                        )}
+                                        {selectedAnnouncementForView.event_venue && (
+                                            <div className="flex items-center gap-1.5 text-purple-700 font-medium">
+                                                <MapPin size={13} className="text-purple-500" />
+                                                <span>Venue: {selectedAnnouncementForView.event_venue}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {selectedAnnouncementForView.image_url && (selectedAnnouncementForView.announcement_type || '').toLowerCase() !== 'circular' && (
                                     <div className="max-h-72 w-full overflow-hidden rounded-xl bg-slate-900 relative">
                                         <img
                                             src={selectedAnnouncementForView.image_url}
@@ -2696,7 +4075,9 @@ const Announcements = () => {
                                     </div>
                                 )}
                                 <div className="space-y-2">
-                                    <h3 className="text-base font-bold text-gray-900">Announcement Description</h3>
+                                    <h3 className="text-base font-bold text-gray-900">
+                                        {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'circular' ? 'Circular Remarks / Summary' : 'Announcement Description'}
+                                    </h3>
                                     <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
                                         {selectedAnnouncementForView.content}
                                     </p>

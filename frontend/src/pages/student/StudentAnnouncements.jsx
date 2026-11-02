@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Loader2, Megaphone, Calendar, BarChart2, CheckCircle, Clock, AlertCircle, X, RefreshCw, ChevronRight, Ticket, Users, Check, AlertTriangle, Send, User } from 'lucide-react';
+import { Loader2, Megaphone, Calendar, BarChart2, CheckCircle, Clock, AlertCircle, X, RefreshCw, ChevronRight, Ticket, Users, Check, AlertTriangle, Send, User, Trophy, FileText, FileDown, ExternalLink, MapPin } from 'lucide-react';
 import { SkeletonBox } from '../../components/SkeletonLoader';
 import api from '../../config/api';
 import useAuthStore from '../../store/authStore';
@@ -295,6 +295,32 @@ const StudentAnnouncements = () => {
         }
     };
 
+    const handleAnnouncementPollVote = async (e, announcementId, optionIndex) => {
+        e.stopPropagation();
+        try {
+            const res = await api.post(`/announcements/${announcementId}/vote`, { option_index: optionIndex });
+            if (res.data.success) {
+                toast.success('Your vote has been recorded!');
+                setAnnouncements(prev => prev.map(ann => {
+                    if (ann.id === announcementId) {
+                        const newCounts = { ...(ann.poll_vote_counts || {}) };
+                        newCounts[optionIndex] = (newCounts[optionIndex] || 0) + 1;
+                        return {
+                            ...ann,
+                            has_voted: true,
+                            voted_option_index: optionIndex,
+                            total_votes: (ann.total_votes || 0) + 1,
+                            poll_vote_counts: newCounts
+                        };
+                    }
+                    return ann;
+                }));
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to submit vote');
+        }
+    };
+
     const handleOpenRegisterModal = (announcement) => {
         setRegisterModalAnnouncement(announcement);
         const yearSemStr = [
@@ -571,80 +597,244 @@ const StudentAnnouncements = () => {
                         <>
                             {/* Announcements Responsive Card Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-                                {announcements.map((ann) => (
-                                    <div
-                                        key={ann.id}
-                                        onClick={() => setSelectedAnnouncement(ann)}
-                                        className="rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full bg-white"
-                                    >
-                                        {/* Image / Fallback */}
-                                        {ann.image_url ? (
-                                            <div className="w-full h-44 sm:h-48 bg-slate-100 overflow-hidden relative shrink-0">
-                                                <img src={ann.image_url} alt={ann.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                                <span className="absolute top-2.5 right-2.5 bg-indigo-600/95 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">Announcement</span>
-                                                <div className="absolute bottom-2.5 left-2.5 z-10">
-                                                    <span className="bg-indigo-600/95 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
-                                                        {formatTarget(ann.target_college)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="w-full h-44 sm:h-48 bg-slate-900 overflow-hidden relative shrink-0">
-                                                <img src="/images/announcement-fallback.jpg" alt={ann.title} className="w-full h-full object-cover" />
-                                                <span className="absolute top-2.5 right-2.5 bg-indigo-600/95 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">Announcement</span>
-                                                <div className="absolute bottom-2.5 left-2.5 z-10">
-                                                    <span className="bg-indigo-600/95 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
-                                                        {formatTarget(ann.target_college)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        )}
+                                {announcements.map((ann) => {
+                                    const type = (ann.announcement_type || 'announcement').toLowerCase();
+                                    const ach = ann.achievement_data || {};
 
-                                        {/* Content */}
-                                        <div className="p-4 flex-1 flex flex-col justify-between">
-                                            <div>
-                                                <div className="flex items-center justify-between gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <Calendar size={12} className="text-indigo-500 shrink-0" />
-                                                        <span>{new Date(ann.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                    return (
+                                        <div
+                                            key={ann.id}
+                                            onClick={() => setSelectedAnnouncement(ann)}
+                                            className={`rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full bg-white ${type === 'achievement' ? 'border-amber-300/80 bg-gradient-to-b from-amber-50/25 to-white' : ''}`}
+                                        >
+                                            {/* Type Banner / Image / PDF Showcase */}
+                                            {type === 'circular' ? (
+                                                <div className="w-full p-4 bg-gradient-to-br from-rose-50 via-red-50/40 to-white border-b border-rose-100 shrink-0">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <span className="inline-flex items-center gap-1 bg-rose-600 text-white px-2.5 py-0.5 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-xs">
+                                                            <FileText size={11} /> Official Circular
+                                                        </span>
+                                                        <span className="text-[10px] font-bold text-slate-400">
+                                                            {formatTarget(ann.target_college)}
+                                                        </span>
                                                     </div>
-                                                    {Boolean(ann.requires_registration) && (
-                                                        ann.is_registered ? (
-                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                                <CheckCircle size={10} /> Registered
-                                                            </span>
-                                                        ) : ann.is_full ? (
-                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-rose-700 border border-rose-200">
-                                                                Seats Full
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                                                <Ticket size={10} /> {ann.available_seats !== null ? `${ann.available_seats} left` : 'Register'}
-                                                            </span>
-                                                        )
+                                                    <div className="p-3 bg-white border border-rose-200 rounded-xl flex items-center justify-between gap-3 shadow-2xs">
+                                                        <div className="flex items-center gap-2.5 min-w-0">
+                                                            <div className="w-9 h-9 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                                                <FileText size={18} />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs font-bold text-slate-900 truncate">
+                                                                    {ann.file_name || 'Official_Circular.pdf'}
+                                                                </p>
+                                                                <span className="text-[9px] font-bold text-rose-600 uppercase tracking-wider block">PDF Document</span>
+                                                            </div>
+                                                        </div>
+                                                        {ann.file_url && (
+                                                            <a
+                                                                href={ann.file_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={e => e.stopPropagation()}
+                                                                className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
+                                                            >
+                                                                <FileDown size={12} /> Open PDF
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ) : type === 'achievement' ? (
+                                                <div className="w-full p-4 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-white shrink-0 shadow-xs">
+                                                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider mb-2">
+                                                        <span className="flex items-center gap-1 bg-black/20 px-2 py-0.5 rounded-full">
+                                                            <Trophy size={11} /> Hackathon Topper
+                                                        </span>
+                                                        <span className="bg-white/20 px-2 py-0.5 rounded-full">
+                                                            {ach.rank_title || 'Champion'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 bg-white/95 text-slate-900 p-3 rounded-xl shadow-xs">
+                                                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400 shrink-0 bg-amber-50 shadow-xs">
+                                                            {ach.student_photo || ann.image_url ? (
+                                                                <img
+                                                                    src={ach.student_photo || ann.image_url}
+                                                                    alt={ach.student_name || 'Topper'}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-amber-600">
+                                                                    <User size={22} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <h4 className="font-black text-xs sm:text-sm text-slate-900 truncate leading-tight">
+                                                                {ach.student_name || 'Student Topper'}
+                                                            </h4>
+                                                            <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                                                                {ach.branch && (
+                                                                    <span className="px-1.5 py-0.2 rounded bg-blue-50 text-blue-800 text-[10px] font-bold">
+                                                                        {ach.branch}
+                                                                    </span>
+                                                                )}
+                                                                {ach.year_sem && (
+                                                                    <span className="px-1.5 py-0.2 rounded bg-purple-50 text-purple-800 text-[10px] font-bold">
+                                                                        {ach.year_sem}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {ach.topper_prize && (
+                                                                <span className="text-[10px] font-black text-amber-800 block mt-0.5">
+                                                                    🏆 {ach.topper_prize}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : ann.image_url ? (
+                                                <div className="w-full h-44 sm:h-48 bg-slate-100 overflow-hidden relative shrink-0">
+                                                    <img src={ann.image_url} alt={ann.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                    <span className={`absolute top-2.5 right-2.5 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm ${type === 'event' ? 'bg-purple-600/95' : type === 'poll' ? 'bg-emerald-600/95' : 'bg-indigo-600/95'}`}>
+                                                        {type === 'event' ? 'Event' : type === 'poll' ? 'Poll' : 'Announcement'}
+                                                    </span>
+                                                    <div className="absolute bottom-2.5 left-2.5 z-10">
+                                                        <span className="bg-indigo-600/95 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
+                                                            {formatTarget(ann.target_college)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="w-full h-44 sm:h-48 bg-slate-900 overflow-hidden relative shrink-0">
+                                                    <img src="/images/announcement-fallback.jpg" alt={ann.title} className="w-full h-full object-cover" />
+                                                    <span className={`absolute top-2.5 right-2.5 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm ${type === 'event' ? 'bg-purple-600/95' : type === 'poll' ? 'bg-emerald-600/95' : 'bg-indigo-600/95'}`}>
+                                                        {type === 'event' ? 'Event' : type === 'poll' ? 'Poll' : 'Announcement'}
+                                                    </span>
+                                                    <div className="absolute bottom-2.5 left-2.5 z-10">
+                                                        <span className="bg-indigo-600/95 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
+                                                            {formatTarget(ann.target_college)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Content */}
+                                            <div className="p-4 flex-1 flex flex-col justify-between">
+                                                <div>
+                                                    <div className="flex items-center justify-between gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Calendar size={12} className="text-indigo-500 shrink-0" />
+                                                            <span>{new Date(ann.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                                        </div>
+                                                        {Boolean(ann.requires_registration) && (
+                                                            ann.is_registered ? (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                    <CheckCircle size={10} /> Registered
+                                                                </span>
+                                                            ) : ann.is_full ? (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-rose-700 border border-rose-200">
+                                                                    Seats Full
+                                                                </span>
+                                                            ) : (
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                                    <Ticket size={10} /> {ann.available_seats !== null ? `${ann.available_seats} left` : 'Register'}
+                                                                </span>
+                                                            )
+                                                        )}
+                                                    </div>
+
+                                                    {/* Headline / Subject Line */}
+                                                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">
+                                                        {type === 'circular' && <span className="text-rose-600 mr-1 text-xs uppercase font-mono">Sub:</span>}
+                                                        {ann.title}
+                                                    </h3>
+
+                                                    {/* Type 2 Event Sub-Banner */}
+                                                    {type === 'event' && (ann.event_date || ann.event_venue) && (
+                                                        <div className="mt-2 p-2 bg-purple-50/70 rounded-xl text-xs text-purple-900 font-semibold space-y-0.5">
+                                                            {ann.event_date && (
+                                                                <div className="flex items-center gap-1">
+                                                                    <Calendar size={12} className="text-purple-600" />
+                                                                    <span>{ann.event_date} {ann.event_time ? `(${ann.event_time})` : ''}</span>
+                                                                </div>
+                                                            )}
+                                                            {ann.event_venue && (
+                                                                <div className="flex items-center gap-1 text-[11px] text-purple-700">
+                                                                    <MapPin size={11} className="text-purple-500" />
+                                                                    <span className="truncate">{ann.event_venue}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Type 3 Poll Interactive Voting in Feed */}
+                                                    {type === 'poll' && Array.isArray(ann.poll_options) && ann.poll_options.length > 0 && (
+                                                        <div className="mt-3 space-y-2 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100" onClick={e => e.stopPropagation()}>
+                                                            {ann.has_voted ? (
+                                                                <div className="space-y-1.5">
+                                                                    <div className="text-[10px] font-bold text-emerald-800 uppercase flex items-center justify-between">
+                                                                        <span className="flex items-center gap-1"><CheckCircle size={11} /> You Voted</span>
+                                                                        <span>{ann.total_votes || 0} Votes</span>
+                                                                    </div>
+                                                                    {ann.poll_options.map((opt, oIdx) => {
+                                                                        const count = ann.poll_vote_counts?.[oIdx] || 0;
+                                                                        const total = ann.total_votes || 1;
+                                                                        const pct = Math.round((count / total) * 100);
+                                                                        const isMyChoice = ann.voted_option_index === oIdx;
+                                                                        return (
+                                                                            <div key={oIdx} className="text-xs">
+                                                                                <div className="flex justify-between text-[11px] mb-0.5">
+                                                                                    <span className={`font-semibold ${isMyChoice ? 'text-emerald-800 font-black' : 'text-slate-600'}`}>
+                                                                                        {opt} {isMyChoice && '✓'}
+                                                                                    </span>
+                                                                                    <span className="font-mono text-slate-500">{pct}%</span>
+                                                                                </div>
+                                                                                <div className="h-1.5 w-full bg-emerald-100 rounded-full overflow-hidden">
+                                                                                    <div className="h-full bg-emerald-600 rounded-full" style={{ width: `${pct}%` }}></div>
+                                                                                </div>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="space-y-1.5">
+                                                                    <span className="text-[10px] font-bold text-emerald-800 uppercase block">Vote on this poll:</span>
+                                                                    {ann.poll_options.map((opt, oIdx) => (
+                                                                        <button
+                                                                            key={oIdx}
+                                                                            type="button"
+                                                                            onClick={(e) => handleAnnouncementPollVote(e, ann.id, oIdx)}
+                                                                            className="w-full text-left p-2 rounded-lg bg-white hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold text-slate-700 hover:text-emerald-900 transition-colors flex items-center justify-between"
+                                                                        >
+                                                                            <span className="truncate pr-2">{opt}</span>
+                                                                            <span className="text-[10px] text-emerald-600 font-bold">Vote</span>
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {ann.content && (
+                                                        <p className="text-xs text-slate-500 line-clamp-2 mt-2 leading-relaxed">
+                                                            {ann.content}
+                                                        </p>
                                                     )}
                                                 </div>
-                                                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">
-                                                    {ann.title}
-                                                </h3>
-                                                {ann.content && (
-                                                    <p className="text-xs text-slate-500 line-clamp-2 mt-2 leading-relaxed">
-                                                        {ann.content}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider">
-                                                <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                                                    {Boolean(ann.requires_registration) && !ann.is_registered ? (
-                                                        <span className="text-indigo-600 flex items-center gap-1">Register Now <ChevronRight size={12} /></span>
-                                                    ) : (
-                                                        <span className="flex items-center gap-1">Read More <ChevronRight size={12} /></span>
-                                                    )}
-                                                </span>
+                                                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider">
+                                                    <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                                                        {type === 'circular' && ann.file_url ? (
+                                                            <span className="text-rose-600 flex items-center gap-1">Download Circular <FileDown size={12} /></span>
+                                                        ) : Boolean(ann.requires_registration) && !ann.is_registered ? (
+                                                            <span className="text-indigo-600 flex items-center gap-1">Register Now <ChevronRight size={12} /></span>
+                                                        ) : (
+                                                            <span className="flex items-center gap-1">Read More <ChevronRight size={12} /></span>
+                                                        )}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             {/* Automatic pagination sentinel for every viewport */}
@@ -1017,7 +1207,86 @@ const StudentAnnouncements = () => {
                                     <img src={selectedAnnouncement.image_url} alt={selectedAnnouncement.title} className="w-full h-full object-cover" />
                                 </div>
                             )}
-                            <div className="p-4 sm:p-6 pb-[calc(88px+env(safe-area-inset-bottom))] sm:pb-6">
+                            <div className="p-4 sm:p-6 pb-[calc(88px+env(safe-area-inset-bottom))] sm:pb-6 space-y-4">
+                                {/* Type 1: Circular PDF Download Box in Detail Modal */}
+                                {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'circular' && selectedAnnouncement.file_url && (
+                                    <div className="p-4 bg-rose-50/80 border border-rose-200 rounded-2xl flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <div className="w-11 h-11 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                                <FileText size={22} />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
+                                                    {selectedAnnouncement.file_name || 'Official_Circular.pdf'}
+                                                </h4>
+                                                <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Official Circular PDF Attachment</span>
+                                            </div>
+                                        </div>
+                                        <a
+                                            href={selectedAnnouncement.file_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs shrink-0 transition-colors"
+                                        >
+                                            <FileDown size={14} /> Open / Download PDF
+                                        </a>
+                                    </div>
+                                )}
+
+                                {/* Type 5: Student Achievement Leader Board Topper Card in Modal */}
+                                {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'achievement' && selectedAnnouncement.achievement_data && (() => {
+                                    const ach = typeof selectedAnnouncement.achievement_data === 'string' ? JSON.parse(selectedAnnouncement.achievement_data) : selectedAnnouncement.achievement_data;
+                                    return (
+                                        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl flex items-center gap-4">
+                                            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-400 bg-white shrink-0 shadow-md">
+                                                {ach.student_photo || selectedAnnouncement.image_url ? (
+                                                    <img src={ach.student_photo || selectedAnnouncement.image_url} alt={ach.student_name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-amber-600 bg-amber-100">
+                                                        <User size={28} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-1">
+                                                    🏆 {ach.rank_title || 'Hackathon Topper'}
+                                                </span>
+                                                <h3 className="text-base font-black text-slate-900 leading-tight">
+                                                    {ach.student_name}
+                                                </h3>
+                                                <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                                    {ach.branch && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800">{ach.branch}</span>}
+                                                    {ach.year_sem && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800">{ach.year_sem}</span>}
+                                                    {ach.roll_no && <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-700 font-mono">{ach.roll_no}</span>}
+                                                </div>
+                                                {ach.topper_prize && (
+                                                    <p className="text-xs font-black text-amber-900 mt-1">
+                                                        Award: {ach.topper_prize}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* Type 2: Event Date & Venue Bar */}
+                                {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'event' && (selectedAnnouncement.event_date || selectedAnnouncement.event_venue) && (
+                                    <div className="p-3 bg-purple-50/80 border border-purple-200 rounded-2xl text-xs space-y-1">
+                                        {selectedAnnouncement.event_date && (
+                                            <div className="flex items-center gap-1.5 font-bold text-purple-900">
+                                                <Calendar size={13} className="text-purple-600" />
+                                                <span>Event Date: {selectedAnnouncement.event_date} {selectedAnnouncement.event_time ? `(${selectedAnnouncement.event_time})` : ''}</span>
+                                            </div>
+                                        )}
+                                        {selectedAnnouncement.event_venue && (
+                                            <div className="flex items-center gap-1.5 text-purple-700 font-medium">
+                                                <MapPin size={13} className="text-purple-500" />
+                                                <span>Venue: {selectedAnnouncement.event_venue}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                                 <p className="whitespace-pre-wrap text-slate-600 leading-relaxed text-[13px] sm:text-sm break-words font-medium">{selectedAnnouncement.content}</p>
                                 {selectedAnnouncement.target_college && (
                                     <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">

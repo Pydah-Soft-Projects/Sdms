@@ -7,35 +7,59 @@ import PortalSwitcher from './components/PortalSwitcher';
 // Critical Direct Import for Instant Login Load
 import Login from './pages/Login';
 
+// Helper to retry dynamic imports or auto-reload if a chunk fails to load after build/deploy
+const lazyWithRetry = (componentImport) =>
+  lazy(async () => {
+    const isRefreshed = sessionStorage.getItem('chunk_retry_refreshed') === 'true';
+    try {
+      const component = await componentImport();
+      sessionStorage.removeItem('chunk_retry_refreshed');
+      return component;
+    } catch (error) {
+      const isChunkError =
+        error?.name === 'ChunkLoadError' ||
+        /loading chunk/i.test(error?.message || '') ||
+        /failed to fetch dynamically imported module/i.test(error?.message || '') ||
+        /error loading dynamically imported module/i.test(error?.message || '');
+
+      if (isChunkError && !isRefreshed) {
+        sessionStorage.setItem('chunk_retry_refreshed', 'true');
+        window.location.reload();
+        return { default: () => null };
+      }
+      throw error;
+    }
+  });
+
 // Pages (Lazy Loaded for Fast Route Splitting)
-const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
 const Forms = lazy(() => import('./pages/Forms'));
 const FormBuilder = lazy(() => import('./pages/FormBuilder'));
 const FeedbackForms = lazy(() => import('./pages/FeedbackForms'));
 const FeedbackFormBuilder = lazy(() => import('./pages/FeedbackFormBuilder'));
-const Submissions = lazy(() => import('./pages/Submissions'));
-const Students = lazy(() => import('./pages/Students'));
+const Submissions = lazyWithRetry(() => import('./pages/Submissions'));
+const Students = lazyWithRetry(() => import('./pages/Students'));
 const AddStudent = lazy(() => import('./pages/AddStudent'));
-const Settings = lazy(() => import('./pages/Settings'));
+const Settings = lazyWithRetry(() => import('./pages/Settings'));
 const PublicForm = lazy(() => import('./pages/PublicForm'));
-const Attendance = lazy(() => import('./pages/Attendance'));
+const Attendance = lazyWithRetry(() => import('./pages/Attendance'));
 const GetStarted = lazy(() => import('./pages/GetStarted'));
 const QrStudentView = lazy(() => import('./pages/QrStudentView'));
 
-const UserManagement = lazy(() => import('./pages/UserManagement'));
+const UserManagement = lazyWithRetry(() => import('./pages/UserManagement'));
 const StudentFieldPermissions = lazy(() => import('./pages/StudentFieldPermissions'));
-const Reports = lazy(() => import('./pages/Reports'));
+const Reports = lazyWithRetry(() => import('./pages/Reports'));
 const CategoryReport = lazy(() => import('./pages/CategoryReport'));
 const SmsReport = lazy(() => import('./pages/SmsReport'));
 const ScholarshipReport = lazy(() => import('./pages/ScholarshipReport'));
 const CertificatesReport = lazy(() => import('./pages/CertificatesReport'));
 const ProfileRequestsReport = lazy(() => import('./pages/ProfileRequestsReport'));
-const StudentPromotions = lazy(() => import('./pages/StudentPromotions'));
-const PrintIdCards = lazy(() => import('./pages/PrintIdCards'));
+const StudentPromotions = lazyWithRetry(() => import('./pages/StudentPromotions'));
+const PrintIdCards = lazyWithRetry(() => import('./pages/PrintIdCards'));
 const CollegeTransfer = lazy(() => import('./pages/CollegeTransfer'));
 const TaskManagement = lazy(() => import('./pages/TaskManagement'));
-const Announcements = lazy(() => import('./pages/Announcements'));
+const Announcements = lazyWithRetry(() => import('./pages/Announcements'));
 const StudentHistory = lazy(() => import('./pages/StudentHistory'));
 const SectionPartition = lazy(() => import('./pages/SectionPartition'));
 const ServicesConfig = lazy(() => import('./pages/ServicesConfig'));
@@ -43,10 +67,10 @@ const ServiceRequests = lazy(() => import('./pages/ServiceRequests'));
 const CertificateDesigner = lazy(() => import('./pages/admin/CertificateDesigner'));
 const CollegeConfiguration = lazy(() => import('./pages/admin/CollegeConfiguration'));
 const AddServiceWizard = lazy(() => import('./pages/admin/AddServiceWizard'));
-const FacultyManagement = lazy(() => import('./pages/admin/FacultyManagement'));
+const FacultyManagement = lazyWithRetry(() => import('./pages/admin/FacultyManagement'));
 const AttendanceMonitoring = lazy(() => import('./pages/admin/AttendanceMonitoring'));
 const Profile = lazy(() => import('./pages/Profile'));
-const ProfileChangeRequests = lazy(() => import('./pages/admin/ProfileChangeRequests'));
+const ProfileChangeRequests = lazyWithRetry(() => import('./pages/admin/ProfileChangeRequests'));
 const Clubs = lazy(() => import('./pages/Clubs'));
 const SeminarHallRequests = lazy(() => import('./pages/admin/SeminarHallRequests'));
 const InternshipAdmin = lazy(() => import('./internship/InternshipAdmin'));
@@ -167,7 +191,17 @@ function App() {
     }
   }, []);
 
+    // Seamlessly auto-reload on Vite chunk preload errors when navigating between modules
   React.useEffect(() => {
+    const handlePreloadError = (event) => {
+      console.warn('[Vite Preload Error] Reloading page to fetch latest version...', event);
+      window.location.reload();
+    };
+    window.addEventListener('vite:preloadError', handlePreloadError);
+    return () => window.removeEventListener('vite:preloadError', handlePreloadError);
+  }, []);
+
+React.useEffect(() => {
     if (isAuthenticated && userType !== 'parent') {
       const initPush = async () => {
         try {

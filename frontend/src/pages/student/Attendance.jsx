@@ -223,10 +223,220 @@ const StatCard = ({ label, value, colorClass }) => (
 // ─── Tab definitions ─────────────────────────────────────────────────────────
 
 const TABS = [
+    { id: 'daily', label: 'Daily', icon: Clock },
     { id: 'weekly', label: 'Weekly', icon: Calendar },
     { id: 'monthly', label: 'Monthly', icon: BarChart2 },
     { id: 'semester', label: 'Semester', icon: Award },
 ];
+
+// ─── Daily Tab ───────────────────────────────────────────────────────────────
+
+const DailyTab = ({ daily }) => {
+    const records = useMemo(() => daily?.records || [], [daily]);
+    const totals = daily?.totals || { totalSessions: 0, present: 0, absent: 0, percentage: 0 };
+    const pct = totals.totalSessions > 0 ? totals.percentage : (records.length > 0 ? records[0].percentage : 0);
+
+    const [selectedDate, setSelectedDate] = useState('all');
+
+    const filteredRecords = useMemo(() => {
+        if (selectedDate === 'all') return records;
+        return records.filter(r => r.date === selectedDate);
+    }, [records, selectedDate]);
+
+    return (
+        <div className="space-y-4 sm:space-y-6">
+            {/* Hero Summary Card */}
+            <div className="bg-white rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-6 lg:p-7 shadow-md border border-slate-100 relative overflow-hidden transition-all group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/40 rounded-full -mr-32 -mt-32 blur-2xl group-hover:bg-blue-100/40 transition-all pointer-events-none"></div>
+
+                <div className="relative z-10 space-y-4 sm:space-y-5">
+                    {/* Top Row: Percentage ring on the left, Stats beside it on the right */}
+                    <div className="flex items-center gap-4 sm:gap-7">
+                        <CircularRing pct={pct} />
+
+                        {/* 4 Stats Grid */}
+                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+                            <div className="bg-emerald-50/60 border border-emerald-100/80 rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-emerald-700 uppercase font-black tracking-wider truncate">Present</p>
+                                <p className="text-base sm:text-lg font-black text-emerald-600 tracking-tight mt-0.5">{totals.present || 0}</p>
+                            </div>
+                            <div className="bg-rose-50/60 border border-rose-100/80 rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-rose-700 uppercase font-black tracking-wider truncate">Absent</p>
+                                <p className="text-base sm:text-lg font-black text-rose-600 tracking-tight mt-0.5">{totals.absent || 0}</p>
+                            </div>
+                            <div className="bg-amber-50/60 border border-amber-100/80 rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-amber-700 uppercase font-black tracking-wider truncate">Not Posted</p>
+                                <p className="text-base sm:text-lg font-black text-amber-600 tracking-tight mt-0.5">{totals.notPosted || 0}</p>
+                            </div>
+                            <div className="bg-blue-50/60 border border-blue-100/80 rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-blue-700 uppercase font-black tracking-wider truncate">Total Sessions</p>
+                                <p className="text-base sm:text-lg font-black text-blue-600 tracking-tight mt-0.5">{totals.totalSessions || 0}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Row */}
+                    <div className="pt-3.5 sm:pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="min-w-0">
+                            <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">Daily Attendance</p>
+                            <h2 className="text-sm sm:text-lg font-black text-blue-900 tracking-tight truncate mt-0.5">
+                                Daily Attendance Records
+                            </h2>
+
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-500 font-semibold truncate shrink-0">
+                            {totals.present || 0} Present • {totals.absent || 0} Absent • {totals.notPosted || 0} Not Posted
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Date selector buttons if multiple records */}
+            {records.length > 1 && (
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                    <button
+                        onClick={() => setSelectedDate('all')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                            selectedDate === 'all'
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                    >
+                        All Dates ({records.length})
+                    </button>
+                    {records.map(rec => (
+                        <button
+                            key={rec.date}
+                            onClick={() => setSelectedDate(rec.date)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                                selectedDate === rec.date
+                                    ? 'bg-blue-600 text-white shadow-sm'
+                                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                        >
+                            {formatShortDate(rec.date)} ({rec.sessions?.length || 0})
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Day by Day Session Cards */}
+            {filteredRecords.length > 0 ? (
+                <div className="space-y-4">
+                    {filteredRecords.map(day => (
+                        <div key={day.date} className="bg-white border border-slate-100 rounded-2xl sm:rounded-[2rem] p-4 sm:p-5 shadow-sm">
+                            {/* Day Header */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                                        <Calendar size={16} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm sm:text-base font-black text-blue-900 tracking-tight">
+                                            {formatDisplayDate(day.date)}
+                                        </h4>
+                                        <p className="text-[10px] sm:text-xs text-slate-400 font-semibold">
+                                            {formatShortDate(day.date).split(',')[0]} • {day.sessions?.length || 0} class sessions
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold ${
+                                        day.dayStatus === 'present'
+                                            ? 'bg-emerald-100 text-emerald-800'
+                                            : day.dayStatus === 'absent'
+                                                ? 'bg-rose-100 text-rose-800'
+                                                : day.dayStatus === 'not_posted'
+                                                    ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                                    : 'bg-blue-100 text-blue-800'
+                                    }`}>
+                                        {day.dayStatus === 'present'
+                                            ? 'Present'
+                                            : day.dayStatus === 'absent'
+                                                ? 'Absent'
+                                                : day.dayStatus === 'not_posted'
+                                                    ? 'Not Posted'
+                                                    : `${day.present} Present • ${day.absent} Absent${day.notPosted ? ` • ${day.notPosted} Not Posted` : ''}`}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Sessions Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {day.sessions?.map((session, sIdx) => {
+                                    const isPres = session.status === 'present';
+                                    const isAbs = session.status === 'absent';
+                                    const isNotPosted = session.status === 'not_posted' || (!isPres && !isAbs);
+                                    return (
+                                        <div
+                                            key={session.id || sIdx}
+                                            className={`p-3.5 rounded-xl border transition-all ${
+                                                isPres
+                                                    ? 'bg-emerald-50/40 border-emerald-200/80'
+                                                    : isAbs
+                                                        ? 'bg-rose-50/40 border-rose-200/80'
+                                                        : 'bg-amber-50/30 border-amber-200/60'
+                                            } flex flex-col justify-between min-h-[96px]`}
+                                        >
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="min-w-0">
+                                                    <span className="text-[10px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded bg-white/80 text-slate-600 border border-slate-200/60 inline-block mb-1">
+                                                        {session.subjectCode || 'CLASS'}
+                                                    </span>
+                                                    <h5 className="text-xs sm:text-sm font-black text-slate-800 truncate" title={session.subjectName}>
+                                                        {session.subjectName || 'Class Session'}
+                                                    </h5>
+                                                </div>
+                                                <div className="shrink-0">
+                                                    {isPres ? (
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                                                            <CheckCircle size={12} className="text-emerald-600" />
+                                                            Present
+                                                        </span>
+                                                    ) : isAbs ? (
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-rose-700 bg-rose-100 px-2.5 py-0.5 rounded-full">
+                                                            <XCircle size={12} className="text-rose-600" />
+                                                            Absent
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-amber-800 bg-amber-100/90 border border-amber-200 px-2.5 py-0.5 rounded-full">
+                                                            <AlertCircle size={12} className="text-amber-600" />
+                                                            Not Posted
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-2 mt-2 border-t border-slate-200/50 flex items-center justify-between text-[11px] text-slate-500 font-semibold">
+                                                <span className="flex items-center gap-1">
+                                                    <Clock size={12} className="text-slate-400" />
+                                                    {session.startTime && session.endTime
+                                                        ? `${session.startTime.slice(0, 5)} - ${session.endTime.slice(0, 5)}`
+                                                        : 'Scheduled Period'}
+                                                </span>
+                                                {session.roomLabel && (
+                                                    <span className="text-slate-400 font-medium truncate">
+                                                        {session.roomLabel}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="bg-white border border-slate-100 rounded-2xl p-8 text-center text-slate-400">
+                    <Clock className="mx-auto h-10 w-10 text-slate-300 mb-2" />
+                    <p className="text-sm font-bold text-slate-700">No Daily Attendance Records</p>
+                    <p className="text-xs text-slate-400 mt-1">There are no daily attendance records posted yet.</p>
+                </div>
+            )}
+        </div>
+    );
+};
 
 // ─── Weekly Tab ──────────────────────────────────────────────────────────────
 
@@ -780,7 +990,7 @@ const SemesterTab = ({ semester, semesterSeries }) => {
 const Attendance = ({ apiPath = '/attendance/student', logParentView = false }) => {
     const [loading, setLoading] = useState(true);
     const [historyData, setHistoryData] = useState(null);
-    const [activeTab, setActiveTab] = useState('weekly');
+    const [activeTab, setActiveTab] = useState('daily');
 
     useEffect(() => {
         if (logParentView) {
@@ -922,6 +1132,9 @@ const Attendance = ({ apiPath = '/attendance/student', logParentView = false }) 
 
             {/* ── Tab Content ── */}
             <div key={activeTab} className="animate-fade-in">
+                {activeTab === 'daily' && (
+                    <DailyTab daily={historyData.daily} />
+                )}
                 {activeTab === 'weekly' && (
                     <WeeklyTab
                         weekly={derivedWeekly}

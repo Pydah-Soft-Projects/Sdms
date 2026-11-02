@@ -543,20 +543,51 @@ const updateMembershipStatus = async (req, res) => {
 const createActivity = async (req, res) => {
     try {
         const { clubId } = req.params;
-        const { title, description } = req.body;
-        let image_url = '';
+        const { title, description, date, location } = req.body;
+        
+        // Collect uploaded images (single or multiple)
+        const imageUrls = [];
+        if (req.files) {
+            const filesList = [
+                ...(req.files['images'] || []),
+                ...(req.files['image'] || [])
+            ];
+            filesList.forEach(file => {
+                imageUrls.push(`${req.protocol}://${req.get('host')}/uploads/${file.filename}`);
+            });
+        } else if (req.file) {
+            imageUrls.push(`${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`);
+        }
 
-        if (req.file) {
-            image_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-        } else if (req.body.image_url) {
-            image_url = req.body.image_url;
+        // Also check if any existing or string URLs were passed in body
+        if (req.body.image_url && !imageUrls.includes(req.body.image_url)) {
+            imageUrls.push(req.body.image_url);
+        }
+        if (req.body.images) {
+            try {
+                const parsed = typeof req.body.images === 'string' ? JSON.parse(req.body.images) : req.body.images;
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(url => {
+                        if (typeof url === 'string' && url.trim() && !imageUrls.includes(url)) {
+                            imageUrls.push(url);
+                        }
+                    });
+                }
+            } catch (e) {
+                if (typeof req.body.images === 'string' && !imageUrls.includes(req.body.images)) {
+                    imageUrls.push(req.body.images);
+                }
+            }
         }
 
         const newActivity = {
             id: uuidv4(),
-            title,
-            description,
-            image_url,
+            title: title || '',
+            description: description || '',
+            date: date || new Date().toISOString().split('T')[0],
+            location: location || '',
+            image_url: imageUrls[0] || '',
+            images: imageUrls,
             posted_by: req.user.id,
             posted_at: new Date().toISOString()
         };
@@ -567,7 +598,7 @@ const createActivity = async (req, res) => {
             [JSON.stringify(newActivity), clubId]
         );
 
-        res.json({ success: true, message: 'Activity posted successfully' });
+        res.json({ success: true, message: 'Activity posted successfully', data: newActivity });
 
         // Notify Club Members
         notifyClubMembers(clubId, title, description).catch(err => console.error('Club notification error:', err));
@@ -581,14 +612,7 @@ const createActivity = async (req, res) => {
 const updateActivity = async (req, res) => {
     try {
         const { clubId, activityId } = req.params;
-        const { title, description } = req.body;
-        let image_url = null;
-
-        if (req.file) {
-            image_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-        } else if (req.body.image_url) {
-            image_url = req.body.image_url;
-        }
+        const { title, description, date, location } = req.body;
 
         // Fetch current activities
         const [rows] = await masterPool.query('SELECT activities FROM clubs WHERE id = ?', [clubId]);
@@ -601,23 +625,64 @@ const updateActivity = async (req, res) => {
             activities = [];
         }
 
-        const activityIndex = activities.findIndex(a => a.id === activityId);
+        const activityIndex = activities.findIndex(a => String(a.id) === String(activityId));
         if (activityIndex === -1) {
             return res.status(404).json({ success: false, message: 'Activity not found' });
         }
 
-        // Update fields
-        activities[activityIndex].title = title;
-        activities[activityIndex].description = description;
-        if (image_url) {
-            activities[activityIndex].image_url = image_url;
+        // Collect existing retained images
+        let retainedImages = [];
+        if (req.body.existing_images !== undefined) {
+            try {
+                retainedImages = typeof req.body.existing_images === 'string'
+                    ? JSON.parse(req.body.existing_images)
+                    : (Array.isArray(req.body.existing_images) ? req.body.existing_images : []);
+            } catch (e) {
+                retainedImages = [];
+            }
+        } else if (req.body.images && typeof req.body.images === 'string' && req.body.images.startsWith('[')) {
+            try {
+                retainedImages = JSON.parse(req.body.images);
+            } catch (e) {
+                retainedImages = [];
+            }
+        } else if (!req.files && !req.file && req.body.image_url) {
+            retainedImages = [req.body.image_url];
+        } else if (!req.files && !req.file && req.body.existing_images === undefined) {
+            // Keep current images if no image fields were sent at all
+            retainedImages = activities[activityIndex].images || (activities[activityIndex].image_url ? [activities[activityIndex].image_url] : []);
         }
+
+        // Collect new uploaded images
+        const newUploadedUrls = [];
+        if (req.files) {
+            const filesList = [
+                ...(req.files['images'] || []),
+                ...(req.files['image'] || [])
+            ];
+            filesList.forEach(file => {
+                newUploadedUrls.push(`${req.protocol}://${req.get('host')}/uploads/${file.filename}`);
+            });
+        } else if (req.file) {
+            newUploadedUrls.push(`${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`);
+        }
+
+        const finalImages = [...retainedImages, ...newUploadedUrls];
+
+        // Update fields
+        if (title !== undefined) activities[activityIndex].title = title;
+        if (description !== undefined) activities[activityIndex].description = description;
+        if (date !== undefined) activities[activityIndex].date = date;
+        if (location !== undefined) activities[activityIndex].location = location;
+
+        activities[activityIndex].images = finalImages;
+        activities[activityIndex].image_url = finalImages[0] || '';
         activities[activityIndex].updated_at = new Date().toISOString();
 
         // Write back
         await masterPool.query('UPDATE clubs SET activities = ? WHERE id = ?', [JSON.stringify(activities), clubId]);
 
-        res.json({ success: true, message: 'Activity updated successfully' });
+        res.json({ success: true, message: 'Activity updated successfully', data: activities[activityIndex] });
     } catch (error) {
         console.error('Error updating activity:', error);
         res.status(500).json({ success: false, message: 'Failed to update activity' });
@@ -639,7 +704,7 @@ const deleteActivity = async (req, res) => {
             activities = [];
         }
 
-        const newActivities = activities.filter(a => a.id !== activityId);
+        const newActivities = activities.filter(a => String(a.id) !== String(activityId));
 
         if (activities.length === newActivities.length) {
             return res.status(404).json({ success: false, message: 'Activity not found' });

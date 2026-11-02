@@ -691,12 +691,12 @@ exports.sendSMSAnnouncement = async (req, res) => {
             const years = parseParam(target_year);
             const semesters = parseParam(target_semester);
 
-            if (colleges) { query += ' AND college IN (?)'; params.push(colleges); }
-            if (batches) { query += ' AND batch IN (?)'; params.push(batches); }
-            if (courses) { query += ' AND course IN (?)'; params.push(courses); }
-            if (branches) { query += ' AND branch IN (?)'; params.push(branches); }
-            if (years) { query += ' AND current_year IN (?)'; params.push(years); }
-            if (semesters) { query += ' AND current_semester IN (?)'; params.push(semesters); }
+            if (colleges) { query += ' AND (colleges.name IN (?) OR students.college IN (?))'; params.push(colleges, colleges); }
+            if (batches) { query += ' AND students.batch IN (?)'; params.push(batches); }
+            if (courses) { query += ' AND (courses.name IN (?) OR students.course IN (?))'; params.push(courses, courses); }
+            if (branches) { query += ' AND (course_branches.name IN (?) OR students.branch IN (?))'; params.push(branches, branches); }
+            if (years) { query += ' AND students.current_year IN (?)'; params.push(years); }
+            if (semesters) { query += ' AND students.current_semester IN (?)'; params.push(semesters); }
         }
 
         const [students] = await masterPool.query(query, params);
@@ -761,10 +761,31 @@ exports.sendSMSAnnouncement = async (req, res) => {
                             });
                         }
 
+                        let studentData = student.student_data;
+                        if (typeof studentData === 'string') {
+                            try {
+                                studentData = JSON.parse(studentData);
+                            } catch (e) {
+                                studentData = {};
+                            }
+                        }
+                        if (!studentData || typeof studentData !== 'object') {
+                            studentData = {};
+                        }
+
+                        const studentMobile = student.student_mobile || student.mobile || student.phone || student.student_phone ||
+                            studentData['Student Mobile Number'] || studentData['student_mobile'] || studentData['Mobile Number'] || studentData['Student Mobile'] || '';
+
+                        const parentMobile1 = student.parent_mobile1 || student.parent_mobile || student.parent_phone || student.father_mobile || student.guardian_mobile ||
+                            studentData['Parent Mobile Number 1'] || studentData['parent_mobile1'] || studentData['Parent Preferred Number'] || studentData['Parent Mobile Number'] || studentData['Parent Mobile'] || studentData['Parent Phone'] || studentData['Father Mobile Number'] || studentData['Guardian Mobile Number'] || '';
+
+                        const parentMobile2 = student.parent_mobile2 || student.mother_mobile || student.alternate_mobile ||
+                            studentData['Parent Mobile Number 2'] || studentData['parent_mobile2'] || studentData['Mother Mobile Number'] || studentData['Alternate Mobile Number'] || '';
+
                         const mobileMap = {
-                            student_mobile: student.student_mobile || student.student_data?.['Student Mobile Number'],
-                            parent_mobile1: student.parent_mobile1 || student.student_data?.['Parent Mobile Number 1'],
-                            parent_mobile2: student.parent_mobile2 || student.student_data?.['Parent Mobile Number 2']
+                            student_mobile: studentMobile,
+                            parent_mobile1: parentMobile1,
+                            parent_mobile2: parentMobile2
                         };
                         const uniqueNumbers = [...new Set(
                             mobileTargets

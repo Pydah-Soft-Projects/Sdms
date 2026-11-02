@@ -243,7 +243,7 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                     target_type: formData.target_type,
                     selected_student_ids: (formData.selected_students || []).map(s => s.id),
                     target_college: formData.target_college,
-                    target_batch: isSms ? [] : formData.target_batch,
+                    target_batch: formData.target_batch,
                     target_status: formData.target_status || [],
                     target_course: formData.target_course,
                     target_branch: formData.target_branch,
@@ -259,7 +259,7 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
 
     if (layout === 'row') {
         return (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className={`grid grid-cols-1 md:grid-cols-3 ${isSms ? 'lg:grid-cols-7' : 'lg:grid-cols-6'} gap-4`}>
                 <MultiSelect
                     label="College"
                     placeholder="All"
@@ -267,21 +267,20 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                     selected={formData.target_college}
                     onChange={vals => setFormData({ ...formData, target_college: vals })}
                 />
-                {isSms ? (
+                <MultiSelect
+                    label="Batch"
+                    placeholder="All"
+                    options={batches}
+                    selected={formData.target_batch}
+                    onChange={vals => setFormData({ ...formData, target_batch: vals })}
+                />
+                {isSms && (
                     <MultiSelect
                         label="Status"
                         placeholder="All"
                         options={statuses}
                         selected={formData.target_status || []}
                         onChange={vals => setFormData({ ...formData, target_status: vals })}
-                    />
-                ) : (
-                    <MultiSelect
-                        label="Batch"
-                        placeholder="All"
-                        options={batches}
-                        selected={formData.target_batch}
-                        onChange={vals => setFormData({ ...formData, target_batch: vals })}
                     />
                 )}
                 <MultiSelect
@@ -529,21 +528,20 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                             selected={formData.target_college}
                             onChange={vals => setFormData({ ...formData, target_college: vals })}
                         />
-                        {isSms ? (
+                        <MultiSelect
+                            label="Batches"
+                            placeholder="All Batches"
+                            options={batches}
+                            selected={formData.target_batch}
+                            onChange={vals => setFormData({ ...formData, target_batch: vals })}
+                        />
+                        {isSms && (
                             <MultiSelect
                                 label="Status"
                                 placeholder="All Statuses"
                                 options={statuses}
                                 selected={formData.target_status || []}
                                 onChange={vals => setFormData({ ...formData, target_status: vals })}
-                            />
-                        ) : (
-                            <MultiSelect
-                                label="Batches"
-                                placeholder="All Batches"
-                                options={batches}
-                                selected={formData.target_batch}
-                                onChange={vals => setFormData({ ...formData, target_batch: vals })}
                             />
                         )}
                         <MultiSelect

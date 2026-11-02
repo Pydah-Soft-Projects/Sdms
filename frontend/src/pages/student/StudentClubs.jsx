@@ -572,28 +572,64 @@ const StudentClubs = () => {
                                                 </div>
                                             ) : (
                                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                                                    {[...activeClub.activities].reverse().map((activity, idx) => (
-                                                        <div key={idx} className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                                                            {activity.image_url && (
-                                                                <div className="h-40 sm:h-56 bg-gray-100">
-                                                                    <img src={activity.image_url} alt="" className="w-full h-full object-cover" />
-                                                                </div>
-                                                            )}
-                                                            <div className="p-4 sm:p-6">
-                                                                <div className="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
-                                                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden shrink-0 text-xs sm:text-sm">
-                                                                        {activeClub.image_url ? <img src={activeClub.image_url} alt="" className="w-full h-full object-cover" /> : activeClub.name.charAt(0)}
+                                                    {[...activeClub.activities].reverse().map((activity, idx) => {
+                                                        const imagesList = Array.isArray(activity.images) && activity.images.length > 0
+                                                            ? activity.images
+                                                            : (activity.image_url ? [activity.image_url] : []);
+
+                                                        return (
+                                                            <div key={activity.id || idx} className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between">
+                                                                {imagesList.length > 0 && (
+                                                                    <div className="bg-gray-100 overflow-hidden">
+                                                                        {imagesList.length === 1 ? (
+                                                                            <div className="h-44 sm:h-56 bg-gray-100">
+                                                                                <img src={imagesList[0]} alt="" className="w-full h-full object-cover" />
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="p-2 bg-gray-50/70">
+                                                                                <div className="grid grid-cols-3 gap-1.5 h-40 sm:h-48 rounded-xl overflow-hidden">
+                                                                                    {imagesList.slice(0, 3).map((imgUrl, imgIdx) => (
+                                                                                        <div key={imgIdx} className="relative h-full overflow-hidden bg-gray-200">
+                                                                                            <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                                                                                            {imgIdx === 2 && imagesList.length > 3 && (
+                                                                                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center text-white font-black text-xs sm:text-sm">
+                                                                                                    +{imagesList.length - 3} more
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                    ))}
+                                                                                </div>
+                                                                                <div className="px-1 pt-1.5 text-[11px] text-gray-500 font-medium">
+                                                                                    {imagesList.length} photos
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
                                                                     </div>
-                                                                    <div className="min-w-0">
-                                                                        <p className="font-bold text-gray-900 text-xs sm:text-sm truncate">{activeClub.name}</p>
-                                                                        <p className="text-[10px] sm:text-xs text-gray-500">{new Date(activity.posted_at).toLocaleDateString()}</p>
+                                                                )}
+                                                                <div className="p-4 sm:p-6 flex-1 flex flex-col justify-between space-y-3">
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+                                                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden shrink-0 text-xs sm:text-sm">
+                                                                                {activeClub.image_url ? <img src={activeClub.image_url} alt="" className="w-full h-full object-cover" /> : activeClub.name.charAt(0)}
+                                                                            </div>
+                                                                            <div className="min-w-0">
+                                                                                <p className="font-bold text-gray-900 text-xs sm:text-sm truncate">{activeClub.name}</p>
+                                                                                <p className="text-[10px] sm:text-xs text-gray-500">{new Date(activity.posted_at || activity.date).toLocaleDateString()}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <h4 className="text-sm sm:text-lg font-bold text-gray-900 mb-1.5">{activity.title}</h4>
+                                                                        <p className="text-gray-600 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{activity.description}</p>
                                                                     </div>
+                                                                    {(activity.date || activity.location) && (
+                                                                        <div className="flex items-center gap-3 text-xs text-gray-500 pt-2 border-t border-gray-100">
+                                                                            {activity.date && <span>📅 {activity.date}</span>}
+                                                                            {activity.location && <span>📍 {activity.location}</span>}
+                                                                        </div>
+                                                                    )}
                                                                 </div>
-                                                                <h4 className="text-sm sm:text-lg font-bold text-gray-900 mb-1.5">{activity.title}</h4>
-                                                                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">{activity.description}</p>
                                                             </div>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                         </div>

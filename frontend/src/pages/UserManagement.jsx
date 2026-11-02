@@ -868,6 +868,50 @@ const UserManagement = () => {
   const [deletingRole, setDeletingRole] = useState(false);
   const [availableRolesForCreate, setAvailableRolesForCreate] = useState([]);
 
+  // All roles for editing user - ensures ALL system roles are represented and selectable
+  const allRolesForEdit = useMemo(() => {
+    const rolesMap = new Map();
+    (roleConfigs || []).forEach(rc => {
+      const key = rc.role_key || rc.value;
+      if (key && !rolesMap.has(key)) {
+        rolesMap.set(key, {
+          value: key,
+          label: rc.label || ROLE_LABELS[key] || key,
+          description: rc.description || ROLE_DESCRIPTIONS[key] || ''
+        });
+      }
+    });
+    (availableRolesForCreate || []).forEach(r => {
+      const key = r.value ?? r.role_key;
+      if (key && !rolesMap.has(key)) {
+        rolesMap.set(key, {
+          value: key,
+          label: r.label || ROLE_LABELS[key] || key,
+          description: r.description || ROLE_DESCRIPTIONS[key] || ''
+        });
+      }
+    });
+    (FIXED_ROLES || []).forEach(r => {
+      if (!rolesMap.has(r.value)) {
+        rolesMap.set(r.value, {
+          value: r.value,
+          label: r.label,
+          description: ROLE_DESCRIPTIONS[r.value] || ''
+        });
+      }
+    });
+    Object.entries(ROLE_LABELS || {}).forEach(([key, label]) => {
+      if (key !== 'super_admin' && !rolesMap.has(key)) {
+        rolesMap.set(key, {
+          value: key,
+          label,
+          description: ROLE_DESCRIPTIONS[key] || ''
+        });
+      }
+    });
+    return Array.from(rolesMap.values());
+  }, [roleConfigs, availableRolesForCreate]);
+
   const hasUserManagementAccess = useMemo(() => {
     if (isFullAccessRole(user?.role)) return true;
     if (user?.permissions) {
@@ -1447,6 +1491,28 @@ const UserManagement = () => {
       toast.error('Super Admin users cannot be edited');
       return;
     }
+    let parsedPermissions = userData.permissions;
+    if (typeof parsedPermissions === 'string') {
+      try {
+        parsedPermissions = JSON.parse(parsedPermissions);
+      } catch (_) {
+        parsedPermissions = {};
+      }
+    }
+    if (!parsedPermissions || typeof parsedPermissions !== 'object' || Object.keys(parsedPermissions).length === 0) {
+      if (userData.role === 'super_admin' || userData.role === 'admin') {
+        parsedPermissions = createSuperAdminPermissions();
+      } else if (userData.role) {
+        try {
+          const res = await api.get(`/rbac/role-config/${userData.role}`);
+          if (res.data?.success && res.data?.data?.permissions) {
+            parsedPermissions = res.data.data.permissions;
+          }
+        } catch (_) {
+          parsedPermissions = createDefaultPermissions();
+        }
+      }
+    }
     setEditingUser(userData);
     setEditForm({
       id: userData.id,
@@ -1464,7 +1530,7 @@ const UserManagement = () => {
       allHodYears: userData.role === 'branch_hod'
         ? (userData.allHodYears ?? (!userData.hodYears || userData.hodYears.length === 0))
         : true,
-      permissions: userData.permissions || {},
+      permissions: parsedPermissions || {},
       isActive: userData.isActive,
       hrms_id: userData.hrms_id || ''
     });
@@ -1566,6 +1632,69 @@ const UserManagement = () => {
     }));
   };
 
+  // Handle role selection in Edit User modal - automatically updates role and reflects role-related permissions
+  const handleEditRoleSelect = async (roleValue) => {
+    setShowEditRoleModal(false);
+    if (!editForm) return;
+
+    let newPermissions = null;
+    if (roleValue === 'super_admin' || roleValue === 'admin') {
+      newPermissions = createSuperAdminPermissions();
+    } else {
+      try {
+        const res = await api.get(`/rbac/role-config/${roleValue}`);
+        if (res.data?.success && res.data?.data?.permissions) {
+          newPermissions = res.data.data.permissions;
+        }
+      } catch (err) {
+        console.error('Failed to fetch role permissions:', err);
+      }
+    }
+
+    if (!newPermissions) {
+      newPermissions = createDefaultPermissions();
+    }
+
+    setEditForm((prev) => ({
+      ...prev,
+      role: roleValue,
+      permissions: newPermissions,
+      ...(roleValue !== 'branch_hod' ? { hodYears: [], allHodYears: true } : {})
+    }));
+
+    const roleName = ROLE_LABELS[roleValue] || availableRolesForCreate.find(r => (r.value ?? r.role_key) === roleValue)?.label || roleValue;
+    toast.success(`Role changed to "${roleName}". Permissions updated to role defaults.`);
+  };
+
+  // Reset Edit User permissions to the current role's default access
+  const resetToRoleDefaultPermissions = async () => {
+    if (!editForm?.role) return;
+    const roleValue = editForm.role;
+    let newPermissions = null;
+    if (roleValue === 'super_admin' || roleValue === 'admin') {
+      newPermissions = createSuperAdminPermissions();
+    } else {
+      try {
+        const res = await api.get(`/rbac/role-config/${roleValue}`);
+        if (res.data?.success && res.data?.data?.permissions) {
+          newPermissions = res.data.data.permissions;
+        }
+      } catch (err) {
+        console.error('Failed to fetch role permissions:', err);
+      }
+    }
+
+    if (!newPermissions) {
+      newPermissions = createDefaultPermissions();
+    }
+
+    setEditForm((prev) => ({
+      ...prev,
+      permissions: newPermissions
+    }));
+    toast.success('Permissions reset to role defaults');
+  };
+
   const closeEditModal = () => {
     setEditingUser(null);
     setEditForm(null);
@@ -1614,6 +1743,10 @@ const UserManagement = () => {
       const response = await api.put(`/rbac/users/${editForm.id}`, payload);
       if (response.data?.success) {
         toast.success('User updated successfully!');
+        const updatedUserData = response.data.data;
+        if (user && updatedUserData && (user.id === updatedUserData.id || user.username === updatedUserData.username)) {
+          useAuthStore.getState().updateUser(updatedUserData);
+        }
         closeEditModal();
         await loadUsers();
       }
@@ -4571,7 +4704,7 @@ const UserManagement = () => {
       {
         editingUser && editForm && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-            <div className="bg-white w-full max-w-7xl rounded-lg sm:rounded-2xl shadow-2xl max-h-[95vh] my-auto overflow-hidden flex flex-col">
+            <div className="bg-white w-full max-w-7xl rounded-lg sm:rounded-2xl shadow-2xl h-[92vh] max-h-[92vh] my-auto overflow-hidden flex flex-col">
               <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                 <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 min-w-0 flex-1">
                   <Edit size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
@@ -4582,10 +4715,11 @@ const UserManagement = () => {
                 </button>
               </div>
 
-              <form className="min-h-0 flex flex-col overflow-hidden" onSubmit={handleUpdateUser}>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-6 min-h-0">
-                  {/* User Info — this column sets the dialog body height */}
-                  <div className="flex flex-col space-y-4">
+              <form className="flex-1 min-h-0 flex flex-col overflow-hidden" onSubmit={handleUpdateUser}>
+                <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                    {/* User Info */}
+                    <div className="flex flex-col space-y-4">
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -4745,6 +4879,33 @@ const UserManagement = () => {
                       </div>
                     </div>
                     <div>
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Role</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowEditRoleModal(true)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-violet-300 hover:border-violet-500 hover:bg-violet-50/70 transition-all group text-left bg-violet-50/20"
+                      >
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${ROLE_AVATAR_COLORS[editForm.role] || 'from-slate-400 to-slate-600'} flex items-center justify-center shadow-sm flex-shrink-0`}>
+                          <ShieldCheck size={16} className="text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {editForm.role ? (
+                            <>
+                              <p className="font-semibold text-violet-950 text-sm truncate">
+                                {ROLE_LABELS[editForm.role] || availableRolesForCreate.find((r) => (r.value ?? r.role_key) === editForm.role)?.label || editForm.role}
+                              </p>
+                              <p className="text-[11px] text-slate-400 truncate">
+                                {ROLE_DESCRIPTIONS[editForm.role] || 'Click to change role'}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-slate-400 text-sm">Click to select a role</p>
+                          )}
+                        </div>
+                        <Edit size={14} className="text-violet-400 group-hover:text-violet-600" />
+                      </button>
+                    </div>
+                    <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block">Email</label>
                         {editForm.hrms_id && (
@@ -4768,33 +4929,6 @@ const UserManagement = () => {
                         className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition-all"
                       />
                     </div>
-                    <div>
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Role</label>
-                      <button
-                        type="button"
-                        onClick={() => setShowEditRoleModal(true)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-slate-300 hover:border-violet-400 hover:bg-violet-50/50 transition-all group text-left"
-                      >
-                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${ROLE_AVATAR_COLORS[editForm.role] || 'from-slate-400 to-slate-600'} flex items-center justify-center shadow-sm flex-shrink-0`}>
-                          <ShieldCheck size={16} className="text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          {editForm.role ? (
-                            <>
-                              <p className="font-medium text-slate-700 text-sm truncate">
-                                {ROLE_LABELS[editForm.role] || availableRolesForCreate.find((r) => (r.value ?? r.role_key) === editForm.role)?.label || editForm.role}
-                              </p>
-                              <p className="text-[11px] text-slate-400 truncate">
-                                {ROLE_DESCRIPTIONS[editForm.role] || 'Click to change role'}
-                              </p>
-                            </>
-                          ) : (
-                            <p className="text-slate-400 text-sm">Click to select a role</p>
-                          )}
-                        </div>
-                        <Edit size={14} className="text-slate-400 group-hover:text-violet-500" />
-                      </button>
-                    </div>
                     <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
                       <input
                         type="checkbox"
@@ -4806,8 +4940,8 @@ const UserManagement = () => {
                     </label>
                   </div>
 
-                  {/* Access Scope Edit — matches User Details height */}
-                  <div className="flex flex-col space-y-4 lg:h-0 lg:min-h-full lg:overflow-y-auto pr-0 lg:pr-1">
+                  {/* Access Scope Edit */}
+                  <div className="flex flex-col space-y-4">
                     <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
                       <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                         <Layers size={16} className="text-emerald-500" />
@@ -4972,8 +5106,8 @@ const UserManagement = () => {
                     )}
                   </div>
 
-                  {/* Permissions — same height as User Details, scrolls internally */}
-                  <div className="flex flex-col min-h-0 max-h-[50vh] lg:max-h-none lg:h-0 lg:min-h-full">
+                  {/* Permissions */}
+                  <div className="flex flex-col space-y-4">
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100 flex-shrink-0">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
@@ -4981,25 +5115,34 @@ const UserManagement = () => {
                         </div>
                         <h3 className="text-sm font-bold text-slate-800">Module Permissions</h3>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <button
+                          type="button"
+                          onClick={resetToRoleDefaultPermissions}
+                          title="Reset permissions to the default access configured for this role"
+                          className="px-2.5 py-1.5 text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200 rounded-lg transition-colors flex items-center gap-1"
+                        >
+                          <RefreshCw size={12} />
+                          <span>Reset to Role Defaults</span>
+                        </button>
                         <button
                           type="button"
                           onClick={grantAllPermissions}
-                          className="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
+                          className="px-2.5 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
                         >
                           Grant All
                         </button>
                         <button
                           type="button"
                           onClick={revokeAllPermissions}
-                          className="px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                          className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
                         >
                           Revoke All
                         </button>
                       </div>
                     </div>
 
-                    <div className="flex-1 min-h-0 overflow-y-auto space-y-3 pr-1 mt-4">
+                    <div className="space-y-3 mt-4">
                       {USER_MANAGEMENT_MODULE_KEYS.map(key => {
                         const moduleKey = BACKEND_MODULES[key];
                         const modulePerms = getUserManagementModulePermissions(moduleKey);
@@ -5155,6 +5298,7 @@ const UserManagement = () => {
                     </div>
                   </div>
                 </div>
+              </div>
 
                 <div className="flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-end gap-3">
                   <button type="button" onClick={closeEditModal} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition-colors touch-manipulation min-h-[44px]">
@@ -5230,16 +5374,9 @@ const UserManagement = () => {
       <RoleSelectModal
         isOpen={showEditRoleModal}
         onClose={() => setShowEditRoleModal(false)}
-        roles={availableRolesForCreate.length ? availableRolesForCreate : FIXED_ROLES.map((r) => ({ value: r.value, label: r.label }))}
+        roles={allRolesForEdit}
         selectedRole={editForm?.role}
-        onSelect={(roleValue) => {
-          setEditForm((prev) => ({
-            ...prev,
-            role: roleValue,
-            ...(roleValue !== 'branch_hod' ? { hodYears: [], allHodYears: true } : {})
-          }));
-          setShowEditRoleModal(false);
-        }}
+        onSelect={handleEditRoleSelect}
       />
 
       {/* Reset Password Modal */}

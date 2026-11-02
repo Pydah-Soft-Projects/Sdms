@@ -1546,6 +1546,8 @@ exports.updateUser = async (req, res) => {
       params.push(hrms_id || null);
     }
 
+    const roleChanged = role !== undefined && role !== existingUser.role;
+
     if (role !== undefined) {
       // Validate role requirements
       const normalizedCollegeIds = collegeIds !== undefined ? collegeIds : parseScopeData(existingUser.college_ids);
@@ -1653,7 +1655,24 @@ exports.updateUser = async (req, res) => {
       console.log(`[Update User] Updating allBranches: ${allBranches}, branchIds provided: ${branchIds !== undefined}`);
     }
 
-    if (permissions !== undefined) {
+    if (roleChanged) {
+      if (role === USER_ROLES.SUPER_ADMIN || role === 'admin') {
+        const superAdminPerms = createSuperAdminPermissions();
+        updates.push('permissions = CAST(? AS JSON)');
+        params.push(JSON.stringify(superAdminPerms));
+      } else if (permissions !== undefined) {
+        const parsed = parsePermissions(permissions);
+        updates.push('permissions = CAST(? AS JSON)');
+        params.push(JSON.stringify(parsed));
+      } else {
+        let rolePerms = await getPermissionsForRole(role);
+        if (!rolePerms) {
+          rolePerms = createDefaultPermissions();
+        }
+        updates.push('permissions = CAST(? AS JSON)');
+        params.push(JSON.stringify(rolePerms));
+      }
+    } else if (permissions !== undefined) {
       const parsed = parsePermissions(permissions);
       updates.push('permissions = CAST(? AS JSON)');
       params.push(JSON.stringify(parsed));

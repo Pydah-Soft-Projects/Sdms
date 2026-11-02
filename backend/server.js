@@ -35,6 +35,7 @@ const parentRoutes = require("./routes/parentRoutes");
 const studentFeedbackPortalRoutes = require("./routes/studentFeedbackPortalRoutes");
 
 const app = express();
+app.set("trust proxy", 1);
 const PORT = process.env.PORT;
 
 // Middleware
@@ -89,6 +90,7 @@ app.use((err, req, res, next) => {
 
 // Serve static files from uploads directory
 app.use("/uploads", express.static("uploads"));
+app.use("/api/uploads", express.static("uploads"));
 
 // Request logging middleware
 app.use((req, res, next) => {

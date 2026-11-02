@@ -225,7 +225,8 @@ const getClubs = async (req, res) => {
             }
         }
 
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        const baseUrl = `${protocol}://${req.get('host')}`;
         const fullAccessUserKeys = await getFullAccessUserKeys();
 
         const enrichedClubs = clubs.map(club => {

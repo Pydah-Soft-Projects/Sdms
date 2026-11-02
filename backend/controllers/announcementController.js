@@ -201,7 +201,8 @@ exports.getAnnouncements = async (req, res) => {
 
         const [rows] = await masterPool.query(query, params);
 
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        const baseUrl = `${protocol}://${req.get('host')}`;
         const data = rows.map(ann => {
             return {
                 ...ann,
@@ -328,7 +329,8 @@ exports.getStudentAnnouncements = async (req, res) => {
             });
         }
 
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+        const baseUrl = `${protocol}://${req.get('host')}`;
         const pagedData = matchedAnnouncements.slice(offset, offset + limit).map(ann => {
             const requiresReg = Boolean(ann.requires_registration);
             const registeredCount = Number(ann.registered_count || 0);

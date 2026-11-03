@@ -164,12 +164,42 @@ const QuestionField = ({ question, value, onChange }) => {
         );
     }
 
-    // Text / Textarea
-    if (questionType === 'text' || questionType === 'textarea') {
+    // Yes / No
+    if (questionType === 'yes_no') {
+        const ynOptions = ['Yes', 'No'];
+        return (
+            <div className="flex items-center gap-2.5 sm:gap-3">
+                {ynOptions.map((opt) => {
+                    const isSelected = String(value || '').toLowerCase() === opt.toLowerCase();
+                    return (
+                        <button
+                            key={opt}
+                            type="button"
+                            onClick={() => onChange(opt)}
+                            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-150 flex items-center justify-center gap-1.5 sm:gap-2 select-none ${
+                                isSelected
+                                    ? opt === 'Yes'
+                                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-100 ring-2 ring-emerald-500/20'
+                                        : 'bg-rose-600 border-rose-600 text-white shadow-md shadow-rose-100 ring-2 ring-rose-500/20'
+                                    : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                            }`}
+                        >
+                            {isSelected && <RiCheckboxCircleFill size={15} className="text-white shrink-0" />}
+                            <span>{opt}</span>
+                        </button>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    // Text / Textarea / Short Text
+    if (questionType === 'text' || questionType === 'textarea' || questionType === 'short_text') {
+        const isShort = questionType === 'short_text';
         return (
             <div className="space-y-1.5">
                 <textarea
-                    rows={3}
+                    rows={isShort ? 2 : 3}
                     className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all resize-none text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 leading-relaxed"
                     placeholder="Enter your feedback or suggestions here..."
                     value={value || ''}
@@ -469,7 +499,7 @@ const StudentFeedback = () => {
                         <div className="flex flex-wrap items-center gap-2 bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 sm:px-4 text-xs font-medium text-slate-600">
                             <span className="font-bold text-slate-800">{studentInfo.branch || 'Branch'}</span>
                             <span className="text-slate-300">•</span>
-                            <span>Sem {studentInfo.semester || '1'}</span>
+                            <span>{studentInfo.year ? 'Year ' + studentInfo.year + ' • ' : ''}Sem {studentInfo.semester || '1'}</span>
                             <span className="text-slate-300">•</span>
                             <span className="bg-white px-2 py-0.5 rounded-md border border-slate-200 font-semibold text-slate-700">
                                 Sec {studentInfo.section || 'A'}

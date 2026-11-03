@@ -8,8 +8,8 @@ const generateStudentToken = (studentId, publicationId, subjectName) => {
 
 const resolveStudent = async (studentId) => {
     const [rows] = await masterPool.query(
-        `SELECT s.id, s.college_id, s.section, s.batch, s.current_semester AS semester,
-                c.name AS college_name, cb.name AS branch_name
+        `SELECT s.id, s.college_id, s.section, s.batch, s.current_year, s.current_semester AS semester,
+                c.name AS college_name, COALESCE(cb.name, s.branch) AS branch_name, s.course
          FROM students s
          LEFT JOIN colleges        c  ON c.id  = s.college_id
          LEFT JOIN course_branches cb ON cb.id = s.branch_id
@@ -38,17 +38,79 @@ exports.getActivePublications = async (req, res) => {
 
         const studentSection = (student.section || '').trim().toUpperCase();
         const studentBatch   = String(student.batch || '').trim();
-        const studentSem     = Number(student.semester);
+        const studentYear    = (student.current_year != null) ? Number(student.current_year) : null;
+        const studentSem     = (student.semester != null) ? Number(student.semester) : null;
+        const studentAbsoluteSem = (studentYear && studentSem) ? (studentYear - 1) * 2 + studentSem : null;
+        const studentBranch  = (student.branch_name || '').trim().toUpperCase();
+        const studentCollegeId = student.college_id ? Number(student.college_id) : null;
+        const studentCourse  = (student.course || '').trim().toUpperCase();
 
-        const filtered = pubs.map(pub => {
+        // 1. Publication-level semester filter (if a publication is targeted to a specific semester)
+        const semMatchedPubs = pubs.filter(pub => {
+            if (pub.semester != null && pub.semester !== '') {
+                const pSem = Number(pub.semester);
+                if (studentSem !== null) {
+                    const semWithinYear = ((pSem - 1) % 2) + 1;
+                    const matchesDirect = (pSem === studentSem);
+                    const matchesAbsolute = (studentAbsoluteSem !== null && pSem === studentAbsoluteSem);
+                    const matchesMod = (semWithinYear === studentSem);
+                    if (!matchesDirect && !matchesAbsolute && !matchesMod) return false;
+                }
+            }
+            return true;
+        });
+
+        // 2. Deduplicate re-published sessions sharing title, form_id, and academic_year
+        const seenPubKeys = new Set();
+        const uniquePubs = [];
+        for (const pub of semMatchedPubs) {
+            const key = `${pub.form_id}_${(pub.academic_year || '').trim()}_${(pub.title || '').trim().toLowerCase()}`;
+            if (!seenPubKeys.has(key)) {
+                seenPubKeys.add(key);
+                uniquePubs.push(pub);
+            }
+        }
+
+        const filtered = uniquePubs.map(pub => {
             let subjects = pub.mapped_staff_subjects;
             try { subjects = typeof subjects === 'string' ? JSON.parse(subjects) : (subjects || []); } catch (e) { subjects = []; }
 
             const relevant = subjects.filter(s => {
-                const ss = (s.sectionName || '').trim().toUpperCase();
+                // Section match (allow empty section on subject or match student's section)
+                const ss = (s.sectionName || s.section || '').trim().toUpperCase();
+                if (ss && studentSection && ss !== studentSection) return false;
+
+                // Batch match
                 const sb = String(s.batch || '').trim();
-                const sm = (s.semester != null) ? Number(s.semester) : null;
-                return (!ss || ss === studentSection) && (!sb || sb === studentBatch) && (sm === null || sm === studentSem);
+                if (sb && studentBatch && sb !== studentBatch) return false;
+
+                // Branch match
+                const sBranch = (s.branchName || s.branch || '').trim().toUpperCase();
+                if (sBranch && studentBranch && sBranch !== studentBranch) return false;
+
+                // College match
+                if (s.collegeId && studentCollegeId && Number(s.collegeId) !== studentCollegeId) return false;
+
+                // Course match (if specified on mapped subject)
+                const sCourse = (s.courseName || s.course || '').trim().toUpperCase();
+                if (sCourse && studentCourse && sCourse !== studentCourse) return false;
+
+                // Year match (if specified on mapped subject)
+                const sy = (s.yearOfStudy != null && s.yearOfStudy !== '') ? Number(s.yearOfStudy) : null;
+                if (sy !== null && studentYear !== null && sy !== studentYear) return false;
+
+                // Semester match (supports within-year 1-2, absolute 1-8, and mod 2)
+                const sm = (s.semester != null && s.semester !== '') ? Number(s.semester) : null;
+                if (sm !== null && studentSem !== null) {
+                    const semWithinYear = ((sm - 1) % 2) + 1;
+                    const matchesDirect = (sm === studentSem);
+                    const matchesAbsolute = (studentAbsoluteSem !== null && sm === studentAbsoluteSem);
+                    const matchesMod = (semWithinYear === studentSem);
+
+                    if (!matchesDirect && !matchesAbsolute && !matchesMod) return false;
+                }
+
+                return true;
             });
 
             return {
@@ -93,9 +155,15 @@ exports.getActivePublications = async (req, res) => {
         res.json({
             success: true, data: pubsWithSubmissions,
             student: {
-                id: student.id, college_id: student.college_id,
-                college: student.college_name, branch: student.branch_name,
-                section: student.section, batch: student.batch, semester: student.semester
+                id: student.id,
+                college_id: student.college_id,
+                college: student.college_name,
+                branch: student.branch_name,
+                section: student.section,
+                batch: student.batch,
+                year: student.current_year,
+                semester: student.semester,
+                course: student.course
             }
         });
     } catch (err) {
@@ -189,7 +257,7 @@ exports.submitFeedback = async (req, res) => {
                  unit_status, answers_json, student_token_hash)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [publicationId, pub.form_id, student.college_id, student.branch_name,
-             pub.academic_year, pub.semester, sectionName || student.section,
+             pub.academic_year, pub.semester || student.semester, sectionName || student.section,
              subjectName, facultyName, unitsCovered, facultyRating, unitStatus,
              JSON.stringify(answers), token]
         );

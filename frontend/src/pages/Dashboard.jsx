@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import {
   Users,
+  Filter,
   ClipboardList,
   Clock,
   ArrowRight,
@@ -230,6 +231,8 @@ const Dashboard = () => {
   const [courseModalData, setCourseModalData] = useState(null);
   const [courseModalError, setCourseModalError] = useState(null);
   const [courseModalDate, setCourseModalDate] = useState(null);
+    const [courseModalCollegeFilter, setCourseModalCollegeFilter] = useState('all');
+    const [courseModalViewMode, setCourseModalViewMode] = useState('detailed'); // 'detailed' (by college) | 'consolidated'
   const [showProfileRequestsModal, setShowProfileRequestsModal] = useState(false);
   const [profileModalSearch, setProfileModalSearch] = useState('');
   const [expandedProfileColleges, setExpandedProfileColleges] = useState({});
@@ -287,10 +290,12 @@ const Dashboard = () => {
     return todayObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
   }, [todayObj]);
 
-  const handleOpenCourseAttendance = async (cell) => {
+  const handleOpenCourseAttendance = async (cell, initialCollege = null) => {
     if (!cell || !cell.dateKey) return;
     setSelectedCalendarDay(cell);
     setCourseModalDate(cell);
+    const targetCollege = initialCollege ? (initialCollege.code || initialCollege.name || 'all') : 'all';
+    setCourseModalCollegeFilter(targetCollege);
     setShowCourseModal(true);
     setCourseModalLoading(true);
     setCourseModalError(null);
@@ -310,6 +315,56 @@ const Dashboard = () => {
       setCourseModalLoading(false);
     }
   };
+
+  // Unique colleges for Course Modal filter dropdown
+  const courseModalColleges = useMemo(() => {
+    if (courseModalData?.colleges && courseModalData.colleges.length > 0) {
+      return courseModalData.colleges;
+    }
+    const set = new Map();
+    (courseModalData?.courses || []).forEach(c => {
+      const key = c.collegeCode || c.collegeName;
+      if (key && !set.has(key)) {
+        set.set(key, { code: c.collegeCode, name: c.collegeName });
+      }
+    });
+    return Array.from(set.values());
+  }, [courseModalData]);
+
+  // Filtered and displayed courses based on view mode and selected college filter
+  const displayedCourses = useMemo(() => {
+    if (!courseModalData) return [];
+    if (courseModalViewMode === 'consolidated') {
+      return courseModalData.consolidatedCourses || [];
+    }
+    const list = courseModalData.courses || [];
+    if (!courseModalCollegeFilter || courseModalCollegeFilter === 'all') {
+      return list;
+    }
+    const q = String(courseModalCollegeFilter).trim().toLowerCase();
+    return list.filter(c =>
+      String(c.collegeCode || '').trim().toLowerCase() === q ||
+      String(c.collegeName || '').trim().toLowerCase() === q ||
+      String(c.collegeId || '') === q
+    );
+  }, [courseModalData, courseModalViewMode, courseModalCollegeFilter]);
+
+  // Summary statistics for the course modal based on currently displayed courses
+  const courseModalSummary = useMemo(() => {
+    if (!displayedCourses || displayedCourses.length === 0) {
+      return {
+        totalStudents: courseModalData?.totalStudents || 0,
+        present: courseModalData?.present || 0,
+        absent: courseModalData?.absent || 0,
+        rate: courseModalData?.rate || 0
+      };
+    }
+    const totalStudents = displayedCourses.reduce((sum, c) => sum + (Number(c.totalStudents) || 0), 0);
+    const present = displayedCourses.reduce((sum, c) => sum + (Number(c.present) || 0), 0);
+    const absent = displayedCourses.reduce((sum, c) => sum + (Number(c.absent) || 0), 0);
+    const rate = totalStudents > 0 ? Math.round((present / totalStudents) * 100) : 0;
+    return { totalStudents, present, absent, rate };
+  }, [displayedCourses, courseModalData]);
 
   const handleOpenCourseAttendanceFromChart = (barData) => {
     if (!barData) return;
@@ -570,13 +625,13 @@ const Dashboard = () => {
         absent: periodObj.absent || 0,
         holiday: periodObj.holiday || 0,
         pending: periodObj.pending || 0,
-        total: periodObj.total || stats?.totalStudents || 0,
+        total: periodObj.total || stats?.totalAttendanceStudents || stats?.totalStudents || 0,
         rate: periodObj.rate || (periodObj.total > 0 ? Math.round(((periodObj.marked || 0) / periodObj.total) * 100) : 0)
       };
     }
     const pres = stats?.presentToday || 0;
     const abs = stats?.absentToday || 0;
-    const tot = stats?.totalStudents || 0;
+    const tot = stats?.totalAttendanceStudents || stats?.totalStudents || 0;
     const marked = pres + abs;
     const pend = Math.max(0, tot - marked);
     const rt = tot > 0 ? Math.round((marked / tot) * 100) : 0;
@@ -2204,14 +2259,30 @@ const Dashboard = () => {
                     return (
                       <div
                         key={college.id || college.name}
-                        className="grid grid-cols-1 sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-2 sm:gap-3 p-3.5 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50/20 transition-all"
+                        onClick={() => {
+                          setShowBreakdownModal(false);
+                          handleOpenCourseAttendance(
+                            { dateKey: todayKey, fullDate: `Today (${todayLabel})` },
+                            college
+                          );
+                        }}
+                        className="grid grid-cols-1 sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-2 sm:gap-3 p-3.5 rounded-xl border border-gray-200 hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group"
+                        title={`Click to view course-wise attendance for ${college.name}`}
                       >
                         <div>
-                          <p className="font-bold text-gray-900 text-sm leading-tight">{college.name}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-gray-900 text-sm leading-tight group-hover:text-blue-600 transition-colors">
+                              {college.name}
+                            </p>
+                            <ChevronRight size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                          </div>
                           <div className="flex items-center gap-2 mt-0.5">
                             {college.code && <span className="text-xs text-purple-600 font-medium">{college.code}</span>}
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPosted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                               {isPosted ? 'Attendance Posted' : 'Not Posted'}
+                            </span>
+                            <span className="text-[10px] text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity font-medium">
+                              View courses →
                             </span>
                           </div>
                         </div>
@@ -2297,21 +2368,75 @@ const Dashboard = () => {
               </button>
             </div>
 
+            {/* Filter and View Controls Bar */}
+            <div className="px-6 py-2.5 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-gray-600 flex items-center gap-1">
+                  <Building2 size={13} className="text-gray-500" /> College:
+                </span>
+                <select
+                  value={courseModalCollegeFilter}
+                  onChange={(e) => setCourseModalCollegeFilter(e.target.value)}
+                  className="text-xs font-medium bg-white border border-gray-200 text-gray-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm"
+                >
+                  <option value="all">All Colleges {courseModalColleges.length ? `(${courseModalColleges.length})` : ''}</option>
+                  {courseModalColleges.map((col) => (
+                    <option key={col.id || col.code || col.name} value={col.code || col.name}>
+                      {col.code ? `${col.code} — ${col.name}` : col.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* View Toggle: By College vs Consolidated */}
+              <div className="flex items-center bg-gray-200/80 p-0.5 rounded-lg text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setCourseModalViewMode('detailed')}
+                  className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                    courseModalViewMode === 'detailed'
+                      ? 'bg-white text-blue-700 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Show courses separated by college"
+                >
+                  By College
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCourseModalViewMode('consolidated')}
+                  className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                    courseModalViewMode === 'consolidated'
+                      ? 'bg-white text-blue-700 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                  title="Show consolidated courses across all colleges"
+                >
+                  Consolidated
+                </button>
+              </div>
+            </div>
+
             {/* Date Summary bar */}
             {courseModalData && (
               <div className="px-6 py-3 bg-blue-50/40 border-b border-blue-100/60 flex items-center justify-between flex-wrap gap-2 text-xs">
                 <span className="font-semibold text-gray-700">
-                  Total Students: <strong className="text-gray-900">{courseModalData.totalStudents?.toLocaleString()}</strong>
+                  Total Students: <strong className="text-gray-900">{courseModalSummary.totalStudents?.toLocaleString()}</strong>
+                  {courseModalCollegeFilter !== 'all' && (
+                    <span className="ml-2 text-xs font-normal text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">
+                      Filtered: {courseModalCollegeFilter}
+                    </span>
+                  )}
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
-                    P: {courseModalData.present?.toLocaleString()}
+                    P: {courseModalSummary.present?.toLocaleString()}
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold">
-                    A: {courseModalData.absent?.toLocaleString()}
+                    A: {courseModalSummary.absent?.toLocaleString()}
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-extrabold">
-                    {courseModalData.rate}% Rate
+                    {courseModalSummary.rate}% Rate
                   </span>
                 </div>
               </div>
@@ -2329,17 +2454,17 @@ const Dashboard = () => {
                   <AlertCircle size={36} className="mx-auto mb-2 opacity-60" />
                   <p className="text-sm font-medium">{courseModalError}</p>
                 </div>
-              ) : courseModalData?.courses && courseModalData.courses.length > 0 ? (
+              ) : displayedCourses && displayedCourses.length > 0 ? (
                 <>
                   <div className="hidden sm:grid sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-3 px-3 pb-2 border-b border-gray-200 text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                    <span>Course</span>
+                    <span>Course {courseModalViewMode === 'detailed' ? '& College' : ''}</span>
                     <span className="text-center text-blue-500">Total</span>
                     <span className="text-center text-emerald-500">Present</span>
                     <span className="text-center text-red-500">Absent</span>
                     <span className="text-right">Rate</span>
                   </div>
 
-                  {courseModalData.courses.map((course) => {
+                  {displayedCourses.map((course) => {
                     const totalStudents = Number(course.totalStudents) || 0;
                     const present = Number(course.present) || 0;
                     const absent = Number(course.absent) || 0;
@@ -2348,12 +2473,27 @@ const Dashboard = () => {
 
                     return (
                       <div
-                        key={course.name}
+                        key={course.id || `${course.collegeCode || course.collegeName || ''}-${course.name}`}
                         className="grid grid-cols-1 sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-2 sm:gap-3 p-3.5 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50/20 transition-all"
                       >
                         <div>
                           <p className="font-bold text-gray-900 text-sm leading-tight">{course.name}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            {courseModalViewMode === 'detailed' && (course.collegeCode || course.collegeName) && (
+                              <span className="text-[11px] text-purple-700 font-semibold bg-purple-50 px-2 py-0.5 rounded border border-purple-100">
+                                {course.collegeCode || course.collegeName}
+                              </span>
+                            )}
+                            {courseModalViewMode === 'detailed' && course.collegeName && course.collegeCode && (
+                              <span className="text-[11px] text-gray-500 font-medium truncate max-w-[220px]" title={course.collegeName}>
+                                {course.collegeName}
+                              </span>
+                            )}
+                            {courseModalViewMode === 'consolidated' && Array.isArray(course.colleges) && course.colleges.length > 0 && (
+                              <span className="text-[10px] text-indigo-700 font-semibold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                                {course.colleges.length} {course.colleges.length === 1 ? 'College' : 'Colleges'} ({course.colleges.map(c => c.collegeCode || c.collegeName).filter(Boolean).join(', ')})
+                              </span>
+                            )}
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPosted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                               {isPosted ? 'Attendance Posted' : 'Not Posted'}
                             </span>
@@ -2393,7 +2533,11 @@ const Dashboard = () => {
               ) : (
                 <div className="text-center py-12 text-gray-400">
                   <GraduationCap size={40} className="mx-auto mb-2 opacity-40" />
-                  <p className="text-sm font-medium">No course attendance data available for this date</p>
+                  <p className="text-sm font-medium">
+                    {courseModalCollegeFilter !== 'all'
+                      ? `No courses found for ${courseModalCollegeFilter}`
+                      : 'No course attendance data available for this date'}
+                  </p>
                 </div>
               )}
             </div>
@@ -2401,7 +2545,11 @@ const Dashboard = () => {
             {/* Modal Footer */}
             <div className="px-6 py-3.5 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
               <span className="text-xs text-gray-500">
-                {courseModalData?.courses?.length ? `Showing ${courseModalData.courses.length} courses` : ''}
+                {displayedCourses?.length
+                  ? `Showing ${displayedCourses.length} ${displayedCourses.length === 1 ? 'course' : 'courses'}${
+                      courseModalCollegeFilter !== 'all' ? ` for ${courseModalCollegeFilter}` : ''
+                    }`
+                  : ''}
               </span>
               <button
                 type="button"

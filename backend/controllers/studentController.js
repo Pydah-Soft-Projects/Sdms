@@ -1,4 +1,6 @@
 const { masterPool, stagingPool } = require('../config/database');
+const { appendAttendanceJoinDateClause } = require('../utils/studentAttendanceEligibility');
+const { getSemesterCalendarVisibilityClause } = require('../services/semesterCalendarService');
 const { includeForgotPasswordLimit } = require('../middleware/forgotPasswordRateLimit');
 const { triggerAdmissionsSyncAsync, syncStudentToAdmissions, bulkSyncAllStudentsToAdmissions } = require('../services/admissionsSyncService');
 const { fetchActiveQuotaCodes } = require('./quotaController');
@@ -5149,6 +5151,46 @@ exports.deleteStudent = async (req, res) => {
   }
 };
 
+/**
+ * Builds the full attendance eligibility clause matching attendance posting rules:
+ * 1. Join-date eligibility (appendAttendanceJoinDateClause)
+ * 2. Internship exclusion (active internship assignments on date)
+ * 3. Configured excluded courses and excluded students
+ * 4. Semester calendar visibility (active semester dates on date)
+ */
+function buildFullAttendanceEligibility(attendanceDate, { excludedCourses = [], excludedStudents = [] } = {}, tableAlias = 's') {
+  const params = [];
+  const { sql: joinDateSql, params: joinDateParams } = appendAttendanceJoinDateClause(attendanceDate, tableAlias);
+  let sql = joinDateSql;
+  params.push(...joinDateParams);
+
+  sql += `
+    AND NOT EXISTS (
+      SELECT 1 FROM internship_assignments ia
+      WHERE ia.student_id = ${tableAlias}.id
+      AND ? BETWEEN ia.start_date AND ia.end_date
+      AND JSON_CONTAINS(ia.allowed_days, JSON_QUOTE(DATE_FORMAT(?, '%a')))
+    )
+  `;
+  params.push(attendanceDate, attendanceDate);
+
+  if (excludedCourses.length > 0) {
+    sql += ` AND (${tableAlias}.course IS NULL OR ${tableAlias}.course NOT IN (${excludedCourses.map(() => '?').join(',')}))`;
+    params.push(...excludedCourses);
+  }
+
+  if (excludedStudents.length > 0) {
+    sql += ` AND (${tableAlias}.admission_number IS NULL OR ${tableAlias}.admission_number NOT IN (${excludedStudents.map(() => '?').join(',')}))`;
+    params.push(...excludedStudents);
+  }
+
+  const { sql: semSql, params: semParams } = getSemesterCalendarVisibilityClause(attendanceDate);
+  sql += semSql;
+  params.push(...semParams);
+
+  return { sql, params };
+}
+
 // Get dashboard statistics
 exports.getDashboardStats = async (req, res) => {
   try {
@@ -5194,16 +5236,11 @@ exports.getDashboardStats = async (req, res) => {
     const excludedCourses = Array.isArray(attendanceConfig?.excludedCourses) ? attendanceConfig.excludedCourses : [];
     const excludedStudents = Array.isArray(attendanceConfig?.excludedStudents) ? attendanceConfig.excludedStudents : [];
 
-    let attendanceExclusionClause = '';
-    const attendanceExclusionParams = [];
-    if (excludedCourses.length > 0) {
-      attendanceExclusionClause += ` AND (s.course IS NULL OR s.course NOT IN (${excludedCourses.map(() => '?').join(',')}))`;
-      attendanceExclusionParams.push(...excludedCourses);
-    }
-    if (excludedStudents.length > 0) {
-      attendanceExclusionClause += ` AND (s.admission_number IS NULL OR s.admission_number NOT IN (${excludedStudents.map(() => '?').join(',')}))`;
-      attendanceExclusionParams.push(...excludedStudents);
-    }
+    const { sql: attendanceEligibilitySql, params: attendanceEligibilityParams } = buildFullAttendanceEligibility(
+      todayKey,
+      { excludedCourses, excludedStudents },
+      's'
+    );
 
     // College attendance scoping
     let collegeAttendanceFilter = '';
@@ -5328,50 +5365,50 @@ exports.getDashboardStats = async (req, res) => {
          FROM attendance_records ar
          INNER JOIN students s ON s.id = ar.student_id
          WHERE ar.attendance_date = ?
-           AND s.student_status = 'Regular'${attendanceScopeJoin}${attendanceExclusionClause}
+           AND s.student_status = 'Regular'${attendanceScopeJoin}${attendanceEligibilitySql}
          GROUP BY ar.status`,
-        [todayKey, ...attendanceScopeParams, ...attendanceExclusionParams]
+        [todayKey, ...attendanceScopeParams, ...attendanceEligibilityParams]
       ),
       masterPool.query(
         `SELECT c.id, c.name, c.code,
-                COUNT(s.id) as totalStudents,
-                SUM(CASE WHEN ar.status = 'present' THEN 1 ELSE 0 END) as presentToday,
-                SUM(CASE WHEN ar.status = 'absent' THEN 1 ELSE 0 END) as absentToday,
-                COUNT(ar.id) as recordsToday
+                COUNT(DISTINCT s.id) as totalStudents,
+                COUNT(DISTINCT CASE WHEN ar.status = 'present' THEN s.id END) as presentToday,
+                COUNT(DISTINCT CASE WHEN ar.status = 'absent' THEN s.id END) as absentToday,
+                COUNT(DISTINCT ar.id) as recordsToday
          FROM colleges c
-         LEFT JOIN students s ON (s.college_id = c.id OR s.college COLLATE utf8mb4_unicode_ci = c.name OR s.college COLLATE utf8mb4_unicode_ci = c.code) AND s.student_status = 'Regular'${attendanceExclusionClause}
+         LEFT JOIN students s ON (s.college_id = c.id OR s.college COLLATE utf8mb4_unicode_ci = c.name OR s.college COLLATE utf8mb4_unicode_ci = c.code) AND s.student_status = 'Regular'${attendanceEligibilitySql}
          LEFT JOIN attendance_records ar ON ar.student_id = s.id AND ar.attendance_date = ?
          ${collegeAttendanceFilter}
          GROUP BY c.id, c.name, c.code`,
         collegeAttendanceFilter && req.userScope?.collegeNames 
-          ? [...attendanceExclusionParams, todayKey, ...req.userScope.collegeNames] 
-          : [...attendanceExclusionParams, todayKey]
+          ? [...attendanceEligibilityParams, todayKey, ...req.userScope.collegeNames] 
+          : [...attendanceEligibilityParams, todayKey]
       ),
       masterPool.query(
         `SELECT DATE_FORMAT(ar.attendance_date, '%Y-%m-%d') as attendance_date, ar.status, COUNT(*) AS count
          FROM attendance_records ar
          INNER JOIN students s ON s.id = ar.student_id
          WHERE ar.attendance_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 6 DAY) AND CURDATE()
-           AND s.student_status = 'Regular'${attendanceScopeJoin}${attendanceExclusionClause}
+           AND s.student_status = 'Regular'${attendanceScopeJoin}${attendanceEligibilitySql}
          GROUP BY DATE_FORMAT(ar.attendance_date, '%Y-%m-%d'), ar.status
          ORDER BY attendance_date ASC`,
-        [...attendanceScopeParams, ...attendanceExclusionParams]
+        [...attendanceScopeParams, ...attendanceEligibilityParams]
       ),
       masterPool.query(
         `SELECT DATE_FORMAT(ar.attendance_date, '%Y-%m-%d') as attendance_date, ar.status, COUNT(*) AS count
          FROM attendance_records ar
          INNER JOIN students s ON s.id = ar.student_id
          WHERE ar.attendance_date BETWEEN DATE_SUB(CURDATE(), INTERVAL 29 DAY) AND CURDATE()
-           AND s.student_status = 'Regular'${attendanceScopeJoin}${attendanceExclusionClause}
+           AND s.student_status = 'Regular'${attendanceScopeJoin}${attendanceEligibilitySql}
          GROUP BY DATE_FORMAT(ar.attendance_date, '%Y-%m-%d'), ar.status
          ORDER BY attendance_date ASC`,
-        [...attendanceScopeParams, ...attendanceExclusionParams]
+        [...attendanceScopeParams, ...attendanceEligibilityParams]
       ),
       masterPool.query(
-        `SELECT COUNT(*) AS total
+        `SELECT COUNT(DISTINCT s.id) AS total
          FROM students s
-         WHERE s.student_status = 'Regular'${attendanceScopeJoin}${attendanceExclusionClause}`,
-        [...attendanceScopeParams, ...attendanceExclusionParams]
+         WHERE s.student_status = 'Regular'${attendanceScopeJoin}${attendanceEligibilitySql}`,
+        [...attendanceScopeParams, ...attendanceEligibilityParams]
       ),
       masterPool.query(serviceRequestsStatsQuery, serviceRequestsStatsParams),
       masterPool.query(recentServicesQuery, recentServicesParams),
@@ -5739,6 +5776,7 @@ exports.getDashboardStats = async (req, res) => {
       success: true,
       data: {
         totalStudents,
+        totalAttendanceStudents,
         pendingSubmissions: registrationsSummary.pending,
         recentSubmissions: recentWithNames,
         presentToday,
@@ -5818,16 +5856,11 @@ exports.getCourseWiseAttendance = async (req, res) => {
     const excludedCourses = Array.isArray(attendanceConfig?.excludedCourses) ? attendanceConfig.excludedCourses : [];
     const excludedStudents = Array.isArray(attendanceConfig?.excludedStudents) ? attendanceConfig.excludedStudents : [];
 
-    let attendanceExclusionClause = '';
-    const attendanceExclusionParams = [];
-    if (excludedCourses.length > 0) {
-      attendanceExclusionClause += ` AND (s.course IS NULL OR s.course NOT IN (${excludedCourses.map(() => '?').join(',')}))`;
-      attendanceExclusionParams.push(...excludedCourses);
-    }
-    if (excludedStudents.length > 0) {
-      attendanceExclusionClause += ` AND (s.admission_number IS NULL OR s.admission_number NOT IN (${excludedStudents.map(() => '?').join(',')}))`;
-      attendanceExclusionParams.push(...excludedStudents);
-    }
+    const { sql: attendanceEligibilitySql, params: attendanceEligibilityParams } = buildFullAttendanceEligibility(
+      requestedDate,
+      { excludedCourses, excludedStudents },
+      's'
+    );
 
     let attendanceScopeJoin = '';
     const attendanceScopeParams = [];
@@ -5839,22 +5872,36 @@ exports.getCourseWiseAttendance = async (req, res) => {
       }
     }
 
+    let collegeFilterClause = '';
+    const collegeFilterParams = [];
+    if (req.query.college_id) {
+      collegeFilterClause = ' AND (col.id = ? OR s.college_id = ?)';
+      collegeFilterParams.push(req.query.college_id, req.query.college_id);
+    } else if (req.query.college && req.query.college !== 'all') {
+      collegeFilterClause = ' AND (col.name = ? OR col.code = ? OR s.college = ?)';
+      collegeFilterParams.push(req.query.college, req.query.college, req.query.college);
+    }
+
     const [rows] = await masterPool.query(
       `SELECT 
+         COALESCE(col.id, s.college_id) AS college_id,
+         COALESCE(col.name, s.college, 'Other') AS college_name,
+         COALESCE(col.code, '') AS college_code,
          COALESCE(c.name, s.course, 'Other') AS name,
          COUNT(DISTINCT s.id) AS totalStudents,
-         SUM(CASE WHEN ar.status = 'present' THEN 1 ELSE 0 END) AS present,
-         SUM(CASE WHEN ar.status = 'absent' THEN 1 ELSE 0 END) AS absent,
-         SUM(CASE WHEN ar.status = 'holiday' THEN 1 ELSE 0 END) AS holiday,
-         COUNT(ar.id) AS recordsCount
+         COUNT(DISTINCT CASE WHEN ar.status = 'present' THEN s.id END) AS present,
+         COUNT(DISTINCT CASE WHEN ar.status = 'absent' THEN s.id END) AS absent,
+         COUNT(DISTINCT CASE WHEN ar.status = 'holiday' THEN s.id END) AS holiday,
+         COUNT(DISTINCT ar.id) AS recordsCount
        FROM students s
-       LEFT JOIN courses c ON (s.course_id = c.id OR s.course COLLATE utf8mb4_unicode_ci = c.name)
+       LEFT JOIN colleges col ON (s.college_id = col.id OR s.college COLLATE utf8mb4_unicode_ci = col.name OR s.college COLLATE utf8mb4_unicode_ci = col.code)
+       LEFT JOIN courses c ON (s.course_id = c.id OR (s.course COLLATE utf8mb4_unicode_ci = c.name AND (c.college_id IS NULL OR c.college_id = col.id)))
        LEFT JOIN attendance_records ar ON ar.student_id = s.id AND ar.attendance_date = ?
-       WHERE s.student_status = 'Regular'${attendanceScopeJoin}${attendanceExclusionClause}
-       GROUP BY COALESCE(c.name, s.course, 'Other')
+       WHERE s.student_status = 'Regular'${attendanceScopeJoin}${attendanceEligibilitySql}${collegeFilterClause}
+       GROUP BY COALESCE(col.id, s.college_id), COALESCE(col.name, s.college, 'Other'), COALESCE(col.code, ''), COALESCE(c.name, s.course, 'Other')
        HAVING totalStudents > 0
-       ORDER BY totalStudents DESC`,
-      [requestedDate, ...attendanceScopeParams, ...attendanceExclusionParams]
+       ORDER BY college_name ASC, totalStudents DESC`,
+      [requestedDate, ...attendanceScopeParams, ...attendanceEligibilityParams, ...collegeFilterParams]
     );
 
     const courses = (rows || []).map(r => {
@@ -5868,7 +5915,11 @@ exports.getCourseWiseAttendance = async (req, res) => {
       const postedRate = (present + absent) > 0 ? Math.round((present / (present + absent)) * 100) : 0;
 
       return {
+        id: `${r.college_code || r.college_id || r.college_name}-${r.name}`,
         name: r.name,
+        collegeId: r.college_id,
+        collegeName: r.college_name,
+        collegeCode: r.college_code,
         totalStudents,
         present,
         absent,
@@ -5879,6 +5930,77 @@ exports.getCourseWiseAttendance = async (req, res) => {
         isPosted
       };
     });
+
+    // Extract unique colleges list
+    const collegeMap = new Map();
+    courses.forEach(c => {
+      const cKey = c.collegeCode || c.collegeName || 'Other';
+      if (!collegeMap.has(cKey)) {
+        collegeMap.set(cKey, {
+          id: c.collegeId,
+          name: c.collegeName,
+          code: c.collegeCode,
+          totalStudents: 0,
+          present: 0,
+          absent: 0,
+          holiday: 0,
+          coursesCount: 0
+        });
+      }
+      const entry = collegeMap.get(cKey);
+      entry.totalStudents += c.totalStudents;
+      entry.present += c.present;
+      entry.absent += c.absent;
+      entry.holiday += c.holiday;
+      entry.coursesCount += 1;
+    });
+
+    const colleges = Array.from(collegeMap.values()).map(col => {
+      const rate = col.totalStudents > 0 ? Math.round((col.present / col.totalStudents) * 100) : 0;
+      const isPosted = (col.present + col.absent) > 0;
+      return { ...col, rate, isPosted };
+    });
+
+    // Consolidated courses grouped by course name alone
+    const consolidatedMap = new Map();
+    courses.forEach(c => {
+      if (!consolidatedMap.has(c.name)) {
+        consolidatedMap.set(c.name, {
+          name: c.name,
+          totalStudents: 0,
+          present: 0,
+          absent: 0,
+          holiday: 0,
+          colleges: []
+        });
+      }
+      const entry = consolidatedMap.get(c.name);
+      entry.totalStudents += c.totalStudents;
+      entry.present += c.present;
+      entry.absent += c.absent;
+      entry.holiday += c.holiday;
+      entry.colleges.push({
+        collegeName: c.collegeName,
+        collegeCode: c.collegeCode,
+        totalStudents: c.totalStudents,
+        present: c.present,
+        absent: c.absent,
+        rate: c.rate,
+        isPosted: c.isPosted
+      });
+    });
+
+    const consolidatedCourses = Array.from(consolidatedMap.values()).map(item => {
+      const rate = item.totalStudents > 0 ? Math.round((item.present / item.totalStudents) * 100) : 0;
+      const isPosted = (item.present + item.absent) > 0;
+      const postedRate = (item.present + item.absent) > 0 ? Math.round((item.present / (item.present + item.absent)) * 100) : 0;
+      return {
+        ...item,
+        rate,
+        postedRate,
+        isPosted
+      };
+    }).sort((a, b) => b.totalStudents - a.totalStudents);
 
     const totalStudents = courses.reduce((sum, c) => sum + c.totalStudents, 0);
     const totalPresent = courses.reduce((sum, c) => sum + c.present, 0);
@@ -5895,7 +6017,9 @@ exports.getCourseWiseAttendance = async (req, res) => {
         absent: totalAbsent,
         rate: overallRate,
         postedRate: overallPostedRate,
-        courses
+        courses,
+        colleges,
+        consolidatedCourses
       }
     });
   } catch (error) {

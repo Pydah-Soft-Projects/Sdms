@@ -197,6 +197,19 @@ const handleGetAiTools = (req, res) => {
         }
       },
       {
+        name: 'get_pending_dues',
+        description: 'Fetch itemized pending fee dues, balance amounts, and payment deadlines for a student.',
+        parameters: {
+          type: 'object',
+          properties: {
+            student_id: {
+              type: 'string',
+              description: 'Student name, PIN number, or admission number.'
+            }
+          }
+        }
+      },
+      {
         name: 'get_student_tickets',
         description: 'Fetch grievance tickets, maintenance requests, or complaints records.',
         parameters: {
@@ -322,6 +335,14 @@ const handleGetAiTools = (req, res) => {
 
     const adminTools = [
       {
+        name: 'get_admin_profile',
+        description: 'Fetch profile, full name, role title, email, and administrative account identity details for the currently logged-in administrator or staff member (e.g. "Who am I?", "What is my name?").',
+        parameters: {
+          type: 'object',
+          properties: {}
+        }
+      },
+      {
         name: 'get_portal_statistics',
         description: 'Fetch institution-wide overview statistics including total enrolled regular students, service requests, and ticket statistics.',
         parameters: {
@@ -360,6 +381,36 @@ const handleGetAiTools = (req, res) => {
 };
 
 /**
+ * Safely masks long tokens / secrets for clean console logging.
+ */
+function sanitizeForLog(data) {
+  if (!data || typeof data !== 'object') return data;
+  if (Array.isArray(data)) return data.map(sanitizeForLog);
+
+  const sanitized = {};
+  for (const [key, value] of Object.entries(data)) {
+    const lowerKey = key.toLowerCase();
+    if (
+      lowerKey.includes('token') ||
+      lowerKey.includes('secret') ||
+      lowerKey.includes('password') ||
+      lowerKey.includes('authorization')
+    ) {
+      if (typeof value === 'string' && value.length > 20) {
+        sanitized[key] = `${value.slice(0, 10)}...[MASKED ${value.length} chars]`;
+      } else {
+        sanitized[key] = '***';
+      }
+    } else if (value && typeof value === 'object') {
+      sanitized[key] = sanitizeForLog(value);
+    } else {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+}
+
+/**
  * 2. Tool Execution Runner (POST /execute-tool)
  */
 const handleExecuteTool = async (req, res) => {
@@ -368,7 +419,16 @@ const handleExecuteTool = async (req, res) => {
     const rawToolName = body.tool_name || body.function_name || body.name || body.tool || body.action || body.function;
     const toolArgs = body.arguments || body.args || body.parameters || {};
 
-    console.log(`🤖 [AI TOOL REQUEST]: POST ${req.originalUrl} - Tool: '${rawToolName}'`, JSON.stringify(body));
+    const incomingCaller = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+    const originHeader = req.headers['origin'] || req.headers['referer'] || req.headers['host'] || 'direct';
+    const callerServiceUrl = body.user_context?.service_url || body.service_url || req.headers['x-service-url'] || req.headers['x-backend-url'] || 'N/A';
+    const callerUser = req.user?.username || req.user?.name || body.user_context?.user_id || 'anonymous';
+    const callerRole = req.user?.role || body.user_context?.role || 'user';
+
+    console.log(`🤖 [AI TOOL REQUEST]: POST ${req.originalUrl} | Tool: '${rawToolName}' | Service: ${callerServiceUrl} | User: ${callerUser} (${callerRole}) | Origin: ${originHeader} (${incomingCaller})`);
+    if (toolArgs && Object.keys(toolArgs).length > 0) {
+      console.log(`   Args:`, JSON.stringify(toolArgs));
+    }
 
     if (!rawToolName) {
       return res.status(200).json({

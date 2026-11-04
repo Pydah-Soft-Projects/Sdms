@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
-import { getAiApiBaseUrl } from '../config/aiConfig';
+import { getAiApiBaseUrl, getServiceBaseUrl, getCdnScriptUrl, getCdnStyleUrl } from '../config/aiConfig';
 
 /**
  * Helper to scope raw CSS text strictly under a selector prefix (e.g. #pydah-ai-chat-root)
@@ -52,6 +52,7 @@ export default function PydahAiChat({
   welcomeMessage = 'Hi! How can I help you today?',
   position = 'bottom-right',
   apiBaseUrl: propsApiBaseUrl,
+  serviceUrl: propsServiceUrl,
   ...restProps
 }) {
   const location = useLocation();
@@ -60,7 +61,7 @@ export default function PydahAiChat({
 
   const isAiAssistantPage = location?.pathname?.endsWith('/ai-assistant');
 
-  // Resolve active bearer token, assistant persona, and AI engine URL
+  // Resolve active bearer token, assistant persona, AI engine URL, and host service URL
   const activeToken = propsAuthToken || storeToken || (typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null);
   
   const currentRole = String(user?.role || userType || '').toLowerCase();
@@ -68,6 +69,7 @@ export default function PydahAiChat({
 
   const activeAssistantId = propsAssistantId || (isSuperAdmin ? 'admin-assistant' : 'portal-assistant');
   const activeApiBaseUrl = propsApiBaseUrl || getAiApiBaseUrl();
+  const activeServiceUrl = propsServiceUrl || getServiceBaseUrl();
 
   // Strict Guard: ONLY allow for super_admin accounts on the admin side
   const isAuthorized = isSuperAdmin;
@@ -81,9 +83,24 @@ export default function PydahAiChat({
       window.ReactDOM = ReactDOM;
 
       // Disable auto-mounting to prevent un-scoped body widgets
+      window.NEMO_AI_DISABLE_AUTO_MOUNT = true;
       window.PYDAH_AI_DISABLE_AUTO_MOUNT = true;
 
+      // Configure Nemo AI globals
+      window.NEMO_AI_API_URL = activeApiBaseUrl;
+      window.NEMO_AI_API_BASE_URL = activeApiBaseUrl;
+      window.VITE_NEMO_AI_API_URL = activeApiBaseUrl;
+      window.NEMO_AI_SERVICE_URL = activeServiceUrl;
+      window.NEMO_AI_ASSISTANT_ID = activeAssistantId;
+      window.NEMO_AI_TITLE = title;
+      window.NEMO_AI_WELCOME_MESSAGE = welcomeMessage;
+      window.NEMO_AI_AUTH_TOKEN = activeToken;
+
+      // Configure Pydah AI backward-compatible globals
       window.PYDAH_AI_API_URL = activeApiBaseUrl;
+      window.PYDAH_AI_API_BASE_URL = activeApiBaseUrl;
+      window.VITE_PYDAH_AI_API_URL = activeApiBaseUrl;
+      window.PYDAH_AI_SERVICE_URL = activeServiceUrl;
       window.PYDAH_AI_ASSISTANT_ID = activeAssistantId;
       window.PYDAH_AI_TITLE = title;
       window.PYDAH_AI_WELCOME_MESSAGE = welcomeMessage;
@@ -95,13 +112,16 @@ export default function PydahAiChat({
       const oldGuard = document.getElementById('pydah-ai-layout-guard');
       if (oldGuard) oldGuard.remove();
 
+      const styleUrl = getCdnStyleUrl();
+      const scriptUrl = getCdnScriptUrl();
+
       // Inject Scoped Stylesheet: Prefixes every rule with #pydah-ai-chat-root
       if (!document.getElementById('pydah-ai-scoped-style')) {
         const styleEl = document.createElement('style');
         styleEl.id = 'pydah-ai-scoped-style';
         document.head.appendChild(styleEl);
 
-        fetch('https://nemo-chat.pydah.edu.in/style.css')
+        fetch(styleUrl)
           .then(res => res.text())
           .then(rawCss => {
             const scoped = scopeCss(rawCss, '#pydah-ai-chat-root');
@@ -116,7 +136,7 @@ export default function PydahAiChat({
       if (!document.getElementById('pydah-ai-script')) {
         const script = document.createElement('script');
         script.id = 'pydah-ai-script';
-        script.src = 'https://nemo-chat.pydah.edu.in/index.umd.js';
+        script.src = scriptUrl;
         script.async = true;
         script.onload = () => setIsLoaded(true);
         document.body.appendChild(script);
@@ -131,7 +151,7 @@ export default function PydahAiChat({
         lingering.forEach(el => el.remove());
       }
     };
-  }, [activeApiBaseUrl, activeAssistantId, activeToken, title, welcomeMessage, mode, isAuthorized]);
+  }, [activeApiBaseUrl, activeServiceUrl, activeAssistantId, activeToken, title, welcomeMessage, mode, isAuthorized]);
 
   // Strictly only show if an authenticated token is present and user is a super_admin
   if (!activeToken || !isAuthorized) {
@@ -163,6 +183,7 @@ export default function PydahAiChat({
         assistantId={activeAssistantId}
         authToken={activeToken}
         apiBaseUrl={activeApiBaseUrl}
+        serviceUrl={activeServiceUrl}
         title={title}
         welcomeMessage={welcomeMessage}
         position={position}

@@ -33,9 +33,23 @@ import {
   Bold,
   Italic,
   Underline,
+  Strikethrough,
+  Subscript,
+  Superscript,
+  List,
+  ListOrdered,
+  Indent,
+  Outdent,
+  Palette,
+  Highlighter,
+  Eraser,
+  Clipboard,
+  Minus,
   Plus,
   Trash2,
   X,
+  Building2,
+  Image,
 } from "lucide-react";
 import { serviceService } from "../../services/serviceService";
 import { certificateTemplateService } from "../../services/certificateTemplateService";
@@ -95,6 +109,9 @@ const AddServiceWizard = () => {
   const [zoomLevel, setZoomLevel] = useState(100);
   const [showVariableDropdown, setShowVariableDropdown] = useState(false);
   const [variableSearchQuery, setVariableSearchQuery] = useState("");
+  const [showFontColorDropdown, setShowFontColorDropdown] = useState(false);
+  const [showHighlightDropdown, setShowHighlightDropdown] = useState(false);
+  const [showCaseDropdown, setShowCaseDropdown] = useState(false);
   const [undoStack, setUndoStack] = useState([]);
   const [redoStack, setRedoStack] = useState([]);
 
@@ -103,17 +120,166 @@ const AddServiceWizard = () => {
   const [activeCursorPos, setActiveCursorPos] = useState({ start: 0, end: 0 });
   const [activeHeaderCursorPos, setActiveHeaderCursorPos] = useState({ start: 0, end: 0 });
 
-  const getTargetField = () => (editingSection === "header" ? "top_content" : "middle_content");
-  const getTargetRef = () => (editingSection === "header" ? headerInputRef.current : contentInputRef.current);
-  const getTargetCursor = () => (editingSection === "header" ? activeHeaderCursorPos : activeCursorPos);
+  const headerImageInputRef = React.useRef(null);
+
+  // Smart active target detector:
+  // If editingSection === 'header', targets top_content (the header).
+  // Otherwise, ALWAYS targets middle_content (the body), ensuring the header is NEVER touched!
+  const getActiveTarget = () => {
+    // 1. Check if user is explicitly editing the header
+    if (editingSection === "header") {
+      const ta = headerInputRef.current;
+      const start =
+        ta && typeof ta.selectionStart === "number" && ta.selectionStart !== ta.selectionEnd
+          ? ta.selectionStart
+          : activeHeaderCursorPos.start;
+      const end =
+        ta && typeof ta.selectionEnd === "number" && ta.selectionStart !== ta.selectionEnd
+          ? ta.selectionEnd
+          : activeHeaderCursorPos.end;
+      return {
+        field: "top_content",
+        textarea: ta,
+        start,
+        end,
+        section: "header",
+      };
+    }
+
+    // 2. Otherwise user is editing the certificate BODY (middle_content)
+    const ta = contentInputRef.current;
+    let start = activeCursorPos.start;
+    let end = activeCursorPos.end;
+
+    if (ta && typeof ta.selectionStart === "number" && ta.selectionStart !== ta.selectionEnd) {
+      start = ta.selectionStart;
+      end = ta.selectionEnd;
+    }
+
+    return {
+      field: "middle_content",
+      textarea: ta,
+      start,
+      end,
+      section: "body",
+    };
+  };
+
+  const getTargetField = () => getActiveTarget().field;
+  const getTargetRef = () => getActiveTarget().textarea;
+  const getTargetCursor = () => (getActiveTarget().section === "header" ? activeHeaderCursorPos : activeCursorPos);
+
+  // Sync cursor & selection directly from textarea DOM elements
+  useEffect(() => {
+    const textarea = contentInputRef.current;
+    if (!textarea) return;
+
+    const handleBodySelect = () => {
+      setEditingSection("body");
+      setActiveCursorPos({
+        start: textarea.selectionStart,
+        end: textarea.selectionEnd,
+      });
+    };
+
+    textarea.addEventListener("select", handleBodySelect);
+    textarea.addEventListener("mouseup", handleBodySelect);
+    textarea.addEventListener("keyup", handleBodySelect);
+    textarea.addEventListener("focus", handleBodySelect);
+    textarea.addEventListener("click", handleBodySelect);
+
+    return () => {
+      textarea.removeEventListener("select", handleBodySelect);
+      textarea.removeEventListener("mouseup", handleBodySelect);
+      textarea.removeEventListener("keyup", handleBodySelect);
+      textarea.removeEventListener("focus", handleBodySelect);
+      textarea.removeEventListener("click", handleBodySelect);
+    };
+  });
+
+  useEffect(() => {
+    const textarea = headerInputRef.current;
+    if (!textarea) return;
+
+    const handleHeaderSelect = () => {
+      setEditingSection("header");
+      setActiveHeaderCursorPos({
+        start: textarea.selectionStart,
+        end: textarea.selectionEnd,
+      });
+    };
+
+    textarea.addEventListener("select", handleHeaderSelect);
+    textarea.addEventListener("mouseup", handleHeaderSelect);
+    textarea.addEventListener("keyup", handleHeaderSelect);
+    textarea.addEventListener("focus", handleHeaderSelect);
+    textarea.addEventListener("click", handleHeaderSelect);
+
+    return () => {
+      textarea.removeEventListener("select", handleHeaderSelect);
+      textarea.removeEventListener("mouseup", handleHeaderSelect);
+      textarea.removeEventListener("keyup", handleHeaderSelect);
+      textarea.removeEventListener("focus", handleHeaderSelect);
+      textarea.removeEventListener("click", handleHeaderSelect);
+    };
+  });
+
+  // Header image handlers
+  const handleHeaderImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image (PNG, JPG, SVG, WEBP)");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setTemplateData((prev) => ({
+        ...prev,
+        header_image_url: event.target.result,
+        header_image_position: prev.header_image_position || "left",
+        header_image_height: prev.header_image_height || 65,
+      }));
+      toast.success("Header image added");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const handleUseCollegeLogo = () => {
+    const selectedCollege = colleges.find(
+      (c) => String(c.id) === String(serviceData.college_id),
+    );
+    const baseURL = (
+      api.defaults?.baseURL || "http://localhost:5000/api"
+    ).replace(/\/api$/, "");
+    const rawLogo = selectedCollege?.logo || selectedCollege?.header_image_url || "/logo.png";
+    const resolvedUrl = rawLogo.startsWith("http")
+      ? rawLogo
+      : `${baseURL}${rawLogo.startsWith("/") ? "" : "/"}${rawLogo}`;
+
+    setTemplateData((prev) => ({
+      ...prev,
+      header_image_url: resolvedUrl,
+      header_image_position: prev.header_image_position || "left",
+      header_image_height: prev.header_image_height || 65,
+    }));
+    toast.success("College logo set as header image");
+  };
+
+  const handleRemoveHeaderImage = () => {
+    setTemplateData((prev) => ({
+      ...prev,
+      header_image_url: "",
+    }));
+    toast.success("Header image removed");
+  };
 
   const insertTextAtCursor = (textToInsert) => {
-    const targetField = getTargetField();
-    const textarea = getTargetRef();
-    const content = templateData[targetField] || "";
-    const cursor = getTargetCursor();
-    const start = textarea ? textarea.selectionStart : cursor.start;
-    const end = textarea ? textarea.selectionEnd : cursor.end;
+    const { field, textarea, start, end, section } = getActiveTarget();
+    const content = templateData[field] || "";
 
     setUndoStack((prev) => [...prev.slice(-20), content]);
     setRedoStack([]);
@@ -121,7 +287,7 @@ const AddServiceWizard = () => {
     const newContent = content.substring(0, start) + textToInsert + content.substring(end);
     setTemplateData((prev) => ({
       ...prev,
-      [targetField]: newContent,
+      [field]: newContent,
     }));
 
     setTimeout(() => {
@@ -129,7 +295,7 @@ const AddServiceWizard = () => {
         textarea.focus();
         const nextPos = start + textToInsert.length;
         textarea.setSelectionRange(nextPos, nextPos);
-        if (editingSection === "header") {
+        if (section === "header") {
           setActiveHeaderCursorPos({ start: nextPos, end: nextPos });
         } else {
           setActiveCursorPos({ start: nextPos, end: nextPos });
@@ -138,31 +304,555 @@ const AddServiceWizard = () => {
     }, 50);
   };
 
+  // Unicode Subscript and Superscript Maps for Microsoft Word text behavior
+  const SUB_MAP = {
+    "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄", "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉",
+    "+": "₊", "-": "₋", "=": "₌", "(": "₍", ")": "₎",
+    "a": "ₐ", "e": "ₑ", "h": "ₕ", "i": "ᵢ", "j": "ⱼ", "k": "ₖ", "l": "ₗ", "m": "ₘ", "n": "ₙ", "o": "ₒ", "p": "ₚ", "r": "ᵣ", "s": "ₛ", "t": "ₜ", "u": "ᵤ", "v": "ᵥ", "x": "ₓ"
+  };
+  const REV_SUB_MAP = Object.fromEntries(Object.entries(SUB_MAP).map(([k, v]) => [v, k]));
+
+  const SUP_MAP = {
+    "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
+    "+": "⁺", "-": "⁻", "=": "⁼", "(": "⁽", ")": "⁾",
+    "a": "ᵃ", "b": "ᵇ", "c": "ᶜ", "d": "ᵈ", "e": "ᵉ", "f": "ᶠ", "g": "ᵍ", "h": "ʰ", "i": "ⁱ", "j": "ʲ", "k": "ᵏ", "l": "ˡ", "m": "ᵐ", "n": "ⁿ", "o": "ᵒ", "p": "ᵖ", "r": "ʳ", "s": "ˢ", "t": "ᵗ", "u": "ᵘ", "v": "ᵛ", "w": "ʷ", "x": "ˣ", "y": "ʸ", "z": "ᶻ"
+  };
+  const REV_SUP_MAP = Object.fromEntries(Object.entries(SUP_MAP).map(([k, v]) => [v, k]));
+
+  const toSubscript = (str) => {
+    const isAllSub = [...str].every((c) => REV_SUB_MAP[c]);
+    if (isAllSub) {
+      return [...str].map((c) => REV_SUB_MAP[c] || c).join("");
+    }
+    return [...str].map((c) => SUB_MAP[c.toLowerCase()] || c).join("");
+  };
+
+  const toSuperscript = (str) => {
+    const isAllSup = [...str].every((c) => REV_SUP_MAP[c]);
+    if (isAllSup) {
+      return [...str].map((c) => REV_SUP_MAP[c] || c).join("");
+    }
+    return [...str].map((c) => SUP_MAP[c.toLowerCase()] || c).join("");
+  };
+
+  const applySubscript = () => {
+    const { field, textarea, start, end } = getActiveTarget();
+    const content = templateData[field] || "";
+    setUndoStack((prev) => [...prev.slice(-20), content]);
+    setRedoStack([]);
+
+    if (start !== end) {
+      const selected = content.substring(start, end);
+      const converted = toSubscript(selected);
+      const newContent = content.substring(0, start) + converted + content.substring(end);
+      setTemplateData((prev) => ({ ...prev, [field]: newContent }));
+      setTimeout(() => {
+        if (textarea) {
+          textarea.focus();
+          textarea.setSelectionRange(start, start + converted.length);
+        }
+      }, 50);
+    } else {
+      const newContent = content.substring(0, start) + "₂" + content.substring(end);
+      setTemplateData((prev) => ({ ...prev, [field]: newContent }));
+      setTimeout(() => {
+        if (textarea) {
+          textarea.focus();
+          textarea.setSelectionRange(start + 1, start + 1);
+        }
+      }, 50);
+    }
+  };
+
+  const applySuperscript = () => {
+    const { field, textarea, start, end } = getActiveTarget();
+    const content = templateData[field] || "";
+    setUndoStack((prev) => [...prev.slice(-20), content]);
+    setRedoStack([]);
+
+    if (start !== end) {
+      const selected = content.substring(start, end);
+      const converted = toSuperscript(selected);
+      const newContent = content.substring(0, start) + converted + content.substring(end);
+      setTemplateData((prev) => ({ ...prev, [field]: newContent }));
+      setTimeout(() => {
+        if (textarea) {
+          textarea.focus();
+          textarea.setSelectionRange(start, start + converted.length);
+        }
+      }, 50);
+    } else {
+      const newContent = content.substring(0, start) + "²" + content.substring(end);
+      setTemplateData((prev) => ({ ...prev, [field]: newContent }));
+      setTimeout(() => {
+        if (textarea) {
+          textarea.focus();
+          textarea.setSelectionRange(start + 1, start + 1);
+        }
+      }, 50);
+    }
+  };
+
+  // Extract active styles and strip all raw BBCode tags
+  const extractAndStripTags = (text) => {
+    if (!text) return { text: "", updates: {} };
+    const updates = {};
+    if (/\[(?:b|bold)\]/i.test(text)) updates.font_bold = true;
+    if (/\[(?:i|italic)\]/i.test(text)) updates.font_italic = true;
+    if (/\[(?:u|underline)\]/i.test(text)) updates.font_underline = true;
+    if (/\[(?:s|strike)\]/i.test(text)) updates.font_strikethrough = true;
+
+    const sizeMatches = [...text.matchAll(/\[size:(\d+(?:\.\d+)?)\]/gi)];
+    if (sizeMatches.length > 0) {
+      updates.font_size = parseInt(sizeMatches[sizeMatches.length - 1][1]);
+    }
+    const colorMatches = [...text.matchAll(/\[color:([^\]]+)\]/gi)];
+    if (colorMatches.length > 0) {
+      updates.font_color = colorMatches[colorMatches.length - 1][1];
+    }
+    const hlMatches = [...text.matchAll(/\[highlight:([^\]]+)\]/gi)];
+    if (hlMatches.length > 0) {
+      updates.font_highlight = hlMatches[hlMatches.length - 1][1];
+    }
+    const fontMatches = [...text.matchAll(/\[font:([^\]]+)\]/gi)];
+    if (fontMatches.length > 0) {
+      updates.font_family = fontMatches[fontMatches.length - 1][1];
+    }
+
+    const clean = text.replace(
+      /\[\/?(?:b|bold|i|italic|u|underline|s|strike|sub|sup|font(?::[^\]]+)?|size(?::[^\]]+)?|color(?::[^\]]+)?|highlight(?::[^\]]+)?)\]/gi,
+      "",
+    );
+
+    return { text: clean, updates };
+  };
+
+  const cleanAllTagsFromText = (text) => {
+    if (!text) return "";
+    return text.replace(
+      /\[\/?(?:b|bold|i|italic|u|underline|s|strike|sub|sup|font(?::[^\]]+)?|size(?::[^\]]+)?|color(?::[^\]]+)?|highlight(?::[^\]]+)?)\]/gi,
+      "",
+    );
+  };
+
+  // Direct formatting handler: updates document/section styles like Microsoft Word without inserting code tags
+  const applyFormatToSelection = (formatType, value = null) => {
+    if (formatType === "bold") {
+      setTemplateData((prev) => ({ ...prev, font_bold: !prev.font_bold }));
+    } else if (formatType === "italic") {
+      setTemplateData((prev) => ({ ...prev, font_italic: !prev.font_italic }));
+    } else if (formatType === "underline") {
+      setTemplateData((prev) => ({ ...prev, font_underline: !prev.font_underline }));
+    } else if (formatType === "strike") {
+      setTemplateData((prev) => ({ ...prev, font_strikethrough: !prev.font_strikethrough }));
+    } else if (formatType === "size") {
+      setTemplateData((prev) => ({ ...prev, font_size: value }));
+    } else if (formatType === "font") {
+      setTemplateData((prev) => ({ ...prev, font_family: value }));
+    } else if (formatType === "color") {
+      setTemplateData((prev) => ({ ...prev, font_color: value }));
+    } else if (formatType === "highlight") {
+      setTemplateData((prev) => ({ ...prev, font_highlight: value }));
+    } else if (formatType === "sub") {
+      applySubscript();
+    } else if (formatType === "sup") {
+      applySuperscript();
+    }
+  };
+
+  const applyTextWrapTag = (openTag, closeTag, placeholder = "") => {
+    const { field, textarea, start, end, section } = getActiveTarget();
+    const content = templateData[field] || "";
+
+    setUndoStack((prev) => [...prev.slice(-20), content]);
+    setRedoStack([]);
+
+    const hasSelection = start !== end;
+    const selectedText = hasSelection ? content.substring(start, end) : placeholder;
+    let replacement;
+
+    if (
+      hasSelection &&
+      selectedText.startsWith(openTag) &&
+      selectedText.endsWith(closeTag) &&
+      selectedText.length >= openTag.length + closeTag.length
+    ) {
+      replacement = selectedText.slice(openTag.length, selectedText.length - closeTag.length);
+    } else {
+      replacement = `${openTag}${selectedText}${closeTag}`;
+    }
+
+    const newContent = content.substring(0, start) + replacement + content.substring(end);
+
+    setTemplateData((prev) => ({
+      ...prev,
+      [field]: newContent,
+    }));
+
+    setTimeout(() => {
+      if (textarea) {
+        textarea.focus();
+        if (hasSelection) {
+          textarea.setSelectionRange(start, start + replacement.length);
+          if (section === "header") {
+            setActiveHeaderCursorPos({ start, end: start + replacement.length });
+          } else {
+            setActiveCursorPos({ start, end: start + replacement.length });
+          }
+        } else {
+          const innerStart = start + openTag.length;
+          const innerEnd = innerStart + placeholder.length;
+          textarea.setSelectionRange(innerStart, innerEnd);
+          if (section === "header") {
+            setActiveHeaderCursorPos({ start: innerStart, end: innerEnd });
+          } else {
+            setActiveCursorPos({ start: innerStart, end: innerEnd });
+          }
+        }
+      }
+    }, 50);
+  };
+
+  const applyListFormat = (type) => {
+    const { field, textarea, start: selStart, end: selEnd } = getActiveTarget();
+    const content = templateData[field] || "";
+
+    const lines = content.length === 0 ? [""] : content.split("\n");
+
+    setUndoStack((prev) => [...prev.slice(-20), content]);
+    setRedoStack([]);
+
+    const textBeforeStart = content.slice(0, selStart);
+    const startLineIdx = textBeforeStart.split("\n").length - 1;
+    const textBeforeEnd = content.slice(0, selEnd);
+    const endLineIdx = textBeforeEnd.split("\n").length - 1;
+
+    let numCounter = 1;
+    const newLines = lines.map((line, idx) => {
+      if (idx >= startLineIdx && idx <= endLineIdx) {
+        if (type === "bullet") {
+          if (/^\s*[•*]\s*/.test(line)) {
+            return line.replace(/^\s*[•*]\s*/, "");
+          }
+          return `• ${line}`;
+        } else if (type === "number") {
+          if (/^\s*\d+[.)]\s*/.test(line)) {
+            return line.replace(/^\s*\d+[.)]\s*/, "");
+          }
+          const formatted = `${numCounter}. ${line}`;
+          numCounter++;
+          return formatted;
+        }
+      }
+      return line;
+    });
+
+    const newContent = newLines.join("\n");
+    setTemplateData((prev) => ({
+      ...prev,
+      [field]: newContent,
+    }));
+
+    setTimeout(() => {
+      if (textarea) {
+        textarea.focus();
+        const diff = newContent.length - content.length;
+        const newStart = Math.min(newContent.length, Math.max(0, selStart + diff));
+        const newEnd = Math.min(newContent.length, Math.max(0, selEnd + diff));
+        textarea.setSelectionRange(newStart, newEnd);
+      }
+    }, 10);
+  };
+
+  const handleListKeyDown = (e, fieldName = "middle_content") => {
+    const textarea = e.target;
+    const content = templateData[fieldName] || "";
+    const selStart = textarea.selectionStart;
+    const selEnd = textarea.selectionEnd;
+
+    // Handle Backspace when immediately after list prefix (e.g. "• " or "1. ")
+    if (e.key === "Backspace" && selStart === selEnd) {
+      const lastNewlineIdx = content.lastIndexOf("\n", selStart - 1);
+      const lineStart = lastNewlineIdx === -1 ? 0 : lastNewlineIdx + 1;
+      const textBeforeCursor = content.slice(lineStart, selStart);
+
+      if (
+        /^(\s*)([•*]|-)\s*$/.test(textBeforeCursor) ||
+        /^(\s*)\d+[.)]\s*$/.test(textBeforeCursor)
+      ) {
+        e.preventDefault();
+        setUndoStack((prev) => [...prev.slice(-20), content]);
+        setRedoStack([]);
+        const newContent = content.slice(0, lineStart) + content.slice(selStart);
+        setTemplateData((prev) => ({ ...prev, [fieldName]: newContent }));
+        setTimeout(() => {
+          if (textarea) {
+            textarea.focus();
+            textarea.setSelectionRange(lineStart, lineStart);
+          }
+        }, 0);
+        return true;
+      }
+    }
+
+    // Handle Enter key for continuing lists
+    if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      // Don't intercept if @ autocomplete popup is open
+      const isSuggestionsOpen = !!document.querySelector(
+        '[role="listbox"], .mentions__suggestions'
+      );
+      if (isSuggestionsOpen) return false;
+
+      const lastNewlineIdx = content.lastIndexOf("\n", selStart - 1);
+      const lineStart = lastNewlineIdx === -1 ? 0 : lastNewlineIdx + 1;
+      const currentLine = content.slice(lineStart, selStart);
+
+      // 1. Bullet list check (•, *, -)
+      const bulletMatch = currentLine.match(/^(\s*)([•*]|-)\s*(.*)$/);
+      if (bulletMatch) {
+        e.preventDefault();
+        setUndoStack((prev) => [...prev.slice(-20), content]);
+        setRedoStack([]);
+        const indent = bulletMatch[1];
+        const textAfterBullet = bulletMatch[3];
+
+        // Empty bullet line -> exit list (remove bullet from line)
+        if (textAfterBullet.trim() === "") {
+          const newContent = content.slice(0, lineStart) + indent + content.slice(selStart);
+          setTemplateData((prev) => ({ ...prev, [fieldName]: newContent }));
+          const newPos = lineStart + indent.length;
+          setTimeout(() => {
+            if (textarea) {
+              textarea.focus();
+              textarea.setSelectionRange(newPos, newPos);
+            }
+          }, 0);
+          return true;
+        }
+
+        // Continue bullet on next line
+        const nextPrefix = `\n${indent}• `;
+        const newContent = content.slice(0, selStart) + nextPrefix + content.slice(selEnd);
+        setTemplateData((prev) => ({ ...prev, [fieldName]: newContent }));
+        const newPos = selStart + nextPrefix.length;
+        setTimeout(() => {
+          if (textarea) {
+            textarea.focus();
+            textarea.setSelectionRange(newPos, newPos);
+          }
+        }, 0);
+        return true;
+      }
+
+      // 2. Numbered list check (1., 2., 1), etc.)
+      const numberMatch = currentLine.match(/^(\s*)(\d+)([.)])\s*(.*)$/);
+      if (numberMatch) {
+        e.preventDefault();
+        setUndoStack((prev) => [...prev.slice(-20), content]);
+        setRedoStack([]);
+        const indent = numberMatch[1];
+        const currentNum = parseInt(numberMatch[2], 10);
+        const delimiter = numberMatch[3];
+        const textAfterNumber = numberMatch[4];
+
+        // Empty number line -> exit list (remove number from line)
+        if (textAfterNumber.trim() === "") {
+          const newContent = content.slice(0, lineStart) + indent + content.slice(selStart);
+          setTemplateData((prev) => ({ ...prev, [fieldName]: newContent }));
+          const newPos = lineStart + indent.length;
+          setTimeout(() => {
+            if (textarea) {
+              textarea.focus();
+              textarea.setSelectionRange(newPos, newPos);
+            }
+          }, 0);
+          return true;
+        }
+
+        // Continue numbered list with incremented counter
+        const nextNum = currentNum + 1;
+        const nextPrefix = `\n${indent}${nextNum}${delimiter} `;
+        const newContent = content.slice(0, selStart) + nextPrefix + content.slice(selEnd);
+        setTemplateData((prev) => ({ ...prev, [fieldName]: newContent }));
+        const newPos = selStart + nextPrefix.length;
+        setTimeout(() => {
+          if (textarea) {
+            textarea.focus();
+            textarea.setSelectionRange(newPos, newPos);
+          }
+        }, 0);
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const applyIndent = (direction) => {
+    const { field, textarea, start: selStart, end: selEnd } = getActiveTarget();
+    const content = templateData[field] || "";
+
+    const lines = content.split("\n");
+    if (lines.length === 0) return;
+
+    setUndoStack((prev) => [...prev.slice(-20), content]);
+    setRedoStack([]);
+
+    const textBeforeStart = content.slice(0, selStart);
+    const startLineIdx = textBeforeStart.split("\n").length - 1;
+    const textBeforeEnd = content.slice(0, selEnd);
+    const endLineIdx = textBeforeEnd.split("\n").length - 1;
+
+    const newLines = lines.map((line, idx) => {
+      if (idx >= startLineIdx && idx <= endLineIdx) {
+        if (direction === "increase") {
+          return "    " + line;
+        } else {
+          return line.replace(/^( {1,4}|\t)/, "");
+        }
+      }
+      return line;
+    });
+
+    const newContent = newLines.join("\n");
+    setTemplateData((prev) => ({
+      ...prev,
+      [field]: newContent,
+    }));
+  };
+
+  const toggleCase = (caseType) => {
+    const { field, textarea, start, end } = getActiveTarget();
+    const content = templateData[field] || "";
+
+    if (start === end) {
+      toast("Select text first to change case", { icon: "ℹ️" });
+      return;
+    }
+
+    setUndoStack((prev) => [...prev.slice(-20), content]);
+    setRedoStack([]);
+
+    const selectedText = content.substring(start, end);
+    let converted = selectedText;
+    if (caseType === "upper") {
+      converted = selectedText.toUpperCase();
+    } else if (caseType === "lower") {
+      converted = selectedText.toLowerCase();
+    } else if (caseType === "title") {
+      converted = selectedText.replace(/\b\w/g, (c) => c.toUpperCase());
+    } else if (caseType === "sentence") {
+      converted = selectedText.charAt(0).toUpperCase() + selectedText.slice(1).toLowerCase();
+    }
+
+    const newContent = content.substring(0, start) + converted + content.substring(end);
+    setTemplateData((prev) => ({
+      ...prev,
+      [field]: newContent,
+    }));
+    setShowCaseDropdown(false);
+    setTimeout(() => {
+      if (textarea) {
+        textarea.focus();
+        textarea.setSelectionRange(start, start + converted.length);
+      }
+    }, 50);
+  };
+
+  const clearFormatting = () => {
+    const { field, textarea, start, end } = getActiveTarget();
+    const content = templateData[field] || "";
+
+    setUndoStack((prev) => [...prev.slice(-20), content]);
+    setRedoStack([]);
+
+    const cleaned = cleanAllTagsFromText(content);
+    setTemplateData((prev) => ({
+      ...prev,
+      [field]: cleaned,
+      font_family: "Calibri",
+      font_size: 12,
+      font_bold: false,
+      font_italic: false,
+      font_underline: false,
+      font_strikethrough: false,
+      font_color: "#0f172a",
+      font_highlight: "transparent",
+    }));
+    toast.success("Formatting reset to defaults");
+  };
+
+  const handleCut = async () => {
+    const { field, textarea, start, end } = getActiveTarget();
+    const content = templateData[field] || "";
+
+    if (start === end) {
+      toast("Select text to cut", { icon: "ℹ️" });
+      return;
+    }
+    const selectedText = content.substring(start, end);
+    try {
+      await navigator.clipboard.writeText(selectedText);
+      setUndoStack((prev) => [...prev.slice(-20), content]);
+      setRedoStack([]);
+      const newContent = content.substring(0, start) + content.substring(end);
+      setTemplateData((prev) => ({ ...prev, [field]: newContent }));
+      toast.success("Cut to clipboard");
+    } catch {
+      toast.error("Clipboard access denied");
+    }
+  };
+
+  const handleCopy = async () => {
+    const { field, textarea, start, end } = getActiveTarget();
+    const content = templateData[field] || "";
+
+    if (start === end) {
+      toast("Select text to copy", { icon: "ℹ️" });
+      return;
+    }
+    const selectedText = content.substring(start, end);
+    try {
+      await navigator.clipboard.writeText(selectedText);
+      toast.success("Copied to clipboard");
+    } catch {
+      toast.error("Clipboard access denied");
+    }
+  };
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        insertTextAtCursor(text);
+        toast.success("Pasted");
+      }
+    } catch {
+      toast.error("Clipboard access denied");
+    }
+  };
+
   const handleUndo = () => {
     if (undoStack.length === 0) return;
-    const targetField = getTargetField();
+    const { field } = getActiveTarget();
     const prevContent = undoStack[undoStack.length - 1];
-    setRedoStack((prev) => [...prev, templateData[targetField] || ""]);
+    setRedoStack((prev) => [...prev, templateData[field] || ""]);
     setUndoStack((prev) => prev.slice(0, -1));
-    setTemplateData((prev) => ({ ...prev, [targetField]: prevContent }));
+    setTemplateData((prev) => ({ ...prev, [field]: prevContent }));
   };
 
   const handleRedo = () => {
     if (redoStack.length === 0) return;
-    const targetField = getTargetField();
+    const { field } = getActiveTarget();
     const nextContent = redoStack[redoStack.length - 1];
-    setUndoStack((prev) => [...prev, templateData[targetField] || ""]);
+    setUndoStack((prev) => [...prev, templateData[field] || ""]);
     setRedoStack((prev) => prev.slice(0, -1));
-    setTemplateData((prev) => ({ ...prev, [targetField]: nextContent }));
+    setTemplateData((prev) => ({ ...prev, [field]: nextContent }));
   };
 
   const applyLineAlignment = (alignment) => {
-    const targetField = getTargetField();
-    const content = templateData[targetField] || "";
-    const textarea = getTargetRef();
-    const cursor = getTargetCursor();
-    const selStart = textarea ? textarea.selectionStart : cursor.start;
-    const selEnd = textarea ? textarea.selectionEnd : cursor.end;
+    const { field, textarea, start: selStart, end: selEnd } = getActiveTarget();
+    const content = templateData[field] || "";
 
     const lines = content.split("\n");
     if (lines.length === 0) return;
@@ -191,10 +881,9 @@ const AddServiceWizard = () => {
     const newContent = newLines.join("\n");
     setTemplateData((prev) => ({
       ...prev,
-      [targetField]: newContent,
+      [field]: newContent,
     }));
   };
-
   // Consolidated State
   const [serviceData, setServiceData] = useState({
     name: "",
@@ -220,8 +909,18 @@ const AddServiceWizard = () => {
     bottom_section_padding: 10,
     header_height: 80,
     footer_height: 60,
+    header_image_url: "",
+    header_image_position: "left",
+    header_image_height: 65,
+    font_family: "Calibri",
     font_size: 12,
-    line_spacing: 2,
+    font_bold: false,
+    font_italic: false,
+    font_underline: false,
+    font_strikethrough: false,
+    font_color: "#0f172a",
+    font_highlight: "transparent",
+    line_spacing: 1.6,
     top_spacing: 15,
     middle_spacing: 15,
     bottom_spacing: 15,
@@ -230,6 +929,66 @@ const AddServiceWizard = () => {
     page_orientation: "portrait",
     input_field_size: 10,
   });
+
+  // Automatically strip any raw formatting tags or reset formatting to constant default when cleared
+  useEffect(() => {
+    if (!templateData.middle_content || templateData.middle_content.trim() === "") {
+      if (
+        templateData.font_bold ||
+        templateData.font_italic ||
+        templateData.font_underline ||
+        templateData.font_strikethrough ||
+        templateData.font_size !== 12 ||
+        templateData.font_family !== "Calibri" ||
+        templateData.font_color !== "#0f172a" ||
+        (templateData.font_highlight && templateData.font_highlight !== "transparent")
+      ) {
+        setTemplateData((prev) => ({
+          ...prev,
+          font_family: "Calibri",
+          font_size: 12,
+          font_bold: false,
+          font_italic: false,
+          font_underline: false,
+          font_strikethrough: false,
+          font_color: "#0f172a",
+          font_highlight: "transparent",
+        }));
+      }
+    } else if (
+      /\[\/?(?:b|bold|i|italic|u|underline|s|strike|sub|sup|font|size|color|highlight)(?::[^\]]+)?\]/i.test(
+        templateData.middle_content,
+      )
+    ) {
+      const { text: cleanText, updates } = extractAndStripTags(templateData.middle_content);
+      setTemplateData((prev) => ({
+        ...prev,
+        ...updates,
+        middle_content: cleanText,
+      }));
+    }
+  }, [templateData.middle_content]);
+
+  // Global listener to close floating ribbon dropdowns on click outside or escape key
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      setShowVariableDropdown(false);
+      setShowFontColorDropdown(false);
+      setShowHighlightDropdown(false);
+      setShowCaseDropdown(false);
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        handleGlobalClick();
+      }
+    };
+    window.addEventListener("click", handleGlobalClick);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("click", handleGlobalClick);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   // Preview state for final review
   const [finalPreviewJson, setFinalPreviewJson] = useState(null);
@@ -334,8 +1093,18 @@ const AddServiceWizard = () => {
           padding_bottom: template.padding_bottom || 40,
           header_height: template.header_height || 80,
           footer_height: template.footer_height || 60,
+          header_image_url: template.header_image_url || "",
+          header_image_position: template.header_image_position || "left",
+          header_image_height: template.header_image_height || 65,
+          font_family: template.font_family || "Calibri",
           font_size: template.font_size || 12,
-          line_spacing: template.line_spacing || 2,
+          font_bold: !!template.font_bold,
+          font_italic: !!template.font_italic,
+          font_underline: !!template.font_underline,
+          font_strikethrough: !!template.font_strikethrough,
+          font_color: template.font_color || "#0f172a",
+          font_highlight: template.font_highlight || "transparent",
+          line_spacing: template.line_spacing || 1.6,
           input_field_size: template.input_field_size || 10,
           blank_variables: template.blank_variables || [],
           page_size: template.page_size || "A4",
@@ -697,60 +1466,101 @@ const renderStep2 = () => {
     const charCount = rawContent.length;
 
     // Mention style for autocomplete with whitespace preservation
-    const getMentionStyle = (alignment = "center") => ({
-      control: {
-        backgroundColor: "transparent",
-        fontSize: `${templateData.font_size || 12}px`,
-        fontFamily: templateData.font_family || "Calibri, 'Segoe UI', Arial, sans-serif",
-        lineHeight: templateData.line_spacing || 1.6,
-        minHeight: 420,
-        border: "none",
-        padding: 0,
-        textAlign: alignment,
-        whiteSpace: "pre-wrap",
-      },
-      highlighter: {
-        overflow: "hidden",
-        padding: 0,
-        textAlign: alignment,
-        whiteSpace: "pre-wrap",
-      },
-      input: {
-        margin: 0,
-        padding: 0,
-        border: 0,
-        outline: 0,
-        textAlign: alignment,
-        whiteSpace: "pre-wrap",
-        fontFamily: templateData.font_family || "Calibri, 'Segoe UI', Arial, sans-serif",
-        fontSize: `${templateData.font_size || 12}px`,
-        lineHeight: templateData.line_spacing || 1.6,
-      },
-      suggestions: {
-        list: {
-          backgroundColor: "#ffffff",
-          border: "1px solid #c7d2fe",
-          borderRadius: "0.5rem",
-          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
-          maxHeight: 260,
-          overflow: "auto",
-          zIndex: 9999,
-          padding: "4px 0",
+    const getMentionStyle = (alignment = "center") => {
+      const isContentEmpty = !templateData.middle_content || templateData.middle_content.trim() === "";
+      const activeFontFamily = isContentEmpty
+        ? "Calibri, 'Segoe UI', Arial, sans-serif"
+        : templateData.font_family || "Calibri, 'Segoe UI', Arial, sans-serif";
+      const activeFontSize = isContentEmpty ? "12px" : `${templateData.font_size || 12}px`;
+      const activeLineHeight = isContentEmpty ? 1.6 : templateData.line_spacing || 1.6;
+      const activeFontWeight = isContentEmpty ? "normal" : templateData.font_bold ? "bold" : "normal";
+      const activeFontStyle = isContentEmpty ? "normal" : templateData.font_italic ? "italic" : "normal";
+      const activeTextDecoration = isContentEmpty
+        ? "none"
+        : [
+            templateData.font_underline ? "underline" : "",
+            templateData.font_strikethrough ? "line-through" : "",
+          ]
+            .filter(Boolean)
+            .join(" ") || "none";
+      const activeColor = isContentEmpty ? "#0f172a" : templateData.font_color || "#0f172a";
+      const activeBgColor = isContentEmpty
+        ? "transparent"
+        : templateData.font_highlight && templateData.font_highlight !== "transparent"
+          ? templateData.font_highlight
+          : "transparent";
+
+      return {
+        control: {
+          backgroundColor: activeBgColor,
+          fontSize: activeFontSize,
+          fontFamily: activeFontFamily,
+          lineHeight: activeLineHeight,
+          fontWeight: activeFontWeight,
+          fontStyle: activeFontStyle,
+          textDecoration: activeTextDecoration,
+          color: activeColor,
+          minHeight: 420,
+          border: "none",
+          padding: 0,
+          textAlign: alignment,
+          whiteSpace: "pre-wrap",
         },
-        item: {
-          padding: "7px 12px",
-          borderBottom: "1px solid #f1f5f9",
-          fontSize: "12px",
-          color: "#1e3a8a",
-          "&focused": {
-            backgroundColor: "#dbeafe",
-            fontWeight: 600,
+        highlighter: {
+          overflow: "hidden",
+          padding: 0,
+          textAlign: alignment,
+          whiteSpace: "pre-wrap",
+          fontSize: activeFontSize,
+          fontFamily: activeFontFamily,
+          lineHeight: activeLineHeight,
+          fontWeight: activeFontWeight,
+          fontStyle: activeFontStyle,
+          textDecoration: activeTextDecoration,
+          color: activeColor,
+        },
+        input: {
+          margin: 0,
+          padding: 0,
+          border: 0,
+          outline: 0,
+          textAlign: alignment,
+          whiteSpace: "pre-wrap",
+          fontFamily: activeFontFamily,
+          fontSize: activeFontSize,
+          lineHeight: activeLineHeight,
+          fontWeight: activeFontWeight,
+          fontStyle: activeFontStyle,
+          textDecoration: activeTextDecoration,
+          color: activeColor,
+        },
+        suggestions: {
+          list: {
+            backgroundColor: "#ffffff",
+            border: "1px solid #c7d2fe",
+            borderRadius: "0.5rem",
+            boxShadow:
+              "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+            maxHeight: 260,
+            overflow: "auto",
+            zIndex: 9999,
+            padding: "4px 0",
+          },
+          item: {
+            padding: "7px 12px",
+            borderBottom: "1px solid #f1f5f9",
+            fontSize: "12px",
+            color: "#1e3a8a",
+            "&focused": {
+              backgroundColor: "#dbeafe",
+              fontWeight: 600,
+            },
           },
         },
-      },
-    });
+      };
+    };
 
-    // Render dynamic college header with typography and styling
+    // Render dynamic college header with typography, styling, and header image/logo
     const renderHeaderLines = (content) => {
       const headerText =
         content && content.trim()
@@ -763,10 +1573,21 @@ const renderStep2 = () => {
         .replace(/\r/g, "\n")
         .split("\n");
 
-      return (
+      const headerImgUrl = templateData.header_image_url || null;
+      const imgPos = templateData.header_image_position || "left";
+      const imgHeight = templateData.header_image_height || 65;
+
+      const textBlock = (
         <div
-          className="w-full flex flex-col justify-center"
-          style={{ minHeight: `${templateData.header_height || 80}px` }}
+          className="flex-1 flex flex-col justify-center"
+          style={{
+            fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif",
+            fontSize: "12px",
+            fontWeight: "normal",
+            fontStyle: "normal",
+            textDecoration: "none",
+            color: "#0f172a",
+          }}
         >
           {lines.map((line, idx) => {
             let text = line.trim();
@@ -791,42 +1612,103 @@ const renderStep2 = () => {
               text = alignMatch[2];
             }
 
-            let isBold = false;
-            const boldMatch = text.match(/\[(b|bold)\]([\s\S]*?)\[\/\1\]/i);
-            if (boldMatch) {
-              isBold = true;
-              text = boldMatch[2];
-            }
+            let html = text
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
 
-            let size = 11;
-            const sizeMatch = text.match(
-              /\[size:(\d+(?:\.\d+)?)\]([\s\S]*?)\[\/size\]/i,
-            );
-            if (sizeMatch) {
-              size = parseFloat(sizeMatch[1]);
-              text = sizeMatch[2];
-            }
+            // Format tags
+            html = html
+              .replace(/\[(?:b|bold)\]([\s\S]*?)\[\/(?:b|bold)\]/gi, "<strong>$1</strong>")
+              .replace(/\[(?:i|italic)\]([\s\S]*?)\[\/(?:i|italic)\]/gi, "<em>$1</em>")
+              .replace(/\[(?:u|underline)\]([\s\S]*?)\[\/(?:u|underline)\]/gi, "<span style=\"text-decoration: underline;\">$1</span>")
+              .replace(/\[(?:s|strike)\]([\s\S]*?)\[\/(?:s|strike)\]/gi, "<del>$1</del>")
+              .replace(/\[sub\]([\s\S]*?)\[\/sub\]/gi, "<sub>$1</sub>")
+              .replace(/\[sup\]([\s\S]*?)\[\/sup\]/gi, "<sup>$1</sup>")
+              .replace(/\[size:(\d+(?:\.\d+)?)\]([\s\S]*?)\[\/size\]/gi, "<span style=\"font-size: $1px;\">$2</span>")
+              .replace(/\[color:([^\]]+)\]([\s\S]*?)\[\/color\]/gi, "<span style=\"color: $1;\">$2</span>")
+              .replace(/\[highlight:([^\]]+)\]([\s\S]*?)\[\/highlight\]/gi, "<span style=\"background-color: $1; padding: 0 2px; border-radius: 2px;\">$2</span>");
 
             return (
               <div
                 key={idx}
                 style={{
                   textAlign: align,
-                  fontSize: `${size}px`,
-                  fontWeight: isBold ? 700 : 400,
-                  color: isBold ? "#0f2942" : "#334155",
                   lineHeight: 1.35,
                 }}
-              >
-                {text}
-              </div>
+                dangerouslySetInnerHTML={{ __html: html }}
+              />
             );
           })}
         </div>
       );
+
+      const imageElement = headerImgUrl ? (
+        <div className="flex-shrink-0 flex items-center justify-center p-1">
+          <img
+            src={headerImgUrl}
+            alt="Header Logo"
+            style={{
+              maxHeight: `${imgHeight}px`,
+              maxWidth: "180px",
+              objectFit: "contain",
+            }}
+            className="drop-shadow-xs"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        </div>
+      ) : null;
+
+      if (!headerImgUrl) {
+        return (
+          <div
+            className="w-full flex flex-col justify-center"
+            style={{ minHeight: `${templateData.header_height || 80}px` }}
+          >
+            {textBlock}
+          </div>
+        );
+      }
+
+      if (imgPos === "center") {
+        return (
+          <div
+            className="w-full flex flex-col items-center justify-center"
+            style={{ minHeight: `${templateData.header_height || 80}px` }}
+          >
+            {imageElement}
+            <div className="w-full mt-1">{textBlock}</div>
+          </div>
+        );
+      }
+
+      if (imgPos === "right") {
+        return (
+          <div
+            className="w-full flex items-center justify-between gap-4"
+            style={{ minHeight: `${templateData.header_height || 80}px` }}
+          >
+            <div className="flex-1">{textBlock}</div>
+            {imageElement}
+          </div>
+        );
+      }
+
+      // Default: 'left'
+      return (
+        <div
+          className="w-full flex items-center justify-between gap-4"
+          style={{ minHeight: `${templateData.header_height || 80}px` }}
+        >
+          {imageElement}
+          <div className="flex-1">{textBlock}</div>
+        </div>
+      );
     };
 
-    // Process content to show input fields for ___ and replace @ variables with individual line alignment
+        // Process content to show input fields for ___ and replace @ variables with individual line alignment
     const processContentForPreview = (content, defaultAlignment = "left") => {
       if (!content) return "";
 
@@ -839,6 +1721,16 @@ const renderStep2 = () => {
           {lines.map((line, idx) => {
             let lineAlign = defaultAlignment;
             let text = line.replace(/[\t\r]/g, " ");
+
+            // Horizontal divider rule
+            if (/^[-=_*]{3,}$/.test(text.trim())) {
+              return (
+                <div
+                  key={idx}
+                  className="my-2 border-b-2 border-slate-700 w-full"
+                />
+              );
+            }
 
             const tagMatch = text.match(
               /^\s*\[(left|center|right|justify)\]([\s\S]*?)\[\/\1\]\s*$/i,
@@ -859,6 +1751,19 @@ const renderStep2 = () => {
               .replace(/&/g, "&amp;")
               .replace(/</g, "&lt;")
               .replace(/>/g, "&gt;");
+
+            // Format tags: font, bold, italic, underline, strikethrough, subscript, superscript, size, color, highlight
+            processed = processed
+              .replace(/\[font:([^\]]+)\]([\s\S]*?)\[\/font\]/gi, "<span style=\"font-family: $1;\">$2</span>")
+              .replace(/\[(?:b|bold)\]([\s\S]*?)\[\/(?:b|bold)\]/gi, "<strong>$1</strong>")
+              .replace(/\[(?:i|italic)\]([\s\S]*?)\[\/(?:i|italic)\]/gi, "<em>$1</em>")
+              .replace(/\[(?:u|underline)\]([\s\S]*?)\[\/(?:u|underline)\]/gi, "<span style=\"text-decoration: underline;\">$1</span>")
+              .replace(/\[(?:s|strike)\]([\s\S]*?)\[\/(?:s|strike)\]/gi, "<del>$1</del>")
+              .replace(/\[sub\]([\s\S]*?)\[\/sub\]/gi, "<sub>$1</sub>")
+              .replace(/\[sup\]([\s\S]*?)\[\/sup\]/gi, "<sup>$1</sup>")
+              .replace(/\[size:(\d+(?:\.\d+)?)\]([\s\S]*?)\[\/size\]/gi, "<span style=\"font-size: $1px;\">$2</span>")
+              .replace(/\[color:([^\]]+)\]([\s\S]*?)\[\/color\]/gi, "<span style=\"color: $1;\">$2</span>")
+              .replace(/\[highlight:([^\]]+)\]([\s\S]*?)\[\/highlight\]/gi, "<span style=\"background-color: $1; padding: 0 2px; border-radius: 2px;\">$2</span>");
 
             // Represent all @ variables with specific fixed length for each field
             const replaceVariableWithSpec = (varKey, rawMatch) => {
@@ -893,6 +1798,19 @@ const renderStep2 = () => {
 
             const inputSize = templateData.input_field_size || 10;
             // Clean, fitting underline
+            processed = processed.replace(
+              /(?:___(?:\[(\d+)\])?(?:&nbsp;|\s)*)+|_{3,}/g,
+              (match) => {
+                const isMulti =
+                  match.includes("&nbsp;") ||
+                  match.includes(" ") ||
+                  match.length > 5;
+                const width = isMulti
+                  ? Math.min(Math.max(inputSize * 8, 80), 130)
+                  : Math.min(Math.max(inputSize * 5, 45), 75);
+                return `<span class="inline-block border-b border-gray-900 align-baseline mx-1" style="min-width:${width}px;height:1em;" title="Input Field">&nbsp;</span>`;
+              },
+            );
             processed = processed.replace(
               /(?:___(?:\[(\d+)\])?(?:&nbsp;|\s)*)+|_{3,}/g,
               (match) => {
@@ -976,6 +1894,9 @@ const renderStep2 = () => {
         className="fixed top-0 right-0 bottom-0 left-0 lg:left-64 flex flex-col bg-[#eef1f5] overflow-hidden z-50 select-none font-sans"
         onClick={() => {
           if (showVariableDropdown) setShowVariableDropdown(false);
+          if (showFontColorDropdown) setShowFontColorDropdown(false);
+          if (showHighlightDropdown) setShowHighlightDropdown(false);
+          if (showCaseDropdown) setShowCaseDropdown(false);
         }}
       >
         {/* ============================================================== */}
@@ -1133,452 +2054,919 @@ const renderStep2 = () => {
         {/* ============================================================== */}
         {/* 3. MICROSOFT WORD RIBBON TOOLBAR                               */}
         {/* ============================================================== */}
-        <div className="bg-white border-b border-[#d2d0ce] px-3 py-1.5 flex items-center text-xs flex-shrink-0 shadow-2xs overflow-x-auto min-h-[66px]">
+        <div className="bg-white border-b border-[#d2d0ce] px-3 py-1.5 flex items-stretch text-xs flex-shrink-0 shadow-2xs min-h-[76px] w-full relative z-30">
           {/* TAB 1: HOME */}
           {activeRibbonTab === "home" && (
-            <div className="flex items-center gap-3 divide-x divide-slate-200">
-              {/* Group A: Font & Typography */}
-              <div className="flex flex-col gap-1 pr-3">
-                <div className="flex items-center gap-1.5">
-                  {/* Font Family */}
-                  <select
-                    value={templateData.font_family || "Calibri"}
-                    onChange={(e) =>
-                      setTemplateData({
-                        ...templateData,
-                        font_family: e.target.value,
-                      })
-                    }
-                    className="h-6 px-1.5 text-xs bg-slate-50 border border-slate-300 rounded font-medium text-slate-800 outline-none hover:border-blue-400 focus:border-blue-500 cursor-pointer"
+            <div className="flex items-stretch gap-2.5 w-full relative">
+              {/* Group 1: Clipboard */}
+              <div className="flex flex-col justify-between pr-2.5 border-r border-slate-200 flex-shrink-0">
+                <div className="flex items-center gap-1.5 h-12">
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={handlePaste}
+                    className="flex flex-col items-center justify-center px-2 py-1 h-full rounded hover:bg-slate-100 text-slate-700 hover:text-blue-700 transition group"
+                    title="Paste from clipboard (Ctrl+V)"
                   >
-                    <option value="Calibri">Calibri</option>
-                    <option value="Arial">Arial</option>
-                    <option value="'Times New Roman', serif">Times New Roman</option>
-                    <option value="Georgia, serif">Georgia</option>
-                    <option value="'Courier New', monospace">Courier New</option>
-                  </select>
-
-                  {/* Font Size */}
-                  <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1">
-                    <span className="text-[10px] text-slate-500 mr-1">Size:</span>
-                    <input
-                      type="number"
-                      min="8"
-                      max="24"
-                      value={templateData.font_size || 12}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          font_size: parseInt(e.target.value) || 12,
-                        })
-                      }
-                      className="w-6 text-center text-xs font-bold text-slate-800 bg-transparent outline-none"
-                    />
-                    <span className="text-[9px] text-slate-400">px</span>
+                    <Clipboard size={18} className="text-[#185abd] group-hover:scale-110 transition" />
+                    <span className="text-[10px] font-semibold mt-0.5">Paste</span>
+                  </button>
+                  <div className="flex flex-col gap-1 justify-center">
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={handleCut}
+                      className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition"
+                      title="Cut selected text (Ctrl+X)"
+                    >
+                      <Scissors size={12} className="text-slate-500" />
+                      <span>Cut</span>
+                    </button>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={handleCopy}
+                      className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition"
+                      title="Copy selected text (Ctrl+C)"
+                    >
+                      <Copy size={12} className="text-slate-500" />
+                      <span>Copy</span>
+                    </button>
                   </div>
-
-                  {/* Font Size +/- buttons */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setTemplateData((prev) => ({
-                        ...prev,
-                        font_size: Math.min((prev.font_size || 12) + 1, 24),
-                      }))
-                    }
-                    className="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold text-xs"
-                    title="Grow Font"
-                  >
-                    A⁺
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setTemplateData((prev) => ({
-                        ...prev,
-                        font_size: Math.max((prev.font_size || 12) - 1, 8),
-                      }))
-                    }
-                    className="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold text-[10px]"
-                    title="Shrink Font"
-                  >
-                    A⁻
-                  </button>
                 </div>
-
-                <div className="text-[9px] text-slate-400 font-medium tracking-wide uppercase">
-                  Font & Typography
+                <div className="text-[9px] text-slate-400 font-semibold tracking-wider text-center uppercase select-none mt-0.5">
+                  Clipboard
                 </div>
               </div>
 
-              {/* Group B: Paragraph & Alignment */}
-              <div className="flex flex-col gap-1 pl-3 pr-3">
-                <div className="flex items-center gap-2">
-                  {/* Default Alignment */}
-                  <div className="flex items-center bg-slate-100 border border-slate-300 rounded p-0.5">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          middle_alignment: "left",
-                        })
-                      }
-                      className={`p-1 rounded transition ${
-                        templateData.middle_alignment === "left"
-                          ? "bg-blue-600 text-white"
-                          : "text-slate-700 hover:bg-white"
-                      }`}
-                      title="Align Left (All Text)"
-                    >
-                      <AlignLeft size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          middle_alignment: "center",
-                        })
-                      }
-                      className={`p-1 rounded transition ${
-                        templateData.middle_alignment === "center"
-                          ? "bg-blue-600 text-white"
-                          : "text-slate-700 hover:bg-white"
-                      }`}
-                      title="Align Center (All Text)"
-                    >
-                      <AlignCenter size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          middle_alignment: "right",
-                        })
-                      }
-                      className={`p-1 rounded transition ${
-                        templateData.middle_alignment === "right"
-                          ? "bg-blue-600 text-white"
-                          : "text-slate-700 hover:bg-white"
-                      }`}
-                      title="Align Right (All Text)"
-                    >
-                      <AlignRight size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTemplateData({
-                          ...templateData,
-                          middle_alignment: "justify",
-                        })
-                      }
-                      className={`p-1 rounded transition ${
-                        templateData.middle_alignment === "justify"
-                          ? "bg-blue-600 text-white"
-                          : "text-slate-700 hover:bg-white"
-                      }`}
-                      title="Justify (All Text)"
-                    >
-                      <AlignJustify size={13} />
-                    </button>
-                  </div>
-
-                  {/* Word-Style Individual Line Alignment */}
-                  <div className="flex items-center bg-blue-50/60 border border-blue-200 rounded p-0.5">
-                    <span className="text-[9px] font-bold text-blue-800 px-1">
-                      Line:
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => applyLineAlignment("left")}
-                      className="p-1 rounded text-slate-700 hover:bg-white hover:text-blue-600 transition"
-                      title="Format Current Line Left"
-                    >
-                      <AlignLeft size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyLineAlignment("center")}
-                      className="p-1 rounded text-slate-700 hover:bg-white hover:text-blue-600 transition"
-                      title="Format Current Line Center"
-                    >
-                      <AlignCenter size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyLineAlignment("right")}
-                      className="p-1 rounded text-slate-700 hover:bg-white hover:text-blue-600 transition"
-                      title="Format Current Line Right"
-                    >
-                      <AlignRight size={13} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => applyLineAlignment("justify")}
-                      className="p-1 rounded text-slate-700 hover:bg-white hover:text-blue-600 transition"
-                      title="Format Current Line Justify"
-                    >
-                      <AlignJustify size={13} />
-                    </button>
-                  </div>
-
-                  {/* Line Spacing */}
-                  <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1.5">
-                    <span className="text-[10px] text-slate-500 mr-1">Spacing:</span>
+              {/* Group 2: Font & Typography */}
+              <div className="flex flex-col justify-between px-2.5 border-r border-slate-200 flex-shrink-0">
+                <div className="flex flex-col gap-1">
+                  {/* Row 1: Font Family, Font Size, Grow/Shrink, Change Case, Clear Formatting */}
+                  <div className="flex items-center gap-1">
                     <select
-                      value={templateData.line_spacing || 1.5}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          line_spacing: parseFloat(e.target.value) || 1.5,
-                        })
-                      }
-                      className="text-xs font-semibold text-slate-800 bg-transparent outline-none cursor-pointer"
+                      value={templateData.font_family || "Calibri"}
+                      onChange={(e) => {
+                        const newFamily = e.target.value;
+                        setTemplateData((prev) => ({
+                          ...prev,
+                          font_family: newFamily,
+                        }));
+                      }}
+                      className="h-6 px-1.5 text-xs bg-slate-50 border border-slate-300 rounded font-medium text-slate-800 outline-none hover:border-blue-400 focus:border-blue-500 cursor-pointer w-28 truncate"
+                      title="Font Family"
                     >
-                      <option value="1.0">1.0</option>
-                      <option value="1.15">1.15</option>
-                      <option value="1.5">1.5</option>
-                      <option value="2.0">2.0</option>
+                      <option value="Calibri">Calibri</option>
+                      <option value="Arial">Arial</option>
+                      <option value="'Times New Roman', serif">Times New Roman</option>
+                      <option value="Georgia, serif">Georgia</option>
+                      <option value="'Courier New', monospace">Courier New</option>
+                      <option value="Tahoma, sans-serif">Tahoma</option>
+                      <option value="Verdana, sans-serif">Verdana</option>
                     </select>
-                  </div>
-                </div>
 
-                <div className="text-[9px] text-slate-400 font-medium tracking-wide uppercase">
-                  Paragraph & Line Alignment
-                </div>
-              </div>
-
-              {/* Group C: Insert Quick Tools / Header Tools */}
-              <div className="flex flex-col gap-1 pl-3 pr-3 relative">
-                {editingSection === "header" ? (
-                  /* Tools specifically for College Header */
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        insertTextAtCursor(
-                          `\n[center][b][size:16]${(selectedCollege?.name || "COLLEGE NAME").toUpperCase()}[/size][/b][/center]`
-                        )
-                      }
-                      className="h-6 px-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 rounded font-semibold text-[11px]"
-                    >
-                      + College Title
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        insertTextAtCursor(
-                          "\n[center][size:10](Approved by AICTE, Affiliated to Andhra University, NAAC 'A+' Grade)[/size][/center]"
-                        )
-                      }
-                      className="h-6 px-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 rounded font-semibold text-[11px]"
-                    >
-                      + Affiliation
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        insertTextAtCursor("\n----------------------------------------\n")
-                      }
-                      className="h-6 px-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded font-bold text-[11px]"
-                    >
-                      + Divider Rule (---)
-                    </button>
-                    <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1.5 ml-1">
-                      <span className="text-[10px] text-slate-500 mr-1">Header H:</span>
+                    <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1.5 focus-within:border-blue-500" title="Font Size">
                       <input
                         type="number"
-                        min="50"
-                        max="150"
-                        value={templateData.header_height || 80}
-                        onChange={(e) =>
-                          setTemplateData({
-                            ...templateData,
-                            header_height: parseInt(e.target.value) || 80,
-                          })
-                        }
-                        className="w-7 text-center text-xs font-bold outline-none"
+                        min="8"
+                        max="36"
+                        value={templateData.font_size || 12}
+                        onChange={(e) => {
+                          const newSize = parseInt(e.target.value) || 12;
+                          setTemplateData((prev) => ({
+                            ...prev,
+                            font_size: newSize,
+                          }));
+                        }}
+                        className="w-7 text-center text-xs font-bold text-slate-800 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="text-[9px] text-slate-400">px</span>
+                      <span className="text-[10px] text-slate-500 font-medium select-none ml-0.5">px</span>
                     </div>
-                  </div>
-                ) : (
-                  /* Standard Tools for Certificate Body */
-                  <div className="flex items-center gap-2">
-                    {/* Insert Variable Dropdown Trigger */}
+
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setTemplateData((prev) => ({
+                          ...prev,
+                          font_size: Math.min((prev.font_size || 12) + 1, 36),
+                        }));
+                      }}
+                      className="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold text-xs"
+                      title="Increase Font Size (A+)"
+                    >
+                      A⁺
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setTemplateData((prev) => ({
+                          ...prev,
+                          font_size: Math.max((prev.font_size || 12) - 1, 8),
+                        }));
+                      }}
+                      className="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold text-[10px]"
+                      title="Decrease Font Size (A-)"
+                    >
+                      A⁻
+                    </button>
+
                     <div className="relative">
                       <button
                         type="button"
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setShowVariableDropdown(!showVariableDropdown);
+                          setShowCaseDropdown(!showCaseDropdown);
+                          setShowFontColorDropdown(false);
+                          setShowHighlightDropdown(false);
                         }}
-                        className="h-6 px-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold text-xs flex items-center gap-1 shadow-xs transition"
+                        className="h-6 px-1.5 flex items-center gap-0.5 bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold text-xs"
+                        title="Change Case (UPPERCASE, lowercase, Capitalize)"
                       >
-                        <span>➕ Insert Variable</span>
-                        <ChevronDown size={12} />
+                        <span>Aa</span>
+                        <ChevronDown size={10} className="text-slate-500" />
                       </button>
-
-                      {/* Rich Variable Dropdown Menu */}
-                      {showVariableDropdown && (
+                      {showCaseDropdown && (
                         <div
-                          className="absolute left-0 top-8 w-72 bg-white rounded-lg shadow-xl border border-blue-200 z-[9999] p-2 space-y-2"
+                          className="absolute left-0 top-7 w-44 bg-white border border-slate-300 rounded-md shadow-2xl py-1 z-[9999] text-xs"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <div className="relative">
-                            <input
-                              type="text"
-                              value={variableSearchQuery}
-                              onChange={(e) =>
-                                setVariableSearchQuery(e.target.value)
-                              }
-                              placeholder="Search student variables..."
-                              className="w-full px-2.5 py-1 text-xs border border-slate-300 rounded outline-none focus:border-blue-500"
-                              autoFocus
-                            />
-                          </div>
-
-                          <div className="max-h-56 overflow-y-auto space-y-2 text-xs">
-                            {studentVars.length > 0 && (
-                              <div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                                  🎓 Student Identity
-                                </div>
-                                <div className="grid grid-cols-2 gap-1">
-                                  {studentVars.map((v) => (
-                                    <button
-                                      key={v.name}
-                                      type="button"
-                                      onClick={() => {
-                                        insertTextAtCursor(`@${v.name} `);
-                                        setShowVariableDropdown(false);
-                                      }}
-                                      className="text-left px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-900 font-medium truncate"
-                                      title={v.label}
-                                    >
-                                      @{v.name}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {academicVars.length > 0 && (
-                              <div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                                  📚 Academic Details
-                                </div>
-                                <div className="grid grid-cols-2 gap-1">
-                                  {academicVars.map((v) => (
-                                    <button
-                                      key={v.name}
-                                      type="button"
-                                      onClick={() => {
-                                        insertTextAtCursor(`@${v.name} `);
-                                        setShowVariableDropdown(false);
-                                      }}
-                                      className="text-left px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-medium truncate"
-                                      title={v.label}
-                                    >
-                                      @{v.name}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {personalVars.length > 0 && (
-                              <div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                                  👤 Personal Info
-                                </div>
-                                <div className="grid grid-cols-2 gap-1">
-                                  {personalVars.map((v) => (
-                                    <button
-                                      key={v.name}
-                                      type="button"
-                                      onClick={() => {
-                                        insertTextAtCursor(`@${v.name} `);
-                                        setShowVariableDropdown(false);
-                                      }}
-                                      className="text-left px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-900 font-medium truncate"
-                                      title={v.label}
-                                    >
-                                      @{v.name}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {institutionalVars.length > 0 && (
-                              <div>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                                  🏛️ Institutional / Signatures
-                                </div>
-                                <div className="grid grid-cols-1 gap-1">
-                                  {institutionalVars.map((v) => (
-                                    <button
-                                      key={v.name}
-                                      type="button"
-                                      onClick={() => {
-                                        insertTextAtCursor(`@${v.name} `);
-                                        setShowVariableDropdown(false);
-                                      }}
-                                      className="text-left px-2 py-1 rounded bg-purple-50 hover:bg-purple-100 text-purple-900 font-medium truncate"
-                                      title={v.label}
-                                    >
-                                      @{v.name} ({v.label})
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => toggleCase("sentence")}
+                            className="w-full text-left px-3 py-1.5 hover:bg-blue-50 text-slate-700 transition"
+                          >
+                            Sentence case
+                          </button>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => toggleCase("lower")}
+                            className="w-full text-left px-3 py-1.5 hover:bg-blue-50 text-slate-700 transition"
+                          >
+                            lowercase
+                          </button>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => toggleCase("upper")}
+                            className="w-full text-left px-3 py-1.5 hover:bg-blue-50 text-slate-700 font-bold transition"
+                          >
+                            UPPERCASE
+                          </button>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => toggleCase("title")}
+                            className="w-full text-left px-3 py-1.5 hover:bg-blue-50 text-slate-700 transition"
+                          >
+                            Capitalize Each Word
+                          </button>
                         </div>
                       )}
                     </div>
 
-                    {/* Insert Blank Field button */}
                     <button
                       type="button"
-                      onClick={() => insertTextAtCursor(" ___ ")}
-                      className="h-6 px-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded font-semibold text-xs text-slate-800 flex items-center gap-1 transition"
-                      title="Insert fillable underline blank (___)"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={clearFormatting}
+                      className="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-red-50 hover:border-red-300 hover:text-red-600 border border-slate-300 rounded text-slate-600"
+                      title="Clear All Formatting"
                     >
-                      <span>Insert Blank (___)</span>
+                      <Eraser size={13} />
+                    </button>
+                  </div>
+
+                  {/* Row 2: Bold, Italic, Underline, Strikethrough, Subscript, Superscript, Highlight, Font Color */}
+                  <div className="flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyFormatToSelection("bold")}
+                      className={`w-6 h-6 flex items-center justify-center rounded text-xs transition ${
+                        templateData.font_bold
+                          ? "bg-blue-100 text-blue-700 font-extrabold ring-1 ring-blue-400"
+                          : "hover:bg-slate-200 text-slate-800 font-bold"
+                      }`}
+                      title="Bold (Ctrl+B)"
+                    >
+                      <Bold size={13} />
                     </button>
 
-                    {/* Blank Width setting */}
-                    <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1.5">
-                      <span className="text-[10px] text-slate-500 mr-1">Blank Size:</span>
-                      <input
-                        type="number"
-                        min="4"
-                        max="30"
-                        value={templateData.input_field_size || 10}
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyFormatToSelection("italic")}
+                      className={`w-6 h-6 flex items-center justify-center rounded text-xs transition ${
+                        templateData.font_italic
+                          ? "bg-blue-100 text-blue-700 ring-1 ring-blue-400 italic"
+                          : "hover:bg-slate-200 text-slate-800 italic"
+                      }`}
+                      title="Italic (Ctrl+I)"
+                    >
+                      <Italic size={13} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyFormatToSelection("underline")}
+                      className={`w-6 h-6 flex items-center justify-center rounded text-xs transition ${
+                        templateData.font_underline
+                          ? "bg-blue-100 text-blue-700 ring-1 ring-blue-400 underline"
+                          : "hover:bg-slate-200 text-slate-800 underline"
+                      }`}
+                      title="Underline (Ctrl+U)"
+                    >
+                      <Underline size={13} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyFormatToSelection("strike")}
+                      className={`w-6 h-6 flex items-center justify-center rounded text-xs transition ${
+                        templateData.font_strikethrough
+                          ? "bg-blue-100 text-blue-700 ring-1 ring-blue-400"
+                          : "hover:bg-slate-200 text-slate-800"
+                      }`}
+                      title="Strikethrough"
+                    >
+                      <Strikethrough size={13} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyFormatToSelection("sub")}
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-800 text-xs transition"
+                      title="Subscript (X₂)"
+                    >
+                      <Subscript size={13} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyFormatToSelection("sup")}
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-800 text-xs transition"
+                      title="Superscript (X²)"
+                    >
+                      <Superscript size={13} />
+                    </button>
+
+                    <div className="h-4 w-px bg-slate-300 mx-0.5" />
+
+                    {/* Text Highlight Color Dropdown */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowHighlightDropdown(!showHighlightDropdown);
+                          setShowFontColorDropdown(false);
+                          setShowCaseDropdown(false);
+                        }}
+                        className={`h-6 px-1 flex items-center gap-0.5 rounded text-slate-800 text-xs transition ${
+                          templateData.font_highlight && templateData.font_highlight !== "transparent"
+                            ? "bg-amber-100 ring-1 ring-amber-400"
+                            : "hover:bg-slate-200"
+                        }`}
+                        title="Text Highlight Color"
+                      >
+                        <Highlighter size={13} className="text-amber-500" />
+                        <div
+                          className="w-2.5 h-1 rounded-xs -mt-1"
+                          style={{
+                            backgroundColor:
+                              templateData.font_highlight && templateData.font_highlight !== "transparent"
+                                ? templateData.font_highlight
+                                : "#facc15",
+                          }}
+                        />
+                        <ChevronDown size={9} className="text-slate-500" />
+                      </button>
+
+                      {showHighlightDropdown && (
+                        <div
+                          className="absolute left-0 top-7 w-44 bg-white border border-slate-300 rounded-md shadow-xl p-2 z-[9999]"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="text-[10px] font-bold text-slate-500 mb-1.5 uppercase">Highlight Color</div>
+                          <div className="grid grid-cols-4 gap-1.5 mb-2">
+                            {[
+                              { name: "Yellow", color: "#fef08a" },
+                              { name: "Green", color: "#bbf7d0" },
+                              { name: "Cyan", color: "#a5f3fc" },
+                              { name: "Pink", color: "#fbcfe8" },
+                              { name: "Orange", color: "#fed7aa" },
+                              { name: "Gray", color: "#e2e8f0" },
+                              { name: "Lavender", color: "#e9d5ff" },
+                              { name: "Blue", color: "#bfdbfe" },
+                            ].map((swatch) => (
+                              <button
+                                key={swatch.color}
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                  setTemplateData((prev) => ({
+                                    ...prev,
+                                    font_highlight: swatch.color,
+                                  }));
+                                  setShowHighlightDropdown(false);
+                                }}
+                                className="w-8 h-6 rounded border border-slate-300 hover:scale-105 transition"
+                                style={{ backgroundColor: swatch.color }}
+                                title={swatch.name}
+                              />
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setTemplateData((prev) => ({
+                                ...prev,
+                                font_highlight: "transparent",
+                              }));
+                              setShowHighlightDropdown(false);
+                            }}
+                            className="w-full text-center py-1 text-[11px] text-slate-600 hover:bg-slate-100 rounded border border-slate-200"
+                          >
+                            No Color
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Font Color Dropdown */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowFontColorDropdown(!showFontColorDropdown);
+                          setShowHighlightDropdown(false);
+                          setShowCaseDropdown(false);
+                        }}
+                        className="h-6 px-1 flex items-center gap-0.5 rounded hover:bg-slate-200 text-slate-800 text-xs transition"
+                        title="Font Color"
+                      >
+                        <Palette size={13} className="text-red-600" />
+                        <div
+                          className="w-2.5 h-1 rounded-xs -mt-1"
+                          style={{
+                            backgroundColor: templateData.font_color || "#dc2626",
+                          }}
+                        />
+                        <ChevronDown size={9} className="text-slate-500" />
+                      </button>
+
+                      {showFontColorDropdown && (
+                        <div
+                          className="absolute left-0 top-7 w-44 bg-white border border-slate-300 rounded-md shadow-xl p-2 z-[9999]"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="text-[10px] font-bold text-slate-500 mb-1.5 uppercase">Theme Colors</div>
+                          <div className="grid grid-cols-5 gap-1.5 mb-2">
+                            {[
+                              { name: "Black", color: "#000000" },
+                              { name: "Dark Slate", color: "#1e293b" },
+                              { name: "Red", color: "#dc2626" },
+                              { name: "Dark Red", color: "#991b1b" },
+                              { name: "Orange", color: "#ea580c" },
+                              { name: "Amber", color: "#d97706" },
+                              { name: "Green", color: "#16a34a" },
+                              { name: "Emerald", color: "#059669" },
+                              { name: "Blue", color: "#2563eb" },
+                              { name: "Navy", color: "#1e3a8a" },
+                              { name: "Purple", color: "#9333ea" },
+                              { name: "Indigo", color: "#4f46e5" },
+                              { name: "Gray", color: "#64748b" },
+                              { name: "Brown", color: "#78350f" },
+                              { name: "Teal", color: "#0d9488" },
+                            ].map((swatch) => (
+                              <button
+                                key={swatch.color}
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                  setTemplateData((prev) => ({
+                                    ...prev,
+                                    font_color: swatch.color,
+                                  }));
+                                  setShowFontColorDropdown(false);
+                                }}
+                                className="w-6 h-6 rounded-full border border-slate-300 hover:scale-110 transition shadow-2xs"
+                                style={{ backgroundColor: swatch.color }}
+                                title={swatch.name}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-[9px] text-slate-400 font-semibold tracking-wider text-center uppercase select-none mt-0.5">
+                  Font & Typography
+                </div>
+              </div>
+
+              {/* Group 3: Paragraph & Alignment */}
+              <div className="flex flex-col justify-between px-2.5 border-r border-slate-200 flex-shrink-0">
+                <div className="flex flex-col gap-1">
+                  {/* Row 1: Bullets, Numbering, Decrease Indent, Increase Indent, Line Spacing, Divider */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyListFormat("bullet")}
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-700 transition"
+                      title="Bullets (•)"
+                    >
+                      <List size={13} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyListFormat("number")}
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-700 transition"
+                      title="Numbering (1. 2. 3.)"
+                    >
+                      <ListOrdered size={13} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyIndent("decrease")}
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-700 transition"
+                      title="Decrease Indent"
+                    >
+                      <Outdent size={13} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => applyIndent("increase")}
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-700 transition"
+                      title="Increase Indent"
+                    >
+                      <Indent size={13} />
+                    </button>
+
+                    <div className="h-4 w-px bg-slate-300 mx-0.5" />
+
+                    <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1" title="Line Spacing">
+                      <span className="text-[9px] text-slate-500 mr-0.5">↕</span>
+                      <select
+                        value={templateData.line_spacing || 1.5}
                         onChange={(e) =>
                           setTemplateData({
                             ...templateData,
-                            input_field_size: Math.min(
-                              Math.max(parseInt(e.target.value) || 10, 4),
-                              30,
-                            ),
+                            line_spacing: parseFloat(e.target.value) || 1.5,
                           })
                         }
-                        className="w-6 text-center text-xs font-bold text-slate-800 bg-transparent outline-none"
-                      />
-                      <span className="text-[9px] text-slate-400">ch</span>
+                        className="text-xs font-semibold text-slate-800 bg-transparent outline-none cursor-pointer"
+                      >
+                        <option value="1.0">1.0</option>
+                        <option value="1.15">1.15</option>
+                        <option value="1.5">1.5</option>
+                        <option value="2.0">2.0</option>
+                        <option value="2.5">2.5</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertTextAtCursor("\n----------------------------------------\n")}
+                      className="h-6 px-1.5 flex items-center gap-1 bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 text-xs"
+                      title="Insert Horizontal Divider Line"
+                    >
+                      <Minus size={13} />
+                      <span className="text-[10px] font-medium">Divider</span>
+                    </button>
+                  </div>
+
+                  {/* Row 2: Document Alignment + Line Alignment */}
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex items-center bg-slate-100 border border-slate-300 rounded p-0.5" title="Document Alignment">
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() =>
+                          setTemplateData({
+                            ...templateData,
+                            middle_alignment: "left",
+                          })
+                        }
+                        className={`p-1 rounded transition ${
+                          templateData.middle_alignment === "left"
+                            ? "bg-blue-600 text-white shadow-2xs"
+                            : "text-slate-700 hover:bg-white"
+                        }`}
+                        title="Align Left (All Text)"
+                      >
+                        <AlignLeft size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() =>
+                          setTemplateData({
+                            ...templateData,
+                            middle_alignment: "center",
+                          })
+                        }
+                        className={`p-1 rounded transition ${
+                          templateData.middle_alignment === "center"
+                            ? "bg-blue-600 text-white shadow-2xs"
+                            : "text-slate-700 hover:bg-white"
+                        }`}
+                        title="Center (All Text)"
+                      >
+                        <AlignCenter size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() =>
+                          setTemplateData({
+                            ...templateData,
+                            middle_alignment: "right",
+                          })
+                        }
+                        className={`p-1 rounded transition ${
+                          templateData.middle_alignment === "right"
+                            ? "bg-blue-600 text-white shadow-2xs"
+                            : "text-slate-700 hover:bg-white"
+                        }`}
+                        title="Align Right (All Text)"
+                      >
+                        <AlignRight size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() =>
+                          setTemplateData({
+                            ...templateData,
+                            middle_alignment: "justify",
+                          })
+                        }
+                        className={`p-1 rounded transition ${
+                          templateData.middle_alignment === "justify"
+                            ? "bg-blue-600 text-white shadow-2xs"
+                            : "text-slate-700 hover:bg-white"
+                        }`}
+                        title="Justify (All Text)"
+                      >
+                        <AlignJustify size={12} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center bg-blue-50/70 border border-blue-200 rounded p-0.5" title="Align Specific Selected Line">
+                      <span className="text-[9px] font-bold text-blue-900 px-1">Line:</span>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => applyLineAlignment("left")}
+                        className="p-1 rounded text-slate-700 hover:bg-white hover:text-blue-600 transition"
+                        title="Format Current Line Left"
+                      >
+                        <AlignLeft size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => applyLineAlignment("center")}
+                        className="p-1 rounded text-slate-700 hover:bg-white hover:text-blue-600 transition"
+                        title="Format Current Line Center"
+                      >
+                        <AlignCenter size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => applyLineAlignment("right")}
+                        className="p-1 rounded text-slate-700 hover:bg-white hover:text-blue-600 transition"
+                        title="Format Current Line Right"
+                      >
+                        <AlignRight size={12} />
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => applyLineAlignment("justify")}
+                        className="p-1 rounded text-slate-700 hover:bg-white hover:text-blue-600 transition"
+                        title="Format Current Line Justify"
+                      >
+                        <AlignJustify size={12} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-[9px] text-slate-400 font-semibold tracking-wider text-center uppercase select-none mt-0.5">
+                  Paragraph & Alignment
+                </div>
+              </div>
+
+              {/* Group 4: Variables & Fillable Blanks (or Dynamic Header Tools) */}
+              <div className="flex flex-col justify-between pl-2.5 flex-1 min-w-0">
+                {editingSection === "header" ? (
+                  <div className="flex flex-col justify-between h-full">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() =>
+                          insertTextAtCursor(
+                            `\n[center][b][size:16]${(selectedCollege?.name || "COLLEGE NAME").toUpperCase()}[/size][/b][/center]`
+                          )
+                        }
+                        className="h-6 px-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 rounded font-semibold text-[11px] whitespace-nowrap"
+                      >
+                        + College Title
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() =>
+                          insertTextAtCursor(
+                            "\n[center][size:10](Approved by AICTE, Affiliated to Andhra University, NAAC 'A+' Grade)[/size][/center]"
+                          )
+                        }
+                        className="h-6 px-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 rounded font-semibold text-[11px] whitespace-nowrap"
+                      >
+                        + Affiliation
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() =>
+                          insertTextAtCursor(
+                            `\n[center][size:9]${selectedCollege?.address || "Kakinada - 533001"} | Phone: ${selectedCollege?.contact || "+91 884 237 9999"}[/size][/center]`
+                          )
+                        }
+                        className="h-6 px-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 rounded font-semibold text-[11px] whitespace-nowrap"
+                      >
+                        + Address
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => headerImageInputRef.current?.click()}
+                        className="h-6 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[11px] flex items-center gap-1 shadow-2xs whitespace-nowrap"
+                        title="Upload or Change College Header Logo"
+                      >
+                        <Image size={12} /> {templateData.header_image_url ? "Change Logo" : "+ Header Logo"}
+                      </button>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => insertTextAtCursor("\n----------------------------------------\n")}
+                        className="h-6 px-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded font-bold text-[11px] whitespace-nowrap"
+                      >
+                        + Divider Line
+                      </button>
+                      <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1.5">
+                        <span className="text-[10px] text-slate-500 mr-1 whitespace-nowrap">Height:</span>
+                        <input
+                          type="number"
+                          min="50"
+                          max="180"
+                          value={templateData.header_height || 80}
+                          onChange={(e) =>
+                            setTemplateData({
+                              ...templateData,
+                              header_height: parseInt(e.target.value) || 80,
+                            })
+                          }
+                          className="w-7 text-center text-xs font-bold outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <span className="text-[9px] text-slate-400 select-none">px</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col justify-between h-full">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowVariableDropdown(!showVariableDropdown);
+                            setShowFontColorDropdown(false);
+                            setShowHighlightDropdown(false);
+                            setShowCaseDropdown(false);
+                          }}
+                          className="h-6 px-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold text-xs flex items-center gap-1 shadow-xs transition whitespace-nowrap"
+                        >
+                          <span>➕ Insert Variable</span>
+                          <ChevronDown size={11} />
+                        </button>
+
+                        {showVariableDropdown && (
+                          <div
+                            className="absolute left-0 top-8 w-72 bg-white rounded-lg shadow-xl border border-blue-200 z-[9999] p-2 space-y-2"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={variableSearchQuery}
+                                onChange={(e) => setVariableSearchQuery(e.target.value)}
+                                placeholder="Search student variables..."
+                                className="w-full px-2.5 py-1 text-xs border border-slate-300 rounded outline-none focus:border-blue-500"
+                                autoFocus
+                              />
+                            </div>
+
+                            <div className="max-h-56 overflow-y-auto space-y-2 text-xs">
+                              {studentVars.length > 0 && (
+                                <div>
+                                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                    🎓 Student Identity
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-1">
+                                    {studentVars.map((v) => (
+                                      <button
+                                        key={v.name}
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                          insertTextAtCursor(`@${v.name} `);
+                                          setShowVariableDropdown(false);
+                                        }}
+                                        className="text-left px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-900 font-medium truncate"
+                                        title={v.label}
+                                      >
+                                        @{v.name}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {academicVars.length > 0 && (
+                                <div>
+                                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                    📚 Academic Details
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-1">
+                                    {academicVars.map((v) => (
+                                      <button
+                                        key={v.name}
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                          insertTextAtCursor(`@${v.name} `);
+                                          setShowVariableDropdown(false);
+                                        }}
+                                        className="text-left px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-medium truncate"
+                                        title={v.label}
+                                      >
+                                        @{v.name}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {personalVars.length > 0 && (
+                                <div>
+                                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                    👤 Personal Info
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-1">
+                                    {personalVars.map((v) => (
+                                      <button
+                                        key={v.name}
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                          insertTextAtCursor(`@${v.name} `);
+                                          setShowVariableDropdown(false);
+                                        }}
+                                        className="text-left px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-900 font-medium truncate"
+                                        title={v.label}
+                                      >
+                                        @{v.name}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {institutionalVars.length > 0 && (
+                                <div>
+                                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                    🏛️ Institutional / Signatures
+                                  </div>
+                                  <div className="grid grid-cols-1 gap-1">
+                                    {institutionalVars.map((v) => (
+                                      <button
+                                        key={v.name}
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => {
+                                          insertTextAtCursor(`@${v.name} `);
+                                          setShowVariableDropdown(false);
+                                        }}
+                                        className="text-left px-2 py-1 rounded bg-purple-50 hover:bg-purple-100 text-purple-900 font-medium truncate"
+                                        title={v.label}
+                                      >
+                                        @{v.name} ({v.label})
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => insertTextAtCursor(" ___ ")}
+                        className="h-6 px-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded font-semibold text-xs text-slate-800 flex items-center gap-1 transition whitespace-nowrap"
+                        title="Insert fillable underline blank (___)"
+                      >
+                        <span>Insert Blank (___)</span>
+                      </button>
+
+                      <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1.5" title="Blank Field Size">
+                        <span className="text-[10px] text-slate-500 mr-1 whitespace-nowrap">Blank Size:</span>
+                        <input
+                          type="number"
+                          min="4"
+                          max="30"
+                          value={templateData.input_field_size || 10}
+                          onChange={(e) =>
+                            setTemplateData({
+                              ...templateData,
+                              input_field_size: Math.min(
+                                Math.max(parseInt(e.target.value) || 10, 4),
+                                30,
+                              ),
+                            })
+                          }
+                          className="w-7 text-center text-xs font-bold text-slate-800 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        />
+                        <span className="text-[9px] text-slate-400 select-none">ch</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {[
+                        { label: "Name", var: "@student_name" },
+                        { label: "PIN", var: "@pin_no" },
+                        { label: "Adm No", var: "@admission_number" },
+                        { label: "Course", var: "@course" },
+                        { label: "Branch", var: "@branch" },
+                        { label: "Year", var: "@academic_year" },
+                        { label: "Father", var: "@father_name" },
+                        { label: "Date", var: "@current_date" },
+                        { label: "Sig", var: "@principal_signature" },
+                      ].map((chip) => (
+                        <button
+                          key={chip.var}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            insertTextAtCursor(`${chip.var} `);
+                          }}
+                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 transition whitespace-nowrap"
+                          title={`Insert ${chip.var}`}
+                        >
+                          +{chip.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
 
-                <div className="text-[9px] text-slate-400 font-medium tracking-wide uppercase">
+                <div className="text-[9px] text-slate-400 font-semibold tracking-wider uppercase select-none mt-0.5">
                   {editingSection === "header"
-                    ? "Dynamic Header Tools (Vector Letterhead)"
+                    ? "Dynamic Header Tools"
                     : "Variables & Fillable Blanks"}
                 </div>
               </div>
@@ -1587,7 +2975,7 @@ const renderStep2 = () => {
 
           {/* TAB 2: INSERT */}
           {activeRibbonTab === "insert" && (
-            <div className="flex items-center gap-3 divide-x divide-slate-200">
+            <div className="flex items-center gap-3 divide-x divide-slate-200 w-full">
               <div className="flex flex-col gap-1 pr-3">
                 <div className="flex items-center gap-1 flex-wrap max-w-xl">
                   {[
@@ -1600,6 +2988,7 @@ const renderStep2 = () => {
                     { label: "Father Name", var: "@father_name" },
                     { label: "Date of Birth", var: "@dob" },
                     { label: "Principal Sig", var: "@principal_signature" },
+                    { label: "Upload Header Logo", isLogo: true },
                     { label: "Current Date", var: "@current_date" },
                   ].map((chip) => (
                     <button
@@ -1650,7 +3039,7 @@ const renderStep2 = () => {
 
           {/* TAB 3: LAYOUT */}
           {activeRibbonTab === "layout" && (
-            <div className="flex items-center gap-3 divide-x divide-slate-200">
+            <div className="flex items-center gap-3 divide-x divide-slate-200 w-full">
               {/* Margins */}
               <div className="flex flex-col gap-1 pr-3">
                 <div className="flex items-center gap-1.5">
@@ -1806,7 +3195,7 @@ const renderStep2 = () => {
 
           {/* TAB 4: VIEW */}
           {activeRibbonTab === "view" && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 w-full">
               <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-300 rounded p-1">
                 <button
                   type="button"
@@ -1983,9 +3372,6 @@ const renderStep2 = () => {
                   paddingRight: `${templateData.padding_right || 40}px`,
                   paddingTop: `${templateData.padding_top || 40}px`,
                   paddingBottom: `${templateData.padding_bottom || 40}px`,
-                  fontFamily:
-                    templateData.font_family ||
-                    "Calibri, 'Segoe UI', Arial, sans-serif",
                 }}
               >
                 {/* Dynamic College Header Section */}
@@ -1995,7 +3381,15 @@ const renderStep2 = () => {
                       ? "p-3 bg-blue-50/40 border-2 border-dashed border-blue-500 rounded-lg shadow-sm"
                       : "pb-2 border-b border-slate-200 cursor-pointer hover:bg-slate-50/80 rounded group"
                   }`}
-                  style={{ minHeight: `${templateData.header_height || 80}px` }}
+                  style={{
+                    minHeight: `${templateData.header_height || 80}px`,
+                    fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif",
+                    fontSize: "12px",
+                    fontWeight: "normal",
+                    fontStyle: "normal",
+                    textDecoration: "none",
+                    color: "#0f172a",
+                  }}
                   onClick={() => {
                     if (editingSection !== "header") setEditingSection("header");
                   }}
@@ -2102,6 +3496,91 @@ const renderStep2 = () => {
                           Reset to College Default
                         </button>
                       </div>
+
+                      {/* Header Image Bar */}
+                      <div className="flex items-center gap-2 pt-2 border-t border-blue-200 flex-wrap text-xs">
+                        <span className="text-[11px] font-bold text-blue-900 flex items-center gap-1">
+                          <Image size={13} className="text-blue-600" /> Header Image / Logo:
+                        </span>
+
+                        <input
+                          type="file"
+                          ref={headerImageInputRef}
+                          onChange={handleHeaderImageUpload}
+                          accept="image/*"
+                          className="hidden"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => headerImageInputRef.current?.click()}
+                          className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[11px] font-bold flex items-center gap-1 shadow-2xs"
+                        >
+                          {templateData.header_image_url ? "Change Image" : "📷 Upload Image"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleUseCollegeLogo}
+                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded text-[11px] font-semibold"
+                        >
+                          Use College Logo
+                        </button>
+
+                        {templateData.header_image_url && (
+                          <div className="flex items-center gap-2 ml-auto">
+                            <div className="flex items-center gap-1 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-[11px]">
+                              <span className="text-slate-500 font-medium">Position:</span>
+                              {["left", "center", "right"].map((pos) => (
+                                <button
+                                  key={pos}
+                                  type="button"
+                                  onClick={() =>
+                                    setTemplateData({
+                                      ...templateData,
+                                      header_image_position: pos,
+                                    })
+                                  }
+                                  className={`px-1.5 py-0.5 rounded capitalize text-[10px] font-bold ${
+                                    (templateData.header_image_position || "left") === pos
+                                      ? "bg-blue-600 text-white"
+                                      : "text-slate-700 hover:bg-slate-100"
+                                  }`}
+                                >
+                                  {pos}
+                                </button>
+                              ))}
+                            </div>
+
+                            <div className="flex items-center gap-1 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-[11px]">
+                              <span className="text-slate-500 font-medium">Height:</span>
+                              <input
+                                type="number"
+                                min="30"
+                                max="150"
+                                value={templateData.header_image_height || 65}
+                                onChange={(e) =>
+                                  setTemplateData({
+                                    ...templateData,
+                                    header_image_height: parseInt(e.target.value) || 65,
+                                  })
+                                }
+                                className="w-8 text-center font-bold outline-none"
+                              />
+                              <span className="text-slate-400">px</span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={handleRemoveHeaderImage}
+                              className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded text-[10px] font-bold flex items-center gap-0.5"
+                              title="Remove header image"
+                            >
+                              <Trash2 size={11} /> Remove Image
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="relative group w-full">
@@ -2129,13 +3608,70 @@ const renderStep2 = () => {
                 >
                   <MentionsInput
                     inputRef={contentInputRef}
+                    onFocus={() => setEditingSection("body")}
                     value={templateData.middle_content}
-                    onChange={(e) =>
-                      setTemplateData({
-                        ...templateData,
-                        middle_content: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (!val || val.trim() === "") {
+                        setTemplateData((prev) => ({
+                          ...prev,
+                          middle_content: "",
+                          font_family: "Calibri",
+                          font_size: 12,
+                          font_bold: false,
+                          font_italic: false,
+                          font_underline: false,
+                          font_strikethrough: false,
+                          font_color: "#0f172a",
+                          font_highlight: "transparent",
+                        }));
+                      } else {
+                        setTemplateData((prev) => ({
+                          ...prev,
+                          middle_content: val,
+                        }));
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      const handled = handleListKeyDown(e, "middle_content");
+                      if (handled) return;
+
+                      if (e.key === "Backspace" || e.key === "Delete") {
+                        const content = templateData.middle_content || "";
+                        const start = e.target.selectionStart;
+                        const end = e.target.selectionEnd;
+                        if (
+                          content.length <= 1 ||
+                          (start === 0 && end >= content.length) ||
+                          content.trim() === ""
+                        ) {
+                          setTemplateData((prev) => ({
+                            ...prev,
+                            middle_content: "",
+                            font_family: "Calibri",
+                            font_size: 12,
+                            font_bold: false,
+                            font_italic: false,
+                            font_underline: false,
+                            font_strikethrough: false,
+                            font_color: "#0f172a",
+                            font_highlight: "transparent",
+                          }));
+                        }
+                      }
+                      if (e.ctrlKey || e.metaKey) {
+                        if (e.key === "b" || e.key === "B") {
+                          e.preventDefault();
+                          setTemplateData((prev) => ({ ...prev, font_bold: !prev.font_bold }));
+                        } else if (e.key === "i" || e.key === "I") {
+                          e.preventDefault();
+                          setTemplateData((prev) => ({ ...prev, font_italic: !prev.font_italic }));
+                        } else if (e.key === "u" || e.key === "U") {
+                          e.preventDefault();
+                          setTemplateData((prev) => ({ ...prev, font_underline: !prev.font_underline }));
+                        }
+                      }
+                    }}
                     onSelect={(e) => {
                       setActiveCursorPos({
                         start: e.target.selectionStart,
@@ -2238,12 +3774,68 @@ const renderStep2 = () => {
                     <MentionsInput
                       inputRef={contentInputRef}
                       value={templateData.middle_content}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          middle_content: e.target.value,
-                        })
-                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (!val || val.trim() === "") {
+                          setTemplateData((prev) => ({
+                            ...prev,
+                            middle_content: "",
+                            font_family: "Calibri",
+                            font_size: 12,
+                            font_bold: false,
+                            font_italic: false,
+                            font_underline: false,
+                            font_strikethrough: false,
+                            font_color: "#0f172a",
+                            font_highlight: "transparent",
+                          }));
+                        } else {
+                          setTemplateData((prev) => ({
+                            ...prev,
+                            middle_content: val,
+                          }));
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        const handled = handleListKeyDown(e, "middle_content");
+                        if (handled) return;
+
+                        if (e.key === "Backspace" || e.key === "Delete") {
+                          const content = templateData.middle_content || "";
+                          const start = e.target.selectionStart;
+                          const end = e.target.selectionEnd;
+                          if (
+                            content.length <= 1 ||
+                            (start === 0 && end >= content.length) ||
+                            content.trim() === ""
+                          ) {
+                            setTemplateData((prev) => ({
+                              ...prev,
+                              middle_content: "",
+                              font_family: "Calibri",
+                              font_size: 12,
+                              font_bold: false,
+                              font_italic: false,
+                              font_underline: false,
+                              font_strikethrough: false,
+                              font_color: "#0f172a",
+                              font_highlight: "transparent",
+                            }));
+                          }
+                        }
+                        if (e.ctrlKey || e.metaKey) {
+                          if (e.key === "b" || e.key === "B") {
+                            e.preventDefault();
+                            setTemplateData((prev) => ({ ...prev, font_bold: !prev.font_bold }));
+                          } else if (e.key === "i" || e.key === "I") {
+                            e.preventDefault();
+                            setTemplateData((prev) => ({ ...prev, font_italic: !prev.font_italic }));
+                          } else if (e.key === "u" || e.key === "U") {
+                            e.preventDefault();
+                            setTemplateData((prev) => ({ ...prev, font_underline: !prev.font_underline }));
+                          }
+                        }
+                      }}
                       onSelect={(e) => {
                         setActiveCursorPos({
                           start: e.target.selectionStart,
@@ -2270,7 +3862,7 @@ const renderStep2 = () => {
                           minHeight: 460,
                         },
                       }}
-                      placeholder="Type certificate text here. Use @ for variables, ___ for blanks."
+                      placeholder={`Type certificate text here directly on this Word page.\n\nTips:\n• Type @ to autocomplete student variables (e.g. @student_name, @father_name, @admission_number, @principal_signature)\n• Type ___ (three underscores) to create fillable blanks\n• Click any Line Alignment button in the toolbar to align that specific line`}
                     >
                       <Mention
                         trigger="@"
@@ -2314,11 +3906,6 @@ const renderStep2 = () => {
                     paddingRight: `${templateData.padding_right || 40}px`,
                     paddingTop: `${templateData.padding_top || 40}px`,
                     paddingBottom: `${templateData.padding_bottom || 40}px`,
-                    fontSize: `${templateData.font_size || 12}px`,
-                    lineHeight: templateData.line_spacing || 1.6,
-                    fontFamily:
-                      templateData.font_family ||
-                      "Calibri, 'Segoe UI', Arial, sans-serif",
                   }}
                 >
                   {/* Dynamic Header */}
@@ -2332,6 +3919,20 @@ const renderStep2 = () => {
                     style={{
                       paddingTop: `${templateData.middle_section_padding || 20}px`,
                       paddingBottom: `${templateData.middle_section_padding || 20}px`,
+                      fontSize: `${templateData.font_size || 12}px`,
+                      lineHeight: templateData.line_spacing || 1.6,
+                      fontFamily:
+                        templateData.font_family ||
+                        "Calibri, 'Segoe UI', Arial, sans-serif",
+                      fontWeight: templateData.font_bold ? "bold" : "normal",
+                      fontStyle: templateData.font_italic ? "italic" : "normal",
+                      textDecoration: [
+                        templateData.font_underline ? "underline" : "",
+                        templateData.font_strikethrough ? "line-through" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ") || "none",
+                      color: templateData.font_color || "#0f172a",
                     }}
                   >
                     {templateData.middle_content ? (
@@ -2391,11 +3992,6 @@ const renderStep2 = () => {
                   paddingRight: `${templateData.padding_right || 40}px`,
                   paddingTop: `${templateData.padding_top || 40}px`,
                   paddingBottom: `${templateData.padding_bottom || 40}px`,
-                  fontSize: `${templateData.font_size || 12}px`,
-                  lineHeight: templateData.line_spacing || 1.6,
-                  fontFamily:
-                    templateData.font_family ||
-                    "Calibri, 'Segoe UI', Arial, sans-serif",
                 }}
               >
                 {/* Dynamic Header */}
@@ -2409,6 +4005,20 @@ const renderStep2 = () => {
                   style={{
                     paddingTop: `${templateData.middle_section_padding || 20}px`,
                     paddingBottom: `${templateData.middle_section_padding || 20}px`,
+                    fontSize: `${templateData.font_size || 12}px`,
+                    lineHeight: templateData.line_spacing || 1.6,
+                    fontFamily:
+                      templateData.font_family ||
+                      "Calibri, 'Segoe UI', Arial, sans-serif",
+                    fontWeight: templateData.font_bold ? "bold" : "normal",
+                    fontStyle: templateData.font_italic ? "italic" : "normal",
+                    textDecoration: [
+                      templateData.font_underline ? "underline" : "",
+                      templateData.font_strikethrough ? "line-through" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ") || "none",
+                    color: templateData.font_color || "#0f172a",
                   }}
                 >
                   {processContentForPreview(

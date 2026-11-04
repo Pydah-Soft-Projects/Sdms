@@ -8,16 +8,32 @@ const generateStudentToken = (studentId, publicationId, subjectName) => {
 
 const resolveStudent = async (studentId) => {
     const [rows] = await masterPool.query(
-        `SELECT s.id, s.college_id, s.section, s.batch, s.current_year, s.current_semester AS semester,
-                c.name AS college_name, COALESCE(cb.name, s.branch) AS branch_name, s.course
+        `SELECT s.id, s.college_id, s.branch_id, s.course_id,
+                s.section, s.batch, s.current_year, s.current_semester AS semester,
+                c.name AS college_name, c.code AS college_code,
+                COALESCE(cb.name, s.branch) AS branch_name,
+                cb.code AS branch_code,
+                s.branch AS raw_branch,
+                COALESCE(co.name, s.course) AS course_name,
+                co.code AS course_code,
+                s.course AS raw_course
          FROM students s
          LEFT JOIN colleges        c  ON c.id  = s.college_id
+         LEFT JOIN courses         co ON co.id = s.course_id
          LEFT JOIN course_branches cb ON cb.id = s.branch_id
          WHERE s.id = ? LIMIT 1`,
         [studentId]
     );
     return rows.length ? rows[0] : null;
 };
+
+const parseJsonSafe = (val) => {
+    if (!val) return null;
+    if (typeof val === 'object') return val;
+    try { return JSON.parse(val); } catch (e) { return null; }
+};
+
+const normSec = (val) => String(val || '').toUpperCase().replace(/^(SEC|SECTION)[\s\-_]*/i, '').trim();
 
 exports.getActivePublications = async (req, res) => {
     try {
@@ -36,92 +52,226 @@ exports.getActivePublications = async (req, res) => {
 
         if (!pubs.length) return res.json({ success: true, data: [], student });
 
-        const studentSection = (student.section || '').trim().toUpperCase();
-        const studentBatch   = String(student.batch || '').trim();
-        const studentYear    = (student.current_year != null) ? Number(student.current_year) : null;
-        const studentSem     = (student.semester != null) ? Number(student.semester) : null;
-        const studentAbsoluteSem = (studentYear && studentSem) ? (studentYear - 1) * 2 + studentSem : null;
-        const studentBranch  = (student.branch_name || '').trim().toUpperCase();
-        const studentCollegeId = student.college_id ? Number(student.college_id) : null;
-        const studentCourse  = (student.course || '').trim().toUpperCase();
+        const studentCollegeId   = student.college_id ? Number(student.college_id) : null;
+        const studentCourseId    = student.course_id ? Number(student.course_id) : null;
+        const studentBranchId    = student.branch_id ? Number(student.branch_id) : null;
 
-        // 1. Publication-level semester filter (if a publication is targeted to a specific semester)
-        const semMatchedPubs = pubs.filter(pub => {
-            if (pub.semester != null && pub.semester !== '') {
-                const pSem = Number(pub.semester);
-                if (studentSem !== null) {
-                    const semWithinYear = ((pSem - 1) % 2) + 1;
-                    const matchesDirect = (pSem === studentSem);
-                    const matchesAbsolute = (studentAbsoluteSem !== null && pSem === studentAbsoluteSem);
-                    const matchesMod = (semWithinYear === studentSem);
-                    if (!matchesDirect && !matchesAbsolute && !matchesMod) return false;
+        const studentCollegeName = (student.college_name || '').trim().toUpperCase();
+        const studentCourseName  = (student.course_name || student.raw_course || '').trim().toUpperCase();
+        const studentBranchName  = (student.branch_name || student.raw_branch || '').trim().toUpperCase();
+        const studentBranchCode  = (student.branch_code || '').trim().toUpperCase();
+
+        const studentSection     = (student.section || '').trim().toUpperCase();
+        const studentBatch       = String(student.batch || '').trim();
+
+        const studentYearRaw = (student.current_year != null && student.current_year !== '') ? Number(student.current_year) : null;
+        const studentSemRaw  = (student.semester != null && student.semester !== '') ? Number(student.semester) : null;
+
+        // Calculate student's absolute semester (1-8), within-year semester (1-2), and year of study (1-4)
+        let studentCalculatedYear = studentYearRaw;
+        let studentWithinYearSem  = null;
+        let studentAbsoluteSem    = null;
+
+        if (studentSemRaw !== null) {
+            if (studentSemRaw > 2) {
+                // Already absolute semester (e.g. sem 3, 4, 5, 6, 7, 8)
+                studentAbsoluteSem = studentSemRaw;
+                studentWithinYearSem = ((studentSemRaw - 1) % 2) + 1;
+                if (!studentCalculatedYear) {
+                    studentCalculatedYear = Math.ceil(studentSemRaw / 2);
                 }
-            }
-            return true;
-        });
-
-        // 2. Deduplicate re-published sessions sharing title, form_id, and academic_year
-        const seenPubKeys = new Set();
-        const uniquePubs = [];
-        for (const pub of semMatchedPubs) {
-            const key = `${pub.form_id}_${(pub.academic_year || '').trim()}_${(pub.title || '').trim().toLowerCase()}`;
-            if (!seenPubKeys.has(key)) {
-                seenPubKeys.add(key);
-                uniquePubs.push(pub);
+            } else if (studentSemRaw >= 1) {
+                // Within-year semester (1 or 2)
+                studentWithinYearSem = studentSemRaw;
+                if (studentCalculatedYear) {
+                    studentAbsoluteSem = (studentCalculatedYear - 1) * 2 + studentSemRaw;
+                } else {
+                    studentAbsoluteSem = studentSemRaw;
+                }
             }
         }
 
-        const filtered = uniquePubs.map(pub => {
-            let subjects = pub.mapped_staff_subjects;
-            try { subjects = typeof subjects === 'string' ? JSON.parse(subjects) : (subjects || []); } catch (e) { subjects = []; }
+        // 1. Publication-Level Target Scoping Filter
+        const scopedPubs = pubs.filter(pub => {
+            // College filter
+            if (pub.college_id && studentCollegeId && Number(pub.college_id) !== studentCollegeId) {
+                return false;
+            }
+            const targetColleges = parseJsonSafe(pub.target_colleges);
+            if (Array.isArray(targetColleges) && targetColleges.length > 0 && studentCollegeId) {
+                const hasMatch = targetColleges.some(c => Number(c?.id || c) === studentCollegeId);
+                if (!hasMatch) return false;
+            }
+
+            // Course filter
+            if (pub.course_id && studentCourseId && Number(pub.course_id) !== studentCourseId) {
+                return false;
+            }
+            const targetCourses = parseJsonSafe(pub.target_courses);
+            if (Array.isArray(targetCourses) && targetCourses.length > 0 && studentCourseId) {
+                const hasMatch = targetCourses.some(c => Number(c?.id || c) === studentCourseId);
+                if (!hasMatch) return false;
+            }
+
+            // Branch filter
+            if (pub.branch_id && studentBranchId && Number(pub.branch_id) !== studentBranchId) {
+                return false;
+            }
+            const targetBranches = parseJsonSafe(pub.target_branches);
+            if (Array.isArray(targetBranches) && targetBranches.length > 0 && studentBranchId) {
+                const hasMatch = targetBranches.some(b => Number(b?.id || b) === studentBranchId);
+                if (!hasMatch) return false;
+            }
+
+            // Target Audience (years of study, batches, sections)
+            const targetAudience = parseJsonSafe(pub.target_audience);
+            if (targetAudience) {
+                if (Array.isArray(targetAudience.yearsOfStudy) && targetAudience.yearsOfStudy.length > 0 && studentCalculatedYear) {
+                    if (!targetAudience.yearsOfStudy.map(Number).includes(studentCalculatedYear)) {
+                        return false;
+                    }
+                }
+                if (Array.isArray(targetAudience.batches) && targetAudience.batches.length > 0 && studentBatch) {
+                    const batchMatch = targetAudience.batches.some(b => {
+                        const bStr = String(b || '').trim();
+                        return bStr === studentBatch || studentBatch.includes(bStr) || bStr.includes(studentBatch);
+                    });
+                    if (!batchMatch) return false;
+                }
+                if (Array.isArray(targetAudience.sections) && targetAudience.sections.length > 0 && studentSection) {
+                    const stNorm = normSec(studentSection);
+                    const secMatch = targetAudience.sections.some(s => {
+                        const sNorm = normSec(s);
+                        return sNorm === 'ALL' || sNorm === stNorm;
+                    });
+                    if (!secMatch) return false;
+                }
+            }
+
+            // Semester filter
+            if (pub.semester != null && pub.semester !== '') {
+                const pSem = Number(pub.semester);
+                if (pSem > 2) {
+                    if (studentAbsoluteSem !== null && pSem !== studentAbsoluteSem) return false;
+                } else if (pSem >= 1) {
+                    if (studentWithinYearSem !== null && pSem !== studentWithinYearSem) return false;
+                }
+            }
+
+            return true;
+        });
+
+        // 2. Map publications and filter mapped subjects strictly for the student
+        const filtered = scopedPubs.map(pub => {
+            const subjects = parseJsonSafe(pub.mapped_staff_subjects) || [];
 
             const relevant = subjects.filter(s => {
-                // Section match (allow empty section on subject or match student's section)
-                const ss = (s.sectionName || s.section || '').trim().toUpperCase();
-                if (ss && studentSection && ss !== studentSection) return false;
+                // College match
+                if (s.collegeId && studentCollegeId && Number(s.collegeId) !== studentCollegeId) {
+                    return false;
+                }
+
+                // Course match (by ID or Course Name)
+                if (s.courseId && studentCourseId && Number(s.courseId) !== studentCourseId) {
+                    return false;
+                }
+                const sCourse = (s.courseName || s.course || '').trim().toUpperCase();
+                if (sCourse && studentCourseName) {
+                    const matchCourse = (sCourse === studentCourseName) ||
+                                        sCourse.includes(studentCourseName) ||
+                                        studentCourseName.includes(sCourse);
+                    if (!matchCourse && !s.courseId) return false;
+                }
+
+                // Branch match (CRITICAL: match by branchId and branchName/code)
+                if (s.branchId && studentBranchId && Number(s.branchId) !== studentBranchId) {
+                    return false;
+                }
+                const sBranch = (s.branchName || s.branch || '').trim().toUpperCase();
+                if (sBranch) {
+                    const branchNames = [
+                        studentBranchName,
+                        studentBranchCode,
+                        (student.raw_branch || '').trim().toUpperCase()
+                    ].filter(Boolean);
+
+                    if (branchNames.length > 0) {
+                        const matchesBranchName = branchNames.some(b => 
+                            sBranch === b || sBranch.includes(b) || b.includes(sBranch)
+                        );
+                        if (!matchesBranchName && !s.branchId) return false;
+                    }
+                }
+
+                // Year of Study Match (CRITICAL: prevents subjects from other years)
+                const sy = (s.yearOfStudy != null && s.yearOfStudy !== '') ? Number(s.yearOfStudy) : null;
+                if (sy !== null && studentCalculatedYear !== null && sy !== studentCalculatedYear) {
+                    return false;
+                }
+
+                // Semester Match (CRITICAL: match absolute or within-year with matching year)
+                const sm = (s.semester != null && s.semester !== '') ? Number(s.semester) : null;
+                if (sm !== null) {
+                    if (studentAbsoluteSem !== null && sm === studentAbsoluteSem) {
+                        // Direct absolute semester match
+                    } else if (sy !== null && studentCalculatedYear !== null && sy === studentCalculatedYear) {
+                        // Same year: match within-year semester (e.g. sem 2 in year 2)
+                        if (studentWithinYearSem !== null && sm === studentWithinYearSem) {
+                            // Matched within-year
+                        } else {
+                            return false;
+                        }
+                    } else if (studentSemRaw !== null && sm === studentSemRaw && (!sy || !studentCalculatedYear || sy === studentCalculatedYear)) {
+                        // Direct semester match when year matches or not specified
+                    } else {
+                        return false;
+                    }
+                }
+
+                // Section match (allow empty/ALL or exact normalized match)
+                const sSec = normSec(s.sectionName || s.section);
+                const stSec = normSec(studentSection);
+                if (sSec && sSec !== 'ALL' && stSec && sSec !== stSec) {
+                    return false;
+                }
 
                 // Batch match
                 const sb = String(s.batch || '').trim();
-                if (sb && studentBatch && sb !== studentBatch) return false;
-
-                // Branch match
-                const sBranch = (s.branchName || s.branch || '').trim().toUpperCase();
-                if (sBranch && studentBranch && sBranch !== studentBranch) return false;
-
-                // College match
-                if (s.collegeId && studentCollegeId && Number(s.collegeId) !== studentCollegeId) return false;
-
-                // Course match (if specified on mapped subject)
-                const sCourse = (s.courseName || s.course || '').trim().toUpperCase();
-                if (sCourse && studentCourse && sCourse !== studentCourse) return false;
-
-                // Year match (if specified on mapped subject)
-                const sy = (s.yearOfStudy != null && s.yearOfStudy !== '') ? Number(s.yearOfStudy) : null;
-                if (sy !== null && studentYear !== null && sy !== studentYear) return false;
-
-                // Semester match (supports within-year 1-2, absolute 1-8, and mod 2)
-                const sm = (s.semester != null && s.semester !== '') ? Number(s.semester) : null;
-                if (sm !== null && studentSem !== null) {
-                    const semWithinYear = ((sm - 1) % 2) + 1;
-                    const matchesDirect = (sm === studentSem);
-                    const matchesAbsolute = (studentAbsoluteSem !== null && sm === studentAbsoluteSem);
-                    const matchesMod = (semWithinYear === studentSem);
-
-                    if (!matchesDirect && !matchesAbsolute && !matchesMod) return false;
+                if (sb && sb.toUpperCase() !== 'ALL' && studentBatch) {
+                    const batchMatches = (sb === studentBatch) ||
+                                         studentBatch.includes(sb) ||
+                                         sb.includes(studentBatch);
+                    if (!batchMatches) return false;
                 }
 
                 return true;
             });
 
+            // Deduplicate mapped subjects within this publication so each subject & faculty appears once
+            const dedupedSubjects = [];
+            const seenSubj = new Set();
+            for (const sub of relevant) {
+                const subKey = `${(sub.subjectCode || '').trim().toLowerCase()}_${(sub.subjectName || '').trim().toLowerCase()}_${(sub.facultyName || '').trim().toLowerCase()}_${normSec(sub.sectionName || sub.section)}`;
+                if (!seenSubj.has(subKey)) {
+                    seenSubj.add(subKey);
+                    dedupedSubjects.push(sub);
+                }
+            }
+
             return {
-                id: pub.id, title: pub.title, formId: pub.form_id,
-                academicYear: pub.academic_year, semester: pub.semester,
-                startDate: pub.start_date, endDate: pub.end_date,
-                mappedStaffSubjects: relevant
+                id: pub.id,
+                title: pub.title,
+                formId: pub.form_id,
+                academicYear: pub.academic_year,
+                semester: pub.semester,
+                startDate: pub.start_date,
+                endDate: pub.end_date,
+                createdAt: pub.created_at,
+                mappedStaffSubjects: dedupedSubjects
             };
         }).filter(p => p.mappedStaffSubjects.length > 0);
 
-        // Check already submitted subjects for this student across publications
+        // 3. Check already submitted subjects for this student across publications
         const pubsWithSubmissions = await Promise.all(filtered.map(async (pub) => {
             const tokenToSubject = {};
             (pub.mappedStaffSubjects || []).forEach(s => {
@@ -153,17 +303,20 @@ exports.getActivePublications = async (req, res) => {
         }));
 
         res.json({
-            success: true, data: pubsWithSubmissions,
+            success: true,
+            data: pubsWithSubmissions,
             student: {
                 id: student.id,
                 college_id: student.college_id,
                 college: student.college_name,
+                branch_id: student.branch_id,
                 branch: student.branch_name,
+                course_id: student.course_id,
+                course: student.course_name || student.course,
                 section: student.section,
                 batch: student.batch,
                 year: student.current_year,
-                semester: student.semester,
-                course: student.course
+                semester: student.semester
             }
         });
     } catch (err) {

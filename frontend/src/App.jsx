@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import useAuthStore from './store/authStore';
 import PortalSwitcher from './components/PortalSwitcher';
@@ -129,7 +129,11 @@ const ParentIdCard = lazy(() => import('./pages/parent/IdCard'));
 // Protected Route Component for Admin
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, userType } = useAuthStore();
-  if (!isAuthenticated) return <Navigate to="/login" />;
+  const location = useLocation();
+  if (!isAuthenticated) {
+    const returnUrl = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?redirect=${returnUrl}`} state={{ from: location }} replace />;
+  }
   if (userType === 'parent') return <Navigate to="/parent/dashboard" replace />;
   if (userType === 'student') return <Navigate to="/student/dashboard" />;
   return children;
@@ -138,7 +142,11 @@ const ProtectedRoute = ({ children }) => {
 // Protected Route Component for Student
 const ProtectedStudentRoute = ({ children }) => {
   const { isAuthenticated, userType } = useAuthStore();
-  if (!isAuthenticated) return <Navigate to="/student/login" />;
+  const location = useLocation();
+  if (!isAuthenticated) {
+    const returnUrl = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/student/login?redirect=${returnUrl}`} state={{ from: location }} replace />;
+  }
   if (userType === 'parent') return <Navigate to="/parent/dashboard" replace />;
   if (userType === 'admin') return <Navigate to="/" />;
   return children;
@@ -146,7 +154,11 @@ const ProtectedStudentRoute = ({ children }) => {
 
 const ProtectedParentRoute = ({ children }) => {
   const { isAuthenticated, userType } = useAuthStore();
-  if (!isAuthenticated) return <Navigate to="/parent/login" />;
+  const location = useLocation();
+  if (!isAuthenticated) {
+    const returnUrl = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/parent/login?redirect=${returnUrl}`} state={{ from: location }} replace />;
+  }
   if (userType === 'student') return <Navigate to="/student/dashboard" replace />;
   if (userType === 'admin') return <Navigate to="/" replace />;
   return children;
@@ -155,7 +167,11 @@ const ProtectedParentRoute = ({ children }) => {
 // Protected Route Component for Faculty (v2.0)
 const ProtectedFacultyRoute = ({ children }) => {
   const { isAuthenticated, user, userType } = useAuthStore();
-  if (!isAuthenticated) return <Navigate to="/login" />;
+  const location = useLocation();
+  if (!isAuthenticated) {
+    const returnUrl = encodeURIComponent(location.pathname + location.search);
+    return <Navigate to={`/login?redirect=${returnUrl}`} state={{ from: location }} replace />;
+  }
   if (userType === 'parent' || user?.role === 'parent') return <Navigate to="/parent/profile" replace />;
   if (user?.role === 'student' || user?.admission_number) return <Navigate to="/student/dashboard" />;
   const isFaculty = user?.role === 'faculty' || user?.role === 'branch_faculty';

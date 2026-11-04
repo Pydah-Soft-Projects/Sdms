@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     RiMessage2Line,
@@ -19,6 +20,9 @@ import {
     RiInformationLine,
     RiSparklingLine,
     RiThumbUpLine,
+    RiNotification3Line,
+    RiCalendarLine,
+    RiStackLine,
 } from 'react-icons/ri';
 import api from '../../config/api';
 import toast from 'react-hot-toast';
@@ -27,7 +31,6 @@ import { SkeletonBox } from '../../components/SkeletonLoader';
 /* ── Helper: Format Title Case ─────────────────────────────────────── */
 const toTitleCase = (str) => {
     if (!str) return '';
-    // If it's short and uppercase like 'CSE' or 'AI', keep it
     if (str.length <= 4 && str === str.toUpperCase()) return str;
 
     const smallWords = new Set(['and', 'or', 'of', 'in', 'on', 'at', 'to', 'for', 'a', 'an', 'the', 'by', '&']);
@@ -164,42 +167,12 @@ const QuestionField = ({ question, value, onChange }) => {
         );
     }
 
-    // Yes / No
-    if (questionType === 'yes_no') {
-        const ynOptions = ['Yes', 'No'];
-        return (
-            <div className="flex items-center gap-2.5 sm:gap-3">
-                {ynOptions.map((opt) => {
-                    const isSelected = String(value || '').toLowerCase() === opt.toLowerCase();
-                    return (
-                        <button
-                            key={opt}
-                            type="button"
-                            onClick={() => onChange(opt)}
-                            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition-all duration-150 flex items-center justify-center gap-1.5 sm:gap-2 select-none ${
-                                isSelected
-                                    ? opt === 'Yes'
-                                        ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-100 ring-2 ring-emerald-500/20'
-                                        : 'bg-rose-600 border-rose-600 text-white shadow-md shadow-rose-100 ring-2 ring-rose-500/20'
-                                    : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                            }`}
-                        >
-                            {isSelected && <RiCheckboxCircleFill size={15} className="text-white shrink-0" />}
-                            <span>{opt}</span>
-                        </button>
-                    );
-                })}
-            </div>
-        );
-    }
-
-    // Text / Textarea / Short Text
-    if (questionType === 'text' || questionType === 'textarea' || questionType === 'short_text') {
-        const isShort = questionType === 'short_text';
+    // Text / Textarea
+    if (questionType === 'text' || questionType === 'textarea') {
         return (
             <div className="space-y-1.5">
                 <textarea
-                    rows={isShort ? 2 : 3}
+                    rows={3}
                     className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all resize-none text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 leading-relaxed"
                     placeholder="Enter your feedback or suggestions here..."
                     value={value || ''}
@@ -214,6 +187,7 @@ const QuestionField = ({ question, value, onChange }) => {
 
 /* ── Main Component ────────────────────────────────────────────────── */
 const StudentFeedback = () => {
+    const [searchParams] = useSearchParams();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [publications, setPublications] = useState([]);
@@ -223,6 +197,10 @@ const StudentFeedback = () => {
     // Search and tab filter
     const [searchQuery, setSearchQuery] = useState('');
     const [activeTab, setActiveTab] = useState('all'); // 'all' | 'pending' | 'completed'
+
+    // Notification-Wise Session State
+    const [selectedPubId, setSelectedPubId] = useState(null);
+    const [viewMode, setViewMode] = useState('single'); // 'single' (focused notification) | 'grouped' (all notifications grouped)
 
     // Form Modal
     const [modalPub, setModalPub] = useState(null);
@@ -258,6 +236,17 @@ const StudentFeedback = () => {
                     });
                 });
                 setSubmittedMap(subMap);
+
+                // Auto-select notification from URL params or default to first/newest session
+                if (pubs.length > 0) {
+                    const paramPubId = Number(searchParams.get('notificationId') || searchParams.get('pubId')) || (typeof window !== 'undefined' ? Number(new URLSearchParams(window.location.search).get('notificationId') || new URLSearchParams(window.location.search).get('pubId')) : null);
+
+                    if (paramPubId && pubs.some((p) => p.id === paramPubId)) {
+                        setSelectedPubId(paramPubId);
+                    } else {
+                        setSelectedPubId((prev) => (prev && pubs.some((p) => p.id === prev) ? prev : pubs[0].id));
+                    }
+                }
             } else {
                 setError(res.data.message || 'Could not load feedback sessions.');
             }
@@ -272,6 +261,13 @@ const StudentFeedback = () => {
     useEffect(() => {
         fetchPublications();
     }, [fetchPublications]);
+
+    useEffect(() => {
+        const paramPubId = Number(searchParams.get('notificationId') || searchParams.get('pubId'));
+        if (paramPubId && publications.some((p) => p.id === paramPubId)) {
+            setSelectedPubId(paramPubId);
+        }
+    }, [searchParams, publications]);
 
     /* ── Submission check helper ── */
     const isSubmitted = useCallback(
@@ -378,24 +374,45 @@ const StudentFeedback = () => {
         return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     };
 
-    /* ── Compute cards and filter lists ── */
-    const allCards = useMemo(() => {
-        return publications.flatMap((pub) =>
-            (pub.mappedStaffSubjects || []).map((subject) => ({ pub, subject }))
-        );
-    }, [publications]);
+    /* ── Compute Per-Notification Statistics ── */
+    const pubStats = useMemo(() => {
+        const map = {};
+        publications.forEach((pub) => {
+            const subjects = pub.mappedStaffSubjects || [];
+            const total = subjects.length;
+            const completed = subjects.filter((s) => isSubmitted(pub, s)).length;
+            const pending = total - completed;
+            const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+            map[pub.id] = { total, completed, pending, rate };
+        });
+        return map;
+    }, [publications, isSubmitted]);
 
-    const totalCount = allCards.length;
-    const completedCount = useMemo(
-        () => allCards.filter(({ pub, subject }) => isSubmitted(pub, subject)).length,
-        [allCards, isSubmitted]
-    );
-    const pendingCount = totalCount - completedCount;
-    const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+    /* ── Active (Selected) Notification Session ── */
+    const activePub = useMemo(() => {
+        if (!publications.length) return null;
+        return publications.find((p) => p.id === selectedPubId) || publications[0];
+    }, [publications, selectedPubId]);
 
-    // Filter by tab & search query
+    /* ── Cards for the Active Notification Session (Zero Duplicates) ── */
+    const activeCards = useMemo(() => {
+        if (!activePub) return [];
+        return (activePub.mappedStaffSubjects || []).map((subject) => ({ pub: activePub, subject }));
+    }, [activePub]);
+
+    const activeStats = useMemo(() => {
+        if (!activePub) return { total: 0, completed: 0, pending: 0, rate: 0 };
+        return pubStats[activePub.id] || { total: 0, completed: 0, pending: 0, rate: 0 };
+    }, [activePub, pubStats]);
+
+    const totalCount = activeStats.total;
+    const completedCount = activeStats.completed;
+    const pendingCount = activeStats.pending;
+    const completionPercentage = activeStats.rate;
+
+    /* ── Filter by tab & search query (within active notification) ── */
     const filteredCards = useMemo(() => {
-        return allCards.filter(({ pub, subject }) => {
+        return activeCards.filter(({ pub, subject }) => {
             const done = isSubmitted(pub, subject);
             if (activeTab === 'pending' && done) return false;
             if (activeTab === 'completed' && !done) return false;
@@ -409,7 +426,7 @@ const StudentFeedback = () => {
             }
             return true;
         });
-    }, [allCards, activeTab, searchQuery, isSubmitted]);
+    }, [activeCards, activeTab, searchQuery, isSubmitted]);
 
     /* ── Loading Skeleton State ── */
     if (loading) {
@@ -469,11 +486,117 @@ const StudentFeedback = () => {
         );
     }
 
+    /* ── Render Course Card ── */
+    const renderCourseCard = (pub, subject, idx) => {
+        const submitted = isSubmitted(pub, subject);
+        const formattedSubject = toTitleCase(subject.subjectName);
+        const formattedFaculty = toTitleCase(subject.facultyName);
+        const initials = getInitials(subject.facultyName);
+
+        return (
+            <motion.div
+                key={`${pub.id}-${subject.subjectName}-${subject.facultyName}`}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.03, duration: 0.25 }}
+                className={`bg-white rounded-xl sm:rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden relative ${
+                    submitted
+                        ? 'border-slate-200/70 opacity-80 hover:opacity-100 hover:border-slate-300'
+                        : 'border-slate-200/90 hover:border-indigo-300 hover:shadow-md'
+                }`}
+            >
+                {/* Card Body */}
+                <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
+                    {/* Badges Row */}
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            {subject.subjectCode && (
+                                <span className="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-100/80 text-indigo-700 font-bold text-[10px] sm:text-[11px] tracking-wide">
+                                    {subject.subjectCode}
+                                </span>
+                            )}
+                            {subject.sectionName && (
+                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] sm:text-[11px]">
+                                    Sec {subject.sectionName}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Status Badge */}
+                        {submitted ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                <RiCheckboxCircleFill size={13} />
+                                Submitted
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                Pending
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Course Title */}
+                    <div>
+                        <h3
+                            className="text-sm sm:text-base font-bold text-slate-900 leading-snug line-clamp-2"
+                            title={subject.subjectName}
+                        >
+                            {formattedSubject}
+                        </h3>
+                    </div>
+
+                    {/* Faculty Details Cardlet */}
+                    <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50/90 border border-slate-100 flex items-center gap-2.5 sm:gap-3">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                            {initials}
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">Faculty Instructor</p>
+                            <p className="text-xs font-bold text-slate-800 truncate" title={subject.facultyName}>
+                                {formattedFaculty}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Due Date specifically matching this publication */}
+                    <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 font-medium">
+                        <RiTimeLine size={13} className="text-slate-400 shrink-0" />
+                        <span>Closes {formatDate(pub.endDate)}</span>
+                    </div>
+                </div>
+
+                {/* Card Footer Button */}
+                <div className="px-4 pb-4 pt-0 sm:px-5 sm:pb-5">
+                    {submitted ? (
+                        <button
+                            type="button"
+                            disabled
+                            className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-default"
+                        >
+                            <RiCheckboxCircleFill size={15} />
+                            Evaluation Completed
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => handleOpenForm(pub, subject)}
+                            className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm flex items-center justify-center gap-2 group cursor-pointer"
+                        >
+                            <span>Give Feedback</span>
+                            <RiArrowRightLine size={15} className="group-hover:translate-x-0.5 transition-transform" />
+                        </button>
+                    )}
+                </div>
+            </motion.div>
+        );
+    };
+
     return (
         <div className="max-w-7xl mx-auto space-y-3.5 sm:space-y-6 px-0 sm:px-4 py-1 sm:py-6 text-slate-800">
             {/* ── Top Header & Context Card ─────────────────────────────────── */}
             <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-3.5 sm:p-6 shadow-xs">
-                {/* Desktop/Tablet Header: Hidden on Mobile per request */}
+                {/* Desktop/Tablet Header */}
                 <div className="hidden sm:flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-6 pb-5 border-b border-slate-100">
                     <div>
                         <div className="flex items-center gap-2.5 mb-1.5">
@@ -485,7 +608,7 @@ const StudentFeedback = () => {
                             </h1>
                             <span className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                Active Session
+                                {publications.length > 1 ? `${publications.length} Active Sessions` : 'Active Session'}
                             </span>
                         </div>
                         <p className="text-sm text-slate-500 max-w-2xl">
@@ -499,7 +622,7 @@ const StudentFeedback = () => {
                         <div className="flex flex-wrap items-center gap-2 bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 sm:px-4 text-xs font-medium text-slate-600">
                             <span className="font-bold text-slate-800">{studentInfo.branch || 'Branch'}</span>
                             <span className="text-slate-300">•</span>
-                            <span>{studentInfo.year ? 'Year ' + studentInfo.year + ' • ' : ''}Sem {studentInfo.semester || '1'}</span>
+                            <span>Sem {studentInfo.semester || '1'}</span>
                             <span className="text-slate-300">•</span>
                             <span className="bg-white px-2 py-0.5 rounded-md border border-slate-200 font-semibold text-slate-700">
                                 Sec {studentInfo.section || 'A'}
@@ -510,11 +633,13 @@ const StudentFeedback = () => {
                     )}
                 </div>
 
-                {/* ── Progress and Stats Bar ───────────────────────────────── */}
+                {/* ── Progress and Stats Bar (Scoped to Active Notification) ── */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <div className="flex items-center justify-between sm:justify-start gap-4 p-3 bg-slate-50/70 rounded-xl border border-slate-100">
                         <div className="text-left">
-                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Courses</p>
+                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                                {publications.length > 1 && viewMode === 'single' ? 'Session Courses' : 'Total Courses'}
+                            </p>
                             <p className="text-lg sm:text-xl font-extrabold text-slate-800">{totalCount}</p>
                         </div>
                         <div className="h-7 w-px bg-slate-200 hidden sm:block mx-auto" />
@@ -533,7 +658,9 @@ const StudentFeedback = () => {
                         <div className="flex justify-between items-center text-xs font-semibold mb-1.5">
                             <span className="text-slate-600 flex items-center gap-1.5 text-[11px] sm:text-xs">
                                 <RiShieldCheckLine className="text-indigo-600" size={14} />
-                                Submission Progress
+                                {publications.length > 1 && viewMode === 'single' && activePub
+                                    ? `${activePub.title} Progress`
+                                    : 'Submission Progress'}
                             </span>
                             <span className="text-indigo-600 font-bold text-[11px] sm:text-xs">{completionPercentage}% Completed</span>
                         </div>
@@ -549,14 +676,154 @@ const StudentFeedback = () => {
                 </div>
             </div>
 
-            {/* ── Search and Filter Controls ─────────────────────────────────── */}
+            {/* ── NOTIFICATION SESSIONS SWITCHER (NOTIFICATION-WISE SEPARATION) ── */}
+            {publications.length > 1 && (
+                <div className="bg-white rounded-xl sm:rounded-2xl border border-indigo-100 p-3.5 sm:p-5 shadow-xs space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                                <RiNotification3Line size={18} />
+                            </div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+                                        Feedback Notifications
+                                    </h2>
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+                                        {publications.length} Active Sessions
+                                    </span>
+                                </div>
+                                <p className="text-[11px] text-slate-500">
+                                    Feedback sessions are organized notification-wise. Select a notification below to complete its evaluations:
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* View Mode Toggle */}
+                        <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200/60 self-start sm:self-auto text-xs">
+                            <button
+                                type="button"
+                                onClick={() => setViewMode('single')}
+                                className={`px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all cursor-pointer ${
+                                    viewMode === 'single'
+                                        ? 'bg-white text-indigo-700 shadow-2xs font-bold'
+                                        : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                                By Notification
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setViewMode('grouped')}
+                                className={`px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all cursor-pointer ${
+                                    viewMode === 'grouped'
+                                        ? 'bg-white text-indigo-700 shadow-2xs font-bold'
+                                        : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                                All Grouped
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Notification Cards Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
+                        {publications.map((pub, idx) => {
+                            const isSelected = selectedPubId === pub.id;
+                            const stats = pubStats[pub.id] || { total: 0, completed: 0, pending: 0, rate: 0 };
+                            const isAllDone = stats.total > 0 && stats.completed === stats.total;
+
+                            return (
+                                <button
+                                    key={pub.id}
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedPubId(pub.id);
+                                        setViewMode('single');
+                                    }}
+                                    className={`p-3 rounded-xl border text-left transition-all duration-150 flex flex-col justify-between relative group cursor-pointer ${
+                                        isSelected && viewMode === 'single'
+                                            ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 shadow-xs'
+                                            : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-slate-300'
+                                    }`}
+                                >
+                                    <div className="space-y-1.5 w-full">
+                                        <div className="flex items-center justify-between gap-1">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                Notification #{idx + 1}
+                                            </span>
+                                            {isAllDone ? (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
+                                                    <RiCheckboxCircleFill size={11} /> All Completed
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/80">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                                    {stats.pending} Pending
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                                            {pub.title}
+                                        </h3>
+
+                                        <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500">
+                                            <RiTimeLine size={12} className="text-slate-400 shrink-0" />
+                                            <span>Active: {formatDate(pub.startDate)} → {formatDate(pub.endDate)}</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] sm:text-[11px] w-full">
+                                        <span className="text-slate-500 font-medium">
+                                            {stats.completed}/{stats.total} Courses Evaluated
+                                        </span>
+                                        <span className={`font-bold ${isSelected && viewMode === 'single' ? 'text-indigo-600' : 'text-slate-700'}`}>
+                                            {stats.rate}%
+                                        </span>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* ── Active Notification Schedule Banner (Single Mode) ── */}
+            {activePub && viewMode === 'single' && (
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-slate-50 to-indigo-50/40 border border-slate-200/80 rounded-xl px-4 py-2.5 text-xs text-slate-600 shadow-2xs">
+                    <div className="flex items-center gap-2">
+                        <RiNotification3Line className="text-indigo-600 shrink-0" size={16} />
+                        <span className="font-semibold text-slate-700">
+                            Active Session: <strong className="text-slate-900 font-bold">{activePub.title}</strong>
+                        </span>
+                        {activePub.semester && (
+                            <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-semibold text-slate-600">
+                                Sem {activePub.semester}
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px]">
+                        <span className="text-slate-400">Validity:</span>
+                        <span className="font-semibold text-slate-800">
+                            {formatDate(activePub.startDate)} – {formatDate(activePub.endDate)}
+                        </span>
+                        <span className="text-slate-300">•</span>
+                        <span className="text-amber-700 font-bold">
+                            Closes {formatDate(activePub.endDate)}
+                        </span>
+                    </div>
+                </div>
+            )}
+
+            {/* ── Search and Filter Controls (Active Notification) ── */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
                 {/* Tabs */}
                 <div className="flex bg-slate-100/90 p-1 rounded-xl border border-slate-200/60 w-full sm:w-auto">
                     <button
                         type="button"
                         onClick={() => setActiveTab('all')}
-                        className={`flex-1 sm:flex-initial text-center px-3 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                        className={`flex-1 sm:flex-initial text-center px-3 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                             activeTab === 'all'
                                 ? 'bg-white text-slate-900 shadow-xs'
                                 : 'text-slate-600 hover:text-slate-900'
@@ -567,7 +834,7 @@ const StudentFeedback = () => {
                     <button
                         type="button"
                         onClick={() => setActiveTab('pending')}
-                        className={`flex-1 sm:flex-initial text-center px-2.5 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                        className={`flex-1 sm:flex-initial text-center px-2.5 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                             activeTab === 'pending'
                                 ? 'bg-white text-amber-700 shadow-xs'
                                 : 'text-slate-600 hover:text-slate-900'
@@ -579,7 +846,7 @@ const StudentFeedback = () => {
                     <button
                         type="button"
                         onClick={() => setActiveTab('completed')}
-                        className={`flex-1 sm:flex-initial text-center px-2.5 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                        className={`flex-1 sm:flex-initial text-center px-2.5 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                             activeTab === 'completed'
                                 ? 'bg-white text-emerald-700 shadow-xs'
                                 : 'text-slate-600 hover:text-slate-900'
@@ -604,7 +871,7 @@ const StudentFeedback = () => {
                         <button
                             type="button"
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
                         >
                             <RiCloseLine size={14} />
                         </button>
@@ -612,8 +879,8 @@ const StudentFeedback = () => {
                 </div>
             </div>
 
-            {/* ── Empty State ──────────────────────────────────────────────── */}
-            {filteredCards.length === 0 && (
+            {/* ── Empty State ── */}
+            {viewMode === 'single' && filteredCards.length === 0 && (
                 <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-8 sm:p-12 text-center max-w-md mx-auto my-4 sm:my-6 shadow-xs">
                     <div className="w-12 h-12 sm:w-14 sm:h-14 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
                         <RiMessage2Line size={24} className="sm:w-7 sm:h-7" />
@@ -625,14 +892,14 @@ const StudentFeedback = () => {
                         {searchQuery
                             ? `No subject or faculty matches "${searchQuery}". Clear your search to see all.`
                             : activeTab === 'pending'
-                            ? 'Great job! You have completed all pending feedback submissions.'
+                            ? 'Great job! You have completed all evaluations for this notification session.'
                             : 'There are no active feedback sessions for your batch and section at this time.'}
                     </p>
                     {searchQuery && (
                         <button
                             type="button"
                             onClick={() => setSearchQuery('')}
-                            className="mt-3.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors"
+                            className="mt-3.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                         >
                             Clear Search
                         </button>
@@ -640,115 +907,85 @@ const StudentFeedback = () => {
                 </div>
             )}
 
-            {/* ── Cards Grid ───────────────────────────────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
-                {filteredCards.map(({ pub, subject }, idx) => {
-                    const submitted = isSubmitted(pub, subject);
-                    const formattedSubject = toTitleCase(subject.subjectName);
-                    const formattedFaculty = toTitleCase(subject.facultyName);
-                    const initials = getInitials(subject.facultyName);
+            {/* ── VIEW MODE: GROUPED (ALL NOTIFICATIONS SEPARATED INTO DISTINCT SECTIONS) ── */}
+            {viewMode === 'grouped' ? (
+                <div className="space-y-6">
+                    {publications.map((pub, pIdx) => {
+                        const stats = pubStats[pub.id] || { total: 0, completed: 0, pending: 0, rate: 0 };
+                        const pubSubjects = (pub.mappedStaffSubjects || []).filter((subject) => {
+                            const done = isSubmitted(pub, subject);
+                            if (activeTab === 'pending' && done) return false;
+                            if (activeTab === 'completed' && !done) return false;
+                            if (searchQuery.trim()) {
+                                const q = searchQuery.toLowerCase();
+                                const subj = (subject.subjectName || '').toLowerCase();
+                                const fac = (subject.facultyName || '').toLowerCase();
+                                const code = (subject.subjectCode || '').toLowerCase();
+                                return subj.includes(q) || fac.includes(q) || code.includes(q);
+                            }
+                            return true;
+                        });
 
-                    return (
-                        <motion.div
-                            key={`${pub.id}-${subject.subjectName}-${subject.facultyName}`}
-                            initial={{ opacity: 0, y: 15 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.03, duration: 0.25 }}
-                            className={`bg-white rounded-xl sm:rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden relative ${
-                                submitted
-                                    ? 'border-slate-200/70 opacity-80 hover:opacity-100 hover:border-slate-300'
-                                    : 'border-slate-200/90 hover:border-indigo-300 hover:shadow-md'
-                            }`}
-                        >
-                            {/* Card Body */}
-                            <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
-                                {/* Badges Row */}
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                        {subject.subjectCode && (
-                                            <span className="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-100/80 text-indigo-700 font-bold text-[10px] sm:text-[11px] tracking-wide">
-                                                {subject.subjectCode}
+                        return (
+                            <div
+                                key={pub.id}
+                                className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-4 sm:p-6 space-y-4 shadow-xs"
+                            >
+                                {/* Notification Group Header */}
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 font-bold text-[10px] tracking-wide uppercase">
+                                                Notification #{pIdx + 1}
                                             </span>
-                                        )}
-                                        {subject.sectionName && (
-                                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] sm:text-[11px]">
-                                                Sec {subject.sectionName}
+                                            <h2 className="text-base sm:text-lg font-extrabold text-slate-900">
+                                                {pub.title}
+                                            </h2>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
+                                            <span className="flex items-center gap-1 font-medium">
+                                                <RiCalendarLine size={13} className="text-slate-400" />
+                                                Active: {formatDate(pub.startDate)} to {formatDate(pub.endDate)}
                                             </span>
-                                        )}
+                                            <span className="text-slate-300">•</span>
+                                            <span className="font-semibold text-amber-700">
+                                                Closes: {formatDate(pub.endDate)}
+                                            </span>
+                                        </div>
                                     </div>
 
-                                    {/* Status Badge */}
-                                    {submitted ? (
-                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
-                                            <RiCheckboxCircleFill size={13} />
-                                            Submitted
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs text-slate-600 font-semibold">
+                                            {stats.completed}/{stats.total} Completed
                                         </span>
-                                    ) : (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                                            Pending
+                                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold">
+                                            {stats.rate}%
                                         </span>
-                                    )}
-                                </div>
-
-                                {/* Course Title */}
-                                <div>
-                                    <h3
-                                        className="text-sm sm:text-base font-bold text-slate-900 leading-snug line-clamp-2"
-                                        title={subject.subjectName}
-                                    >
-                                        {formattedSubject}
-                                    </h3>
-                                </div>
-
-                                {/* Faculty Details Cardlet */}
-                                <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50/90 border border-slate-100 flex items-center gap-2.5 sm:gap-3">
-                                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
-                                        {initials}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">Faculty Instructor</p>
-                                        <p className="text-xs font-bold text-slate-800 truncate" title={subject.facultyName}>
-                                            {formattedFaculty}
-                                        </p>
                                     </div>
                                 </div>
 
-                                {/* Due Date */}
-                                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-400 font-medium">
-                                    <RiTimeLine size={13} className="text-slate-400 shrink-0" />
-                                    <span>Closes {formatDate(pub.endDate)}</span>
-                                </div>
-                            </div>
-
-                            {/* Card Footer Button */}
-                            <div className="px-4 pb-4 pt-0 sm:px-5 sm:pb-5">
-                                {submitted ? (
-                                    <button
-                                        type="button"
-                                        disabled
-                                        className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-default"
-                                    >
-                                        <RiCheckboxCircleFill size={15} />
-                                        Evaluation Completed
-                                    </button>
+                                {/* Cards Grid for this publication */}
+                                {pubSubjects.length === 0 ? (
+                                    <div className="py-6 text-center text-xs text-slate-400">
+                                        No courses match your filter for this notification.
+                                    </div>
                                 ) : (
-                                    <button
-                                        type="button"
-                                        onClick={() => handleOpenForm(pub, subject)}
-                                        className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm flex items-center justify-center gap-2 group cursor-pointer"
-                                    >
-                                        <span>Give Feedback</span>
-                                        <RiArrowRightLine size={15} className="group-hover:translate-x-0.5 transition-transform" />
-                                    </button>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+                                        {pubSubjects.map((subject, idx) => renderCourseCard(pub, subject, idx))}
+                                    </div>
                                 )}
                             </div>
-                        </motion.div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            ) : (
+                /* ── VIEW MODE: SINGLE (ACTIVE NOTIFICATION SESSION - ZERO DUPLICATES) ── */
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+                    {filteredCards.map(({ pub, subject }, idx) => renderCourseCard(pub, subject, idx))}
+                </div>
+            )}
 
-            {/* ── Evaluation Modal ─────────────────────────────────────────── */}
+            {/* ── Evaluation Modal ── */}
             <AnimatePresence>
                 {modalPub && modalSubject && (
                     <div className="fixed inset-0 flex items-end sm:items-center justify-center p-0 sm:p-4 z-50">
@@ -788,7 +1025,7 @@ const StudentFeedback = () => {
                                 <button
                                     type="button"
                                     onClick={handleCloseModal}
-                                    className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 hover:bg-white rounded-xl transition-colors shrink-0"
+                                    className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 hover:bg-white rounded-xl transition-colors shrink-0 cursor-pointer"
                                 >
                                     <RiCloseLine size={20} />
                                 </button>
@@ -848,7 +1085,7 @@ const StudentFeedback = () => {
                                 <button
                                     type="button"
                                     onClick={handleCloseModal}
-                                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs text-slate-500 hover:text-slate-800 hover:bg-white transition-colors"
+                                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs text-slate-500 hover:text-slate-800 hover:bg-white transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>

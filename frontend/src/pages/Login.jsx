@@ -163,15 +163,41 @@ const Login = () => {
     setActiveTab(getTabFromPath());
   }, [location.pathname]);
 
+  const getRedirectDestination = (defaultPath) => {
+    if (location.state?.from) {
+      const from = location.state.from;
+      const fullPath = typeof from === 'string' ? from : (from.pathname + (from.search || ''));
+      if (fullPath && fullPath.startsWith('/') && !fullPath.startsWith('//')) {
+        return fullPath;
+      }
+    }
+    const redirectParam = searchParams.get('redirect');
+    if (redirectParam) {
+      try {
+        const decoded = decodeURIComponent(redirectParam);
+        if (decoded && decoded.startsWith('/') && !decoded.startsWith('//')) {
+          return decoded;
+        }
+      } catch {
+        if (redirectParam.startsWith('/') && !redirectParam.startsWith('//')) {
+          return redirectParam;
+        }
+      }
+    }
+    return defaultPath;
+  };
+
   const switchTab = (tab) => {
     setActiveTab(tab);
     setParentStep('mobile');
     setParentOtp('');
     setSelectionToken(null);
     setLinkedStudents([]);
-    if (tab === 'parent') navigate('/parent/login', { replace: true });
-    else if (tab === 'student') navigate('/student/login', { replace: true });
-    else navigate('/login', { replace: true });
+    const currentRedirect = searchParams.get('redirect');
+    const redirectQuery = currentRedirect ? `?redirect=${encodeURIComponent(currentRedirect)}` : '';
+    if (tab === 'parent') navigate(`/parent/login${redirectQuery}`, { replace: true, state: location.state });
+    else if (tab === 'student') navigate(`/student/login${redirectQuery}`, { replace: true, state: location.state });
+    else navigate(`/login${redirectQuery}`, { replace: true, state: location.state });
   };
 
   const handleSSOLogin = useCallback(async (encryptedToken) => {
@@ -227,7 +253,7 @@ const Login = () => {
       const crmReturnUrl = searchParams.get('crm_url') || searchParams.get('return_url') || CRM_FRONTEND_URL;
       const result = loginFromSSO(token, user, crmReturnUrl);
       toast.success('Login successful!');
-      navigate(result.redirectPath, { replace: true });
+      navigate(getRedirectDestination(result.redirectPath), { replace: true });
     } catch (err) {
       console.error('SSO login error:', err);
       const msg = err.response?.data?.message || err.message || 'SSO login failed';
@@ -253,14 +279,14 @@ const Login = () => {
   useEffect(() => {
     if (isAuthenticated && !isVerifying) {
       if (userType === 'parent') {
-        navigate('/parent/dashboard');
+        navigate(getRedirectDestination('/parent/dashboard'), { replace: true });
       } else if (userType === 'student') {
-        navigate('/student/dashboard');
+        navigate(getRedirectDestination('/student/dashboard'), { replace: true });
       } else {
-        navigate('/');
+        navigate(getRedirectDestination('/'), { replace: true });
       }
     }
-  }, [isAuthenticated, navigate, userType, isVerifying]);
+  }, [isAuthenticated, navigate, userType, isVerifying, location.state, searchParams]);
 
   const handleParentSendOtp = async (e) => {
     e.preventDefault();
@@ -305,7 +331,7 @@ const Login = () => {
         return;
       }
       toast.success('Login successful!');
-      navigate(result.redirectPath);
+      navigate(getRedirectDestination(result.redirectPath), { replace: true });
     } catch {
       toast.error('Verification failed. Please try again.');
     } finally {
@@ -319,7 +345,7 @@ const Login = () => {
       const result = await selectParentStudent(selectionToken, studentId);
       if (result.success) {
         toast.success('Login successful!');
-        navigate(result.redirectPath);
+        navigate(getRedirectDestination(result.redirectPath), { replace: true });
       } else {
         toast.error(result.message);
       }
@@ -349,7 +375,7 @@ const Login = () => {
     setLoading(false);
     if (result.success) {
       toast.success('Login successful!');
-      navigate(result.redirectPath);
+      navigate(getRedirectDestination(result.redirectPath), { replace: true });
     } else {
       toast.error(result.message);
     }

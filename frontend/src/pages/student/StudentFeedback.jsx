@@ -23,6 +23,8 @@ import {
     RiNotification3Line,
     RiCalendarLine,
     RiStackLine,
+    RiLockLine,
+    RiTimerLine,
 } from 'react-icons/ri';
 import api from '../../config/api';
 import toast from 'react-hot-toast';
@@ -73,6 +75,47 @@ const storeToken = (pubId, subjectName, facultyName, token) => {
     if (facultyName) {
         localStorage.setItem(`fb_token_${pubId}_${subjectName}_${facultyName}`, val);
     }
+};
+
+/* ── Live Countdown Helpers ────────────────────────────────────────── */
+const formatDateTimeFull = (iso) => {
+    if (!iso) return '—';
+    try {
+        const d = new Date(iso);
+        return d.toLocaleString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+        });
+    } catch {
+        return String(iso);
+    }
+};
+
+const getCountdownParts = (targetIso, currentMs) => {
+    if (!targetIso) return null;
+    const targetMs = new Date(targetIso).getTime();
+    const diff = targetMs - currentMs;
+    if (diff <= 0) return null;
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+
+    return { days, hours, minutes, seconds, totalMs: diff };
+};
+
+const formatCountdownString = (parts) => {
+    if (!parts) return '';
+    const { days, hours, minutes, seconds } = parts;
+    if (days > 0) {
+        return `${days}d ${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m`;
+    }
+    return `${String(hours).padStart(2, '0')}h ${String(minutes).padStart(2, '0')}m ${String(seconds).padStart(2, '0')}s`;
 };
 
 /* ── Rating descriptions ───────────────────────────────────────────── */
@@ -210,6 +253,25 @@ const StudentFeedback = () => {
     const [responses, setResponses] = useState({});
     const [submitting, setSubmitting] = useState(false);
 
+    // Live Clock for Countdown Timers
+    const [currentTime, setCurrentTime] = useState(Date.now());
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(Date.now()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const isPubScheduled = useCallback(
+        (pub) => {
+            if (!pub) return false;
+            if (pub.status === 'scheduled') return true;
+            if (pub.startDate) {
+                return new Date(pub.startDate).getTime() > currentTime;
+            }
+            return false;
+        },
+        [currentTime]
+    );
+
     /* ── Fetch active publications ── */
     const fetchPublications = useCallback(async () => {
         setLoading(true);
@@ -282,6 +344,12 @@ const StudentFeedback = () => {
 
     /* ── Open form modal ── */
     const handleOpenForm = async (pub, subject) => {
+        if (isPubScheduled(pub)) {
+            const cd = getCountdownParts(pub.startDate, currentTime);
+            const cdStr = cd ? formatCountdownString(cd) : '';
+            toast.error(`This feedback session is scheduled and opens on ${formatDateTimeFull(pub.startDate)} (in ${cdStr || 'due time'}).`);
+            return;
+        }
         if (isSubmitted(pub, subject)) {
             toast.error('Feedback for this subject has already been submitted.');
             return;
@@ -489,6 +557,9 @@ const StudentFeedback = () => {
     /* ── Render Course Card ── */
     const renderCourseCard = (pub, subject, idx) => {
         const submitted = isSubmitted(pub, subject);
+        const scheduled = isPubScheduled(pub);
+        const countdown = scheduled && pub.startDate ? getCountdownParts(pub.startDate, currentTime) : null;
+        const countdownStr = countdown ? formatCountdownString(countdown) : '';
         const formattedSubject = toTitleCase(subject.subjectName);
         const formattedFaculty = toTitleCase(subject.facultyName);
         const initials = getInitials(subject.facultyName);
@@ -502,6 +573,8 @@ const StudentFeedback = () => {
                 className={`bg-white rounded-xl sm:rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden relative ${
                     submitted
                         ? 'border-slate-200/70 opacity-80 hover:opacity-100 hover:border-slate-300'
+                        : scheduled
+                        ? 'border-blue-200/80 hover:border-blue-300 hover:shadow-md'
                         : 'border-slate-200/90 hover:border-indigo-300 hover:shadow-md'
                 }`}
             >
@@ -527,6 +600,11 @@ const StudentFeedback = () => {
                             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
                                 <RiCheckboxCircleFill size={13} />
                                 Submitted
+                            </span>
+                        ) : scheduled ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80">
+                                <RiTimeLine size={13} className="text-blue-600" />
+                                Scheduled
                             </span>
                         ) : (
                             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
@@ -562,7 +640,13 @@ const StudentFeedback = () => {
                     {/* Due Date specifically matching this publication */}
                     <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 font-medium">
                         <RiTimeLine size={13} className="text-slate-400 shrink-0" />
-                        <span>Closes {formatDate(pub.endDate)}</span>
+                        {scheduled ? (
+                            <span className="text-blue-700 font-semibold">
+                                Opens {formatDateTimeFull(pub.startDate)}
+                            </span>
+                        ) : (
+                            <span>Closes {formatDate(pub.endDate)}</span>
+                        )}
                     </div>
                 </div>
 
@@ -576,6 +660,16 @@ const StudentFeedback = () => {
                         >
                             <RiCheckboxCircleFill size={15} />
                             Evaluation Completed
+                        </button>
+                    ) : scheduled ? (
+                        <button
+                            type="button"
+                            disabled
+                            className="w-full py-2.5 px-4 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed shadow-2xs"
+                            title={`This feedback session unlocks on ${formatDateTimeFull(pub.startDate)}`}
+                        >
+                            <RiLockLine size={14} className="text-slate-400" />
+                            <span>Opens in {countdownStr || 'Scheduled Time'}</span>
                         </button>
                     ) : (
                         <button
@@ -606,10 +700,26 @@ const StudentFeedback = () => {
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                                 Academic Feedback
                             </h1>
-                            <span className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                {publications.length > 1 ? `${publications.length} Active Sessions` : 'Active Session'}
-                            </span>
+                            {(() => {
+                                const scheduledCount = publications.filter(isPubScheduled).length;
+                                const activeCount = publications.length - scheduledCount;
+                                if (scheduledCount > 0) {
+                                    return (
+                                        <span className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                                            <RiTimeLine size={13} className="text-blue-600" />
+                                            {activeCount > 0 ? `${activeCount} Active` : ''}
+                                            {activeCount > 0 && scheduledCount > 0 ? ' • ' : ''}
+                                            {scheduledCount} Scheduled
+                                        </span>
+                                    );
+                                }
+                                return (
+                                    <span className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        {publications.length > 1 ? `${publications.length} Active Sessions` : 'Active Session'}
+                                    </span>
+                                );
+                            })()}
                         </div>
                         <p className="text-sm text-slate-500 max-w-2xl">
                             Evaluate teaching performance and syllabus progress for your assigned faculty.
@@ -732,6 +842,9 @@ const StudentFeedback = () => {
                             const isSelected = selectedPubId === pub.id;
                             const stats = pubStats[pub.id] || { total: 0, completed: 0, pending: 0, rate: 0 };
                             const isAllDone = stats.total > 0 && stats.completed === stats.total;
+                            const scheduled = isPubScheduled(pub);
+                            const countdown = scheduled && pub.startDate ? getCountdownParts(pub.startDate, currentTime) : null;
+                            const countdownStr = countdown ? formatCountdownString(countdown) : '';
 
                             return (
                                 <button
@@ -743,7 +856,9 @@ const StudentFeedback = () => {
                                     }}
                                     className={`p-3 rounded-xl border text-left transition-all duration-150 flex flex-col justify-between relative group cursor-pointer ${
                                         isSelected && viewMode === 'single'
-                                            ? 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 shadow-xs'
+                                            ? scheduled
+                                                ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20 shadow-xs'
+                                                : 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 shadow-xs'
                                             : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-slate-300'
                                     }`}
                                 >
@@ -752,7 +867,12 @@ const StudentFeedback = () => {
                                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                                                 Notification #{idx + 1}
                                             </span>
-                                            {isAllDone ? (
+                                            {scheduled ? (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/80">
+                                                    <RiTimeLine size={11} className="text-blue-600 animate-spin" style={{ animationDuration: '6s' }} />
+                                                    {countdownStr ? `Starts in ${countdownStr}` : 'Scheduled'}
+                                                </span>
+                                            ) : isAllDone ? (
                                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
                                                     <RiCheckboxCircleFill size={11} /> All Completed
                                                 </span>
@@ -770,16 +890,29 @@ const StudentFeedback = () => {
 
                                         <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500">
                                             <RiTimeLine size={12} className="text-slate-400 shrink-0" />
-                                            <span>Active: {formatDate(pub.startDate)} → {formatDate(pub.endDate)}</span>
+                                            {scheduled ? (
+                                                <span className="text-blue-700 font-semibold">
+                                                    Opens: {formatDateTimeFull(pub.startDate)}
+                                                </span>
+                                            ) : (
+                                                <span>Active: {formatDate(pub.startDate)} → {formatDate(pub.endDate)}</span>
+                                            )}
                                         </div>
                                     </div>
 
                                     <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] sm:text-[11px] w-full">
-                                        <span className="text-slate-500 font-medium">
-                                            {stats.completed}/{stats.total} Courses Evaluated
-                                        </span>
-                                        <span className={`font-bold ${isSelected && viewMode === 'single' ? 'text-indigo-600' : 'text-slate-700'}`}>
-                                            {stats.rate}%
+                                        {scheduled ? (
+                                            <span className="text-blue-600 font-semibold flex items-center gap-1">
+                                                <RiTimerLine size={12} />
+                                                Live Countdown Active
+                                            </span>
+                                        ) : (
+                                            <span className="text-slate-500 font-medium">
+                                                {stats.completed}/{stats.total} Courses Evaluated
+                                            </span>
+                                        )}
+                                        <span className={`font-bold ${isSelected && viewMode === 'single' ? (scheduled ? 'text-blue-600' : 'text-indigo-600') : 'text-slate-700'}`}>
+                                            {scheduled ? 'Scheduled' : `${stats.rate}%`}
                                         </span>
                                     </div>
                                 </button>
@@ -791,29 +924,110 @@ const StudentFeedback = () => {
 
             {/* ── Active Notification Schedule Banner (Single Mode) ── */}
             {activePub && viewMode === 'single' && (
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-slate-50 to-indigo-50/40 border border-slate-200/80 rounded-xl px-4 py-2.5 text-xs text-slate-600 shadow-2xs">
-                    <div className="flex items-center gap-2">
-                        <RiNotification3Line className="text-indigo-600 shrink-0" size={16} />
-                        <span className="font-semibold text-slate-700">
-                            Active Session: <strong className="text-slate-900 font-bold">{activePub.title}</strong>
-                        </span>
-                        {activePub.semester && (
-                            <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-semibold text-slate-600">
-                                Sem {activePub.semester}
+                isPubScheduled(activePub) ? (() => {
+                    const countdown = getCountdownParts(activePub.startDate, currentTime);
+                    return (
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950 via-slate-900 to-navy-950 text-white p-5 sm:p-6 shadow-lg border border-indigo-500/30">
+                            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+                                <div className="space-y-2 max-w-xl">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
+                                            <RiTimerLine size={14} className="animate-pulse text-amber-300" />
+                                            Scheduled Feedback Session
+                                        </span>
+                                        {activePub.semester && (
+                                            <span className="px-2.5 py-0.5 rounded-md bg-white/10 text-white/90 text-xs font-semibold">
+                                                Semester {activePub.semester}
+                                            </span>
+                                        )}
+                                        {activePub.academicYear && (
+                                            <span className="px-2.5 py-0.5 rounded-md bg-white/10 text-slate-300 text-xs">
+                                                {activePub.academicYear}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                                        {activePub.title}
+                                    </h2>
+                                    <p className="text-xs sm:text-sm text-indigo-200/90 leading-relaxed">
+                                        This feedback evaluation session has been scheduled in advance. You can preview all assigned faculty and subjects below. Feedback forms will unlock automatically when the countdown timer finishes.
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-indigo-200">
+                                        <span className="flex items-center gap-1.5 font-medium">
+                                            <RiCalendarLine size={14} className="text-indigo-400 shrink-0" />
+                                            <span>Starts: <strong className="text-white font-bold">{formatDateTimeFull(activePub.startDate)}</strong></span>
+                                        </span>
+                                        <span className="text-slate-500">•</span>
+                                        <span className="flex items-center gap-1.5 font-medium">
+                                            <RiTimeLine size={14} className="text-indigo-400 shrink-0" />
+                                            <span>Closes: <strong className="text-amber-300 font-bold">{formatDateTimeFull(activePub.endDate)}</strong></span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Live Countdown Boxes */}
+                                {countdown ? (
+                                    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 text-center shrink-0 w-full sm:w-auto shadow-inner">
+                                        <div className="text-[11px] font-extrabold text-amber-300 uppercase tracking-widest mb-3 flex items-center justify-center gap-1.5">
+                                            <RiTimerLine size={14} className="animate-spin" style={{ animationDuration: '8s' }} />
+                                            Submissions Open In
+                                        </div>
+                                        <div className="grid grid-cols-4 gap-2 sm:gap-3 text-center">
+                                            <div className="bg-slate-950/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-white/10">
+                                                <span className="block text-2xl sm:text-3xl font-black text-white tabular-nums">
+                                                    {String(countdown.days).padStart(2, '0')}
+                                                </span>
+                                                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Days</span>
+                                            </div>
+                                            <div className="bg-slate-950/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-white/10">
+                                                <span className="block text-2xl sm:text-3xl font-black text-white tabular-nums">
+                                                    {String(countdown.hours).padStart(2, '0')}
+                                                </span>
+                                                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Hours</span>
+                                            </div>
+                                            <div className="bg-slate-950/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-white/10">
+                                                <span className="block text-2xl sm:text-3xl font-black text-white tabular-nums">
+                                                    {String(countdown.minutes).padStart(2, '0')}
+                                                </span>
+                                                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Mins</span>
+                                            </div>
+                                            <div className="bg-slate-950/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-white/10">
+                                                <span className="block text-2xl sm:text-3xl font-black text-amber-400 tabular-nums animate-pulse">
+                                                    {String(countdown.seconds).padStart(2, '0')}
+                                                </span>
+                                                <span className="text-[9px] font-bold text-amber-300 uppercase tracking-wider">Secs</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : null}
+                            </div>
+                        </div>
+                    );
+                })() : (
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-slate-50 to-indigo-50/40 border border-slate-200/80 rounded-xl px-4 py-2.5 text-xs text-slate-600 shadow-2xs">
+                        <div className="flex items-center gap-2">
+                            <RiNotification3Line className="text-indigo-600 shrink-0" size={16} />
+                            <span className="font-semibold text-slate-700">
+                                Active Session: <strong className="text-slate-900 font-bold">{activePub.title}</strong>
                             </span>
-                        )}
+                            {activePub.semester && (
+                                <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-semibold text-slate-600">
+                                    Sem {activePub.semester}
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px]">
+                            <span className="text-slate-400">Validity:</span>
+                            <span className="font-semibold text-slate-800">
+                                {formatDate(activePub.startDate)} – {formatDate(activePub.endDate)}
+                            </span>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-amber-700 font-bold">
+                                Closes {formatDate(activePub.endDate)}
+                            </span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 text-[11px]">
-                        <span className="text-slate-400">Validity:</span>
-                        <span className="font-semibold text-slate-800">
-                            {formatDate(activePub.startDate)} – {formatDate(activePub.endDate)}
-                        </span>
-                        <span className="text-slate-300">•</span>
-                        <span className="text-amber-700 font-bold">
-                            Closes {formatDate(activePub.endDate)}
-                        </span>
-                    </div>
-                </div>
+                )
             )}
 
             {/* ── Search and Filter Controls (Active Notification) ── */}
@@ -938,6 +1152,11 @@ const StudentFeedback = () => {
                                             <span className="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 font-bold text-[10px] tracking-wide uppercase">
                                                 Notification #{pIdx + 1}
                                             </span>
+                                            {isPubScheduled(pub) && (
+                                                <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold text-[10px] flex items-center gap-1">
+                                                    <RiTimerLine size={12} /> Scheduled
+                                                </span>
+                                            )}
                                             <h2 className="text-base sm:text-lg font-extrabold text-slate-900">
                                                 {pub.title}
                                             </h2>
@@ -945,23 +1164,36 @@ const StudentFeedback = () => {
                                         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
                                             <span className="flex items-center gap-1 font-medium">
                                                 <RiCalendarLine size={13} className="text-slate-400" />
-                                                Active: {formatDate(pub.startDate)} to {formatDate(pub.endDate)}
+                                                {isPubScheduled(pub)
+                                                    ? `Opens: ${formatDateTimeFull(pub.startDate)}`
+                                                    : `Active: ${formatDate(pub.startDate)} to ${formatDate(pub.endDate)}`}
                                             </span>
                                             <span className="text-slate-300">•</span>
                                             <span className="font-semibold text-amber-700">
-                                                Closes: {formatDate(pub.endDate)}
+                                                Closes: {formatDateTimeFull(pub.endDate)}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-xs text-slate-600 font-semibold">
-                                            {stats.completed}/{stats.total} Completed
-                                        </span>
-                                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold">
-                                            {stats.rate}%
-                                        </span>
-                                    </div>
+                                    {isPubScheduled(pub) ? (() => {
+                                        const cd = getCountdownParts(pub.startDate, currentTime);
+                                        const cdStr = cd ? formatCountdownString(cd) : '';
+                                        return (
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold shadow-2xs">
+                                                <RiTimeLine size={13} className="text-blue-600 animate-spin" style={{ animationDuration: '6s' }} />
+                                                Opens in {cdStr || 'due time'}
+                                            </span>
+                                        );
+                                    })() : (
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-xs text-slate-600 font-semibold">
+                                                {stats.completed}/{stats.total} Completed
+                                            </span>
+                                            <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold">
+                                                {stats.rate}%
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Cards Grid for this publication */}

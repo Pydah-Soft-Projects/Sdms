@@ -45,9 +45,9 @@ exports.getActivePublications = async (req, res) => {
         const now = new Date();
         const [pubs] = await academicPool.query(
             `SELECT * FROM ap_feedback_publications
-             WHERE is_active = 1 AND start_date <= ? AND end_date >= ?
-             ORDER BY created_at DESC`,
-            [now, now]
+             WHERE is_active = 1 AND end_date >= ?
+             ORDER BY start_date ASC, created_at DESC`,
+            [now]
         );
 
         if (!pubs.length) return res.json({ success: true, data: [], student });
@@ -258,6 +258,12 @@ exports.getActivePublications = async (req, res) => {
                 }
             }
 
+            const pubStart = new Date(pub.start_date);
+            const pubEnd = new Date(pub.end_date);
+            const isScheduled = pubStart.getTime() > now.getTime();
+            const isClosed = !pub.is_active || pubEnd.getTime() < now.getTime();
+            const status = isClosed ? 'closed' : isScheduled ? 'scheduled' : 'active';
+
             return {
                 id: pub.id,
                 title: pub.title,
@@ -267,6 +273,8 @@ exports.getActivePublications = async (req, res) => {
                 startDate: pub.start_date,
                 endDate: pub.end_date,
                 createdAt: pub.created_at,
+                isScheduled,
+                status,
                 mappedStaffSubjects: dedupedSubjects
             };
         }).filter(p => p.mappedStaffSubjects.length > 0);
@@ -375,12 +383,26 @@ exports.submitFeedback = async (req, res) => {
 
         const now = new Date();
         const [pubs] = await academicPool.query(
-            'SELECT * FROM ap_feedback_publications WHERE id = ? AND is_active = 1 AND start_date <= ? AND end_date >= ? LIMIT 1',
-            [publicationId, now, now]
+            'SELECT * FROM ap_feedback_publications WHERE id = ? AND is_active = 1 LIMIT 1',
+            [publicationId]
         );
-        if (!pubs.length) return res.status(400).json({ success: false, message: 'Session not active' });
+        if (!pubs.length) return res.status(400).json({ success: false, message: 'Feedback session not found or inactive' });
 
         const pub = pubs[0];
+        const pubStart = new Date(pub.start_date);
+        const pubEnd = new Date(pub.end_date);
+        if (pubStart.getTime() > now.getTime()) {
+            return res.status(400).json({
+                success: false,
+                message: `This feedback session is scheduled to start on ${pubStart.toLocaleString('en-IN')}. Submissions will open then.`
+            });
+        }
+        if (pubEnd.getTime() < now.getTime()) {
+            return res.status(400).json({
+                success: false,
+                message: 'This feedback session deadline has passed and is now closed.'
+            });
+        }
         const token = generateStudentToken(studentId, publicationId, subjectName);
 
         conn = await academicPool.pool.getConnection();

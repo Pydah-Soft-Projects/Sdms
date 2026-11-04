@@ -1220,10 +1220,20 @@ const generateTemplatedCertificate = async (
     }
   }
 
+  // Fallback: If no header image is present, check dynamic college header from metadata
+  if (!headerRendered) {
+    if (!processedContent.topContent && collegeDetails?.metadata?.header_content) {
+      processedContent.topContent = collegeDetails.metadata.header_content;
+    } else if (!processedContent.topContent && collegeDetails?.name) {
+      processedContent.topContent = `[center][b][size:16]${collegeDetails.name.toUpperCase()}[/size][/b][/center]\n----------------------------------------`;
+    }
+    currentY = paddingTop + 10;
+  }
+
   // Calculate maximum Y position (content should not overlap footer)
   const maxContentY = pageHeight - footerHeight - 15;
 
-  // Helper function to render text section with justify alignment
+  // Helper function to render text section with justify alignment and dynamic formatting
   const renderSection = (content, yPosition, additionalSpacing = 15) => {
     if (!content || content.trim() === "") return yPosition;
 
@@ -1279,9 +1289,50 @@ const generateTemplatedCertificate = async (
         return;
       }
 
+      // 5.5 Support horizontal divider rules (---, ===, ___)
+      if (/^[-=_*]{3,}$/.test(cleanLine.trim())) {
+        doc.save()
+          .strokeColor("#1e3a8a")
+          .lineWidth(1.2)
+          .moveTo(paddingLeft, y + 4)
+          .lineTo(paddingLeft + contentWidth, y + 4)
+          .stroke();
+        doc.strokeColor("#0f172a")
+          .lineWidth(0.5)
+          .moveTo(paddingLeft, y + 7)
+          .lineTo(paddingLeft + contentWidth, y + 7)
+          .stroke()
+          .restore();
+        y += 14;
+        return;
+      }
+
+      // 5.6 Support inline styles: [b]...[/b], [bold]...[/bold], [size:X]...[/size], [color:#hex]...[/color]
+      let lineFont = "Helvetica";
+      let lineFontSize = fontSize;
+      let lineColor = "#000000";
+
+      const boldMatch = cleanLine.match(/\[(b|bold)\]([\s\S]*?)\[\/\1\]/i);
+      if (boldMatch) {
+        lineFont = "Helvetica-Bold";
+        cleanLine = boldMatch[2];
+      }
+
+      const sizeMatch = cleanLine.match(/\[size:(\d+)\]([\s\S]*?)\[\/size\]/i);
+      if (sizeMatch) {
+        lineFontSize = Math.min(Math.max(parseInt(sizeMatch[1], 10), 7), 28);
+        cleanLine = sizeMatch[2];
+      }
+
+      const colorMatch = cleanLine.match(/\[color:([^\]]+)\]([\s\S]*?)\[\/color\]/i);
+      if (colorMatch) {
+        lineColor = colorMatch[1];
+        cleanLine = colorMatch[2];
+      }
+
       // 6. Check space to prevent footer overlap
       const lineHeight =
-        doc.heightOfString(cleanLine, {
+        doc.font(lineFont).fontSize(lineFontSize).heightOfString(cleanLine, {
           width: contentWidth,
           align: lineAlignment,
           lineGap: lineGap,
@@ -1293,9 +1344,9 @@ const generateTemplatedCertificate = async (
 
       // 7. Render clean, perfectly aligned text
       doc
-        .font("Helvetica")
-        .fontSize(fontSize)
-        .fillColor("#000000")
+        .font(lineFont)
+        .fontSize(lineFontSize)
+        .fillColor(lineColor)
         .text(cleanLine, paddingLeft, y, {
           width: contentWidth,
           align: lineAlignment,

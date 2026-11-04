@@ -891,8 +891,9 @@ exports.downloadCertificate = async (req, res) => {
           return processed;
         };
 
+        const topSource = config.top_content || collegeDetails?.metadata?.header_content || "";
         const processedContent = {
-          topContent: replaceVariables(config.top_content),
+          topContent: replaceVariables(topSource),
           middleContent: replaceVariables(config.middle_content),
           bottomContent: replaceVariables(config.bottom_content),
         };
@@ -1157,8 +1158,9 @@ exports.previewTemplate = async (req, res) => {
           return processed;
         };
 
+        const topSource = config.top_content || collegeDetails?.metadata?.header_content || "";
         const processedContent = {
-          topContent: replaceVariables(config.top_content),
+          topContent: replaceVariables(topSource),
           middleContent: replaceVariables(config.middle_content),
           bottomContent: replaceVariables(config.bottom_content),
         };

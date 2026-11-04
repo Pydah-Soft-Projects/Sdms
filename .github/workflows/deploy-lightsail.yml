@@ -36,6 +36,8 @@ jobs:
           VITE_API_URL: https://sdms-backend.pydah.edu.in
           VITE_TICKET_APP_URL: https://maintenance.pydah.edu.in
           VITE_CRT_APP_URL: https://crt.pydahsoft.in
+          VITE_NEMO_AI_API_URL: https://nemo-ai.pydah.edu.in
+          VITE_NEMO_AI_SERVICE_URL: https://sdms-backend.pydah.edu.in
         run: |
           npm ci
           npm run build

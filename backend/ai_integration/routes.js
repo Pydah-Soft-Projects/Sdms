@@ -330,6 +330,78 @@ const handleGetAiTools = (req, res) => {
           type: 'object',
           properties: {}
         }
+      },
+      {
+        name: 'get_service_requests',
+        description: 'Fetch certificates and student service requests (Study Certificate, Bonafide, Custodian Certificate, Transfer Certificate), application status (pending, approved, completed, rejected), and remarks.',
+        parameters: {
+          type: 'object',
+          properties: {
+            student_id: {
+              type: 'string',
+              description: 'Optional student name, PIN number, or admission number to fetch service requests for.'
+            }
+          }
+        }
+      },
+      {
+        name: 'get_subjects',
+        description: 'Fetch academic curriculum subjects, subject codes, credits, units, max marks, and classification (Theory vs Lab) for a student or specific branch/semester.',
+        parameters: {
+          type: 'object',
+          properties: {
+            student_id: {
+              type: 'string',
+              description: 'Optional student name, PIN, or admission number to auto-resolve their branch and semester subjects.'
+            },
+            semester: {
+              type: 'string',
+              description: 'Optional semester number or name, e.g. "2" or "Semester 4".'
+            },
+            branch_id: {
+              type: 'integer',
+              description: 'Optional branch ID.'
+            }
+          }
+        }
+      },
+      {
+        name: 'get_colleges_and_courses',
+        description: 'Fetch institutional colleges, available academic programs/degrees (B.Tech, Pharmacy, Degree, Diploma), and branches under Pydah Educational Group.',
+        parameters: {
+          type: 'object',
+          properties: {}
+        }
+      },
+      {
+        name: 'get_college_events',
+        description: 'Fetch upcoming campus events, technical fests, workshops, seminars, event date, venue, and registration requirements.',
+        parameters: {
+          type: 'object',
+          properties: {
+            limit: {
+              type: 'integer',
+              description: 'Number of events to retrieve (default: 10).'
+            },
+            event_type: {
+              type: 'string',
+              description: 'Optional event type filter (e.g. "Workshop", "Technical", "Cultural").'
+            }
+          }
+        }
+      },
+      {
+        name: 'get_profile_change_requests',
+        description: 'Fetch student profile change or correction requests (updates to phone, address, personal details) and their approval status.',
+        parameters: {
+          type: 'object',
+          properties: {
+            student_id: {
+              type: 'string',
+              description: 'Optional student name, PIN, or admission number.'
+            }
+          }
+        }
       }
     ];
 
@@ -349,6 +421,31 @@ const handleGetAiTools = (req, res) => {
           type: 'object',
           properties: {}
         }
+      },
+      {
+        name: 'search_students',
+        description: 'Search the student directory by student name, PIN, admission number, branch, or semester (administrative / faculty search).',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Search keyword (student name, PIN, or admission number).'
+            },
+            branch: {
+              type: 'string',
+              description: 'Optional branch filter, e.g. "CSE", "ECE", "MEC".'
+            },
+            semester: {
+              type: 'integer',
+              description: 'Optional semester number filter.'
+            },
+            limit: {
+              type: 'integer',
+              description: 'Number of results to return (default: 10, max: 25).'
+            }
+          }
+        }
       }
     ];
 
@@ -359,6 +456,27 @@ const handleGetAiTools = (req, res) => {
         parameters: {
           type: 'object',
           properties: {}
+        }
+      },
+      {
+        name: 'search_students',
+        description: 'Search the student directory by student name, PIN, admission number, branch, or semester.',
+        parameters: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              description: 'Search keyword (student name, PIN, or admission number).'
+            },
+            branch: {
+              type: 'string',
+              description: 'Optional branch filter.'
+            },
+            semester: {
+              type: 'integer',
+              description: 'Optional semester filter.'
+            }
+          }
         }
       }
     ];
@@ -479,6 +597,18 @@ const handleExecuteTool = async (req, res) => {
         handler = tools.get_student_transport;
       } else if (name.includes('calen') || name.includes('event') || name.includes('holiday')) {
         handler = tools.get_academic_calendar;
+      } else if (name.includes('service') || name.includes('certif') || name.includes('bonafide') || name.includes('custodian')) {
+        handler = tools.get_service_requests;
+      } else if (name.includes('subject') || name.includes('curricul') || name.includes('syllab')) {
+        handler = tools.get_subjects;
+      } else if (name.includes('college') || name.includes('course') || name.includes('branch') || name.includes('program')) {
+        handler = tools.get_colleges_and_courses;
+      } else if (name.includes('event') || name.includes('fest') || name.includes('workshop')) {
+        handler = tools.get_college_events;
+      } else if (name.includes('change') || (name.includes('profile') && name.includes('request'))) {
+        handler = tools.get_profile_change_requests;
+      } else if (name.includes('search') || name.includes('find_student') || name.includes('directory')) {
+        handler = tools.search_students;
       } else if (name.includes('club') && (name.includes('member') || name.includes('student') || name.includes('enroll') || name.includes('join'))) {
         handler = tools.get_club_members;
       } else if (name.includes('club') && (name.includes('activit') || name.includes('event') || name.includes('hackathon') || name.includes('workshop'))) {

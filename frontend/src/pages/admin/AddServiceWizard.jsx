@@ -116,9 +116,11 @@ const AddServiceWizard = () => {
   const [redoStack, setRedoStack] = useState([]);
 
   const contentInputRef = React.useRef(null);
+  const contentEditableRef = React.useRef(null);
   const headerInputRef = React.useRef(null);
   const [activeCursorPos, setActiveCursorPos] = useState({ start: 0, end: 0 });
   const [activeHeaderCursorPos, setActiveHeaderCursorPos] = useState({ start: 0, end: 0 });
+  const lastValidSelectionRef = React.useRef({ start: 0, end: 0, field: "middle_content", section: "body" });
 
   const headerImageInputRef = React.useRef(null);
 
@@ -129,14 +131,20 @@ const AddServiceWizard = () => {
     // 1. Check if user is explicitly editing the header
     if (editingSection === "header") {
       const ta = headerInputRef.current;
-      const start =
-        ta && typeof ta.selectionStart === "number" && ta.selectionStart !== ta.selectionEnd
-          ? ta.selectionStart
-          : activeHeaderCursorPos.start;
-      const end =
-        ta && typeof ta.selectionEnd === "number" && ta.selectionStart !== ta.selectionEnd
-          ? ta.selectionEnd
-          : activeHeaderCursorPos.end;
+      let start = activeHeaderCursorPos.start;
+      let end = activeHeaderCursorPos.end;
+
+      if (ta && typeof ta.selectionStart === "number" && ta.selectionStart !== ta.selectionEnd) {
+        start = ta.selectionStart;
+        end = ta.selectionEnd;
+      } else if (
+        lastValidSelectionRef.current.section === "header" &&
+        lastValidSelectionRef.current.start !== lastValidSelectionRef.current.end
+      ) {
+        start = lastValidSelectionRef.current.start;
+        end = lastValidSelectionRef.current.end;
+      }
+
       return {
         field: "top_content",
         textarea: ta,
@@ -154,6 +162,12 @@ const AddServiceWizard = () => {
     if (ta && typeof ta.selectionStart === "number" && ta.selectionStart !== ta.selectionEnd) {
       start = ta.selectionStart;
       end = ta.selectionEnd;
+    } else if (
+      lastValidSelectionRef.current.section === "body" &&
+      lastValidSelectionRef.current.start !== lastValidSelectionRef.current.end
+    ) {
+      start = lastValidSelectionRef.current.start;
+      end = lastValidSelectionRef.current.end;
     }
 
     return {
@@ -176,10 +190,12 @@ const AddServiceWizard = () => {
 
     const handleBodySelect = () => {
       setEditingSection("body");
-      setActiveCursorPos({
-        start: textarea.selectionStart,
-        end: textarea.selectionEnd,
-      });
+      const s = textarea.selectionStart;
+      const e = textarea.selectionEnd;
+      setActiveCursorPos({ start: s, end: e });
+      if (typeof s === "number" && typeof e === "number" && s !== e) {
+        lastValidSelectionRef.current = { start: s, end: e, field: "middle_content", section: "body" };
+      }
     };
 
     textarea.addEventListener("select", handleBodySelect);
@@ -203,10 +219,12 @@ const AddServiceWizard = () => {
 
     const handleHeaderSelect = () => {
       setEditingSection("header");
-      setActiveHeaderCursorPos({
-        start: textarea.selectionStart,
-        end: textarea.selectionEnd,
-      });
+      const s = textarea.selectionStart;
+      const e = textarea.selectionEnd;
+      setActiveHeaderCursorPos({ start: s, end: e });
+      if (typeof s === "number" && typeof e === "number" && s !== e) {
+        lastValidSelectionRef.current = { start: s, end: e, field: "top_content", section: "header" };
+      }
     };
 
     textarea.addEventListener("select", handleHeaderSelect);
@@ -278,30 +296,41 @@ const AddServiceWizard = () => {
   };
 
   const insertTextAtCursor = (textToInsert) => {
-    const { field, textarea, start, end, section } = getActiveTarget();
-    const content = templateData[field] || "";
+    if (editingSection === "header") {
+      const ta = headerInputRef.current;
+      if (!ta) return;
+      const start = ta.selectionStart || 0;
+      const end = ta.selectionEnd || 0;
+      const current = templateData.top_content || "";
+      const updated = current.substring(0, start) + textToInsert + current.substring(end);
+      setTemplateData((prev) => ({ ...prev, top_content: updated }));
+      setTimeout(() => {
+        ta.focus();
+        ta.setSelectionRange(start + textToInsert.length, start + textToInsert.length);
+      }, 0);
+      return;
+    }
 
-    setUndoStack((prev) => [...prev.slice(-20), content]);
-    setRedoStack([]);
-
-    const newContent = content.substring(0, start) + textToInsert + content.substring(end);
-    setTemplateData((prev) => ({
-      ...prev,
-      [field]: newContent,
-    }));
-
-    setTimeout(() => {
-      if (textarea) {
-        textarea.focus();
-        const nextPos = start + textToInsert.length;
-        textarea.setSelectionRange(nextPos, nextPos);
-        if (section === "header") {
-          setActiveHeaderCursorPos({ start: nextPos, end: nextPos });
-        } else {
-          setActiveCursorPos({ start: nextPos, end: nextPos });
-        }
+    const ed = contentEditableRef.current;
+    if (ed) {
+      ed.focus();
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && ed.contains(sel.anchorNode)) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents();
+        const textNode = document.createTextNode(textToInsert);
+        range.insertNode(textNode);
+        range.setStartAfter(textNode);
+        range.setEndAfter(textNode);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else {
+        const textNode = document.createTextNode(textToInsert);
+        ed.appendChild(textNode);
       }
-    }, 50);
+      const bbcode = htmlToBbcode(ed.innerHTML);
+      setTemplateData((prev) => ({ ...prev, middle_content: bbcode }));
+    }
   };
 
   // Unicode Subscript and Superscript Maps for Microsoft Word text behavior
@@ -393,6 +422,50 @@ const AddServiceWizard = () => {
     }
   };
 
+  const bbcodeToHtml = (str) => {
+    if (!str) return "";
+    let html = str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    html = html
+      .replace(/\[font:([^\]]+)\]([\s\S]*?)\[\/font\]/gi, '<span style="font-family: $1;">$2</span>')
+      .replace(/\[(?:b|bold)\]([\s\S]*?)\[\/(?:b|bold)\]/gi, "<strong>$1</strong>")
+      .replace(/\[(?:i|italic)\]([\s\S]*?)\[\/(?:i|italic)\]/gi, "<em>$1</em>")
+      .replace(/\[(?:u|underline)\]([\s\S]*?)\[\/(?:u|underline)\]/gi, '<span style="text-decoration: underline;">$1</span>')
+      .replace(/\[(?:s|strike)\]([\s\S]*?)\[\/(?:s|strike)\]/gi, "<del>$1</del>")
+      .replace(/\[sub\]([\s\S]*?)\[\/sub\]/gi, "<sub>$1</sub>")
+      .replace(/\[sup\]([\s\S]*?)\[\/sup\]/gi, "<sup>$1</sup>")
+      .replace(/\[size:(\d+(?:\.\d+)?)\]([\s\S]*?)\[\/size\]/gi, '<span style="font-size: $1px;">$2</span>')
+      .replace(/\[color:([^\]]+)\]([\s\S]*?)\[\/color\]/gi, '<span style="color: $1;">$2</span>')
+      .replace(/\[highlight:([^\]]+)\]([\s\S]*?)\[\/highlight\]/gi, '<span style="background-color: $1;">$2</span>');
+
+    const lines = html.split("\n");
+    return lines.map((l) => (l.trim() === "" ? "<div><br></div>" : `<div>${l}</div>`)).join("");
+  };
+
+  const htmlToBbcode = (html) => {
+    if (!html) return "";
+    let out = html
+      .replace(/<span style="font-family:\s*([^;"]+);?">([\s\S]*?)<\/span>/gi, "[font:$1]$2[/font]")
+      .replace(/<font face="([^"]+)">([\s\S]*?)<\/font>/gi, "[font:$1]$2[/font]")
+      .replace(/<(?:strong|b)>([\s\S]*?)<\/(?:strong|b)>/gi, "[b]$1[/b]")
+      .replace(/<(?:em|i)>([\s\S]*?)<\/(?:em|i)>/gi, "[i]$1[/i]")
+      .replace(/<span style="text-decoration:\s*underline;?">([\s\S]*?)<\/span>/gi, "[u]$1[/u]")
+      .replace(/<u>([\s\S]*?)<\/u>/gi, "[u]$1[/u]")
+      .replace(/<(?:del|s|strike)>([\s\S]*?)<\/(?:del|s|strike)>/gi, "[s]$1[/s]")
+      .replace(/<span style="font-size:\s*(\d+)px;?">([\s\S]*?)<\/span>/gi, "[size:$1]$2[/size]")
+      .replace(/<span style="color:\s*([^;"]+);?">([\s\S]*?)<\/span>/gi, "[color:$1]$2[/color]")
+      .replace(/<font color="([^"]+)">([\s\S]*?)<\/font>/gi, "[color:$1]$2[/color]")
+      .replace(/<span style="background-color:\s*([^;"]+);?">([\s\S]*?)<\/span>/gi, "[highlight:$1]$2[/highlight]")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<div>\s*<br\s*\/?>\s*<\/div>/gi, "\n")
+      .replace(/<div>([\s\S]*?)<\/div>/gi, "\n$1")
+      .replace(/<p>([\s\S]*?)<\/p>/gi, "\n$1");
+    return out.replace(/^\n/, "").replace(/\n$/, "").replace(/\r/g, "");
+  };
+
   // Extract active styles and strip all raw BBCode tags
   const extractAndStripTags = (text) => {
     if (!text) return { text: "", updates: {} };
@@ -435,29 +508,106 @@ const AddServiceWizard = () => {
     );
   };
 
-  // Direct formatting handler: updates document/section styles like Microsoft Word without inserting code tags
+  // Formatting handler: executes direct WYSIWYG commands without displaying code tags
   const applyFormatToSelection = (formatType, value = null) => {
-    if (formatType === "bold") {
-      setTemplateData((prev) => ({ ...prev, font_bold: !prev.font_bold }));
-    } else if (formatType === "italic") {
-      setTemplateData((prev) => ({ ...prev, font_italic: !prev.font_italic }));
-    } else if (formatType === "underline") {
-      setTemplateData((prev) => ({ ...prev, font_underline: !prev.font_underline }));
-    } else if (formatType === "strike") {
-      setTemplateData((prev) => ({ ...prev, font_strikethrough: !prev.font_strikethrough }));
-    } else if (formatType === "size") {
-      setTemplateData((prev) => ({ ...prev, font_size: value }));
-    } else if (formatType === "font") {
-      setTemplateData((prev) => ({ ...prev, font_family: value }));
-    } else if (formatType === "color") {
-      setTemplateData((prev) => ({ ...prev, font_color: value }));
-    } else if (formatType === "highlight") {
-      setTemplateData((prev) => ({ ...prev, font_highlight: value }));
-    } else if (formatType === "sub") {
-      applySubscript();
-    } else if (formatType === "sup") {
-      applySuperscript();
+    if (editingSection === "header") {
+      const { field, textarea, start, end } = getActiveTarget();
+      const content = templateData[field] || "";
+      const hasSelection = start !== end;
+      if (hasSelection) {
+        const selText = content.substring(start, end);
+        let rep = selText;
+        if (formatType === "bold") rep = `[b]${selText}[/b]`;
+        else if (formatType === "italic") rep = `[i]${selText}[/i]`;
+        else if (formatType === "underline") rep = `[u]${selText}[/u]`;
+        else if (formatType === "size") rep = `[size:${value}]${selText}[/size]`;
+        else if (formatType === "font") rep = `[font:${value}]${selText}[/font]`;
+        else if (formatType === "color") rep = `[color:${value}]${selText}[/color]`;
+        const updated = content.substring(0, start) + rep + content.substring(end);
+        setTemplateData((prev) => ({ ...prev, [field]: updated }));
+      }
+      return;
     }
+
+    // Word Canvas direct WYSIWYG editing
+    const ed = contentEditableRef.current;
+    if (!ed) return;
+    ed.focus();
+
+    const sel = window.getSelection();
+    const hasSelection = sel && !sel.isCollapsed && sel.rangeCount > 0 && ed.contains(sel.anchorNode);
+
+    if (!hasSelection) {
+      if (formatType === "bold") {
+        setTemplateData((prev) => ({ ...prev, font_bold: !prev.font_bold }));
+      } else if (formatType === "italic") {
+        setTemplateData((prev) => ({ ...prev, font_italic: !prev.font_italic }));
+      } else if (formatType === "underline") {
+        setTemplateData((prev) => ({ ...prev, font_underline: !prev.font_underline }));
+      } else if (formatType === "strike") {
+        setTemplateData((prev) => ({ ...prev, font_strikethrough: !prev.font_strikethrough }));
+      } else if (formatType === "size") {
+        setTemplateData((prev) => ({ ...prev, font_size: value }));
+      } else if (formatType === "size_step") {
+        setTemplateData((prev) => ({
+          ...prev,
+          font_size: Math.min(Math.max((prev.font_size || 12) + value, 8), 36),
+        }));
+      } else if (formatType === "font") {
+        setTemplateData((prev) => ({ ...prev, font_family: value }));
+      } else if (formatType === "color") {
+        setTemplateData((prev) => ({ ...prev, font_color: value }));
+      } else if (formatType === "highlight") {
+        setTemplateData((prev) => ({ ...prev, font_highlight: value }));
+      }
+      return;
+    }
+
+    // Native WYSIWYG formatting without code tags
+    if (formatType === "bold") {
+      document.execCommand("bold", false, null);
+    } else if (formatType === "italic") {
+      document.execCommand("italic", false, null);
+    } else if (formatType === "underline") {
+      document.execCommand("underline", false, null);
+    } else if (formatType === "strike") {
+      document.execCommand("strikeThrough", false, null);
+    } else if (formatType === "sub") {
+      document.execCommand("subscript", false, null);
+    } else if (formatType === "sup") {
+      document.execCommand("superscript", false, null);
+    } else if (formatType === "font") {
+      document.execCommand("fontName", false, value);
+    } else if (formatType === "color") {
+      document.execCommand("foreColor", false, value);
+    } else if (formatType === "highlight") {
+      document.execCommand("hiliteColor", false, value === "transparent" ? "inherit" : value);
+    } else if (formatType === "size") {
+      const range = sel.getRangeAt(0);
+      const span = document.createElement("span");
+      span.style.fontSize = `${value}px`;
+      span.appendChild(range.extractContents());
+      range.insertNode(span);
+      sel.removeAllRanges();
+      const newRange = document.createRange();
+      newRange.selectNodeContents(span);
+      sel.addRange(newRange);
+    } else if (formatType === "size_step") {
+      const range = sel.getRangeAt(0);
+      const span = document.createElement("span");
+      const curSize = templateData.font_size || 12;
+      const newSize = Math.min(Math.max(curSize + value, 8), 36);
+      span.style.fontSize = `${newSize}px`;
+      span.appendChild(range.extractContents());
+      range.insertNode(span);
+      sel.removeAllRanges();
+      const newRange = document.createRange();
+      newRange.selectNodeContents(span);
+      sel.addRange(newRange);
+    }
+
+    const bbcode = htmlToBbcode(ed.innerHTML);
+    setTemplateData((prev) => ({ ...prev, middle_content: bbcode }));
   };
 
   const applyTextWrapTag = (openTag, closeTag, placeholder = "") => {
@@ -514,54 +664,18 @@ const AddServiceWizard = () => {
   };
 
   const applyListFormat = (type) => {
-    const { field, textarea, start: selStart, end: selEnd } = getActiveTarget();
-    const content = templateData[field] || "";
-
-    const lines = content.length === 0 ? [""] : content.split("\n");
-
-    setUndoStack((prev) => [...prev.slice(-20), content]);
-    setRedoStack([]);
-
-    const textBeforeStart = content.slice(0, selStart);
-    const startLineIdx = textBeforeStart.split("\n").length - 1;
-    const textBeforeEnd = content.slice(0, selEnd);
-    const endLineIdx = textBeforeEnd.split("\n").length - 1;
-
-    let numCounter = 1;
-    const newLines = lines.map((line, idx) => {
-      if (idx >= startLineIdx && idx <= endLineIdx) {
-        if (type === "bullet") {
-          if (/^\s*[•*]\s*/.test(line)) {
-            return line.replace(/^\s*[•*]\s*/, "");
-          }
-          return `• ${line}`;
-        } else if (type === "number") {
-          if (/^\s*\d+[.)]\s*/.test(line)) {
-            return line.replace(/^\s*\d+[.)]\s*/, "");
-          }
-          const formatted = `${numCounter}. ${line}`;
-          numCounter++;
-          return formatted;
-        }
+    if (editingSection === "header") return;
+    const ed = contentEditableRef.current;
+    if (ed) {
+      ed.focus();
+      if (type === "bullet") {
+        document.execCommand("insertUnorderedList", false, null);
+      } else if (type === "number") {
+        document.execCommand("insertOrderedList", false, null);
       }
-      return line;
-    });
-
-    const newContent = newLines.join("\n");
-    setTemplateData((prev) => ({
-      ...prev,
-      [field]: newContent,
-    }));
-
-    setTimeout(() => {
-      if (textarea) {
-        textarea.focus();
-        const diff = newContent.length - content.length;
-        const newStart = Math.min(newContent.length, Math.max(0, selStart + diff));
-        const newEnd = Math.min(newContent.length, Math.max(0, selEnd + diff));
-        textarea.setSelectionRange(newStart, newEnd);
-      }
-    }, 10);
+      const bbcode = htmlToBbcode(ed.innerHTML);
+      setTemplateData((prev) => ({ ...prev, middle_content: bbcode }));
+    }
   };
 
   const handleListKeyDown = (e, fieldName = "middle_content") => {
@@ -722,18 +836,17 @@ const AddServiceWizard = () => {
   };
 
   const toggleCase = (caseType) => {
-    const { field, textarea, start, end } = getActiveTarget();
-    const content = templateData[field] || "";
-
-    if (start === end) {
+    if (editingSection === "header") return;
+    const ed = contentEditableRef.current;
+    if (!ed) return;
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !ed.contains(sel.anchorNode)) {
       toast("Select text first to change case", { icon: "ℹ️" });
       return;
     }
+    const selectedText = sel.toString();
+    if (!selectedText) return;
 
-    setUndoStack((prev) => [...prev.slice(-20), content]);
-    setRedoStack([]);
-
-    const selectedText = content.substring(start, end);
     let converted = selectedText;
     if (caseType === "upper") {
       converted = selectedText.toUpperCase();
@@ -745,41 +858,44 @@ const AddServiceWizard = () => {
       converted = selectedText.charAt(0).toUpperCase() + selectedText.slice(1).toLowerCase();
     }
 
-    const newContent = content.substring(0, start) + converted + content.substring(end);
-    setTemplateData((prev) => ({
-      ...prev,
-      [field]: newContent,
-    }));
+    document.execCommand("insertText", false, converted);
+    const bbcode = htmlToBbcode(ed.innerHTML);
+    setTemplateData((prev) => ({ ...prev, middle_content: bbcode }));
     setShowCaseDropdown(false);
-    setTimeout(() => {
-      if (textarea) {
-        textarea.focus();
-        textarea.setSelectionRange(start, start + converted.length);
-      }
-    }, 50);
   };
 
   const clearFormatting = () => {
-    const { field, textarea, start, end } = getActiveTarget();
-    const content = templateData[field] || "";
-
-    setUndoStack((prev) => [...prev.slice(-20), content]);
-    setRedoStack([]);
-
-    const cleaned = cleanAllTagsFromText(content);
-    setTemplateData((prev) => ({
-      ...prev,
-      [field]: cleaned,
-      font_family: "Calibri",
-      font_size: 12,
-      font_bold: false,
-      font_italic: false,
-      font_underline: false,
-      font_strikethrough: false,
-      font_color: "#0f172a",
-      font_highlight: "transparent",
-    }));
-    toast.success("Formatting reset to defaults");
+    if (editingSection === "header") {
+      setTemplateData((prev) => ({
+        ...prev,
+        top_content: cleanAllTagsFromText(prev.top_content),
+      }));
+      return;
+    }
+    const ed = contentEditableRef.current;
+    if (ed) {
+      ed.focus();
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed && ed.contains(sel.anchorNode)) {
+        document.execCommand("removeFormat", false, null);
+        const bbcode = htmlToBbcode(ed.innerHTML);
+        setTemplateData((prev) => ({ ...prev, middle_content: bbcode }));
+        toast.success("Selection formatting removed");
+      } else {
+        setTemplateData((prev) => ({
+          ...prev,
+          font_family: "Calibri",
+          font_size: 12,
+          font_bold: false,
+          font_italic: false,
+          font_underline: false,
+          font_strikethrough: false,
+          font_color: "#0f172a",
+          font_highlight: "transparent",
+        }));
+        toast.success("Document defaults reset");
+      }
+    }
   };
 
   const handleCut = async () => {
@@ -930,6 +1046,17 @@ const AddServiceWizard = () => {
     input_field_size: 10,
   });
 
+  // Keep contentEditable in sync with templateData.middle_content
+  useEffect(() => {
+    if (contentEditableRef.current) {
+      const currentBbcode = htmlToBbcode(contentEditableRef.current.innerHTML);
+      const incoming = templateData.middle_content || "";
+      if (currentBbcode !== incoming) {
+        contentEditableRef.current.innerHTML = bbcodeToHtml(incoming);
+      }
+    }
+  }, [templateData.middle_content]);
+
   // Automatically strip any raw formatting tags or reset formatting to constant default when cleared
   useEffect(() => {
     if (!templateData.middle_content || templateData.middle_content.trim() === "") {
@@ -955,17 +1082,6 @@ const AddServiceWizard = () => {
           font_highlight: "transparent",
         }));
       }
-    } else if (
-      /\[\/?(?:b|bold|i|italic|u|underline|s|strike|sub|sup|font|size|color|highlight)(?::[^\]]+)?\]/i.test(
-        templateData.middle_content,
-      )
-    ) {
-      const { text: cleanText, updates } = extractAndStripTags(templateData.middle_content);
-      setTemplateData((prev) => ({
-        ...prev,
-        ...updates,
-        middle_content: cleanText,
-      }));
     }
   }, [templateData.middle_content]);
 
@@ -2108,10 +2224,7 @@ const renderStep2 = () => {
                       value={templateData.font_family || "Calibri"}
                       onChange={(e) => {
                         const newFamily = e.target.value;
-                        setTemplateData((prev) => ({
-                          ...prev,
-                          font_family: newFamily,
-                        }));
+                        applyFormatToSelection("font", newFamily);
                       }}
                       className="h-6 px-1.5 text-xs bg-slate-50 border border-slate-300 rounded font-medium text-slate-800 outline-none hover:border-blue-400 focus:border-blue-500 cursor-pointer w-28 truncate"
                       title="Font Family"
@@ -2133,10 +2246,7 @@ const renderStep2 = () => {
                         value={templateData.font_size || 12}
                         onChange={(e) => {
                           const newSize = parseInt(e.target.value) || 12;
-                          setTemplateData((prev) => ({
-                            ...prev,
-                            font_size: newSize,
-                          }));
+                          applyFormatToSelection("size", newSize);
                         }}
                         className="w-7 text-center text-xs font-bold text-slate-800 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
@@ -2147,10 +2257,15 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
-                        setTemplateData((prev) => ({
-                          ...prev,
-                          font_size: Math.min((prev.font_size || 12) + 1, 36),
-                        }));
+                        const { start, end } = getActiveTarget();
+                        if (start !== end) {
+                          applyFormatToSelection("size_step", 1);
+                        } else {
+                          setTemplateData((prev) => ({
+                            ...prev,
+                            font_size: Math.min((prev.font_size || 12) + 1, 36),
+                          }));
+                        }
                       }}
                       className="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold text-xs"
                       title="Increase Font Size (A+)"
@@ -2162,10 +2277,15 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
-                        setTemplateData((prev) => ({
-                          ...prev,
-                          font_size: Math.max((prev.font_size || 12) - 1, 8),
-                        }));
+                        const { start, end } = getActiveTarget();
+                        if (start !== end) {
+                          applyFormatToSelection("size_step", -1);
+                        } else {
+                          setTemplateData((prev) => ({
+                            ...prev,
+                            font_size: Math.max((prev.font_size || 12) - 1, 8),
+                          }));
+                        }
                       }}
                       className="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold text-[10px]"
                       title="Decrease Font Size (A-)"
@@ -2374,10 +2494,7 @@ const renderStep2 = () => {
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => {
-                                  setTemplateData((prev) => ({
-                                    ...prev,
-                                    font_highlight: swatch.color,
-                                  }));
+                                  applyFormatToSelection("highlight", swatch.color);
                                   setShowHighlightDropdown(false);
                                 }}
                                 className="w-8 h-6 rounded border border-slate-300 hover:scale-105 transition"
@@ -2390,10 +2507,7 @@ const renderStep2 = () => {
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => {
-                              setTemplateData((prev) => ({
-                                ...prev,
-                                font_highlight: "transparent",
-                              }));
+                              applyFormatToSelection("highlight", "transparent");
                               setShowHighlightDropdown(false);
                             }}
                             className="w-full text-center py-1 text-[11px] text-slate-600 hover:bg-slate-100 rounded border border-slate-200"
@@ -2457,10 +2571,7 @@ const renderStep2 = () => {
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => {
-                                  setTemplateData((prev) => ({
-                                    ...prev,
-                                    font_color: swatch.color,
-                                  }));
+                                  applyFormatToSelection("color", swatch.color);
                                   setShowFontColorDropdown(false);
                                 }}
                                 className="w-6 h-6 rounded-full border border-slate-300 hover:scale-110 transition shadow-2xs"
@@ -3593,7 +3704,7 @@ const renderStep2 = () => {
                   )}
                 </div>
 
-                {/* Direct Word Paper Editor (The Editable Document Body) */}
+                {/* Direct Word Paper Editor (The Editable Document Body - Pure WYSIWYG) */}
                 <div
                   className={`flex-1 flex flex-col relative transition-all ${
                     editingSection === "body" ? "ring-1 ring-blue-100 rounded-md p-1" : ""
@@ -3606,45 +3717,29 @@ const renderStep2 = () => {
                     if (editingSection !== "body") setEditingSection("body");
                   }}
                 >
-                  <MentionsInput
-                    inputRef={contentInputRef}
-                    onFocus={() => setEditingSection("body")}
-                    value={templateData.middle_content}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (!val || val.trim() === "") {
-                        setTemplateData((prev) => ({
-                          ...prev,
-                          middle_content: "",
-                          font_family: "Calibri",
-                          font_size: 12,
-                          font_bold: false,
-                          font_italic: false,
-                          font_underline: false,
-                          font_strikethrough: false,
-                          font_color: "#0f172a",
-                          font_highlight: "transparent",
-                        }));
-                      } else {
-                        setTemplateData((prev) => ({
-                          ...prev,
-                          middle_content: val,
-                        }));
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      const handled = handleListKeyDown(e, "middle_content");
-                      if (handled) return;
-
-                      if (e.key === "Backspace" || e.key === "Delete") {
-                        const content = templateData.middle_content || "";
-                        const start = e.target.selectionStart;
-                        const end = e.target.selectionEnd;
-                        if (
-                          content.length <= 1 ||
-                          (start === 0 && end >= content.length) ||
-                          content.trim() === ""
-                        ) {
+                  <div className="relative w-full min-h-[520px]">
+                    {(!templateData.middle_content || templateData.middle_content.trim() === "") && (
+                      <div className="absolute inset-0 pointer-events-none text-slate-400 select-none p-1 leading-relaxed">
+                        <p className="font-semibold text-slate-500 mb-2">Type certificate text here directly on this Word page.</p>
+                        <p className="text-xs text-slate-400 font-medium">Tips:</p>
+                        <ul className="text-xs text-slate-400 list-disc list-inside mt-1 space-y-1">
+                          <li>Type @ to autocomplete student variables (e.g. @student_name, @father_name, @admission_number, @principal_signature)</li>
+                          <li>Type ___ (three underscores) to create fillable blanks</li>
+                          <li>Click any Line Alignment button in the toolbar to align that specific line</li>
+                        </ul>
+                      </div>
+                    )}
+                    <div
+                      ref={contentEditableRef}
+                      contentEditable
+                      suppressContentEditableWarning
+                      onFocus={() => {
+                        if (editingSection !== "body") setEditingSection("body");
+                      }}
+                      onInput={(e) => {
+                        const html = e.currentTarget.innerHTML;
+                        const text = e.currentTarget.innerText;
+                        if (!text || text.trim() === "") {
                           setTemplateData((prev) => ({
                             ...prev,
                             middle_content: "",
@@ -3657,61 +3752,40 @@ const renderStep2 = () => {
                             font_color: "#0f172a",
                             font_highlight: "transparent",
                           }));
+                        } else {
+                          const bbcode = htmlToBbcode(html);
+                          setTemplateData((prev) => ({
+                            ...prev,
+                            middle_content: bbcode,
+                          }));
                         }
-                      }
-                      if (e.ctrlKey || e.metaKey) {
-                        if (e.key === "b" || e.key === "B") {
-                          e.preventDefault();
-                          setTemplateData((prev) => ({ ...prev, font_bold: !prev.font_bold }));
-                        } else if (e.key === "i" || e.key === "I") {
-                          e.preventDefault();
-                          setTemplateData((prev) => ({ ...prev, font_italic: !prev.font_italic }));
-                        } else if (e.key === "u" || e.key === "U") {
-                          e.preventDefault();
-                          setTemplateData((prev) => ({ ...prev, font_underline: !prev.font_underline }));
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.ctrlKey || e.metaKey) {
+                          if (e.key === "b" || e.key === "B") {
+                            e.preventDefault();
+                            applyFormatToSelection("bold");
+                          } else if (e.key === "i" || e.key === "I") {
+                            e.preventDefault();
+                            applyFormatToSelection("italic");
+                          } else if (e.key === "u" || e.key === "U") {
+                            e.preventDefault();
+                            applyFormatToSelection("underline");
+                          }
                         }
-                      }
-                    }}
-                    onSelect={(e) => {
-                      setActiveCursorPos({
-                        start: e.target.selectionStart,
-                        end: e.target.selectionEnd,
-                      });
-                    }}
-                    onClick={(e) => {
-                      setActiveCursorPos({
-                        start: e.target.selectionStart,
-                        end: e.target.selectionEnd,
-                      });
-                    }}
-                    onKeyUp={(e) => {
-                      setActiveCursorPos({
-                        start: e.target.selectionStart,
-                        end: e.target.selectionEnd,
-                      });
-                    }}
-                    style={{
-                      ...getMentionStyle(templateData.middle_alignment || "left"),
-                      control: {
-                        ...getMentionStyle(templateData.middle_alignment || "left")
-                          .control,
-                        minHeight: 520,
-                      },
-                    }}
-                    placeholder={`Type certificate text here directly on this Word page.\n\nTips:\n• Type @ to autocomplete student variables (e.g. @student_name, @father_name, @admission_number, @principal_signature)\n• Type ___ (three underscores) to create fillable blanks\n• Click any Line Alignment button in the toolbar to align that specific line`}
-                  >
-                    <Mention
-                      trigger="@"
-                      data={mentionData}
+                      }}
+                      className="w-full min-h-[520px] outline-none text-slate-800 leading-relaxed font-sans"
                       style={{
-                        backgroundColor: "#dbeafe",
-                        borderRadius: "3px",
-                        padding: "1px 4px",
-                        color: "#1e40af",
-                        fontWeight: "600",
+                        fontFamily: templateData.font_family || "Calibri, 'Segoe UI', Arial, sans-serif",
+                        fontSize: `${templateData.font_size || 12}px`,
+                        lineHeight: templateData.line_spacing || 1.6,
+                        textAlign: templateData.middle_alignment || "left",
+                        color: templateData.font_color || "#0f172a",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
                       }}
                     />
-                  </MentionsInput>
+                  </div>
                 </div>
 
                 {/* College Letterhead Footer */}
@@ -3826,33 +3900,39 @@ const renderStep2 = () => {
                         if (e.ctrlKey || e.metaKey) {
                           if (e.key === "b" || e.key === "B") {
                             e.preventDefault();
-                            setTemplateData((prev) => ({ ...prev, font_bold: !prev.font_bold }));
+                            applyFormatToSelection("bold");
                           } else if (e.key === "i" || e.key === "I") {
                             e.preventDefault();
-                            setTemplateData((prev) => ({ ...prev, font_italic: !prev.font_italic }));
+                            applyFormatToSelection("italic");
                           } else if (e.key === "u" || e.key === "U") {
                             e.preventDefault();
-                            setTemplateData((prev) => ({ ...prev, font_underline: !prev.font_underline }));
+                            applyFormatToSelection("underline");
                           }
                         }
                       }}
                       onSelect={(e) => {
-                        setActiveCursorPos({
-                          start: e.target.selectionStart,
-                          end: e.target.selectionEnd,
-                        });
+                        const s = e.target.selectionStart;
+                        const end = e.target.selectionEnd;
+                        setActiveCursorPos({ start: s, end });
+                        if (typeof s === "number" && typeof end === "number" && s !== end) {
+                          lastValidSelectionRef.current = { start: s, end, field: "middle_content", section: "body" };
+                        }
                       }}
                       onClick={(e) => {
-                        setActiveCursorPos({
-                          start: e.target.selectionStart,
-                          end: e.target.selectionEnd,
-                        });
+                        const s = e.target.selectionStart;
+                        const end = e.target.selectionEnd;
+                        setActiveCursorPos({ start: s, end });
+                        if (typeof s === "number" && typeof end === "number" && s !== end) {
+                          lastValidSelectionRef.current = { start: s, end, field: "middle_content", section: "body" };
+                        }
                       }}
                       onKeyUp={(e) => {
-                        setActiveCursorPos({
-                          start: e.target.selectionStart,
-                          end: e.target.selectionEnd,
-                        });
+                        const s = e.target.selectionStart;
+                        const end = e.target.selectionEnd;
+                        setActiveCursorPos({ start: s, end });
+                        if (typeof s === "number" && typeof end === "number" && s !== end) {
+                          lastValidSelectionRef.current = { start: s, end, field: "middle_content", section: "body" };
+                        }
                       }}
                       style={{
                         ...getMentionStyle(templateData.middle_alignment || "left"),

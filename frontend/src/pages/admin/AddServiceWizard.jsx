@@ -1021,6 +1021,8 @@ const AddServiceWizard = () => {
       top_content: hasHeaderImage ? "" : sanitizeContent(config.top_content),
       middle_content: sanitizeContent(config.middle_content),
       bottom_content: sanitizeContent(config.bottom_content),
+      footer_height: 0,
+      footer_image_url: null,
     };
   };
 
@@ -1685,7 +1687,7 @@ const AddServiceWizard = () => {
     middle_section_padding: 20,
     bottom_section_padding: 10,
     header_height: 80,
-    footer_height: 60,
+    footer_height: 0,
     header_image_url: "",
     header_image_position: "left",
     header_image_height: 65,
@@ -1876,7 +1878,7 @@ const AddServiceWizard = () => {
           padding_top: template.padding_top || 40,
           padding_bottom: template.padding_bottom || 40,
           header_height: template.header_height || 80,
-          footer_height: template.footer_height || 60,
+          footer_height: template.footer_height || 0,
           header_image_url: template.header_image_url || "",
           header_image_position: template.header_image_position || "left",
           header_image_height: template.header_image_height || 65,
@@ -2138,7 +2140,7 @@ const AddServiceWizard = () => {
                 })}
               </select>
               <p className="text-xs text-gray-500 mt-1.5">
-                The certificate will use this college's header and footer images
+                The certificate will use this college's dynamic header letterhead
               </p>
             </div>
           </div>
@@ -2218,7 +2220,7 @@ const AddServiceWizard = () => {
   };
 
 const renderStep2 = () => {
-    // Get college header/footer images
+    // College header information
     const selectedCollege = colleges.find(
       (c) => String(c.id) === String(serviceData.college_id),
     );
@@ -2233,9 +2235,7 @@ const renderStep2 = () => {
         : `${baseURL}${url.startsWith("/") ? "" : "/"}${url}`;
     };
 
-    const footerImageUrl = selectedCollege?.footer_image_url
-      ? getImageUrl(selectedCollege.footer_image_url)
-      : null;
+    const footerImageUrl = null;
 
     // Format variables for react-mentions (including principal_signature)
     const activeVariables =
@@ -4276,7 +4276,7 @@ const renderStep2 = () => {
                 </div>
               </div>
 
-              {/* Header and Footer heights */}
+              {/* Header height */}
               <div className="flex flex-col gap-1 pl-3">
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 border border-slate-300 rounded bg-slate-50 px-1.5 py-0.5">
@@ -4288,22 +4288,6 @@ const renderStep2 = () => {
                         setTemplateData({
                           ...templateData,
                           header_height: parseInt(e.target.value) || 80,
-                        })
-                      }
-                      className="w-7 text-center text-xs font-bold outline-none"
-                    />
-                    <span className="text-[9px] text-slate-400">px</span>
-                  </div>
-
-                  <div className="flex items-center gap-1 border border-slate-300 rounded bg-slate-50 px-1.5 py-0.5">
-                    <span className="text-[10px] text-slate-600 font-semibold">Footer H:</span>
-                    <input
-                      type="number"
-                      value={templateData.footer_height || 60}
-                      onChange={(e) =>
-                        setTemplateData({
-                          ...templateData,
-                          footer_height: parseInt(e.target.value) || 60,
                         })
                       }
                       className="w-7 text-center text-xs font-bold outline-none"
@@ -4369,7 +4353,7 @@ const renderStep2 = () => {
                   </div>
                 </div>
                 <div className="text-[9px] text-slate-400 font-medium tracking-wide uppercase">
-                  Header & Footer Height Configuration
+                  Header Height & Sheet Configuration
                 </div>
               </div>
             </div>
@@ -4958,32 +4942,6 @@ const renderStep2 = () => {
                     />
                   </div>
                 </div>
-
-                {/* College Letterhead Footer */}
-                <div
-                  className="w-full flex-shrink-0 flex items-center justify-center border-t border-dashed border-slate-200 pt-2 mt-3 relative group"
-                  style={{ height: `${templateData.footer_height || 60}px` }}
-                >
-                  {footerImageUrl ? (
-                    <img
-                      src={footerImageUrl}
-                      alt="College Footer Letterhead"
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="w-full h-full rounded border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center p-2 text-center">
-                      <div className="text-[11px] text-slate-600 font-semibold">
-                        Institutional Letterhead Footer • Authorized Signatures & Seal
-                      </div>
-                      <div className="text-[9px] text-slate-400 mt-0.5">
-                        Footer Height: {templateData.footer_height || 60}px
-                      </div>
-                    </div>
-                  )}
-                  <span className="absolute bottom-1 right-1 text-[9px] text-slate-400 bg-white/80 px-1 rounded opacity-0 group-hover:opacity-100 transition">
-                    Footer: {templateData.footer_height || 60}px
-                  </span>
-                </div>
               </div>
             </div>
           )}
@@ -5122,24 +5080,6 @@ const renderStep2 = () => {
                       />
                     </MentionsInput>
                   </div>
-
-                  {/* Footer */}
-                  <div
-                    className="w-full flex-shrink-0 flex items-center justify-center border-t border-dashed border-slate-200 pt-2 mt-3"
-                    style={{ height: `${templateData.footer_height || 60}px` }}
-                  >
-                    {footerImageUrl ? (
-                      <img
-                        src={footerImageUrl}
-                        alt="Footer"
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <div className="text-xs text-slate-400 font-semibold text-center">
-                        [Footer Area: {templateData.footer_height || 60}px]
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
 
@@ -5201,29 +5141,6 @@ const renderStep2 = () => {
                       </div>
                     )}
                   </div>
-
-                  {/* Footer */}
-                  {footerImageUrl ? (
-                    <div
-                      className="mt-4"
-                      style={{ height: `${templateData.footer_height || 60}px` }}
-                    >
-                      <img
-                        src={footerImageUrl}
-                        alt="Footer"
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      className="mt-4 rounded border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center p-2 text-center"
-                      style={{ height: `${templateData.footer_height || 60}px` }}
-                    >
-                      <div className="text-xs text-slate-600 font-semibold">
-                        Authorized Signatures & Official Seal
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -5277,20 +5194,6 @@ const renderStep2 = () => {
                     templateData.middle_alignment || "left",
                   )}
                 </div>
-
-                {/* Footer */}
-                {footerImageUrl && (
-                  <div
-                    className="mt-4"
-                    style={{ height: `${templateData.footer_height || 60}px` }}
-                  >
-                    <img
-                      src={footerImageUrl}
-                      alt="Footer"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                )}
               </div>
             </div>
           )}

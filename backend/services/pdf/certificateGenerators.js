@@ -1178,15 +1178,12 @@ const generateTemplatedCertificate = async (
 
   const contentWidth = pageWidth - paddingLeft - paddingRight;
 
-  // Calculate header and footer heights with validation
+  // Calculate header height with validation (footer is completely removed)
   const headerHeight = Math.min(
     Math.max(parseInt(template.header_height) || 80, 50),
     150,
   );
-  const footerHeight = Math.min(
-    Math.max(parseInt(template.footer_height) || 60, 40),
-    120,
-  );
+  const footerHeight = 0;
 
   // Set initial Y position (will be adjusted after header is rendered)
   let currentY = paddingTop;
@@ -1230,11 +1227,9 @@ const generateTemplatedCertificate = async (
     currentY = paddingTop + 10;
   }
 
-  // Calculate maximum Y position (content should not overlap footer, but maximize space if no footer image)
-  const hasFooter = !!(collegeDetails.footer_image || template.footer_image_url);
-  const maxContentY = hasFooter
-    ? pageHeight - footerHeight - 15
-    : pageHeight - paddingBottom - 10;
+  // Calculate maximum Y position (footer removed; maximize space up to bottom padding)
+  const hasFooter = false;
+  const maxContentY = pageHeight - paddingBottom - 10;
 
   // Helper function to render text section with justify alignment and dynamic formatting
   const renderSection = (content, yPosition, additionalSpacing = 15) => {
@@ -1530,37 +1525,7 @@ const generateTemplatedCertificate = async (
     );
   }
 
-  // Render footer image if exists (at the bottom of the page)
-  if (collegeDetails.footer_image) {
-    try {
-      const footerY = pageHeight - footerHeight;
-      doc.image(collegeDetails.footer_image, 0, footerY, {
-        width: pageWidth,
-        height: footerHeight,
-      });
-    } catch (error) {
-      console.error("Error rendering footer image from buffer:", error);
-    }
-  } else if (template.footer_image_url) {
-    try {
-      const footerPath = path.join(
-        process.cwd(),
-        template.footer_image_url.startsWith("/")
-          ? template.footer_image_url.substring(1)
-          : template.footer_image_url,
-      );
-      if (fs.existsSync(footerPath)) {
-        const footerY = pageHeight - footerHeight;
-        doc.image(footerPath, 0, footerY, {
-          width: pageWidth,
-          height: footerHeight,
-        });
-      }
-    } catch (error) {
-      console.error("Error loading footer image from path:", error);
-    }
-  }
-
+  // Footer is completely removed as certificates only use dynamic college header letterhead
   doc.end();
 
   return new Promise((resolve, reject) => {

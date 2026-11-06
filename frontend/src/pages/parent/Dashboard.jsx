@@ -45,9 +45,9 @@ const ParentDashboard = () => {
     : null;
 
   const quickLinks = [
-    { to: '/parent/profile', label: 'Student Profile', desc: 'Full student details', icon: User, color: 'bg-blue-50 text-blue-600' },
-    { to: '/parent/attendance', label: 'Attendance', desc: 'View attendance records', icon: Calendar, color: 'bg-green-50 text-green-600' },
-    { to: '/parent/id-card', label: 'ID Card', desc: 'Digital student ID', icon: CreditCard, color: 'bg-purple-50 text-purple-600' },
+    { to: '/parent/profile', label: 'Student Profile', desc: 'Full student details', icon: User, color: 'bg-[var(--primary-light)] text-primary' },
+    { to: '/parent/attendance', label: 'Attendance', desc: 'View attendance records', icon: Calendar, color: 'bg-[var(--success-light)] text-success' },
+    { to: '/parent/id-card', label: 'ID Card', desc: 'Digital student ID', icon: CreditCard, color: 'bg-[var(--primary-light)] text-secondary' },
   ];
 
   const academicRows = [
@@ -71,7 +71,7 @@ const ParentDashboard = () => {
     <div className="w-full flex-1 flex flex-col min-h-full sm:max-w-4xl sm:mx-auto">
       {/* Hero: gradient + highlighted photo */}
       <section className="w-full shrink-0 bg-gradient-to-br from-primary via-primary to-primary-dark text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-20 -mt-20 blur-2xl pointer-events-none" aria-hidden />
+        <div className="absolute top-0 right-0 w-48 h-48 bg-[var(--surface)]/10 rounded-full -mr-20 -mt-20 blur-2xl pointer-events-none" aria-hidden />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full -ml-16 blur-2xl pointer-events-none" aria-hidden />
 
         <div className="relative z-10 px-4 pt-3 pb-2 text-center">
@@ -80,12 +80,12 @@ const ParentDashboard = () => {
 
         <div className="relative z-10 flex justify-center px-4 -mb-14">
           <div className="relative">
-            <div className="absolute -inset-1 rounded-[1.35rem] bg-white/40 blur-sm" aria-hidden />
-            <div className="relative w-[120px] h-[120px] sm:w-[132px] sm:h-[132px] rounded-2xl overflow-hidden bg-white border-[4px] border-white shadow-[0_12px_40px_rgba(0,0,0,0.25)] ring-2 ring-white/50">
+            <div className="absolute -inset-1 rounded-[1.35rem] bg-[var(--surface)]/40 blur-sm" aria-hidden />
+            <div className="relative w-[120px] h-[120px] sm:w-[132px] sm:h-[132px] rounded-2xl overflow-hidden bg-surface border-[4px] border-surface shadow-[0_12px_40px_rgba(0,0,0,0.25)] ring-2 ring-white/50">
               {photoUrl ? (
                 <img src={photoUrl} alt="" className="w-full h-full object-cover object-center" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-300">
+                <div className="w-full h-full flex items-center justify-center bg-background text-muted-text">
                   <User size={48} strokeWidth={1.25} />
                 </div>
               )}
@@ -105,14 +105,14 @@ const ParentDashboard = () => {
       </section>
 
       {/* College + course / branch / batch */}
-      <section className="w-full shrink-0 bg-white px-4 py-4 border-b border-gray-100 shadow-sm">
+      <section className="w-full shrink-0 bg-surface px-4 py-4 border-b border-border shadow-sm">
         <div className="flex items-start gap-3 p-3.5 rounded-xl bg-primary/5 border border-primary/10">
           <div className="p-2 rounded-lg bg-primary/10 shrink-0">
             <Building2 size={20} className="text-primary" />
           </div>
           <div className="min-w-0 flex-1 text-left">
             <p className="text-[10px] font-bold text-primary uppercase tracking-wider">College</p>
-            <p className="text-sm sm:text-base font-bold text-gray-900 mt-0.5 leading-snug break-words">
+            <p className="text-sm sm:text-base font-bold text-main mt-0.5 leading-snug break-words">
               {display?.college || '—'}
             </p>
           </div>
@@ -122,12 +122,12 @@ const ParentDashboard = () => {
           {academicRows.map(({ icon: Icon, label, value }) => (
             <div
               key={label}
-              className="flex items-start gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100 text-left"
+              className="flex items-start gap-2 p-3 rounded-xl bg-background border border-border text-left"
             >
-              <Icon size={16} className="text-gray-400 shrink-0 mt-0.5" />
+              <Icon size={16} className="text-muted-text shrink-0 mt-0.5" />
               <div className="min-w-0">
-                <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wide">{label}</p>
-                <p className="text-xs sm:text-sm font-bold text-gray-900 mt-0.5 break-words leading-snug" title={value}>
+                <p className="text-[9px] sm:text-[10px] font-bold text-muted-text uppercase tracking-wide">{label}</p>
+                <p className="text-xs sm:text-sm font-bold text-main mt-0.5 break-words leading-snug" title={value}>
                   {value || '—'}
                 </p>
               </div>
@@ -137,25 +137,25 @@ const ParentDashboard = () => {
       </section>
 
       {/* Quick access — fills remaining screen; items stretch evenly */}
-      <section className="w-full flex-1 flex flex-col min-h-0 bg-white sm:rounded-b-2xl">
-        <h2 className="shrink-0 px-4 py-2.5 text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2 border-b border-gray-100">
+      <section className="w-full flex-1 flex flex-col min-h-0 bg-surface sm:rounded-b-2xl">
+        <h2 className="shrink-0 px-4 py-2.5 text-[11px] font-black text-muted-text uppercase tracking-widest flex items-center gap-2 border-b border-border">
           <GraduationCap size={15} /> Quick access
         </h2>
-        <div className="flex-1 flex flex-col min-h-0 divide-y divide-gray-100">
+        <div className="flex-1 flex flex-col min-h-0 divide-y divide-border">
           {quickLinks.map(({ to, label, desc, icon: Icon, color }) => (
             <Link
               key={to}
               to={to}
-              className="group flex-1 flex items-center gap-3.5 px-4 py-3 min-h-[4.5rem] bg-white active:bg-gray-50/90 hover:bg-gray-50/80 transition-colors"
+              className="group flex-1 flex items-center gap-3.5 px-4 py-3 min-h-[4.5rem] bg-surface active:bg-[var(--background)]/90 hover:bg-[var(--background)]/80 transition-colors"
             >
               <div className={`p-3 rounded-xl shrink-0 ${color}`}>
                 <Icon size={22} />
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <p className="font-bold text-gray-900 text-[15px]">{label}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
+                <p className="font-bold text-main text-[15px]">{label}</p>
+                <p className="text-xs text-muted-text mt-0.5">{desc}</p>
               </div>
-              <ChevronRight size={20} className="text-gray-300 group-hover:text-primary shrink-0" />
+              <ChevronRight size={20} className="text-muted-text group-hover:text-primary shrink-0" />
             </Link>
           ))}
         </div>

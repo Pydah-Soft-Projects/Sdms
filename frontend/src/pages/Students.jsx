@@ -135,9 +135,9 @@ const formatRegistrationStatusLabel = (status) => {
 
 const getRegistrationStatusBadgeClass = (status) => {
   const normalized = String(status || '').trim().toLowerCase();
-  if (normalized === 'completed') return 'text-green-700 bg-green-50';
-  if (normalized === 'temporary') return 'text-amber-700 bg-amber-50 font-medium';
-  return 'text-yellow-700 bg-yellow-50';
+  if (normalized === 'completed') return 'text-success bg-[var(--success-light)]';
+  if (normalized === 'temporary') return 'text-warning bg-[var(--warning-light)] font-medium';
+  return 'text-warning bg-[var(--warning-light)]';
 };
 
 // Student status options
@@ -193,7 +193,7 @@ const maskMobileNumber = (mobile) => {
 // Helper component for sidebar details
 const SidebarDetailItem = ({ label, value, icon, editable, disabled, type = 'text', options = [], onChange, onFocus }) => (
   <div className="flex flex-col gap-1.5">
-    <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+    <div className="flex items-center gap-2 text-[10px] font-black text-muted-text uppercase tracking-widest">
       {icon}
       <span>{label}</span>
     </div>
@@ -204,7 +204,7 @@ const SidebarDetailItem = ({ label, value, icon, editable, disabled, type = 'tex
           onChange={(e) => onChange(e.target.value)}
           onFocus={onFocus}
           disabled={disabled}
-          className="w-full bg-white border-2 border-indigo-100 rounded-xl px-3 py-2 text-sm font-bold text-gray-900 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all font-sans disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+          className="w-full bg-surface border-2 border-[var(--primary-light)] rounded-xl px-3 py-2 text-sm font-bold text-main focus:outline-none focus:border-primary focus:ring-4 focus:ring-[var(--primary-light)] transition-all font-sans disabled:bg-background disabled:text-muted-text disabled:cursor-not-allowed"
         >
           <option value="">Select {label}</option>
           {options.map((opt) => (
@@ -217,12 +217,12 @@ const SidebarDetailItem = ({ label, value, icon, editable, disabled, type = 'tex
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className="w-full bg-white border-2 border-indigo-100 rounded-xl px-3 py-2 text-sm font-bold text-gray-900 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all font-sans placeholder-gray-300 disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
+          className="w-full bg-surface border-2 border-[var(--primary-light)] rounded-xl px-3 py-2 text-sm font-bold text-main focus:outline-none focus:border-primary focus:ring-4 focus:ring-[var(--primary-light)] transition-all font-sans placeholder:text-muted-text disabled:bg-background disabled:text-muted-text disabled:cursor-not-allowed"
           placeholder={`Enter ${label.toLowerCase()}`}
         />
       )
     ) : (
-      <div className="text-sm font-bold text-gray-900">{value || '-'}</div>
+      <div className="text-sm font-bold text-main">{value || '-'}</div>
     )}
   </div>
 );
@@ -278,16 +278,16 @@ const getBranchSectionConfig = (coursesWithLevels = [], courseName, branchName) 
 // Helper components for Details tab
 const SummaryPill = ({ label, value, icon, color }) => {
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    indigo: 'bg-indigo-50 text-indigo-600',
-    green: 'bg-green-50 text-green-600',
-    violet: 'bg-violet-50 text-violet-600',
-    orange: 'bg-orange-50 text-orange-600',
-    amber: 'bg-amber-50 text-amber-600',
+    blue: 'bg-[var(--primary-light)] text-primary',
+    indigo: 'bg-[var(--primary-light)] text-primary',
+    green: 'bg-[var(--success-light)] text-success',
+    violet: 'bg-[var(--primary-light)] text-secondary',
+    orange: 'bg-[var(--warning-light)] text-warning',
+    amber: 'bg-[var(--warning-light)] text-warning',
   };
 
   return (
-    <div className={`flex flex-col gap-2 p-4 rounded-2xl ${colorClasses[color] || 'bg-gray-50 text-gray-600'}`}>
+    <div className={`flex flex-col gap-2 p-4 rounded-2xl ${colorClasses[color] || 'bg-background text-sub'}`}>
       <div className="flex items-center gap-2">
         {icon}
         <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{label}</span>
@@ -300,20 +300,20 @@ const SummaryPill = ({ label, value, icon, color }) => {
 };
 
 const SectionHeader = ({ title, sub }) => (
-  <div className="flex flex-col gap-1 border-b border-gray-100 pb-4 mb-6">
-    <h4 className="text-lg font-black text-gray-900 tracking-tight">{title}</h4>
-    {sub && <p className="text-xs font-bold text-gray-500">{sub}</p>}
+  <div className="flex flex-col gap-1 border-b border-border pb-4 mb-6">
+    <h4 className="text-lg font-black text-main tracking-tight">{title}</h4>
+    {sub && <p className="text-xs font-bold text-muted-text">{sub}</p>}
   </div>
 );
 
 const DetailTile = ({ label, value, icon }) => (
-  <div className="flex gap-4 p-4 rounded-2xl border border-gray-100 bg-white hover:border-gray-200 hover:shadow-sm transition-all">
-    <div className="w-10 h-10 shrink-0 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+  <div className="flex gap-4 p-4 rounded-2xl border border-border bg-surface hover:border-border hover:shadow-sm transition-all">
+    <div className="w-10 h-10 shrink-0 rounded-xl bg-background flex items-center justify-center text-muted-text">
       {icon}
     </div>
     <div className="flex flex-col justify-center min-w-0">
-      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{label}</p>
-      <p className="text-sm font-bold text-gray-900 truncate">{value || '-'}</p>
+      <p className="text-[10px] font-black text-muted-text uppercase tracking-widest mb-0.5">{label}</p>
+      <p className="text-sm font-bold text-main truncate">{value || '-'}</p>
     </div>
   </div>
 );
@@ -2232,7 +2232,7 @@ const Students = () => {
             onBlur={() => handleCellBlur(student)}
             onKeyDown={(e) => handleCellKeyDown(e, student)}
             autoFocus
-            className="w-full px-1 py-0.5 text-xs border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+            className="w-full px-1 py-0.5 text-xs border border-primary rounded focus:outline-none focus:ring-1 focus:ring-primary bg-surface"
           >
             <option value="">Select...</option>
             {allOptions.map((opt) => (
@@ -2249,7 +2249,7 @@ const Students = () => {
             onBlur={() => handleCellBlur(student)}
             onKeyDown={(e) => handleCellKeyDown(e, student)}
             autoFocus
-            className="w-full px-1 py-0.5 text-xs border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full px-1 py-0.5 text-xs border border-primary rounded focus:outline-none focus:ring-1 focus:ring-primary"
           />
         );
       }
@@ -2265,7 +2265,7 @@ const Students = () => {
           e.stopPropagation();
           handleCellClick(student, field, currentValue, fieldType);
         }}
-        className="cursor-pointer hover:bg-blue-50 px-1 py-0.5 rounded transition-colors"
+        className="cursor-pointer hover:bg-[var(--primary-light)] px-1 py-0.5 rounded transition-colors"
         title="Click or double-click to edit"
       >
         {currentValue || '-'}
@@ -2461,10 +2461,10 @@ const Students = () => {
         id: 'duplicate-mobile-warning',
         duration: 5000,
         style: {
-          border: '1px solid #f59e0b',
+          border: '1px solid var(--warning)',
           padding: '10px 14px',
-          color: '#78350f',
-          background: '#fffbeb',
+          color: 'var(--warning)',
+          background: 'var(--warning-light)',
           fontSize: '12px',
           fontWeight: 600
         }
@@ -3144,9 +3144,9 @@ const Students = () => {
   if (!canViewStudents) {
     return (
       <div className="p-6 lg:p-8">
-        <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">No Access to Student Database</h2>
-          <p className="text-sm text-gray-600">
+        <div className="max-w-3xl mx-auto bg-surface rounded-xl shadow-sm border border-border p-6 text-center">
+          <h2 className="text-lg font-semibold text-main mb-2">No Access to Student Database</h2>
+          <p className="text-sm text-sub">
             You have view or edit access disabled for the Student Management module. Please contact an administrator if you need access.
           </p>
         </div>
@@ -3160,19 +3160,19 @@ const Students = () => {
         {/* Search Bar with Action Buttons Inline */}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-text" size={18} />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleLocalSearch()}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm touch-manipulation min-h-[38px] shadow-2xs"
+              className="w-full pl-10 pr-4 py-2 border border-border-strong rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm touch-manipulation min-h-[38px] shadow-2xs"
               placeholder="Search by name, admission no, PIN, or roll number..."
             />
           </div>
           <button
             onClick={handleLocalSearch}
-            className="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation min-h-[38px] text-sm font-semibold whitespace-nowrap shadow-2xs"
+            className="bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-hover active:bg-primary transition-colors touch-manipulation min-h-[38px] text-sm font-semibold whitespace-nowrap shadow-2xs"
           >
             Search
           </button>
@@ -3181,7 +3181,7 @@ const Students = () => {
             {canAddStudent && (
               <Link
                 to="/students/add"
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-primary to-primary border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
               >
                 <Plus size={16} />
                 <span>Add Student</span>
@@ -3194,7 +3194,7 @@ const Students = () => {
                   await fetchForms();
                   setShowBulkStudentUpload(true);
                 }}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-blue-500 to-blue-600 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-primary to-primary border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
                 disabled={loadingForms}
               >
                 <Upload size={16} />
@@ -3205,7 +3205,7 @@ const Students = () => {
             {canUpdatePin && (
               <button
                 onClick={() => setShowManualRollNumber(true)}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-primary to-primary border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
               >
                 <UserCog size={16} />
                 <span>Update PIN</span>
@@ -3216,7 +3216,7 @@ const Students = () => {
               <button
                 onClick={handleBulkDelete}
                 disabled={selectedCount === 0 || bulkDeleteMutation.isPending}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-red-600 to-red-700 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-danger to-danger border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
               >
                 <Trash2 size={16} />
                 <span>{bulkDeleteMutation.isPending ? '...' : `Delete (${selectedCount})`}</span>
@@ -3227,7 +3227,7 @@ const Students = () => {
               <button
                 onClick={handleBulkResendPasswords}
                 disabled={selectedCount === 0 || bulkPasswordState.processing}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-teal-600 to-teal-700 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-primary to-primary border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap flex-shrink-0"
               >
                 <Key size={16} />
                 <span>{bulkPasswordState.processing ? '...' : `Resend Pass`}</span>
@@ -3237,7 +3237,7 @@ const Students = () => {
             {canExportStudents && (
               <button
                 onClick={handleExportCSV}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-blue-500 to-blue-600 border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-semibold bg-gradient-to-r from-primary to-primary border border-transparent shadow-xs hover:shadow active:scale-95 transition-all duration-300 touch-manipulation min-h-[38px] whitespace-nowrap flex-shrink-0"
               >
                 <Download size={16} />
                 <span>Export CSV</span>
@@ -3250,50 +3250,50 @@ const Students = () => {
       {/* Statistics Cards */}
       {students.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          <div className="bg-white rounded-xl shadow-2xs border border-gray-200 p-3">
+          <div className="bg-surface rounded-xl shadow-2xs border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-gray-500 mb-0.5 uppercase tracking-wider">Total Students</p>
-                <p className="text-lg font-bold text-blue-600 leading-tight">{totalStudents.toLocaleString()}</p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs font-semibold text-muted-text mb-0.5 uppercase tracking-wider">Total Students</p>
+                <p className="text-lg font-bold text-primary leading-tight">{totalStudents.toLocaleString()}</p>
+                <p className="text-xs text-muted-text mt-0.5">
                   {filters.student_status ? (filters.student_status === 'Regular' ? 'Regular' : 'Filtered') : 'All Students'}
                 </p>
               </div>
-              <div className="bg-blue-50 p-2 rounded-xl">
-                <Users className="text-blue-500" size={18} />
+              <div className="bg-[var(--primary-light)] p-2 rounded-xl">
+                <Users className="text-primary" size={18} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-2xs border border-gray-200 p-3">
+          <div className="bg-surface rounded-xl shadow-2xs border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-gray-500 mb-0.5 uppercase tracking-wider">Profiles Done</p>
-                <p className="text-lg font-bold text-blue-600 leading-tight">{stats.completed}</p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs font-semibold text-muted-text mb-0.5 uppercase tracking-wider">Profiles Done</p>
+                <p className="text-lg font-bold text-primary leading-tight">{stats.completed}</p>
+                <p className="text-xs text-muted-text mt-0.5">
                   {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}% completion
                 </p>
               </div>
-              <div className="bg-blue-50 p-2 rounded-xl">
-                <CheckCircle className="text-blue-500" size={18} />
+              <div className="bg-[var(--primary-light)] p-2 rounded-xl">
+                <CheckCircle className="text-primary" size={18} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-2xs border border-gray-200 p-3">
+          <div className="bg-surface rounded-xl shadow-2xs border border-border p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-gray-500 mb-0.5 uppercase tracking-wider">Avg Completion</p>
-                <p className="text-lg font-bold text-blue-600 leading-tight">{stats.averageCompletion}%</p>
-                <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1.5">
+                <p className="text-xs font-semibold text-muted-text mb-0.5 uppercase tracking-wider">Avg Completion</p>
+                <p className="text-lg font-bold text-primary leading-tight">{stats.averageCompletion}%</p>
+                <div className="w-full bg-background rounded-full h-1.5 mt-1.5">
                   <div
-                    className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
+                    className="bg-primary h-1.5 rounded-full transition-all duration-300"
                     style={{ width: `${stats.averageCompletion}%` }}
                   ></div>
                 </div>
               </div>
-              <div className="bg-blue-50 p-2 rounded-xl">
-                <TrendingUp className="text-blue-500" size={18} />
+              <div className="bg-[var(--primary-light)] p-2 rounded-xl">
+                <TrendingUp className="text-primary" size={18} />
               </div>
             </div>
           </div>
@@ -3301,25 +3301,25 @@ const Students = () => {
       )}
 
       {/* Filter Section - Always Visible and Expandable */}
-      <div className="bg-white rounded-xl shadow-2xs border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50/80 border-b border-gray-200 px-3.5 py-2">
+      <div className="bg-surface rounded-xl shadow-2xs border border-border overflow-hidden">
+        <div className="bg-[var(--background)]/80 border-b border-border px-3.5 py-2">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setFiltersExpanded(!filtersExpanded)}
-              className="flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider hover:text-gray-900 transition-colors"
+              className="flex items-center gap-2 text-xs font-bold text-sub uppercase tracking-wider hover:text-main transition-colors"
             >
               <Filter size={14} />
               <span>Filters</span>
               {filtersExpanded ? (
-                <ChevronUp size={14} className="text-gray-500" />
+                <ChevronUp size={14} className="text-muted-text" />
               ) : (
-                <ChevronDown size={14} className="text-gray-500" />
+                <ChevronDown size={14} className="text-muted-text" />
               )}
             </button>
             <div className="flex items-center gap-3">
               {!filtersExpanded && Object.keys(filters).length > 0 && (
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-gray-500">Active:</span>
+                  <span className="text-xs text-muted-text">Active:</span>
                   {Object.entries(filters).map(([key, value]) => {
                     if (!value) return null;
                     const displayKey = key
@@ -3328,7 +3328,7 @@ const Students = () => {
                     return (
                       <span
                         key={key}
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[var(--primary-light)] text-primary text-[10px] font-bold rounded"
                       >
                         {displayKey}: {value}
                       </span>
@@ -3345,12 +3345,12 @@ const Students = () => {
                   }}
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                     filterSameMobilesOnly
-                      ? 'bg-amber-600 text-white shadow-xs ring-2 ring-amber-300'
-                      : 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100'
+                      ? 'bg-warning text-white shadow-xs ring-2 ring-[var(--warning-light)]'
+                      : 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] hover:bg-[var(--warning-light)]'
                   }`}
                   title={filterSameMobilesOnly ? 'Click to show all students' : 'Click to filter only students with duplicate mobile numbers'}
                 >
-                  <AlertTriangle size={13} className={filterSameMobilesOnly ? 'text-white' : 'text-amber-600 animate-pulse'} />
+                  <AlertTriangle size={13} className={filterSameMobilesOnly ? 'text-white' : 'text-warning animate-pulse'} />
                   <span>Same Mobiles ({duplicateMobilesCount.toLocaleString()})</span>
                   {filterSameMobilesOnly && <X size={12} className="ml-0.5" />}
                 </button>
@@ -3358,7 +3358,7 @@ const Students = () => {
               {(Object.keys(filters).length > 0 || searchTerm || filterSameMobilesOnly) && (
                 <button
                   onClick={clearFilters}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                  className="text-xs text-primary hover:text-primary font-medium transition-colors"
                 >
                   Clear All
                 </button>
@@ -3367,10 +3367,10 @@ const Students = () => {
           </div>
         </div>
         {filtersExpanded && (
-          <div className="px-2.5 py-2 border-t border-gray-200">
+          <div className="px-2.5 py-2 border-t border-border">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">College</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">College</label>
                 <select
                   value={(() => {
                     if (!filters.college) return '';
@@ -3379,7 +3379,7 @@ const Students = () => {
                   })()}
                   onChange={(e) => handleFilterChange('college', e.target.value)}
                   disabled={collegesLoading}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="">All</option>
                   {colleges.filter(c => c.isActive !== false).map((college) => (
@@ -3388,11 +3388,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Level</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Level</label>
                 <select
                   value={filters.level || ''}
                   onChange={(e) => handleFilterChange('level', e.target.value)}
-                  className="px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1.5 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   <option value="diploma">Diploma</option>
@@ -3401,11 +3401,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Batch</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Batch</label>
                 <select
                   value={filters.batch || ''}
                   onChange={(e) => handleFilterChange('batch', e.target.value)}
-                  className="px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1.5 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(quickFilterOptions.batches || []).map((batch) => (
@@ -3414,7 +3414,7 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Program</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Program</label>
                 <select
                   value={(() => {
                     if (!filters.course) return '';
@@ -3435,7 +3435,7 @@ const Students = () => {
                       console.warn('Failed to refresh course options:', err);
                     });
                   }}
-                  className="px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1.5 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(quickFilterOptions.courses || [])
@@ -3455,7 +3455,7 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Branch</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Branch</label>
                 <select
                   value={(() => {
                     if (!filters.branch) return '';
@@ -3476,7 +3476,7 @@ const Students = () => {
                       console.warn('Failed to refresh branch options:', err);
                     });
                   }}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(quickFilterOptions.branches || []).map((branch) => (
@@ -3486,11 +3486,11 @@ const Students = () => {
               </div>
               {filters.course && filters.branch && filterBranchHasSections && (
                 <div className="flex flex-col">
-                  <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Section</label>
+                  <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Section</label>
                   <select
                     value={filters.section || ''}
                     onChange={(e) => handleFilterChange('section', e.target.value)}
-                    className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                   >
                     <option value="">All</option>
                     {(quickFilterOptions.sections || []).map((section) => (
@@ -3500,11 +3500,11 @@ const Students = () => {
                 </div>
               )}
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Quota</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Quota</label>
                 <select
                   value={filters.stud_type || ''}
                   onChange={(e) => handleFilterChange('stud_type', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(dropdownFilterOptions.stud_type || []).map((type) => (
@@ -3513,11 +3513,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Status</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Status</label>
                 <select
                   value={filters.student_status || ''}
                   onChange={(e) => handleFilterChange('student_status', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(dropdownFilterOptions.student_status || []).map((status) => (
@@ -3526,11 +3526,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Scholar Status</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Scholar Status</label>
                 <select
                   value={filters.scholar_status || ''}
                   onChange={(e) => handleFilterChange('scholar_status', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {SCHOLARSHIP_STATUS_FILTER_OPTIONS.map((option) => (
@@ -3540,11 +3540,11 @@ const Students = () => {
               </div>
               {showMeritColumn && (
                 <div className="flex flex-col">
-                  <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Merit Status</label>
+                  <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Merit Status</label>
                   <select
                     value={filters.merit_status || ''}
                     onChange={(e) => handleFilterChange('merit_status', e.target.value)}
-                    className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                   >
                     <option value="">All</option>
                     {MERIT_STATUS_FILTER_OPTIONS.map((option) => (
@@ -3554,11 +3554,11 @@ const Students = () => {
                 </div>
               )}
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Category</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Category</label>
                 <select
                   value={filters.category_id || ''}
                   onChange={(e) => handleFilterChange('category_id', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(dropdownFilterOptions.category_id || []).map((catId) => {
@@ -3570,11 +3570,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Gender</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Gender</label>
                 <select
                   value={filters.gender || ''}
                   onChange={(e) => handleFilterChange('gender', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(dropdownFilterOptions.gender || []).map((gender) => (
@@ -3584,11 +3584,11 @@ const Students = () => {
               </div>
 
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Fee Status</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Fee Status</label>
                 <select
                   value={filters.fee_status || ''}
                   onChange={(e) => handleFilterChange('fee_status', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   <option value="pending">Pending</option>
@@ -3597,11 +3597,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Registration Status</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Registration Status</label>
                 <select
                   value={filters.registration_status || ''}
                   onChange={(e) => handleFilterChange('registration_status', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   <option value="pending">Pending</option>
@@ -3610,11 +3610,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Year</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Year</label>
                 <select
                   value={filters.year || ''}
                   onChange={(e) => handleFilterChange('year', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(quickFilterOptions.years || []).map((year) => (
@@ -3623,11 +3623,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Semester</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Semester</label>
                 <select
                   value={filters.semester || ''}
                   onChange={(e) => handleFilterChange('semester', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(quickFilterOptions.semesters || []).map((sem) => (
@@ -3636,11 +3636,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Remarks</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Remarks</label>
                 <select
                   value={filters.remarks || ''}
                   onChange={(e) => handleFilterChange('remarks', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(dropdownFilterOptions.remarks || []).map((remark) => (
@@ -3649,11 +3649,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">District</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">District</label>
                 <select
                   value={filters.district || ''}
                   onChange={(e) => handleFilterChange('district', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(dropdownFilterOptions.district || []).map((district) => (
@@ -3662,11 +3662,11 @@ const Students = () => {
                 </select>
               </div>
               <div className="flex flex-col">
-                <label className="text-[10px] font-semibold text-gray-500 mb-0.5 ml-0.5 uppercase tracking-wide">Mandal</label>
+                <label className="text-[10px] font-semibold text-muted-text mb-0.5 ml-0.5 uppercase tracking-wide">Mandal</label>
                 <select
                   value={filters.mandal_name || ''}
                   onChange={(e) => handleFilterChange('mandal_name', e.target.value)}
-                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
                   {(dropdownFilterOptions.mandal_name || []).map((mandal) => (
@@ -3680,17 +3680,17 @@ const Students = () => {
       </div>
 
       {tableLoading ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden">
           <SkeletonStudentsTable rows={pageSize || 10} />
         </div>
       ) : students.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
+        <div className="bg-surface rounded-xl shadow-sm border border-border p-12 text-center">
           <div className="max-w-md mx-auto">
-            <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="text-gray-400" size={32} />
+            <div className="bg-background w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="text-muted-text" size={32} />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No students found</h3>
-            <p className="text-gray-600">
+            <h3 className="text-xl font-semibold text-main mb-2">No students found</h3>
+            <p className="text-sub">
               {Object.keys(filters).length > 0 || searchTerm
                 ? 'No students match the current filters. Try adjusting your search criteria.'
                 : 'There are no student records in the database yet.'}
@@ -3698,112 +3698,112 @@ const Students = () => {
           </div>
         </div>
       ) : (
-        <div className="flex-1 min-h-0 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative flex flex-col">
+        <div className="flex-1 min-h-0 bg-surface rounded-xl shadow-sm border border-border overflow-hidden relative flex flex-col">
           {/* Table Container */}
           <div className="flex-1 overflow-auto no-scrollbar">
             {/* Sleek non-blocking top progress bar when table is fetching */}
             {tableFetching && (
-              <div className="absolute top-0 inset-x-0 h-1 bg-indigo-100/70 overflow-hidden z-30 pointer-events-none">
-                <div className="h-full bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 shimmer-progress-bar w-1/2 rounded-full shadow-sm" />
+              <div className="absolute top-0 inset-x-0 h-1 bg-[var(--primary-light)] overflow-hidden z-30 pointer-events-none">
+                <div className="h-full bg-gradient-to-r from-primary via-primary to-secondary shimmer-progress-bar w-1/2 rounded-full shadow-sm" />
               </div>
             )}
             {/* Desktop Table View - Responsive Container */}
             <div className="hidden lg:block responsive-table-container">
               <table className="w-full responsive-table" style={{ tableLayout: 'auto' }}>
-                <thead className="bg-gray-50 border-b border-gray-200">
+                <thead className="bg-background border-b border-border">
                   <tr>
-                    <th className="py-3 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-center w-12 sticky left-0 bg-gray-50 z-20 border-r border-gray-200">
+                    <th className="py-3 px-3 text-xs font-bold text-sub uppercase tracking-wider text-center w-12 sticky left-0 bg-background z-20 border-r border-border">
                       <input
                         type="checkbox"
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                        className="w-4 h-4 text-primary border-border-strong rounded focus:ring-primary cursor-pointer"
                         disabled={students.length === 0 || bulkDeleteMutation.isPending}
                         checked={isAllSelected}
                         onChange={(e) => toggleSelectAllStudents(e.target.checked)}
                       />
                     </th>
                     {canViewField('student_photo') && (
-                      <th className="py-3 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[56px] sticky left-12 bg-gray-50 z-20 border-r border-gray-200">
+                      <th className="py-3 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[56px] sticky left-12 bg-background z-20 border-r border-border">
                         Photo
                       </th>
                     )}
                     {canViewField('student_name') && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left w-52 min-w-[170px] max-w-[210px]">
+                      <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left w-52 min-w-[170px] max-w-[210px]">
                         Student Name
                       </th>
                     )}
                     {canViewField('pin_no') && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[90px]">
+                      <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[90px]">
                         <button
                           onClick={() => handleSort('pinNumber')}
-                          className="flex items-center gap-1 hover:text-gray-900 transition-colors uppercase font-bold"
+                          className="flex items-center gap-1 hover:text-main transition-colors uppercase font-bold"
                         >
                           PIN
                         </button>
                       </th>
                     )}
                     {canViewField('admission_number') && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[95px]">
+                      <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[95px]">
                         Adm No
                       </th>
                     )}
                     {canViewField('batch') && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[70px]">
+                      <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[70px]">
                         Batch
                       </th>
                     )}
                     {canViewField('course') && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[85px] max-w-[100px]">
+                      <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[85px] max-w-[100px]">
                         Program
                       </th>
                     )}
                     {canViewField('branch') && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[85px] max-w-[110px]">
+                      <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[85px] max-w-[110px]">
                         Branch
                       </th>
                     )}
                     {(canViewField('current_year') || canViewField('current_semester') || showSectionColumn) && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-center min-w-[95px]">
+                      <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-center min-w-[95px]">
                         Yr / Sem
                       </th>
                     )}
                     {!isCashier && (
                       <>
                         {canViewField('stud_type') && (
-                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[75px]">
+                          <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[75px]">
                             Quota
                           </th>
                         )}
                         {canViewField('student_status') && (
-                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[85px]">
+                          <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[85px]">
                             Status
                           </th>
                         )}
                         {canViewField('certificates_status') && (
-                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[80px]">
+                          <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[80px]">
                             Certs
                           </th>
                         )}
                       </>
                     )}
                     {canViewField('fee_status') && (
-                      <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[80px]">
+                      <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[80px]">
                         Fees
                       </th>
                     )}
                     {!isCashier && (
                       <>
                         {canViewField('scholar_status') && (
-                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[85px]">
+                          <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[85px]">
                             Scholar
                           </th>
                         )}
                         {showMeritColumn && (
-                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[80px]">
+                          <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[80px]">
                             Merit
                           </th>
                         )}
                         {canViewField('registration_status') && (
-                          <th className="py-2.5 px-3 text-xs font-bold text-gray-600 uppercase tracking-wider text-left min-w-[75px]">
+                          <th className="py-2.5 px-3 text-xs font-bold text-sub uppercase tracking-wider text-left min-w-[75px]">
                             Reg
                           </th>
                         )}
@@ -3822,8 +3822,8 @@ const Students = () => {
                         style={{ animationDelay: `${Math.min(index, 25) * 22}ms` }}
                         className={`border-b transition-colors cursor-pointer row-cascade ${
                           isDuplicateMobile
-                            ? 'border-amber-200 bg-amber-50/75 hover:bg-amber-100/80 border-l-4 border-l-amber-500'
-                            : 'border-gray-100 hover:bg-blue-50/40'
+                            ? 'border-[var(--warning-light)] bg-[var(--warning-light)] hover:bg-[var(--warning-light)] border-l-4 border-l-warning'
+                            : 'border-border hover:bg-[var(--primary-light)]'
                         }`}
                         onClick={(e) => {
                           // Don't trigger view modal if interacting with inputs/selects/inline editors
@@ -3849,13 +3849,13 @@ const Students = () => {
                       >
                         <td
                           className={`py-3 px-3 text-center sticky left-0 z-10 border-r ${
-                            isDuplicateMobile ? 'bg-amber-50/95 border-amber-200' : 'bg-white border-gray-200'
+                            isDuplicateMobile ? 'bg-[var(--warning-light)] border-[var(--warning-light)]' : 'bg-surface border-border'
                           }`}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <input
                             type="checkbox"
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                            className="w-4 h-4 text-primary border-border-strong rounded focus:ring-primary cursor-pointer"
                             disabled={bulkDeleteMutation.isPending}
                             checked={selectedAdmissionNumbers.has(student.admission_number)}
                             onChange={() => toggleSelectStudent(student.admission_number)}
@@ -3864,7 +3864,7 @@ const Students = () => {
                         {canViewField('student_photo') && (
                           <td
                             className={`py-2 px-3 sticky left-12 z-10 border-r ${
-                              isDuplicateMobile ? 'bg-amber-50/95 border-amber-200' : 'bg-white border-gray-200'
+                              isDuplicateMobile ? 'bg-[var(--warning-light)] border-[var(--warning-light)]' : 'bg-surface border-border'
                             }`}
                           >
                             <div className="flex items-center justify-center mx-auto">
@@ -3877,9 +3877,9 @@ const Students = () => {
                           </td>
                         )}
                         {canViewField('student_name') && (
-                          <td className="py-2.5 px-3 text-xs text-gray-900 leading-snug w-52 min-w-[170px] max-w-[210px]">
+                          <td className="py-2.5 px-3 text-xs text-main leading-snug w-52 min-w-[170px] max-w-[210px]">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <div className="font-semibold text-gray-900 truncate hover:text-blue-600 transition-colors max-w-[170px]" title={student.student_name}>
+                              <div className="font-semibold text-main truncate hover:text-primary transition-colors max-w-[170px]" title={student.student_name}>
                                 {student.student_name || '-'}
                               </div>
                               {isDuplicateMobile && (
@@ -3890,10 +3890,10 @@ const Students = () => {
                                     handleViewDetails(student);
                                     setEditMode(true);
                                   }}
-                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 shadow-2xs whitespace-nowrap cursor-pointer transition-colors"
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[var(--warning-light)] hover:bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] shadow-2xs whitespace-nowrap cursor-pointer transition-colors"
                                   title={`Student mobile and ${dupMobileCheck.matchedLabel} are identical (${dupMobileCheck.number}). Click to open profile and update.`}
                                 >
-                                  <AlertTriangle size={11} className="text-amber-600 animate-pulse flex-shrink-0" />
+                                  <AlertTriangle size={11} className="text-warning animate-pulse flex-shrink-0" />
                                   Same Mobile
                                 </button>
                               )}
@@ -3901,36 +3901,36 @@ const Students = () => {
                           </td>
                         )}
                         {canViewField('pin_no') && (
-                          <td className="py-2.5 px-3 text-xs text-gray-700 whitespace-nowrap">
+                          <td className="py-2.5 px-3 text-xs text-sub whitespace-nowrap">
                             {student.pin_no ? (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-xs font-semibold font-mono border border-emerald-200/80 shadow-xs">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--success-light)] text-success text-xs font-semibold font-mono border border-[var(--success-light)] shadow-xs">
                                 {student.pin_no}
                               </span>
                             ) : (
-                              <span className="text-gray-400 font-medium">-</span>
+                              <span className="text-muted-text font-medium">-</span>
                             )}
                           </td>
                         )}
                         {canViewField('admission_number') && (
-                          <td className="py-2.5 px-3 text-xs font-bold text-gray-900 font-mono tracking-tight whitespace-nowrap">{student.admission_number || '-'}</td>
+                          <td className="py-2.5 px-3 text-xs font-bold text-main font-mono tracking-tight whitespace-nowrap">{student.admission_number || '-'}</td>
                         )}
                         {canViewField('batch') && (
-                          <td className="py-2.5 px-3 text-xs text-gray-800 font-medium whitespace-nowrap">{student.batch || '-'}</td>
+                          <td className="py-2.5 px-3 text-xs text-main font-medium whitespace-nowrap">{student.batch || '-'}</td>
                         )}
                         {canViewField('course') && (
-                          <td className="py-2.5 px-3 text-xs text-gray-800 font-medium max-w-[100px] truncate" title={student.course}>
+                          <td className="py-2.5 px-3 text-xs text-main font-medium max-w-[100px] truncate" title={student.course}>
                             {student.course || '-'}
                           </td>
                         )}
                         {canViewField('branch') && (
-                          <td className="py-2.5 px-3 text-xs text-gray-800 font-medium max-w-[110px] truncate" title={student.branch}>
+                          <td className="py-2.5 px-3 text-xs text-main font-medium max-w-[110px] truncate" title={student.branch}>
                             {student.branch || '-'}
                           </td>
                         )}
                         {(canViewField('current_year') || canViewField('current_semester') || showSectionColumn) && (
                           <td className="py-2.5 px-3 text-xs text-center whitespace-nowrap">
                             <span
-                              className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200/60 font-mono tracking-wide"
+                              className="inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--primary-light)] text-primary font-bold text-xs border border-[var(--primary-light)] font-mono tracking-wide"
                               title={`Year ${student.current_year || 1}, Semester ${student.current_semester || 1}${student.section && student.section !== '-' ? `, Section ${student.section}` : ''}`}
                             >
                               {getAcademicClassDisplay(student)}
@@ -3940,28 +3940,28 @@ const Students = () => {
                         {!isCashier && (
                           <>
                             {canViewField('stud_type') && (
-                              <td className="py-2.5 px-3 text-xs text-gray-700">
+                              <td className="py-2.5 px-3 text-xs text-sub">
                                 {student.stud_type ? (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-bold uppercase tracking-wider border border-slate-200/60">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-background text-sub text-[11px] font-bold uppercase tracking-wider border border-border">
                                     {student.stud_type}
                                   </span>
                                 ) : '-'}
                               </td>
                             )}
                             {canViewField('student_status') && (
-                              <td className="py-2.5 px-3 text-xs text-gray-800 truncate" onClick={(e) => e.stopPropagation()}>
+                              <td className="py-2.5 px-3 text-xs text-main truncate" onClick={(e) => e.stopPropagation()}>
                                 {renderEditableCell(student, 'student_status', 'select', STUDENT_STATUS_OPTIONS)}
                               </td>
                             )}
                             {canViewField('certificates_status') && (
-                              <td className="py-2.5 px-3 text-xs text-gray-800 truncate font-medium">
+                              <td className="py-2.5 px-3 text-xs text-main truncate font-medium">
                                 {student.certificates_status || 'Pending'}
                               </td>
                             )}
                           </>
                         )}
                         {canViewField('fee_status') && (
-                          <td className="py-2.5 px-3 text-xs text-gray-800" onClick={(e) => e.stopPropagation()}>
+                          <td className="py-2.5 px-3 text-xs text-main" onClick={(e) => e.stopPropagation()}>
                             {renderEditableCell(student, 'fee_status', 'select', FEE_STATUS_OPTIONS)}
                           </td>
                         )}
@@ -3969,14 +3969,14 @@ const Students = () => {
                           <>
                             {canViewField('scholar_status') && !isCashier && (
                               <td
-                                className="py-2.5 px-3 text-xs text-gray-800 truncate capitalize"
+                                className="py-2.5 px-3 text-xs text-main truncate capitalize"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleViewDetails(student, 'scholarship');
                                 }}
                               >
                                 <div
-                                  className="px-2 py-1 rounded hover:bg-purple-50 hover:text-purple-700 transition-colors cursor-pointer capitalize font-medium"
+                                  className="px-2 py-1 rounded hover:bg-[var(--primary-light)] hover:text-secondary transition-colors cursor-pointer capitalize font-medium"
                                   title="Open scholarship details"
                                 >
                                   {formatScholarshipStatusDisplay(student.scholar_status)}
@@ -3985,7 +3985,7 @@ const Students = () => {
                             )}
                             {showMeritColumn && (
                               <td
-                                className="py-2.5 px-3 text-xs text-gray-800 truncate"
+                                className="py-2.5 px-3 text-xs text-main truncate"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (canViewMeritStatus) {
@@ -3998,10 +3998,10 @@ const Students = () => {
                                     canViewMeritStatus ? 'cursor-pointer' : ''
                                   } ${
                                     student.merit_status === 'yes'
-                                      ? 'text-green-700 hover:bg-green-50'
+                                      ? 'text-success hover:bg-[var(--success-light)]'
                                       : student.merit_status === 'no'
-                                        ? 'text-red-700 hover:bg-red-50'
-                                        : 'text-gray-500 hover:bg-amber-50 hover:text-amber-700'
+                                        ? 'text-danger hover:bg-[var(--danger-light)]'
+                                        : 'text-muted-text hover:bg-[var(--warning-light)] hover:text-warning'
                                   }`}
                                   title={canViewMeritStatus ? 'Open merit status' : 'Merit status'}
                                 >
@@ -4037,8 +4037,8 @@ const Students = () => {
                     style={{ animationDelay: `${Math.min(index, 25) * 25}ms` }}
                     className={`rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 row-cascade ${
                       isDuplicateMobile
-                        ? 'bg-amber-50/70 border-2 border-amber-400 hover:border-amber-500'
-                        : 'bg-white border border-gray-200/90 hover:border-indigo-200'
+                        ? 'bg-[var(--warning-light)] border-2 border-warning hover:border-warning'
+                        : 'bg-surface border border-border hover:border-[var(--primary-light)]'
                     }`}
                   >
                     <div className="p-4 space-y-3">
@@ -4047,7 +4047,7 @@ const Students = () => {
                         <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
-                            className="w-5 h-5 text-blue-600 border-gray-300 rounded mt-1"
+                            className="w-5 h-5 text-primary border-border-strong rounded mt-1"
                             disabled={bulkDeleteMutation.isPending}
                             checked={selectedAdmissionNumbers.has(student.admission_number)}
                             onChange={() => toggleSelectStudent(student.admission_number)}
@@ -4073,7 +4073,7 @@ const Students = () => {
                         >
                           {canViewField('student_name') && (
                             <div className="flex items-center justify-between gap-2">
-                              <h3 className="font-semibold text-gray-900 text-base truncate">{student.student_name || '-'}</h3>
+                              <h3 className="font-semibold text-main text-base truncate">{student.student_name || '-'}</h3>
                               {isDuplicateMobile && (
                                 <button
                                   type="button"
@@ -4082,19 +4082,19 @@ const Students = () => {
                                     handleViewDetails(student);
                                     setEditMode(true);
                                   }}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 whitespace-nowrap flex-shrink-0 cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[var(--warning-light)] hover:bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] whitespace-nowrap flex-shrink-0 cursor-pointer"
                                   title="Click to open profile and update duplicate mobile"
                                 >
-                                  <AlertTriangle size={11} className="text-amber-600 animate-pulse" /> Same Mobile
+                                  <AlertTriangle size={11} className="text-warning animate-pulse" /> Same Mobile
                                 </button>
                               )}
                             </div>
                           )}
                           {canViewField('admission_number') && (
-                            <p className="text-sm text-gray-600 mt-1">{student.admission_number || '-'}</p>
+                            <p className="text-sm text-sub mt-1">{student.admission_number || '-'}</p>
                           )}
                           {canViewField('pin_no') && student.pin_no && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-medium mt-1">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded bg-[var(--success-light)] text-success text-xs font-medium mt-1">
                               PIN Number: {student.pin_no}
                             </span>
                           )}
@@ -4102,33 +4102,33 @@ const Students = () => {
                       </div>
 
                       {/* Key Information Grid */}
-                      <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-gray-100">
+                      <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-border">
                         {canViewField('batch') && (
                           <div>
-                            <p className="text-xs text-gray-500 font-medium">Batch</p>
-                            <p className="text-sm font-semibold text-gray-900">{student.batch || '-'}</p>
+                            <p className="text-xs text-muted-text font-medium">Batch</p>
+                            <p className="text-sm font-semibold text-main">{student.batch || '-'}</p>
                           </div>
                         )}
                         {canViewField('course') && (
                           <div>
-                            <p className="text-xs text-gray-500 font-medium">Program</p>
-                            <p className="text-sm font-semibold text-gray-900 truncate" title={student.course || ''}>{student.course || '-'}</p>
+                            <p className="text-xs text-muted-text font-medium">Program</p>
+                            <p className="text-sm font-semibold text-main truncate" title={student.course || ''}>{student.course || '-'}</p>
                           </div>
                         )}
                         {canViewField('branch') && (
                           <div>
-                            <p className="text-xs text-gray-500 font-medium">Branch</p>
-                            <p className="text-sm font-semibold text-gray-900 truncate" title={student.branch || ''}>{student.branch || '-'}</p>
+                            <p className="text-xs text-muted-text font-medium">Branch</p>
+                            <p className="text-sm font-semibold text-main truncate" title={student.branch || ''}>{student.branch || '-'}</p>
                           </div>
                         )}
                         {(canViewField('current_year') || canViewField('current_semester') || showSectionColumn) && (
                           <div>
-                            <p className="text-xs text-gray-500 font-medium">
+                            <p className="text-xs text-muted-text font-medium">
                               Yr / Sem
                             </p>
                             <div className="mt-0.5">
                               <span
-                                className="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-bold text-xs border border-blue-200/60 font-mono tracking-wide"
+                                className="inline-flex items-center px-2 py-0.5 rounded-md bg-[var(--primary-light)] text-primary font-bold text-xs border border-[var(--primary-light)] font-mono tracking-wide"
                                 title={`Year ${student.current_year || 1}, Semester ${student.current_semester || 1}${student.section && student.section !== '-' ? `, Section ${student.section}` : ''}`}
                               >
                                 {getAcademicClassDisplay(student)}
@@ -4140,8 +4140,8 @@ const Students = () => {
                           <>
                             {canViewField('student_status') && (
                               <div>
-                                <p className="text-xs text-gray-500 font-medium">Status</p>
-                                <p className="text-sm font-semibold text-gray-900 truncate" title={student.student_status || ''}>{student.student_status || '-'}</p>
+                                <p className="text-xs text-muted-text font-medium">Status</p>
+                                <p className="text-sm font-semibold text-main truncate" title={student.student_status || ''}>{student.student_status || '-'}</p>
                               </div>
                             )}
                           </>
@@ -4149,8 +4149,8 @@ const Students = () => {
 
                         {canViewField('fee_status') && (
                           <div>
-                            <p className="text-xs text-gray-500 font-medium">Fee Status</p>
-                            <p className="text-sm font-semibold text-gray-900">{student.fee_status || 'pending'}</p>
+                            <p className="text-xs text-muted-text font-medium">Fee Status</p>
+                            <p className="text-sm font-semibold text-main">{student.fee_status || 'pending'}</p>
                           </div>
                         )}
 
@@ -4171,11 +4171,11 @@ const Students = () => {
                                     handleViewDetails(student, 'scholarship');
                                   }
                                 }}
-                                className="rounded-lg p-1 -m-1 hover:bg-purple-50 cursor-pointer"
+                                className="rounded-lg p-1 -m-1 hover:bg-[var(--primary-light)] cursor-pointer"
                                 title="Open scholarship details"
                               >
-                                <p className="text-xs text-gray-500 font-medium">Scholar Status</p>
-                                <p className="text-sm font-semibold text-gray-900 truncate" title={formatScholarshipStatusDisplay(student.scholar_status)}>
+                                <p className="text-xs text-muted-text font-medium">Scholar Status</p>
+                                <p className="text-sm font-semibold text-main truncate" title={formatScholarshipStatusDisplay(student.scholar_status)}>
                                   {formatScholarshipStatusDisplay(student.scholar_status)}
                                 </p>
                               </div>
@@ -4197,16 +4197,16 @@ const Students = () => {
                                     handleViewDetails(student, 'merit_status');
                                   }
                                 }}
-                                className={`rounded-lg p-1 -m-1 ${canViewMeritStatus ? 'hover:bg-amber-50 cursor-pointer' : ''}`}
+                                className={`rounded-lg p-1 -m-1 ${canViewMeritStatus ? 'hover:bg-[var(--warning-light)] cursor-pointer' : ''}`}
                                 title={canViewMeritStatus ? 'Open merit status' : 'Merit status'}
                               >
-                                <p className="text-xs text-gray-500 font-medium">Merit Status</p>
+                                <p className="text-xs text-muted-text font-medium">Merit Status</p>
                                 <p className={`text-sm font-semibold truncate ${
                                   student.merit_status === 'yes'
-                                    ? 'text-green-700'
+                                    ? 'text-success'
                                     : student.merit_status === 'no'
-                                      ? 'text-red-700'
-                                      : 'text-gray-900'
+                                      ? 'text-danger'
+                                      : 'text-main'
                                 }`}>
                                   {formatMeritStatusDisplay(student.merit_status)}
                                 </p>
@@ -4214,7 +4214,7 @@ const Students = () => {
                             )}
                             {canViewField('registration_status') && (
                               <div>
-                                <p className="text-xs text-gray-500 font-medium">Registration Status</p>
+                                <p className="text-xs text-muted-text font-medium">Registration Status</p>
                                 <p className={`text-sm font-semibold inline-flex px-2 py-0.5 rounded ${getRegistrationStatusBadgeClass(student.registration_status)}`}>
                                   {formatRegistrationStatusLabel(student.registration_status)}
                                 </p>
@@ -4228,7 +4228,7 @@ const Students = () => {
                       {!isCashier && (
                         <button
                           onClick={() => handleViewDetails(student)}
-                          className="w-full mt-2 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors touch-manipulation font-medium text-sm"
+                          className="w-full mt-2 py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary-hover active:bg-primary transition-colors touch-manipulation font-medium text-sm"
                         >
                           View Details
                         </button>
@@ -4239,20 +4239,20 @@ const Students = () => {
               })}
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 px-4 py-3 border-t border-gray-100 bg-white">
-            <div className="text-xs sm:text-sm text-gray-600 font-medium">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 px-4 py-3 border-t border-border bg-surface">
+            <div className="text-xs sm:text-sm text-sub font-medium">
               {totalStudents === 0
                 ? 'No students to display'
                 : `Showing ${showingFrom.toLocaleString()}-${showingTo.toLocaleString()} of ${totalStudents.toLocaleString()} students`}
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <label className="flex items-center gap-1.5 text-xs text-gray-600 font-medium">
+              <label className="flex items-center gap-1.5 text-xs text-sub font-medium">
                 <span className="hidden sm:inline">Rows per page:</span>
                 <span className="sm:hidden">Per page:</span>
                 <select
                   value={pageSize}
                   onChange={handlePageSizeChange}
-                  className="px-2 py-1 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-xs font-semibold text-gray-700 touch-manipulation min-h-[30px]"
+                  className="px-2 py-1 border border-border-strong rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-xs font-semibold text-sub touch-manipulation min-h-[30px]"
                   disabled={filtersLoading}
                 >
                   {pageSizeOptions.map((option) => (
@@ -4265,18 +4265,18 @@ const Students = () => {
                   type="button"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={isFirstPage || totalStudents === 0}
-                  className="flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 rounded-lg text-xs text-gray-700 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation font-semibold shadow-2xs"
+                  className="flex-1 sm:flex-none px-3 py-1.5 border border-border-strong rounded-lg text-xs text-sub hover:bg-background active:bg-background disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation font-semibold shadow-2xs"
                 >
                   Previous
                 </button>
-                <span className="text-xs text-gray-600 px-1 text-center whitespace-nowrap font-medium">
+                <span className="text-xs text-sub px-1 text-center whitespace-nowrap font-medium">
                   Page {Math.min(currentPage, totalPages).toLocaleString()} of {totalPages.toLocaleString()}
                 </span>
                 <button
                   type="button"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={isLastPage || totalStudents === 0}
-                  className="flex-1 sm:flex-none px-3 py-1.5 border border-gray-300 rounded-lg text-xs text-gray-700 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation font-semibold shadow-2xs"
+                  className="flex-1 sm:flex-none px-3 py-1.5 border border-border-strong rounded-lg text-xs text-sub hover:bg-background active:bg-background disabled:opacity-40 disabled:cursor-not-allowed transition-colors touch-manipulation font-semibold shadow-2xs"
                 >
                   Next
                 </button>
@@ -4302,24 +4302,24 @@ const Students = () => {
           }}
         >
           <div
-            className="bg-slate-50 rounded-3xl shadow-2xl w-full max-w-[min(94vw,1240px)] max-h-[96vh] flex flex-col overflow-hidden border border-white/40 animate-scale-in font-sans"
+            className="bg-background rounded-3xl shadow-2xl w-full max-w-[min(94vw,1240px)] max-h-[96vh] flex flex-col overflow-hidden border border-surface animate-scale-in font-sans"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header Banner Section */}
-            <div className="bg-white border-b border-gray-100 p-4 sm:p-5 flex flex-col gap-3 shrink-0 relative shadow-2xs">
+            <div className="bg-surface border-b border-border p-4 sm:p-5 flex flex-col gap-3 shrink-0 relative shadow-2xs">
               {/* Top Row: Breadcrumb & Right Actions */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
+                <div className="flex items-center gap-2 text-xs font-bold text-muted-text">
                   <span>Students</span>
                   <span>&rsaquo;</span>
-                  <span className="text-gray-900 font-extrabold">Student Profile</span>
+                  <span className="text-main font-extrabold">Student Profile</span>
                 </div>
 
                 <div className="flex items-center gap-2.5">
                   {!editMode && canEditStudents && !isCashier && (!frozenBatches[selectedStudent?.batch]?.includes("ALL") && !frozenBatches[selectedStudent?.student_data?.batch]?.includes("ALL")) && (
                     <button
                       onClick={handleEdit}
-                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-200 active:scale-95"
+                      className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-primary active:scale-95"
                     >
                       <Edit size={14} />
                       <span>Edit Profile</span>
@@ -4329,7 +4329,7 @@ const Students = () => {
                     <button
                       onClick={handleSaveEdit}
                       disabled={savingEdit}
-                      className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-200 active:scale-95"
+                      className="flex items-center gap-2 bg-success hover:bg-success text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-success active:scale-95"
                     >
                       <Check size={14} />
                       <span>{savingEdit ? 'Saving...' : 'Save Changes'}</span>
@@ -4341,10 +4341,10 @@ const Students = () => {
                     <button
                       onClick={handleResetPassword}
                       disabled={resettingPassword}
-                      className="flex items-center gap-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200/90 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs hover:shadow-xs active:scale-95 disabled:opacity-50"
+                      className="flex items-center gap-1.5 bg-[var(--warning-light)] hover:bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs hover:shadow-xs active:scale-95 disabled:opacity-50"
                       title="Reset Student Password"
                     >
-                      <RefreshCw size={13} className={resettingPassword ? 'animate-spin text-orange-600' : 'text-orange-600'} />
+                      <RefreshCw size={13} className={resettingPassword ? 'animate-spin text-warning' : 'text-warning'} />
                       <span>{resettingPassword ? 'Resetting...' : 'Reset Password'}</span>
                     </button>
                   )}
@@ -4358,7 +4358,7 @@ const Students = () => {
                         setActiveStudentTab('details');
                       }
                     }}
-                    className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 hover:text-gray-700 transition-all active:scale-95"
+                    className="p-2 hover:bg-background rounded-xl text-muted-text hover:text-sub transition-all active:scale-95"
                     title="Close"
                   >
                     <X size={20} />
@@ -4374,7 +4374,7 @@ const Students = () => {
                     onClick={() => {
                       setShowPhotoViewer(true);
                     }}
-                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-100 border-2 border-indigo-200 overflow-hidden shrink-0 relative group shadow-md flex items-center justify-center cursor-pointer hover:border-blue-500 transition-all"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-background border-2 border-[var(--primary-light)] overflow-hidden shrink-0 relative group shadow-md flex items-center justify-center cursor-pointer hover:border-primary transition-all"
                   >
                     {editData.student_photo && editData.student_photo !== '{}' && editData.student_photo !== null && editData.student_photo !== '' ? (
                       <img
@@ -4383,7 +4383,7 @@ const Students = () => {
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
-                      <div className="flex flex-col items-center justify-center h-full text-gray-400">
+                      <div className="flex flex-col items-center justify-center h-full text-muted-text">
                         <User size={32} />
                       </div>
                     )}
@@ -4396,34 +4396,34 @@ const Students = () => {
 
                   {/* Main Details Info Header (Merged Subtitle & College) */}
                   <div className="space-y-1">
-                    <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                    <h2 className="text-xl sm:text-2xl font-black text-main tracking-tight">
                       {editData.student_name || selectedStudent?.student_name || 'Student Name'}
                     </h2>
 
-                    <p className="text-xs sm:text-sm font-bold text-gray-600 flex flex-wrap items-center gap-1.5">
-                      <span className="font-mono bg-gray-100 text-gray-800 px-2 py-0.5 rounded-md text-xs font-black">{editData.pin_no || selectedStudent?.pin_no || selectedStudent?.admission_number}</span>
-                      <span className="text-gray-300 font-bold">|</span>
+                    <p className="text-xs sm:text-sm font-bold text-sub flex flex-wrap items-center gap-1.5">
+                      <span className="font-mono bg-background text-main px-2 py-0.5 rounded-md text-xs font-black">{editData.pin_no || selectedStudent?.pin_no || selectedStudent?.admission_number}</span>
+                      <span className="text-muted-text font-bold">|</span>
                       <span>{editData.course || selectedStudent?.course || 'Program'} - {editData.branch || selectedStudent?.branch || 'Branch'}</span>
-                      <span className="text-gray-300 font-bold">|</span>
+                      <span className="text-muted-text font-bold">|</span>
                       <span>Year {editData.current_year || selectedStudent?.current_year || 1} &bull; Semester {editData.current_semester || selectedStudent?.current_semester || 1}{getStudentSection(editData, selectedStudent) ? ` • Section ${getStudentSection(editData, selectedStudent)}` : ''}</span>
-                      <span className="text-gray-300 font-bold">|</span>
-                      <span className="text-indigo-700 font-extrabold">{editData.college || selectedStudent?.college || 'Pydah College of Engineering'}</span>
+                      <span className="text-muted-text font-bold">|</span>
+                      <span className="text-primary font-extrabold">{editData.college || selectedStudent?.college || 'Pydah College of Engineering'}</span>
                     </p>
 
                     <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100/90 text-emerald-800 border border-emerald-300 shadow-2xs">
-                        <CheckCircle size={14} strokeWidth={2.5} className="text-emerald-700" /> Regular
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-[var(--success-light)] text-success border border-[var(--success-light)] shadow-2xs">
+                        <CheckCircle size={14} strokeWidth={2.5} className="text-success" /> Regular
                       </span>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-purple-100/90 text-purple-800 border border-purple-300 shadow-2xs">
-                        <Award size={14} strokeWidth={2.5} className="text-purple-700 shrink-0" />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)] shadow-2xs">
+                        <Award size={14} strokeWidth={2.5} className="text-secondary shrink-0" />
                         {editMode && canEditQuota ? (
                           <div className="flex items-center gap-1">
-                            <span className="text-[10px] text-purple-600 font-bold uppercase tracking-wider">Quota:</span>
+                            <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">Quota:</span>
                             <select
                               value={editData.stud_type || selectedStudent?.stud_type || ''}
                               onChange={(e) => updateEditField('stud_type', e.target.value)}
                               disabled={studentQuotasLoading}
-                              className="bg-transparent font-black text-purple-950 text-xs focus:outline-none cursor-pointer border-b border-purple-400 py-0.5"
+                              className="bg-transparent font-black text-secondary text-xs focus:outline-none cursor-pointer border-b border-secondary py-0.5"
                               title="Edit Quota (Super Admin Only)"
                             >
                               <option value="">Select Quota</option>
@@ -4438,10 +4438,10 @@ const Students = () => {
                           editData.stud_type || selectedStudent?.stud_type || 'Quota'
                         )}
                       </span>
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-black">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--success-light)] border border-[var(--success-light)] text-success text-xs font-black">
                         <span>Profile {profileCompletion.percentage}% Complete</span>
-                        <div className="w-16 bg-emerald-200 rounded-full h-2 overflow-hidden shadow-inner">
-                          <div className="bg-emerald-600 h-full rounded-full transition-all duration-500" style={{ width: `${profileCompletion.percentage}%` }}></div>
+                        <div className="w-16 bg-[var(--success-light)] rounded-full h-2 overflow-hidden shadow-inner">
+                          <div className="bg-success h-full rounded-full transition-all duration-500" style={{ width: `${profileCompletion.percentage}%` }}></div>
                         </div>
                       </div>
                     </div>
@@ -4472,18 +4472,18 @@ const Students = () => {
                 <div className={`mx-4 sm:mx-6 mt-2 grid grid-cols-1 ${showProfileAlert && showDupAlert ? 'md:grid-cols-2' : ''} gap-2 shrink-0`}>
                   {/* Profile Completion Alert Banner */}
                   {showProfileAlert && (
-                    <div className="py-1.5 px-3 bg-orange-50/80 border border-orange-200/90 rounded-xl flex items-center justify-between gap-2 shadow-2xs">
+                    <div className="py-1.5 px-3 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl flex items-center justify-between gap-2 shadow-2xs">
                       <div className="flex items-center gap-2 min-w-0">
-                        <AlertTriangle size={14} className="text-orange-500 shrink-0" />
+                        <AlertTriangle size={14} className="text-warning shrink-0" />
                         <div className="flex items-center gap-1.5 text-xs min-w-0">
-                          <span className="font-extrabold text-gray-900 whitespace-nowrap">
+                          <span className="font-extrabold text-main whitespace-nowrap">
                             Profile {profileCompletion.percentage}%
                           </span>
-                          <span className="text-gray-300 font-bold">•</span>
-                          <span className="text-gray-600 whitespace-nowrap">
+                          <span className="text-muted-text font-bold">•</span>
+                          <span className="text-sub whitespace-nowrap">
                             {profileCompletion.missingFields?.length || 0} missing:
                           </span>
-                          <span className="font-semibold text-orange-900 truncate" title={profileCompletion.missingFields?.join(', ')}>
+                          <span className="font-semibold text-warning truncate" title={profileCompletion.missingFields?.join(', ')}>
                             {profileCompletion.missingFields?.slice(0, 2).join(', ')}{(profileCompletion.missingFields?.length || 0) > 2 ? '...' : ''}
                           </span>
                         </div>
@@ -4491,7 +4491,7 @@ const Students = () => {
                       {!editMode && canEditStudents && !isCashier && (
                         <button
                           onClick={handleEdit}
-                          className="text-[11px] font-bold text-orange-700 hover:text-orange-950 bg-orange-100 hover:bg-orange-200 px-2.5 py-0.5 rounded-lg transition-colors shrink-0 whitespace-nowrap flex items-center gap-1 active:scale-95 ml-2"
+                          className="text-[11px] font-bold text-warning hover:text-warning bg-[var(--warning-light)] hover:bg-[var(--warning-light)] px-2.5 py-0.5 rounded-lg transition-colors shrink-0 whitespace-nowrap flex items-center gap-1 active:scale-95 ml-2"
                         >
                           <span>Complete</span>
                           <span>&rarr;</span>
@@ -4502,17 +4502,17 @@ const Students = () => {
 
                   {/* Duplicate Mobile Alert Banner */}
                   {showDupAlert && (
-                    <div className="py-1.5 px-3 bg-amber-50/90 border border-amber-300/90 rounded-xl flex items-center justify-between gap-2 shadow-2xs animate-fade-in">
+                    <div className="py-1.5 px-3 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl flex items-center justify-between gap-2 shadow-2xs animate-fade-in">
                       <div className="flex items-center gap-2 min-w-0">
-                        <AlertTriangle size={14} className="text-amber-600 shrink-0 animate-pulse" />
+                        <AlertTriangle size={14} className="text-warning shrink-0 animate-pulse" />
                         <div className="flex items-center gap-1.5 text-xs min-w-0">
-                          <span className="font-extrabold text-amber-950 whitespace-nowrap">
+                          <span className="font-extrabold text-warning whitespace-nowrap">
                             Duplicate Mobile:
                           </span>
-                          <span className="text-amber-800 font-semibold truncate" title={`Student mobile & ${dupCheck.matchedLabel} are identical (${dupCheck.number})`}>
+                          <span className="text-warning font-semibold truncate" title={`Student mobile & ${dupCheck.matchedLabel} are identical (${dupCheck.number})`}>
                             Student &amp; <span className="underline">{dupCheck.matchedLabel}</span>
                           </span>
-                          <span className="font-mono font-bold bg-amber-100 text-amber-950 px-1.5 py-0.2 rounded text-[11px] border border-amber-200 shrink-0">
+                          <span className="font-mono font-bold bg-[var(--warning-light)] text-warning px-1.5 py-0.2 rounded text-[11px] border border-[var(--warning-light)] shrink-0">
                             {dupCheck.number}
                           </span>
                         </div>
@@ -4523,7 +4523,7 @@ const Students = () => {
                             handleEdit();
                             setActiveStudentTab('details');
                           }}
-                          className="text-[11px] font-bold text-amber-800 hover:text-amber-950 bg-amber-200/90 hover:bg-amber-300 px-2.5 py-0.5 rounded-lg transition-colors shrink-0 whitespace-nowrap flex items-center gap-1 active:scale-95 ml-2"
+                          className="text-[11px] font-bold text-warning hover:text-warning bg-[var(--warning-light)] hover:bg-warning px-2.5 py-0.5 rounded-lg transition-colors shrink-0 whitespace-nowrap flex items-center gap-1 active:scale-95 ml-2"
                         >
                           <Edit size={10} />
                           <span>Change</span>
@@ -4536,14 +4536,14 @@ const Students = () => {
             })()}
 
             {/* Tabs Navigation Bar - Fitted within section */}
-            <div className="bg-white border-b border-gray-200/80 px-4 sm:px-6 shrink-0 shadow-2xs mt-2">
+            <div className="bg-surface border-b border-border px-4 sm:px-6 shrink-0 shadow-2xs mt-2">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 py-2">
                 <button
                   onClick={() => setActiveStudentTab('details')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                     activeStudentTab === 'details'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-primary text-white shadow-md shadow-primary'
+                      : 'text-sub hover:bg-background hover:text-main'
                   }`}
                 >
                   <User size={14} />
@@ -4555,8 +4555,8 @@ const Students = () => {
                     onClick={() => setActiveStudentTab('registration')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                       activeStudentTab === 'registration'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-primary text-white shadow-md shadow-primary'
+                        : 'text-sub hover:bg-background hover:text-main'
                     }`}
                   >
                     <GraduationCap size={14} />
@@ -4569,8 +4569,8 @@ const Students = () => {
                     onClick={() => setActiveStudentTab('attendance')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                       activeStudentTab === 'attendance'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-primary text-white shadow-md shadow-primary'
+                        : 'text-sub hover:bg-background hover:text-main'
                     }`}
                   >
                     <Calendar size={14} />
@@ -4583,8 +4583,8 @@ const Students = () => {
                     onClick={() => setActiveStudentTab('scholarship')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                       activeStudentTab === 'scholarship'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-primary text-white shadow-md shadow-primary'
+                        : 'text-sub hover:bg-background hover:text-main'
                     }`}
                   >
                     <CreditCard size={14} />
@@ -4597,8 +4597,8 @@ const Students = () => {
                     onClick={() => setActiveStudentTab('merit_status')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                       activeStudentTab === 'merit_status'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-primary text-white shadow-md shadow-primary'
+                        : 'text-sub hover:bg-background hover:text-main'
                     }`}
                   >
                     <Award size={14} />
@@ -4610,8 +4610,8 @@ const Students = () => {
                   onClick={() => setActiveStudentTab('transport_hostel')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                     activeStudentTab === 'transport_hostel'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-primary text-white shadow-md shadow-primary'
+                      : 'text-sub hover:bg-background hover:text-main'
                   }`}
                 >
                   <Bus size={14} />
@@ -4623,8 +4623,8 @@ const Students = () => {
                     onClick={() => setActiveStudentTab('sms_tracking')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                       activeStudentTab === 'sms_tracking'
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-primary text-white shadow-md shadow-primary'
+                        : 'text-sub hover:bg-background hover:text-main'
                     }`}
                   >
                     <MessageSquare size={15} />
@@ -4635,8 +4635,8 @@ const Students = () => {
                   onClick={() => setActiveStudentTab('history')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                     activeStudentTab === 'history'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-primary text-white shadow-md shadow-primary'
+                      : 'text-sub hover:bg-background hover:text-main'
                   }`}
                 >
                   <History size={14} />
@@ -4647,8 +4647,8 @@ const Students = () => {
                   onClick={() => setActiveStudentTab('parent_activity')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold transition-all ${
                     activeStudentTab === 'parent_activity'
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-primary text-white shadow-md shadow-primary'
+                      : 'text-sub hover:bg-background hover:text-main'
                   }`}
                 >
                   <Eye size={14} />
@@ -4664,17 +4664,17 @@ const Students = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* Card 1: Student Identity */}
-                    <div className="bg-white rounded-xl border border-gray-200/80 shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
+                    <div className="bg-surface rounded-xl border border-border shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2.5">
+                        <div className="flex items-center justify-between mb-3 border-b border-border pb-2.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
+                            <div className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-bold shadow-xs">
                               <User size={15} />
                             </div>
-                            <h3 className="font-extrabold text-xs text-gray-900">Student Identity</h3>
+                            <h3 className="font-extrabold text-xs text-main">Student Identity</h3>
                           </div>
                           {!editMode && canEditStudents && !isCashier && (
-                            <button onClick={handleEdit} className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
+                            <button onClick={handleEdit} className="text-[11px] font-bold text-primary hover:text-primary flex items-center gap-1">
                               <Edit size={11} /> Edit
                             </button>
                           )}
@@ -4682,45 +4682,45 @@ const Students = () => {
 
                         <div className="space-y-2 text-[11px]">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Admission No</span>
-                            <span className="font-extrabold text-gray-900 font-mono" title="Admission Number - Cannot be edited">
+                            <span className="text-muted-text font-semibold">Admission No</span>
+                            <span className="font-extrabold text-main font-mono" title="Admission Number - Cannot be edited">
                               {selectedStudent?.admission_number || '-'}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Temporary Roll No</span>
-                            <span className="font-extrabold text-gray-800 font-mono bg-gray-100 px-2 py-0.5 rounded text-[11px]" title="Temporary Roll Number - Cannot be edited">
+                            <span className="text-muted-text font-semibold">Temporary Roll No</span>
+                            <span className="font-extrabold text-main font-mono bg-background px-2 py-0.5 rounded text-[11px]" title="Temporary Roll Number - Cannot be edited">
                               {selectedStudent?.roll_number || selectedStudent?.student_data?.['Temporary Roll Number'] || selectedStudent?.student_data?.['temporary_roll_number'] || selectedStudent?.student_data?.['Temp Roll No'] || selectedStudent?.student_data?.['temp_roll_no'] || selectedStudent?.student_data?.['Roll Number'] || '-'}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">PIN Number</span>
+                            <span className="text-muted-text font-semibold">PIN Number</span>
                             {editMode ? (
                               <input
                                 type="text"
                                 value={editData.pin_no !== undefined ? editData.pin_no : (selectedStudent?.pin_no || '')}
                                 onChange={(e) => updateEditField('pin_no', e.target.value)}
                                 placeholder="e.g. 236T1A0521"
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28 font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right w-28 font-mono focus:outline-none focus:ring-1 focus:ring-primary"
                               />
                             ) : (
-                              <span className="font-extrabold text-gray-900 font-mono">{editData.pin_no || selectedStudent?.pin_no || '-'}</span>
+                              <span className="font-extrabold text-main font-mono">{editData.pin_no || selectedStudent?.pin_no || '-'}</span>
                             )}
                           </div>
 
 
 
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Date of Birth</span>
+                            <span className="text-muted-text font-semibold">Date of Birth</span>
                             {editMode ? (
                               <input
                                 type="date"
                                 value={editData.dob ? editData.dob.split('T')[0] : ''}
                                 onChange={(e) => updateEditField('dob', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right"
                               />
                             ) : (
-                              <span className="font-bold text-gray-900">{formatDate(editData.dob || selectedStudent?.dob)}</span>
+                              <span className="font-bold text-main">{formatDate(editData.dob || selectedStudent?.dob)}</span>
                             )}
                           </div>
                           {(() => {
@@ -4738,7 +4738,7 @@ const Students = () => {
                             return (
                               <div className="flex flex-col items-end">
                                 <div className="flex justify-between items-center w-full">
-                                  <span className="text-gray-500 font-semibold">Mobile Number</span>
+                                  <span className="text-muted-text font-semibold">Mobile Number</span>
                                   {editMode ? (
                                     <input
                                       type="tel"
@@ -4746,24 +4746,24 @@ const Students = () => {
                                       onChange={(e) => updateEditField('student_mobile', e.target.value)}
                                       className={`px-1.5 py-0.5 border rounded text-[11px] font-bold text-right w-28 ${
                                         isDup.hasDuplicate
-                                          ? 'border-red-500 bg-red-50 text-red-900 focus:ring-1 focus:ring-red-500'
-                                          : 'border-gray-300'
+                                          ? 'border-danger bg-[var(--danger-light)] text-danger focus:ring-1 focus:ring-danger'
+                                          : 'border-border-strong'
                                       }`}
                                     />
                                   ) : (
-                                    <div className="flex items-center gap-1 font-mono font-bold text-gray-900">
+                                    <div className="flex items-center gap-1 font-mono font-bold text-main">
                                       <span>
                                         {revealedMobiles['student_mobile']
                                           ? (editData.student_mobile || selectedStudent?.student_mobile || '-')
                                           : maskMobileNumber(editData.student_mobile || selectedStudent?.student_mobile || '-')}
                                       </span>
                                       {(editData.student_mobile || selectedStudent?.student_mobile) && (
-                                        <button onClick={() => toggleRevealMobile('student_mobile')} className="text-blue-600 p-0.5 hover:bg-blue-50 rounded">
+                                        <button onClick={() => toggleRevealMobile('student_mobile')} className="text-primary p-0.5 hover:bg-[var(--primary-light)] rounded">
                                           {revealedMobiles['student_mobile'] ? <EyeOff size={11} /> : <Eye size={11} />}
                                         </button>
                                       )}
                                       {isDup.hasDuplicate && (
-                                        <span className="text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.5 rounded">
+                                        <span className="text-[9px] font-bold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] px-1 py-0.5 rounded">
                                           Same as Parent
                                         </span>
                                       )}
@@ -4771,7 +4771,7 @@ const Students = () => {
                                   )}
                                 </div>
                                 {editMode && isDup.hasDuplicate && (
-                                  <span className="text-[10px] text-red-600 font-bold mt-0.5">
+                                  <span className="text-[10px] text-danger font-bold mt-0.5">
                                     Matches {isDup.matchedLabel}
                                   </span>
                                 )}
@@ -4779,38 +4779,38 @@ const Students = () => {
                             );
                           })()}
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Aadhaar No</span>
+                            <span className="text-muted-text font-semibold">Aadhaar No</span>
                             {editMode ? (
                               <input
                                 type="text"
                                 value={editData.adhar_no || ''}
                                 onChange={(e) => updateEditField('adhar_no', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right w-28"
                               />
                             ) : (
-                              <span className="font-extrabold text-gray-900 font-mono">{editData.adhar_no || selectedStudent?.adhar_no || '-'}</span>
+                              <span className="font-extrabold text-main font-mono">{editData.adhar_no || selectedStudent?.adhar_no || '-'}</span>
                             )}
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">APAAR ID</span>
+                            <span className="text-muted-text font-semibold">APAAR ID</span>
                             {editMode ? (
                               <input
                                 type="text"
                                 value={editData.apaar_id || ''}
                                 onChange={(e) => updateEditField('apaar_id', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right w-28"
                               />
                             ) : (
-                              <span className="font-extrabold text-indigo-600 font-mono">{editData.apaar_id || selectedStudent?.apaar_id || selectedStudent?.student_data?.apaar_id || '-'}</span>
+                              <span className="font-extrabold text-primary font-mono">{editData.apaar_id || selectedStudent?.apaar_id || selectedStudent?.student_data?.apaar_id || '-'}</span>
                             )}
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Gender</span>
+                            <span className="text-muted-text font-semibold">Gender</span>
                             {editMode ? (
                               <select
                                 value={editData.gender || ''}
                                 onChange={(e) => updateEditField('gender', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold"
                               >
                                 <option value="">Select</option>
                                 <option value="M">Male</option>
@@ -4818,7 +4818,7 @@ const Students = () => {
                                 <option value="Other">Other</option>
                               </select>
                             ) : (
-                              <span className="font-bold text-gray-900">{editData.gender === 'M' ? 'Male' : editData.gender === 'F' ? 'Female' : editData.gender || selectedStudent?.gender || '-'}</span>
+                              <span className="font-bold text-main">{editData.gender === 'M' ? 'Male' : editData.gender === 'F' ? 'Female' : editData.gender || selectedStudent?.gender || '-'}</span>
                             )}
                           </div>
                         </div>
@@ -4826,14 +4826,14 @@ const Students = () => {
                     </div>
 
                     {/* Card 2: Quick Status */}
-                    <div className="bg-white rounded-xl border border-gray-200/80 shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
+                    <div className="bg-surface rounded-xl border border-border shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2.5">
+                        <div className="flex items-center justify-between mb-3 border-b border-border pb-2.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold shadow-xs">
+                            <div className="w-7 h-7 rounded-lg bg-secondary text-white flex items-center justify-center font-bold shadow-xs">
                               <Activity size={15} />
                             </div>
-                            <h3 className="font-extrabold text-xs text-gray-900">Quick Status</h3>
+                            <h3 className="font-extrabold text-xs text-main">Quick Status</h3>
                           </div>
                         </div>
 
@@ -4843,11 +4843,11 @@ const Students = () => {
                               return (
                                 <div>
                                   <div className="flex justify-between items-center mb-0.5">
-                                    <span className="text-gray-500 font-semibold">Attendance</span>
-                                    <span className="text-gray-400 text-[10px] animate-pulse">Loading...</span>
+                                    <span className="text-muted-text font-semibold">Attendance</span>
+                                    <span className="text-muted-text text-[10px] animate-pulse">Loading...</span>
                                   </div>
-                                  <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                    <div className="bg-gray-300 h-full rounded-full w-0 animate-pulse"></div>
+                                  <div className="w-full bg-background rounded-full h-1.5 overflow-hidden">
+                                    <div className="bg-background h-full rounded-full w-0 animate-pulse"></div>
                                   </div>
                                 </div>
                               );
@@ -4862,11 +4862,11 @@ const Students = () => {
                               return (
                                 <div>
                                   <div className="flex justify-between items-center mb-0.5">
-                                    <span className="text-gray-500 font-semibold">Attendance</span>
-                                    <span className="font-bold text-gray-400">N/A</span>
+                                    <span className="text-muted-text font-semibold">Attendance</span>
+                                    <span className="font-bold text-muted-text">N/A</span>
                                   </div>
-                                  <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                    <div className="bg-gray-200 h-full rounded-full" style={{ width: '0%' }}></div>
+                                  <div className="w-full bg-background rounded-full h-1.5 overflow-hidden">
+                                    <div className="bg-background h-full rounded-full" style={{ width: '0%' }}></div>
                                   </div>
                                 </div>
                               );
@@ -4875,23 +4875,23 @@ const Students = () => {
                             const pct = Math.round((present / markedDays) * 100);
                             const formattedPct = `${pct}%`;
 
-                            let textColor = 'text-emerald-600';
-                            let barColor = 'bg-emerald-500';
+                            let textColor = 'text-success';
+                            let barColor = 'bg-success';
                             if (pct < 75 && pct >= 65) {
-                              textColor = 'text-amber-600';
-                              barColor = 'bg-amber-500';
+                              textColor = 'text-warning';
+                              barColor = 'bg-warning';
                             } else if (pct < 65) {
-                              textColor = 'text-red-600';
-                              barColor = 'bg-red-500';
+                              textColor = 'text-danger';
+                              barColor = 'bg-danger';
                             }
 
                             return (
                               <div>
                                 <div className="flex justify-between items-center mb-0.5">
-                                  <span className="text-gray-500 font-semibold">Attendance</span>
+                                  <span className="text-muted-text font-semibold">Attendance</span>
                                   <span className={`font-bold ${textColor}`}>{formattedPct}</span>
                                 </div>
-                                <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                <div className="w-full bg-background rounded-full h-1.5 overflow-hidden">
                                   <div className={`${barColor} h-full rounded-full transition-all duration-300`} style={{ width: `${pct}%` }}></div>
                                 </div>
                               </div>
@@ -4904,16 +4904,16 @@ const Students = () => {
                             const isFeePending = feeLower === 'pending' || feeLower === 'due' || feeLower.includes('pending') || feeLower.includes('due') || feeLower === 'unpaid';
                             const isFeePermitted = feeLower === 'permitted' || feeLower === 'partial';
 
-                            let feeBadgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                            let feeBadgeClass = 'bg-[var(--success-light)] text-success border border-[var(--success-light)]';
                             if (isFeePending) {
-                              feeBadgeClass = 'bg-rose-50 text-rose-700 border border-rose-200';
+                              feeBadgeClass = 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]';
                             } else if (isFeePermitted) {
-                              feeBadgeClass = 'bg-amber-50 text-amber-700 border border-amber-200';
+                              feeBadgeClass = 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]';
                             }
 
                             return (
                               <div className="flex justify-between items-center">
-                                <span className="text-gray-500 font-semibold">Fee Status</span>
+                                <span className="text-muted-text font-semibold">Fee Status</span>
                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black capitalize ${feeBadgeClass}`}>
                                   {rawFee}
                                 </span>
@@ -4927,16 +4927,16 @@ const Students = () => {
                             const isScholarPending = scholarLower === 'pending' || scholarLower.includes('pending');
                             const quota = editData.stud_type || selectedStudent?.stud_type || 'LSPOT';
 
-                            let scholarBadgeClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                            let scholarBadgeClass = 'bg-[var(--success-light)] text-success border border-[var(--success-light)]';
                             let scholarLabel = `Active (${quota})`;
                             if (isScholarPending) {
-                              scholarBadgeClass = 'bg-rose-50 text-rose-700 border border-rose-200';
+                              scholarBadgeClass = 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]';
                               scholarLabel = `Pending (${quota})`;
                             }
 
                             return (
                               <div className="flex justify-between items-center">
-                                <span className="text-gray-500 font-semibold">Scholarship</span>
+                                <span className="text-muted-text font-semibold">Scholarship</span>
                                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black ${scholarBadgeClass}`}>
                                   {scholarLabel}
                                 </span>
@@ -4945,12 +4945,12 @@ const Students = () => {
                           })()}
 
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Merit Status</span>
+                            <span className="text-muted-text font-semibold">Merit Status</span>
                             {editMode && canEditMeritStatus ? (
                               <select
                                 value={(editData?.merit_status ?? selectedStudent?.merit_status ?? '').toLowerCase()}
                                 onChange={(e) => updateEditField('merit_status', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold bg-white focus:ring-1 focus:ring-blue-500 outline-none"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold bg-surface focus:ring-1 focus:ring-primary outline-none"
                               >
                                 <option value="">Not Set</option>
                                 <option value="yes">Yes</option>
@@ -4962,10 +4962,10 @@ const Students = () => {
                                 onClick={() => canViewMeritStatus && setActiveStudentTab('merit_status')}
                                 className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
                                   selectedStudent?.merit_status === 'yes'
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                    ? 'bg-[var(--success-light)] text-success border-[var(--success-light)] hover:bg-[var(--success-light)]'
                                     : (selectedStudent?.merit_status === 'no' || String(selectedStudent?.merit_status || '').toLowerCase() === 'pending')
-                                      ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
-                                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                                      ? 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)] hover:bg-[var(--danger-light)]'
+                                      : 'bg-background text-sub border-border hover:bg-background'
                                 } ${canViewMeritStatus ? 'cursor-pointer' : 'cursor-default'}`}
                                 title={canViewMeritStatus ? 'Click to view yearly merit details' : undefined}
                               >
@@ -4978,17 +4978,17 @@ const Students = () => {
                     </div>
 
                     {/* Card 4: Parent / Guardian Information */}
-                    <div className="bg-white rounded-xl border border-gray-200/80 shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
+                    <div className="bg-surface rounded-xl border border-border shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2.5">
+                        <div className="flex items-center justify-between mb-3 border-b border-border pb-2.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-amber-600 text-white flex items-center justify-center font-bold shadow-xs">
+                            <div className="w-7 h-7 rounded-lg bg-warning text-white flex items-center justify-center font-bold shadow-xs">
                               <Phone size={15} />
                             </div>
-                            <h3 className="font-extrabold text-xs text-gray-900">Parent / Guardian</h3>
+                            <h3 className="font-extrabold text-xs text-main">Parent / Guardian</h3>
                           </div>
                           {!editMode && canEditStudents && !isCashier && (
-                            <button onClick={handleEdit} className="text-[11px] font-bold text-orange-600 hover:text-orange-800 flex items-center gap-1">
+                            <button onClick={handleEdit} className="text-[11px] font-bold text-warning hover:text-warning flex items-center gap-1">
                               <Edit size={11} /> Edit
                             </button>
                           )}
@@ -4996,16 +4996,16 @@ const Students = () => {
 
                         <div className="space-y-2 text-[11px]">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Father Name</span>
+                            <span className="text-muted-text font-semibold">Father Name</span>
                             {editMode ? (
                               <input
                                 type="text"
                                 value={editData.father_name || ''}
                                 onChange={(e) => updateEditField('father_name', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right w-28"
                               />
                             ) : (
-                              <span className="font-bold text-gray-900 truncate max-w-[120px]">{editData.father_name || selectedStudent?.father_name || '-'}</span>
+                              <span className="font-bold text-main truncate max-w-[120px]">{editData.father_name || selectedStudent?.father_name || '-'}</span>
                             )}
                           </div>
                           {(() => {
@@ -5020,7 +5020,7 @@ const Students = () => {
                             return (
                               <div className="flex flex-col items-end">
                                 <div className="flex justify-between items-center w-full">
-                                  <span className="text-gray-500 font-semibold">Father Mobile</span>
+                                  <span className="text-muted-text font-semibold">Father Mobile</span>
                                   {editMode ? (
                                     <input
                                       type="tel"
@@ -5028,24 +5028,24 @@ const Students = () => {
                                       onChange={(e) => updateEditField('parent_mobile1', e.target.value)}
                                       className={`px-1.5 py-0.5 border rounded text-[11px] font-bold text-right w-28 ${
                                         p1Match
-                                          ? 'border-red-500 bg-red-50 text-red-900 focus:ring-1 focus:ring-red-500'
-                                          : 'border-gray-300'
+                                          ? 'border-danger bg-[var(--danger-light)] text-danger focus:ring-1 focus:ring-danger'
+                                          : 'border-border-strong'
                                       }`}
                                     />
                                   ) : (
-                                    <div className="flex items-center gap-1 font-mono font-bold text-gray-900">
+                                    <div className="flex items-center gap-1 font-mono font-bold text-main">
                                       <span>
                                         {revealedMobiles['parent_mobile1']
                                           ? (editData.parent_mobile1 || selectedStudent?.parent_mobile1 || '-')
                                           : maskMobileNumber(editData.parent_mobile1 || selectedStudent?.parent_mobile1 || '-')}
                                       </span>
                                       {(editData.parent_mobile1 || selectedStudent?.parent_mobile1) && (
-                                        <button onClick={() => toggleRevealMobile('parent_mobile1')} className="text-orange-600 p-0.5 hover:bg-orange-50 rounded">
+                                        <button onClick={() => toggleRevealMobile('parent_mobile1')} className="text-warning p-0.5 hover:bg-[var(--warning-light)] rounded">
                                           {revealedMobiles['parent_mobile1'] ? <EyeOff size={11} /> : <Eye size={11} />}
                                         </button>
                                       )}
                                       {p1Match && (
-                                        <span className="text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.5 rounded">
+                                        <span className="text-[9px] font-bold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] px-1 py-0.5 rounded">
                                           Same as Student
                                         </span>
                                       )}
@@ -5053,7 +5053,7 @@ const Students = () => {
                                   )}
                                 </div>
                                 {editMode && p1Match && (
-                                  <span className="text-[10px] text-red-600 font-bold mt-0.5">
+                                  <span className="text-[10px] text-danger font-bold mt-0.5">
                                     Matches Student Mobile
                                   </span>
                                 )}
@@ -5061,16 +5061,16 @@ const Students = () => {
                             );
                           })()}
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Mother Name</span>
+                            <span className="text-muted-text font-semibold">Mother Name</span>
                             {editMode ? (
                               <input
                                 type="text"
                                 value={editData.mother_name !== undefined ? editData.mother_name : (selectedStudent?.student_data?.mother_name || selectedStudent?.mother_name || '')}
                                 onChange={(e) => updateEditField('mother_name', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right w-28"
                               />
                             ) : (
-                              <span className="font-bold text-gray-900 truncate max-w-[120px]">{editData.mother_name || selectedStudent?.student_data?.mother_name || selectedStudent?.mother_name || '-'}</span>
+                              <span className="font-bold text-main truncate max-w-[120px]">{editData.mother_name || selectedStudent?.student_data?.mother_name || selectedStudent?.mother_name || '-'}</span>
                             )}
                           </div>
                           {(() => {
@@ -5085,7 +5085,7 @@ const Students = () => {
                             return (
                               <div className="flex flex-col items-end">
                                 <div className="flex justify-between items-center w-full">
-                                  <span className="text-gray-500 font-semibold">Mother Mobile</span>
+                                  <span className="text-muted-text font-semibold">Mother Mobile</span>
                                   {editMode ? (
                                     <input
                                       type="tel"
@@ -5093,24 +5093,24 @@ const Students = () => {
                                       onChange={(e) => updateEditField('parent_mobile2', e.target.value)}
                                       className={`px-1.5 py-0.5 border rounded text-[11px] font-bold text-right w-28 ${
                                         p2Match
-                                          ? 'border-red-500 bg-red-50 text-red-900 focus:ring-1 focus:ring-red-500'
-                                          : 'border-gray-300'
+                                          ? 'border-danger bg-[var(--danger-light)] text-danger focus:ring-1 focus:ring-danger'
+                                          : 'border-border-strong'
                                       }`}
                                     />
                                   ) : (
-                                    <div className="flex items-center gap-1 font-mono font-bold text-gray-900">
+                                    <div className="flex items-center gap-1 font-mono font-bold text-main">
                                       <span>
                                         {revealedMobiles['parent_mobile2']
                                           ? (editData.parent_mobile2 || selectedStudent?.parent_mobile2 || '-')
                                           : maskMobileNumber(editData.parent_mobile2 || selectedStudent?.parent_mobile2 || '-')}
                                       </span>
                                       {(editData.parent_mobile2 || selectedStudent?.parent_mobile2) && (
-                                        <button onClick={() => toggleRevealMobile('parent_mobile2')} className="text-orange-600 p-0.5 hover:bg-orange-50 rounded">
+                                        <button onClick={() => toggleRevealMobile('parent_mobile2')} className="text-warning p-0.5 hover:bg-[var(--warning-light)] rounded">
                                           {revealedMobiles['parent_mobile2'] ? <EyeOff size={11} /> : <Eye size={11} />}
                                         </button>
                                       )}
                                       {p2Match && (
-                                        <span className="text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-300 px-1 py-0.5 rounded">
+                                        <span className="text-[9px] font-bold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] px-1 py-0.5 rounded">
                                           Same as Student
                                         </span>
                                       )}
@@ -5118,7 +5118,7 @@ const Students = () => {
                                   )}
                                 </div>
                                 {editMode && p2Match && (
-                                  <span className="text-[10px] text-red-600 font-bold mt-0.5">
+                                  <span className="text-[10px] text-danger font-bold mt-0.5">
                                     Matches Student Mobile
                                   </span>
                                 )}
@@ -5126,19 +5126,19 @@ const Students = () => {
                             );
                           })()}
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Preferred Mobile</span>
+                            <span className="text-muted-text font-semibold">Preferred Mobile</span>
                             {editMode ? (
                               <select
                                 value={editData.preferred_parent_mobile || (selectedStudent?.preferred_parent_mobile || selectedStudent?.student_data?.preferred_parent_mobile || 'father')}
                                 onChange={(e) => updateEditField('preferred_parent_mobile', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right bg-white focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right bg-surface focus:outline-none focus:ring-1 focus:ring-warning"
                               >
                                 <option value="father">Father Number</option>
                                 <option value="mother">Mother Number</option>
                               </select>
                             ) : (
-                              <div className="flex items-center gap-1 font-mono font-bold text-gray-900">
-                                <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-sans font-semibold border border-amber-200">
+                              <div className="flex items-center gap-1 font-mono font-bold text-main">
+                                <span className="text-[10px] text-warning bg-[var(--warning-light)] px-1.5 py-0.5 rounded font-sans font-semibold border border-[var(--warning-light)]">
                                   {(editData.preferred_parent_mobile || selectedStudent?.preferred_parent_mobile || selectedStudent?.student_data?.preferred_parent_mobile) === 'mother' ? 'Mother Number' : 'Father Number'}
                                 </span>
                                 <span>
@@ -5154,7 +5154,7 @@ const Students = () => {
                                   const key = pref === 'mother' ? 'parent_mobile2' : 'parent_mobile1';
                                   const val = editData[key] !== undefined ? editData[key] : (selectedStudent?.[key] || selectedStudent?.student_data?.[key] || '');
                                   return val ? (
-                                    <button onClick={() => toggleRevealMobile(key)} className="text-amber-600 p-0.5 hover:bg-amber-50 rounded">
+                                    <button onClick={() => toggleRevealMobile(key)} className="text-warning p-0.5 hover:bg-[var(--warning-light)] rounded">
                                       {revealedMobiles[key] ? <EyeOff size={11} /> : <Eye size={11} />}
                                     </button>
                                   ) : null;
@@ -5170,17 +5170,17 @@ const Students = () => {
                   {/* Second Row of Cards (Address & Demographics + Recent Activity) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                     {/* Card 5: Address & Demographics */}
-                    <div className="bg-white rounded-xl border border-gray-200/80 shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
+                    <div className="bg-surface rounded-xl border border-border shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2.5">
+                        <div className="flex items-center justify-between mb-3 border-b border-border pb-2.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-rose-600 text-white flex items-center justify-center font-bold shadow-xs">
+                            <div className="w-7 h-7 rounded-lg bg-danger text-white flex items-center justify-center font-bold shadow-xs">
                               <MapPin size={15} />
                             </div>
-                            <h3 className="font-extrabold text-xs text-gray-900">Address & Demographics</h3>
+                            <h3 className="font-extrabold text-xs text-main">Address & Demographics</h3>
                           </div>
                           {!editMode && canEditStudents && !isCashier && (
-                            <button onClick={handleEdit} className="text-[11px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1">
+                            <button onClick={handleEdit} className="text-[11px] font-bold text-danger hover:text-danger flex items-center gap-1">
                               <Edit size={11} /> Edit
                             </button>
                           )}
@@ -5188,63 +5188,63 @@ const Students = () => {
 
                         <div className="space-y-2 text-[11px]">
                           <div className="flex justify-between items-start gap-2">
-                            <span className="text-gray-500 font-semibold shrink-0">Address</span>
+                            <span className="text-muted-text font-semibold shrink-0">Address</span>
                             {editMode ? (
                               <textarea
                                 value={editData.student_address || ''}
                                 onChange={(e) => updateEditField('student_address', e.target.value)}
-                                className="w-full px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right"
+                                className="w-full px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right"
                                 rows={2}
                               />
                             ) : (
-                              <span className="font-bold text-gray-900 text-right truncate max-w-[130px]" title={editData.student_address || selectedStudent?.student_address}>
+                              <span className="font-bold text-main text-right truncate max-w-[130px]" title={editData.student_address || selectedStudent?.student_address}>
                                 {editData.student_address || selectedStudent?.student_address || '-'}
                               </span>
                             )}
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">City / Village</span>
+                            <span className="text-muted-text font-semibold">City / Village</span>
                             {editMode ? (
                               <input
                                 type="text"
                                 value={editData.city_village || ''}
                                 onChange={(e) => updateEditField('city_village', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right w-28"
                               />
                             ) : (
-                              <span className="font-bold text-gray-900">{editData.city_village || selectedStudent?.city_village || '-'}</span>
+                              <span className="font-bold text-main">{editData.city_village || selectedStudent?.city_village || '-'}</span>
                             )}
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Mandal</span>
+                            <span className="text-muted-text font-semibold">Mandal</span>
                             {editMode ? (
                               <input
                                 type="text"
                                 value={editData.mandal_name || ''}
                                 onChange={(e) => updateEditField('mandal_name', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right w-28"
                               />
                             ) : (
-                              <span className="font-bold text-gray-900">{editData.mandal_name || selectedStudent?.mandal_name || '-'}</span>
+                              <span className="font-bold text-main">{editData.mandal_name || selectedStudent?.mandal_name || '-'}</span>
                             )}
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">District</span>
+                            <span className="text-muted-text font-semibold">District</span>
                             {editMode ? (
                               <input
                                 type="text"
                                 value={editData.district || ''}
                                 onChange={(e) => updateEditField('district', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right w-28"
                               />
                             ) : (
-                              <span className="font-bold text-gray-900">{editData.district || selectedStudent?.district || '-'}</span>
+                              <span className="font-bold text-main">{editData.district || selectedStudent?.district || '-'}</span>
                             )}
                           </div>
 
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Category / Caste</span>
-                            <span className="font-bold text-gray-900">
+                            <span className="text-muted-text font-semibold">Category / Caste</span>
+                            <span className="font-bold text-main">
                               {resolveStudentCaste(selectedStudent).categoryName || resolveStudentCaste(selectedStudent).legacyCaste || '-'}
                             </span>
                           </div>
@@ -5253,18 +5253,18 @@ const Students = () => {
                     </div>
 
                     {/* Card 6: Recent Activity */}
-                    <div className="bg-white rounded-xl border border-gray-200/80 shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
+                    <div className="bg-surface rounded-xl border border-border shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2.5">
+                        <div className="flex items-center justify-between mb-3 border-b border-border pb-2.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold shadow-xs">
+                            <div className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-bold shadow-xs">
                               <History size={15} />
                             </div>
-                            <h3 className="font-extrabold text-xs text-gray-900">Recent Activity</h3>
+                            <h3 className="font-extrabold text-xs text-main">Recent Activity</h3>
                           </div>
                           <button
                             onClick={() => setActiveStudentTab('history')}
-                            className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                            className="text-[11px] font-bold text-primary hover:text-primary flex items-center gap-1"
                           >
                             <span>View All</span>
                             <span>&rarr;</span>
@@ -5273,24 +5273,24 @@ const Students = () => {
 
                         <div className="space-y-2.5 text-[11px]">
                           <div className="flex items-start gap-2.5">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1 shrink-0"></div>
+                            <div className="w-2 h-2 rounded-full bg-success mt-1 shrink-0"></div>
                             <div>
-                              <p className="font-extrabold text-gray-900">Profile updated</p>
-                              <p className="text-[10px] font-semibold text-gray-400">Recent record synced</p>
+                              <p className="font-extrabold text-main">Profile updated</p>
+                              <p className="text-[10px] font-semibold text-muted-text">Recent record synced</p>
                             </div>
                           </div>
                           <div className="flex items-start gap-2.5">
-                            <div className="w-2 h-2 rounded-full bg-blue-500 mt-1 shrink-0"></div>
+                            <div className="w-2 h-2 rounded-full bg-primary mt-1 shrink-0"></div>
                             <div>
-                              <p className="font-extrabold text-gray-900">Admission verified</p>
-                              <p className="text-[10px] font-semibold text-gray-400">Core parameters confirmed</p>
+                              <p className="font-extrabold text-main">Admission verified</p>
+                              <p className="text-[10px] font-semibold text-muted-text">Core parameters confirmed</p>
                             </div>
                           </div>
                           <div className="flex items-start gap-2.5">
-                            <div className="w-2 h-2 rounded-full bg-purple-500 mt-1 shrink-0"></div>
+                            <div className="w-2 h-2 rounded-full bg-secondary mt-1 shrink-0"></div>
                             <div>
-                              <p className="font-extrabold text-gray-900">Account active</p>
-                              <p className="text-[10px] font-semibold text-gray-400">Credentials created</p>
+                              <p className="font-extrabold text-main">Account active</p>
+                              <p className="text-[10px] font-semibold text-muted-text">Credentials created</p>
                             </div>
                           </div>
 
@@ -5309,17 +5309,17 @@ const Students = () => {
                     </div>
 
                     {/* Card 7: Admission & Summary */}
-                    <div className="bg-white rounded-xl border border-gray-200/80 shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
+                    <div className="bg-surface rounded-xl border border-border shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2.5">
+                        <div className="flex items-center justify-between mb-3 border-b border-border pb-2.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-teal-600 text-white flex items-center justify-center font-bold shadow-xs">
+                            <div className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center font-bold shadow-xs">
                               <Award size={15} />
                             </div>
-                            <h3 className="font-extrabold text-xs text-gray-900">Admission & Summary</h3>
+                            <h3 className="font-extrabold text-xs text-main">Admission & Summary</h3>
                           </div>
                           {!editMode && canEditStudents && !isCashier && (
-                            <button onClick={handleEdit} className="text-[11px] font-bold text-teal-600 hover:text-teal-800 flex items-center gap-1">
+                            <button onClick={handleEdit} className="text-[11px] font-bold text-primary hover:text-primary flex items-center gap-1">
                               <Edit size={11} /> Edit
                             </button>
                           )}
@@ -5327,12 +5327,12 @@ const Students = () => {
 
                         <div className="space-y-2 text-[11px]">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Overall Status</span>
+                            <span className="text-muted-text font-semibold">Overall Status</span>
                             {editMode ? (
                               <select
                                 value={editData.certificates_status || selectedStudent?.certificates_status || 'Pending'}
                                 onChange={(e) => updateEditField('certificates_status', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold bg-white focus:ring-1 focus:ring-teal-500 outline-none"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold bg-surface focus:ring-1 focus:ring-primary outline-none"
                               >
                                 <option value="Verified">Verified</option>
                                 <option value="Unverified">Unverified</option>
@@ -5348,7 +5348,7 @@ const Students = () => {
                               const certItems = (certificateConfig && certificateConfig[typeKey]) || sharedCertificateConfig[typeKey] || [];
                               const statusToShow = editData.certificates_status || computeOverallCertificateStatus(selectedStudent, certItems);
                               const isCertPending = String(statusToShow).toLowerCase() === 'pending' || String(statusToShow).toLowerCase().includes('pending');
-                              const certBadgeClass = isCertPending ? 'bg-rose-50 text-rose-700 border border-rose-200' : getCertificateBadgeClass(statusToShow);
+                              const certBadgeClass = isCertPending ? 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]' : getCertificateBadgeClass(statusToShow);
                               return (
                                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black border ${certBadgeClass}`}>
                                   {statusToShow}
@@ -5359,9 +5359,9 @@ const Students = () => {
 
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-gray-500 font-semibold">Quota</span>
+                              <span className="text-muted-text font-semibold">Quota</span>
                               {canEditQuota && (
-                                <span className="text-[9px] font-extrabold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded-full border border-purple-200">
+                                <span className="text-[9px] font-extrabold text-secondary bg-[var(--primary-light)] px-1.5 py-0.5 rounded-full border border-[var(--primary-light)]">
                                   Super Admin
                                 </span>
                               )}
@@ -5372,7 +5372,7 @@ const Students = () => {
                                   value={editData.stud_type || selectedStudent?.stud_type || ''}
                                   onChange={(e) => updateEditField('stud_type', e.target.value)}
                                   disabled={studentQuotasLoading}
-                                  className="px-1.5 py-0.5 border border-purple-300 rounded text-[11px] font-bold bg-purple-50 text-purple-900 focus:ring-1 focus:ring-purple-500 outline-none max-w-[160px]"
+                                  className="px-1.5 py-0.5 border border-[var(--primary-light)] rounded text-[11px] font-bold bg-[var(--primary-light)] text-secondary focus:ring-1 focus:ring-secondary outline-none max-w-[160px]"
                                   title="Edit Quota (Super Admin Only)"
                                 >
                                   <option value="">Select Quota</option>
@@ -5384,33 +5384,33 @@ const Students = () => {
                                 </select>
                               ) : (
                                 <div className="flex items-center gap-1" title="Only Super Admin can edit Quota">
-                                  <Lock size={10} className="text-gray-400" />
-                                  <span className="font-extrabold text-gray-500 font-mono text-[11px]">
+                                  <Lock size={10} className="text-muted-text" />
+                                  <span className="font-extrabold text-muted-text font-mono text-[11px]">
                                     {editData.stud_type || selectedStudent?.stud_type || '-'}
                                   </span>
                                 </div>
                               )
                             ) : (
-                              <span className="font-extrabold text-purple-700 font-mono">
+                              <span className="font-extrabold text-secondary font-mono">
                                 {editData.stud_type || selectedStudent?.stud_type || '-'}
                               </span>
                             )}
                           </div>
 
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Scholarship</span>
+                            <span className="text-muted-text font-semibold">Scholarship</span>
                             {editMode ? (
                               <input
                                 type="text"
                                 value={editData.scholar_status || ''}
                                 onChange={(e) => updateEditField('scholar_status', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-28"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right w-28"
                               />
                             ) : (() => {
                               const sStatus = editData.scholar_status || selectedStudent?.scholar_status || 'Regular';
                               const isPend = String(sStatus).toLowerCase().includes('pending');
                               return (
-                                <span className={`font-bold capitalize ${isPend ? 'px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200' : 'text-gray-900'}`}>
+                                <span className={`font-bold capitalize ${isPend ? 'px-2 py-0.5 rounded-full text-[10px] font-black bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]' : 'text-main'}`}>
                                   {sStatus}
                                 </span>
                               );
@@ -5418,32 +5418,32 @@ const Students = () => {
                           </div>
 
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 font-semibold">Admission Date</span>
+                            <span className="text-muted-text font-semibold">Admission Date</span>
                             {editMode ? (
                               <input
                                 type="date"
                                 value={editData.admission_date ? editData.admission_date.split('T')[0] : ''}
                                 onChange={(e) => updateEditField('admission_date', e.target.value)}
-                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold bg-white"
+                                className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold bg-surface"
                               />
                             ) : (
-                              <span className="font-bold text-gray-900 font-mono">
+                              <span className="font-bold text-main font-mono">
                                 {formatDate(editData.admission_date || selectedStudent?.admission_date)}
                               </span>
                             )}
                           </div>
 
                           <div className="flex justify-between items-start gap-2">
-                            <span className="text-gray-500 font-semibold shrink-0">Previous College</span>
+                            <span className="text-muted-text font-semibold shrink-0">Previous College</span>
                             {editMode ? (
                               <input
                                 type="text"
                                 value={editData.previous_college || ''}
                                 onChange={(e) => updateEditField('previous_college', e.target.value)}
-                                className="w-full px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right"
+                                className="w-full px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right"
                               />
                             ) : (
-                              <span className="font-bold text-gray-900 text-right truncate max-w-[130px]" title={editData.previous_college || selectedStudent?.previous_college}>
+                              <span className="font-bold text-main text-right truncate max-w-[130px]" title={editData.previous_college || selectedStudent?.previous_college}>
                                 {editData.previous_college || selectedStudent?.previous_college || '-'}
                               </span>
                             )}
@@ -5451,13 +5451,13 @@ const Students = () => {
 
                           {(studentBranchHasSections || getStudentSection(editData, selectedStudent)) && (
                             <div className="flex justify-between items-center">
-                              <span className="text-gray-500 font-semibold">Section</span>
+                              <span className="text-muted-text font-semibold">Section</span>
                               {editMode ? (
                                 studentSectionOptions && studentSectionOptions.length > 0 ? (
                                   <select
                                     value={getStudentSection(editData, selectedStudent) || ''}
                                     onChange={(e) => updateEditField('section', e.target.value)}
-                                    className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right"
+                                    className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right"
                                   >
                                     <option value="">Select Section</option>
                                     {studentSectionOptions.map((sec) => (
@@ -5470,11 +5470,11 @@ const Students = () => {
                                     value={editData.section !== undefined ? editData.section : (editData.Section !== undefined ? editData.Section : (selectedStudent?.section || ''))}
                                     onChange={(e) => updateEditField('section', e.target.value)}
                                     placeholder="e.g. A"
-                                    className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-24"
+                                    className="px-1.5 py-0.5 border border-border-strong rounded text-[11px] font-bold text-right w-24"
                                   />
                                 )
                               ) : (
-                                <span className="font-bold text-gray-900">{getStudentSection(editData, selectedStudent) || '-'}</span>
+                                <span className="font-bold text-main">{getStudentSection(editData, selectedStudent) || '-'}</span>
                               )}
                             </div>
                           )}
@@ -5483,17 +5483,17 @@ const Students = () => {
                     </div>
 
                     {/* Card 8: Program Certificates Checklist */}
-                    <div className="bg-white rounded-xl border border-gray-200/80 shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
+                    <div className="bg-surface rounded-xl border border-border shadow-2xs hover:shadow-sm transition-all p-4 flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2.5">
+                        <div className="flex items-center justify-between mb-3 border-b border-border pb-2.5">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs">
+                            <div className="w-7 h-7 rounded-lg bg-success text-white flex items-center justify-center font-bold shadow-xs">
                               <CheckCircle size={15} />
                             </div>
-                            <h3 className="font-extrabold text-xs text-gray-900">Certificates Checklist</h3>
+                            <h3 className="font-extrabold text-xs text-main">Certificates Checklist</h3>
                           </div>
                           {!editMode && canEditStudents && !isCashier && (
-                            <button onClick={handleEdit} className="text-[11px] font-bold text-emerald-600 hover:text-emerald-800 flex items-center gap-1">
+                            <button onClick={handleEdit} className="text-[11px] font-bold text-success hover:text-success flex items-center gap-1">
                               <Edit size={11} /> Edit
                             </button>
                           )}
@@ -5515,7 +5515,7 @@ const Students = () => {
 
                             if (!certList || certList.length === 0) {
                               return (
-                                <div className="text-gray-400 italic text-center py-2">
+                                <div className="text-muted-text italic text-center py-2">
                                   No certificates configured.
                                 </div>
                               );
@@ -5547,14 +5547,14 @@ const Students = () => {
                               return (
                                 <div
                                   key={cert.key}
-                                  className="flex items-center justify-between gap-1 py-1 border-b border-gray-100 last:border-0"
+                                  className="flex items-center justify-between gap-1 py-1 border-b border-border last:border-0"
                                 >
                                   <div className="flex items-center gap-1 min-w-0">
-                                    <span className="font-semibold text-gray-700 truncate max-w-[140px]" title={cert.label}>
+                                    <span className="font-semibold text-sub truncate max-w-[140px]" title={cert.label}>
                                       {cert.label}
                                     </span>
                                     {cert.required && (
-                                      <span className="text-[9px] text-red-500 font-bold" title="Required">*</span>
+                                      <span className="text-[9px] text-danger font-bold" title="Required">*</span>
                                     )}
                                   </div>
 
@@ -5562,7 +5562,7 @@ const Students = () => {
                                     <select
                                       value={currentCertVal}
                                       onChange={(e) => updateCertificateStatus(cert.key, e.target.value)}
-                                      className="text-[10px] font-bold border border-gray-300 rounded px-1.5 py-0.5 bg-white focus:ring-1 focus:ring-emerald-500 outline-none shrink-0"
+                                      className="text-[10px] font-bold border border-border-strong rounded px-1.5 py-0.5 bg-surface focus:ring-1 focus:ring-success outline-none shrink-0"
                                     >
                                       {selectOptions.map((opt) => (
                                         <option key={opt} value={opt}>{opt}</option>
@@ -5570,7 +5570,7 @@ const Students = () => {
                                     </select>
                                   ) : (() => {
                                       const isPendCert = String(currentCertVal).toLowerCase() === 'pending' || String(currentCertVal).toLowerCase() === 'no';
-                                      const cBadgeClass = isPendCert ? 'bg-red-100 text-red-600 border border-red-200' : cellInfo.badgeClass;
+                                      const cBadgeClass = isPendCert ? 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]' : cellInfo.badgeClass;
                                       return (
                                         <span
                                           className={`px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 border ${cBadgeClass}`}
@@ -5633,7 +5633,7 @@ const Students = () => {
                   const display = completed ? 'Completed' : (text ? formatScholarshipStatusDisplay(text) : '—');
                   return (
                     <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      completed ? 'bg-green-100 text-green-800' : optional ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-800'
+                      completed ? 'bg-[var(--success-light)] text-success' : optional ? 'bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]' : 'bg-background text-main'
                     }`}>
                       {display}
                       {optional && !completed && <span className="text-[10px] opacity-75">(optional)</span>}
@@ -5644,15 +5644,15 @@ const Students = () => {
                 return (
                   <div className="space-y-6">
                     <div className={`rounded-2xl p-6 border ${
-                      isRegistrationComplete ? 'bg-green-50 border-green-200' : isRegistrationTemporary ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200 shadow-sm'
+                      isRegistrationComplete ? 'bg-[var(--success-light)] border-[var(--success-light)]' : isRegistrationTemporary ? 'bg-[var(--warning-light)] border-[var(--warning-light)]' : 'bg-surface border-border shadow-sm'
                     }`}>
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-lg font-bold text-gray-900">Registration Status</h3>
-                          <p className="text-sm text-gray-500 mt-1">Overall registration completion based on all stages</p>
+                          <h3 className="text-lg font-bold text-main">Registration Status</h3>
+                          <p className="text-sm text-muted-text mt-1">Overall registration completion based on all stages</p>
                         </div>
                         <div className={`px-4 py-2 rounded-xl font-bold text-base flex items-center gap-2 ${
-                          isRegistrationComplete ? 'bg-green-200 text-green-800' : isRegistrationTemporary ? 'bg-amber-200 text-amber-800' : 'bg-yellow-100 text-yellow-700'
+                          isRegistrationComplete ? 'bg-[var(--success-light)] text-success' : isRegistrationTemporary ? 'bg-[var(--warning-light)] text-warning' : 'bg-[var(--warning-light)] text-warning'
                         }`}>
                           {isRegistrationComplete ? <><CheckCircle size={20} /> Completed</> : isRegistrationTemporary ? <><AlertTriangle size={20} /> Temporary</> : 'Pending'}
                         </div>
@@ -5660,103 +5660,103 @@ const Students = () => {
                     </div>
 
                     {/* Registration Stages Stepper Indicator (5 Stages) */}
-                    <div className="bg-white rounded-2xl border border-gray-200/90 p-5 shadow-2xs overflow-x-auto">
+                    <div className="bg-surface rounded-2xl border border-border p-5 shadow-2xs overflow-x-auto">
                       <div className="flex items-center justify-between min-w-[580px] max-w-4xl mx-auto relative">
                         {/* Step 1 Indicator */}
                         <div className="flex flex-col items-center gap-1.5 relative z-10">
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-md ${
-                            isVerificationComplete ? 'bg-emerald-600 text-white ring-4 ring-emerald-100' : 'bg-slate-900 text-white ring-4 ring-slate-100'
+                            isVerificationComplete ? 'bg-success text-white ring-4 ring-[var(--success-light)]' : 'bg-sidebar text-white ring-4 ring-border-strong'
                           }`}>
                             {isVerificationComplete ? <CheckCircle size={18} strokeWidth={2.5} /> : <span>1</span>}
                           </div>
-                          <span className="text-[11px] font-extrabold text-gray-900">Stage 1</span>
-                          <span className="text-[9px] font-bold text-gray-500">Mobile Verification</span>
+                          <span className="text-[11px] font-extrabold text-main">Stage 1</span>
+                          <span className="text-[9px] font-bold text-muted-text">Mobile Verification</span>
                           <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                            isVerificationComplete ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            isVerificationComplete ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--warning-light)] text-warning'
                           }`}>
                             {isVerificationComplete ? 'Completed' : 'Pending'}
                           </span>
                         </div>
 
                         {/* Connector 1 -> 2 */}
-                        <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-gray-200">
-                          <div className={`h-full transition-all duration-500 ${isVerificationComplete ? 'bg-emerald-500' : 'bg-gray-200'}`}></div>
+                        <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-background">
+                          <div className={`h-full transition-all duration-500 ${isVerificationComplete ? 'bg-success' : 'bg-background'}`}></div>
                         </div>
 
                         {/* Step 2 Indicator */}
                         <div className="flex flex-col items-center gap-1.5 relative z-10">
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-md ${
-                            isCertComplete ? 'bg-emerald-600 text-white ring-4 ring-emerald-100' : 'bg-slate-900 text-white ring-4 ring-slate-100'
+                            isCertComplete ? 'bg-success text-white ring-4 ring-[var(--success-light)]' : 'bg-sidebar text-white ring-4 ring-border-strong'
                           }`}>
                             {isCertComplete ? <CheckCircle size={18} strokeWidth={2.5} /> : <span>2</span>}
                           </div>
-                          <span className="text-[11px] font-extrabold text-gray-900">Stage 2</span>
-                          <span className="text-[9px] font-bold text-gray-500">Certificate Status</span>
+                          <span className="text-[11px] font-extrabold text-main">Stage 2</span>
+                          <span className="text-[9px] font-bold text-muted-text">Certificate Status</span>
                           <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                            isCertComplete ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            isCertComplete ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--warning-light)] text-warning'
                           }`}>
                             {isCertComplete ? 'Completed' : (certStatus || 'Pending')}
                           </span>
                         </div>
 
                         {/* Connector 2 -> 3 */}
-                        <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-gray-200">
-                          <div className={`h-full transition-all duration-500 ${isCertComplete && isFeeComplete ? 'bg-emerald-500' : 'bg-gray-200'}`}></div>
+                        <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-background">
+                          <div className={`h-full transition-all duration-500 ${isCertComplete && isFeeComplete ? 'bg-success' : 'bg-background'}`}></div>
                         </div>
 
                         {/* Step 3 Indicator */}
                         <div className="flex flex-col items-center gap-1.5 relative z-10">
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-md ${
-                            isFeeComplete ? 'bg-emerald-600 text-white ring-4 ring-emerald-100' : 'bg-slate-900 text-white ring-4 ring-slate-100'
+                            isFeeComplete ? 'bg-success text-white ring-4 ring-[var(--success-light)]' : 'bg-sidebar text-white ring-4 ring-border-strong'
                           }`}>
                             {isFeeComplete ? <CheckCircle size={18} strokeWidth={2.5} /> : <span>3</span>}
                           </div>
-                          <span className="text-[11px] font-extrabold text-gray-900">Stage 3</span>
-                          <span className="text-[9px] font-bold text-gray-500">Fee Payment</span>
+                          <span className="text-[11px] font-extrabold text-main">Stage 3</span>
+                          <span className="text-[9px] font-bold text-muted-text">Fee Payment</span>
                           <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                            isFeeComplete ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            isFeeComplete ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--warning-light)] text-warning'
                           }`}>
                             {isFeeComplete ? 'Completed' : (feeStatus || 'Pending')}
                           </span>
                         </div>
 
                         {/* Connector 3 -> 4 */}
-                        <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-gray-200">
-                          <div className={`h-full transition-all duration-500 ${isFeeComplete && isScholarshipComplete ? 'bg-emerald-500' : 'bg-gray-200'}`}></div>
+                        <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-background">
+                          <div className={`h-full transition-all duration-500 ${isFeeComplete && isScholarshipComplete ? 'bg-success' : 'bg-background'}`}></div>
                         </div>
 
                         {/* Step 4 Indicator */}
                         <div className="flex flex-col items-center gap-1.5 relative z-10">
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-md ${
-                            isScholarshipComplete ? 'bg-emerald-600 text-white ring-4 ring-emerald-100' : 'bg-slate-900 text-white ring-4 ring-slate-100'
+                            isScholarshipComplete ? 'bg-success text-white ring-4 ring-[var(--success-light)]' : 'bg-sidebar text-white ring-4 ring-border-strong'
                           }`}>
                             {isScholarshipComplete ? <CheckCircle size={18} strokeWidth={2.5} /> : <span>4</span>}
                           </div>
-                          <span className="text-[11px] font-extrabold text-gray-900">Stage 4</span>
-                          <span className="text-[9px] font-bold text-gray-500">Scholarship Status</span>
+                          <span className="text-[11px] font-extrabold text-main">Stage 4</span>
+                          <span className="text-[9px] font-bold text-muted-text">Scholarship Status</span>
                           <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                            isScholarshipComplete ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            isScholarshipComplete ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--warning-light)] text-warning'
                           }`}>
                             {isScholarshipComplete ? 'Completed' : (scholarStatus || 'Pending')}
                           </span>
                         </div>
 
                         {/* Connector 4 -> 5 */}
-                        <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-gray-200">
-                          <div className={`h-full transition-all duration-500 ${isScholarshipComplete && isPromotionComplete ? 'bg-emerald-500' : 'bg-gray-200'}`}></div>
+                        <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-background">
+                          <div className={`h-full transition-all duration-500 ${isScholarshipComplete && isPromotionComplete ? 'bg-success' : 'bg-background'}`}></div>
                         </div>
 
                         {/* Step 5 Indicator */}
                         <div className="flex flex-col items-center gap-1.5 relative z-10">
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-md ${
-                            isPromotionComplete ? 'bg-emerald-600 text-white ring-4 ring-emerald-100' : 'bg-slate-900 text-white ring-4 ring-slate-100'
+                            isPromotionComplete ? 'bg-success text-white ring-4 ring-[var(--success-light)]' : 'bg-sidebar text-white ring-4 ring-border-strong'
                           }`}>
                             {isPromotionComplete ? <CheckCircle size={18} strokeWidth={2.5} /> : <span>5</span>}
                           </div>
-                          <span className="text-[11px] font-extrabold text-gray-900">Stage 5</span>
-                          <span className="text-[9px] font-bold text-gray-500">Academic Promotion</span>
+                          <span className="text-[11px] font-extrabold text-main">Stage 5</span>
+                          <span className="text-[9px] font-bold text-muted-text">Academic Promotion</span>
                           <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                            isPromotionComplete ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                            isPromotionComplete ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--warning-light)] text-warning'
                           }`}>
                             {isPromotionComplete ? 'Completed' : 'Pending'}
                           </span>
@@ -5764,38 +5764,38 @@ const Students = () => {
                       </div>
                     </div>
 
-                    <h4 className="text-xs font-black text-gray-900 uppercase tracking-wider">Registration Stage Details</h4>
+                    <h4 className="text-xs font-black text-main uppercase tracking-wider">Registration Stage Details</h4>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       {/* Stage 1: Mobile Verification */}
-                      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-2xs p-4 flex flex-col justify-between gap-4">
+                      <div className="bg-surface rounded-2xl border border-border shadow-2xs p-4 flex flex-col justify-between gap-4">
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2.5">
-                              <div className="p-2 rounded-xl shrink-0 bg-blue-600 text-white shadow-xs">
+                              <div className="p-2 rounded-xl shrink-0 bg-primary text-white shadow-xs">
                                 <MessageSquare size={18} />
                               </div>
                               <div>
-                                <span className="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">Stage 1</span>
-                                <h5 className="font-extrabold text-sm text-gray-900 mt-0.5">Mobile Verification</h5>
+                                <span className="bg-[var(--primary-light)] text-primary text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">Stage 1</span>
+                                <h5 className="font-extrabold text-sm text-main mt-0.5">Mobile Verification</h5>
                               </div>
                             </div>
                             <StatusBadge completed={isVerificationComplete} optional={optSet.has('verification')} />
                           </div>
 
-                          <p className="text-xs text-gray-500">Send OTP to student or parent mobile for this semester</p>
+                          <p className="text-xs text-muted-text">Send OTP to student or parent mobile for this semester</p>
 
-                          <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-100 text-xs space-y-1.5">
+                          <div className="bg-[var(--background)]/80 p-3 rounded-xl border border-border text-xs space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-500 font-semibold">Student Mobile:</span>
-                              <span className={`font-bold flex items-center gap-1 ${isStudentVerified ? 'text-emerald-700' : 'text-rose-600'}`}>
+                              <span className="text-muted-text font-semibold">Student Mobile:</span>
+                              <span className={`font-bold flex items-center gap-1 ${isStudentVerified ? 'text-success' : 'text-danger'}`}>
                                 {isStudentVerified ? <CheckCircle size={13} /> : <X size={13} />}
                                 {studentMobile || 'No number'}
                               </span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-500 font-semibold">Parent Mobile:</span>
-                              <span className={`font-bold flex items-center gap-1 ${isParentVerified ? 'text-emerald-700' : 'text-rose-600'}`}>
+                              <span className="text-muted-text font-semibold">Parent Mobile:</span>
+                              <span className={`font-bold flex items-center gap-1 ${isParentVerified ? 'text-success' : 'text-danger'}`}>
                                 {isParentVerified ? <CheckCircle size={13} /> : <X size={13} />}
                                 {parentMobile || 'No number'}
                               </span>
@@ -5807,7 +5807,7 @@ const Students = () => {
                           <button
                             type="button"
                             onClick={() => setShowVerificationModal(true)}
-                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-xs active:scale-95"
+                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-hover transition-colors shadow-xs active:scale-95"
                           >
                             <Shield size={14} />
                             {isVerificationComplete ? 'View / Re-verify' : 'Verify with OTP'}
@@ -5816,93 +5816,93 @@ const Students = () => {
                       </div>
 
                       {/* Stage 2: Certificate Status */}
-                      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-2xs p-4 flex flex-col justify-between gap-4">
+                      <div className="bg-surface rounded-2xl border border-border shadow-2xs p-4 flex flex-col justify-between gap-4">
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2.5">
-                              <div className="p-2 rounded-xl shrink-0 bg-purple-600 text-white shadow-xs">
+                              <div className="p-2 rounded-xl shrink-0 bg-secondary text-white shadow-xs">
                                 <FileText size={18} />
                               </div>
                               <div>
-                                <span className="bg-purple-100 text-purple-800 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">Stage 2</span>
-                                <h5 className="font-extrabold text-sm text-gray-900 mt-0.5">Certificate Status</h5>
+                                <span className="bg-[var(--primary-light)] text-secondary text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">Stage 2</span>
+                                <h5 className="font-extrabold text-sm text-main mt-0.5">Certificate Status</h5>
                               </div>
                             </div>
                             <StatusBadge completed={isCertComplete} optional={optSet.has('certificates')} text={certStatus} />
                           </div>
 
-                          <p className="text-xs text-gray-500">Verification of student certificates & credentials</p>
+                          <p className="text-xs text-muted-text">Verification of student certificates & credentials</p>
 
-                          <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-100 text-xs space-y-1.5">
+                          <div className="bg-[var(--background)]/80 p-3 rounded-xl border border-border text-xs space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-500 font-semibold">Current Status:</span>
-                              <span className="font-extrabold text-gray-900 capitalize">{certStatus || 'Pending'}</span>
+                              <span className="text-muted-text font-semibold">Current Status:</span>
+                              <span className="font-extrabold text-main capitalize">{certStatus || 'Pending'}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-500 font-semibold">Requirement:</span>
-                              <span className="font-semibold text-gray-600">{optSet.has('certificates') ? 'Optional' : 'Mandatory'}</span>
+                              <span className="text-muted-text font-semibold">Requirement:</span>
+                              <span className="font-semibold text-sub">{optSet.has('certificates') ? 'Optional' : 'Mandatory'}</span>
                             </div>
                           </div>
                         </div>
                       </div>
 
                       {/* Stage 3: Fee Payment */}
-                      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-2xs p-4 flex flex-col justify-between gap-4">
+                      <div className="bg-surface rounded-2xl border border-border shadow-2xs p-4 flex flex-col justify-between gap-4">
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2.5">
-                              <div className="p-2 rounded-xl shrink-0 bg-amber-600 text-white shadow-xs">
+                              <div className="p-2 rounded-xl shrink-0 bg-warning text-white shadow-xs">
                                 <CreditCard size={18} />
                               </div>
                               <div>
-                                <span className="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">Stage 3</span>
-                                <h5 className="font-extrabold text-sm text-gray-900 mt-0.5">Fee Payment</h5>
+                                <span className="bg-[var(--warning-light)] text-warning text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">Stage 3</span>
+                                <h5 className="font-extrabold text-sm text-main mt-0.5">Fee Payment</h5>
                               </div>
                             </div>
                             <StatusBadge completed={isFeeComplete} optional={optSet.has('fee')} text={feeStatus} />
                           </div>
 
-                          <p className="text-xs text-gray-500">Tuition & fee payment status verification</p>
+                          <p className="text-xs text-muted-text">Tuition & fee payment status verification</p>
 
-                          <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-100 text-xs space-y-1.5">
+                          <div className="bg-[var(--background)]/80 p-3 rounded-xl border border-border text-xs space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-500 font-semibold">Fee Clearance:</span>
-                              <span className="font-extrabold text-gray-900 capitalize">{feeStatus || 'Pending'}</span>
+                              <span className="text-muted-text font-semibold">Fee Clearance:</span>
+                              <span className="font-extrabold text-main capitalize">{feeStatus || 'Pending'}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-500 font-semibold">Requirement:</span>
-                              <span className="font-semibold text-gray-600">{optSet.has('fee') ? 'Optional' : 'Mandatory'}</span>
+                              <span className="text-muted-text font-semibold">Requirement:</span>
+                              <span className="font-semibold text-sub">{optSet.has('fee') ? 'Optional' : 'Mandatory'}</span>
                             </div>
                           </div>
                         </div>
                       </div>
 
                       {/* Stage 4: Scholarship Status */}
-                      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-2xs p-4 flex flex-col justify-between gap-4">
+                      <div className="bg-surface rounded-2xl border border-border shadow-2xs p-4 flex flex-col justify-between gap-4">
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2.5">
-                              <div className="p-2 rounded-xl shrink-0 bg-teal-600 text-white shadow-xs">
+                              <div className="p-2 rounded-xl shrink-0 bg-primary text-white shadow-xs">
                                 <Award size={18} />
                               </div>
                               <div>
-                                <span className="bg-teal-100 text-teal-800 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">Stage 4</span>
-                                <h5 className="font-extrabold text-sm text-gray-900 mt-0.5">Scholarship Status</h5>
+                                <span className="bg-[var(--primary-light)] text-primary text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">Stage 4</span>
+                                <h5 className="font-extrabold text-sm text-main mt-0.5">Scholarship Status</h5>
                               </div>
                             </div>
                             <StatusBadge completed={isScholarshipComplete} optional={isScholarshipOptional} text={scholarStatus} />
                           </div>
 
-                          <p className="text-xs text-gray-500">Scholarship registration and entitlement verification</p>
+                          <p className="text-xs text-muted-text">Scholarship registration and entitlement verification</p>
 
-                          <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-100 text-xs space-y-1.5">
+                          <div className="bg-[var(--background)]/80 p-3 rounded-xl border border-border text-xs space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-500 font-semibold">Scholarship Status:</span>
-                              <span className="font-extrabold text-gray-900 capitalize">{scholarStatus || 'Pending'}</span>
+                              <span className="text-muted-text font-semibold">Scholarship Status:</span>
+                              <span className="font-extrabold text-main capitalize">{scholarStatus || 'Pending'}</span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-500 font-semibold">Requirement:</span>
-                              <span className="font-semibold text-gray-600">{isScholarshipOptional ? 'Optional' : 'Mandatory'}</span>
+                              <span className="text-muted-text font-semibold">Requirement:</span>
+                              <span className="font-semibold text-sub">{isScholarshipOptional ? 'Optional' : 'Mandatory'}</span>
                             </div>
                           </div>
                         </div>
@@ -5911,7 +5911,7 @@ const Students = () => {
                           <button
                             type="button"
                             onClick={() => setActiveStudentTab('scholarship')}
-                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 text-white text-xs font-bold rounded-xl hover:bg-teal-700 transition-colors shadow-xs active:scale-95"
+                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-hover transition-colors shadow-xs active:scale-95"
                           >
                             <Award size={14} />
                             Manage Scholarship
@@ -5920,31 +5920,31 @@ const Students = () => {
                       </div>
 
                       {/* Stage 5: Academic Promotion */}
-                      <div className="bg-white rounded-2xl border border-gray-200/90 shadow-2xs p-4 flex flex-col justify-between gap-4">
+                      <div className="bg-surface rounded-2xl border border-border shadow-2xs p-4 flex flex-col justify-between gap-4">
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex items-center gap-2.5">
-                              <div className="p-2 rounded-xl shrink-0 bg-indigo-600 text-white shadow-xs">
+                              <div className="p-2 rounded-xl shrink-0 bg-primary text-white shadow-xs">
                                 <GraduationCap size={18} />
                               </div>
                               <div>
-                                <span className="bg-indigo-100 text-indigo-800 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">Stage 5</span>
-                                <h5 className="font-extrabold text-sm text-gray-900 mt-0.5">Academic Promotion</h5>
+                                <span className="bg-[var(--primary-light)] text-primary text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">Stage 5</span>
+                                <h5 className="font-extrabold text-sm text-main mt-0.5">Academic Promotion</h5>
                               </div>
                             </div>
                             <StatusBadge completed={isPromotionComplete} optional={optSet.has('promotion')} />
                           </div>
 
-                          <p className="text-xs text-gray-500">Yearly academic promotion & semester transition status</p>
+                          <p className="text-xs text-muted-text">Yearly academic promotion & semester transition status</p>
 
-                          <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-100 text-xs space-y-1.5">
+                          <div className="bg-[var(--background)]/80 p-3 rounded-xl border border-border text-xs space-y-1.5">
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-500 font-semibold">Current Year / Sem:</span>
-                              <span className="font-extrabold text-gray-900">{currentYear} Year / {currentSem} Sem</span>
+                              <span className="text-muted-text font-semibold">Current Year / Sem:</span>
+                              <span className="font-extrabold text-main">{currentYear} Year / {currentSem} Sem</span>
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-gray-500 font-semibold">Promotion Status:</span>
-                              <span className="font-semibold text-gray-600">{isPromotionComplete ? 'Promoted' : 'Pending'}</span>
+                              <span className="text-muted-text font-semibold">Promotion Status:</span>
+                              <span className="font-semibold text-sub">{isPromotionComplete ? 'Promoted' : 'Pending'}</span>
                             </div>
                           </div>
                         </div>
@@ -5953,7 +5953,7 @@ const Students = () => {
                           <button
                             type="button"
                             onClick={() => setActiveStudentTab('merit_status')}
-                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-xs active:scale-95"
+                            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-hover transition-colors shadow-xs active:scale-95"
                           >
                             <GraduationCap size={14} />
                             View Merit & Promotion
@@ -6013,13 +6013,13 @@ const Students = () => {
               )}
 
               {activeStudentTab === 'history' && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col flex-1 min-h-[400px] overflow-hidden">
-                  <div className="flex items-center justify-between border-b border-gray-100 p-3 bg-gray-50/50">
+                <div className="bg-surface rounded-2xl border border-border shadow-sm flex flex-col flex-1 min-h-[400px] overflow-hidden">
+                  <div className="flex items-center justify-between border-b border-border p-3 bg-[var(--background)]/50">
                     <div className="flex gap-2">
                       <button
                         onClick={() => setHistorySubTab('remarks')}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                          historySubTab === 'remarks' ? 'bg-blue-600 text-white shadow-md shadow-blue-100' : 'text-gray-500 hover:bg-white hover:text-blue-600'
+                          historySubTab === 'remarks' ? 'bg-primary text-white shadow-md shadow-primary' : 'text-muted-text hover:bg-surface hover:text-primary'
                         }`}
                       >
                         <MessageSquare size={14} /> Remarks
@@ -6027,7 +6027,7 @@ const Students = () => {
                       <button
                         onClick={() => setHistorySubTab('audit')}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                          historySubTab === 'audit' ? 'bg-blue-600 text-white shadow-md shadow-blue-100' : 'text-gray-500 hover:bg-white hover:text-blue-600'
+                          historySubTab === 'audit' ? 'bg-primary text-white shadow-md shadow-primary' : 'text-muted-text hover:bg-surface hover:text-primary'
                         }`}
                       >
                         <History size={14} /> Edit History
@@ -6079,30 +6079,30 @@ const Students = () => {
       {
         showPermitModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Permit Information</h3>
+            <div className="bg-surface rounded-lg shadow-xl max-w-md w-full p-6">
+              <h3 className="text-lg font-semibold text-main mb-4">Permit Information</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Permit Ending Date <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-sub mb-1">
+                    Permit Ending Date <span className="text-danger">*</span>
                   </label>
                   <input
                     type="date"
                     value={permitEndingDate}
                     onChange={(e) => setPermitEndingDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-sub mb-1">
                     Remarks
                   </label>
                   <textarea
                     value={permitRemarks}
                     onChange={(e) => setPermitRemarks(e.target.value)}
                     rows="3"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none"
                     placeholder="Enter remarks for the permit"
                   />
                 </div>
@@ -6116,7 +6116,7 @@ const Students = () => {
                     setPermitEndingDate('');
                     setPermitRemarks('');
                   }}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex-1 px-4 py-2 border border-border-strong text-sub rounded-lg hover:bg-background transition-colors"
                 >
                   Cancel
                 </button>
@@ -6156,7 +6156,7 @@ const Students = () => {
                     setPendingFeeStatusChange(null);
                     setPendingPermitAdmissionNumber(null);
                   }}
-                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary transition-colors"
                 >
                   Confirm
                 </button>
@@ -6212,46 +6212,46 @@ const Students = () => {
       {
         bulkPasswordState.isOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
-            <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 animate-fade-in">
-              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Key size={24} className="text-teal-600" />
+            <div className="bg-surface rounded-xl shadow-xl max-w-lg w-full p-6 animate-fade-in">
+              <h3 className="text-xl font-bold text-main mb-4 flex items-center gap-2">
+                <Key size={24} className="text-primary" />
                 Bulk Password Operations
               </h3>
 
               {bulkPasswordState.processing ? (
                 <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Processing password resets and sending SMS...</p>
-                  <p className="text-xs text-gray-400 mt-2">Please do not close this window.</p>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-sub">Processing password resets and sending SMS...</p>
+                  <p className="text-xs text-muted-text mt-2">Please do not close this window.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <div className="text-2xl font-bold text-gray-900">{bulkPasswordState.summary?.total}</div>
-                      <div className="text-xs text-gray-500">Total</div>
+                    <div className="bg-background p-3 rounded-lg">
+                      <div className="text-2xl font-bold text-main">{bulkPasswordState.summary?.total}</div>
+                      <div className="text-xs text-muted-text">Total</div>
                     </div>
-                    <div className="bg-green-50 p-3 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{bulkPasswordState.summary?.success}</div>
-                      <div className="text-xs text-green-600">Success</div>
+                    <div className="bg-[var(--success-light)] p-3 rounded-lg">
+                      <div className="text-2xl font-bold text-success">{bulkPasswordState.summary?.success}</div>
+                      <div className="text-xs text-success">Success</div>
                     </div>
-                    <div className="bg-red-50 p-3 rounded-lg">
-                      <div className="text-2xl font-bold text-red-600">{bulkPasswordState.summary?.failed}</div>
-                      <div className="text-xs text-red-600">Failed</div>
+                    <div className="bg-[var(--danger-light)] p-3 rounded-lg">
+                      <div className="text-2xl font-bold text-danger">{bulkPasswordState.summary?.failed}</div>
+                      <div className="text-xs text-danger">Failed</div>
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-3 mt-6">
                     <button
                       onClick={downloadBulkPasswordReport}
-                      className="flex items-center justify-center gap-2 w-full py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-medium transition-colors"
+                      className="flex items-center justify-center gap-2 w-full py-2 bg-[var(--primary-light)] text-primary hover:bg-[var(--primary-light)] rounded-lg font-medium transition-colors"
                     >
                       <FileSpreadsheet size={18} />
                       Download Detailed Report
                     </button>
                     <button
                       onClick={() => setBulkPasswordState(prev => ({ ...prev, isOpen: false }))}
-                      className="w-full py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                      className="w-full py-2 bg-background text-sub hover:bg-background rounded-lg font-medium transition-colors"
                     >
                       Close
                     </button>
@@ -6281,22 +6281,22 @@ const Students = () => {
       {/* Student Photo Full Viewer Modal */}
       {showPhotoViewer && createPortal(
         <div
-          className="fixed inset-0 z-[9999999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[9999999] flex items-center justify-center p-4 bg-[var(--sidebar)]/80 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setShowPhotoViewer(false)}
         >
           <div
-            className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-sm bg-surface rounded-3xl shadow-2xl border border-border overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-indigo-50/40">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-gradient-to-r from-[var(--background)] to-[var(--primary-light)]">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-[var(--primary-light)] text-primary flex items-center justify-center shadow-xs">
                   <Eye size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-gray-900">Student Photo</h3>
-                  <p className="text-xs text-slate-500 font-medium truncate max-w-[200px]">
+                  <h3 className="text-sm font-bold text-main">Student Photo</h3>
+                  <p className="text-xs text-muted-text font-medium truncate max-w-[200px]">
                     {editData.student_name || selectedStudent?.student_name || 'Student'}
                     {(editData.admission_number || selectedStudent?.admission_number || selectedStudent?.pin_no) && ` • ${editData.admission_number || selectedStudent?.admission_number || selectedStudent?.pin_no}`}
                   </p>
@@ -6305,7 +6305,7 @@ const Students = () => {
               <button
                 type="button"
                 onClick={() => setShowPhotoViewer(false)}
-                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+                className="p-1.5 text-muted-text hover:text-sub hover:bg-background rounded-xl transition-colors"
                 title="Close"
               >
                 <X size={18} />
@@ -6313,8 +6313,8 @@ const Students = () => {
             </div>
 
             {/* Photo Display */}
-            <div className="p-6 flex flex-col items-center justify-center bg-slate-950/5">
-              <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-2xl overflow-hidden shadow-xl border-4 border-white bg-slate-900 flex items-center justify-center">
+            <div className="p-6 flex flex-col items-center justify-center bg-[var(--sidebar)]/5">
+              <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-2xl overflow-hidden shadow-xl border-4 border-surface bg-sidebar flex items-center justify-center">
                 {editData.student_photo && editData.student_photo !== '{}' && editData.student_photo !== null && editData.student_photo !== '' ? (
                   <img
                     src={getStaticFileUrlDirect(editData.student_photo)}
@@ -6322,20 +6322,20 @@ const Students = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center text-slate-400 gap-2">
+                  <div className="flex flex-col items-center justify-center text-muted-text gap-2">
                     <User size={64} />
-                    <span className="text-xs font-semibold text-slate-400">No Photo Uploaded</span>
+                    <span className="text-xs font-semibold text-muted-text">No Photo Uploaded</span>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Action Footer */}
-            <div className="p-4 border-t border-gray-100 bg-slate-50/60 flex items-center justify-between gap-3">
+            <div className="p-4 border-t border-border bg-[var(--background)]/60 flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={() => setShowPhotoViewer(false)}
-                className="px-5 py-2.5 rounded-xl border border-slate-300 hover:bg-white text-slate-700 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                className="px-5 py-2.5 rounded-xl border border-border-strong hover:bg-surface text-sub text-xs font-bold transition-all shadow-xs cursor-pointer"
               >
                 Close
               </button>
@@ -6348,7 +6348,7 @@ const Students = () => {
                     setPhotoUploadTab('file');
                     setShowPhotoUploadModal(true);
                   }}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-500/20 transition-all cursor-pointer active:scale-95"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold shadow-md shadow-primary/20 transition-all cursor-pointer active:scale-95"
                 >
                   <Camera size={14} />
                   Change Photo

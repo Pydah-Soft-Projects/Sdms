@@ -181,10 +181,10 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="w-full max-w-2xl rounded-lg bg-white shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
-                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 bg-gray-50">
-                    <h3 className="text-lg font-semibold text-gray-900">Manage Previous Colleges</h3>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <div className="w-full max-w-2xl rounded-lg bg-surface shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+                <div className="flex items-center justify-between border-b border-border px-6 py-4 bg-background">
+                    <h3 className="text-lg font-semibold text-main">Manage Previous Colleges</h3>
+                    <button onClick={onClose} className="text-muted-text hover:text-sub transition-colors">
                         <X size={20} />
                     </button>
                 </div>
@@ -194,19 +194,19 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                     <div className="mb-6 flex flex-col gap-3">
                         <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
                             <div className="relative flex-1 w-full sm:w-auto">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" size={16} />
                                 <input
                                     type="text"
                                     placeholder="Search colleges..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                    className="w-full pl-9 pr-4 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary outline-none"
                                 />
                             </div>
                             <select
                                 value={filterCategory}
                                 onChange={(e) => setFilterCategory(e.target.value)}
-                                className="w-full sm:w-auto px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                className="w-full sm:w-auto px-3 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary outline-none"
                             >
                                 <option value="All">All Categories</option>
                                 {categories.map((cat) => <option key={cat} value={cat.id || cat}>{cat.name || cat}</option>)}
@@ -216,7 +216,7 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                                 <button
                                     onClick={handleDeleteAllDisplayed}
                                     disabled={filteredColleges.length === 0}
-                                    className="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-3 py-2 text-sm font-medium text-danger bg-[var(--danger-light)] hover:bg-[var(--danger-light)] rounded-lg border border-[var(--danger-light)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     title="Delete all colleges in current list"
                                 >
                                     <Trash2 size={16} />
@@ -224,8 +224,8 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                                 <button
                                     onClick={() => setIsBulkMode(!isBulkMode)}
                                     className={`w-full sm:w-auto px-4 py-2 text-sm font-medium rounded-lg border transition-colors flex items-center justify-center gap-2 ${isBulkMode
-                                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                                        ? 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]'
+                                        : 'bg-surface text-sub border-border-strong hover:bg-background'
                                         }`}
                                 >
                                     <Upload size={16} />
@@ -237,15 +237,15 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
 
                     {/* Bulk Upload Section */}
                     {isBulkMode && (
-                        <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-100 animate-in fade-in slide-in-from-top-4 duration-300">
-                            <h4 className="text-sm font-semibold text-blue-900 mb-3">Bulk Import Colleges</h4>
+                        <div className="mb-6 bg-[var(--primary-light)] p-4 rounded-lg border border-[var(--primary-light)] animate-in fade-in slide-in-from-top-4 duration-300">
+                            <h4 className="text-sm font-semibold text-primary mb-3">Bulk Import Colleges</h4>
 
                             <div className="mb-4">
-                                <label className="block text-xs font-medium text-blue-800 mb-1">Target Category</label>
+                                <label className="block text-xs font-medium text-primary mb-1">Target Category</label>
                                 <select
                                     value={selectedCategory}
                                     onChange={(e) => setSelectedCategory(e.target.value)}
-                                    className="w-full px-3 py-2 text-sm border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                    className="w-full px-3 py-2 text-sm border border-[var(--primary-light)] rounded-lg focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary outline-none"
                                 >
                                     {categories.map((cat) => <option key={cat} value={cat.id || cat}>{cat.name || cat}</option>)}
                                 </select>
@@ -253,8 +253,8 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <label className="block text-xs font-medium text-blue-800 mb-1">Option 1: Upload Excel File</label>
-                                    <div className="relative border-2 border-dashed border-blue-200 rounded-lg bg-white hover:bg-blue-50 transition-colors p-4 text-center cursor-pointer">
+                                    <label className="block text-xs font-medium text-primary mb-1">Option 1: Upload Excel File</label>
+                                    <div className="relative border-2 border-dashed border-[var(--primary-light)] rounded-lg bg-surface hover:bg-[var(--primary-light)] transition-colors p-4 text-center cursor-pointer">
                                         <input
                                             type="file"
                                             accept=".xlsx, .xls, .csv"
@@ -265,26 +265,26 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                         />
                                         <div className="flex flex-col items-center justify-center gap-1">
-                                            <Upload className="text-blue-400" size={20} />
-                                            <span className="text-sm text-blue-700 font-medium">
+                                            <Upload className="text-primary" size={20} />
+                                            <span className="text-sm text-primary font-medium">
                                                 {bulkFile ? bulkFile.name : 'Click to Upload Excel'}
                                             </span>
-                                            {!bulkFile && <span className="text-xs text-blue-400">.xlsx, .xls, or .csv</span>}
+                                            {!bulkFile && <span className="text-xs text-primary">.xlsx, .xls, or .csv</span>}
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-center">
-                                    <span className="text-blue-300 font-medium">- OR -</span>
+                                    <span className="text-primary font-medium">- OR -</span>
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label className="block text-xs font-medium text-blue-800 mb-1">Option 2: Paste List</label>
+                                    <label className="block text-xs font-medium text-primary mb-1">Option 2: Paste List</label>
                                     <textarea
                                         value={bulkList}
                                         onChange={(e) => {
                                             setBulkList(e.target.value);
                                             setBulkFile(null);
                                         }}
-                                        className="w-full h-24 px-3 py-2 text-sm border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
+                                        className="w-full h-24 px-3 py-2 text-sm border border-[var(--primary-light)] rounded-lg focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary outline-none resize-none"
                                         placeholder="Paste names here..."
                                         disabled={!!bulkFile}
                                     />
@@ -295,9 +295,9 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                                 <button
                                     onClick={handleBulkUpload}
                                     disabled={saving || (!bulkList.trim() && !bulkFile)}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors flex items-center gap-2"
                                 >
-                                    {saving ? <LoadingAnimation width={16} height={16} color="#fff" /> : <Save size={16} />}
+                                    {saving ? <LoadingAnimation width={16} height={16} color="var(--surface)" /> : <Save size={16} />}
                                     Process Import
                                 </button>
                             </div>
@@ -307,7 +307,7 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                     {/* Add Single Section */}
                     {!isBulkMode && (
                         <form onSubmit={handleAddSingle} className="mb-6 flex flex-col sm:flex-row gap-2">
-                            <div className="w-full sm:w-auto flex items-center px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500 whitespace-nowrap">
+                            <div className="w-full sm:w-auto flex items-center px-3 bg-background border border-border rounded-lg text-sm text-muted-text whitespace-nowrap">
                                 <span>{filterCategory === 'All' ? 'Category: Other' : filterCategory}</span>
                             </div>
                             <input
@@ -315,34 +315,34 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                                 value={newCollegeName}
                                 onChange={(e) => setNewCollegeName(e.target.value)}
                                 placeholder="Add new college name..."
-                                className="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                className="flex-1 px-4 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary outline-none"
                             />
                             <button
                                 type="submit"
                                 disabled={saving || !newCollegeName.trim()}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2 justify-center"
+                                className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors flex items-center gap-2 justify-center"
                             >
-                                {saving ? <LoadingAnimation width={16} height={16} color="#fff" /> : <Plus size={16} />}
+                                {saving ? <LoadingAnimation width={16} height={16} color="var(--surface)" /> : <Plus size={16} />}
                                 Add
                             </button>
                         </form>
                     )}
 
                     {/* List Section */}
-                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                        <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center text-xs font-semibold text-gray-500 uppercase">
+                    <div className="bg-surface border border-border rounded-lg overflow-hidden">
+                        <div className="bg-background px-4 py-2 border-b border-border flex justify-between items-center text-xs font-semibold text-muted-text uppercase">
                             <span>Name</span>
                             <span>Category</span>
                         </div>
 
-                        <div className="max-h-[300px] overflow-y-auto divide-y divide-gray-100">
+                        <div className="max-h-[300px] overflow-y-auto divide-y divide-border">
                             {loading ? (
                                 <div className="p-8 flex justify-center">
                                     <LoadingAnimation />
                                 </div>
                             ) : displayedColleges.length > 0 ? (
                                 displayedColleges.map((college) => (
-                                    <div key={college.id} className="px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors grid grid-cols-12 gap-4 items-center group">
+                                    <div key={college.id} className="px-4 py-3 text-sm text-sub hover:bg-background transition-colors grid grid-cols-12 gap-4 items-center group">
                                         {editingId === college.id ? (
                                             <>
                                                 <div className="col-span-6">
@@ -350,7 +350,7 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                                                         type="text"
                                                         value={editName}
                                                         onChange={(e) => setEditName(e.target.value)}
-                                                        className="w-full px-2 py-1 text-sm border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                        className="w-full px-2 py-1 text-sm border border-primary rounded focus:outline-none focus:ring-1 focus:ring-primary"
                                                         autoFocus
                                                     />
                                                 </div>
@@ -358,16 +358,16 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                                                     <select
                                                         value={editCategory}
                                                         onChange={(e) => setEditCategory(e.target.value)}
-                                                        className="w-full px-2 py-1 text-sm border border-blue-500 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                        className="w-full px-2 py-1 text-sm border border-primary rounded focus:outline-none focus:ring-1 focus:ring-primary"
                                                     >
                                                         {categories.map((cat) => <option key={cat} value={cat.id || cat}>{cat.name || cat}</option>)}
                                                     </select>
                                                 </div>
                                                 <div className="col-span-2 flex justify-end gap-2">
-                                                    <button onClick={() => handleUpdate(college.id)} className="text-green-600 hover:text-green-800 p-1">
+                                                    <button onClick={() => handleUpdate(college.id)} className="text-success hover:text-success p-1">
                                                         <Check size={16} />
                                                     </button>
-                                                    <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600 p-1">
+                                                    <button onClick={() => setEditingId(null)} className="text-muted-text hover:text-sub p-1">
                                                         <X size={16} />
                                                     </button>
                                                 </div>
@@ -378,15 +378,15 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                                                     {college.name}
                                                 </div>
                                                 <div className="col-span-4">
-                                                    <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full inline-block truncate max-w-full">
+                                                    <span className="text-xs px-2 py-1 bg-background text-sub rounded-full inline-block truncate max-w-full">
                                                         {college.category || 'Other'}
                                                     </span>
                                                 </div>
                                                 <div className="col-span-2 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => startEditing(college)} className="text-blue-500 hover:text-blue-700 p-1">
+                                                    <button onClick={() => startEditing(college)} className="text-primary hover:text-primary p-1">
                                                         <Edit2 size={16} />
                                                     </button>
-                                                    <button onClick={() => handleDelete(college.id)} className="text-red-500 hover:text-red-700 p-1">
+                                                    <button onClick={() => handleDelete(college.id)} className="text-danger hover:text-danger p-1">
                                                         <Trash2 size={16} />
                                                     </button>
                                                 </div>
@@ -395,7 +395,7 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                                     </div>
                                 ))
                             ) : (
-                                <div className="p-8 text-center text-gray-500 text-sm">
+                                <div className="p-8 text-center text-muted-text text-sm">
                                     {search ? 'No colleges match your search' : 'No colleges added yet'}
                                 </div>
                             )}
@@ -403,7 +403,7 @@ const ManagePreviousCollegesModal = ({ isOpen, onClose }) => {
                             {filteredColleges.length > itemsToShow && (
                                 <button
                                     onClick={() => setItemsToShow(prev => prev + 20)}
-                                    className="w-full py-3 text-xs text-blue-600 font-medium hover:bg-gray-50 transition-colors"
+                                    className="w-full py-3 text-xs text-primary font-medium hover:bg-background transition-colors"
                                 >
                                     Load More...
                                 </button>

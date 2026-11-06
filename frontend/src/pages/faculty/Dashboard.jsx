@@ -19,19 +19,19 @@ const cards = [
 const Dashboard = () => {
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-800 mb-2">Faculty Dashboard</h1>
-      <p className="text-slate-600 mb-6">Manage attendance, content, and communication.</p>
+      <h1 className="text-2xl font-semibold text-main mb-2">Faculty Dashboard</h1>
+      <p className="text-sub mb-6">Manage attendance, content, and communication.</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {cards.map((item) => (
           <Link
             key={item.path}
             to={item.path}
-            className="block p-5 bg-white rounded-xl border border-slate-200 hover:border-teal-300 hover:shadow-md transition-all"
+            className="block p-5 bg-surface rounded-xl border border-border hover:border-[var(--primary-light)] hover:shadow-md transition-all"
           >
-            <item.icon className="w-10 h-10 text-teal-600 mb-3" />
-            <h2 className="font-medium text-slate-800">{item.label}</h2>
-            <p className="text-sm text-slate-500 mt-1">{item.desc}</p>
+            <item.icon className="w-10 h-10 text-primary mb-3" />
+            <h2 className="font-medium text-main">{item.label}</h2>
+            <p className="text-sm text-muted-text mt-1">{item.desc}</p>
           </Link>
         ))}
       </div>

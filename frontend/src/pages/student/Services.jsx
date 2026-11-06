@@ -105,38 +105,38 @@ const Services = () => {
 
     const StatusBadge = ({ status, paymentStatus }) => {
         if (status === 'ready_to_collect') {
-            return <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium"><CheckCircle size={12} /> Ready to Collect</span>;
+            return <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--primary-light)] text-secondary rounded-full text-xs font-medium"><CheckCircle size={12} /> Ready to Collect</span>;
         }
         if (status === 'completed' || status === 'closed') {
-            return <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium"><CheckCircle size={12} /> Completed</span>;
+            return <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--success-light)] text-success rounded-full text-xs font-medium"><CheckCircle size={12} /> Completed</span>;
         }
         if (paymentStatus === 'pending') {
-            return <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium"><AlertCircle size={12} /> Payment Pending</span>;
+            return <span className="inline-flex items-center gap-1 px-2 py-1 bg-[var(--warning-light)] text-warning rounded-full text-xs font-medium"><AlertCircle size={12} /> Payment Pending</span>;
         }
-        return <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium"><Clock size={12} /> {status.replace(/_/g, ' ')}</span>;
+        return <span className="inline-flex items-center gap-1 px-2 py-1 bg-background text-main rounded-full text-xs font-medium"><Clock size={12} /> {status.replace(/_/g, ' ')}</span>;
     };
 
     return (
         <div className="p-6 space-y-6 animate-fade-in max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
                 <div>
-                    <h1 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mb-2">Campus Services</h1>
-                    <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] items-center flex gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                    <h1 className="text-3xl lg:text-4xl font-black text-main tracking-tight mb-2">Campus Services</h1>
+                    <p className="text-muted-text font-bold uppercase tracking-widest text-[10px] items-center flex gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
                         Request Resources & Track Status
                     </p>
                 </div>
 
-                <div className="bg-white/60 backdrop-blur-md rounded-[1.5rem] p-1.5 shadow-xl shadow-slate-200/50 border border-white flex gap-1 w-full md:w-auto">
+                <div className="bg-[var(--surface)]/60 backdrop-blur-md rounded-[1.5rem] p-1.5 shadow-xl shadow-border/50 border border-surface flex gap-1 w-full md:w-auto">
                     <button
                         onClick={() => setActiveTab('available')}
-                        className={`flex-1 md:flex-none px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${activeTab === 'available' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white/80'}`}
+                        className={`flex-1 md:flex-none px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${activeTab === 'available' ? 'bg-primary text-white shadow-lg shadow-primary' : 'text-muted-text hover:text-sub hover:bg-[var(--surface)]/80'}`}
                     >
                         Catalogs
                     </button>
                     <button
                         onClick={() => setActiveTab('history')}
-                        className={`flex-1 md:flex-none px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${activeTab === 'history' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white/80'}`}
+                        className={`flex-1 md:flex-none px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all duration-300 ${activeTab === 'history' ? 'bg-primary text-white shadow-lg shadow-primary' : 'text-muted-text hover:text-sub hover:bg-[var(--surface)]/80'}`}
                     >
                         Active Requests
                     </button>
@@ -147,7 +147,7 @@ const Services = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {loading ? (
                         Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-56 flex flex-col justify-between animate-pulse">
+                            <div key={i} className="bg-surface p-6 rounded-xl shadow-sm border border-border h-56 flex flex-col justify-between animate-pulse">
                                 <div className="flex justify-between items-start mb-4">
                                     <SkeletonBox height="h-12" width="w-12" className="rounded-lg" />
                                     <SkeletonBox height="h-6" width="w-16" />
@@ -160,29 +160,29 @@ const Services = () => {
                             </div>
                         ))
                     ) : services.length === 0 ? (
-                        <div className="col-span-full py-12 text-center text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
+                        <div className="col-span-full py-12 text-center text-muted-text bg-surface rounded-xl border border-dashed border-border-strong">
                             No services available at the moment.
                         </div>
                     ) : (
                         services.map(service => (
-                            <div key={service.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-500 group relative overflow-hidden flex flex-col h-full">
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-50/50 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-indigo-100/50 transition-all duration-700"></div>
+                            <div key={service.id} className="bg-surface p-8 rounded-[2.5rem] shadow-xl shadow-border/50 border border-border hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02] transition-all duration-500 group relative overflow-hidden flex flex-col h-full">
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--primary-light)] rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-[var(--primary-light)] transition-all duration-700"></div>
                                 <div className="flex justify-between items-start mb-8 relative z-10">
-                                    <div className="p-4 bg-indigo-50 text-indigo-600 rounded-[1.5rem] border border-indigo-100 shadow-sm transition-transform group-hover:scale-110 duration-500">
+                                    <div className="p-4 bg-[var(--primary-light)] text-primary rounded-[1.5rem] border border-[var(--primary-light)] shadow-sm transition-transform group-hover:scale-110 duration-500">
                                         <FileText size={28} />
                                     </div>
                                     <div className="flex flex-col items-end">
-                                        <span className="font-black text-2xl text-slate-900 tracking-tighter">₹{service.price}</span>
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Processing Fee</span>
+                                        <span className="font-black text-2xl text-main tracking-tighter">₹{service.price}</span>
+                                        <span className="text-[10px] font-black text-muted-text uppercase tracking-widest mt-1">Processing Fee</span>
                                     </div>
                                 </div>
                                 <div className="relative z-10 flex-1">
-                                    <h3 className="text-2xl font-black text-slate-800 mb-3 leading-tight tracking-tight group-hover:text-indigo-600 transition-colors">{service.name}</h3>
-                                    <p className="text-slate-400 text-sm mb-10 line-clamp-2 font-bold italic opacity-80">{service.description}</p>
+                                    <h3 className="text-2xl font-black text-main mb-3 leading-tight tracking-tight group-hover:text-primary transition-colors">{service.name}</h3>
+                                    <p className="text-muted-text text-sm mb-10 line-clamp-2 font-bold italic opacity-80">{service.description}</p>
                                 </div>
                                 <button
                                     onClick={() => setSelectedService(service)}
-                                    className="w-full py-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20 font-black uppercase tracking-widest text-[11px] relative z-10 transform hover:-translate-y-0.5 active:scale-95"
+                                    className="w-full py-4 bg-primary text-white rounded-2xl hover:bg-primary-hover transition-all shadow-lg shadow-primary/20 font-black uppercase tracking-widest text-[11px] relative z-10 transform hover:-translate-y-0.5 active:scale-95"
                                 >
                                     Initiate Process
                                 </button>
@@ -193,11 +193,11 @@ const Services = () => {
             )}
 
             {activeTab === 'history' && (
-                <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden group">
+                <div className="bg-surface rounded-[2.5rem] shadow-xl shadow-border/40 border border-border overflow-hidden group">
                     {/* Desktop Table View */}
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                            <thead className="bg-background text-muted-text text-xs uppercase tracking-wider">
                                 <tr>
                                     <th className="px-6 py-4">Request ID</th>
                                     <th className="px-6 py-4">Service</th>
@@ -208,7 +208,7 @@ const Services = () => {
                                     <th className="px-6 py-4 text-right">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-border">
                                 {loading ? (
                                     Array.from({ length: 5 }).map((_, i) => (
                                         <tr key={i} className="animate-pulse">
@@ -222,16 +222,16 @@ const Services = () => {
                                         </tr>
                                     ))
                                 ) : requests.length === 0 ? (
-                                    <tr><td colSpan="7" className="p-12 text-center text-gray-500">No requests found</td></tr>
+                                    <tr><td colSpan="7" className="p-12 text-center text-muted-text">No requests found</td></tr>
                                 ) : (
                                     requests.map(req => (
-                                        <tr key={req.id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 font-mono text-gray-600 text-sm">#{req.id}</td>
-                                            <td className="px-6 py-4 font-medium text-gray-900">{req.service_name}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-500">
+                                        <tr key={req.id} className="hover:bg-background">
+                                            <td className="px-6 py-4 font-mono text-sub text-sm">#{req.id}</td>
+                                            <td className="px-6 py-4 font-medium text-main">{req.service_name}</td>
+                                            <td className="px-6 py-4 text-sm text-muted-text">
                                                 {new Date(req.request_date).toLocaleDateString()}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                            <td className="px-6 py-4 text-sm text-muted-text max-w-xs truncate">
                                                 {(() => {
                                                     try {
                                                         const data = typeof req.request_data === 'string' ? JSON.parse(req.request_data) : req.request_data;
@@ -244,11 +244,11 @@ const Services = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 {req.payment_status === 'paid' ? (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase">
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[var(--success-light)] text-success rounded-full text-xs font-bold uppercase">
                                                         Paid
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-red-50 text-red-600 rounded-full text-xs font-bold uppercase">
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[var(--danger-light)] text-danger rounded-full text-xs font-bold uppercase">
                                                         Pending
                                                     </span>
                                                 )}
@@ -259,7 +259,7 @@ const Services = () => {
                                                     <div className="flex justify-end gap-2">
                                                         <button
                                                             onClick={() => handleDelete(req)}
-                                                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition"
+                                                            className="p-1.5 text-danger hover:text-danger hover:bg-[var(--danger-light)] rounded transition"
                                                             title="Delete Request"
                                                         >
                                                             <Trash2 size={16} />
@@ -267,9 +267,9 @@ const Services = () => {
                                                         
                                                     </div>
                                                 ) : req.status === 'ready_to_collect' ? (
-                                                    <span className="text-xs text-purple-600 font-medium">Ready for Collection</span>
+                                                    <span className="text-xs text-secondary font-medium">Ready for Collection</span>
                                                 ) : (
-                                                    <span className="text-xs text-gray-400">Processing</span>
+                                                    <span className="text-xs text-muted-text">Processing</span>
                                                 )}
                                             </td>
                                         </tr>
@@ -284,7 +284,7 @@ const Services = () => {
                         {loading ? (
                             <div className="space-y-4 animate-pulse">
                                 {Array.from({ length: 4 }).map((_, i) => (
-                                    <div key={i} className="p-4 bg-white rounded-lg border border-gray-100 space-y-3">
+                                    <div key={i} className="p-4 bg-surface rounded-lg border border-border space-y-3">
                                         <div className="flex justify-between">
                                             <SkeletonBox height="h-4" width="w-1/3" />
                                             <SkeletonBox height="h-4" width="w-1/4" />
@@ -298,22 +298,22 @@ const Services = () => {
                                 ))}
                             </div>
                         ) : requests.length === 0 ? (
-                            <div className="p-12 text-center text-gray-500 text-sm">No requests found</div>
+                            <div className="p-12 text-center text-muted-text text-sm">No requests found</div>
                         ) : (
-                            <div className="divide-y divide-gray-100">
+                            <div className="divide-y divide-border">
                                 {requests.map(req => (
-                                    <div key={req.id} className="p-4 bg-white hover:bg-gray-50 transition-colors">
+                                    <div key={req.id} className="p-4 bg-surface hover:bg-background transition-colors">
                                         <div className="flex justify-between items-start mb-2">
                                             <div>
-                                                <h3 className="font-semibold text-gray-900 text-sm">{req.service_name}</h3>
-                                                <span className="text-xs font-mono text-gray-400">#{req.id}</span>
+                                                <h3 className="font-semibold text-main text-sm">{req.service_name}</h3>
+                                                <span className="text-xs font-mono text-muted-text">#{req.id}</span>
                                             </div>
-                                            <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">
+                                            <span className="text-xs text-muted-text bg-background px-2 py-1 rounded">
                                                 {new Date(req.request_date).toLocaleDateString()}
                                             </span>
                                         </div>
 
-                                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+                                        <p className="text-xs text-sub mb-3 line-clamp-2">
                                             {(() => {
                                                 try {
                                                     const data = typeof req.request_data === 'string' ? JSON.parse(req.request_data) : req.request_data;
@@ -322,15 +322,15 @@ const Services = () => {
                                             })()}
                                         </p>
 
-                                        <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-50">
+                                        <div className="flex justify-between items-center mt-3 pt-3 border-t border-border">
                                             <div className="flex gap-2">
                                                 <StatusBadge status={req.status} paymentStatus={req.payment_status} />
                                                 {req.payment_status === 'paid' ? (
-                                                    <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase">
+                                                    <span className="inline-flex items-center px-2 py-0.5 bg-[var(--success-light)] text-success rounded-full text-[10px] font-bold uppercase">
                                                         Paid
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center px-2 py-0.5 bg-red-50 text-red-600 rounded-full text-[10px] font-bold uppercase">
+                                                    <span className="inline-flex items-center px-2 py-0.5 bg-[var(--danger-light)] text-danger rounded-full text-[10px] font-bold uppercase">
                                                         Pending
                                                     </span>
                                                 )}
@@ -340,16 +340,16 @@ const Services = () => {
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => handleDelete(req)}
-                                                        className="text-xs text-red-600 font-medium bg-red-50 px-3 py-1.5 rounded hover:bg-red-100 transition shadow-sm flex items-center gap-1"
+                                                        className="text-xs text-danger font-medium bg-[var(--danger-light)] px-3 py-1.5 rounded hover:bg-[var(--danger-light)] transition shadow-sm flex items-center gap-1"
                                                     >
                                                         <Trash2 size={12} /> Delete
                                                     </button>
                                                     
                                                 </div>
                                             ) : req.status === 'ready_to_collect' ? (
-                                                <span className="text-xs text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded">Ready</span>
+                                                <span className="text-xs text-secondary font-medium bg-[var(--primary-light)] px-2 py-1 rounded">Ready</span>
                                             ) : (
-                                                <span className="text-[10px] text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded">Processing</span>
+                                                <span className="text-[10px] text-muted-text font-medium bg-background px-2 py-1 rounded">Processing</span>
                                             )}
                                         </div>
                                     </div>
@@ -363,13 +363,13 @@ const Services = () => {
             {/* Request Modal */}
             {selectedService && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl animate-scale-in">
+                    <div className="bg-surface rounded-2xl w-full max-w-md p-6 shadow-xl animate-scale-in">
                         <div className="flex justify-between items-center mb-6">
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900">{selectedService.name}</h2>
-                                <p className="text-sm text-gray-500">Fee: ₹{selectedService.price}</p>
+                                <h2 className="text-xl font-bold text-main">{selectedService.name}</h2>
+                                <p className="text-sm text-muted-text">Fee: ₹{selectedService.price}</p>
                             </div>
-                            <button onClick={() => setSelectedService(null)} className="text-gray-400 hover:text-gray-600">
+                            <button onClick={() => setSelectedService(null)} className="text-muted-text hover:text-sub">
                                 <X size={24} />
                             </button>
                         </div>
@@ -378,34 +378,34 @@ const Services = () => {
                             {(selectedService.template_type === 'refund_application' || selectedService.name.toLowerCase().includes('refund')) ? (
                                 <>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Refund</label>
+                                        <label className="block text-sm font-medium text-sub mb-1">Reason for Refund</label>
                                         <textarea
                                             required
                                             placeholder="e.g. Paid twice, Scholarship received, etc."
-                                            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none min-h-[80px]"
+                                            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none min-h-[80px]"
                                             value={requestForm.purpose}
                                             onChange={e => setRequestForm({ ...requestForm, purpose: e.target.value, reason: e.target.value })}
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Excess Amount (Rs.)</label>
+                                            <label className="block text-sm font-medium text-sub mb-1">Excess Amount (Rs.)</label>
                                             <input
                                                 type="text"
                                                 required
                                                 placeholder="e.g. 5000"
-                                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                                 value={requestForm.excess_amount || ''}
                                                 onChange={e => setRequestForm({ ...requestForm, excess_amount: e.target.value })}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Amount in Words</label>
+                                            <label className="block text-sm font-medium text-sub mb-1">Amount in Words</label>
                                             <input
                                                 type="text"
                                                 required
                                                 placeholder="e.g. Five Thousand Only"
-                                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                                 value={requestForm.amount_in_words || ''}
                                                 onChange={e => setRequestForm({ ...requestForm, amount_in_words: e.target.value })}
                                             />
@@ -414,18 +414,18 @@ const Services = () => {
                                 </>
                             ) : (
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Purpose of Certificate</label>
+                                    <label className="block text-sm font-medium text-sub mb-1">Purpose of Certificate</label>
                                     <textarea
                                         required
                                         placeholder="e.g. For Scholarship Application, Visa, etc."
-                                        className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none min-h-[100px]"
+                                        className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none min-h-[100px]"
                                         value={requestForm.purpose}
                                         onChange={e => setRequestForm({ ...requestForm, purpose: e.target.value })}
                                     />
                                 </div>
                             )}
 
-                            <p className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <p className="text-xs text-muted-text bg-background p-3 rounded-lg border border-border">
                                 Note: Certificate generated will include your current academic details from the database. Please ensure your profile is up to date.
                             </p>
 
@@ -433,7 +433,7 @@ const Services = () => {
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition disabled:opacity-50"
+                                    className="w-full py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover transition disabled:opacity-50"
                                 >
                                     {submitting ? 'Submitting...' : 'Confirm Request'}
                                 </button>

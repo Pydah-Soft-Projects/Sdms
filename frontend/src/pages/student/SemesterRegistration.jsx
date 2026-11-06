@@ -416,7 +416,7 @@ const SemesterRegistration = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="bg-white rounded-2xl p-6 border-l-4 border-gray-200 h-48 flex flex-col justify-between">
+                        <div key={i} className="bg-surface rounded-2xl p-6 border-l-4 border-border h-48 flex flex-col justify-between">
                             <div className="flex justify-between items-start">
                                 <SkeletonBox height="h-12" width="w-12" className="rounded-xl" />
                                 <SkeletonBox height="h-6" width="w-20" className="rounded-full" />
@@ -429,7 +429,7 @@ const SemesterRegistration = () => {
                     ))}
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg lg:pl-64">
+                <div className="fixed bottom-0 left-0 right-0 bg-surface border-t border-border p-4 shadow-lg lg:pl-64">
                     <div className="max-w-6xl mx-auto flex items-center justify-between">
                         <div className="space-y-1">
                             <SkeletonBox height="h-4" width="w-32" />
@@ -467,19 +467,19 @@ const SemesterRegistration = () => {
             {/* ── Cycle Overview Card ── */}
             <div className={`rounded-2xl p-4 sm:p-5 border transition-all shadow-sm ${
                 isActuallyComplete
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-emerald-500/30'
+                    ? 'bg-gradient-to-r from-success to-primary text-white border-success'
                     : isTemporaryRegistration
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-400/30'
-                        : 'bg-white border-slate-200 text-slate-800'
+                        ? 'bg-gradient-to-r from-warning to-warning text-white border-warning'
+                        : 'bg-surface border-border text-main'
             }`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                            <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-white/20 text-white">
+                            <span className="text-[10px] uppercase font-black tracking-wider px-2 py-0.5 rounded-full bg-[var(--surface)]/20 text-white">
                                 Current Academic Cycle
                             </span>
                             <span className="text-xs font-bold text-white/90">
-                                <span className="bg-white/25 px-2 py-0.5 rounded-md font-black text-white shadow-xs">
+                                <span className="bg-[var(--surface)]/25 px-2 py-0.5 rounded-md font-black text-white shadow-xs">
                                     Year {currentYear} • Semester {currentSemester}
                                 </span>
                                 {studentData?.branch ? ` • ${studentData.branch}` : ''}
@@ -491,13 +491,13 @@ const SemesterRegistration = () => {
                     </div>
                     <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 mt-1 sm:mt-0">
                         <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-extrabold text-xs shadow-xs ${
-                            isActuallyComplete ? 'bg-white text-emerald-700' : isTemporaryRegistration ? 'bg-white text-amber-700' : 'bg-amber-100 text-amber-800'
+                            isActuallyComplete ? 'bg-surface text-success' : isTemporaryRegistration ? 'bg-surface text-warning' : 'bg-[var(--warning-light)] text-warning'
                         }`}>
                             {isActuallyComplete ? <><CheckCircle size={15} /> Completed</> : isTemporaryRegistration ? <><AlertCircle size={15} /> Temporary</> : 'Pending'}
                         </span>
                         <button
                             onClick={() => navigate('/student/dashboard')}
-                            className="px-3 py-1.5 rounded-xl font-bold text-xs bg-white/20 hover:bg-white/30 text-white transition-colors"
+                            className="px-3 py-1.5 rounded-xl font-bold text-xs bg-[var(--surface)]/20 hover:bg-[var(--surface)]/30 text-white transition-colors"
                         >
                             Dashboard
                         </button>
@@ -506,10 +506,10 @@ const SemesterRegistration = () => {
             </div>
 
             {/* ── 5-Stage Stepper: (Vertical Step-by-Step, One Below One) ── */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs">
-                <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
-                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-800">Registration Process Steps</h3>
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+            <div className="bg-surface rounded-2xl border border-border p-4 sm:p-5 shadow-xs">
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-border">
+                    <h3 className="text-xs font-black uppercase tracking-wider text-main">Registration Process Steps</h3>
+                    <span className="text-[10px] font-bold text-success bg-[var(--success-light)] px-2 py-0.5 rounded-full">
                         {isActuallyComplete ? '5 of 5 Completed' : 'In Progress'}
                     </span>
                 </div>
@@ -533,13 +533,13 @@ const SemesterRegistration = () => {
                                 {/* Left: Step Circle and Vertical Connecting Line */}
                                 <div className="flex flex-col items-center">
                                     <div className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-xs shrink-0 ${
-                                        isDone ? 'bg-emerald-600 text-white ring-4 ring-emerald-50' : 'bg-slate-800 text-white ring-4 ring-slate-100'
+                                        isDone ? 'bg-success text-white ring-4 ring-[var(--success-light)]' : 'bg-sidebar text-white ring-4 ring-border-strong'
                                     }`}>
                                         {isDone ? <CheckCircle size={14} strokeWidth={2.5} /> : <span>{index + 1}</span>}
                                     </div>
                                     {!isLast && (
                                         <div className={`w-0.5 my-1 flex-1 min-h-[24px] rounded-full transition-colors ${
-                                            isDone ? 'bg-emerald-500' : 'bg-slate-200'
+                                            isDone ? 'bg-success' : 'bg-background'
                                         }`} />
                                     )}
                                 </div>
@@ -548,19 +548,19 @@ const SemesterRegistration = () => {
                                 <div className={`flex-1 flex items-center justify-between pb-3`}>
                                     <div>
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Stage {index + 1}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-wider text-muted-text">Stage {index + 1}</span>
                                         </div>
-                                        <h4 className="text-xs font-bold text-slate-800 group-hover:text-emerald-700 transition-colors">
+                                        <h4 className="text-xs font-bold text-main group-hover:text-success transition-colors">
                                             {item.title}
                                         </h4>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
-                                            isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                            isDone ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--warning-light)] text-warning'
                                         }`}>
                                             {isDone ? 'Done' : 'Pending'}
                                         </span>
-                                        <ArrowRight size={12} className="text-slate-400 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition-all" />
+                                        <ArrowRight size={12} className="text-muted-text group-hover:text-success group-hover:translate-x-0.5 transition-all" />
                                     </div>
                                 </div>
                             </div>
@@ -574,18 +574,18 @@ const SemesterRegistration = () => {
                 <button
                     type="button"
                     onClick={() => setShowPreviousRegistration(prev => !prev)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:bg-slate-50 active:scale-[0.99] transition-all group cursor-pointer"
+                    className="w-full flex items-center justify-between px-4 py-3 bg-surface rounded-2xl border border-border shadow-xs hover:bg-background active:scale-[0.99] transition-all group cursor-pointer"
                 >
                     <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                        <div className="w-8 h-8 rounded-xl bg-[var(--primary-light)] text-primary flex items-center justify-center font-bold">
                             <History size={16} />
                         </div>
                         <div className="text-left">
-                            <span className="text-xs font-black text-slate-800 block">Previous Registration</span>
-                            <span className="text-[10px] text-slate-400 font-medium">View past academic year registrations</span>
+                            <span className="text-xs font-black text-main block">Previous Registration</span>
+                            <span className="text-[10px] text-muted-text font-medium">View past academic year registrations</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-indigo-600 font-bold text-xs">
+                    <div className="flex items-center gap-1.5 text-primary font-bold text-xs">
                         <span>{showPreviousRegistration ? 'Hide' : 'View'}</span>
                         <ChevronDown size={16} className={`transition-transform duration-200 ${showPreviousRegistration ? 'rotate-180' : ''}`} />
                     </div>
@@ -597,52 +597,52 @@ const SemesterRegistration = () => {
                             previousRegistrations.map((prev, idx) => (
                                 <div
                                     key={idx}
-                                    className="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs"
+                                    className="bg-surface rounded-2xl border border-border p-3.5 shadow-xs"
                                 >
-                                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-border">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                                            <div className="w-6 h-6 rounded-lg bg-[var(--primary-light)] text-primary flex items-center justify-center font-bold text-xs">
                                                 <History size={14} />
                                             </div>
                                             <div>
-                                                <h4 className="text-xs font-black text-slate-800">
+                                                <h4 className="text-xs font-black text-main">
                                                     {prev.year && prev.year !== '-' ? `Year ${prev.year}` : '-'} {prev.semester && prev.semester !== '-' ? `• Semester ${prev.semester}` : ''}
                                                 </h4>
-                                                <p className="text-[10px] text-slate-400 font-medium">{prev.batch || prev.academic_year || '-'}</p>
+                                                <p className="text-[10px] text-muted-text font-medium">{prev.batch || prev.academic_year || '-'}</p>
                                             </div>
                                         </div>
                                         <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                                             String(prev.status || '').toLowerCase() === 'completed'
-                                                ? 'bg-emerald-100 text-emerald-800'
-                                                : 'bg-slate-100 text-slate-600'
+                                                ? 'bg-[var(--success-light)] text-success'
+                                                : 'bg-background text-sub'
                                         }`}>
                                             {prev.status || '-'}
                                         </span>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-2 text-[10px]">
-                                        <div className="bg-slate-50/80 rounded-xl p-2 border border-slate-100 flex items-center justify-between">
-                                            <span className="text-slate-500 font-semibold">Verification</span>
-                                            <span className="text-slate-800 font-bold">{prev.verification || '-'}</span>
+                                        <div className="bg-[var(--background)]/80 rounded-xl p-2 border border-border flex items-center justify-between">
+                                            <span className="text-muted-text font-semibold">Verification</span>
+                                            <span className="text-main font-bold">{prev.verification || '-'}</span>
                                         </div>
-                                        <div className="bg-slate-50/80 rounded-xl p-2 border border-slate-100 flex items-center justify-between">
-                                            <span className="text-slate-500 font-semibold">Certificates</span>
-                                            <span className="text-slate-800 font-bold">{prev.certificates || '-'}</span>
+                                        <div className="bg-[var(--background)]/80 rounded-xl p-2 border border-border flex items-center justify-between">
+                                            <span className="text-muted-text font-semibold">Certificates</span>
+                                            <span className="text-main font-bold">{prev.certificates || '-'}</span>
                                         </div>
-                                        <div className="bg-slate-50/80 rounded-xl p-2 border border-slate-100 flex items-center justify-between">
-                                            <span className="text-slate-500 font-semibold">Fee Status</span>
-                                            <span className="text-slate-800 font-bold">{prev.fee || '-'}</span>
+                                        <div className="bg-[var(--background)]/80 rounded-xl p-2 border border-border flex items-center justify-between">
+                                            <span className="text-muted-text font-semibold">Fee Status</span>
+                                            <span className="text-main font-bold">{prev.fee || '-'}</span>
                                         </div>
-                                        <div className="bg-slate-50/80 rounded-xl p-2 border border-slate-100 flex items-center justify-between">
-                                            <span className="text-slate-500 font-semibold">Promotion</span>
-                                            <span className="text-slate-800 font-bold">{prev.promotion || '-'}</span>
+                                        <div className="bg-[var(--background)]/80 rounded-xl p-2 border border-border flex items-center justify-between">
+                                            <span className="text-muted-text font-semibold">Promotion</span>
+                                            <span className="text-main font-bold">{prev.promotion || '-'}</span>
                                         </div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="bg-white rounded-2xl border border-slate-200/90 p-4 text-center">
-                                <span className="text-sm font-black text-slate-400">-</span>
+                            <div className="bg-surface rounded-2xl border border-border p-4 text-center">
+                                <span className="text-sm font-black text-muted-text">-</span>
                             </div>
                         )}
                     </div>
@@ -652,16 +652,16 @@ const SemesterRegistration = () => {
             {/* Modal Overlay */}
             {activeStepId && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                                {React.createElement(steps.find(s => s.id === activeStepId).icon, { className: 'text-blue-600' })}
+                        <div className="flex items-center justify-between p-6 border-b border-border">
+                            <h2 className="text-2xl font-bold text-main flex items-center gap-3">
+                                {React.createElement(steps.find(s => s.id === activeStepId).icon, { className: 'text-primary' })}
                                 {steps.find(s => s.id === activeStepId).title}
                             </h2>
                             <button
                                 onClick={() => setActiveStepId(null)}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+                                className="p-2 hover:bg-background rounded-full transition-colors text-muted-text"
                             >
                                 <X size={24} />
                             </button>
@@ -678,11 +678,11 @@ const SemesterRegistration = () => {
                                         <RegistrationStageBadge display={registrationStages.verification.display} />
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Student Mobile</label>
+                                        <div className="p-4 bg-background rounded-xl border border-border">
+                                            <label className="text-xs font-bold text-muted-text uppercase tracking-wider block mb-2">Student Mobile</label>
                                             <div className="flex items-center gap-2 mb-4">
-                                                <Smartphone size={18} className="text-gray-400" />
-                                                <span className="font-mono text-gray-700">{verificationState.studentMobile || 'Not Found'}</span>
+                                                <Smartphone size={18} className="text-muted-text" />
+                                                <span className="font-mono text-sub">{verificationState.studentMobile || 'Not Found'}</span>
                                             </div>
                                             {!verificationState.studentVerified ? (
                                                 verificationState.studentOtpSent ? (
@@ -694,21 +694,21 @@ const SemesterRegistration = () => {
                                                             value={verificationState.studentOtp}
                                                             onChange={e => setVerificationState({ ...verificationState, studentOtp: e.target.value })}
                                                         />
-                                                        <button onClick={() => handleVerifyOTP('student')} className="bg-green-600 text-white px-3 rounded hover:bg-green-700">Verify</button>
+                                                        <button onClick={() => handleVerifyOTP('student')} className="bg-success text-white px-3 rounded hover:bg-success">Verify</button>
                                                     </div>
                                                 ) : (
-                                                    <button onClick={() => handleSendOTP('student')} disabled={loading} className="w-full py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium text-sm">Send OTP</button>
+                                                    <button onClick={() => handleSendOTP('student')} disabled={loading} className="w-full py-2 bg-[var(--primary-light)] text-primary rounded-lg hover:bg-[var(--primary-light)] font-medium text-sm">Send OTP</button>
                                                 )
                                             ) : (
-                                                <div className="w-full py-2 bg-green-100 text-green-700 rounded-lg flex items-center justify-center gap-2 font-medium text-sm"><CheckCircle size={16} /> Verified</div>
+                                                <div className="w-full py-2 bg-[var(--success-light)] text-success rounded-lg flex items-center justify-center gap-2 font-medium text-sm"><CheckCircle size={16} /> Verified</div>
                                             )}
                                         </div>
 
-                                        <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Parent Mobile</label>
+                                        <div className="p-4 bg-background rounded-xl border border-border">
+                                            <label className="text-xs font-bold text-muted-text uppercase tracking-wider block mb-2">Parent Mobile</label>
                                             <div className="flex items-center gap-2 mb-4">
-                                                <Phone size={18} className="text-gray-400" />
-                                                <span className="font-mono text-gray-700">{verificationState.parentMobile || 'Not Found'}</span>
+                                                <Phone size={18} className="text-muted-text" />
+                                                <span className="font-mono text-sub">{verificationState.parentMobile || 'Not Found'}</span>
                                             </div>
                                             {!verificationState.parentVerified ? (
                                                 verificationState.parentOtpSent ? (
@@ -720,17 +720,17 @@ const SemesterRegistration = () => {
                                                             value={verificationState.parentOtp}
                                                             onChange={e => setVerificationState({ ...verificationState, parentOtp: e.target.value })}
                                                         />
-                                                        <button onClick={() => handleVerifyOTP('parent')} className="bg-green-600 text-white px-3 rounded hover:bg-green-700">Verify</button>
+                                                        <button onClick={() => handleVerifyOTP('parent')} className="bg-success text-white px-3 rounded hover:bg-success">Verify</button>
                                                     </div>
                                                 ) : (
-                                                    <button onClick={() => handleSendOTP('parent')} disabled={loading} className="w-full py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 font-medium text-sm">Send OTP</button>
+                                                    <button onClick={() => handleSendOTP('parent')} disabled={loading} className="w-full py-2 bg-[var(--primary-light)] text-primary rounded-lg hover:bg-[var(--primary-light)] font-medium text-sm">Send OTP</button>
                                                 )
                                             ) : (
-                                                <div className="w-full py-2 bg-green-100 text-green-700 rounded-lg flex items-center justify-center gap-2 font-medium text-sm"><CheckCircle size={16} /> Verified</div>
+                                                <div className="w-full py-2 bg-[var(--success-light)] text-success rounded-lg flex items-center justify-center gap-2 font-medium text-sm"><CheckCircle size={16} /> Verified</div>
                                             )}
                                         </div>
                                     </div>
-                                    <p className="text-xs text-center text-gray-400">Both verifications are required to proceed.</p>
+                                    <p className="text-xs text-center text-muted-text">Both verifications are required to proceed.</p>
                                 </div>
                             )}
 
@@ -739,41 +739,41 @@ const SemesterRegistration = () => {
                                 <div className="space-y-4">
                                     <div className="flex flex-col items-center justify-center mb-1">
                                         <RegistrationStageBadge display={registrationStages.certificates.display} />
-                                        <p className="text-xs text-gray-500 mt-2 font-medium">
-                                            Current Status: <span className="font-bold text-gray-800 capitalize">{studentData?.certificates_status || 'Pending'}</span>
+                                        <p className="text-xs text-muted-text mt-2 font-medium">
+                                            Current Status: <span className="font-bold text-main capitalize">{studentData?.certificates_status || 'Pending'}</span>
                                         </p>
                                     </div>
 
                                     {/* Certificates List */}
                                     <div className="space-y-2">
-                                        <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 px-1">
+                                        <h4 className="text-xs font-black uppercase tracking-wider text-muted-text px-1">
                                             Academic Certificates & Documents
                                         </h4>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                             {certificatesList.map(cert => (
                                                 <div
                                                     key={cert.key}
-                                                    className="bg-slate-50/90 border border-slate-200/80 rounded-xl p-3 flex items-center justify-between shadow-2xs"
+                                                    className="bg-[var(--background)]/90 border border-border rounded-xl p-3 flex items-center justify-between shadow-2xs"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0 pr-2">
                                                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                                            cert.isVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                                            cert.isVerified ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--warning-light)] text-warning'
                                                         }`}>
                                                             <FileText size={16} />
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="text-xs font-bold text-slate-800 truncate" title={cert.label}>
+                                                            <p className="text-xs font-bold text-main truncate" title={cert.label}>
                                                                 {cert.label}
                                                             </p>
-                                                            <p className="text-[10px] text-slate-400 font-medium">
+                                                            <p className="text-[10px] text-muted-text font-medium">
                                                                 Document Verification
                                                             </p>
                                                         </div>
                                                     </div>
                                                     <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${
                                                         cert.isVerified
-                                                            ? 'bg-emerald-100 text-emerald-800'
-                                                            : 'bg-amber-100 text-amber-800'
+                                                            ? 'bg-[var(--success-light)] text-success'
+                                                            : 'bg-[var(--warning-light)] text-warning'
                                                     }`}>
                                                         {cert.status}
                                                     </span>
@@ -783,7 +783,7 @@ const SemesterRegistration = () => {
                                     </div>
 
                                     {!isStepCompleted(2) && (
-                                        <div className="bg-yellow-50 text-yellow-800 p-4 rounded-xl text-left border border-yellow-100 text-xs">
+                                        <div className="bg-[var(--warning-light)] text-warning p-4 rounded-xl text-left border border-[var(--warning-light)] text-xs">
                                             <h4 className="font-bold mb-1.5 flex items-center gap-1.5"><AlertCircle size={16} /> Action Required</h4>
                                             <p>Please submit any pending original documents to the administration office for verification.</p>
                                         </div>
@@ -795,18 +795,18 @@ const SemesterRegistration = () => {
                             {activeStepId === 3 && (
                                 <div>
                                     <div className="flex items-center justify-between mb-6">
-                                        <h3 className="font-bold text-gray-700">Current Fee Status</h3>
-                                        <button onClick={fetchStudentDetails} className="text-blue-600 text-sm hover:underline flex items-center gap-1"><RefreshCw size={14} /> Refresh</button>
+                                        <h3 className="font-bold text-sub">Current Fee Status</h3>
+                                        <button onClick={fetchStudentDetails} className="text-primary text-sm hover:underline flex items-center gap-1"><RefreshCw size={14} /> Refresh</button>
                                     </div>
 
-                                    <div className={`p-6 rounded-xl border text-center ${isStepCompleted(3) ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+                                    <div className={`p-6 rounded-xl border text-center ${isStepCompleted(3) ? 'bg-[var(--success-light)] border-[var(--success-light)]' : 'bg-[var(--danger-light)] border-[var(--danger-light)]'}`}>
                                         <div className="flex justify-center mb-3">
                                             <RegistrationStageBadge display={registrationStages.fee.display} />
                                         </div>
-                                        <span className={`text-lg font-medium ${isStepCompleted(3) ? 'text-green-700' : 'text-red-700'} capitalize block`}>
+                                        <span className={`text-lg font-medium ${isStepCompleted(3) ? 'text-success' : 'text-danger'} capitalize block`}>
                                             {studentData?.fee_status ? studentData.fee_status.replace(/_/g, ' ') : 'Pending'}
                                         </span>
-                                        <p className="text-gray-500 text-sm mt-2">
+                                        <p className="text-muted-text text-sm mt-2">
                                             {isStepCompleted(3) ? 'You are cleared for registration.' : 'Please clear your dues to proceed.'}
                                         </p>
                                     </div>
@@ -816,24 +816,24 @@ const SemesterRegistration = () => {
                             {/* STEP 4: PROMOTION */}
                             {activeStepId === 4 && (
                                 <div className="space-y-4">
-                                    <div className="bg-gray-50 p-6 rounded-xl border border-gray-100">
-                                        <p className="text-sm text-gray-500 uppercase tracking-wider font-bold">Current Academic Stand</p>
+                                    <div className="bg-background p-6 rounded-xl border border-border">
+                                        <p className="text-sm text-muted-text uppercase tracking-wider font-bold">Current Academic Stand</p>
                                         <div className="mt-2 flex items-baseline gap-2">
-                                            <span className="text-3xl font-bold text-gray-900">Year {studentData?.current_year || 1}</span>
-                                            <span className="text-xl text-gray-600">Semester {studentData?.current_semester || 1}</span>
+                                            <span className="text-3xl font-bold text-main">Year {studentData?.current_year || 1}</span>
+                                            <span className="text-xl text-sub">Semester {studentData?.current_semester || 1}</span>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between gap-3">
-                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                                             Year {studentData?.current_year || 1} • Sem {studentData?.current_semester || 1}
                                         </span>
                                         <RegistrationStageBadge display={registrationStages.promotion.display} />
                                     </div>
-                                    <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 flex items-start gap-3">
-                                        <Zap className="text-blue-600 mt-1 flex-shrink-0" />
+                                    <div className="bg-[var(--primary-light)] p-6 rounded-xl border border-[var(--primary-light)] flex items-start gap-3">
+                                        <Zap className="text-primary mt-1 flex-shrink-0" />
                                         <div>
-                                            <h4 className="font-bold text-blue-900">Current semester placement</h4>
-                                            <p className="text-blue-800 text-sm mt-1">
+                                            <h4 className="font-bold text-primary">Current semester placement</h4>
+                                            <p className="text-primary text-sm mt-1">
                                                 You are registered for the year and semester shown above.
                                                 Complete the other registration steps to finish semester registration.
                                             </p>
@@ -845,9 +845,9 @@ const SemesterRegistration = () => {
                             {/* STEP 5: SCHOLARSHIP */}
                             {activeStepId === 5 && (
                                 <div className="text-center py-8">
-                                    <Award size={48} className="text-indigo-200 mx-auto mb-4" />
-                                    <h3 className="text-lg font-bold text-gray-900">Scholarship Status</h3>
-                                    <p className="text-xs text-gray-400 mb-2">
+                                    <Award size={48} className="text-primary mx-auto mb-4" />
+                                    <h3 className="text-lg font-bold text-main">Scholarship Status</h3>
+                                    <p className="text-xs text-muted-text mb-2">
                                         {usesSemesterWiseScholarshipStatus(studentData?.batch, studentData?.current_year || 1)
                                             ? `Year ${studentData?.current_year || 1} • Semester ${studentData?.current_semester || 1}`
                                             : `Year ${studentData?.current_year || 1}`}
@@ -878,11 +878,11 @@ const SemesterRegistration = () => {
                                         return (
                                             <div className={`mx-auto max-w-xs mt-2 mb-4 px-4 py-2.5 rounded-xl border flex items-center gap-3 ${
                                                 feePaid
-                                                    ? 'bg-green-50 border-green-200 text-green-800'
-                                                    : 'bg-amber-50 border-amber-200 text-amber-800'
+                                                    ? 'bg-[var(--success-light)] border-[var(--success-light)] text-success'
+                                                    : 'bg-[var(--warning-light)] border-[var(--warning-light)] text-warning'
                                             }`}>
                                                 <span className={`inline-flex items-center justify-center w-5 h-5 rounded border-2 flex-shrink-0 ${
-                                                    feePaid ? 'bg-green-500 border-green-500' : 'bg-white border-amber-400'
+                                                    feePaid ? 'bg-success border-success' : 'bg-surface border-warning'
                                                 }`}>
                                                     {feePaid && (
                                                         <svg viewBox="0 0 10 8" className="w-3 h-3" fill="none">
@@ -899,11 +899,11 @@ const SemesterRegistration = () => {
                                     })()}
 
                                     {!registrationStages.scholarship.completed && (
-                                        <div className="mt-4 bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-left">
-                                            <p className="text-sm font-semibold text-yellow-800 flex items-center gap-2">
+                                        <div className="mt-4 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl p-4 text-left">
+                                            <p className="text-sm font-semibold text-warning flex items-center gap-2">
                                                 <AlertCircle size={16} /> Pending Action
                                             </p>
-                                            <p className="text-sm text-yellow-700 mt-1">
+                                            <p className="text-sm text-warning mt-1">
                                                 {(() => {
                                                     const currentYear = Number(studentData?.current_year) || 1;
                                                     const currentSemester = Number(studentData?.current_semester) || 1;
@@ -929,7 +929,7 @@ const SemesterRegistration = () => {
                                         </div>
                                     )}
                                     {registrationStages.scholarship.completed && (
-                                        <p className="text-gray-500 text-sm mt-2">
+                                        <p className="text-muted-text text-sm mt-2">
                                             Your scholarship status is recorded. No further action needed.
                                         </p>
                                     )}
@@ -939,7 +939,7 @@ const SemesterRegistration = () => {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+                        <div className="p-4 border-t border-border bg-background flex justify-end">
                             <button
                                 onClick={async () => {
                                     if (activeStepId === 4 && user?.admission_number) {
@@ -954,7 +954,7 @@ const SemesterRegistration = () => {
                                     }
                                     setActiveStepId(null);
                                 }}
-                                className="px-6 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+                                className="px-6 py-2 bg-sidebar text-white rounded-lg font-medium hover:bg-sidebar transition-colors"
                             >
                                 Done
                             </button>

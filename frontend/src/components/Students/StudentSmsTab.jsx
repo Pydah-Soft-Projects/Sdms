@@ -99,18 +99,18 @@ const parseMessageContent = (raw) => {
 
 const getCategoryBadgeClass = (category) => {
   const cat = String(category || '').toLowerCase();
-  if (cat.includes('attend')) return 'bg-amber-50 text-amber-700 border-amber-200';
-  if (cat.includes('event')) return 'bg-violet-50 text-violet-700 border-violet-200';
-  if (cat.includes('announc')) return 'bg-purple-50 text-purple-700 border-purple-200';
+  if (cat.includes('attend')) return 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]';
+  if (cat.includes('event')) return 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]';
+  if (cat.includes('announc')) return 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]';
   if (cat.includes('credential') || cat.includes('password') || cat.includes('login') || cat.includes('otp')) {
-    return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+    return 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
   }
-  if (cat.includes('fee')) return 'bg-rose-50 text-rose-700 border-rose-200';
+  if (cat.includes('fee')) return 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)]';
   if (cat.includes('exam') || cat.includes('result') || cat.includes('grade')) {
-    return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    return 'bg-[var(--success-light)] text-success border-[var(--success-light)]';
   }
-  if (cat.includes('service')) return 'bg-teal-50 text-teal-700 border-teal-200';
-  return 'bg-blue-50 text-blue-700 border-blue-200';
+  if (cat.includes('service')) return 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
+  return 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
 };
 
 const StudentSmsTab = ({ student }) => {
@@ -180,7 +180,7 @@ const StudentSmsTab = ({ student }) => {
           channel: 'WEB',
           mobile: log?.recipient_mobile || currentStudent?.student_mobile || null,
           badgeLabel: 'Portal / In-App',
-          badgeClass: 'bg-purple-50 text-purple-700 border-purple-200'
+          badgeClass: 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]'
         };
       }
 
@@ -192,7 +192,7 @@ const StudentSmsTab = ({ student }) => {
           channel: 'SMS',
           mobile: null,
           badgeLabel: 'Contact',
-          badgeClass: 'bg-gray-100 text-gray-700 border-gray-200'
+          badgeClass: 'bg-background text-sub border-border'
         };
       }
 
@@ -215,7 +215,7 @@ const StudentSmsTab = ({ student }) => {
           channel: 'SMS',
           mobile: mobileNumber,
           badgeLabel: 'Student',
-          badgeClass: 'bg-blue-50 text-blue-700 border-blue-200'
+          badgeClass: 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]'
         };
       }
       if (cleanP1 && cleanNum === cleanP1) {
@@ -225,7 +225,7 @@ const StudentSmsTab = ({ student }) => {
           channel: 'SMS',
           mobile: mobileNumber,
           badgeLabel: 'Parent 1 / Father',
-          badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+          badgeClass: 'bg-[var(--success-light)] text-success border-[var(--success-light)]'
         };
       }
       if (cleanP2 && cleanNum === cleanP2) {
@@ -235,7 +235,7 @@ const StudentSmsTab = ({ student }) => {
           channel: 'SMS',
           mobile: mobileNumber,
           badgeLabel: 'Parent 2 / Mother',
-          badgeClass: 'bg-purple-50 text-purple-700 border-purple-200'
+          badgeClass: 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]'
         };
       }
       return {
@@ -244,7 +244,7 @@ const StudentSmsTab = ({ student }) => {
         channel: 'SMS',
         mobile: mobileNumber,
         badgeLabel: 'Contact',
-        badgeClass: 'bg-gray-100 text-gray-700 border-gray-200'
+        badgeClass: 'bg-background text-sub border-border'
       };
     },
     [currentStudent]
@@ -374,18 +374,18 @@ const StudentSmsTab = ({ student }) => {
   return (
     <div className="space-y-6">
       {/* Top Banner: Registered Phone Numbers on file */}
-      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-white rounded-2xl p-4 sm:p-5 border border-blue-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-[var(--primary-light)] via-[var(--primary-light)] to-surface rounded-2xl p-4 sm:p-5 border border-[var(--primary-light)] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-100" />
-            <h4 className="text-sm font-bold text-gray-900 tracking-tight">
+            <span className="flex h-2.5 w-2.5 rounded-full bg-success ring-4 ring-[var(--success-light)]" />
+            <h4 className="text-sm font-bold text-main tracking-tight">
               Portal Communications & SMS History
             </h4>
-            <span className="text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-[var(--primary-light)] text-primary font-semibold px-2 py-0.5 rounded-full">
               Till Date
             </span>
           </div>
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-sub">
             All SMS dispatches and portal notifications sent to this student and guardians
             (Attendance alerts, events, announcements, credentials, notices, and OTPs).
           </p>
@@ -394,28 +394,28 @@ const StudentSmsTab = ({ student }) => {
         {/* Contact Numbers Quick Reference */}
         <div className="flex flex-wrap items-center gap-2.5 text-xs">
           {currentStudent?.student_mobile && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-xl border border-blue-200 text-gray-800 shadow-2xs">
-              <Phone size={12} className="text-blue-600 shrink-0" />
-              <span className="text-gray-500 font-medium">Student:</span>
-              <span className="font-bold text-blue-700">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-surface rounded-xl border border-[var(--primary-light)] text-main shadow-2xs">
+              <Phone size={12} className="text-primary shrink-0" />
+              <span className="text-muted-text font-medium">Student:</span>
+              <span className="font-bold text-primary">
                 {formatMobileNumber(currentStudent.student_mobile)}
               </span>
             </div>
           )}
           {currentStudent?.parent_mobile1 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-xl border border-emerald-200 text-gray-800 shadow-2xs">
-              <Phone size={12} className="text-emerald-600 shrink-0" />
-              <span className="text-gray-500 font-medium">Parent 1:</span>
-              <span className="font-bold text-emerald-700">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-surface rounded-xl border border-[var(--success-light)] text-main shadow-2xs">
+              <Phone size={12} className="text-success shrink-0" />
+              <span className="text-muted-text font-medium">Parent 1:</span>
+              <span className="font-bold text-success">
                 {formatMobileNumber(currentStudent.parent_mobile1)}
               </span>
             </div>
           )}
           {currentStudent?.parent_mobile2 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white rounded-xl border border-purple-200 text-gray-800 shadow-2xs">
-              <Phone size={12} className="text-purple-600 shrink-0" />
-              <span className="text-gray-500 font-medium">Parent 2:</span>
-              <span className="font-bold text-purple-700">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-surface rounded-xl border border-[var(--primary-light)] text-main shadow-2xs">
+              <Phone size={12} className="text-secondary shrink-0" />
+              <span className="text-muted-text font-medium">Parent 2:</span>
+              <span className="font-bold text-secondary">
                 {formatMobileNumber(currentStudent.parent_mobile2)}
               </span>
             </div>
@@ -425,9 +425,9 @@ const StudentSmsTab = ({ student }) => {
             onClick={() => fetchLogs()}
             disabled={loading}
             title="Refresh communications history"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 font-semibold rounded-xl border border-gray-200 shadow-2xs transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-surface hover:bg-background active:bg-background text-sub font-semibold rounded-xl border border-border shadow-2xs transition-all disabled:opacity-50"
           >
-            <RefreshCw size={13} className={loading ? 'animate-spin text-blue-600' : 'text-gray-500'} />
+            <RefreshCw size={13} className={loading ? 'animate-spin text-primary' : 'text-muted-text'} />
             <span>Refresh</span>
           </button>
         </div>
@@ -436,107 +436,107 @@ const StudentSmsTab = ({ student }) => {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Communications */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs hover:border-blue-200 transition-all">
+        <div className="bg-surface p-4 rounded-2xl border border-border shadow-2xs hover:border-[var(--primary-light)] transition-all">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-text">
               Total Messages
             </span>
-            <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+            <div className="p-2 rounded-xl bg-[var(--primary-light)] text-primary">
               <Send size={16} />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-gray-900">{totalCount}</span>
-            <span className="text-xs font-medium text-gray-500">all time</span>
+            <span className="text-2xl font-black text-main">{totalCount}</span>
+            <span className="text-xs font-medium text-muted-text">all time</span>
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-gray-500 mt-1">
-            <span className="font-semibold text-blue-700">{totalSmsCount} SMS</span>
+          <div className="flex items-center gap-2 text-[11px] text-muted-text mt-1">
+            <span className="font-semibold text-primary">{totalSmsCount} SMS</span>
             <span>•</span>
-            <span className="font-semibold text-purple-700">{totalWebCount} Portal</span>
+            <span className="font-semibold text-secondary">{totalWebCount} Portal</span>
           </div>
         </div>
 
         {/* Delivered / Sent */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs hover:border-emerald-200 transition-all">
+        <div className="bg-surface p-4 rounded-2xl border border-border shadow-2xs hover:border-[var(--success-light)] transition-all">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+            <span className="text-xs font-bold uppercase tracking-wider text-success">
               Delivered / Sent
             </span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+            <div className="p-2 rounded-xl bg-[var(--success-light)] text-success">
               <CheckCircle2 size={16} />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-emerald-700">{sentCount}</span>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">
+            <span className="text-2xl font-black text-success">{sentCount}</span>
+            <span className="text-xs font-bold text-success bg-[var(--success-light)] px-1.5 py-0.5 rounded-md">
               {deliveryRate}%
             </span>
           </div>
-          <p className="text-[11px] text-gray-500 mt-1">Successfully dispatched</p>
+          <p className="text-[11px] text-muted-text mt-1">Successfully dispatched</p>
         </div>
 
         {/* Failed */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs hover:border-rose-200 transition-all">
+        <div className="bg-surface p-4 rounded-2xl border border-border shadow-2xs hover:border-[var(--danger-light)] transition-all">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-rose-600">
+            <span className="text-xs font-bold uppercase tracking-wider text-danger">
               Delivery Issues
             </span>
-            <div className="p-2 rounded-xl bg-rose-50 text-rose-600">
+            <div className="p-2 rounded-xl bg-[var(--danger-light)] text-danger">
               <XCircle size={16} />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-rose-700">{failedCount}</span>
+            <span className="text-2xl font-black text-danger">{failedCount}</span>
             {failedCount > 0 && (
-              <span className="text-xs font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md">
+              <span className="text-xs font-bold text-danger bg-[var(--danger-light)] px-1.5 py-0.5 rounded-md">
                 Failed
               </span>
             )}
           </div>
-          <p className="text-[11px] text-gray-500 mt-1">SMS gateway / network errors</p>
+          <p className="text-[11px] text-muted-text mt-1">SMS gateway / network errors</p>
         </div>
 
         {/* Latest Activity */}
-        <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs hover:border-indigo-200 transition-all">
+        <div className="bg-surface p-4 rounded-2xl border border-border shadow-2xs hover:border-[var(--primary-light)] transition-all">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
               Latest Dispatch
             </span>
-            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+            <div className="p-2 rounded-xl bg-[var(--primary-light)] text-primary">
               <Clock size={16} />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
             {logs.length > 0 ? (
               <div>
-                <span className="text-sm font-bold text-gray-900 block truncate">
+                <span className="text-sm font-bold text-main block truncate">
                   {formatDateTime(logs[0].sent_at).date}
                 </span>
-                <span className="text-[11px] text-indigo-600 font-semibold">
+                <span className="text-[11px] text-primary font-semibold">
                   {formatDateTime(logs[0].sent_at).relative || formatDateTime(logs[0].sent_at).time}
                 </span>
               </div>
             ) : (
-              <span className="text-sm font-semibold text-gray-400">None yet</span>
+              <span className="text-sm font-semibold text-muted-text">None yet</span>
             )}
           </div>
-          <p className="text-[11px] text-gray-500 mt-1">Most recent communication</p>
+          <p className="text-[11px] text-muted-text mt-1">Most recent communication</p>
         </div>
       </div>
 
       {/* Main Container */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden">
         {/* Header with Search and Filters */}
-        <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 border-b border-border flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+            <div className="p-2 bg-[var(--primary-light)] text-primary rounded-xl">
               <MessageSquare size={18} />
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 text-sm sm:text-base">
+              <h3 className="font-bold text-main text-sm sm:text-base">
                 Communications History
               </h3>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-text">
                 Showing {filteredLogs.length} of {logs.length} records
               </p>
             </div>
@@ -547,19 +547,19 @@ const StudentSmsTab = ({ student }) => {
             <div className="relative min-w-[200px] sm:min-w-[220px] flex-1 sm:flex-initial">
               <Search
                 size={14}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text pointer-events-none"
               />
               <input
                 type="text"
                 placeholder="Search text, phone, category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full text-xs pl-8 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-gray-800"
+                className="w-full text-xs pl-8 pr-3 py-2 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:bg-surface transition-all text-main"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-text hover:text-sub text-xs font-bold"
                 >
                   ×
                 </button>
@@ -567,11 +567,11 @@ const StudentSmsTab = ({ student }) => {
             </div>
 
             {/* Channel Filter */}
-            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs">
+            <div className="flex items-center gap-1.5 bg-background border border-border rounded-xl px-2.5 py-1.5 text-xs">
               <select
                 value={filterChannel}
                 onChange={(e) => setFilterChannel(e.target.value)}
-                className="bg-transparent text-gray-700 font-semibold focus:outline-none cursor-pointer"
+                className="bg-transparent text-sub font-semibold focus:outline-none cursor-pointer"
               >
                 <option value="All">All Channels</option>
                 <option value="SMS">SMS Gateway Only</option>
@@ -580,12 +580,12 @@ const StudentSmsTab = ({ student }) => {
             </div>
 
             {/* Category Filter */}
-            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs">
-              <Filter size={13} className="text-gray-400 shrink-0" />
+            <div className="flex items-center gap-1.5 bg-background border border-border rounded-xl px-2.5 py-1.5 text-xs">
+              <Filter size={13} className="text-muted-text shrink-0" />
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="bg-transparent text-gray-700 font-semibold focus:outline-none cursor-pointer"
+                className="bg-transparent text-sub font-semibold focus:outline-none cursor-pointer"
               >
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -596,11 +596,11 @@ const StudentSmsTab = ({ student }) => {
             </div>
 
             {/* Status Filter */}
-            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs">
+            <div className="flex items-center gap-1.5 bg-background border border-border rounded-xl px-2.5 py-1.5 text-xs">
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="bg-transparent text-gray-700 font-semibold focus:outline-none cursor-pointer"
+                className="bg-transparent text-sub font-semibold focus:outline-none cursor-pointer"
               >
                 <option value="All">All Statuses</option>
                 <option value="Sent">Delivered / Sent</option>
@@ -617,7 +617,7 @@ const StudentSmsTab = ({ student }) => {
                   setFilterCategory('All');
                   setFilterStatus('All');
                 }}
-                className="text-xs text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded-lg hover:bg-blue-50 transition-all"
+                className="text-xs text-primary hover:text-primary font-semibold px-2 py-1 rounded-lg hover:bg-[var(--primary-light)] transition-all"
               >
                 Reset
               </button>
@@ -627,15 +627,15 @@ const StudentSmsTab = ({ student }) => {
 
         {/* Loading State */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-500">
-            <Loader2 className="animate-spin text-blue-600 mb-3" size={32} />
+          <div className="flex flex-col items-center justify-center py-16 text-muted-text">
+            <Loader2 className="animate-spin text-primary mb-3" size={32} />
             <p className="text-xs font-medium">Fetching communications records...</p>
           </div>
         ) : filteredLogs.length > 0 ? (
           /* Logs Table */
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-50/80 text-gray-600 uppercase text-[11px] font-bold border-b border-gray-200 tracking-wider">
+              <thead className="bg-[var(--background)]/80 text-sub uppercase text-[11px] font-bold border-b border-border tracking-wider">
                 <tr>
                   <th className="px-4 sm:px-6 py-3.5 w-[120px]">Status</th>
                   <th className="px-4 sm:px-6 py-3.5 w-[200px]">Recipient & Channel</th>
@@ -646,7 +646,7 @@ const StudentSmsTab = ({ student }) => {
                   <th className="px-3 py-3.5 w-[60px] text-center">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {filteredLogs.map((log) => {
                   const statusStr = String(log.status || 'Pending').toLowerCase();
                   const isSuccess = statusStr === 'sent' || statusStr === 'delivered';
@@ -662,27 +662,27 @@ const StudentSmsTab = ({ student }) => {
                   return (
                     <tr
                       key={log.id}
-                      className="hover:bg-blue-50/40 transition-colors group"
+                      className="hover:bg-[var(--primary-light)] transition-colors group"
                     >
                       {/* Status */}
                       <td className="px-4 sm:px-6 py-4 align-top">
                         <div className="flex items-center gap-1.5">
                           {isSuccess && (
-                            <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                            <CheckCircle2 size={16} className="text-success shrink-0" />
                           )}
                           {isFailed && (
-                            <XCircle size={16} className="text-rose-500 shrink-0" />
+                            <XCircle size={16} className="text-danger shrink-0" />
                           )}
                           {!isSuccess && !isFailed && (
-                            <Clock size={16} className="text-amber-500 shrink-0" />
+                            <Clock size={16} className="text-warning shrink-0" />
                           )}
                           <span
                             className={`font-bold text-xs ${
                               isSuccess
-                                ? 'text-emerald-700'
+                                ? 'text-success'
                                 : isFailed
-                                ? 'text-rose-700'
-                                : 'text-amber-700'
+                                ? 'text-danger'
+                                : 'text-warning'
                             }`}
                           >
                             {log.status || 'Pending'}
@@ -690,7 +690,7 @@ const StudentSmsTab = ({ student }) => {
                         </div>
                         {isFailed && log.error_details && (
                           <div
-                            className="mt-1 text-[10px] text-rose-600 bg-rose-50 border border-rose-200 rounded p-1 max-w-[140px] truncate"
+                            className="mt-1 text-[10px] text-danger bg-[var(--danger-light)] border border-[var(--danger-light)] rounded p-1 max-w-[140px] truncate"
                             title={log.error_details}
                           >
                             {log.error_details}
@@ -703,29 +703,29 @@ const StudentSmsTab = ({ student }) => {
                         <div className="space-y-1">
                           {isWeb ? (
                             <>
-                              <div className="flex items-center gap-1.5 font-bold text-gray-900 text-xs">
-                                <Globe size={13} className="text-purple-600 shrink-0" />
+                              <div className="flex items-center gap-1.5 font-bold text-main text-xs">
+                                <Globe size={13} className="text-secondary shrink-0" />
                                 <span>Student Portal</span>
                               </div>
                               {recipient.mobile && (
-                                <div className="text-[11px] text-gray-600 font-medium">
-                                  Mobile: <span className="font-semibold text-gray-800">{formatMobileNumber(recipient.mobile)}</span>
+                                <div className="text-[11px] text-sub font-medium">
+                                  Mobile: <span className="font-semibold text-main">{formatMobileNumber(recipient.mobile)}</span>
                                 </div>
                               )}
                               <span
                                 className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${recipient.badgeClass}`}
                               >
-                                <span className="h-1.5 w-1.5 rounded-full bg-purple-500 shrink-0" />
+                                <span className="h-1.5 w-1.5 rounded-full bg-secondary shrink-0" />
                                 {recipient.badgeLabel}
                               </span>
                             </>
                           ) : (
                             <>
-                              <div className="flex items-center gap-1.5 font-bold text-gray-900 text-xs font-mono">
-                                <Smartphone size={13} className="text-blue-600 shrink-0" />
+                              <div className="flex items-center gap-1.5 font-bold text-main text-xs font-mono">
+                                <Smartphone size={13} className="text-primary shrink-0" />
                                 <span>{formatMobileNumber(log.mobile_number)}</span>
                               </div>
-                              <div className="text-[11px] text-gray-500 font-medium">
+                              <div className="text-[11px] text-muted-text font-medium">
                                 {recipient.label}
                               </div>
                               <span
@@ -750,7 +750,7 @@ const StudentSmsTab = ({ student }) => {
                           </span>
                           {log.template_id && (
                             <div
-                              className="text-[10px] text-gray-400 font-mono truncate max-w-[120px]"
+                              className="text-[10px] text-muted-text font-mono truncate max-w-[120px]"
                               title={`Template ID: ${log.template_id}`}
                             >
                               TID: {log.template_id}
@@ -763,18 +763,18 @@ const StudentSmsTab = ({ student }) => {
                       <td className="px-4 sm:px-6 py-4 align-top">
                         <div className="space-y-2">
                           <div
-                            className={`text-gray-800 text-xs leading-relaxed ${
+                            className={`text-main text-xs leading-relaxed ${
                               !isExpanded && isLongMessage ? 'line-clamp-2' : ''
                             }`}
                           >
                             {parsed.title ? (
                               <div className="space-y-1">
-                                <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                                  <span className="h-1.5 w-1.5 rounded-full bg-purple-500 shrink-0" />
+                                <div className="font-bold text-main flex items-center gap-1.5">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-secondary shrink-0" />
                                   <span>{parsed.title}</span>
                                 </div>
                                 {parsed.body && (
-                                  <div className="text-gray-700 whitespace-pre-wrap">
+                                  <div className="text-sub whitespace-pre-wrap">
                                     {parsed.body}
                                   </div>
                                 )}
@@ -788,7 +788,7 @@ const StudentSmsTab = ({ student }) => {
                             {isLongMessage && (
                               <button
                                 onClick={() => toggleExpand(log.id)}
-                                className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-0.5"
+                                className="text-[11px] font-semibold text-primary hover:text-primary flex items-center gap-0.5"
                               >
                                 {isExpanded ? (
                                   <>
@@ -804,13 +804,13 @@ const StudentSmsTab = ({ student }) => {
 
                             <button
                               onClick={() => handleCopy(log.id, log.message)}
-                              className="text-[11px] text-gray-400 hover:text-gray-700 flex items-center gap-1 font-medium transition-colors"
+                              className="text-[11px] text-muted-text hover:text-sub flex items-center gap-1 font-medium transition-colors"
                               title="Copy message content"
                             >
                               {copiedId === log.id ? (
                                 <>
-                                  <Check size={12} className="text-emerald-600" />
-                                  <span className="text-emerald-600 font-semibold">Copied!</span>
+                                  <Check size={12} className="text-success" />
+                                  <span className="text-success font-semibold">Copied!</span>
                                 </>
                               ) : (
                                 <>
@@ -824,16 +824,16 @@ const StudentSmsTab = ({ student }) => {
                       </td>
 
                       {/* Sent By / Academic Year */}
-                      <td className="px-4 sm:px-6 py-4 align-top text-gray-600">
+                      <td className="px-4 sm:px-6 py-4 align-top text-sub">
                         <div className="space-y-1">
-                          <div className="font-semibold text-gray-800 flex items-center gap-1 text-xs">
-                            <User size={12} className="text-gray-400 shrink-0" />
+                          <div className="font-semibold text-main flex items-center gap-1 text-xs">
+                            <User size={12} className="text-muted-text shrink-0" />
                             <span className="truncate max-w-[120px]">
                               {log.sent_by || (isWeb ? 'Portal System' : 'System Automated')}
                             </span>
                           </div>
                           {(log.current_year || log.current_semester) && (
-                            <div className="text-[11px] text-gray-500 font-medium">
+                            <div className="text-[11px] text-muted-text font-medium">
                               {log.current_year && `Year ${log.current_year}`}
                               {log.current_year && log.current_semester && ' • '}
                               {log.current_semester && `Sem ${log.current_semester}`}
@@ -845,15 +845,15 @@ const StudentSmsTab = ({ student }) => {
                       {/* Date & Time */}
                       <td className="px-4 sm:px-6 py-4 align-top whitespace-nowrap">
                         <div className="space-y-0.5">
-                          <div className="font-bold text-gray-900 text-xs flex items-center gap-1">
-                            <Calendar size={11} className="text-gray-400" />
+                          <div className="font-bold text-main text-xs flex items-center gap-1">
+                            <Calendar size={11} className="text-muted-text" />
                             <span>{dt.date}</span>
                           </div>
-                          <div className="text-[11px] text-gray-500 flex items-center gap-1">
-                            <Clock size={11} className="text-gray-400" />
+                          <div className="text-[11px] text-muted-text flex items-center gap-1">
+                            <Clock size={11} className="text-muted-text" />
                             <span>{dt.time}</span>
                             {dt.relative && (
-                              <span className="text-[10px] text-blue-600 font-medium ml-1">
+                              <span className="text-[10px] text-primary font-medium ml-1">
                                 ({dt.relative})
                               </span>
                             )}
@@ -865,7 +865,7 @@ const StudentSmsTab = ({ student }) => {
                       <td className="px-3 py-4 align-top text-center">
                         <button
                           onClick={() => setSelectedLogForModal(log)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                          className="p-1.5 rounded-lg text-muted-text hover:text-primary hover:bg-[var(--primary-light)] transition-colors"
                           title="View Full Technical Details"
                         >
                           <ExternalLink size={14} />
@@ -880,15 +880,15 @@ const StudentSmsTab = ({ student }) => {
         ) : (
           /* Empty State */
           <div className="py-16 px-4 text-center flex flex-col items-center justify-center">
-            <div className="p-4 bg-blue-50 text-blue-500 rounded-2xl mb-3">
+            <div className="p-4 bg-[var(--primary-light)] text-primary rounded-2xl mb-3">
               <MessageSquare size={36} className="opacity-80" />
             </div>
-            <h4 className="text-base font-bold text-gray-800 mb-1">
+            <h4 className="text-base font-bold text-main mb-1">
               {searchQuery || filterChannel !== 'All' || filterCategory !== 'All' || filterStatus !== 'All'
                 ? 'No matching communications found'
                 : 'No communications sent to this student yet'}
             </h4>
-            <p className="text-xs text-gray-500 max-w-md mb-4">
+            <p className="text-xs text-muted-text max-w-md mb-4">
               {searchQuery || filterChannel !== 'All' || filterCategory !== 'All' || filterStatus !== 'All'
                 ? 'Try adjusting your search keywords, channel, category, or status filter.'
                 : 'All SMS messages and portal notifications dispatched to this student or their registered mobile numbers will be tracked and displayed here.'}
@@ -901,7 +901,7 @@ const StudentSmsTab = ({ student }) => {
                   setFilterCategory('All');
                   setFilterStatus('All');
                 }}
-                className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 hover:bg-blue-100 transition-all"
+                className="text-xs font-bold text-primary hover:text-primary bg-[var(--primary-light)] px-3 py-1.5 rounded-xl border border-[var(--primary-light)] hover:bg-[var(--primary-light)] transition-all"
               >
                 Reset All Filters
               </button>
@@ -918,18 +918,18 @@ const StudentSmsTab = ({ student }) => {
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-            <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-surface rounded-2xl shadow-xl border border-border max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
               {/* Modal Header */}
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+              <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-background">
                 <div className="flex items-center gap-2">
-                  <MessageSquare size={18} className="text-blue-600" />
-                  <h3 className="font-bold text-gray-900 text-sm">
+                  <MessageSquare size={18} className="text-primary" />
+                  <h3 className="font-bold text-main text-sm">
                     {modalIsWeb ? 'Portal Notification Details' : 'SMS Dispatch Details'}
                   </h3>
                 </div>
                 <button
                   onClick={() => setSelectedLogForModal(null)}
-                  className="text-gray-400 hover:text-gray-700 text-lg font-bold p-1 rounded-lg"
+                  className="text-muted-text hover:text-sub text-lg font-bold p-1 rounded-lg"
                 >
                   ×
                 </button>
@@ -939,33 +939,33 @@ const StudentSmsTab = ({ student }) => {
               <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
                 {/* Status and Category */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span className="text-[10px] font-bold uppercase text-gray-500 block mb-1">
+                  <div className="p-3 bg-background rounded-xl border border-border">
+                    <span className="text-[10px] font-bold uppercase text-muted-text block mb-1">
                       Delivery Status
                     </span>
                     <span
                       className={`font-bold text-sm ${
                         selectedLogForModal.status === 'Sent' ||
                         selectedLogForModal.status === 'Delivered'
-                          ? 'text-emerald-700'
+                          ? 'text-success'
                           : selectedLogForModal.status === 'Failed'
-                          ? 'text-rose-700'
-                          : 'text-amber-700'
+                          ? 'text-danger'
+                          : 'text-warning'
                       }`}
                     >
                       {selectedLogForModal.status || 'Pending'}
                     </span>
                   </div>
 
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                    <span className="text-[10px] font-bold uppercase text-gray-500 block mb-1">
+                  <div className="p-3 bg-background rounded-xl border border-border">
+                    <span className="text-[10px] font-bold uppercase text-muted-text block mb-1">
                       Category & Channel
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-gray-800">
+                      <span className="font-bold text-sm text-main">
                         {selectedLogForModal.category || 'General'}
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-gray-200 text-gray-700">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-background text-sub">
                         {modalIsWeb ? 'Portal' : 'SMS'}
                       </span>
                     </div>
@@ -973,19 +973,19 @@ const StudentSmsTab = ({ student }) => {
                 </div>
 
                 {/* Recipient Details */}
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-gray-500 block">
+                <div className="p-3 bg-background rounded-xl border border-border space-y-1">
+                  <span className="text-[10px] font-bold uppercase text-muted-text block">
                     Recipient Information
                   </span>
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="font-bold text-sm text-gray-900">
+                      <div className="font-bold text-sm text-main">
                         {modalIsWeb ? 'Student Portal (Web / Mobile App)' : formatMobileNumber(selectedLogForModal.mobile_number)}
                       </div>
-                      <div className="text-[11px] text-gray-500">
+                      <div className="text-[11px] text-muted-text">
                         Target: {modalRecipient.label}
                         {modalRecipient.mobile && modalIsWeb && (
-                          <span className="ml-1 text-gray-700 font-semibold">
+                          <span className="ml-1 text-sub font-semibold">
                             ({formatMobileNumber(modalRecipient.mobile)})
                           </span>
                         )}
@@ -1002,21 +1002,21 @@ const StudentSmsTab = ({ student }) => {
                 {/* Message Content */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-bold uppercase text-gray-500">
+                    <span className="text-[10px] font-bold uppercase text-muted-text">
                       Content
                     </span>
                     <button
                       onClick={() =>
                         handleCopy(selectedLogForModal.id, selectedLogForModal.message)
                       }
-                      className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
+                      className="text-[11px] text-primary hover:text-primary font-semibold flex items-center gap-1"
                     >
                       <Copy size={11} /> Copy Content
                     </button>
                   </div>
-                  <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-gray-800 leading-relaxed font-sans select-all">
+                  <div className="p-3.5 bg-background rounded-xl border border-border text-main leading-relaxed font-sans select-all">
                     {modalParsed.title && (
-                      <div className="font-bold text-gray-900 text-xs mb-1">
+                      <div className="font-bold text-main text-xs mb-1">
                         {modalParsed.title}
                       </div>
                     )}
@@ -1026,12 +1026,12 @@ const StudentSmsTab = ({ student }) => {
 
                 {/* Error Details if Failed */}
                 {selectedLogForModal.error_details && (
-                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl">
-                    <div className="flex items-center gap-1.5 text-rose-700 font-bold mb-1">
+                  <div className="p-3 bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-xl">
+                    <div className="flex items-center gap-1.5 text-danger font-bold mb-1">
                       <ShieldAlert size={14} />
                       <span>Gateway Error Reason</span>
                     </div>
-                    <p className="text-rose-600 font-mono text-[11px]">
+                    <p className="text-danger font-mono text-[11px]">
                       {selectedLogForModal.error_details}
                     </p>
                   </div>
@@ -1040,24 +1040,24 @@ const StudentSmsTab = ({ student }) => {
                 {/* Metadata Key Values */}
                 <div className="grid grid-cols-2 gap-3 text-xs pt-1">
                   <div>
-                    <span className="text-gray-400 font-medium block">Sent At:</span>
-                    <span className="font-semibold text-gray-800">
+                    <span className="text-muted-text font-medium block">Sent At:</span>
+                    <span className="font-semibold text-main">
                       {formatDateTime(selectedLogForModal.sent_at).date}{' '}
                       {formatDateTime(selectedLogForModal.sent_at).time}
                     </span>
                   </div>
 
                   <div>
-                    <span className="text-gray-400 font-medium block">Sent By:</span>
-                    <span className="font-semibold text-gray-800">
+                    <span className="text-muted-text font-medium block">Sent By:</span>
+                    <span className="font-semibold text-main">
                       {selectedLogForModal.sent_by || (modalIsWeb ? 'Portal System' : 'System Automated')}
                     </span>
                   </div>
 
                   {selectedLogForModal.template_id && (
                     <div>
-                      <span className="text-gray-400 font-medium block">Template ID:</span>
-                      <span className="font-mono text-gray-800">
+                      <span className="text-muted-text font-medium block">Template ID:</span>
+                      <span className="font-mono text-main">
                         {selectedLogForModal.template_id}
                       </span>
                     </div>
@@ -1065,8 +1065,8 @@ const StudentSmsTab = ({ student }) => {
 
                   {selectedLogForModal.message_id && (
                     <div>
-                      <span className="text-gray-400 font-medium block">Gateway Msg ID:</span>
-                      <span className="font-mono text-gray-800">
+                      <span className="text-muted-text font-medium block">Gateway Msg ID:</span>
+                      <span className="font-mono text-main">
                         {selectedLogForModal.message_id}
                       </span>
                     </div>
@@ -1075,10 +1075,10 @@ const StudentSmsTab = ({ student }) => {
               </div>
 
               {/* Modal Footer */}
-              <div className="px-6 py-3 border-t border-gray-100 bg-gray-50 flex justify-end">
+              <div className="px-6 py-3 border-t border-border bg-background flex justify-end">
                 <button
                   onClick={() => setSelectedLogForModal(null)}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-xl text-xs transition-all shadow-sm"
+                  className="px-4 py-2 bg-sidebar hover:bg-sidebar text-white font-semibold rounded-xl text-xs transition-all shadow-sm"
                 >
                   Close
                 </button>

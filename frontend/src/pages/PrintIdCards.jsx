@@ -584,16 +584,16 @@ const PrintIdCards = () => {
   };
 
   const selectClass =
-    'w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400';
+    'w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-main focus:outline-none focus:ring-2 focus:ring-[var(--danger-light)] focus:border-danger';
 
   if (!hasAccess && user) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] p-4 text-center">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-          <Lock className="text-red-500" size={32} />
+        <div className="w-16 h-16 bg-[var(--danger-light)] rounded-full flex items-center justify-center mb-4">
+          <Lock className="text-danger" size={32} />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
-        <p className="text-gray-600 max-w-sm">
+        <h2 className="text-xl font-bold text-main mb-2">Access Denied</h2>
+        <p className="text-sub max-w-sm">
           You do not have permission to print ID cards. Ask an admin to enable{' '}
           <strong>Print ID Cards</strong> under Student Management.
         </p>
@@ -605,12 +605,12 @@ const PrintIdCards = () => {
     <div className="w-full max-w-none flex flex-col gap-3 min-h-[calc(100vh-1rem)] -m-4 lg:-m-8 p-3 lg:p-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-red-50 flex items-center justify-center">
-            <CreditCard className="text-red-700" size={22} />
+          <div className="w-11 h-11 rounded-2xl bg-[var(--danger-light)] flex items-center justify-center">
+            <CreditCard className="text-danger" size={22} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-gray-900 tracking-tight">Print ID Cards</h1>
-            <p className="text-xs text-gray-500">
+            <h1 className="text-xl font-black text-main tracking-tight">Print ID Cards</h1>
+            <p className="text-xs text-muted-text">
               Preview shows one student · Print includes every checked student (front + back each)
             </p>
           </div>
@@ -618,7 +618,7 @@ const PrintIdCards = () => {
         <button
           type="button"
           onClick={() => refetch()}
-          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-border text-sm font-semibold text-sub hover:bg-background"
         >
           <RefreshCw size={14} className={isFetching ? 'animate-spin' : ''} />
           Refresh
@@ -626,15 +626,15 @@ const PrintIdCards = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 sm:p-4 shrink-0">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm p-3 sm:p-4 shrink-0">
         <div className="flex items-center gap-2 mb-3">
-          <Filter size={16} className="text-red-700" />
-          <h2 className="text-sm font-bold text-gray-900">Filters</h2>
-          {loadingFilters && <Loader2 size={14} className="animate-spin text-gray-400" />}
+          <Filter size={16} className="text-danger" />
+          <h2 className="text-sm font-bold text-main">Filters</h2>
+          {loadingFilters && <Loader2 size={14} className="animate-spin text-muted-text" />}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">College</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wide text-muted-text mb-1">College</label>
             <select
               className={selectClass}
               value={filters.college}
@@ -649,7 +649,7 @@ const PrintIdCards = () => {
             </select>
           </div>
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">Level</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wide text-muted-text mb-1">Level</label>
             <select
               className={selectClass}
               value={filters.level}
@@ -662,7 +662,7 @@ const PrintIdCards = () => {
             </select>
           </div>
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">Course / Program</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wide text-muted-text mb-1">Course / Program</label>
             <select
               className={selectClass}
               value={filters.course}
@@ -675,7 +675,7 @@ const PrintIdCards = () => {
             </select>
           </div>
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">Branch</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wide text-muted-text mb-1">Branch</label>
             <select
               className={selectClass}
               value={filters.branch}
@@ -688,7 +688,7 @@ const PrintIdCards = () => {
             </select>
           </div>
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">Batch</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wide text-muted-text mb-1">Batch</label>
             <select
               className={selectClass}
               value={filters.batch}
@@ -701,7 +701,7 @@ const PrintIdCards = () => {
             </select>
           </div>
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">Year</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wide text-muted-text mb-1">Year</label>
             <select
               className={selectClass}
               value={filters.year}
@@ -714,7 +714,7 @@ const PrintIdCards = () => {
             </select>
           </div>
           <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-1">Section</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wide text-muted-text mb-1">Section</label>
             <select
               className={selectClass}
               value={filters.section}
@@ -730,7 +730,7 @@ const PrintIdCards = () => {
 
         <div className="mt-3 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" />
             <input
               type="text"
               value={searchTerm}
@@ -739,13 +739,13 @@ const PrintIdCards = () => {
                 setPage(1);
               }}
               placeholder="Search name, PIN, admission no…"
-              className="w-full rounded-xl border border-gray-200 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30"
+              className="w-full rounded-xl border border-border pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--danger-light)]"
             />
           </div>
           <button
             type="button"
             onClick={clearFilters}
-            className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 border border-gray-200 hover:bg-gray-50"
+            className="px-4 py-2 rounded-xl text-sm font-semibold text-sub border border-border hover:bg-background"
           >
             Clear filters
           </button>
@@ -754,17 +754,17 @@ const PrintIdCards = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 flex-1 min-h-0 xl:items-start">
         {/* Student list */}
-        <div className="xl:col-span-7 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[55vh] xl:min-h-[calc(100vh-14rem)]">
-          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap shrink-0">
+        <div className="xl:col-span-7 bg-surface rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col min-h-[55vh] xl:min-h-[calc(100vh-14rem)]">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between gap-3 flex-wrap shrink-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <Users size={16} className="text-gray-500" />
-              <span className="text-sm font-bold text-gray-900">Students</span>
-              <span className="text-xs text-gray-400 font-semibold">({total} Regular)</span>
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">
+              <Users size={16} className="text-muted-text" />
+              <span className="text-sm font-bold text-main">Students</span>
+              <span className="text-xs text-muted-text font-semibold">({total} Regular)</span>
+              <span className="text-[10px] font-bold text-success bg-[var(--success-light)] border border-[var(--success-light)] px-2 py-0.5 rounded-md">
                 Regular Only
               </span>
               {selectedCount > 0 && (
-                <span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded-lg">
+                <span className="text-xs font-bold text-danger bg-[var(--danger-light)] px-2 py-0.5 rounded-lg">
                   {selectedCount} selected for print
                 </span>
               )}
@@ -778,8 +778,8 @@ const PrintIdCards = () => {
                   onClick={toggleSelectAllFiltered}
                   className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all inline-flex items-center gap-1.5 ${
                     allFilteredSelected
-                      ? 'bg-red-700 text-white border-red-700 hover:bg-red-800 shadow-sm'
-                      : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+                      ? 'bg-danger text-white border-danger hover:bg-danger shadow-sm'
+                      : 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)] hover:bg-[var(--danger-light)]'
                   }`}
                   title={allFilteredSelected ? 'Deselect all regular students' : `Select all ${total} regular students`}
                 >
@@ -807,8 +807,8 @@ const PrintIdCards = () => {
                   onClick={toggleSelectAllPage}
                   className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border transition-all ${
                     pageAllSelected
-                      ? 'bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200'
-                      : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                      ? 'bg-background border-border-strong text-main hover:bg-background'
+                      : 'bg-surface border-border text-sub hover:bg-background'
                   }`}
                   title={pageAllSelected ? 'Deselect all rows on this page' : `Select all ${students.length} rows on this page`}
                 >
@@ -822,17 +822,17 @@ const PrintIdCards = () => {
                 <button
                   type="button"
                   onClick={clearSelection}
-                  className="text-xs font-bold text-gray-500 hover:text-gray-800 px-2 py-1"
+                  className="text-xs font-bold text-muted-text hover:text-main px-2 py-1"
                 >
                   Clear all
                 </button>
               )}
-              <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-xs">
-                <span className="text-gray-500 font-semibold text-[11px]">Rows:</span>
+              <div className="flex items-center gap-1.5 bg-background border border-border rounded-lg px-2 py-1 text-xs">
+                <span className="text-muted-text font-semibold text-[11px]">Rows:</span>
                 <select
                   value={pageSize}
                   onChange={(e) => handlePageSizeChange(e.target.value)}
-                  className="bg-transparent font-bold text-gray-800 focus:outline-none cursor-pointer"
+                  className="bg-transparent font-bold text-main focus:outline-none cursor-pointer"
                   aria-label="Select number of rows per page"
                 >
                   <option value={10}>10</option>
@@ -848,17 +848,17 @@ const PrintIdCards = () => {
 
           <div className="flex-1 overflow-auto min-h-0">
             {isLoading ? (
-              <div className="flex items-center justify-center py-16 text-gray-400 gap-2">
+              <div className="flex items-center justify-center py-16 text-muted-text gap-2">
                 <Loader2 className="animate-spin" size={18} /> Loading…
               </div>
             ) : students.length === 0 ? (
-              <div className="py-16 text-center text-sm text-gray-400">
+              <div className="py-16 text-center text-sm text-muted-text">
                 No students match these filters
               </div>
             ) : (
               <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50 sticky top-0 z-10">
-                  <tr className="text-[10px] uppercase tracking-wide text-gray-400">
+                <thead className="bg-background sticky top-0 z-10">
+                  <tr className="text-[10px] uppercase tracking-wide text-muted-text">
                     <th className="px-3 py-2.5 font-bold w-10">
                       <input
                         type="checkbox"
@@ -867,7 +867,7 @@ const PrintIdCards = () => {
                           if (el) el.indeterminate = pageSomeSelected;
                         }}
                         onChange={toggleSelectAllPage}
-                        className="h-4 w-4 rounded border-gray-300 text-red-700 focus:ring-red-500 cursor-pointer"
+                        className="h-4 w-4 rounded border-border-strong text-danger focus:ring-danger cursor-pointer"
                         title={pageAllSelected ? 'Deselect all on this page' : `Select all ${students.length} on this page`}
                         aria-label={`Select all ${students.length} on this page`}
                       />
@@ -879,7 +879,7 @@ const PrintIdCards = () => {
                     <th className="px-3 py-2.5 font-bold w-20"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-border">
                   {students.map((s) => {
                     const key = studentKey(s);
                     const checked = Boolean(selectedMap[key]);
@@ -889,14 +889,14 @@ const PrintIdCards = () => {
                     return (
                       <tr
                         key={s.id || key}
-                        className={`hover:bg-red-50/40 transition-colors ${checked ? 'bg-red-50/70' : ''} ${isPreview ? 'ring-1 ring-inset ring-red-200' : ''}`}
+                        className={`hover:bg-[var(--danger-light)] transition-colors ${checked ? 'bg-[var(--danger-light)]' : ''} ${isPreview ? 'ring-1 ring-inset ring-[var(--danger-light)]' : ''}`}
                       >
                         <td className="px-3 py-2.5">
                           <input
                             type="checkbox"
                             checked={checked}
                             onChange={() => toggleStudent(s)}
-                            className="h-4 w-4 rounded border-gray-300 text-red-700 focus:ring-red-500"
+                            className="h-4 w-4 rounded border-border-strong text-danger focus:ring-danger"
                             aria-label={`Select ${name}`}
                           />
                         </td>
@@ -914,18 +914,18 @@ const PrintIdCards = () => {
                               className="w-8 h-8"
                               iconSize={14}
                             />
-                            <span className="font-semibold text-gray-900 truncate">{name}</span>
+                            <span className="font-semibold text-main truncate">{name}</span>
                           </div>
                         </td>
-                        <td className="px-3 py-2.5 font-mono text-xs text-gray-600">{pin}</td>
-                        <td className="px-3 py-2.5 text-gray-600 hidden md:table-cell">{s.course || '—'}</td>
-                        <td className="px-3 py-2.5 text-gray-600 hidden lg:table-cell">{s.branch || '—'}</td>
+                        <td className="px-3 py-2.5 font-mono text-xs text-sub">{pin}</td>
+                        <td className="px-3 py-2.5 text-sub hidden md:table-cell">{s.course || '—'}</td>
+                        <td className="px-3 py-2.5 text-sub hidden lg:table-cell">{s.branch || '—'}</td>
                         <td className="px-3 py-2.5">
                           {checked && (
                             <button
                               type="button"
                               onClick={() => toggleStudent(s, { previewOnly: true })}
-                              className={`text-xs font-bold px-2.5 py-1 rounded-lg ${isPreview ? 'bg-red-700 text-white' : 'bg-white border border-red-200 text-red-700 hover:bg-red-50'}`}
+                              className={`text-xs font-bold px-2.5 py-1 rounded-lg ${isPreview ? 'bg-danger text-white' : 'bg-surface border border-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)]'}`}
                             >
                               {isPreview ? 'Preview' : 'View'}
                             </button>
@@ -939,13 +939,13 @@ const PrintIdCards = () => {
             )}
           </div>
 
-          <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 flex-wrap gap-2 shrink-0">
+          <div className="px-4 py-3 border-t border-border flex items-center justify-between text-xs text-muted-text flex-wrap gap-2 shrink-0">
             <div className="flex items-center gap-2">
-              <span className="text-gray-500 font-medium">Rows per page:</span>
+              <span className="text-muted-text font-medium">Rows per page:</span>
               <select
                 value={pageSize}
                 onChange={(e) => handlePageSizeChange(e.target.value)}
-                className="rounded-lg border border-gray-200 bg-white px-2 py-1 text-xs font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500/30 cursor-pointer"
+                className="rounded-lg border border-border bg-surface px-2 py-1 text-xs font-bold text-sub focus:outline-none focus:ring-2 focus:ring-[var(--danger-light)] cursor-pointer"
               >
                 <option value={10}>10</option>
                 <option value={25}>25</option>
@@ -954,7 +954,7 @@ const PrintIdCards = () => {
                 <option value={200}>200</option>
                 <option value="all">All ({total})</option>
               </select>
-              <span className="text-gray-500 font-semibold ml-2">
+              <span className="text-muted-text font-semibold ml-2">
                 {total === 0
                   ? '0 regular students'
                   : pageSize === 'all'
@@ -973,7 +973,7 @@ const PrintIdCards = () => {
                     type="button"
                     disabled={page <= 1}
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    className="px-2.5 py-1 rounded-lg border border-gray-200 font-semibold hover:bg-gray-50 disabled:opacity-40"
+                    className="px-2.5 py-1 rounded-lg border border-border font-semibold hover:bg-background disabled:opacity-40"
                   >
                     Prev
                   </button>
@@ -981,7 +981,7 @@ const PrintIdCards = () => {
                     type="button"
                     disabled={page >= totalPages}
                     onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    className="px-2.5 py-1 rounded-lg border border-gray-200 font-semibold hover:bg-gray-50 disabled:opacity-40"
+                    className="px-2.5 py-1 rounded-lg border border-border font-semibold hover:bg-background disabled:opacity-40"
                   >
                     Next
                   </button>
@@ -992,11 +992,11 @@ const PrintIdCards = () => {
         </div>
 
         {/* Preview + print */}
-        <div className="xl:col-span-5 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5 flex flex-col gap-4 xl:sticky xl:top-4 xl:self-start xl:max-h-[calc(100vh-2rem)] overflow-hidden">
+        <div className="xl:col-span-5 bg-surface rounded-2xl border border-border shadow-sm p-4 sm:p-5 flex flex-col gap-4 xl:sticky xl:top-4 xl:self-start xl:max-h-[calc(100vh-2rem)] overflow-hidden">
           <div className="flex items-center justify-between gap-2 shrink-0">
             <div>
-              <h2 className="text-sm font-bold text-gray-900">Card preview</h2>
-              <p className="text-[11px] text-gray-400">
+              <h2 className="text-sm font-bold text-main">Card preview</h2>
+              <p className="text-[11px] text-muted-text">
                 One student on screen · all {selectedCount || 0} checked go to print
               </p>
             </div>
@@ -1004,7 +1004,7 @@ const PrintIdCards = () => {
               <button
                 type="button"
                 onClick={() => setShowPreview((v) => !v)}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-red-700 hover:text-red-800"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-danger hover:text-danger"
               >
                 {showPreview ? <X size={14} /> : <Eye size={14} />}
                 {showPreview ? 'Hide' : 'Show'}
@@ -1013,24 +1013,24 @@ const PrintIdCards = () => {
           </div>
 
           {!previewStudent ? (
-            <div className="flex-1 min-h-[280px] rounded-2xl border border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center text-center px-6 gap-2">
-              <CreditCard className="text-gray-300" size={36} />
-              <p className="text-sm font-semibold text-gray-500">Check students from the list</p>
-              <p className="text-xs text-gray-400">Use the checklist to select one or many, then print</p>
+            <div className="flex-1 min-h-[280px] rounded-2xl border border-dashed border-border bg-background flex flex-col items-center justify-center text-center px-6 gap-2">
+              <CreditCard className="text-muted-text" size={36} />
+              <p className="text-sm font-semibold text-muted-text">Check students from the list</p>
+              <p className="text-xs text-muted-text">Use the checklist to select one or many, then print</p>
             </div>
           ) : !showPreview ? (
             <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
-              <div className="rounded-2xl border border-dashed border-red-100 bg-red-50/40 flex flex-col items-center justify-center text-center p-6 gap-3">
-                <p className="text-sm font-bold text-gray-800">
+              <div className="rounded-2xl border border-dashed border-[var(--danger-light)] bg-[var(--danger-light)] flex flex-col items-center justify-center text-center p-6 gap-3">
+                <p className="text-sm font-bold text-main">
                   {previewStudent.student_name || previewStudent.name}
                 </p>
-                <p className="text-xs text-gray-500 font-mono">
+                <p className="text-xs text-muted-text font-mono">
                   {previewStudent.pin_no || previewStudent.admission_number}
                 </p>
                 <button
                   type="button"
                   onClick={() => setShowPreview(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-700 text-white text-sm font-bold hover:bg-red-800"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-danger text-white text-sm font-bold hover:bg-danger"
                 >
                   <Eye size={16} /> Preview ID Card
                 </button>
@@ -1038,10 +1038,10 @@ const PrintIdCards = () => {
 
               {/* Print controls attached directly below */}
               <div className="space-y-3 pt-1">
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-2.5 space-y-2">
+                <div className="bg-background border border-border rounded-xl p-2.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-800">Back Side Flip Edge</span>
-                    <span className="text-[10px] text-gray-500 font-semibold">
+                    <span className="text-xs font-bold text-main">Back Side Flip Edge</span>
+                    <span className="text-[10px] text-muted-text font-semibold">
                       {backOrientation === 'straight' ? 'Straight (Upright)' : 'Rotate 180° (Flipped)'}
                     </span>
                   </div>
@@ -1052,8 +1052,8 @@ const PrintIdCards = () => {
                       onClick={() => handleOrientationChange('straight')}
                       className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                         backOrientation === 'straight'
-                          ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
-                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                          ? 'bg-danger text-white shadow-sm ring-2 ring-[var(--danger-light)]'
+                          : 'bg-surface text-sub hover:bg-background border border-border'
                       }`}
                     >
                       <span>Straight (0°)</span>
@@ -1063,15 +1063,15 @@ const PrintIdCards = () => {
                       onClick={() => handleOrientationChange('rotate180')}
                       className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                         backOrientation === 'rotate180'
-                          ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
-                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                          ? 'bg-danger text-white shadow-sm ring-2 ring-[var(--danger-light)]'
+                          : 'bg-surface text-sub hover:bg-background border border-border'
                       }`}
                     >
                       <span>Rotate 180°</span>
                     </button>
                   </div>
 
-                  <p className="text-[10px] text-gray-500 leading-normal">
+                  <p className="text-[10px] text-muted-text leading-normal">
                     <strong>Straight (Default):</strong> Card back prints upright. In system print dialog (under More settings → Two-sided), choose <strong>&apos;Flip on long edge&apos;</strong>. Use <strong>Rotate 180°</strong> only if your printer flipper reverses the card.
                   </p>
                 </div>
@@ -1080,14 +1080,14 @@ const PrintIdCards = () => {
                   type="button"
                   disabled={!selectedCount || printing}
                   onClick={handlePrintSelected}
-                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-sidebar text-white text-sm font-bold hover:bg-sidebar disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
                   {printing ? <Loader2 size={16} className="animate-spin" /> : <Printer size={16} />}
                   {selectedCount > 1
                     ? `Generate Print (${selectedCount} Students · ${selectedCount * 2} Pages · Back: ${backOrientation === 'rotate180' ? '180°' : 'Straight'})`
                     : `Generate Print (Front + Back · Back: ${backOrientation === 'rotate180' ? '180°' : 'Straight'})`}
                 </button>
-                <p className="text-[10px] text-gray-500 text-center leading-relaxed">
+                <p className="text-[10px] text-muted-text text-center leading-relaxed">
                   Print dialog lists {selectedCount || 0} × 2 CR80 pages with crisp high-contrast dark text.<br />
                   Evolis · CR80 · Margins: None · Background graphics: On.
                 </p>
@@ -1096,7 +1096,7 @@ const PrintIdCards = () => {
           ) : (
             <div className="flex-1 min-h-0 overflow-y-auto space-y-5 pr-1">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2">Front Side</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-text mb-2">Front Side</p>
                 <div className="id-card-preview-scaler-box">
                   <div className="id-card-preview-scaler">
                     <DigitalStudentCard
@@ -1112,9 +1112,9 @@ const PrintIdCards = () => {
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Back Side</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-text">Back Side</p>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    backOrientation === 'straight' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                    backOrientation === 'straight' ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--warning-light)] text-warning'
                   }`}>
                     {backOrientation === 'straight' ? 'Straight (0°)' : 'Rotated (180°)'}
                   </span>
@@ -1135,10 +1135,10 @@ const PrintIdCards = () => {
               {/* ── Stick right on the ID cards' bottom! ── */}
               <div className="pt-2 space-y-3">
                 {/* Back Side Flip Orientation Selector */}
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-2.5 space-y-2">
+                <div className="bg-background border border-border rounded-xl p-2.5 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-800">Back Side Flip Edge</span>
-                    <span className="text-[10px] text-gray-500 font-semibold">
+                    <span className="text-xs font-bold text-main">Back Side Flip Edge</span>
+                    <span className="text-[10px] text-muted-text font-semibold">
                       {backOrientation === 'straight' ? 'Straight (Upright)' : 'Rotate 180° (Flipped)'}
                     </span>
                   </div>
@@ -1149,8 +1149,8 @@ const PrintIdCards = () => {
                       onClick={() => handleOrientationChange('straight')}
                       className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                         backOrientation === 'straight'
-                          ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
-                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                          ? 'bg-danger text-white shadow-sm ring-2 ring-[var(--danger-light)]'
+                          : 'bg-surface text-sub hover:bg-background border border-border'
                       }`}
                     >
                       <span>Straight (0°)</span>
@@ -1160,15 +1160,15 @@ const PrintIdCards = () => {
                       onClick={() => handleOrientationChange('rotate180')}
                       className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                         backOrientation === 'rotate180'
-                          ? 'bg-red-700 text-white shadow-sm ring-2 ring-red-700/20'
-                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                          ? 'bg-danger text-white shadow-sm ring-2 ring-[var(--danger-light)]'
+                          : 'bg-surface text-sub hover:bg-background border border-border'
                       }`}
                     >
                       <span>Rotate 180°</span>
                     </button>
                   </div>
 
-                  <p className="text-[10px] text-gray-500 leading-normal">
+                  <p className="text-[10px] text-muted-text leading-normal">
                     <strong>Straight (Default):</strong> Card back prints upright. In system print dialog (under More settings → Two-sided), choose <strong>&apos;Flip on long edge&apos;</strong>. Use <strong>Rotate 180°</strong> only if your printer flipper reverses the card.
                   </p>
                 </div>
@@ -1177,14 +1177,14 @@ const PrintIdCards = () => {
                   type="button"
                   disabled={!selectedCount || printing}
                   onClick={handlePrintSelected}
-                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl bg-sidebar text-white text-sm font-bold hover:bg-sidebar disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 >
                   {printing ? <Loader2 size={16} className="animate-spin" /> : <Printer size={16} />}
                   {selectedCount > 1
                     ? `Generate Print (${selectedCount} Students · ${selectedCount * 2} Pages · Back: ${backOrientation === 'rotate180' ? '180°' : 'Straight'})`
                     : `Generate Print (Front + Back · Back: ${backOrientation === 'rotate180' ? '180°' : 'Straight'})`}
                 </button>
-                <p className="text-[10px] text-gray-500 text-center leading-relaxed">
+                <p className="text-[10px] text-muted-text text-center leading-relaxed">
                   Print dialog lists {selectedCount || 0} × 2 CR80 pages with crisp high-contrast dark text.<br />
                   Evolis · CR80 · Margins: None · Background graphics: On.
                 </p>

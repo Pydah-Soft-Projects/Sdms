@@ -500,31 +500,31 @@ const FeeManagement = () => {
 
     if (loading) {
         return (
-            <div className="w-full space-y-6 animate-pulse font-sans text-slate-800 pb-12">
+            <div className="w-full space-y-6 animate-pulse font-sans text-main pb-12">
                 {/* Header Skeleton */}
                 <div className="flex items-center justify-between gap-4 pb-1">
                     <div className="space-y-2">
-                        <SkeletonBox height="h-6" width="w-48" className="rounded-lg bg-slate-200" />
-                        <SkeletonBox height="h-3" width="w-64" className="rounded bg-slate-100 hidden sm:block" />
+                        <SkeletonBox height="h-6" width="w-48" className="rounded-lg bg-background" />
+                        <SkeletonBox height="h-3" width="w-64" className="rounded bg-background hidden sm:block" />
                     </div>
-                    <SkeletonBox height="h-8" width="w-28" className="rounded-xl bg-slate-200" />
+                    <SkeletonBox height="h-8" width="w-28" className="rounded-xl bg-background" />
                 </div>
 
                 {/* Main Accordion Skeleton Container */}
-                <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xs divide-y divide-slate-100">
+                <div className="border border-border rounded-2xl overflow-hidden bg-surface shadow-xs divide-y divide-border">
                     {[1, 2, 3].map((item) => (
                         <div key={item} className="p-4 sm:p-5 space-y-3.5">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
-                                    <SkeletonBox height="h-5" width="w-10" className="rounded-md bg-slate-200" />
-                                    <SkeletonBox height="h-5" width="w-20" className="rounded-md bg-slate-200" />
-                                    <SkeletonBox height="h-4" width="w-36" className="rounded bg-slate-100 hidden sm:block" />
+                                    <SkeletonBox height="h-5" width="w-10" className="rounded-md bg-background" />
+                                    <SkeletonBox height="h-5" width="w-20" className="rounded-md bg-background" />
+                                    <SkeletonBox height="h-4" width="w-36" className="rounded bg-background hidden sm:block" />
                                 </div>
-                                <SkeletonBox height="h-4" width="w-6" className="rounded-full bg-slate-200" />
+                                <SkeletonBox height="h-4" width="w-6" className="rounded-full bg-background" />
                             </div>
                             {item === 1 && (
                                 <div className="pt-2 space-y-2">
-                                    <SkeletonBox height="h-20" width="w-full" className="rounded-xl bg-slate-100" />
+                                    <SkeletonBox height="h-20" width="w-full" className="rounded-xl bg-background" />
                                 </div>
                             )}
                         </div>
@@ -532,20 +532,20 @@ const FeeManagement = () => {
                 </div>
 
                 {/* Transactions Table Skeleton */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-5 space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden p-5 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-border">
                         <div className="flex items-center gap-3">
-                            <SkeletonBox height="h-9" width="w-9" className="rounded-xl bg-slate-200" />
-                            <SkeletonBox height="h-5" width="w-40" className="rounded-lg bg-slate-200" />
+                            <SkeletonBox height="h-9" width="w-9" className="rounded-xl bg-background" />
+                            <SkeletonBox height="h-5" width="w-40" className="rounded-lg bg-background" />
                         </div>
                         <div className="flex gap-2">
-                            <SkeletonBox height="h-8" width="w-24" className="rounded-xl bg-slate-100" />
-                            <SkeletonBox height="h-8" width="w-28" className="rounded-xl bg-slate-100" />
+                            <SkeletonBox height="h-8" width="w-24" className="rounded-xl bg-background" />
+                            <SkeletonBox height="h-8" width="w-28" className="rounded-xl bg-background" />
                         </div>
                     </div>
                     <div className="space-y-2.5 pt-1">
                         {[1, 2, 3, 4].map((i) => (
-                            <SkeletonBox key={i} height="h-12" width="w-full" className="rounded-xl bg-slate-100" />
+                            <SkeletonBox key={i} height="h-12" width="w-full" className="rounded-xl bg-background" />
                         ))}
                     </div>
                 </div>
@@ -555,11 +555,11 @@ const FeeManagement = () => {
 
     if (error) {
         return (
-            <div className="p-8 text-center bg-white rounded-2xl border border-red-100 max-w-md mx-auto my-12">
-                <p className="text-sm font-bold text-red-600 mb-4">{error}</p>
+            <div className="p-8 text-center bg-surface rounded-2xl border border-[var(--danger-light)] max-w-md mx-auto my-12">
+                <p className="text-sm font-bold text-danger mb-4">{error}</p>
                 <button
                     onClick={() => window.location.reload()}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition"
+                    className="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold hover:bg-primary-hover transition"
                 >
                     Retry
                 </button>
@@ -568,12 +568,12 @@ const FeeManagement = () => {
     }
 
     return (
-        <div className="w-full space-y-6 animate-fade-in pb-12 font-sans text-slate-800">
+        <div className="w-full space-y-6 animate-fade-in pb-12 font-sans text-main">
             {/* Fee Dues Breakdown Section with Expandable Year Accordions */}
             <div className="space-y-4">
                 {/* Section Header */}
                 <div className="flex flex-row items-center justify-between gap-2 pb-1">
-                    <h2 className="text-sm sm:text-lg font-extrabold text-[#1e3a8a] heading-font tracking-tight shrink-0">
+                    <h2 className="text-sm sm:text-lg font-extrabold text-[var(--primary)] heading-font tracking-tight shrink-0">
                         Fee Dues Breakdown
                     </h2>
 
@@ -582,7 +582,7 @@ const FeeManagement = () => {
                         <select
                             value={feeStatusFilter}
                             onChange={(e) => setFeeStatusFilter(e.target.value)}
-                            className="text-[11px] sm:text-xs font-semibold bg-white border border-slate-200 rounded-xl px-2.5 sm:px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer hover:bg-slate-50 transition shadow-2xs"
+                            className="text-[11px] sm:text-xs font-semibold bg-surface border border-border rounded-xl px-2.5 sm:px-3 py-1.5 text-sub focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:bg-background transition shadow-2xs"
                         >
                             <option value="Active Fees">Active Fees</option>
                             <option value="All Fees">All Fees</option>
@@ -592,7 +592,7 @@ const FeeManagement = () => {
                 </div>
 
                 {/* Single Combined Card Container for all Year Breakdown Accordions */}
-                <div className="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xs divide-y divide-slate-200 mt-2">
+                <div className="border border-border rounded-2xl overflow-hidden bg-surface shadow-xs divide-y divide-border mt-2">
                     {[...availableYears].sort((a, b) => b - a).map(yr => {
                         const yrInvoices = getInvoicesForYear(yr);
                         const yrTotals = getYearTotals(yrInvoices);
@@ -605,25 +605,25 @@ const FeeManagement = () => {
                                 {/* Accordion Header */}
                                 <div 
                                     onClick={() => toggleExpandYear(yr)}
-                                    className="p-3.5 sm:p-4 bg-slate-50/80 hover:bg-slate-100 cursor-pointer flex items-center justify-between transition-colors select-none"
+                                    className="p-3.5 sm:p-4 bg-[var(--background)]/80 hover:bg-background cursor-pointer flex items-center justify-between transition-colors select-none"
                                 >
                                     <div className="flex items-center gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar py-0.5 min-w-0">
-                                        <span className="font-bold text-[11px] sm:text-xs text-slate-800 shrink-0">Y{yr}</span>
+                                        <span className="font-bold text-[11px] sm:text-xs text-main shrink-0">Y{yr}</span>
                                         {isPaid ? (
-                                             <span className="px-1.5 py-0.5 rounded text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-200 shrink-0">
+                                             <span className="px-1.5 py-0.5 rounded text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider bg-[var(--success-light)] text-success border border-[var(--success-light)] shrink-0">
                                                 PAID
                                             </span>
                                         ) : (
-                                            <span className="px-1.5 py-0.5 rounded text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider bg-rose-50 text-rose-600 border border-rose-200 shrink-0">
+                                            <span className="px-1.5 py-0.5 rounded text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] shrink-0">
                                                 DUE
                                             </span>
                                         )}
-                                        <span className="text-[8.5px] sm:text-[10px] text-slate-400 font-medium whitespace-nowrap">
+                                        <span className="text-[8.5px] sm:text-[10px] text-muted-text font-medium whitespace-nowrap">
                                             Total: {formatNumber(yrStats.total)} • Paid: {formatNumber(yrStats.paid)}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="flex items-center gap-1.5 text-slate-500">
+                                        <div className="flex items-center gap-1.5 text-muted-text">
                                             <span className="text-[11px] font-semibold hidden sm:inline">
                                                 {isExpanded ? 'Collapse' : 'Expand'}
                                             </span>
@@ -634,67 +634,67 @@ const FeeManagement = () => {
 
                                 {/* Accordion Body */}
                                 {isExpanded && (
-                                    <div className="border-t border-slate-200 bg-white">
+                                    <div className="border-t border-border bg-surface">
                                         {/* Desktop Table View for Fee Breakdown */}
                                         <div className="hidden md:block overflow-x-auto">
                                             <table className="w-full text-left text-xs">
-                                                <thead className="bg-slate-50/70 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                                                <thead className="bg-[var(--background)]/70 border-b border-border text-[10px] font-black uppercase tracking-wider text-muted-text">
                                                     <tr>
                                                         <th className="py-3 px-4 min-w-[240px]">FEE HEAD / YEAR</th>
                                                         <th className="py-3 px-4 text-right">TOTAL FEE</th>
                                                         <th className="py-3 px-4 text-center">T1 DUE</th>
                                                         <th className="py-3 px-4 text-center">T2 DUE</th>
                                                         <th className="py-3 px-4 text-right">PAID</th>
-                                                        <th className="py-3 px-4 text-right text-purple-600">CONCESSION</th>
+                                                        <th className="py-3 px-4 text-right text-secondary">CONCESSION</th>
                                                         <th className="py-3 px-4 text-right">BALANCE</th>
                                                         <th className="py-3 px-4 text-center">STATUS</th>
                                                         <th className="py-3 px-4 text-center">ACTION</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-slate-100">
+                                                <tbody className="divide-y divide-border">
                                                     {yrInvoices.length > 0 ? (
                                                         yrInvoices.map((row) => (
-                                                            <tr key={row.rowKey} className="hover:bg-slate-50/60 transition-colors group">
+                                                            <tr key={row.rowKey} className="hover:bg-[var(--background)]/60 transition-colors group">
                                                                 <td className="py-3.5 px-4">
-                                                                    <div className="flex items-center gap-1 font-bold text-slate-800">
+                                                                    <div className="flex items-center gap-1 font-bold text-main">
                                                                         <span>{row.headTitle}</span>
-                                                                        <ChevronRight size={13} className="text-slate-400 group-hover:text-blue-500 transition-colors" />
+                                                                        <ChevronRight size={13} className="text-muted-text group-hover:text-primary transition-colors" />
                                                                     </div>
-                                                                    <div className="text-[11px] text-slate-400 mt-0.5">
+                                                                    <div className="text-[11px] text-muted-text mt-0.5">
                                                                         {row.yearSemLabel}
                                                                     </div>
                                                                 </td>
-                                                                <td className="py-3.5 px-4 text-right font-medium text-slate-800">
+                                                                <td className="py-3.5 px-4 text-right font-medium text-main">
                                                                     {formatNumber(row.totalFee)}
                                                                 </td>
-                                                                <td className={`py-3.5 px-4 text-center font-semibold ${row.t1Due !== '—' && row.t1Due !== '- - -' ? 'text-rose-600' : 'text-slate-400'}`}>
+                                                                <td className={`py-3.5 px-4 text-center font-semibold ${row.t1Due !== '—' && row.t1Due !== '- - -' ? 'text-danger' : 'text-muted-text'}`}>
                                                                     {row.t1Due}
                                                                 </td>
-                                                                <td className={`py-3.5 px-4 text-center font-semibold ${row.t2Due !== '—' && row.t2Due !== '- - -' ? 'text-rose-600' : 'text-slate-400'}`}>
+                                                                <td className={`py-3.5 px-4 text-center font-semibold ${row.t2Due !== '—' && row.t2Due !== '- - -' ? 'text-danger' : 'text-muted-text'}`}>
                                                                     {row.t2Due}
                                                                 </td>
-                                                                <td className="py-3.5 px-4 text-right font-bold text-emerald-600">
+                                                                <td className="py-3.5 px-4 text-right font-bold text-success">
                                                                     {formatNumber(row.paid)}
                                                                 </td>
-                                                                <td className="py-3.5 px-4 text-right font-bold text-purple-600">
+                                                                <td className="py-3.5 px-4 text-right font-bold text-secondary">
                                                                     {formatNumber(row.concession)}
                                                                 </td>
-                                                                <td className="py-3.5 px-4 text-right font-bold text-slate-800">
+                                                                <td className="py-3.5 px-4 text-right font-bold text-main">
                                                                     {formatNumber(row.balance)}
                                                                 </td>
                                                                 <td className="py-3.5 px-4 text-center">
                                                                     {row.status === 'Paid' && (
-                                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[var(--success-light)] text-success border border-[var(--success-light)]">
                                                                             Paid
                                                                         </span>
                                                                     )}
                                                                     {row.status === 'Unpaid' && (
-                                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-50 text-rose-600 border border-rose-200">
+                                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]">
                                                                             Unpaid
                                                                         </span>
                                                                     )}
                                                                     {row.status === 'Partial' && (
-                                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-600 border border-amber-200">
+                                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                                                                             Partial
                                                                         </span>
                                                                     )}
@@ -704,14 +704,14 @@ const FeeManagement = () => {
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => openPaymentModal(row)}
-                                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs hover:shadow transition-all transform active:scale-95 cursor-pointer"
+                                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-primary hover:bg-primary-hover text-white shadow-xs hover:shadow transition-all transform active:scale-95 cursor-pointer"
                                                                             title={`Pay dues for ${row.headTitle}`}
                                                                         >
                                                                             <CreditCard size={12} />
                                                                             <span>Pay Now</span>
                                                                         </button>
                                                                     ) : (
-                                                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                                                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-success bg-[var(--success-light)] px-2 py-0.5 rounded-md border border-[var(--success-light)]">
                                                                             <CheckCircle2 size={12} />
                                                                             <span>Clear</span>
                                                                         </span>
@@ -721,7 +721,7 @@ const FeeManagement = () => {
                                                         ))
                                                     ) : (
                                                         <tr>
-                                                            <td colSpan={9} className="py-6 text-center text-slate-400 text-xs">
+                                                            <td colSpan={9} className="py-6 text-center text-muted-text text-xs">
                                                                 No fee records found for Year {yr}.
                                                             </td>
                                                         </tr>
@@ -729,35 +729,35 @@ const FeeManagement = () => {
 
                                                     {/* TOTAL Row */}
                                                     {yrInvoices.length > 0 && (
-                                                        <tr className="bg-slate-50/50 font-black border-t-2 border-slate-200 text-slate-800">
+                                                        <tr className="bg-[var(--background)]/50 font-black border-t-2 border-border text-main">
                                                             <td className="py-3.5 px-4">
                                                                 <div className="uppercase tracking-wider text-xs">TOTAL (Y{yr})</div>
                                                             </td>
                                                             <td className="py-3.5 px-4 text-right font-black">
                                                                 {formatNumber(yrTotals.totalFee)}
                                                             </td>
-                                                            <td className="py-3.5 px-4 text-center font-black text-rose-600">
+                                                            <td className="py-3.5 px-4 text-center font-black text-danger">
                                                                 {yrTotals.t1Due}
                                                             </td>
-                                                            <td className="py-3.5 px-4 text-center font-black text-rose-600">
+                                                            <td className="py-3.5 px-4 text-center font-black text-danger">
                                                                 {yrTotals.t2Due}
                                                             </td>
-                                                            <td className="py-3.5 px-4 text-right font-black text-emerald-600">
+                                                            <td className="py-3.5 px-4 text-right font-black text-success">
                                                                 {formatNumber(yrTotals.paid)}
                                                             </td>
-                                                            <td className="py-3.5 px-4 text-right font-black text-purple-600">
+                                                            <td className="py-3.5 px-4 text-right font-black text-secondary">
                                                                 {formatNumber(yrTotals.concession)}
                                                             </td>
-                                                            <td className="py-3.5 px-4 text-right font-black text-rose-600 text-sm">
+                                                            <td className="py-3.5 px-4 text-right font-black text-danger text-sm">
                                                                 {formatNumber(yrTotals.balance)}
                                                             </td>
                                                             <td className="py-3.5 px-4 text-center">
                                                                 {yrTotals.balance <= 0 ? (
-                                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[var(--success-light)] text-success border border-[var(--success-light)]">
                                                                         PAID
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-50 text-rose-600 border border-rose-200">
+                                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]">
                                                                         DUE
                                                                     </span>
                                                                 )}
@@ -767,7 +767,7 @@ const FeeManagement = () => {
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => openYearPaymentModal(yr, yrTotals, yrInvoices)}
-                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs hover:shadow transition-all transform active:scale-95 cursor-pointer"
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-success hover:bg-success text-white shadow-xs hover:shadow transition-all transform active:scale-95 cursor-pointer"
                                                                         title="Pay total dues for this year"
                                                                     >
                                                                         <CreditCard size={12} />
@@ -782,66 +782,66 @@ const FeeManagement = () => {
                                         </div>
 
                                         {/* Mobile Card List View for Fee Breakdown */}
-                                        <div className="md:hidden divide-y divide-slate-100 p-3 sm:p-4 space-y-3">
+                                        <div className="md:hidden divide-y divide-border p-3 sm:p-4 space-y-3">
                                             {yrInvoices.length > 0 ? (
                                                 yrInvoices.map((row) => (
                                                     <div key={row.rowKey} className="pt-3 first:pt-0">
                                                         <div className="flex items-start justify-between gap-2 mb-2">
                                                             <div>
-                                                                <div className="font-bold text-slate-800 text-xs leading-snug">
+                                                                <div className="font-bold text-main text-xs leading-snug">
                                                                     {row.headTitle}
                                                                 </div>
-                                                                <div className="text-[10px] text-slate-400 mt-0.5">
+                                                                <div className="text-[10px] text-muted-text mt-0.5">
                                                                     {row.yearSemLabel}
                                                                 </div>
                                                             </div>
                                                             <div className="shrink-0">
                                                                 {row.status === 'Paid' && (
-                                                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-emerald-50 text-emerald-600 border border-emerald-200">
+                                                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-[var(--success-light)] text-success border border-[var(--success-light)]">
                                                                         Paid
                                                                     </span>
                                                                 )}
                                                                 {row.status === 'Unpaid' && (
-                                                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-rose-50 text-rose-600 border border-rose-200">
+                                                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]">
                                                                         Unpaid
                                                                     </span>
                                                                 )}
                                                                 {row.status === 'Partial' && (
-                                                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-50 text-amber-600 border border-amber-200">
+                                                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                                                                         Partial
                                                                     </span>
                                                                 )}
                                                             </div>
                                                         </div>
 
-                                                        <div className="grid grid-cols-3 gap-2 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100 text-[11px]">
+                                                        <div className="grid grid-cols-3 gap-2 bg-[var(--background)]/70 p-2.5 rounded-xl border border-border text-[11px]">
                                                             <div>
-                                                                <div className="text-[9px] font-bold uppercase text-slate-400">Total Fee</div>
-                                                                <div className="font-bold text-slate-800">{formatNumber(row.totalFee)}</div>
+                                                                <div className="text-[9px] font-bold uppercase text-muted-text">Total Fee</div>
+                                                                <div className="font-bold text-main">{formatNumber(row.totalFee)}</div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-[9px] font-bold uppercase text-slate-400">Paid</div>
-                                                                <div className="font-bold text-emerald-600">{formatNumber(row.paid)}</div>
+                                                                <div className="text-[9px] font-bold uppercase text-muted-text">Paid</div>
+                                                                <div className="font-bold text-success">{formatNumber(row.paid)}</div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-[9px] font-bold uppercase text-slate-400">Concession</div>
-                                                                <div className="font-bold text-purple-600">{formatNumber(row.concession)}</div>
+                                                                <div className="text-[9px] font-bold uppercase text-muted-text">Concession</div>
+                                                                <div className="font-bold text-secondary">{formatNumber(row.concession)}</div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-[9px] font-bold uppercase text-slate-400">T1 Due</div>
-                                                                <div className={`font-semibold ${row.t1Due !== '—' && row.t1Due !== '- - -' ? 'text-rose-600' : 'text-slate-400'}`}>
+                                                                <div className="text-[9px] font-bold uppercase text-muted-text">T1 Due</div>
+                                                                <div className={`font-semibold ${row.t1Due !== '—' && row.t1Due !== '- - -' ? 'text-danger' : 'text-muted-text'}`}>
                                                                     {row.t1Due}
                                                                 </div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-[9px] font-bold uppercase text-slate-400">T2 Due</div>
-                                                                <div className={`font-semibold ${row.t2Due !== '—' && row.t2Due !== '- - -' ? 'text-rose-600' : 'text-slate-400'}`}>
+                                                                <div className="text-[9px] font-bold uppercase text-muted-text">T2 Due</div>
+                                                                <div className={`font-semibold ${row.t2Due !== '—' && row.t2Due !== '- - -' ? 'text-danger' : 'text-muted-text'}`}>
                                                                     {row.t2Due}
                                                                 </div>
                                                             </div>
                                                             <div>
-                                                                <div className="text-[9px] font-bold uppercase text-slate-400">Balance</div>
-                                                                <div className="font-black text-rose-600">{formatNumber(row.balance)}</div>
+                                                                <div className="text-[9px] font-bold uppercase text-muted-text">Balance</div>
+                                                                <div className="font-black text-danger">{formatNumber(row.balance)}</div>
                                                             </div>
                                                         </div>
 
@@ -851,7 +851,7 @@ const FeeManagement = () => {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => openPaymentModal(row)}
-                                                                    className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition"
+                                                                    className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-primary hover:bg-primary-hover text-white shadow-xs transition"
                                                                 >
                                                                     <CreditCard size={13} />
                                                                     <span>Pay Now (₹{formatNumber(row.balance)})</span>
@@ -861,7 +861,7 @@ const FeeManagement = () => {
                                                     </div>
                                                 ))
                                             ) : (
-                                                <p className="text-center text-slate-400 text-xs py-4">
+                                                <p className="text-center text-muted-text text-xs py-4">
                                                     No fee records found for Year {yr}.
                                                 </p>
                                             )}
@@ -875,17 +875,17 @@ const FeeManagement = () => {
             </div>
 
             {/* Bottom Section: Transaction History Card */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
                 {/* Transaction History Header */}
-                <div className="p-4 sm:px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-4 sm:px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <div className="p-2 bg-[var(--success-light)] text-success rounded-xl">
                             <Clock size={18} />
                         </div>
-                        <h2 className="text-base font-bold text-slate-800 tracking-tight">
+                        <h2 className="text-base font-bold text-main tracking-tight">
                             Transaction History
                         </h2>
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-blue-600 border border-blue-200">
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                             Year {selectedYear}
                         </span>
                     </div>
@@ -895,7 +895,7 @@ const FeeManagement = () => {
                         <select
                             value={txModeFilter}
                             onChange={(e) => setTxModeFilter(e.target.value)}
-                            className="flex-1 sm:flex-none text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-2.5 sm:px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer hover:bg-slate-100 transition"
+                            className="flex-1 sm:flex-none text-xs font-semibold bg-background border border-border rounded-xl px-2.5 sm:px-3 py-1.5 text-sub focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:bg-background transition"
                         >
                             <option value="All">All Modes</option>
                             <option value="Cash">Cash</option>
@@ -909,7 +909,7 @@ const FeeManagement = () => {
                         <select
                             value={txHeadFilter}
                             onChange={(e) => setTxHeadFilter(e.target.value)}
-                            className="flex-1 sm:flex-none text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-2.5 sm:px-3 py-1.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer hover:bg-slate-100 transition"
+                            className="flex-1 sm:flex-none text-xs font-semibold bg-background border border-border rounded-xl px-2.5 sm:px-3 py-1.5 text-sub focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer hover:bg-background transition"
                         >
                             <option value="All">All Fee Heads</option>
                             {transactionFeeHeads.map(head => (
@@ -922,7 +922,7 @@ const FeeManagement = () => {
                 {/* Desktop Transaction Table */}
                 <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50/70 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                        <thead className="bg-[var(--background)]/70 border-b border-border text-[10px] font-black uppercase tracking-wider text-muted-text">
                             <tr>
                                 <th className="py-3 px-4">TRANSACTION DATE</th>
                                 <th className="py-3 px-4">FEE HEAD</th>
@@ -931,7 +931,7 @@ const FeeManagement = () => {
                                 <th className="py-3 px-4 text-right">AMOUNT PAID</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-border">
                             {currentYearTransactions.length > 0 ? (
                                 currentYearTransactions.map((tx, idx) => {
                                     const txDate = tx.paymentDate ? new Date(tx.paymentDate) : null;
@@ -948,40 +948,40 @@ const FeeManagement = () => {
                                         tx.gatewayPaymentId;
 
                                     return (
-                                        <tr key={tx._id || idx} className="hover:bg-slate-50/60 transition-colors">
+                                        <tr key={tx._id || idx} className="hover:bg-[var(--background)]/60 transition-colors">
                                             <td className="py-3.5 px-4">
-                                                <div className="font-bold text-slate-800">{dateStr}</div>
-                                                <div className="text-[10px] text-slate-400">{timeStr}</div>
+                                                <div className="font-bold text-main">{dateStr}</div>
+                                                <div className="text-[10px] text-muted-text">{timeStr}</div>
                                             </td>
-                                            <td className="py-3.5 px-4 font-bold text-slate-800">
+                                            <td className="py-3.5 px-4 font-bold text-main">
                                                 {tx.feeHead?.name || (isCon ? 'Scholarship / Concession' : 'Fee Payment')}
                                                 {tx.remarks && (
-                                                    <div className="text-[10px] text-slate-400 font-normal mt-0.5">{tx.remarks}</div>
+                                                    <div className="text-[10px] text-muted-text font-normal mt-0.5">{tx.remarks}</div>
                                                 )}
                                             </td>
                                             <td className="py-3.5 px-4 text-center">
                                                 <div className="flex flex-col items-center gap-1">
-                                                    <span className="inline-block px-2.5 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-700">
+                                                    <span className="inline-block px-2.5 py-0.5 rounded-md border border-border bg-background text-[10px] font-bold text-sub">
                                                         {tx.paymentMode || 'Cash'}
                                                     </span>
                                                     {tx.receiptNumber && (
-                                                        <span className="inline-block px-2 py-0.5 rounded-md border border-indigo-200 bg-indigo-50 text-[9.5px] font-mono font-bold text-indigo-700">
+                                                        <span className="inline-block px-2 py-0.5 rounded-md border border-[var(--primary-light)] bg-[var(--primary-light)] text-[9.5px] font-mono font-bold text-primary">
                                                             {tx.receiptNumber}
                                                         </span>
                                                     )}
                                                     {(tx.referenceNo || tx.gatewayPaymentId) && (
-                                                        <div className="text-[10px] text-slate-400 font-mono">
+                                                        <div className="text-[10px] text-muted-text font-mono">
                                                             {tx.referenceNo || tx.gatewayPaymentId}
                                                         </div>
                                                     )}
                                                 </div>
                                             </td>
                                             <td className="py-3.5 px-4 text-center">
-                                                <span className="text-slate-600 font-semibold">
+                                                <span className="text-sub font-semibold">
                                                     Y{tx.studentYear || selectedYear} • S{tx.semester || '1'}
                                                 </span>
                                             </td>
-                                            <td className={`py-3.5 px-4 text-right font-black ${isCon ? 'text-purple-600' : 'text-emerald-600'}`}>
+                                            <td className={`py-3.5 px-4 text-right font-black ${isCon ? 'text-secondary' : 'text-success'}`}>
                                                 ₹{formatNumber(tx.amount)}
                                             </td>
                                         </tr>
@@ -989,7 +989,7 @@ const FeeManagement = () => {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="py-6 text-center text-slate-400 text-xs">
+                                    <td colSpan={5} className="py-6 text-center text-muted-text text-xs">
                                         No transaction records found for Year {selectedYear}.
                                     </td>
                                 </tr>
@@ -999,7 +999,7 @@ const FeeManagement = () => {
                 </div>
 
                 {/* Mobile Card List View for Transactions */}
-                <div className="md:hidden divide-y divide-slate-100 p-3 sm:p-4 space-y-3">
+                <div className="md:hidden divide-y divide-border p-3 sm:p-4 space-y-3">
                     {currentYearTransactions.length > 0 ? (
                         currentYearTransactions.map((tx, idx) => {
                             const txDate = tx.paymentDate ? new Date(tx.paymentDate) : null;
@@ -1012,37 +1012,37 @@ const FeeManagement = () => {
                                 <div key={tx._id || idx} className="pt-3 first:pt-0">
                                     <div className="flex items-start justify-between gap-2 mb-1.5">
                                         <div>
-                                            <p className="font-bold text-slate-800 text-xs">
+                                            <p className="font-bold text-main text-xs">
                                                 {tx.feeHead?.name || (isCon ? 'Scholarship / Concession' : 'Fee Payment')}
                                             </p>
-                                            <p className="text-[10px] text-slate-400 mt-0.5">{dateStr}</p>
+                                            <p className="text-[10px] text-muted-text mt-0.5">{dateStr}</p>
                                         </div>
-                                        <p className={`font-black text-sm shrink-0 ${isCon ? 'text-purple-600' : 'text-emerald-600'}`}>
+                                        <p className={`font-black text-sm shrink-0 ${isCon ? 'text-secondary' : 'text-success'}`}>
                                             ₹{formatNumber(tx.amount)}
                                         </p>
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-2 mt-2">
-                                        <span className="px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-700">
+                                        <span className="px-2 py-0.5 rounded border border-border bg-background text-[10px] font-bold text-sub">
                                             {tx.paymentMode || 'Cash'}
                                         </span>
                                         {tx.receiptNumber && (
-                                            <span className="px-2 py-0.5 rounded border border-indigo-200 bg-indigo-50 text-[10px] font-mono font-bold text-indigo-700">
+                                            <span className="px-2 py-0.5 rounded border border-[var(--primary-light)] bg-[var(--primary-light)] text-[10px] font-mono font-bold text-primary">
                                                 {tx.receiptNumber}
                                             </span>
                                         )}
-                                        <span className="text-[10px] text-slate-500 font-semibold">
+                                        <span className="text-[10px] text-muted-text font-semibold">
                                             Y{tx.studentYear || selectedYear} • S{tx.semester || '1'}
                                         </span>
                                         {(tx.referenceNo || tx.gatewayPaymentId) && (
-                                            <span className="text-[10px] font-mono text-slate-400">
+                                            <span className="text-[10px] font-mono text-muted-text">
                                                 {tx.referenceNo || tx.gatewayPaymentId}
                                             </span>
                                         )}
                                     </div>
 
                                     {tx.remarks && (
-                                        <p className="text-[10px] text-slate-500 italic mt-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                                        <p className="text-[10px] text-muted-text italic mt-1.5 bg-background p-1.5 rounded-lg border border-border">
                                             "{tx.remarks}"
                                         </p>
                                     )}
@@ -1050,7 +1050,7 @@ const FeeManagement = () => {
                             );
                         })
                     ) : (
-                        <p className="text-center text-slate-400 text-xs py-6">
+                        <p className="text-center text-muted-text text-xs py-6">
                             No transaction records found for Year {selectedYear}.
                         </p>
                     )}
@@ -1059,24 +1059,24 @@ const FeeManagement = () => {
 
             {/* Online Payment Modal */}
             {paymentModalOpen && paymentTarget && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
-                    <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--sidebar)]/60 backdrop-blur-xs animate-fade-in">
+                    <div className="bg-surface rounded-2xl max-w-md w-full shadow-2xl border border-border overflow-hidden transform transition-all">
                         {/* Modal Header */}
-                        <div className="p-4 sm:p-5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white flex items-center justify-between">
+                        <div className="p-4 sm:p-5 bg-gradient-to-r from-primary to-primary text-white flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
-                                <div className="p-2 bg-white/10 rounded-xl backdrop-blur-xs">
+                                <div className="p-2 bg-[var(--surface)]/10 rounded-xl backdrop-blur-xs">
                                     <CreditCard size={18} className="text-white" />
                                 </div>
                                 <div>
                                     <h3 className="text-sm sm:text-base font-bold leading-tight">Pay Fees Online</h3>
-                                    <p className="text-[10px] sm:text-[11px] text-indigo-100">Pydah Payment Gateway • Hosted Checkout</p>
+                                    <p className="text-[10px] sm:text-[11px] text-primary">Pydah Payment Gateway • Hosted Checkout</p>
                                 </div>
                             </div>
                             <button
                                 type="button"
                                 disabled={isProcessingPayment}
                                 onClick={() => setPaymentModalOpen(false)}
-                                className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                                className="p-1 rounded-lg text-white/80 hover:text-white hover:bg-[var(--surface)]/10 transition cursor-pointer"
                             >
                                 <X size={18} />
                             </button>
@@ -1085,41 +1085,41 @@ const FeeManagement = () => {
                         {/* Modal Body */}
                         <div className="p-5 sm:p-6 space-y-4">
                             {/* Details Summary Card */}
-                            <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 space-y-2">
+                            <div className="bg-background rounded-xl p-3.5 border border-border space-y-2">
                                 <div className="flex items-start justify-between gap-2">
                                     <div>
-                                        <div className="text-[10px] uppercase font-bold text-slate-400">Fee Description</div>
-                                        <div className="text-xs sm:text-sm font-bold text-slate-800">{paymentTarget.title}</div>
+                                        <div className="text-[10px] uppercase font-bold text-muted-text">Fee Description</div>
+                                        <div className="text-xs sm:text-sm font-bold text-main">{paymentTarget.title}</div>
                                     </div>
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] shrink-0">
                                         Year {paymentTarget.studentYear}
                                     </span>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200 text-xs">
+                                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border text-xs">
                                     <div>
-                                        <div className="text-[9px] uppercase font-semibold text-slate-400">Total</div>
-                                        <div className="font-bold text-slate-700">₹{formatNumber(paymentTarget.totalFee)}</div>
+                                        <div className="text-[9px] uppercase font-semibold text-muted-text">Total</div>
+                                        <div className="font-bold text-sub">₹{formatNumber(paymentTarget.totalFee)}</div>
                                     </div>
                                     <div>
-                                        <div className="text-[9px] uppercase font-semibold text-slate-400">Paid</div>
-                                        <div className="font-bold text-emerald-600">₹{formatNumber(paymentTarget.paid)}</div>
+                                        <div className="text-[9px] uppercase font-semibold text-muted-text">Paid</div>
+                                        <div className="font-bold text-success">₹{formatNumber(paymentTarget.paid)}</div>
                                     </div>
                                     <div>
-                                        <div className="text-[9px] uppercase font-bold text-slate-400">Balance Due</div>
-                                        <div className="font-extrabold text-rose-600">₹{formatNumber(paymentTarget.balance)}</div>
+                                        <div className="text-[9px] uppercase font-bold text-muted-text">Balance Due</div>
+                                        <div className="font-extrabold text-danger">₹{formatNumber(paymentTarget.balance)}</div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Amount Input */}
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                                <label className="text-xs font-bold text-sub flex items-center justify-between">
                                     <span>Amount to Pay</span>
-                                    <span className="text-[10px] font-normal text-slate-400">INR (₹)</span>
+                                    <span className="text-[10px] font-normal text-muted-text">INR (₹)</span>
                                 </label>
                                 <div className="relative">
-                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-sm">₹</span>
+                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-muted-text text-sm">₹</span>
                                     <input
                                         type="number"
                                         min="1"
@@ -1128,7 +1128,7 @@ const FeeManagement = () => {
                                         onChange={(e) => setPayAmountInput(e.target.value)}
                                         disabled={isProcessingPayment}
                                         placeholder="Enter amount"
-                                        className="w-full pl-8 pr-4 py-2.5 text-base font-bold text-slate-800 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
+                                        className="w-full pl-8 pr-4 py-2.5 text-base font-bold text-main bg-surface border border-border-strong rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
                                     />
                                 </div>
 
@@ -1137,7 +1137,7 @@ const FeeManagement = () => {
                                     <button
                                         type="button"
                                         onClick={() => setPayAmountInput(String(paymentTarget.balance))}
-                                        className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition cursor-pointer"
+                                        className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-[var(--primary-light)] bg-[var(--primary-light)] text-primary hover:bg-[var(--primary-light)] transition cursor-pointer"
                                     >
                                         Full Balance (₹{formatNumber(paymentTarget.balance)})
                                     </button>
@@ -1145,7 +1145,7 @@ const FeeManagement = () => {
                                         <button
                                             type="button"
                                             onClick={() => setPayAmountInput(String(paymentTarget.t1DueNum))}
-                                            className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                                            className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-border bg-surface text-sub hover:bg-background transition cursor-pointer"
                                         >
                                             Term 1 (₹{formatNumber(paymentTarget.t1DueNum)})
                                         </button>
@@ -1154,7 +1154,7 @@ const FeeManagement = () => {
                                         <button
                                             type="button"
                                             onClick={() => setPayAmountInput(String(paymentTarget.t2DueNum))}
-                                            className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition cursor-pointer"
+                                            className="px-2.5 py-1 text-[10px] font-bold rounded-lg border border-border bg-surface text-sub hover:bg-background transition cursor-pointer"
                                         >
                                             Term 2 (₹{formatNumber(paymentTarget.t2DueNum)})
                                         </button>
@@ -1164,12 +1164,12 @@ const FeeManagement = () => {
                         </div>
 
                         {/* Modal Actions */}
-                        <div className="p-4 sm:px-6 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                        <div className="p-4 sm:px-6 bg-[var(--background)]/80 border-t border-border flex items-center justify-end gap-2.5">
                             <button
                                 type="button"
                                 disabled={isProcessingPayment}
                                 onClick={() => setPaymentModalOpen(false)}
-                                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200/60 rounded-xl transition cursor-pointer"
+                                className="px-4 py-2 text-xs font-semibold text-sub hover:bg-[var(--background)]/60 rounded-xl transition cursor-pointer"
                             >
                                 Cancel
                             </button>
@@ -1177,11 +1177,11 @@ const FeeManagement = () => {
                                 type="button"
                                 disabled={isProcessingPayment || !payAmountInput || Number(payAmountInput) <= 0}
                                 onClick={handleConfirmPayment}
-                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow transition transform active:scale-95 cursor-pointer"
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow transition transform active:scale-95 cursor-pointer"
                             >
                                 {isProcessingPayment ? (
                                     <>
-                                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        <div className="w-3.5 h-3.5 border-2 border-surface border-t-transparent rounded-full animate-spin"></div>
                                         <span>Processing...</span>
                                     </>
                                 ) : (

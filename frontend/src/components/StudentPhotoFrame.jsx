@@ -35,16 +35,16 @@ const StudentPhotoFrame = ({
         <defs>
           {/* Upper-right radiant gradient: normal red shade to white */}
           <linearGradient id={rightArcId} x1="95%" y1="42%" x2="45%" y2="95%">
-            <stop offset="0%" stopColor="#E01E2B" />
-            <stop offset="50%" stopColor="#F5606B" />
-            <stop offset="100%" stopColor="#FFFFFF" />
+            <stop offset="0%" stopColor="var(--danger)" />
+            <stop offset="50%" stopColor="var(--danger)" />
+            <stop offset="100%" stopColor="var(--surface)" />
           </linearGradient>
 
           {/* Lower-left radiant gradient: normal red shade to white */}
           <linearGradient id={leftArcId} x1="95%" y1="42%" x2="45%" y2="95%">
-            <stop offset="0%" stopColor="#E01E2B" />
-            <stop offset="50%" stopColor="#F5606B" />
-            <stop offset="100%" stopColor="#FFFFFF" />
+            <stop offset="0%" stopColor="var(--danger)" />
+            <stop offset="50%" stopColor="var(--danger)" />
+            <stop offset="100%" stopColor="var(--surface)" />
           </linearGradient>
         </defs>
 
@@ -54,7 +54,7 @@ const StudentPhotoFrame = ({
           cy="50"
           r="38.2"
           fill="none"
-          stroke="#E01E2B"
+          stroke="var(--danger)"
           strokeWidth="0.5"
         />
 

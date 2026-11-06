@@ -467,19 +467,19 @@ export const ProfileChangeRequests = () => {
     return (
         <div className="space-y-6 pb-12">
             {/* 1. Header Banner with Live Stats & Light Executive Colors */}
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="bg-surface p-4 sm:p-5 rounded-2xl border border-border shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">
-                    <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-600 flex items-center justify-center text-white shadow-sm shadow-indigo-100 shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-primary to-primary flex items-center justify-center text-white shadow-sm shadow-primary shrink-0">
                         <Layers size={22} />
                     </div>
                     <div>
                         <div className="flex items-center gap-2.5">
-                            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Profile Change Requests</h1>
-                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+                            <h1 className="text-xl font-bold text-main tracking-tight">Profile Change Requests</h1>
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                                 {(abstractData?.summary?.pending ?? 0).toLocaleString()} Pending
                             </span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-muted-text mt-0.5">
                             Review, verify, and approve student profile update requests across all colleges
                         </p>
                     </div>
@@ -493,14 +493,14 @@ export const ProfileChangeRequests = () => {
                         title={`All Colleges: ${(abstractData?.summary?.pending ?? 0).toLocaleString()} pending`}
                         className={`px-2.5 py-1.5 rounded-xl border text-center transition-all cursor-pointer min-w-[65px] ${
                             !collegeFilter
-                                ? 'bg-indigo-50 border-indigo-300 ring-2 ring-indigo-200 shadow-2xs'
-                                : 'bg-white border-gray-200/80 hover:bg-gray-50 text-gray-700'
+                                ? 'bg-[var(--primary-light)] border-[var(--primary-light)] ring-2 ring-[var(--primary-light)] shadow-2xs'
+                                : 'bg-surface border-border hover:bg-background text-sub'
                         }`}
                     >
-                        <span className={`text-[10px] font-bold uppercase tracking-wider block ${!collegeFilter ? 'text-indigo-700' : 'text-gray-400'}`}>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider block ${!collegeFilter ? 'text-primary' : 'text-muted-text'}`}>
                             All
                         </span>
-                        <span className={`text-sm font-black ${!collegeFilter ? 'text-indigo-900' : 'text-gray-700'}`}>
+                        <span className={`text-sm font-black ${!collegeFilter ? 'text-primary' : 'text-sub'}`}>
                             {(abstractData?.summary?.pending ?? 0).toLocaleString()}
                         </span>
                     </button>
@@ -521,21 +521,21 @@ export const ProfileChangeRequests = () => {
                                 title={`${c.college}: ${c.pending.toLocaleString()} pending • ${c.total.toLocaleString()} total`}
                                 className={`px-2.5 py-1.5 rounded-xl border text-center transition-all cursor-pointer min-w-[75px] max-w-[125px] ${
                                     isSelected
-                                        ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-200 shadow-2xs'
-                                        : 'bg-white border-gray-200/80 hover:border-gray-300 hover:bg-gray-50/80 text-gray-700'
+                                        ? 'bg-[var(--primary-light)] border-primary ring-2 ring-[var(--primary-light)] shadow-2xs'
+                                        : 'bg-surface border-border hover:border-border-strong hover:bg-[var(--background)]/80 text-sub'
                                 }`}
                             >
                                 <span className={`text-[10px] font-bold uppercase tracking-wider block truncate ${
-                                    isSelected ? 'text-blue-700' : 'text-gray-500'
+                                    isSelected ? 'text-primary' : 'text-muted-text'
                                 }`}>
                                     {shortName}
                                 </span>
                                 <span className={`text-sm font-black ${
                                     isSelected
-                                        ? 'text-blue-900'
+                                        ? 'text-primary'
                                         : c.pending > 0
-                                            ? 'text-amber-600'
-                                            : 'text-gray-400'
+                                            ? 'text-warning'
+                                            : 'text-muted-text'
                                 }`}>
                                     {c.pending.toLocaleString()}
                                 </span>
@@ -551,33 +551,33 @@ export const ProfileChangeRequests = () => {
                             toast.success('Refreshed data');
                         }}
                         disabled={loading || abstractLoading}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-2xs cursor-pointer disabled:opacity-60 ml-1 self-center"
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border bg-surface text-xs font-semibold text-sub hover:bg-background hover:border-border-strong transition-colors shadow-2xs cursor-pointer disabled:opacity-60 ml-1 self-center"
                         title="Reload requests and statistics"
                     >
-                        <RotateCw size={14} className={loading || abstractLoading ? 'animate-spin text-indigo-600' : 'text-gray-500'} />
+                        <RotateCw size={14} className={loading || abstractLoading ? 'animate-spin text-primary' : 'text-muted-text'} />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
                 </div>
             </div>
 
             {/* 3. Filters & Controls */}
-            <div className="bg-white rounded-2xl shadow-xs border border-gray-100 p-3.5 sm:p-4 space-y-3">
+            <div className="bg-surface rounded-2xl shadow-xs border border-border p-3.5 sm:p-4 space-y-3">
                 {/* Search & Status Tabs */}
                 <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-text" size={17} />
                         <input
                             type="text"
                             placeholder="Search by student name, PIN, admission number, reviewer, course, branch..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-9 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-xs sm:text-sm bg-gray-50/40 focus:bg-white"
+                            className="w-full pl-9 pr-9 py-2 border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-xs sm:text-sm bg-[var(--background)]/40 focus:bg-surface"
                         />
                         {searchTerm && (
                             <button
                                 type="button"
                                 onClick={() => setSearchTerm('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 rounded cursor-pointer"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-text hover:text-sub p-0.5 rounded cursor-pointer"
                             >
                                 <X size={15} />
                             </button>
@@ -585,7 +585,7 @@ export const ProfileChangeRequests = () => {
                     </div>
 
                     {/* Status Tabs */}
-                    <div className="inline-flex p-1 bg-gray-100/90 rounded-xl shrink-0 overflow-x-auto">
+                    <div className="inline-flex p-1 bg-[var(--background)]/90 rounded-xl shrink-0 overflow-x-auto">
                         {[
                             { id: 'pending', label: 'Pending', count: activeFilterSummary.pending, totalCount: abstractData?.summary?.pending },
                             { id: 'approved', label: 'Approved', count: activeFilterSummary.approved, totalCount: abstractData?.summary?.approved },
@@ -602,16 +602,16 @@ export const ProfileChangeRequests = () => {
                                     title={isFiltered ? `${tab.count} matching in this selection (${(tab.totalCount || 0).toLocaleString()} across all colleges)` : `${(tab.count || 0).toLocaleString()} total`}
                                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                                         isActive
-                                            ? 'bg-white text-indigo-700 shadow-xs'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200/50'
+                                            ? 'bg-surface text-primary shadow-xs'
+                                            : 'text-sub hover:text-main hover:bg-[var(--background)]/50'
                                     }`}
                                 >
                                     <span>{tab.label}</span>
                                     {tab.count !== undefined && (
                                         <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
                                             isActive
-                                                ? 'bg-indigo-100 text-indigo-800'
-                                                : 'bg-gray-200 text-gray-600'
+                                                ? 'bg-[var(--primary-light)] text-primary'
+                                                : 'bg-background text-sub'
                                         }`}>
                                             {tab.count.toLocaleString()}
                                         </span>
@@ -623,22 +623,22 @@ export const ProfileChangeRequests = () => {
                 </div>
 
                 {/* Cascading Filter Selectors: College -> Course -> Branch */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-3 border-t border-gray-100">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-3 border-t border-border">
                     {/* 1. College Selector */}
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                                <Building2 size={13} className="text-indigo-600" />
+                            <label className="text-xs font-bold text-sub flex items-center gap-1.5">
+                                <Building2 size={13} className="text-primary" />
                                 <span>College</span>
                             </label>
-                            <span className="text-[10px] text-gray-400 font-medium">
+                            <span className="text-[10px] text-muted-text font-medium">
                                 {abstractData?.colleges?.length || 0} colleges
                             </span>
                         </div>
                         <select
                             value={collegeFilter}
                             onChange={(e) => handleCollegeChange(e.target.value)}
-                            className="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white cursor-pointer"
+                            className="w-full rounded-xl border border-border px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-surface cursor-pointer"
                         >
                             <option value="">All Colleges ({collegesList.length || 7}) - {((abstractData?.summary?.pending ?? 0)).toLocaleString()} pending</option>
                             {collegesList.map((c) => (
@@ -652,11 +652,11 @@ export const ProfileChangeRequests = () => {
                     {/* 2. Course / Program Selector (Auto-Filtered by College) */}
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                                <GraduationCap size={14} className="text-indigo-600" />
+                            <label className="text-xs font-bold text-sub flex items-center gap-1.5">
+                                <GraduationCap size={14} className="text-primary" />
                                 <span>Course / Program</span>
                             </label>
-                            <span className="text-[10px] font-semibold text-indigo-600">
+                            <span className="text-[10px] font-semibold text-primary">
                                 {collegeFilter
                                     ? `${availableCourses.length} in this college`
                                     : `${availableCourses.length} total`}
@@ -665,7 +665,7 @@ export const ProfileChangeRequests = () => {
                         <select
                             value={courseFilter}
                             onChange={(e) => handleCourseChange(e.target.value)}
-                            className="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white cursor-pointer"
+                            className="w-full rounded-xl border border-border px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-surface cursor-pointer"
                         >
                             <option value="">
                                 {collegeFilter
@@ -683,11 +683,11 @@ export const ProfileChangeRequests = () => {
                     {/* 3. Branch Selector (Auto-Filtered by Course & College) */}
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                                <BookOpen size={13} className="text-indigo-600" />
+                            <label className="text-xs font-bold text-sub flex items-center gap-1.5">
+                                <BookOpen size={13} className="text-primary" />
                                 <span>Branch / Department</span>
                             </label>
-                            <span className="text-[10px] text-gray-400 font-medium">
+                            <span className="text-[10px] text-muted-text font-medium">
                                 {courseFilter ? `${availableBranches.length} branches` : 'Select a course first'}
                             </span>
                         </div>
@@ -695,7 +695,7 @@ export const ProfileChangeRequests = () => {
                             value={branchFilter}
                             onChange={(e) => handleBranchChange(e.target.value)}
                             disabled={!courseFilter && availableBranches.length === 0}
-                            className="w-full rounded-xl border border-gray-200 px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white cursor-pointer disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed"
+                            className="w-full rounded-xl border border-border px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-surface cursor-pointer disabled:bg-background disabled:text-muted-text disabled:cursor-not-allowed"
                         >
                             <option value="">
                                 {!courseFilter ? 'Select Course to view branches' : 'All Branches'}
@@ -711,46 +711,46 @@ export const ProfileChangeRequests = () => {
 
                 {/* Active Filter Pills Bar */}
                 {hasActiveFilters && (
-                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100 text-xs">
-                        <span className="text-gray-400 font-medium text-[11px]">Active Filters:</span>
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border text-xs">
+                        <span className="text-muted-text font-medium text-[11px]">Active Filters:</span>
                         {collegeFilter && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 font-semibold text-[11px]">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] font-semibold text-[11px]">
                                 <Building2 size={11} />
                                 <span className="max-w-[200px] truncate">{collegeFilter}</span>
-                                <button type="button" onClick={() => handleCollegeChange('')} className="hover:text-indigo-900 cursor-pointer ml-0.5">
+                                <button type="button" onClick={() => handleCollegeChange('')} className="hover:text-primary cursor-pointer ml-0.5">
                                     <X size={12} />
                                 </button>
                             </span>
                         )}
                         {courseFilter && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-purple-50 text-purple-700 border border-purple-100 font-semibold text-[11px]">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)] font-semibold text-[11px]">
                                 <GraduationCap size={11} />
                                 <span>{courseFilter}</span>
-                                <button type="button" onClick={() => handleCourseChange('')} className="hover:text-purple-900 cursor-pointer ml-0.5">
+                                <button type="button" onClick={() => handleCourseChange('')} className="hover:text-secondary cursor-pointer ml-0.5">
                                     <X size={12} />
                                 </button>
                             </span>
                         )}
                         {branchFilter && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-100 font-semibold text-[11px]">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] font-semibold text-[11px]">
                                 <span>Branch: {branchFilter}</span>
-                                <button type="button" onClick={() => handleBranchChange('')} className="hover:text-blue-900 cursor-pointer ml-0.5">
+                                <button type="button" onClick={() => handleBranchChange('')} className="hover:text-primary cursor-pointer ml-0.5">
                                     <X size={12} />
                                 </button>
                             </span>
                         )}
                         {statusFilter !== 'pending' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 text-gray-700 font-semibold text-[11px] capitalize">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-background text-sub font-semibold text-[11px] capitalize">
                                 <span>Status: {statusFilter}</span>
-                                <button type="button" onClick={() => handleStatusChange('pending')} className="hover:text-gray-900 cursor-pointer ml-0.5">
+                                <button type="button" onClick={() => handleStatusChange('pending')} className="hover:text-main cursor-pointer ml-0.5">
                                     <X size={12} />
                                 </button>
                             </span>
                         )}
                         {searchTerm && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-100 font-semibold text-[11px]">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] font-semibold text-[11px]">
                                 <span>Search: "{searchTerm}"</span>
-                                <button type="button" onClick={() => setSearchTerm('')} className="hover:text-amber-900 cursor-pointer ml-0.5">
+                                <button type="button" onClick={() => setSearchTerm('')} className="hover:text-warning cursor-pointer ml-0.5">
                                     <X size={12} />
                                 </button>
                             </span>
@@ -758,7 +758,7 @@ export const ProfileChangeRequests = () => {
                         <button
                             type="button"
                             onClick={handleResetAllFilters}
-                            className="ml-auto text-xs font-semibold text-rose-600 hover:text-rose-800 hover:underline cursor-pointer"
+                            className="ml-auto text-xs font-semibold text-danger hover:text-danger hover:underline cursor-pointer"
                         >
                             Reset All Filters
                         </button>
@@ -767,59 +767,59 @@ export const ProfileChangeRequests = () => {
             </div>
 
             {/* 4. Requests Table */}
-            <div className="bg-white rounded-2xl shadow-xs border border-gray-100 overflow-hidden">
-                <div className="px-5 py-3.5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                    <p className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+            <div className="bg-surface rounded-2xl shadow-xs border border-border overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-border bg-[var(--background)]/50 flex items-center justify-between">
+                    <p className="text-xs font-bold text-sub uppercase tracking-wider">
                         Requests List ({(pagination.total || requests.length).toLocaleString()} matching)
                     </p>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-muted-text">
                         {statusFilter === 'all' ? 'All statuses' : `Showing ${statusFilter} only`}
                     </span>
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50/80 sticky top-0 z-10">
-                            <tr className="border-b border-gray-200/80">
-                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Student Details</th>
-                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">College & Program</th>
-                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Requested Changes</th>
-                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Submitted</th>
+                    <table className="min-w-full divide-y divide-border">
+                        <thead className="bg-[var(--background)]/80 sticky top-0 z-10">
+                            <tr className="border-b border-border">
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-muted-text uppercase tracking-wider">Student Details</th>
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-muted-text uppercase tracking-wider">College & Program</th>
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-muted-text uppercase tracking-wider">Requested Changes</th>
+                                <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-muted-text uppercase tracking-wider">Submitted</th>
                                 {statusFilter === 'approved' && (
                                     <>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Approved Time</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Approved By</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-muted-text uppercase tracking-wider">Approved Time</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-muted-text uppercase tracking-wider">Approved By</th>
                                     </>
                                 )}
                                 {statusFilter === 'rejected' && (
                                     <>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Rejected Time</th>
-                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Rejected By</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-muted-text uppercase tracking-wider">Rejected Time</th>
+                                        <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-muted-text uppercase tracking-wider">Rejected By</th>
                                     </>
                                 )}
                                 {statusFilter === 'all' && (
-                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Review Details</th>
+                                    <th className="px-3.5 py-2.5 text-left text-[11px] font-bold text-muted-text uppercase tracking-wider">Review Details</th>
                                 )}
-                                <th className="px-3 py-2.5 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">Action</th>
+                                <th className="px-3 py-2.5 text-center text-[11px] font-bold text-muted-text uppercase tracking-wider">Status</th>
+                                <th className="px-3.5 py-2.5 text-right text-[11px] font-bold text-muted-text uppercase tracking-wider">Action</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-100">
+                        <tbody className="bg-surface divide-y divide-border">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={tableColSpan} className="px-6 py-16 text-center text-gray-500">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-3"></div>
-                                        <p className="text-xs font-semibold text-gray-600">Loading student requests...</p>
+                                    <td colSpan={tableColSpan} className="px-6 py-16 text-center text-muted-text">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3"></div>
+                                        <p className="text-xs font-semibold text-sub">Loading student requests...</p>
                                     </td>
                                 </tr>
                             ) : filteredRequests.length === 0 ? (
                                 <tr>
-                                    <td colSpan={tableColSpan} className="px-6 py-16 text-center text-gray-500">
-                                        <div className="bg-gray-50 rounded-2xl w-14 h-14 flex items-center justify-center mx-auto mb-3 border border-gray-100">
-                                            <AlertCircle size={28} className="text-gray-400" />
+                                    <td colSpan={tableColSpan} className="px-6 py-16 text-center text-muted-text">
+                                        <div className="bg-background rounded-2xl w-14 h-14 flex items-center justify-center mx-auto mb-3 border border-border">
+                                            <AlertCircle size={28} className="text-muted-text" />
                                         </div>
-                                        <p className="text-base font-bold text-gray-800">No profile change requests found</p>
-                                        <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+                                        <p className="text-base font-bold text-main">No profile change requests found</p>
+                                        <p className="text-xs text-muted-text mt-1 max-w-sm mx-auto">
                                             {hasActiveFilters
                                                 ? 'Try clearing some of your filters or switching college to see requests.'
                                                 : 'There are currently no requests matching this status.'}
@@ -828,7 +828,7 @@ export const ProfileChangeRequests = () => {
                                             <button
                                                 type="button"
                                                 onClick={handleResetAllFilters}
-                                                className="mt-3 px-3.5 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                                                className="mt-3 px-3.5 py-1.5 bg-[var(--primary-light)] text-primary hover:bg-[var(--primary-light)] rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                                             >
                                                 Clear all filters
                                             </button>
@@ -843,7 +843,7 @@ export const ProfileChangeRequests = () => {
                                     const photoSrc = getPhotoSrc(req.student_photo);
 
                                     return (
-                                        <tr key={req.id} className="hover:bg-indigo-50/20 transition-colors border-b border-gray-100 last:border-b-0">
+                                        <tr key={req.id} className="hover:bg-[var(--primary-light)] transition-colors border-b border-border last:border-b-0">
                                             {/* Column 1: Student Details with Photo */}
                                             <td className="px-3.5 py-2 whitespace-nowrap">
                                                 <div className="flex items-center gap-2.5">
@@ -852,7 +852,7 @@ export const ProfileChangeRequests = () => {
                                                             <img
                                                                 src={photoSrc}
                                                                 alt={req.student_name || 'Student'}
-                                                                className="h-8 w-8 rounded-lg object-cover border border-gray-200 shadow-2xs"
+                                                                className="h-8 w-8 rounded-lg object-cover border border-border shadow-2xs"
                                                                 onError={(e) => {
                                                                     e.currentTarget.style.display = 'none';
                                                                     const fb = e.currentTarget.parentElement?.querySelector('.avatar-fallback');
@@ -861,20 +861,20 @@ export const ProfileChangeRequests = () => {
                                                             />
                                                         ) : null}
                                                         <div
-                                                            className="avatar-fallback h-8 w-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-[11px] shadow-2xs"
+                                                            className="avatar-fallback h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-[11px] shadow-2xs"
                                                             style={{ display: photoSrc ? 'none' : 'flex' }}
                                                         >
                                                             {initial}
                                                         </div>
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <div className="text-xs font-bold text-gray-900 leading-snug truncate max-w-[170px]" title={req.student_name}>
+                                                        <div className="text-xs font-bold text-main leading-snug truncate max-w-[170px]" title={req.student_name}>
                                                             {req.student_name || 'Unknown Student'}
                                                         </div>
-                                                        <div className="text-[10px] text-gray-500 font-mono flex items-center gap-1.5 leading-none mt-0.5">
+                                                        <div className="text-[10px] text-muted-text font-mono flex items-center gap-1.5 leading-none mt-0.5">
                                                             <span>Adm: {req.admission_number}</span>
                                                             {req.pin_no && (
-                                                                <span className="text-indigo-600 font-semibold">• {req.pin_no}</span>
+                                                                <span className="text-primary font-semibold">• {req.pin_no}</span>
                                                             )}
                                                         </div>
                                                     </div>
@@ -884,19 +884,19 @@ export const ProfileChangeRequests = () => {
                                             {/* Column 2: Single Cell for College, Course, Branch & Year */}
                                             <td className="px-3.5 py-2">
                                                 <div className="max-w-[210px] space-y-0.5">
-                                                    <div className="text-xs font-bold text-gray-800 truncate" title={req.college}>
+                                                    <div className="text-xs font-bold text-main truncate" title={req.college}>
                                                         {req.college || '—'}
                                                     </div>
-                                                    <div className="flex items-center gap-1 text-[11px] text-gray-600 truncate flex-wrap">
-                                                        <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 shrink-0">
+                                                    <div className="flex items-center gap-1 text-[11px] text-sub truncate flex-wrap">
+                                                        <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] shrink-0">
                                                             {req.course || '—'}
                                                         </span>
-                                                        <span className="font-medium text-gray-700 truncate" title={req.branch}>
+                                                        <span className="font-medium text-sub truncate" title={req.branch}>
                                                             {req.branch || '—'}
                                                         </span>
                                                     </div>
                                                     {(req.current_year || req.batch) && (
-                                                        <div className="text-[10px] text-gray-400 font-medium">
+                                                        <div className="text-[10px] text-muted-text font-medium">
                                                             {req.current_year ? `Year ${req.current_year}` : ''}
                                                             {req.current_semester ? ` • Sem ${req.current_semester}` : ''}
                                                             {req.batch ? ` (Batch ${req.batch})` : ''}
@@ -911,14 +911,14 @@ export const ProfileChangeRequests = () => {
                                                     {changeKeys.slice(0, 2).map((key) => (
                                                         <span
                                                             key={key}
-                                                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-indigo-700 border border-blue-100"
+                                                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]"
                                                         >
                                                             {formatKey(key)}
                                                         </span>
                                                     ))}
                                                     {changeKeys.length > 2 && (
                                                         <span
-                                                            className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-bold bg-gray-100 text-gray-600"
+                                                            className="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-bold bg-background text-sub"
                                                             title={changeKeys.slice(2).map(formatKey).join(', ')}
                                                         >
                                                             +{changeKeys.length - 2}
@@ -928,15 +928,15 @@ export const ProfileChangeRequests = () => {
                                             </td>
 
                                             {/* Column 4: Submitted Date */}
-                                            <td className="px-3.5 py-2 whitespace-nowrap text-xs text-gray-500">
-                                                <div className="font-semibold text-gray-800 text-[11px]">
+                                            <td className="px-3.5 py-2 whitespace-nowrap text-xs text-muted-text">
+                                                <div className="font-semibold text-main text-[11px]">
                                                     {new Date(req.created_at).toLocaleDateString('en-US', {
                                                         month: 'short',
                                                         day: 'numeric',
                                                         year: 'numeric'
                                                     })}
                                                 </div>
-                                                <div className="text-[10px] text-gray-400">
+                                                <div className="text-[10px] text-muted-text">
                                                     {new Date(req.created_at).toLocaleTimeString('en-US', {
                                                         hour: '2-digit',
                                                         minute: '2-digit'
@@ -948,8 +948,8 @@ export const ProfileChangeRequests = () => {
                                             {statusFilter === 'approved' && (
                                                 <>
                                                     <td className="px-3.5 py-2 whitespace-nowrap text-xs">
-                                                        <div className="font-semibold text-gray-900 text-[11px] flex items-center gap-1">
-                                                            <Clock size={11} className="text-emerald-600 shrink-0" />
+                                                        <div className="font-semibold text-main text-[11px] flex items-center gap-1">
+                                                            <Clock size={11} className="text-success shrink-0" />
                                                             <span>
                                                                 {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleDateString('en-US', {
                                                                     month: 'short',
@@ -958,7 +958,7 @@ export const ProfileChangeRequests = () => {
                                                                 })}
                                                             </span>
                                                         </div>
-                                                        <div className="text-[10px] font-semibold text-emerald-600 pl-3.5">
+                                                        <div className="text-[10px] font-semibold text-success pl-3.5">
                                                             {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleTimeString('en-US', {
                                                                 hour: '2-digit',
                                                                 minute: '2-digit'
@@ -966,8 +966,8 @@ export const ProfileChangeRequests = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-3.5 py-2 whitespace-nowrap">
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[10px] font-bold shadow-2xs">
-                                                            <UserCheck size={11} className="text-emerald-600 shrink-0" />
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--success-light)] text-success border border-[var(--success-light)] text-[10px] font-bold shadow-2xs">
+                                                            <UserCheck size={11} className="text-success shrink-0" />
                                                             <span>{req.reviewed_by || 'Admin'}</span>
                                                         </span>
                                                     </td>
@@ -978,8 +978,8 @@ export const ProfileChangeRequests = () => {
                                             {statusFilter === 'rejected' && (
                                                 <>
                                                     <td className="px-3.5 py-2 whitespace-nowrap text-xs">
-                                                        <div className="font-semibold text-gray-900 text-[11px] flex items-center gap-1">
-                                                            <Clock size={11} className="text-rose-500 shrink-0" />
+                                                        <div className="font-semibold text-main text-[11px] flex items-center gap-1">
+                                                            <Clock size={11} className="text-danger shrink-0" />
                                                             <span>
                                                                 {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleDateString('en-US', {
                                                                     month: 'short',
@@ -988,7 +988,7 @@ export const ProfileChangeRequests = () => {
                                                                 })}
                                                             </span>
                                                         </div>
-                                                        <div className="text-[10px] font-semibold text-rose-600 pl-3.5">
+                                                        <div className="text-[10px] font-semibold text-danger pl-3.5">
                                                             {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleTimeString('en-US', {
                                                                 hour: '2-digit',
                                                                 minute: '2-digit'
@@ -996,8 +996,8 @@ export const ProfileChangeRequests = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-3.5 py-2 whitespace-nowrap">
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200/80 text-[10px] font-bold shadow-2xs">
-                                                            <UserCheck size={11} className="text-rose-600 shrink-0" />
+                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] text-[10px] font-bold shadow-2xs">
+                                                            <UserCheck size={11} className="text-danger shrink-0" />
                                                             <span>{req.reviewed_by || 'Admin'}</span>
                                                         </span>
                                                     </td>
@@ -1009,39 +1009,39 @@ export const ProfileChangeRequests = () => {
                                                 <td className="px-3.5 py-2 whitespace-nowrap text-xs">
                                                     {req.status === 'approved' ? (
                                                         <div className="space-y-0.5">
-                                                            <div className="font-semibold text-gray-900 text-[11px] flex items-center gap-1">
-                                                                <Clock size={11} className="text-emerald-600 shrink-0" />
+                                                            <div className="font-semibold text-main text-[11px] flex items-center gap-1">
+                                                                <Clock size={11} className="text-success shrink-0" />
                                                                 <span>
                                                                     {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                                 </span>
-                                                                <span className="text-[10px] text-gray-400 font-normal">
+                                                                <span className="text-[10px] text-muted-text font-normal">
                                                                     {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                                                 </span>
                                                             </div>
-                                                            <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-800 border border-emerald-200/60 text-[10px] font-bold">
-                                                                <UserCheck size={10} className="text-emerald-600 shrink-0" />
+                                                            <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-[var(--success-light)] text-success border border-[var(--success-light)] text-[10px] font-bold">
+                                                                <UserCheck size={10} className="text-success shrink-0" />
                                                                 <span>{req.reviewed_by || 'Admin'}</span>
                                                             </div>
                                                         </div>
                                                     ) : req.status === 'rejected' ? (
                                                         <div className="space-y-0.5">
-                                                            <div className="font-semibold text-gray-900 text-[11px] flex items-center gap-1">
-                                                                <Clock size={11} className="text-rose-500 shrink-0" />
+                                                            <div className="font-semibold text-main text-[11px] flex items-center gap-1">
+                                                                <Clock size={11} className="text-danger shrink-0" />
                                                                 <span>
                                                                     {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                                 </span>
-                                                                <span className="text-[10px] text-gray-400 font-normal">
+                                                                <span className="text-[10px] text-muted-text font-normal">
                                                                     {new Date(req.updated_at || req.reviewed_at || req.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                                                 </span>
                                                             </div>
-                                                            <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-rose-50 text-rose-800 border border-rose-200/60 text-[10px] font-bold">
-                                                                <UserCheck size={10} className="text-rose-600 shrink-0" />
+                                                            <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] text-[10px] font-bold">
+                                                                <UserCheck size={10} className="text-danger shrink-0" />
                                                                 <span>{req.reviewed_by || 'Admin'}</span>
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <span className="text-[10px] text-amber-600 font-medium italic flex items-center gap-1">
-                                                            <Clock size={11} className="text-amber-500 shrink-0" />
+                                                        <span className="text-[10px] text-warning font-medium italic flex items-center gap-1">
+                                                            <Clock size={11} className="text-warning shrink-0" />
                                                             <span>Awaiting review</span>
                                                         </span>
                                                     )}
@@ -1052,17 +1052,17 @@ export const ProfileChangeRequests = () => {
                                             <td className="px-3 py-2 whitespace-nowrap text-center">
                                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold capitalize ${
                                                     req.status === 'approved'
-                                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                                        ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
                                                         : req.status === 'rejected'
-                                                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                                            ? 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
+                                                            : 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
                                                 }`}>
                                                     <span className={`w-1.5 h-1.5 rounded-full ${
                                                         req.status === 'approved'
-                                                            ? 'bg-emerald-500'
+                                                            ? 'bg-success'
                                                             : req.status === 'rejected'
-                                                                ? 'bg-rose-500'
-                                                                : 'bg-amber-500 animate-pulse'
+                                                                ? 'bg-danger'
+                                                                : 'bg-warning animate-pulse'
                                                     }`} />
                                                     {req.status || 'Pending'}
                                                 </span>
@@ -1083,7 +1083,7 @@ export const ProfileChangeRequests = () => {
                                                             console.error("Failed to fetch original student data:", err);
                                                         }
                                                     }}
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-gray-200 hover:border-indigo-400 hover:bg-indigo-50/50 rounded-lg text-[11px] font-bold text-gray-700 hover:text-indigo-700 transition-all shadow-2xs cursor-pointer"
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-surface border border-border hover:border-primary hover:bg-[var(--primary-light)] rounded-lg text-[11px] font-bold text-sub hover:text-primary transition-all shadow-2xs cursor-pointer"
                                                 >
                                                     <Eye size={12} />
                                                     <span>Review</span>
@@ -1099,31 +1099,31 @@ export const ProfileChangeRequests = () => {
 
                 {/* 5. Pagination Bar */}
                 {!loading && (pagination.total > 0 || requests.length > 0) && (
-                    <div className="px-5 py-3.5 border-t border-gray-100 bg-gray-50/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                    <div className="px-5 py-3.5 border-t border-border bg-[var(--background)]/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                         {/* Range info and page size selector */}
-                        <div className="flex items-center gap-3 text-gray-500 flex-wrap justify-center sm:justify-start">
+                        <div className="flex items-center gap-3 text-muted-text flex-wrap justify-center sm:justify-start">
                             <span>
                                 Showing{' '}
-                                <span className="font-bold text-gray-800">
+                                <span className="font-bold text-main">
                                     {pagination.total === 0 ? 0 : (currentPage - 1) * pageSize + 1}
                                 </span>{' '}
                                 to{' '}
-                                <span className="font-bold text-gray-800">
+                                <span className="font-bold text-main">
                                     {Math.min(currentPage * pageSize, pagination.total || requests.length)}
                                 </span>{' '}
                                 of{' '}
-                                <span className="font-bold text-gray-800">
+                                <span className="font-bold text-main">
                                     {(pagination.total || requests.length).toLocaleString()}
                                 </span>{' '}
                                 requests
                             </span>
-                            <span className="text-gray-300">|</span>
+                            <span className="text-muted-text">|</span>
                             <div className="flex items-center gap-1.5">
-                                <span className="text-gray-500 font-medium">Rows per page:</span>
+                                <span className="text-muted-text font-medium">Rows per page:</span>
                                 <select
                                     value={pageSize}
                                     onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                                    className="px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 outline-none cursor-pointer focus:ring-1 focus:ring-indigo-500 shadow-2xs"
+                                    className="px-2.5 py-1 bg-surface border border-border rounded-lg text-xs font-semibold text-sub outline-none cursor-pointer focus:ring-1 focus:ring-primary shadow-2xs"
                                 >
                                     <option value={10}>10</option>
                                     <option value={25}>25</option>
@@ -1139,7 +1139,7 @@ export const ProfileChangeRequests = () => {
                                 type="button"
                                 onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                                 disabled={currentPage <= 1 || loading}
-                                className="px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer font-medium shadow-2xs"
+                                className="px-2.5 py-1.5 rounded-lg border border-border bg-surface text-sub hover:bg-background hover:text-main disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer font-medium shadow-2xs"
                             >
                                 <ChevronLeft size={14} />
                                 <span>Prev</span>
@@ -1169,8 +1169,8 @@ export const ProfileChangeRequests = () => {
                                             disabled={loading}
                                             className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                                                 isActive
-                                                    ? 'bg-indigo-600 text-white shadow-2xs'
-                                                    : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                                                    ? 'bg-primary text-white shadow-2xs'
+                                                    : 'bg-surface border border-border text-sub hover:bg-background'
                                             }`}
                                         >
                                             {pageNum}
@@ -1183,7 +1183,7 @@ export const ProfileChangeRequests = () => {
                                 type="button"
                                 onClick={() => handlePageChange(Math.min(pagination.totalPages || 1, currentPage + 1))}
                                 disabled={currentPage >= (pagination.totalPages || 1) || loading}
-                                className="px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer font-medium shadow-2xs"
+                                className="px-2.5 py-1.5 rounded-lg border border-border bg-surface text-sub hover:bg-background hover:text-main disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-1 cursor-pointer font-medium shadow-2xs"
                             >
                                 <span>Next</span>
                                 <ChevronRight size={14} />
@@ -1196,30 +1196,30 @@ export const ProfileChangeRequests = () => {
             {/* 5. Review & Approval Modal */}
             {selectedRequest && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col relative my-auto border border-gray-100 overflow-hidden">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col relative my-auto border border-border overflow-hidden">
                         {/* Modal Header */}
-                        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-slate-50 via-white to-purple-50/30">
+                        <div className="flex justify-between items-center px-6 py-4 border-b border-border bg-gradient-to-r from-[var(--background)] via-surface to-[var(--primary-light)]">
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-lg font-bold text-gray-900">Review Profile Change Request</h2>
+                                    <h2 className="text-lg font-bold text-main">Review Profile Change Request</h2>
                                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold capitalize ${
                                         selectedRequest.status === 'pending'
-                                            ? 'bg-amber-100 text-amber-800'
+                                            ? 'bg-[var(--warning-light)] text-warning'
                                             : selectedRequest.status === 'approved'
-                                                ? 'bg-emerald-100 text-emerald-800'
-                                                : 'bg-rose-100 text-rose-800'
+                                                ? 'bg-[var(--success-light)] text-success'
+                                                : 'bg-[var(--danger-light)] text-danger'
                                     }`}>
                                         {selectedRequest.status}
                                     </span>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-0.5">
+                                <p className="text-xs text-muted-text mt-0.5">
                                     Submitted on {new Date(selectedRequest.created_at).toLocaleString()}
                                 </p>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setSelectedRequest(null)}
-                                className="p-1.5 hover:bg-gray-100 rounded-xl transition-colors text-gray-400 hover:text-gray-700 cursor-pointer"
+                                className="p-1.5 hover:bg-background rounded-xl transition-colors text-muted-text hover:text-sub cursor-pointer"
                             >
                                 <X size={20} />
                             </button>
@@ -1228,17 +1228,17 @@ export const ProfileChangeRequests = () => {
                         {/* Modal Body */}
                         <div className="p-6 overflow-y-auto max-h-[65vh] space-y-5">
                             {/* Student Metadata Card */}
-                            <div className="bg-gray-50/80 p-4 rounded-xl border border-gray-200/80">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">
+                            <div className="bg-[var(--background)]/80 p-4 rounded-xl border border-border">
+                                <p className="text-[10px] font-bold text-muted-text uppercase tracking-wider mb-2.5">
                                     Student Record Information
                                 </p>
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-3 pb-3 border-b border-gray-200">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-3 pb-3 border-b border-border">
                                     <div className="relative h-14 w-14 shrink-0">
                                         {getPhotoSrc(selectedRequest.student_photo) ? (
                                             <img
                                                 src={getPhotoSrc(selectedRequest.student_photo)}
                                                 alt={selectedRequest.student_name}
-                                                className="h-14 w-14 rounded-2xl object-cover border-2 border-white shadow-md"
+                                                className="h-14 w-14 rounded-2xl object-cover border-2 border-surface shadow-md"
                                                 onError={(e) => {
                                                     e.currentTarget.style.display = 'none';
                                                     const fb = e.currentTarget.parentElement?.querySelector('.modal-avatar-fallback');
@@ -1247,18 +1247,18 @@ export const ProfileChangeRequests = () => {
                                             />
                                         ) : null}
                                         <div
-                                            className="modal-avatar-fallback h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-black text-lg shadow-md"
+                                            className="modal-avatar-fallback h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-black text-lg shadow-md"
                                             style={{ display: getPhotoSrc(selectedRequest.student_photo) ? 'none' : 'flex' }}
                                         >
                                             {selectedRequest.student_name ? selectedRequest.student_name.trim().charAt(0).toUpperCase() : '?'}
                                         </div>
                                     </div>
                                     <div>
-                                        <h3 className="text-base font-bold text-gray-900 leading-tight">
+                                        <h3 className="text-base font-bold text-main leading-tight">
                                             {selectedRequest.student_name || 'Unknown Student'}
                                         </h3>
-                                        <div className="text-xs text-gray-500 font-mono mt-1 flex flex-wrap items-center gap-2">
-                                            <span className="font-semibold text-indigo-700">Adm: {selectedRequest.admission_number}</span>
+                                        <div className="text-xs text-muted-text font-mono mt-1 flex flex-wrap items-center gap-2">
+                                            <span className="font-semibold text-primary">Adm: {selectedRequest.admission_number}</span>
                                             {selectedRequest.pin_no && <span>• PIN: {selectedRequest.pin_no}</span>}
                                             {selectedRequest.batch && <span>• Batch: {selectedRequest.batch}</span>}
                                         </div>
@@ -1266,28 +1266,28 @@ export const ProfileChangeRequests = () => {
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                                     <div>
-                                        <span className="text-gray-500 block text-[11px]">Student Name</span>
-                                        <span className="font-bold text-gray-900">{selectedRequest.student_name}</span>
+                                        <span className="text-muted-text block text-[11px]">Student Name</span>
+                                        <span className="font-bold text-main">{selectedRequest.student_name}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-500 block text-[11px]">Admission Number</span>
-                                        <span className="font-bold text-indigo-700 font-mono">{selectedRequest.admission_number}</span>
+                                        <span className="text-muted-text block text-[11px]">Admission Number</span>
+                                        <span className="font-bold text-primary font-mono">{selectedRequest.admission_number}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-500 block text-[11px]">College</span>
-                                        <span className="font-bold text-gray-800">{selectedRequest.college || '—'}</span>
+                                        <span className="text-muted-text block text-[11px]">College</span>
+                                        <span className="font-bold text-main">{selectedRequest.college || '—'}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-500 block text-[11px]">Course & Branch</span>
-                                        <span className="font-bold text-gray-800">{selectedRequest.course} ({selectedRequest.branch})</span>
+                                        <span className="text-muted-text block text-[11px]">Course & Branch</span>
+                                        <span className="font-bold text-main">{selectedRequest.course} ({selectedRequest.branch})</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-500 block text-[11px]">Year & Semester</span>
-                                        <span className="font-bold text-gray-800">Year {selectedRequest.current_year || '?'} • Sem {selectedRequest.current_semester || '?'}</span>
+                                        <span className="text-muted-text block text-[11px]">Year & Semester</span>
+                                        <span className="font-bold text-main">Year {selectedRequest.current_year || '?'} • Sem {selectedRequest.current_semester || '?'}</span>
                                     </div>
                                     <div>
-                                        <span className="text-gray-500 block text-[11px]">Request ID</span>
-                                        <span className="font-mono text-gray-600">#{selectedRequest.id}</span>
+                                        <span className="text-muted-text block text-[11px]">Request ID</span>
+                                        <span className="font-mono text-sub">#{selectedRequest.id}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1295,10 +1295,10 @@ export const ProfileChangeRequests = () => {
                             {/* Side-by-Side Comparison of Changes */}
                             <div>
                                 <div className="flex items-center justify-between mb-2.5">
-                                    <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                                    <h3 className="text-xs font-bold text-sub uppercase tracking-wider">
                                         Proposed Updates Comparison
                                     </h3>
-                                    <span className="text-[11px] text-gray-400">
+                                    <span className="text-[11px] text-muted-text">
                                         {Object.keys(parseChanges(selectedRequest.requested_changes)).length} field(s) modified
                                     </span>
                                 </div>
@@ -1319,26 +1319,26 @@ export const ProfileChangeRequests = () => {
                                         return (
                                             <div
                                                 key={key}
-                                                className="p-3 bg-white rounded-xl border border-gray-200 shadow-2xs hover:border-indigo-200 transition-colors"
+                                                className="p-3 bg-surface rounded-xl border border-border shadow-2xs hover:border-[var(--primary-light)] transition-colors"
                                             >
-                                                <span className="text-xs font-bold text-gray-900 block mb-2">
+                                                <span className="text-xs font-bold text-main block mb-2">
                                                     {formatKey(key)}
                                                 </span>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 items-center">
-                                                    <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-200 text-xs">
-                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">
+                                                    <div className="p-2.5 rounded-lg bg-background border border-border text-xs">
+                                                        <span className="text-[10px] font-bold text-muted-text uppercase tracking-wider block mb-0.5">
                                                             Current in Database
                                                         </span>
-                                                        <span className="font-medium text-gray-600 break-words">
+                                                        <span className="font-medium text-sub break-words">
                                                             {String(oldVal ?? '(Empty / Not Provided)')}
                                                         </span>
                                                     </div>
 
-                                                    <div className="p-2.5 rounded-lg bg-blue-50/70 border border-blue-200 text-xs">
-                                                        <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider block mb-0.5">
+                                                    <div className="p-2.5 rounded-lg bg-[var(--primary-light)] border border-[var(--primary-light)] text-xs">
+                                                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider block mb-0.5">
                                                             Student Requested New Value
                                                         </span>
-                                                        <span className="font-bold text-indigo-900 break-words">
+                                                        <span className="font-bold text-primary break-words">
                                                             {String(value ?? '(Empty)')}
                                                         </span>
                                                     </div>
@@ -1352,7 +1352,7 @@ export const ProfileChangeRequests = () => {
                             {/* Reviewer Comments */}
                             {selectedRequest.status === 'pending' && canManageRequests && (
                                 <div>
-                                    <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-1.5">
+                                    <label className="text-xs font-bold text-sub uppercase tracking-wider block mb-1.5">
                                         Reviewer Comments / Reason (Optional)
                                     </label>
                                     <textarea
@@ -1360,14 +1360,14 @@ export const ProfileChangeRequests = () => {
                                         onChange={(e) => setReviewComments(e.target.value)}
                                         placeholder="Add approval note or reason if rejecting request..."
                                         rows={3}
-                                        className="w-full p-3 text-xs sm:text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none bg-gray-50/30 focus:bg-white"
+                                        className="w-full p-3 text-xs sm:text-sm border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none bg-[var(--background)]/30 focus:bg-surface"
                                     />
                                 </div>
                             )}
 
                             {selectedRequest.status === 'pending' && !canManageRequests && (
-                                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 flex items-center gap-2">
-                                    <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                                <div className="bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl p-3 text-xs text-warning flex items-center gap-2">
+                                    <AlertCircle size={16} className="text-warning shrink-0" />
                                     <span>You have Read-Only permissions for profile change requests.</span>
                                 </div>
                             )}
@@ -1376,47 +1376,47 @@ export const ProfileChangeRequests = () => {
                             {selectedRequest.status !== 'pending' && (
                                 <div className={`p-4 rounded-xl border text-xs space-y-2.5 ${
                                     selectedRequest.status === 'approved'
-                                        ? 'bg-emerald-50/50 border-emerald-200'
-                                        : 'bg-rose-50/50 border-rose-200'
+                                        ? 'bg-[var(--success-light)] border-[var(--success-light)]'
+                                        : 'bg-[var(--danger-light)] border-[var(--danger-light)]'
                                 }`}>
                                     <p className={`font-bold uppercase text-[10px] tracking-wider flex items-center gap-1.5 ${
-                                        selectedRequest.status === 'approved' ? 'text-emerald-800' : 'text-rose-800'
+                                        selectedRequest.status === 'approved' ? 'text-success' : 'text-danger'
                                     }`}>
                                         {selectedRequest.status === 'approved' ? (
                                             <>
-                                                <CheckCircle2 size={13} className="text-emerald-600" />
+                                                <CheckCircle2 size={13} className="text-success" />
                                                 <span>Approval History</span>
                                             </>
                                         ) : (
                                             <>
-                                                <XCircle size={13} className="text-rose-600" />
+                                                <XCircle size={13} className="text-danger" />
                                                 <span>Rejection History</span>
                                             </>
                                         )}
                                     </p>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <span className="text-gray-500 block text-[10px] font-medium">
+                                            <span className="text-muted-text block text-[10px] font-medium">
                                                 {selectedRequest.status === 'approved' ? 'Approved By' : 'Rejected By'}
                                             </span>
-                                            <span className="font-bold text-gray-900 flex items-center gap-1.5 mt-0.5">
-                                                <UserCheck size={13} className={selectedRequest.status === 'approved' ? 'text-emerald-600' : 'text-rose-600'} />
+                                            <span className="font-bold text-main flex items-center gap-1.5 mt-0.5">
+                                                <UserCheck size={13} className={selectedRequest.status === 'approved' ? 'text-success' : 'text-danger'} />
                                                 <span>{selectedRequest.reviewed_by || 'Admin'}</span>
                                             </span>
                                         </div>
                                         <div>
-                                            <span className="text-gray-500 block text-[10px] font-medium">
+                                            <span className="text-muted-text block text-[10px] font-medium">
                                                 {selectedRequest.status === 'approved' ? 'Approved Time' : 'Rejected Time'}
                                             </span>
-                                            <span className="font-bold text-gray-900 flex items-center gap-1.5 mt-0.5">
-                                                <Clock size={13} className="text-gray-400" />
+                                            <span className="font-bold text-main flex items-center gap-1.5 mt-0.5">
+                                                <Clock size={13} className="text-muted-text" />
                                                 <span>{new Date(selectedRequest.updated_at || selectedRequest.created_at).toLocaleString()}</span>
                                             </span>
                                         </div>
                                         {selectedRequest.comments && (
-                                            <div className="col-span-2 mt-1 pt-2 border-t border-gray-200/70">
-                                                <span className="text-gray-500 block text-[10px] font-medium">Comments / Reason</span>
-                                                <span className="font-medium text-gray-800 italic block mt-0.5">{selectedRequest.comments}</span>
+                                            <div className="col-span-2 mt-1 pt-2 border-t border-border">
+                                                <span className="text-muted-text block text-[10px] font-medium">Comments / Reason</span>
+                                                <span className="font-medium text-main italic block mt-0.5">{selectedRequest.comments}</span>
                                             </div>
                                         )}
                                     </div>
@@ -1426,18 +1426,18 @@ export const ProfileChangeRequests = () => {
 
                         {/* Modal Footer Actions */}
                         {selectedRequest.status === 'pending' && canManageRequests ? (
-                            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2.5 bg-gray-50/80">
+                            <div className="px-6 py-4 border-t border-border flex items-center justify-end gap-2.5 bg-[var(--background)]/80">
                                 <button
                                     type="button"
                                     onClick={() => setSelectedRequest(null)}
-                                    className="px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-200 rounded-xl transition-colors cursor-pointer"
+                                    className="px-4 py-2 text-xs font-semibold text-sub hover:bg-background rounded-xl transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => handleReview('rejected')}
-                                    className="px-4 py-2 text-xs font-bold rounded-xl text-rose-700 bg-rose-100 hover:bg-rose-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+                                    className="px-4 py-2 text-xs font-bold rounded-xl text-danger bg-[var(--danger-light)] hover:bg-[var(--danger-light)] flex items-center gap-1.5 transition-colors cursor-pointer"
                                 >
                                     <X size={15} />
                                     <span>Reject Request</span>
@@ -1445,18 +1445,18 @@ export const ProfileChangeRequests = () => {
                                 <button
                                     type="button"
                                     onClick={() => handleReview('approved')}
-                                    className="px-4 py-2 text-xs font-bold rounded-xl text-white bg-emerald-600 hover:bg-emerald-700 flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                                    className="px-4 py-2 text-xs font-bold rounded-xl text-white bg-success hover:bg-success flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
                                 >
                                     <Check size={15} />
                                     <span>Approve & Update Record</span>
                                 </button>
                             </div>
                         ) : (
-                            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end bg-gray-50/80">
+                            <div className="px-6 py-4 border-t border-border flex items-center justify-end bg-[var(--background)]/80">
                                 <button
                                     type="button"
                                     onClick={() => setSelectedRequest(null)}
-                                    className="px-4 py-2 text-xs font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-xl transition-colors cursor-pointer"
+                                    className="px-4 py-2 text-xs font-semibold bg-background text-sub hover:bg-background rounded-xl transition-colors cursor-pointer"
                                 >
                                     Close
                                 </button>

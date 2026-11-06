@@ -8,7 +8,7 @@ const StudentScholarship = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-3">
       <div>
-        <h1 className="text-lg sm:text-xl font-extrabold text-[#1e3a8a] tracking-tight">Student Scholarship</h1>
+        <h1 className="text-lg sm:text-xl font-extrabold text-[var(--primary)] tracking-tight">Student Scholarship</h1>
       </div>
 
       <StudentScholarshipHistoryTab

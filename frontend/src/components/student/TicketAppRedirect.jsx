@@ -12,8 +12,8 @@ const TicketAppRedirect = ({ redirectPath }) => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[40vh] text-center px-4">
-      <div className="w-12 h-12 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mb-4" />
-      <p className="text-sm font-semibold text-gray-700">Opening Maintenance portal...</p>
+      <div className="w-12 h-12 border-4 border-info border-t-transparent rounded-full animate-spin mb-4" />
+      <p className="text-sm font-semibold text-sub">Opening Maintenance portal...</p>
     </div>
   );
 };

@@ -520,46 +520,46 @@ const AdminLayout = () => {
 
   if (isEmbedded) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-surface">
         <Outlet />
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 text-gray-900 relative">
+    <div className="flex h-screen overflow-hidden bg-background text-main relative">
       {/* 1. Global Sidebars & Overlays (Stacking Context Fix) */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[90] lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-[var(--sidebar)]/60 backdrop-blur-sm z-[90] lg:hidden transition-opacity duration-300"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       <aside
         className={`
-          hidden lg:flex flex-col bg-[#11180F] border-r border-white/10 transition-all duration-300 ease-in-out z-40
-          ${sidebarCollapsed ? "w-20" : "w-64"}
+          hidden lg:flex flex-col bg-[var(--success)] border-r border-surface transition-all duration-300 ease-in-out z-40
+          ${sidebarCollapsed ? "w-20" : "w-72"}
           premium-stars-sidebar
         `}
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* Logo and Close Button */}
           <div
-            className={`border-b border-white/10 flex items-center transition-[padding,justify-content] duration-300 ease-out ${sidebarCollapsed ? "justify-center p-3 lg:p-4" : "justify-between p-4 lg:p-6"}`}
+            className={`border-b border-surface flex items-center transition-[padding,justify-content] duration-300 ease-out ${sidebarCollapsed ? "justify-center p-3 lg:p-4" : "justify-between px-4 py-4 sm:px-5"}`}
           >
-            <div className={`flex items-center gap-3 transition-all duration-300 ${sidebarCollapsed ? 'justify-center w-10 h-10' : 'w-full px-2'}`}>
+            <div className={`flex items-center gap-3 transition-all duration-300 ${sidebarCollapsed ? 'justify-center w-10 h-10' : 'flex-1 min-w-0'}`}>
               {!sidebarCollapsed && (
-                <div className="p-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/10 shadow-lg flex items-center justify-center shrink-0">
+                <div className="p-2 rounded-lg bg-[var(--surface)]/10 backdrop-blur-md border border-surface shadow-lg flex items-center justify-center shrink-0">
                   <Building2 size={20} className="text-white" />
                 </div>
               )}
               {!sidebarCollapsed && (
-                <div className="flex flex-col">
-                  <span className="text-lg font-bold tracking-wider !text-white heading-font">
-                    PYDAH
+                <div className="flex flex-col min-w-0">
+                  <span className="text-base sm:text-lg font-bold tracking-wider !text-white heading-font whitespace-nowrap">
+                    CAMPO SD
                   </span>
-                  <span className="text-[10px] text-gray-300 font-medium uppercase tracking-tight">
+                  <span className="text-[10px] text-muted-text font-medium uppercase tracking-tight whitespace-nowrap">
                     {user?.role ? (ROLE_LABELS[user.role] || user.role.replace('_', ' ')) : "ADMIN"}
                   </span>
                 </div>
@@ -574,7 +574,7 @@ const AdminLayout = () => {
                   setSidebarCollapsed(!sidebarCollapsed);
                 }
               }}
-              className="p-2.5 rounded-lg text-gray-100 hover:text-white transition-all flex-shrink-0 touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center bg-transparent"
+              className="p-2.5 rounded-lg text-muted-text hover:text-white transition-all flex-shrink-0 touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center bg-transparent"
               aria-label={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
             >
               {window.innerWidth < 1024 ? (
@@ -604,7 +604,7 @@ const AdminLayout = () => {
                         toggleSubmenu(item.path);
                       }}
                       className={`w-full flex items-center justify-between rounded-lg transition-all duration-200 gap-3 px-3 py-2.5 min-h-[44px]
-                        ${isActive && !isExpanded ? "bg-[#4a5d3f] text-white font-semibold shadow-md active" : isExpanded ? "bg-white/5 text-white font-medium" : "text-gray-100/90 hover:bg-white/10 hover:text-white"}`}
+                        ${isActive && !isExpanded ? "bg-[var(--success)] text-white font-semibold shadow-md active" : isExpanded ? "bg-[var(--surface)]/5 text-white font-medium" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white"}`}
                     >
                       <div className="flex items-center gap-2 flex-1">
                         <Icon size={18} className="flex-shrink-0" />
@@ -613,7 +613,7 @@ const AdminLayout = () => {
                       {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                     </button>
                     {isExpanded && (
-                      <div className="ml-2 space-y-0.5 pl-6 py-2 border-l-2 border-[#4a5d3f] bg-gradient-to-r from-white/5 to-transparent rounded-r-md">
+                      <div className="ml-2 space-y-0.5 pl-6 py-2 border-l-2 border-[var(--success)] rounded-r-md">
                         {item.subItems.map((subItem) => {
                           const currentFullPath = location.pathname + location.search;
                           let isSubActive = false;
@@ -634,9 +634,9 @@ const AdminLayout = () => {
                               to={subItem.path}
                               onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false); }}
                               className={`flex items-center rounded-md transition-all duration-200 gap-2 px-2 py-1.5 text-[11px] font-medium relative min-h-[36px]
-                                ${isSubActive ? "bg-[#4a5d3f] text-white font-semibold shadow-lg scale-[1.02] active" : "text-gray-200/80 hover:bg-white/10 hover:text-white hover:translate-x-1"}`}
+                                ${isSubActive ? "bg-[var(--success)] text-white font-semibold shadow-lg scale-[1.02] active" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white hover:translate-x-1"}`}
                             >
-                              <SubIcon size={14} className={isSubActive ? "text-white" : "text-gray-400"} />
+                              <SubIcon size={14} className={isSubActive ? "text-white" : "text-muted-text"} />
                               <span className="whitespace-nowrap">{subItem.label}</span>
                             </Link>
                           );
@@ -654,7 +654,7 @@ const AdminLayout = () => {
                   onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false); }}
                   className={`flex items-center rounded-md transition-all duration-200 
                     ${sidebarCollapsed ? "justify-center px-1.5 py-3" : "gap-2 px-2.5 py-2"}
-                    ${isActive ? "bg-[#4a5d3f] text-white font-semibold shadow-md active" : "text-gray-100/90 hover:bg-white/10 hover:text-white"}`}
+                    ${isActive ? "bg-[var(--success)] text-white font-semibold shadow-md active" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white"}`}
                   title={sidebarCollapsed ? item.label : ""}
                 >
                   <Icon size={18} className="flex-shrink-0" />
@@ -665,15 +665,15 @@ const AdminLayout = () => {
           </nav>
 
           {/* Footer of Sidebar */}
-          <div className={`border-t border-white/10 ${sidebarCollapsed ? "p-2" : "p-4"} space-y-4`}>
+          <div className={`border-t border-surface ${sidebarCollapsed ? "p-2" : "p-4"} space-y-4`}>
             <div className={`flex items-center ${sidebarCollapsed ? "flex-col gap-3" : "justify-between"}`}>
               <Link to="/profile" onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false); }} className="flex items-center gap-2 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
                   <span className="text-white text-xs font-bold">{user?.username?.charAt(0).toUpperCase()}</span>
                 </div>
                 {!sidebarCollapsed && <span className="text-sm text-white truncate">{user?.name || user?.username}</span>}
               </Link>
-              <button onClick={handleLogout} className="p-2 rounded-lg hover:bg-red-500/10 text-gray-100 hover:text-red-400">
+              <button onClick={handleLogout} className="p-2 rounded-lg hover:bg-[var(--danger-light)] text-muted-text hover:text-danger">
                 <LogOut size={18} />
               </button>
             </div>
@@ -683,7 +683,7 @@ const AdminLayout = () => {
 
       {/* 2. Main Content Area */}
       <main className={`flex-1 h-screen overflow-y-auto overflow-x-hidden transition-all duration-300 pb-20 lg:pb-0`}>
-        <div className="p-4 lg:p-8 bg-gray-50/20 min-h-full">
+        <div className="p-4 lg:p-8 bg-[var(--background)]/20 min-h-full">
           <Outlet />
         </div>
       </main>
@@ -698,7 +698,7 @@ const AdminLayout = () => {
       {isSuperAdmin && (
         <PydahAiChat
           mode="widget"
-          title="Pydah Admin Assistant"
+          title="CAMPO SD Admin Assistant"
           assistantId="admin-assistant"
           welcomeMessage="Hi! How can I help you today?"
           position="bottom-right"
@@ -706,7 +706,7 @@ const AdminLayout = () => {
       )}
 
       {/* 3. Mobile Navigation Bar (Docked at Bottom) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-100/50 z-[80] pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2.5rem] transition-all duration-500">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--surface)]/80 backdrop-blur-2xl border-t border-border z-[80] pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.08)] rounded-t-[2.5rem] transition-all duration-500">
         <div className="flex items-center justify-around h-20 px-4">
           {filteredNavItems.slice(0, 4).map((item) => {
             const Icon = item.icon;
@@ -716,18 +716,18 @@ const AdminLayout = () => {
                 key={item.path}
                 to={item.path}
                 className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 transition-all duration-300
-                  ${isActive ? "text-[#4a5d3f] -translate-y-1" : "text-gray-400"}`}
+                  ${isActive ? "text-[var(--success)] -translate-y-1" : "text-muted-text"}`}
               >
-                <div className={`relative p-2 rounded-2xl transition-all duration-300 ${isActive ? "bg-[#4a5d3f]/10 shadow-sm" : "hover:bg-gray-50"}`}>
+                <div className={`relative p-2 rounded-2xl transition-all duration-300 ${isActive ? "bg-[var(--success)]/10 shadow-sm" : "hover:bg-background"}`}>
                   <Icon size={24} strokeWidth={isActive ? 2.5 : 1.5} />
                   {isActive && (
                     <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4a5d3f] opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#4a5d3f]"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--success)]"></span>
                     </span>
                   )}
                 </div>
-                <span className={`text-[10px] font-black tracking-tighter uppercase transition-colors ${isActive ? "text-[#4a5d3f]" : "text-gray-400"}`}>
+                <span className={`text-[10px] font-black tracking-tighter uppercase transition-colors ${isActive ? "text-[var(--success)]" : "text-muted-text"}`}>
                   {item.label === "User Management" ? "Users" : item.label}
                 </span>
               </Link>
@@ -737,12 +737,12 @@ const AdminLayout = () => {
           <button
             onClick={() => setMoreMenuOpen(true)}
             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 transition-all duration-300
-              ${moreMenuOpen ? "text-[#4a5d3f] -translate-y-1" : "text-gray-400"}`}
+              ${moreMenuOpen ? "text-[var(--success)] -translate-y-1" : "text-muted-text"}`}
           >
-            <div className={`p-2 rounded-2xl transition-all duration-300 ${moreMenuOpen ? "bg-[#4a5d3f]/10 shadow-sm" : "hover:bg-gray-50"}`}>
+            <div className={`p-2 rounded-2xl transition-all duration-300 ${moreMenuOpen ? "bg-[var(--success)]/10 shadow-sm" : "hover:bg-background"}`}>
               <Menu size={24} strokeWidth={moreMenuOpen ? 2.5 : 1.5} />
             </div>
-            <span className={`text-[10px] font-black tracking-tighter uppercase ${moreMenuOpen ? "text-[#4a5d3f]" : "text-gray-400"}`}>Menu</span>
+            <span className={`text-[10px] font-black tracking-tighter uppercase ${moreMenuOpen ? "text-[var(--success)]" : "text-muted-text"}`}>Menu</span>
           </button>
         </div>
       </div>
@@ -757,16 +757,16 @@ const AdminLayout = () => {
           />
 
           {/* Drawer */}
-          <div className="relative bg-white/95 backdrop-blur-2xl rounded-t-[3rem] p-8 shadow-2xl animate-fade-in-up max-h-[85vh] overflow-y-auto pb-safe border-t border-white/20">
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-8 opacity-50" />
+          <div className="relative bg-[var(--surface)]/95 backdrop-blur-2xl rounded-t-[3rem] p-8 shadow-2xl animate-fade-in-up max-h-[85vh] overflow-y-auto pb-safe border-t border-surface">
+            <div className="w-12 h-1.5 bg-background rounded-full mx-auto mb-8 opacity-50" />
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h3 className="text-2xl font-black text-gray-900 tracking-tight heading-font">Admin Menu</h3>
-                <p className="text-xs text-gray-500 font-medium">Quick access to all modules</p>
+                <h3 className="text-2xl font-black text-main tracking-tight heading-font">Admin Menu</h3>
+                <p className="text-xs text-muted-text font-medium">Quick access to all modules</p>
               </div>
               <button
                 onClick={() => setMoreMenuOpen(false)}
-                className="p-3 bg-gray-100 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-all active:scale-90"
+                className="p-3 bg-background hover:bg-[var(--danger-light)] hover:text-danger rounded-2xl transition-all active:scale-90"
               >
                 <X size={24} />
               </button>
@@ -783,10 +783,10 @@ const AdminLayout = () => {
                     onClick={() => setMoreMenuOpen(false)}
                     className={`flex flex-col items-center gap-3 p-4 rounded-3xl transition-all duration-300 border
                       ${isActive
-                        ? "bg-[#4a5d3f] text-white border-[#4a5d3f] shadow-xl shadow-[#4a5d3f]/20 -translate-y-1"
-                        : "bg-white text-gray-600 border-gray-100 hover:border-gray-200 active:scale-95"}`}
+                        ? "bg-[var(--success)] text-white border-[var(--success)] shadow-xl shadow-[var(--success)]/20 -translate-y-1"
+                        : "bg-surface text-sub border-border hover:border-border active:scale-95"}`}
                   >
-                    <div className={`p-3 rounded-2xl transition-all ${isActive ? "bg-white/20 shadow-inner" : "bg-gray-50 text-gray-400"}`}>
+                    <div className={`p-3 rounded-2xl transition-all ${isActive ? "bg-[var(--surface)]/20 shadow-inner" : "bg-background text-muted-text"}`}>
                       <Icon size={24} strokeWidth={isActive ? 2.5 : 1.5} />
                     </div>
                     <span className="text-[10px] font-black text-center line-clamp-1 leading-tight tracking-tight uppercase px-1">
@@ -797,22 +797,22 @@ const AdminLayout = () => {
               })}
             </div>
 
-            <div className="space-y-4 pt-6 border-t border-gray-100">
+            <div className="space-y-4 pt-6 border-t border-border">
 
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-gray-50/80 border border-gray-100 shadow-inner">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg ring-4 ring-white">
+              <div className="flex items-center gap-3 p-4 rounded-2xl bg-[var(--background)]/80 border border-border shadow-inner">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary flex items-center justify-center text-white font-bold shadow-lg ring-4 ring-white">
                   {user?.username?.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-gray-900 leading-tight">{user?.name || user?.username}</p>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
+                  <p className="text-sm font-bold text-main leading-tight">{user?.name || user?.username}</p>
+                  <p className="text-[10px] text-muted-text uppercase tracking-wider font-semibold">
                     {user?.role ? (ROLE_LABELS[user.role] || user.role.replace('_', ' ')) : "ADMIN"}
                   </p>
                 </div>
                 <Link
                   to="/profile"
                   onClick={() => setMoreMenuOpen(false)}
-                  className="p-2.5 bg-white rounded-xl text-gray-400 hover:text-gray-600 shadow-sm border border-gray-100"
+                  className="p-2.5 bg-surface rounded-xl text-muted-text hover:text-sub shadow-sm border border-border"
                 >
                   <Settings size={18} />
                 </Link>
@@ -820,7 +820,7 @@ const AdminLayout = () => {
 
               <button
                 onClick={handleLogout}
-                className="w-full h-14 flex items-center justify-center gap-2 rounded-2xl bg-rose-50 text-rose-600 font-bold border border-rose-100 active:bg-rose-100 transition-colors shadow-sm"
+                className="w-full h-14 flex items-center justify-center gap-2 rounded-2xl bg-[var(--danger-light)] text-danger font-bold border border-[var(--danger-light)] active:bg-[var(--danger-light)] transition-colors shadow-sm"
               >
                 <LogOut size={20} strokeWidth={2.5} />
                 <span className="tracking-tight">Sign Out</span>

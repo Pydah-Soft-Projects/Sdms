@@ -521,12 +521,12 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
         return (
             <div className={`space-y-1 sm:space-y-1.5 ${isFullWidth ? 'sm:col-span-2' : ''}`}>
                 <div className="flex items-center justify-between">
-                    <label className="text-[9px] sm:text-[11px] font-black text-slate-700 uppercase tracking-wider flex items-center gap-1 truncate">
+                    <label className="text-[9px] sm:text-[11px] font-black text-sub uppercase tracking-wider flex items-center gap-1 truncate">
                         <span>{field.label}</span>
-                        {field.required && !isReadOnly && <span className="text-rose-500 font-bold">*</span>}
+                        {field.required && !isReadOnly && <span className="text-danger font-bold">*</span>}
                     </label>
                     {isReadOnly && (
-                        <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 sm:px-2 py-0.5 rounded-md flex items-center gap-1 shrink-0">
+                        <span className="text-[8px] sm:text-[10px] font-bold text-muted-text bg-background px-1.5 sm:px-2 py-0.5 rounded-md flex items-center gap-1 shrink-0">
                             <Lock size={9} /> Locked
                         </span>
                     )}
@@ -541,10 +541,10 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                         rows={2}
                         className={`w-full px-2.5 py-1.5 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all outline-none resize-none
                             ${isReadOnly
-                                ? 'bg-slate-100/80 border border-slate-200 text-slate-400 cursor-not-allowed select-none'
+                                ? 'bg-[var(--background)]/80 border border-border text-muted-text cursor-not-allowed select-none'
                                 : !!pendingRequest
-                                    ? 'bg-slate-50 border border-slate-200 text-slate-600 cursor-not-allowed'
-                                    : 'bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-xs'}`}
+                                    ? 'bg-background border border-border text-sub cursor-not-allowed'
+                                    : 'bg-background border border-border text-main focus:bg-surface focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)] shadow-xs'}`}
                     />
                 ) : field.type === 'select' || field.type === 'radio' ? (
                     <select
@@ -554,10 +554,10 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                         disabled={!!pendingRequest || isReadOnly}
                         className={`w-full px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all outline-none
                             ${isReadOnly
-                                ? 'bg-slate-100/80 border border-slate-200 text-slate-400 cursor-not-allowed'
+                                ? 'bg-[var(--background)]/80 border border-border text-muted-text cursor-not-allowed'
                                 : !!pendingRequest
-                                    ? 'bg-slate-50 border border-slate-200 text-slate-600 cursor-not-allowed'
-                                    : 'bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-xs'}`}
+                                    ? 'bg-background border border-border text-sub cursor-not-allowed'
+                                    : 'bg-background border border-border text-main focus:bg-surface focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)] shadow-xs'}`}
                     >
                         <option value="">Select an option</option>
                         {(field.options || []).map((opt, i) => (
@@ -573,10 +573,10 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                         disabled={!!pendingRequest || isReadOnly}
                         className={`w-full px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all outline-none
                             ${isReadOnly
-                                ? 'bg-slate-100/80 border border-slate-200 text-slate-400 cursor-not-allowed'
+                                ? 'bg-[var(--background)]/80 border border-border text-muted-text cursor-not-allowed'
                                 : !!pendingRequest
-                                    ? 'bg-slate-50 border border-slate-200 text-slate-600 cursor-not-allowed'
-                                    : 'bg-slate-50 border border-slate-200 text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 shadow-xs'}`}
+                                    ? 'bg-background border border-border text-sub cursor-not-allowed'
+                                    : 'bg-background border border-border text-main focus:bg-surface focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)] shadow-xs'}`}
                     />
                 )}
             </div>
@@ -584,26 +584,26 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
     };
 
     const modalContent = (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-6 bg-[var(--sidebar)]/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
             <div
-                className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[92dvh] sm:max-h-[88vh] border border-slate-100 overflow-hidden my-auto"
+                className="bg-surface rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[92dvh] sm:max-h-[88vh] border border-border overflow-hidden my-auto"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header Section */}
-                <div className="px-3.5 sm:px-6 py-2.5 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                <div className="px-3.5 sm:px-6 py-2.5 sm:py-4 border-b border-border flex items-center justify-between bg-surface shrink-0">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                        <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-xl bg-indigo-50 border border-indigo-100/80 text-indigo-600 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-xl bg-[var(--primary-light)] border border-[var(--primary-light)] text-primary flex items-center justify-center shrink-0">
                             <User size={16} className="sm:w-5 sm:h-5" />
                         </div>
                         <div className="min-w-0">
-                            <h3 className="text-xs sm:text-base font-black text-slate-900 leading-tight truncate">Edit Profile Details</h3>
-                            <p className="text-[9px] sm:text-xs text-slate-500 font-medium truncate">Submitted edits require administrative approval.</p>
+                            <h3 className="text-xs sm:text-base font-black text-main leading-tight truncate">Edit Profile Details</h3>
+                            <p className="text-[9px] sm:text-xs text-muted-text font-medium truncate">Submitted edits require administrative approval.</p>
                         </div>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:bg-slate-200 rounded-xl transition-colors cursor-pointer shrink-0 ml-2"
+                        className="p-1.5 sm:p-2 text-muted-text hover:text-sub hover:bg-background active:bg-background rounded-xl transition-colors cursor-pointer shrink-0 ml-2"
                         aria-label="Close dialog"
                     >
                         <X size={16} className="sm:w-5 sm:h-5" />
@@ -613,18 +613,18 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                 {/* Status Notice if request is pending */}
                 {pendingRequest && (
                     <div className="px-3 sm:px-6 pt-2 pb-1 shrink-0">
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 flex items-start gap-2 sm:gap-3 shadow-2xs">
-                            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 mt-0.5">
+                        <div className="bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 flex items-start gap-2 sm:gap-3 shadow-2xs">
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-warning text-white flex items-center justify-center shrink-0 mt-0.5">
                                 <Clock size={13} className="sm:w-4 sm:h-4" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                                    <h4 className="font-bold text-amber-950 text-[11px] sm:text-sm">Change Request Pending Approval</h4>
-                                    <span className="px-1.5 py-0.5 text-[8px] sm:text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-900 rounded-full">
+                                    <h4 className="font-bold text-warning text-[11px] sm:text-sm">Change Request Pending Approval</h4>
+                                    <span className="px-1.5 py-0.5 text-[8px] sm:text-[10px] font-black uppercase tracking-wider bg-[var(--warning-light)] text-warning rounded-full">
                                         Under Review
                                     </span>
                                 </div>
-                                <p className="text-[9px] sm:text-xs text-amber-800 font-medium mt-0.5 leading-relaxed">
+                                <p className="text-[9px] sm:text-xs text-warning font-medium mt-0.5 leading-relaxed">
                                     Your requested updates are under review for approval.
                                 </p>
                             </div>
@@ -633,7 +633,7 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                 )}
 
                 {/* Steps 1, 2, 3 Navigation Bar - Only show numbers on mobile */}
-                <div className="px-3 sm:px-6 py-2 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50/80 shrink-0">
+                <div className="px-3 sm:px-6 py-2 border-b border-border flex items-center justify-between gap-2 bg-[var(--background)]/80 shrink-0">
                     <div className="flex items-center gap-1.5 sm:gap-2">
                         {availableTabs.map((tab, idx) => {
                             const isActive = activeTab === tab.id;
@@ -645,15 +645,15 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`p-1 sm:px-3 sm:py-1.5 rounded-full sm:rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
                                         isActive
-                                            ? 'bg-white text-indigo-700 shadow-xs border border-indigo-100/90 font-black'
-                                            : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                                            ? 'bg-surface text-primary shadow-xs border border-[var(--primary-light)] font-black'
+                                            : 'text-sub hover:text-main hover:bg-[var(--surface)]/60'
                                     }`}
                                     title={`Step ${stepNum}: ${tab.label}`}
                                 >
                                     <span className={`w-7 h-7 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 transition-all ${
                                         isActive
-                                            ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
-                                            : 'bg-slate-200/90 text-slate-700'
+                                            ? 'bg-primary text-white shadow-sm shadow-primary'
+                                            : 'bg-[var(--background)]/90 text-sub'
                                     }`}>
                                         {stepNum}
                                     </span>
@@ -664,22 +664,22 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                     </div>
 
                     {/* Active Step Indicator Name */}
-                    <div className="text-[10px] sm:text-xs font-bold text-slate-700 flex items-center gap-1.5 shrink-0 bg-white px-2.5 py-1 rounded-xl border border-slate-200/70 shadow-2xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
-                        <span className="text-indigo-700 font-black">Step {currentStepIndex + 1}:</span>
-                        <span className="text-slate-800 truncate max-w-[120px] sm:max-w-none">
+                    <div className="text-[10px] sm:text-xs font-bold text-sub flex items-center gap-1.5 shrink-0 bg-surface px-2.5 py-1 rounded-xl border border-border shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                        <span className="text-primary font-black">Step {currentStepIndex + 1}:</span>
+                        <span className="text-main truncate max-w-[120px] sm:max-w-none">
                             {availableTabs[currentStepIndex]?.label}
                         </span>
                     </div>
                 </div>
 
                 {/* Form Content */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-5 md:p-6 bg-white">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-5 md:p-6 bg-surface">
                     {loadingConfig ? (
                         <div className="animate-pulse space-y-3">
-                            <div className="h-4 w-36 bg-slate-200 rounded"></div>
+                            <div className="h-4 w-36 bg-background rounded"></div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                {[1, 2, 3, 4].map(i => <div key={i} className="h-12 bg-slate-100 rounded-xl"></div>)}
+                                {[1, 2, 3, 4].map(i => <div key={i} className="h-12 bg-background rounded-xl"></div>)}
                             </div>
                         </div>
                     ) : (
@@ -700,16 +700,16 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                 </div>
 
                 {/* Modern Footer with Step Navigation */}
-                <div className="px-3 sm:px-6 py-2.5 sm:py-3.5 border-t border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 shrink-0">
-                    <div className="text-[9px] sm:text-[11px] text-slate-500 font-medium text-center sm:text-left w-full sm:w-auto">
+                <div className="px-3 sm:px-6 py-2.5 sm:py-3.5 border-t border-border bg-[var(--background)]/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-3 shrink-0">
+                    <div className="text-[9px] sm:text-[11px] text-muted-text font-medium text-center sm:text-left w-full sm:w-auto">
                         {hasChanges() ? (
-                            <span className="text-indigo-600 font-bold flex items-center gap-1.5 justify-center sm:justify-start">
-                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                            <span className="text-primary font-bold flex items-center gap-1.5 justify-center sm:justify-start">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
                                 Changes detected. Ready to submit for approval.
                             </span>
                         ) : pendingRequest ? (
-                            <span className="text-amber-800 font-bold flex items-center gap-1.5 justify-center sm:justify-start">
-                                <Clock size={12} className="text-amber-600 shrink-0" />
+                            <span className="text-warning font-bold flex items-center gap-1.5 justify-center sm:justify-start">
+                                <Clock size={12} className="text-warning shrink-0" />
                                 Existing request pending review.
                             </span>
                         ) : (
@@ -721,7 +721,7 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-2.5 sm:px-4 py-2 sm:py-2 text-[10px] sm:text-xs font-bold text-slate-700 hover:bg-slate-200 bg-slate-200/70 sm:bg-transparent rounded-xl transition-colors cursor-pointer text-center"
+                            className="px-2.5 sm:px-4 py-2 sm:py-2 text-[10px] sm:text-xs font-bold text-sub hover:bg-background bg-[var(--background)]/70 sm:bg-transparent rounded-xl transition-colors cursor-pointer text-center"
                         >
                             Cancel
                         </button>
@@ -731,7 +731,7 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                             <button
                                 type="button"
                                 onClick={() => setActiveTab(nextTab.id)}
-                                className="px-2.5 sm:px-3.5 py-2 sm:py-2 text-[10px] sm:text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/80 rounded-xl transition-colors cursor-pointer flex items-center gap-1"
+                                className="px-2.5 sm:px-3.5 py-2 sm:py-2 text-[10px] sm:text-xs font-bold text-primary bg-[var(--primary-light)] hover:bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl transition-colors cursor-pointer flex items-center gap-1"
                             >
                                 <span>Next: Step {currentStepIndex + 2}</span>
                                 <ChevronRight size={13} />
@@ -745,16 +745,16 @@ export const VerifyProfileDialog = ({ isOpen, onClose, studentData, onRequestSub
                                 disabled={!hasChanges() || isSubmitting || loadingConfig}
                                 className={`px-3 sm:px-5 py-2 sm:py-2 text-[10px] sm:text-xs font-black uppercase tracking-tight rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 text-center ${
                                     hasChanges() && !isSubmitting
-                                        ? 'bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white shadow-indigo-200 cursor-pointer'
-                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                                        ? 'bg-primary hover:bg-primary-hover active:scale-95 text-white shadow-primary cursor-pointer'
+                                        : 'bg-background text-muted-text cursor-not-allowed shadow-none'
                                 }`}
                             >
                                 <Save size={13} className="shrink-0" />
                                 <span className="whitespace-nowrap">{isSubmitting ? 'Sending...' : 'Submit Request'}</span>
                             </button>
                         ) : (
-                            <div className="px-2.5 sm:px-4 py-2 sm:py-2 text-[10px] sm:text-xs font-bold rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center gap-1.5 border border-amber-200 text-center">
-                                <Clock size={13} className="shrink-0 text-amber-600" />
+                            <div className="px-2.5 sm:px-4 py-2 sm:py-2 text-[10px] sm:text-xs font-bold rounded-xl bg-[var(--warning-light)] text-warning flex items-center justify-center gap-1.5 border border-[var(--warning-light)] text-center">
+                                <Clock size={13} className="shrink-0 text-warning" />
                                 <span className="whitespace-nowrap">Pending Approval</span>
                             </div>
                         )}

@@ -255,11 +255,11 @@ const ProfileRequestsReport = () => {
   if (!hasAccess && user) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] p-4 text-center">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-          <Lock className="text-red-500" size={32} />
+        <div className="w-16 h-16 bg-[var(--danger-light)] rounded-full flex items-center justify-center mb-4">
+          <Lock className="text-danger" size={32} />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
-        <p className="text-gray-600 max-w-sm">You do not have permission to view student profile reports.</p>
+        <h2 className="text-xl font-bold text-main mb-2">Access Denied</h2>
+        <p className="text-sub max-w-sm">You do not have permission to view student profile reports.</p>
       </div>
     );
   }
@@ -268,14 +268,14 @@ const ProfileRequestsReport = () => {
     <div className="flex flex-col gap-5 h-full min-h-0">
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 heading-font">Profile Reports</h1>
-          <p className="mt-1 text-sm text-gray-500">Track student profile completion and fields that still need attention.</p>
+          <h1 className="text-2xl font-bold text-main heading-font">Profile Reports</h1>
+          <p className="mt-1 text-sm text-muted-text">Track student profile completion and fields that still need attention.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => navigate('/reports')}
-            className="inline-flex items-center gap-2 self-start px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium"
+            className="inline-flex items-center gap-2 self-start px-3 py-2 rounded-lg border border-border-strong text-sub hover:bg-background text-sm font-medium"
           >
             <ArrowLeft size={16} />
             Back to Reports
@@ -284,7 +284,7 @@ const ProfileRequestsReport = () => {
             type="button"
             onClick={() => handleDownload('excel')}
             disabled={downloading || loading}
-            className="inline-flex items-center gap-2 self-start px-3 py-2 rounded-lg border border-green-500 text-green-700 hover:bg-green-50 text-sm font-medium disabled:opacity-50"
+            className="inline-flex items-center gap-2 self-start px-3 py-2 rounded-lg border border-success text-success hover:bg-[var(--success-light)] text-sm font-medium disabled:opacity-50"
           >
             {downloading ? <RefreshCw size={16} className="animate-spin" /> : <Download size={16} />}
             Download Excel
@@ -293,7 +293,7 @@ const ProfileRequestsReport = () => {
             type="button"
             onClick={() => handleDownload('pdf')}
             disabled={downloading || loading}
-            className="inline-flex items-center gap-2 self-start px-3 py-2 rounded-lg border border-red-300 text-red-700 hover:bg-red-50 text-sm font-medium disabled:opacity-50"
+            className="inline-flex items-center gap-2 self-start px-3 py-2 rounded-lg border border-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)] text-sm font-medium disabled:opacity-50"
           >
             {downloading ? <RefreshCw size={16} className="animate-spin" /> : <Download size={16} />}
             Download PDF
@@ -304,7 +304,7 @@ const ProfileRequestsReport = () => {
               setFilters({ ...EMPTY_FILTERS });
               setPagination(previous => ({ ...previous, page: 1 }));
             }}
-            className="inline-flex items-center gap-2 self-start px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium"
+            className="inline-flex items-center gap-2 self-start px-3 py-2 rounded-lg border border-border-strong text-sub hover:bg-background text-sm font-medium"
           >
             <RefreshCw size={16} />
             Clear Filters
@@ -314,9 +314,9 @@ const ProfileRequestsReport = () => {
 
       <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         {[
-          { label: 'Total Students', value: totals.total, icon: FileText, cardClass: 'bg-blue-50 border-blue-100', labelClass: 'text-blue-700', valueClass: 'text-blue-900' },
-          { label: 'Completed Profiles', value: totals.completed, icon: CheckCircle, cardClass: 'bg-green-50 border-green-100', labelClass: 'text-green-700', valueClass: 'text-green-900' },
-          { label: 'Pending Profiles', value: totals.pending, icon: Clock3, cardClass: 'bg-amber-50 border-amber-100', labelClass: 'text-amber-700', valueClass: 'text-amber-900' }
+          { label: 'Total Students', value: totals.total, icon: FileText, cardClass: 'bg-[var(--primary-light)] border-[var(--primary-light)]', labelClass: 'text-primary', valueClass: 'text-primary' },
+          { label: 'Completed Profiles', value: totals.completed, icon: CheckCircle, cardClass: 'bg-[var(--success-light)] border-[var(--success-light)]', labelClass: 'text-success', valueClass: 'text-success' },
+          { label: 'Pending Profiles', value: totals.pending, icon: Clock3, cardClass: 'bg-[var(--warning-light)] border-[var(--warning-light)]', labelClass: 'text-warning', valueClass: 'text-warning' }
         ].map(card => (
           <div key={card.label} className={`rounded-xl border p-4 ${card.cardClass}`}>
             <div className={`flex items-center gap-2 text-sm font-medium ${card.labelClass}`}>
@@ -328,93 +328,93 @@ const ProfileRequestsReport = () => {
         ))}
       </section>
 
-      <section className="bg-white border border-gray-200 rounded-xl p-4">
+      <section className="bg-surface border border-border rounded-xl p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-3">
           <label className="relative min-w-0 xl:col-span-2">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" size={16} />
             <input
               value={filters.search}
               onChange={event => updateFilter('search', event.target.value)}
               placeholder="Search name, admission no..."
-              className="w-full min-w-0 rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full min-w-0 rounded-lg border border-border-strong pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </label>
-          <select value={filters.status} onChange={event => updateFilter('status', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.status} onChange={event => updateFilter('status', event.target.value)} className="w-full min-w-0 rounded-lg border border-border-strong px-3 py-2 text-sm">
             <option value="all">All Profile Statuses</option>
             <option value="pending">Pending Profile</option>
             <option value="completed">Completed Profile</option>
           </select>
-          <select value={filters.college} onChange={event => updateFilter('college', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.college} onChange={event => updateFilter('college', event.target.value)} className="w-full min-w-0 rounded-lg border border-border-strong px-3 py-2 text-sm">
             <option value="">All Colleges</option>
             {(options.colleges || []).map(item => (
               <option key={item.id || item.name || item} value={item.id || item.name || item}>{item.name || item}</option>
             ))}
           </select>
-          <select value={filters.batch} onChange={event => updateFilter('batch', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.batch} onChange={event => updateFilter('batch', event.target.value)} className="w-full min-w-0 rounded-lg border border-border-strong px-3 py-2 text-sm">
             <option value="">All Batches</option>
             {(options.batches || []).map(item => (
               <option key={item.id || item.name || item} value={item.id || item.name || item}>{item.name || item}</option>
             ))}
           </select>
-          <select value={filters.course} onChange={event => updateFilter('course', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.course} onChange={event => updateFilter('course', event.target.value)} className="w-full min-w-0 rounded-lg border border-border-strong px-3 py-2 text-sm">
             <option value="">All Programs</option>
             {courses.map(course => <option key={course} value={course}>{course}</option>)}
           </select>
-          <select value={filters.branch} onChange={event => updateFilter('branch', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.branch} onChange={event => updateFilter('branch', event.target.value)} className="w-full min-w-0 rounded-lg border border-border-strong px-3 py-2 text-sm">
             <option value="">All Branches</option>
             {branches.map(branch => <option key={branch} value={branch}>{branch}</option>)}
           </select>
-          <select value={filters.year} onChange={event => updateFilter('year', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.year} onChange={event => updateFilter('year', event.target.value)} className="w-full min-w-0 rounded-lg border border-border-strong px-3 py-2 text-sm">
             <option value="">All Years</option>
             {(options.years || []).map(year => <option key={year} value={year}>Year {year}</option>)}
           </select>
-          <select value={filters.semester} onChange={event => updateFilter('semester', event.target.value)} className="w-full min-w-0 rounded-lg border border-gray-300 px-3 py-2 text-sm">
+          <select value={filters.semester} onChange={event => updateFilter('semester', event.target.value)} className="w-full min-w-0 rounded-lg border border-border-strong px-3 py-2 text-sm">
             <option value="">All Semesters</option>
             {(options.semesters || []).map(semester => <option key={semester} value={semester}>Semester {semester}</option>)}
           </select>
         </div>
       </section>
 
-      <section className="flex-1 min-h-0 overflow-auto bg-white border border-gray-200 rounded-xl">
+      <section className="flex-1 min-h-0 overflow-auto bg-surface border border-border rounded-xl">
         {loading ? (
-          <div className="h-48 flex items-center justify-center gap-2 text-gray-500">
+          <div className="h-48 flex items-center justify-center gap-2 text-muted-text">
             <RefreshCw className="animate-spin" size={18} />
             Loading student profiles...
           </div>
         ) : requests.length === 0 ? (
-          <div className="h-48 flex flex-col items-center justify-center gap-2 text-gray-500">
+          <div className="h-48 flex flex-col items-center justify-center gap-2 text-muted-text">
             <AlertCircle size={28} />
             <p>No students match the selected filters.</p>
           </div>
         ) : (
           <table className="w-full min-w-[1200px] text-sm text-left">
-            <thead className="sticky top-0 bg-gray-50 text-gray-600 border-b border-gray-200">
+            <thead className="sticky top-0 bg-background text-sub border-b border-border">
               <tr>
                 {['Student', 'Admission No.', 'College', 'Batch', 'Program / Branch', 'Year / Semester', 'Profile Status', 'Completion', 'Pending Fields'].map(column => (
                   <th key={column} className="px-4 py-3 font-semibold whitespace-nowrap">{column}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {requests.map(student => {
                 const statusStyle = student.profile_status === 'completed'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-amber-100 text-amber-700';
+                  ? 'bg-[var(--success-light)] text-success'
+                  : 'bg-[var(--warning-light)] text-warning';
                 return (
-                  <tr key={student.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{student.student_name || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{student.admission_number || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{student.college || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{student.batch || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{[student.course, student.branch].filter(Boolean).join(' / ') || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{[student.current_year && `Year ${student.current_year}`, student.current_semester && `Sem ${student.current_semester}`].filter(Boolean).join(' / ') || '—'}</td>
+                  <tr key={student.id} className="hover:bg-background">
+                    <td className="px-4 py-3 font-medium text-main">{student.student_name || '—'}</td>
+                    <td className="px-4 py-3 text-sub">{student.admission_number || '—'}</td>
+                    <td className="px-4 py-3 text-sub">{student.college || '—'}</td>
+                    <td className="px-4 py-3 text-sub">{student.batch || '—'}</td>
+                    <td className="px-4 py-3 text-sub">{[student.course, student.branch].filter(Boolean).join(' / ') || '—'}</td>
+                    <td className="px-4 py-3 text-sub">{[student.current_year && `Year ${student.current_year}`, student.current_semester && `Sem ${student.current_semester}`].filter(Boolean).join(' / ') || '—'}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyle}`}>
                         {student.profile_status === 'completed' ? 'Completed' : 'Pending'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-gray-600">{student.completion_percentage}%</td>
-                    <td className="px-4 py-3 text-gray-600">
+                    <td className="px-4 py-3 whitespace-nowrap text-sub">{student.completion_percentage}%</td>
+                    <td className="px-4 py-3 text-sub">
                       {(student.pending_fields || []).join(', ') || '—'}
                     </td>
                   </tr>
@@ -424,7 +424,7 @@ const ProfileRequestsReport = () => {
           </table>
         )}
       </section>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-gray-600">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm text-sub">
         <div className="flex items-center gap-2">
           <span>Rows per page</span>
           <select
@@ -434,7 +434,7 @@ const ProfileRequestsReport = () => {
               page: 1,
               pageSize: Number(event.target.value)
             }))}
-            className="rounded-lg border border-gray-300 px-2 py-1.5"
+            className="rounded-lg border border-border-strong px-2 py-1.5"
           >
             {[10, 25, 50, 100].map(size => <option key={size} value={size}>{size}</option>)}
           </select>
@@ -449,7 +449,7 @@ const ProfileRequestsReport = () => {
             type="button"
             onClick={() => setPagination(previous => ({ ...previous, page: Math.max(1, previous.page - 1) }))}
             disabled={loading || pagination.page <= 1}
-            className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-lg border border-border-strong px-3 py-1.5 disabled:opacity-50"
           >
             <ChevronLeft size={16} />
             Previous
@@ -459,7 +459,7 @@ const ProfileRequestsReport = () => {
             type="button"
             onClick={() => setPagination(previous => ({ ...previous, page: Math.min(previous.totalPages, previous.page + 1) }))}
             disabled={loading || pagination.page >= pagination.totalPages}
-            className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-3 py-1.5 disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-lg border border-border-strong px-3 py-1.5 disabled:opacity-50"
           >
             Next
             <ChevronRight size={16} />

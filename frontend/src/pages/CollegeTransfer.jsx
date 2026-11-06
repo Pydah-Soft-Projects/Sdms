@@ -404,56 +404,56 @@ const CollegeTransfer = ({ readOnly = false }) => {
     return (
         <div className="p-6 max-w-[1600px] mx-auto space-y-6">
             <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <TrendingUp className="text-indigo-600" /> College Transfer / Manual Promotion
+                <h1 className="text-2xl font-bold text-main flex items-center gap-2">
+                    <TrendingUp className="text-primary" /> College Transfer / Manual Promotion
                 </h1>
-                <p className="text-gray-500">Select students and transfer them to a specific academic stage manually.</p>
+                <p className="text-muted-text">Select students and transfer them to a specific academic stage manually.</p>
             </div>
 
             {/* Grid for Filter & Target panels */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 {/* Panel 1: Source */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col gap-4">
-                    <h3 className="font-semibold text-gray-800 flex items-center gap-2 border-b pb-3">
-                        <Filter size={18} className="text-gray-500" /> Source Criteria (Find Students)
+                <div className="bg-surface rounded-xl shadow-sm border border-border p-5 flex flex-col gap-4">
+                    <h3 className="font-semibold text-main flex items-center gap-2 border-b pb-3">
+                        <Filter size={18} className="text-muted-text" /> Source Criteria (Find Students)
                     </h3>
                     <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
                         <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">College</label>
-                            <select className="w-full mt-1 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            <label className="text-xs font-bold text-muted-text uppercase tracking-wide">College</label>
+                            <select className="w-full mt-1 p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                                 value={filters.college} onChange={e => handleFilterChange('college', e.target.value)}>
                                 <option value="">All Colleges</option>
                                 {sourceOptions.colleges.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Batch</label>
-                            <select className="w-full mt-1 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            <label className="text-xs font-bold text-muted-text uppercase tracking-wide">Batch</label>
+                            <select className="w-full mt-1 p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                                 value={filters.batch} onChange={e => handleFilterChange('batch', e.target.value)}>
                                 <option value="">All Batches</option>
                                 {sourceOptions.batches.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Course</label>
-                            <select className="w-full mt-1 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            <label className="text-xs font-bold text-muted-text uppercase tracking-wide">Course</label>
+                            <select className="w-full mt-1 p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                                 value={filters.course} onChange={e => handleFilterChange('course', e.target.value)}>
                                 <option value="">All Courses</option>
                                 {sourceOptions.courses.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Branch</label>
-                            <select className="w-full mt-1 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            <label className="text-xs font-bold text-muted-text uppercase tracking-wide">Branch</label>
+                            <select className="w-full mt-1 p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                                 value={filters.branch} onChange={e => handleFilterChange('branch', e.target.value)}>
                                 <option value="">All Branches</option>
                                 {sourceOptions.branches.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Current Year</label>
-                            <select className="w-full mt-1 p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            <label className="text-xs font-bold text-muted-text uppercase tracking-wide">Current Year</label>
+                            <select className="w-full mt-1 p-2.5 bg-background border border-border rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
                                 value={filters.year} onChange={e => handleFilterChange('year', e.target.value)}>
                                 <option value="">All Years</option>
                                 {sourceOptions.years.map(o => <option key={o.id} value={o.value}>{o.label} Year</option>)}
@@ -465,38 +465,38 @@ const CollegeTransfer = ({ readOnly = false }) => {
                 </div>
 
                 {/* Panel 2: Target */}
-                <div className="bg-gradient-to-br from-indigo-50 to-white rounded-xl shadow-sm border border-indigo-100 p-5 flex flex-col gap-4">
-                    <h3 className="font-semibold text-indigo-900 flex items-center gap-2 border-b border-indigo-100 pb-3">
-                        <ArrowRight size={18} className="text-indigo-500" /> Target Destination (Transfer To)
+                <div className="bg-gradient-to-br from-[var(--primary-light)] to-surface rounded-xl shadow-sm border border-[var(--primary-light)] p-5 flex flex-col gap-4">
+                    <h3 className="font-semibold text-primary flex items-center gap-2 border-b border-[var(--primary-light)] pb-3">
+                        <ArrowRight size={18} className="text-primary" /> Target Destination (Transfer To)
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-1">
-                            <label className="text-xs font-bold text-indigo-400 uppercase tracking-wide">Target College <span className="text-red-500">*</span></label>
-                            <select className="w-full mt-1 p-2.5 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
+                            <label className="text-xs font-bold text-primary uppercase tracking-wide">Target College <span className="text-danger">*</span></label>
+                            <select className="w-full mt-1 p-2.5 bg-surface border border-[var(--primary-light)] rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm"
                                 value={targetDetails.college} onChange={e => handleTargetChange('college', e.target.value)}>
                                 <option value="">Select College</option>
                                 {targetOptions.colleges.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
                             </select>
                         </div>
                         <div className="col-span-1">
-                            <label className="text-xs font-bold text-indigo-400 uppercase tracking-wide">Target Batch <span className="text-red-500">*</span></label>
-                            <select className="w-full mt-1 p-2.5 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
+                            <label className="text-xs font-bold text-primary uppercase tracking-wide">Target Batch <span className="text-danger">*</span></label>
+                            <select className="w-full mt-1 p-2.5 bg-surface border border-[var(--primary-light)] rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm"
                                 value={targetDetails.batch} onChange={e => handleTargetChange('batch', e.target.value)}>
                                 <option value="">Select Batch</option>
                                 {targetOptions.batches.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
                             </select>
                         </div>
                         <div className="col-span-1">
-                            <label className="text-xs font-bold text-indigo-400 uppercase tracking-wide">Target Course <span className="text-red-500">*</span></label>
-                            <select className="w-full mt-1 p-2.5 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
+                            <label className="text-xs font-bold text-primary uppercase tracking-wide">Target Course <span className="text-danger">*</span></label>
+                            <select className="w-full mt-1 p-2.5 bg-surface border border-[var(--primary-light)] rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm"
                                 value={targetDetails.course} onChange={e => handleTargetChange('course', e.target.value)}>
                                 <option value="">Select Course</option>
                                 {targetOptions.courses.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
                             </select>
                         </div>
                         <div className="col-span-1">
-                            <label className="text-xs font-bold text-indigo-400 uppercase tracking-wide">Target Level</label>
-                            <select className="w-full mt-1 p-2.5 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
+                            <label className="text-xs font-bold text-primary uppercase tracking-wide">Target Level</label>
+                            <select className="w-full mt-1 p-2.5 bg-surface border border-[var(--primary-light)] rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm"
                                 value={targetDetails.level} onChange={e => handleTargetChange('level', e.target.value)}>
                                 <option value="">All Levels</option>
                                 <option value="diploma">Diploma</option>
@@ -505,24 +505,24 @@ const CollegeTransfer = ({ readOnly = false }) => {
                             </select>
                         </div>
                         <div className="col-span-1">
-                            <label className="text-xs font-bold text-indigo-400 uppercase tracking-wide">Target Branch</label>
-                            <select className="w-full mt-1 p-2.5 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
+                            <label className="text-xs font-bold text-primary uppercase tracking-wide">Target Branch</label>
+                            <select className="w-full mt-1 p-2.5 bg-surface border border-[var(--primary-light)] rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm"
                                 value={targetDetails.branch} onChange={e => handleTargetChange('branch', e.target.value)}>
                                 <option value="">Select Branch</option>
                                 {targetOptions.branches.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
                             </select>
                         </div>
                         <div className="col-span-1">
-                            <label className="text-xs font-bold text-indigo-400 uppercase tracking-wide">Target Year <span className="text-red-500">*</span></label>
-                            <select className="w-full mt-1 p-2.5 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
+                            <label className="text-xs font-bold text-primary uppercase tracking-wide">Target Year <span className="text-danger">*</span></label>
+                            <select className="w-full mt-1 p-2.5 bg-surface border border-[var(--primary-light)] rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm"
                                 value={targetDetails.year} onChange={e => handleTargetChange('year', e.target.value)}>
                                 <option value="">Select Year</option>
                                 {targetOptions.years.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
                             </select>
                         </div>
                         <div className="col-span-1">
-                            <label className="text-xs font-bold text-indigo-400 uppercase tracking-wide">Target Sem <span className="text-red-500">*</span></label>
-                            <select className="w-full mt-1 p-2.5 bg-white border border-indigo-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm"
+                            <label className="text-xs font-bold text-primary uppercase tracking-wide">Target Sem <span className="text-danger">*</span></label>
+                            <select className="w-full mt-1 p-2.5 bg-surface border border-[var(--primary-light)] rounded-lg text-sm focus:ring-2 focus:ring-primary outline-none shadow-sm"
                                 value={targetDetails.semester} onChange={e => handleTargetChange('semester', e.target.value)}>
                                 <option value="">Select Sem</option>
                                 {targetOptions.semesters.map(o => <option key={o.id} value={o.value}>{o.label}</option>)}
@@ -533,39 +533,39 @@ const CollegeTransfer = ({ readOnly = false }) => {
             </div>
 
             {/* Action Bar */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap items-center justify-between gap-4">
-                <div className="text-sm text-gray-600">
-                    Selected <span className="font-bold text-indigo-600 text-lg">{selectedAdmissionNumbers.size}</span> students for transfer
+            <div className="bg-surface p-4 rounded-xl shadow-sm border border-border flex flex-wrap items-center justify-between gap-4">
+                <div className="text-sm text-sub">
+                    Selected <span className="font-bold text-primary text-lg">{selectedAdmissionNumbers.size}</span> students for transfer
                 </div>
                 {!readOnly && (
                 <button
                     onClick={prepareTransfer}
-                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow-lg shadow-indigo-200 active:scale-95 transition-all flex items-center gap-2"
+                    className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg font-bold shadow-lg shadow-primary active:scale-95 transition-all flex items-center gap-2"
                 >
                     Review & Transfer <ArrowRight size={18} />
                 </button>
                 )}
                 {readOnly && (
-                <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg font-medium">
+                <span className="text-xs text-warning bg-[var(--warning-light)] border border-[var(--warning-light)] px-3 py-1.5 rounded-lg font-medium">
                   View only — no transfer access
                 </span>
                 )}
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden">
                 {loadingStudents ? (
                     <div className="p-8"><SkeletonTable rows={5} cols={6} /></div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-50 text-gray-700 font-bold border-b h-12">
+                            <thead className="bg-background text-sub font-bold border-b h-12">
                                 <tr>
                                     <th className="px-6 w-12 text-center">
                                         <input type="checkbox"
                                             checked={students.length > 0 && students.every(s => selectedAdmissionNumbers.has(s.admission_number))}
                                             onChange={e => toggleSelectAll(e.target.checked)}
-                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                            className="rounded border-border-strong text-primary focus:ring-primary cursor-pointer"
                                         />
                                     </th>
                                     <th className="px-6 py-3">Admission No</th>
@@ -574,32 +574,32 @@ const CollegeTransfer = ({ readOnly = false }) => {
                                     <th className="px-6 py-3">Current Stage</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-border">
                                 {students.length === 0 ? (
-                                    <tr><td colSpan="5" className="p-10 text-center text-gray-500 flex flex-col items-center gap-2">
-                                        <Search size={32} className="text-gray-300" />
+                                    <tr><td colSpan="5" className="p-10 text-center text-muted-text flex flex-col items-center gap-2">
+                                        <Search size={32} className="text-muted-text" />
                                         No students found matching criteria.
                                     </td></tr>
                                 ) : students.map(student => (
-                                    <tr key={student.admission_number} className={`hover:bg-slate-50 transition-colors ${selectedAdmissionNumbers.has(student.admission_number) ? 'bg-indigo-50/50' : ''}`}>
+                                    <tr key={student.admission_number} className={`hover:bg-background transition-colors ${selectedAdmissionNumbers.has(student.admission_number) ? 'bg-[var(--primary-light)]' : ''}`}>
                                         <td className="px-6 py-4 text-center">
                                             <input type="checkbox"
                                                 checked={selectedAdmissionNumbers.has(student.admission_number)}
                                                 onChange={() => toggleSelectStudent(student.admission_number)}
-                                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                                className="rounded border-border-strong text-primary focus:ring-primary cursor-pointer"
                                             />
                                         </td>
-                                        <td className="px-6 py-4 font-medium text-gray-900">{student.admission_number}</td>
-                                        <td className="px-6 py-4 font-medium text-gray-800">{student.student_name}</td>
+                                        <td className="px-6 py-4 font-medium text-main">{student.admission_number}</td>
+                                        <td className="px-6 py-4 font-medium text-main">{student.student_name}</td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="text-xs font-semibold text-gray-500 uppercase">{student.college}</span>
+                                                <span className="text-xs font-semibold text-muted-text uppercase">{student.college}</span>
                                                 <span className="">{student.course} - {student.branch}</span>
-                                                <span className="text-xs text-gray-400 bg-gray-100 px-1 py-0.5 rounded w-fit mt-1">{student.batch}</span>
+                                                <span className="text-xs text-muted-text bg-background px-1 py-0.5 rounded w-fit mt-1">{student.batch}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-semibold border border-blue-100">
+                                            <span className="px-2.5 py-1 bg-[var(--primary-light)] text-primary rounded-full text-xs font-semibold border border-[var(--primary-light)]">
                                                 Year {student.current_year} • Sem {student.current_semester}
                                             </span>
                                         </td>
@@ -614,64 +614,64 @@ const CollegeTransfer = ({ readOnly = false }) => {
             {/* Modal */}
             {confirmationOpen && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
-                        <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50">
-                            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                <CheckCircle className="text-green-600" size={20} />
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b flex justify-between items-center bg-background">
+                            <h2 className="text-lg font-bold text-main flex items-center gap-2">
+                                <CheckCircle className="text-success" size={20} />
                                 Confirm Transfer
                             </h2>
-                            <button onClick={() => setConfirmationOpen(false)} className="hover:bg-gray-200 p-2 rounded-full transition-colors"><X size={20} className="text-gray-500" /></button>
+                            <button onClick={() => setConfirmationOpen(false)} className="hover:bg-background p-2 rounded-full transition-colors"><X size={20} className="text-muted-text" /></button>
                         </div>
 
                         <div className="p-6 overflow-y-auto space-y-6">
-                            <div className="bg-indigo-50 p-5 rounded-xl border border-indigo-100 relative overflow-hidden">
+                            <div className="bg-[var(--primary-light)] p-5 rounded-xl border border-[var(--primary-light)] relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-10"><RefreshCw size={100} /></div>
-                                <h4 className="font-bold text-indigo-900 mb-3 text-sm uppercase tracking-wide">Destination Details</h4>
+                                <h4 className="font-bold text-primary mb-3 text-sm uppercase tracking-wide">Destination Details</h4>
                                 <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-sm relative z-10">
                                     <div>
-                                        <span className="block text-xs font-semibold text-indigo-400 uppercase">College</span>
-                                        <span className="font-bold text-indigo-900">{targetDetails.college}</span>
+                                        <span className="block text-xs font-semibold text-primary uppercase">College</span>
+                                        <span className="font-bold text-primary">{targetDetails.college}</span>
                                     </div>
                                     <div>
-                                        <span className="block text-xs font-semibold text-indigo-400 uppercase">Batch</span>
-                                        <span className="font-bold text-indigo-900">{targetDetails.batch}</span>
+                                        <span className="block text-xs font-semibold text-primary uppercase">Batch</span>
+                                        <span className="font-bold text-primary">{targetDetails.batch}</span>
                                     </div>
                                     <div>
-                                        <span className="block text-xs font-semibold text-indigo-400 uppercase">Course / Branch</span>
-                                        <span className="font-bold text-indigo-900">{targetDetails.course} • {targetDetails.branch || 'N/A'}</span>
+                                        <span className="block text-xs font-semibold text-primary uppercase">Course / Branch</span>
+                                        <span className="font-bold text-primary">{targetDetails.course} • {targetDetails.branch || 'N/A'}</span>
                                     </div>
                                     <div>
-                                        <span className="block text-xs font-semibold text-indigo-400 uppercase">Academic Year</span>
-                                        <span className="font-bold text-indigo-900">Year {targetDetails.year} • Sem {targetDetails.semester}</span>
+                                        <span className="block text-xs font-semibold text-primary uppercase">Academic Year</span>
+                                        <span className="font-bold text-primary">Year {targetDetails.year} • Sem {targetDetails.semester}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <h4 className="font-semibold text-gray-700 mb-2 flex justify-between items-center">
+                                <h4 className="font-semibold text-sub mb-2 flex justify-between items-center">
                                     <span>Students to Transfer</span>
-                                    <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs">{transferPlan.length} Selected</span>
+                                    <span className="bg-background text-sub px-2 py-0.5 rounded text-xs">{transferPlan.length} Selected</span>
                                 </h4>
-                                <div className="border rounded-lg max-h-48 overflow-y-auto bg-gray-50/50">
+                                <div className="border rounded-lg max-h-48 overflow-y-auto bg-[var(--background)]/50">
                                     {transferPlan.map((s) => (
-                                        <div key={s.admission_number || s.id} className="p-3 border-b last:border-0 text-sm flex justify-between items-center px-4 hover:bg-white transition-colors">
-                                            <span className="font-medium text-gray-800">{s.student_name}</span>
-                                            <span className="text-gray-500 font-mono text-xs">{s.admission_number}</span>
+                                        <div key={s.admission_number || s.id} className="p-3 border-b last:border-0 text-sm flex justify-between items-center px-4 hover:bg-surface transition-colors">
+                                            <span className="font-medium text-main">{s.student_name}</span>
+                                            <span className="text-muted-text font-mono text-xs">{s.admission_number}</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-3 p-3 bg-amber-50 text-amber-800 rounded-lg text-sm border border-amber-100">
+                            <div className="flex items-start gap-3 p-3 bg-[var(--warning-light)] text-warning rounded-lg text-sm border border-[var(--warning-light)]">
                                 <AlertTriangle size={18} className="mt-0.5 shrink-0" />
                                 <p>This action will move the selected students to the new college/batch/course structure. Only academic details (College, Batch, Course, Branch, Year, Semester) will be updated. Fee status and registration status will remain unchanged.</p>
                             </div>
                         </div>
 
-                        <div className="p-4 border-t bg-gray-50 flex justify-end gap-3">
+                        <div className="p-4 border-t bg-background flex justify-end gap-3">
                             <button
                                 onClick={() => setConfirmationOpen(false)}
-                                className="px-5 py-2.5 text-gray-700 font-semibold hover:bg-gray-200 rounded-lg transition-colors"
+                                className="px-5 py-2.5 text-sub font-semibold hover:bg-background rounded-lg transition-colors"
                                 disabled={submitting}
                             >
                                 Cancel
@@ -680,7 +680,7 @@ const CollegeTransfer = ({ readOnly = false }) => {
                             <button
                                 onClick={executeTransfer}
                                 disabled={submitting}
-                                className="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 shadow-lg shadow-indigo-200 flex items-center gap-2 active:scale-95 transition-all disabled:opacity-70 disabled:active:scale-100"
+                                className="px-6 py-2.5 bg-primary text-white font-bold rounded-lg hover:bg-primary-hover shadow-lg shadow-primary flex items-center gap-2 active:scale-95 transition-all disabled:opacity-70 disabled:active:scale-100"
                             >
                                 {submitting && <Loader2 size={18} className="animate-spin" />}
                                 Confirm Transfer

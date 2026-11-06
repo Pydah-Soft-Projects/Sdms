@@ -389,16 +389,33 @@ const Login = () => {
     <div
       className="min-h-screen flex items-center justify-center p-2 sm:p-4 animate-fade-in overflow-x-hidden relative login-stars-optimized"
       style={{
+        '--primary': '#0284C7',
+        '--primary-hover': '#0369A1',
+        '--primary-dark': '#0369A1',
+        '--primary-light': '#E0F2FE',
+        '--secondary': '#0284C7',
+        '--accent': '#0284C7',
+        '--surface': '#FFFFFF',
+        '--background': '#F8FAFC',
+        '--border': '#E2E8F0',
+        '--border-strong': '#CBD5E1',
+        '--text-primary': '#0F172A',
+        '--text-secondary': '#475569',
+        '--text-muted': '#94A3B8',
+        '--success': '#16A34A',
+        '--warning': '#D97706',
+        '--danger': '#DC2626',
+        '--info': '#0284C7',
         backgroundImage: "url('/images/login_background.png')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundColor: '#f8fafc'
+        backgroundColor: '#11180F'
       }}
     >
       {/* Home Button - Mobile Only */}
       <button
         onClick={() => navigate('/', { replace: true })}
-        className="lg:hidden absolute top-6 left-6 z-[100] flex items-center justify-center w-11 h-11 bg-white rounded-xl text-primary shadow-lg border border-primary/10 hover:bg-primary hover:text-white transition-all active:scale-90 cursor-pointer"
+        className="lg:hidden absolute top-6 left-6 z-[100] flex items-center justify-center w-11 h-11 bg-surface rounded-xl text-primary shadow-lg border border-primary/10 hover:bg-primary hover:text-white transition-all active:scale-90 cursor-pointer"
         title="Go to Home"
       >
         <Home size={22} />
@@ -413,7 +430,7 @@ const Login = () => {
           <div className="absolute top-12 left-12 z-[50]">
             <button
               onClick={() => navigate('/', { replace: true })}
-              className="w-12 h-12 bg-white/80 backdrop-blur-md shadow-sm border border-gray-100 rounded-xl flex items-center justify-center cursor-pointer hover:bg-white hover:scale-110 active:scale-95 transition-all group relative overflow-visible"
+              className="w-12 h-12 bg-white/80 backdrop-blur-md shadow-sm border border-slate-200 rounded-xl flex items-center justify-center cursor-pointer hover:bg-surface hover:scale-110 active:scale-95 transition-all group relative overflow-visible"
               title="Return Home"
             >
               <Home size={22} className="text-primary group-hover:rotate-[-10deg] transition-transform" />
@@ -440,13 +457,13 @@ const Login = () => {
                       {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).split(' ')[0]}
                     </span>
                     <div className="flex items-center gap-1.5 mt-1">
-                      <span className="text-[10px] font-black text-gray-100 uppercase tracking-[0.15em]">
+                      <span className="text-[10px] font-black text-muted-text uppercase tracking-[0.15em]">
                         {currentTime.toLocaleTimeString([], { second: '2-digit', hour12: true }).split(' ')[0]} {currentTime.toLocaleTimeString([], { hour12: true }).split(' ')[1]}
                       </span>
                     </div>
                   </div>
-                  <div className="h-[1px] w-8 bg-gradient-to-r from-transparent via-white/50 to-transparent my-2 shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
-                  <span className="text-[9px] font-bold text-gray-100 uppercase tracking-[0.35em] drop-shadow-md">
+                  <div className="h-[1px] w-8 bg-gradient-to-r from-transparent via-surface to-transparent my-2 shadow-[0_0_10px_rgba(255,255,255,0.4)]" />
+                  <span className="text-[9px] font-bold text-muted-text uppercase tracking-[0.35em] drop-shadow-md">
                     {currentTime.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
                   </span>
                 </div>
@@ -456,11 +473,11 @@ const Login = () => {
         </div>
 
         {/* Right Side - Login Form (With higher z-index for 3D depth) */}
-        <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-16 flex flex-col justify-center relative bg-white lg:bg-transparent">
+        <div className="w-full lg:w-1/2 p-8 sm:p-12 md:p-16 flex flex-col justify-center relative bg-surface lg:bg-transparent">
           {/* SSO error banner */}
           {ssoError && (
-            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 relative z-50">
-              <p className="text-sm text-amber-800">{ssoError}</p>
+            <div className="mb-6 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-lg px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 relative z-50">
+              <p className="text-sm text-warning">{ssoError}</p>
               <a href={CRM_FRONTEND_URL} className="text-sm font-medium text-primary hover:text-primary-dark">Return to CRM Portal</a>
             </div>
           )}
@@ -468,20 +485,16 @@ const Login = () => {
           {/* Form Content Wrapper - Stays above the overlapping illustration - Z-40 */}
           <div className="relative z-40 w-full max-w-sm mx-auto">
             <div className="text-center lg:text-left mb-10">
-              <div className="flex justify-center lg:justify-start mb-6">
-                <div className="p-3 bg-white rounded-2xl shadow-sm border border-gray-100 group hover:scale-105 transition-all duration-300">
-                  <img src="/logo.png" alt="College Logo" className="h-[70px] w-auto object-contain" />
-                </div>
-              </div>
-              <h1 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
+              
+              <h1 className="text-3xl font-black text-main mb-2 tracking-tight">
                 Welcome Back
               </h1>
-              <p className="text-gray-500 font-medium text-sm tracking-wide">
+              <p className="text-muted-text font-medium text-sm tracking-wide">
                 Signin to access your portal
               </p>
             </div>
 
-            <div className="flex p-1 bg-gray-100 rounded-xl mb-6">
+            <div className="flex p-1 bg-background rounded-xl mb-6">
               {[
                 { id: 'staff', label: 'Staff' },
                 { id: 'student', label: 'Student' },
@@ -493,8 +506,8 @@ const Login = () => {
                   onClick={() => switchTab(tab.id)}
                   className={`flex-1 py-2.5 text-xs font-black rounded-lg transition-all ${
                     activeTab === tab.id
-                      ? 'bg-white text-primary shadow-sm'
-                      : 'text-gray-500 hover:text-gray-800'
+                      ? 'bg-surface text-primary shadow-sm'
+                      : 'text-muted-text hover:text-main'
                   }`}
                 >
                   {tab.label}
@@ -507,21 +520,21 @@ const Login = () => {
                 {parentStep === 'mobile' && (
                   <form onSubmit={handleParentSendOtp} className="space-y-5">
                     <div className="group">
-                      <label className="block text-sm font-bold text-gray-700 mb-2">Parent Mobile Number</label>
+                      <label className="block text-sm font-bold text-sub mb-2">Parent Mobile Number</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <Phone size={18} className="text-gray-400" />
+                          <Phone size={18} className="text-muted-text" />
                         </div>
                         <input
                           type="tel"
                           required
                           placeholder="10-digit mobile number"
-                          className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
+                          className="block w-full pl-11 pr-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium"
                           value={parentMobile}
                           onChange={(e) => setParentMobile(e.target.value)}
                         />
                       </div>
-                      <p className="text-xs text-gray-400 mt-2">Use the mobile number registered as parent contact</p>
+                      <p className="text-xs text-muted-text mt-2">Use the mobile number registered as parent contact</p>
                     </div>
                     <button
                       type="submit"
@@ -536,10 +549,10 @@ const Login = () => {
                 {parentStep === 'otp' && (
                   <form onSubmit={handleParentVerifyOtp} className="space-y-5">
                     <div className="group">
-                      <label className="block text-sm font-bold text-gray-700 mb-2">Enter OTP</label>
+                      <label className="block text-sm font-bold text-sub mb-2">Enter OTP</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <ShieldCheck size={18} className="text-gray-400" />
+                          <ShieldCheck size={18} className="text-muted-text" />
                         </div>
                         <input
                           type="text"
@@ -547,7 +560,7 @@ const Login = () => {
                           maxLength={6}
                           required
                           placeholder="6-digit OTP"
-                          className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium tracking-widest"
+                          className="block w-full pl-11 pr-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-medium tracking-widest"
                           value={parentOtp}
                           onChange={(e) => setParentOtp(e.target.value.replace(/\D/g, ''))}
                         />
@@ -563,7 +576,7 @@ const Login = () => {
                     <button
                       type="button"
                       onClick={() => setParentStep('mobile')}
-                      className="w-full text-sm font-bold text-gray-500 hover:text-primary"
+                      className="w-full text-sm font-bold text-muted-text hover:text-primary"
                     >
                       Change mobile number
                     </button>
@@ -572,7 +585,7 @@ const Login = () => {
 
                 {parentStep === 'select' && (
                   <div className="space-y-4">
-                    <p className="text-sm font-bold text-gray-700">Select student</p>
+                    <p className="text-sm font-bold text-sub">Select student</p>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {linkedStudents.map((s) => (
                         <button
@@ -580,17 +593,17 @@ const Login = () => {
                           type="button"
                           disabled={parentLoading}
                           onClick={() => handleParentSelectStudent(s.id)}
-                          className="w-full text-left p-4 rounded-xl border border-gray-200 hover:border-primary hover:bg-primary/5 transition-all disabled:opacity-60"
+                          className="w-full text-left p-4 rounded-xl border border-border hover:border-primary hover:bg-primary/5 transition-all disabled:opacity-60"
                         >
-                          <p className="font-bold text-gray-900">{s.student_name}</p>
-                          <p className="text-xs text-gray-500 mt-1">{s.admission_number} · {s.course} · {s.branch}</p>
+                          <p className="font-bold text-main">{s.student_name}</p>
+                          <p className="text-xs text-muted-text mt-1">{s.admission_number} · {s.course} · {s.branch}</p>
                         </button>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">
+                <p className="text-[10px] text-muted-text font-bold uppercase tracking-widest text-center">
                   Parent session stays active for 15 days
                 </p>
               </div>
@@ -598,19 +611,19 @@ const Login = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-5">
                 <div className="group">
-                  <label className="block text-sm font-bold text-gray-700 mb-2 group-focus-within:text-primary transition-colors">
+                  <label className="block text-sm font-bold text-sub mb-2 group-focus-within:text-primary transition-colors">
                     Username / Admission No
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Users size={18} className="text-gray-400 group-focus-within:text-primary transition-colors" />
+                      <Users size={18} className="text-muted-text group-focus-within:text-primary transition-colors" />
                     </div>
                     <input
                       type="text"
                       name="username"
                       required
                       placeholder="Enter your id"
-                      className="block w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                      className="block w-full pl-11 pr-4 py-3 bg-background border border-border rounded-xl text-main placeholder:text-muted-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                       value={formData.username}
                       onChange={handleChange}
                     />
@@ -618,19 +631,19 @@ const Login = () => {
                 </div>
 
                 <div className="group">
-                  <label className="block text-sm font-bold text-gray-700 mb-2 group-focus-within:text-primary transition-colors">
+                  <label className="block text-sm font-bold text-sub mb-2 group-focus-within:text-primary transition-colors">
                     Password
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <LogIn size={18} className="text-gray-400 group-focus-within:text-primary transition-colors" />
+                      <LogIn size={18} className="text-muted-text group-focus-within:text-primary transition-colors" />
                     </div>
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
                       required
                       placeholder="••••••••"
-                      className="block w-full pl-11 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
+                      className="block w-full pl-11 pr-12 py-3 bg-background border border-border rounded-xl text-main placeholder:text-muted-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all font-medium"
                       value={formData.password}
                       onChange={handleChange}
                     />
@@ -639,7 +652,7 @@ const Login = () => {
                       className="absolute inset-y-0 right-0 pr-4 flex items-center"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? <EyeOff size={18} className="text-gray-400" /> : <Eye size={18} className="text-gray-400" />}
+                      {showPassword ? <EyeOff size={18} className="text-muted-text" /> : <Eye size={18} className="text-muted-text" />}
                     </button>
                   </div>
                 </div>
@@ -666,11 +679,11 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowForgotModal(true)}
-                  className="text-sm font-bold text-gray-600 hover:text-primary transition-colors"
+                  className="text-sm font-bold text-sub hover:text-primary transition-colors"
                 >
                   Forgot Password?
                 </button>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                <p className="text-[10px] text-muted-text font-bold uppercase tracking-widest">
                   © {new Date().getFullYear()} Student Management System
                 </p>
               </div>
@@ -683,15 +696,15 @@ const Login = () => {
       {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 relative animate-in fade-in zoom-in duration-200">
+          <div className="bg-surface rounded-xl shadow-xl max-w-sm w-full p-6 relative animate-in fade-in zoom-in duration-200">
             <button
               onClick={() => setShowForgotModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl font-bold"
+              className="absolute top-4 right-4 text-muted-text hover:text-sub text-xl font-bold"
             >
               &times;
             </button>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Reset Password</h3>
-            <p className="text-sm text-gray-500 mb-4">
+            <h3 className="text-xl font-bold text-main mb-2">Reset Password</h3>
+            <p className="text-sm text-muted-text mb-4">
               {(!isStudentLogin && userTypeReset === 'staff')
                 ? "Enter your registered email or mobile number. We'll send a new password to your email (and SMS if available)."
                 : "Enter your registered mobile number. We'll send you a new password via SMS."}
@@ -711,7 +724,7 @@ const Login = () => {
                       }}
                       className="mr-2"
                     />
-                    <span className="text-sm font-medium text-gray-700 capitalize">{type === 'staff' ? 'Staff / Admin' : type}</span>
+                    <span className="text-sm font-medium text-sub capitalize">{type === 'staff' ? 'Staff / Admin' : type}</span>
                   </label>
                 ))}
               </div>
@@ -719,22 +732,22 @@ const Login = () => {
 
             <form onSubmit={handleForgotSubmit}>
               {hasCurrentForgotPasswordLimit && Number.isInteger(forgotAttemptsRemaining) && (
-                <p className="mb-4 text-sm text-gray-600" role="status">
+                <p className="mb-4 text-sm text-sub" role="status">
                   You have {forgotAttemptsRemaining} forgot password {forgotAttemptsRemaining === 1 ? 'attempt' : 'attempts'} left today.
                   {forgotLockedUntil && currentTime.getTime() < forgotLockedUntil && (
-                    <span className="block mt-1 text-red-600">
+                    <span className="block mt-1 text-danger">
                       Try again in {Math.ceil((forgotLockedUntil - currentTime.getTime()) / 60000)} minute(s).
                     </span>
                   )}
                   {forgotAttemptsRemaining === 0 && (
-                    <span className="block mt-1 text-red-600">
+                    <span className="block mt-1 text-danger">
                       The daily limit has been reached. Try again when your 24-hour limit resets.
                     </span>
                   )}
                 </p>
               )}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   {(!isStudentLogin && userTypeReset === 'staff') ? 'Email or Mobile Number' : 'Mobile Number'}
                 </label>
                 <input

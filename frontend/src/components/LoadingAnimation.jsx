@@ -23,7 +23,7 @@ const LoadingAnimation = ({
   const variantConfig = {
     default: 'flex flex-col items-center justify-center',
     minimal: 'flex items-center gap-2',
-    overlay: 'fixed inset-0 flex flex-col items-center justify-center bg-white bg-opacity-90 z-50',
+    overlay: 'fixed inset-0 flex flex-col items-center justify-center bg-surface bg-opacity-90 z-50',
     inline: 'flex items-center gap-3'
   };
 
@@ -40,7 +40,7 @@ const LoadingAnimation = ({
       >
         {/* Blue Spinner */}
         <div
-          className={`${config.borderSize} border-blue-200 border-t-blue-600 rounded-full animate-spin`}
+          className={`${config.borderSize} border-[var(--primary-light)] border-t-primary rounded-full animate-spin`}
           style={{
             width: actualWidth,
             height: actualHeight,
@@ -49,7 +49,7 @@ const LoadingAnimation = ({
         ></div>
       </div>
       {showMessage && message && (
-        <p className={`mt-2 ${config.textSize} text-blue-600 font-medium`}>
+        <p className={`mt-2 ${config.textSize} text-primary font-medium`}>
           {message}
         </p>
       )}

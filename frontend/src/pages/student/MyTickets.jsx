@@ -23,11 +23,11 @@ import api from '../../config/api';
 import toast from 'react-hot-toast';
 
 const STATUS_COLORS = {
-  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  approaching: 'bg-blue-100 text-blue-800 border-blue-200',
-  resolving: 'bg-purple-100 text-purple-800 border-purple-200',
-  completed: 'bg-green-100 text-green-800 border-green-200',
-  closed: 'bg-gray-100 text-gray-800 border-gray-200'
+  pending: 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]',
+  approaching: 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]',
+  resolving: 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]',
+  completed: 'bg-[var(--success-light)] text-success border-[var(--success-light)]',
+  closed: 'bg-background text-main border-border'
 };
 
 const STATUS_LABELS = {
@@ -105,7 +105,7 @@ const MyTickets = () => {
         </div>
         <div className="space-y-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-lg border p-6">
+            <div key={i} className="bg-surface rounded-lg border p-6">
               <div className="flex justify-between items-start">
                 <div className="flex-1 space-y-3">
                   <div className="flex items-center gap-3">
@@ -137,22 +137,22 @@ const MyTickets = () => {
       className="space-y-8 pb-12"
     >
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-gray-100">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-border">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-blue-600 mb-1">
+          <div className="flex items-center gap-2 text-primary mb-1">
             <Ticket size={16} />
             <span className="text-xs font-bold uppercase tracking-widest">Support Portal</span>
           </div>
-          <h1 className="text-3xl lg:text-4xl font-extrabold text-gray-900 heading-font tracking-tight">
+          <h1 className="text-3xl lg:text-4xl font-extrabold text-main heading-font tracking-tight">
             Ticket History
           </h1>
-          <p className="text-gray-500 text-sm lg:text-base font-medium">
+          <p className="text-muted-text text-sm lg:text-base font-medium">
             View and track your previous assistance requests
           </p>
         </div>
         <Link
           to="/student/raise-ticket"
-          className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 shadow-xl shadow-blue-100 transition-all hover:-translate-y-1 active:scale-95"
+          className="group inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl font-bold hover:bg-primary-hover shadow-xl shadow-primary transition-all hover:-translate-y-1 active:scale-95"
         >
           <Plus size={20} className="transition-transform group-hover:rotate-90 duration-300" />
           <span>Raise New Ticket</span>
@@ -166,27 +166,27 @@ const MyTickets = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="relative overflow-hidden bg-white rounded-[2rem] border border-gray-100 p-12 lg:p-20 text-center shadow-2xl shadow-gray-100/50"
+            className="relative overflow-hidden bg-surface rounded-[2rem] border border-border p-12 lg:p-20 text-center shadow-2xl shadow-border/50"
           >
             {/* Background Decoration */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-50/50 rounded-full -ml-32 -mb-32 blur-3xl"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary-light)] rounded-full -mr-32 -mt-32 blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-[var(--primary-light)] rounded-full -ml-32 -mb-32 blur-3xl"></div>
 
             <div className="relative z-10 max-w-md mx-auto">
-              <div className="w-24 h-24 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner rotate-3 group hover:rotate-6 transition-transform">
-                <Ticket className="text-blue-600" size={48} />
+              <div className="w-24 h-24 bg-[var(--primary-light)] rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner rotate-3 group hover:rotate-6 transition-transform">
+                <Ticket className="text-primary" size={48} />
               </div>
-              <h3 className="text-2xl lg:text-3xl font-black text-gray-900 mb-4 heading-font">
+              <h3 className="text-2xl lg:text-3xl font-black text-main mb-4 heading-font">
                 No History Yet
               </h3>
-              <p className="text-gray-500 mb-10 leading-relaxed font-medium">
+              <p className="text-muted-text mb-10 leading-relaxed font-medium">
                 Everything looks good! You haven't raised any complaints or assistance requests yet.
               </p>
               <Link
                 to="/student/raise-ticket"
-                className="inline-flex items-center gap-3 px-8 py-4 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black shadow-2xl shadow-gray-200 transition-all hover:-translate-y-1 active:scale-95 group"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-sidebar text-white rounded-2xl font-bold hover:bg-black shadow-2xl shadow-border transition-all hover:-translate-y-1 active:scale-95 group"
               >
-                <Sparkles size={20} className="text-blue-400 group-hover:animate-pulse" />
+                <Sparkles size={20} className="text-primary group-hover:animate-pulse" />
                 <span>Create Your First Ticket</span>
                 <Plus size={20} />
               </Link>
@@ -200,67 +200,67 @@ const MyTickets = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 key={ticket.id}
-                className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 hover:border-indigo-100 transition-all duration-300 group relative overflow-hidden"
+                className="bg-surface rounded-2xl border border-border p-6 hover:shadow-md hover:-translate-y-1 hover:border-[var(--primary-light)] transition-all duration-300 group relative overflow-hidden"
               >
                 <div className="flex items-start justify-between relative z-10">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3 mb-4">
-                      <h3 className="text-xl font-bold text-gray-900 heading-font group-hover:text-blue-600 transition-colors">{ticket.title}</h3>
-                      <span className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border shadow-sm ${STATUS_COLORS[ticket.status] || 'bg-gray-100'}`}>
+                      <h3 className="text-xl font-bold text-main heading-font group-hover:text-primary transition-colors">{ticket.title}</h3>
+                      <span className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full border shadow-sm ${STATUS_COLORS[ticket.status] || 'bg-background'}`}>
                         {STATUS_LABELS[ticket.status] || ticket.status}
                       </span>
                     </div>
 
                     <div className="flex flex-wrap gap-3 mb-4">
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">ID:</span>
-                        <code className="text-xs font-mono font-bold text-blue-600">{ticket.ticket_number}</code>
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-lg border border-border">
+                        <span className="text-[10px] font-bold text-muted-text uppercase tracking-tighter">ID:</span>
+                        <code className="text-xs font-mono font-bold text-primary">{ticket.ticket_number}</code>
                       </div>
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Type:</span>
-                        <span className="text-xs font-bold text-gray-700">{ticket.category_name}</span>
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-lg border border-border">
+                        <span className="text-[10px] font-bold text-muted-text uppercase tracking-tighter">Type:</span>
+                        <span className="text-xs font-bold text-sub">{ticket.category_name}</span>
                       </div>
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
-                        <Clock size={12} className="text-gray-400" />
-                        <span className="text-xs font-bold text-gray-600">{new Date(ticket.created_at).toLocaleDateString()}</span>
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-lg border border-border">
+                        <Clock size={12} className="text-muted-text" />
+                        <span className="text-xs font-bold text-sub">{new Date(ticket.created_at).toLocaleDateString()}</span>
                       </div>
                       {/* Location Badges */}
                       {ticket.college_name && (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-900 rounded-lg border border-blue-100 text-xs font-bold">
-                          <Building2 size={12} className="text-blue-600" />
-                          <span className="text-[9px] uppercase font-black text-blue-500">College:</span>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary-light)] text-primary rounded-lg border border-[var(--primary-light)] text-xs font-bold">
+                          <Building2 size={12} className="text-primary" />
+                          <span className="text-[9px] uppercase font-black text-primary">College:</span>
                           <span>{ticket.college_name}</span>
                         </div>
                       )}
                       {ticket.block_no && (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-900 rounded-lg border border-indigo-100 text-xs font-bold">
-                          <span className="text-[9px] uppercase font-black text-indigo-500">Block:</span>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary-light)] text-primary rounded-lg border border-[var(--primary-light)] text-xs font-bold">
+                          <span className="text-[9px] uppercase font-black text-primary">Block:</span>
                           <span>{ticket.block_no}</span>
                         </div>
                       )}
                       {ticket.floor_no && (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-900 rounded-lg border border-purple-100 text-xs font-bold">
-                          <span className="text-[9px] uppercase font-black text-purple-500">Floor:</span>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--primary-light)] text-secondary rounded-lg border border-[var(--primary-light)] text-xs font-bold">
+                          <span className="text-[9px] uppercase font-black text-secondary">Floor:</span>
                           <span>{ticket.floor_no}</span>
                         </div>
                       )}
                       {ticket.room_no && (
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-900 rounded-lg border border-emerald-100 text-xs font-bold">
-                          <span className="text-[9px] uppercase font-black text-emerald-500">Room:</span>
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--success-light)] text-success rounded-lg border border-[var(--success-light)] text-xs font-bold">
+                          <span className="text-[9px] uppercase font-black text-success">Room:</span>
                           <span>{ticket.room_no}</span>
                         </div>
                       )}
                     </div>
 
                     {ticket.description && (
-                      <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed max-w-3xl italic">"{ticket.description}"</p>
+                      <p className="text-sm text-muted-text line-clamp-2 leading-relaxed max-w-3xl italic">"{ticket.description}"</p>
                     )}
                   </div>
 
                   <div className="flex items-center gap-3 ml-6 self-center">
                     <button
                       onClick={() => setSelectedTicket(ticket)}
-                      className="p-3 text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white rounded-2xl transition-all shadow-sm group/btn active:scale-90"
+                      className="p-3 text-primary bg-[var(--primary-light)] hover:bg-primary hover:text-white rounded-2xl transition-all shadow-sm group/btn active:scale-90"
                       title="View Details"
                     >
                       <Eye size={22} className="group-hover/btn:scale-110 transition-transform" />
@@ -272,7 +272,7 @@ const MyTickets = () => {
                           setSelectedTicket(ticket);
                           setShowFeedbackModal(true);
                         }}
-                        className="px-5 py-2.5 bg-green-600 text-white rounded-2xl hover:bg-green-700 text-sm font-bold flex items-center gap-2 shadow-lg shadow-green-100 hover:shadow-green-200 transition-all active:scale-95"
+                        className="px-5 py-2.5 bg-success text-white rounded-2xl hover:bg-success text-sm font-bold flex items-center gap-2 shadow-lg shadow-success hover:shadow-success transition-all active:scale-95"
                       >
                         <MessageSquare size={18} />
                         Feedback
@@ -323,30 +323,30 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 lg:p-8"
+      className="fixed inset-0 bg-[var(--sidebar)]/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 lg:p-8"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white rounded-[2.5rem] max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-white/20 relative"
+        className="bg-surface rounded-[2.5rem] max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-surface relative"
       >
         {/* Header Container */}
-        <div className="sticky top-0 bg-white/80 backdrop-blur-md z-20 px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="sticky top-0 bg-[var(--surface)]/80 backdrop-blur-md z-20 px-8 py-6 border-b border-border flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-black text-gray-900 heading-font">Ticket Details</h2>
-            <p className="text-xs text-blue-600 font-bold tracking-widest uppercase mt-0.5">Reference: {ticket.ticket_number}</p>
+            <h2 className="text-2xl font-black text-main heading-font">Ticket Details</h2>
+            <p className="text-xs text-primary font-bold tracking-widest uppercase mt-0.5">Reference: {ticket.ticket_number}</p>
           </div>
-          <button onClick={onClose} className="p-3 bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900 rounded-2xl transition-all active:scale-95 shadow-sm">
+          <button onClick={onClose} className="p-3 bg-background text-muted-text hover:bg-background hover:text-main rounded-2xl transition-all active:scale-95 shadow-sm">
             <X size={24} />
           </button>
         </div>
 
         <div className="p-8 lg:p-10 space-y-10">
           <div className="flex flex-wrap items-center gap-4">
-            <div className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest border shadow-sm ${STATUS_COLORS[ticket.status] || 'bg-gray-100'}`}>
+            <div className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest border shadow-sm ${STATUS_COLORS[ticket.status] || 'bg-background'}`}>
               {STATUS_LABELS[ticket.status] || ticket.status}
             </div>
-            <div className="flex items-center gap-2 text-gray-400 text-sm font-medium">
+            <div className="flex items-center gap-2 text-muted-text text-sm font-medium">
               <Clock size={16} />
               <span>Created {new Date(ticket.created_at).toLocaleString()}</span>
             </div>
@@ -355,46 +355,46 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-6">
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black text-gray-400 tracking-tighter">Category & Type</label>
-                <p className="text-lg font-bold text-gray-900">
+                <label className="text-[10px] uppercase font-black text-muted-text tracking-tighter">Category & Type</label>
+                <p className="text-lg font-bold text-main">
                   {ticket.category_name}
-                  {ticket.sub_category_name && <span className="text-blue-600 ml-2">› {ticket.sub_category_name}</span>}
+                  {ticket.sub_category_name && <span className="text-primary ml-2">› {ticket.sub_category_name}</span>}
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black text-gray-400 tracking-tighter">Subject</label>
-                <p className="text-lg font-bold text-gray-900 leading-tight">{ticket.title}</p>
+                <label className="text-[10px] uppercase font-black text-muted-text tracking-tighter">Subject</label>
+                <p className="text-lg font-bold text-main leading-tight">{ticket.title}</p>
               </div>
 
               {/* Physical Location Details */}
               {(ticket.college_name || ticket.block_no || ticket.floor_no || ticket.room_no) && (
-                <div className="p-4 bg-blue-50/70 border border-blue-100 rounded-2xl space-y-2">
-                  <div className="text-[11px] font-black text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <MapPin size={14} className="text-blue-600" /> Physical Location
+                <div className="p-4 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-2xl space-y-2">
+                  <div className="text-[11px] font-black text-primary uppercase tracking-wider flex items-center gap-1.5">
+                    <MapPin size={14} className="text-primary" /> Physical Location
                   </div>
-                  <div className="flex flex-wrap gap-4 text-xs font-bold text-blue-900">
+                  <div className="flex flex-wrap gap-4 text-xs font-bold text-primary">
                     {ticket.college_name && (
                       <div>
-                        <span className="text-[10px] text-blue-500 uppercase block font-semibold">College</span>
+                        <span className="text-[10px] text-primary uppercase block font-semibold">College</span>
                         <span>{ticket.college_name}</span>
                       </div>
                     )}
                     {ticket.block_no && (
                       <div>
-                        <span className="text-[10px] text-blue-500 uppercase block font-semibold">Block</span>
+                        <span className="text-[10px] text-primary uppercase block font-semibold">Block</span>
                         <span>{ticket.block_no}</span>
                       </div>
                     )}
                     {ticket.floor_no && (
                       <div>
-                        <span className="text-[10px] text-blue-500 uppercase block font-semibold">Floor</span>
+                        <span className="text-[10px] text-primary uppercase block font-semibold">Floor</span>
                         <span>{ticket.floor_no}</span>
                       </div>
                     )}
                     {ticket.room_no && (
                       <div>
-                        <span className="text-[10px] text-blue-500 uppercase block font-semibold">Room No</span>
+                        <span className="text-[10px] text-primary uppercase block font-semibold">Room No</span>
                         <span>{ticket.room_no}</span>
                       </div>
                     )}
@@ -405,8 +405,8 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback }) => {
 
             {ticket.photo_url && (
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-black text-gray-400 tracking-tighter">Evidence / Attachment</label>
-                <div className="rounded-3xl overflow-hidden border-4 border-gray-50 shadow-inner group">
+                <label className="text-[10px] uppercase font-black text-muted-text tracking-tighter">Evidence / Attachment</label>
+                <div className="rounded-3xl overflow-hidden border-4 border-border shadow-inner group">
                   <img
                     src={ticket.photo_url}
                     alt="Ticket attachment"
@@ -418,18 +418,18 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback }) => {
           </div>
 
           <div className="space-y-3">
-            <label className="text-[10px] uppercase font-black text-gray-400 tracking-tighter">Detailed Description</label>
-            <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
-              <p className="text-gray-700 leading-relaxed font-medium whitespace-pre-wrap italic">"{ticket.description}"</p>
+            <label className="text-[10px] uppercase font-black text-muted-text tracking-tighter">Detailed Description</label>
+            <div className="p-6 bg-background rounded-3xl border border-border">
+              <p className="text-sub leading-relaxed font-medium whitespace-pre-wrap italic">"{ticket.description}"</p>
             </div>
           </div>
 
           {ticket.feedback && (
-            <div className="p-8 bg-green-50 rounded-[2rem] border border-green-200 relative overflow-hidden">
+            <div className="p-8 bg-[var(--success-light)] rounded-[2rem] border border-[var(--success-light)] relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Star size={80} className="text-green-600" />
+                <Star size={80} className="text-success" />
               </div>
-              <h4 className="text-lg font-black text-green-900 mb-4 flex items-center gap-2">
+              <h4 className="text-lg font-black text-success mb-4 flex items-center gap-2">
                 <MessageSquare size={20} />
                 Your Feedback
               </h4>
@@ -439,24 +439,24 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback }) => {
                     <Star
                       key={star}
                       size={20}
-                      className={star <= ticket.feedback.rating ? "fill-green-600 text-green-600" : "text-green-200"}
+                      className={star <= ticket.feedback.rating ? "fill-success text-success" : "text-success"}
                     />
                   ))}
                 </div>
-                <span className="font-black text-green-700 ml-2 text-xl">{ticket.feedback.rating}/5</span>
+                <span className="font-black text-success ml-2 text-xl">{ticket.feedback.rating}/5</span>
               </div>
               {ticket.feedback.feedback_text && (
-                <p className="text-green-800 font-medium leading-relaxed italic">"{ticket.feedback.feedback_text}"</p>
+                <p className="text-success font-medium leading-relaxed italic">"{ticket.feedback.feedback_text}"</p>
               )}
             </div>
           )}
 
-          <div className="pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               {ticket.status === 'completed' && !ticket.feedback && (
                 <button
                   onClick={onFeedback}
-                  className="px-8 py-3 bg-green-600 text-white rounded-2xl font-black hover:bg-green-700 transition-all shadow-lg shadow-green-100 flex items-center gap-2 active:scale-95"
+                  className="px-8 py-3 bg-success text-white rounded-2xl font-black hover:bg-success transition-all shadow-lg shadow-success flex items-center gap-2 active:scale-95"
                 >
                   <Star size={18} />
                   Rate Resolution
@@ -465,7 +465,7 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback }) => {
             </div>
             <button
               onClick={onClose}
-              className="w-full sm:w-auto px-8 py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all active:scale-95"
+              className="w-full sm:w-auto px-8 py-3 bg-sidebar text-white rounded-2xl font-bold hover:bg-black transition-all active:scale-95"
             >
               Close Details
             </button>
@@ -482,24 +482,24 @@ const FeedbackModal = ({ ticket, form, setForm, onClose, onSubmit, loading }) =>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-[70] p-4"
+      className="fixed inset-0 bg-[var(--sidebar)]/60 backdrop-blur-sm flex items-center justify-center z-[70] p-4"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="bg-white rounded-[2.5rem] max-w-md w-full shadow-2xl overflow-hidden"
+        className="bg-surface rounded-[2.5rem] max-w-md w-full shadow-2xl overflow-hidden"
       >
-        <div className="p-8 border-b border-gray-50 text-center">
-          <div className="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="text-green-600" size={32} />
+        <div className="p-8 border-b border-border text-center">
+          <div className="w-16 h-16 bg-[var(--success-light)] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="text-success" size={32} />
           </div>
-          <h2 className="text-2xl font-black text-gray-900 heading-font">Rate Resolution</h2>
-          <p className="text-gray-500 font-medium mt-1">How was your experience with Ticket #{ticket.ticket_number}?</p>
+          <h2 className="text-2xl font-black text-main heading-font">Rate Resolution</h2>
+          <p className="text-muted-text font-medium mt-1">How was your experience with Ticket #{ticket.ticket_number}?</p>
         </div>
 
         <div className="p-8 space-y-8">
           <div className="text-center">
-            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Select Rating</label>
+            <label className="block text-xs font-black text-muted-text uppercase tracking-widest mb-4">Select Rating</label>
             <div className="flex items-center justify-center gap-3">
               {[1, 2, 3, 4, 5].map((rating) => (
                 <button
@@ -510,7 +510,7 @@ const FeedbackModal = ({ ticket, form, setForm, onClose, onSubmit, loading }) =>
                 >
                   <Star
                     size={40}
-                    className={form.rating >= rating ? 'fill-yellow-400 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-gray-300'}
+                    className={form.rating >= rating ? 'fill-warning text-warning drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-muted-text'}
                   />
                 </button>
               ))}
@@ -518,11 +518,11 @@ const FeedbackModal = ({ ticket, form, setForm, onClose, onSubmit, loading }) =>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] uppercase font-black text-gray-400 tracking-tighter px-1">Detailed Feedback</label>
+            <label className="text-[10px] uppercase font-black text-muted-text tracking-tighter px-1">Detailed Feedback</label>
             <textarea
               value={form.feedback_text}
               onChange={(e) => setForm({ ...form, feedback_text: e.target.value })}
-              className="w-full px-4 py-4 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-50 transition-all outline-none font-medium resize-none"
+              className="w-full px-4 py-4 bg-background border-2 border-transparent rounded-2xl focus:bg-surface focus:border-success focus:ring-4 focus:ring-[var(--success-light)] transition-all outline-none font-medium resize-none"
               rows={4}
               placeholder="Tell us what we did great or how we can improve..."
             />
@@ -532,13 +532,13 @@ const FeedbackModal = ({ ticket, form, setForm, onClose, onSubmit, loading }) =>
             <button
               onClick={onSubmit}
               disabled={loading || !form.rating}
-              className="w-full py-4 bg-green-600 text-white rounded-2xl font-black text-lg hover:bg-green-700 disabled:opacity-50 transition-all shadow-xl shadow-green-100 active:scale-95"
+              className="w-full py-4 bg-success text-white rounded-2xl font-black text-lg hover:bg-success disabled:opacity-50 transition-all shadow-xl shadow-success active:scale-95"
             >
               {loading ? 'Submitting...' : 'Submit Feedback'}
             </button>
             <button
               onClick={onClose}
-              className="w-full py-3 text-gray-500 font-bold hover:text-gray-900 transition-colors"
+              className="w-full py-3 text-muted-text font-bold hover:text-main transition-colors"
             >
               Maybe Later
             </button>

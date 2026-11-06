@@ -82,28 +82,28 @@ const ServicesConfig = () => {
         <div className="p-6 space-y-6 animate-fade-in">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Services Configuration</h1>
-                    <p className="text-gray-500">Manage available services and their prices</p>
+                    <h1 className="text-2xl font-bold text-main">Services Configuration</h1>
+                    <p className="text-muted-text">Manage available services and their prices</p>
                 </div>
                 <div className="flex gap-3">
                     <button
                         onClick={() => navigate('/college-configuration')}
-                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+                        className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary transition"
                     >
                         <Building2 size={20} /> College Configuration
                     </button>
                     <button
                         onClick={() => navigate('/services/add')}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition"
                     >
                         <Plus size={20} /> Add Service
                     </button>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden">
                 <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                    <thead className="bg-background text-muted-text text-xs uppercase tracking-wider">
                         <tr>
                             <th className="px-6 py-4">Status</th>
                             <th className="px-6 py-4">Service Name</th>
@@ -113,25 +113,25 @@ const ServicesConfig = () => {
                             <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-border">
                         {loading ? (
                             <tr><td colSpan="6" className="p-6 text-center">Loading...</td></tr>
                         ) : services.length === 0 ? (
-                            <tr><td colSpan="6" className="p-6 text-center text-gray-500">No services found</td></tr>
+                            <tr><td colSpan="6" className="p-6 text-center text-muted-text">No services found</td></tr>
                         ) : (
                             services.map((service) => (
-                                <tr key={service.id} className="hover:bg-gray-50 group">
+                                <tr key={service.id} className="hover:bg-background group">
                                     <td className="px-6 py-4">
                                         <button
                                             onClick={() => toggleStatus(service)}
-                                            className={`px-2 py-1 rounded-full text-xs font-semibold ${service.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                                            className={`px-2 py-1 rounded-full text-xs font-semibold ${service.is_active ? 'bg-[var(--success-light)] text-success' : 'bg-background text-muted-text'}`}
                                         >
                                             {service.is_active ? 'Active' : 'Inactive'}
                                         </button>
                                     </td>
-                                    <td className="px-6 py-4 font-medium text-gray-900">{service.name}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{service.description || '-'}</td>
-                                    <td className="px-6 py-4 font-mono text-gray-900">₹{service.price}</td>
+                                    <td className="px-6 py-4 font-medium text-main">{service.name}</td>
+                                    <td className="px-6 py-4 text-sm text-muted-text truncate max-w-xs">{service.description || '-'}</td>
+                                    <td className="px-6 py-4 font-mono text-main">₹{service.price}</td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-wrap gap-1">
                                             {(() => {
@@ -146,12 +146,12 @@ const ServicesConfig = () => {
 
                                                 return fields.length > 0 ? (
                                                     fields.map(f => (
-                                                        <span key={f.name} className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded border border-blue-100">
+                                                        <span key={f.name} className="px-2 py-0.5 bg-[var(--primary-light)] text-primary text-xs rounded border border-[var(--primary-light)]">
                                                             {f.label}
                                                         </span>
                                                     ))
                                                 ) : (
-                                                    <span className="text-gray-400 text-xs">-</span>
+                                                    <span className="text-muted-text text-xs">-</span>
                                                 );
                                             })()}
                                         </div>
@@ -160,14 +160,14 @@ const ServicesConfig = () => {
                                         <div className="flex justify-end gap-2">
                                             <button
                                                 onClick={() => handleEdit(service)}
-                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
+                                                className="p-1.5 text-primary hover:bg-[var(--primary-light)] rounded"
                                                 title="Edit"
                                             >
                                                 <Edit2 size={16} />
                                             </button>
                                             <button
                                                 onClick={() => handleTablePreview(service)}
-                                                className="p-1.5 text-gray-600 hover:bg-gray-50 rounded"
+                                                className="p-1.5 text-sub hover:bg-background rounded"
                                                 title="Preview Template"
                                             >
                                                 <div className="w-4 h-4 flex items-center justify-center">
@@ -176,7 +176,7 @@ const ServicesConfig = () => {
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(service.id)}
-                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                                                className="p-1.5 text-danger hover:bg-[var(--danger-light)] rounded"
                                                 title="Delete Service"
                                             >
                                                 <Trash2 size={16} />
@@ -193,7 +193,7 @@ const ServicesConfig = () => {
             {/* Preview Modal */}
             {showPreview && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-4xl h-[85vh] shadow-2xl animate-scale-in flex flex-col">
+                    <div className="bg-surface rounded-2xl w-full max-w-4xl h-[85vh] shadow-2xl animate-scale-in flex flex-col">
                         <div className="flex justify-between items-center p-4 border-b">
                             <h2 className="text-lg font-bold">Template Preview</h2>
                             <button
@@ -202,20 +202,20 @@ const ServicesConfig = () => {
                                     if (previewUrl) window.URL.revokeObjectURL(previewUrl);
                                     setPreviewUrl(null);
                                 }}
-                                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-full"
+                                className="text-muted-text hover:text-sub p-1 hover:bg-background rounded-full"
                             >
                                 <X size={24} />
                             </button>
                         </div>
-                        <div className="flex-1 bg-gray-100 p-4">
+                        <div className="flex-1 bg-background p-4">
                             {previewUrl ? (
                                 <iframe
                                     src={previewUrl}
-                                    className="w-full h-full rounded-lg shadow-sm border border-gray-200 bg-white"
+                                    className="w-full h-full rounded-lg shadow-sm border border-border bg-surface"
                                     title="PDF Preview"
                                 />
                             ) : (
-                                <div className="flex items-center justify-center h-full text-gray-400">Loading preview...</div>
+                                <div className="flex items-center justify-center h-full text-muted-text">Loading preview...</div>
                             )}
                         </div>
                     </div>

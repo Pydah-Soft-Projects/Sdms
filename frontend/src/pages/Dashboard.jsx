@@ -57,8 +57,8 @@ import {
 // Single ring Donut Chart component with smooth SVG rendering
 const DonutChart = ({
   percentage = 0,
-  color = '#f59e0b',
-  trackColor = '#f3f4f6',
+  color = 'var(--warning)',
+  trackColor = 'var(--background)',
   size = 140,
   strokeWidth = 14,
   centerContent
@@ -122,7 +122,7 @@ const MultiSegmentDonut = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#f1f5f9"
+          stroke="var(--background)"
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -171,36 +171,36 @@ const AttendanceBarTooltip = ({ active, payload, label }) => {
     const fullDate = pData.fullDate || pData.dateRange || pData.date;
 
     return (
-      <div className="bg-gray-900/95 backdrop-blur-sm text-white px-3 py-2 rounded-xl shadow-xl text-xs border border-gray-700/60 space-y-1.5 z-50 pointer-events-none min-w-[150px]">
-        <div className="font-bold text-gray-200 border-b border-gray-700/70 pb-1 flex items-center justify-between gap-3">
+      <div className="bg-[var(--sidebar)]/95 backdrop-blur-sm text-white px-3 py-2 rounded-xl shadow-xl text-xs border border-border-strong space-y-1.5 z-50 pointer-events-none min-w-[150px]">
+        <div className="font-bold text-muted-text border-b border-border-strong pb-1 flex items-center justify-between gap-3">
           <span>{label}</span>
-          {fullDate && <span className="text-[10px] text-gray-400 font-normal">{fullDate}</span>}
+          {fullDate && <span className="text-[10px] text-muted-text font-normal">{fullDate}</span>}
         </div>
         <div className="space-y-1 pt-0.5">
           <div className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" /> Present:
+            <span className="flex items-center gap-1.5 text-success">
+              <span className="w-2 h-2 rounded-full bg-success inline-block" /> Present:
             </span>
             <span className="font-semibold text-white tabular-nums">{present.toLocaleString()}</span>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-1.5 text-rose-400">
-              <span className="w-2 h-2 rounded-full bg-rose-400 inline-block" /> Absent:
+            <span className="flex items-center gap-1.5 text-danger">
+              <span className="w-2 h-2 rounded-full bg-danger inline-block" /> Absent:
             </span>
             <span className="font-semibold text-white tabular-nums">{absent.toLocaleString()}</span>
           </div>
           {pending > 0 && (
             <div className="flex items-center justify-between gap-3">
-              <span className="flex items-center gap-1.5 text-amber-400">
-                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> Pending:
+              <span className="flex items-center gap-1.5 text-warning">
+                <span className="w-2 h-2 rounded-full bg-warning inline-block" /> Pending:
               </span>
               <span className="font-semibold text-white tabular-nums">{pending.toLocaleString()}</span>
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between gap-3 pt-1 border-t border-gray-800 text-[11px]">
-          <span className="text-gray-400">Posted Rate:</span>
-          <span className="font-bold text-amber-400">{pData.rate ?? rate}%</span>
+        <div className="flex items-center justify-between gap-3 pt-1 border-t border-border-strong text-[11px]">
+          <span className="text-muted-text">Posted Rate:</span>
+          <span className="font-bold text-warning">{pData.rate ?? rate}%</span>
         </div>
       </div>
     );
@@ -916,18 +916,18 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-5 bg-[#f8fafc] min-h-screen pb-12">
+    <div className="space-y-5 bg-[var(--background)] min-h-screen pb-12">
       {/* 1. Header & Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
-          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-gray-500 mt-1 font-medium">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-main tracking-tight">Dashboard</h1>
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-text mt-1 font-medium">
             <span>🏠</span>
-            <Link to="/" className="hover:text-blue-600 transition-colors">Home</Link>
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
             <span>›</span>
-            <span className="text-gray-700">Dashboard</span>
+            <span className="text-sub">Dashboard</span>
             {user?.college && (
-              <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+              <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-semibold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                 {user.college}
               </span>
             )}
@@ -935,8 +935,8 @@ const Dashboard = () => {
         </div>
 
         {/* Date badge on top right */}
-        <div className="inline-flex items-center self-start sm:self-auto gap-2 px-3.5 py-1.5 rounded-xl bg-white border border-gray-200/80 shadow-sm text-xs sm:text-sm font-medium text-gray-700">
-          <Calendar size={15} className="text-gray-400" />
+        <div className="inline-flex items-center self-start sm:self-auto gap-2 px-3.5 py-1.5 rounded-xl bg-surface border border-border shadow-sm text-xs sm:text-sm font-medium text-sub">
+          <Calendar size={15} className="text-muted-text" />
           <span>{currentDateStr}</span>
         </div>
       </div>
@@ -950,20 +950,20 @@ const Dashboard = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="pin-update-students-title"
-            className="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            className="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start justify-between gap-3 border-b border-gray-100 p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-3 border-b border-border p-4 sm:p-5">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 id="pin-update-students-title" className="text-base font-bold text-gray-900">
+                  <h2 id="pin-update-students-title" className="text-base font-bold text-main">
                     {selectedDashboardAlert.isAll ? 'Complete Student Details Needing ID Cards' : 'Students Needing ID Cards'}
                   </h2>
-                  <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                  <span className="rounded-full bg-[var(--primary-light)] px-2.5 py-0.5 text-xs font-semibold text-primary">
                     {modalStudents.length} student{modalStudents.length === 1 ? '' : 's'}
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-muted-text">
                   {selectedDashboardAlert.isAll
                     ? `Showing all ${allAlertStudents.length} pending students across ${dashboardAlerts.length} batch${dashboardAlerts.length === 1 ? '' : 'es'}`
                     : `${selectedDashboardAlert.title} · ${selectedDashboardAlert.data?.totalStudents || (selectedDashboardAlert.data?.students?.length || 0)} students`}
@@ -983,7 +983,7 @@ const Dashboard = () => {
                         totalStudents: totalPendingStudents
                       });
                     }}
-                    className="inline-flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+                    className="inline-flex items-center gap-1 rounded-lg border border-[var(--primary-light)] bg-[var(--primary-light)] px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-[var(--primary-light)] transition"
                   >
                     <Eye size={13} /> View All ({totalPendingStudents})
                   </button>
@@ -991,7 +991,7 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedDashboardAlert(null)}
-                  className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                  className="rounded-lg p-2 text-muted-text hover:bg-background"
                   aria-label="Close student details"
                 >
                   <X size={18} />
@@ -1000,15 +1000,15 @@ const Dashboard = () => {
             </div>
 
             {/* Search filter within popup */}
-            <div className="border-b border-gray-100 bg-gray-50/50 px-4 py-2.5 sm:px-5">
+            <div className="border-b border-border bg-[var(--background)]/50 px-4 py-2.5 sm:px-5">
               <div className="relative">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" />
                 <input
                   type="text"
                   value={alertStudentSearch}
                   onChange={(e) => setAlertStudentSearch(e.target.value)}
                   placeholder="Search student by name, admission no, PIN, or branch..."
-                  className="w-full rounded-lg border border-gray-200 bg-white py-1.5 pl-8 pr-3 text-xs text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-border bg-surface py-1.5 pl-8 pr-3 text-xs text-main placeholder:text-muted-text focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
@@ -1017,7 +1017,7 @@ const Dashboard = () => {
               {modalStudents.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[640px] text-left text-xs">
-                    <thead className="bg-gray-50 text-[10px] uppercase tracking-wide text-gray-500">
+                    <thead className="bg-background text-[10px] uppercase tracking-wide text-muted-text">
                       <tr>
                         <th className="px-3 py-2.5 font-semibold">Student</th>
                         <th className="px-3 py-2.5 font-semibold">Admission No.</th>
@@ -1026,12 +1026,12 @@ const Dashboard = () => {
                         <th className="px-3 py-2.5 font-semibold">Batch / Course / Branch</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-border">
                       {modalStudents.map((student, index) => (
-                        <tr key={`${student.admissionNumber || student.pinNumber || index}-${index}`} className="text-gray-700 hover:bg-gray-50/60">
-                          <td className="px-3 py-2.5 font-medium text-gray-900">{student.name || '—'}</td>
-                          <td className="px-3 py-2.5 font-mono text-[11px] text-gray-600">{student.admissionNumber || '—'}</td>
-                          <td className="px-3 py-2.5 font-mono font-semibold text-blue-700">{student.pinNumber || '—'}</td>
+                        <tr key={`${student.admissionNumber || student.pinNumber || index}-${index}`} className="text-sub hover:bg-[var(--background)]/60">
+                          <td className="px-3 py-2.5 font-medium text-main">{student.name || '—'}</td>
+                          <td className="px-3 py-2.5 font-mono text-[11px] text-sub">{student.admissionNumber || '—'}</td>
+                          <td className="px-3 py-2.5 font-mono font-semibold text-primary">{student.pinNumber || '—'}</td>
                           <td className="px-3 py-2.5">{student.college || '—'}</td>
                           <td className="px-3 py-2.5">{[student.batch, student.course, student.branch].filter(Boolean).join(' · ') || '—'}</td>
                         </tr>
@@ -1040,14 +1040,14 @@ const Dashboard = () => {
                   </table>
                 </div>
               ) : (
-                <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+                <p className="rounded-lg bg-[var(--warning-light)] p-3 text-sm text-warning">
                   {alertStudentSearch ? 'No students found matching your search.' : 'Student details are unavailable for this alert.'}
                 </p>
               )}
             </div>
 
-            <div className="flex items-center justify-between border-t border-gray-100 bg-gray-50/60 p-3 sm:p-4">
-              <span className="text-[11px] text-gray-500">
+            <div className="flex items-center justify-between border-t border-border bg-[var(--background)]/60 p-3 sm:p-4">
+              <span className="text-[11px] text-muted-text">
                 Showing {modalStudents.length} student{modalStudents.length === 1 ? '' : 's'}
               </span>
               <div className="flex items-center gap-2">
@@ -1056,7 +1056,7 @@ const Dashboard = () => {
                     type="button"
                     disabled={completingAllAlerts}
                     onClick={markAllDashboardAlertsIssued}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 transition"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-success px-4 py-2 text-xs font-semibold text-white hover:bg-success disabled:opacity-60 transition"
                   >
                     <CheckCircle size={14} />
                     {completingAllAlerts ? 'Updating…' : 'Mark All Issued'}
@@ -1069,7 +1069,7 @@ const Dashboard = () => {
                       markDashboardAlertIssued(selectedDashboardAlert.id);
                       setSelectedDashboardAlert(null);
                     }}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 transition"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-success px-4 py-2 text-xs font-semibold text-white hover:bg-success disabled:opacity-60 transition"
                   >
                     <CheckCircle size={14} />
                     {completingDashboardAlertId === selectedDashboardAlert.id ? 'Updating…' : 'Mark This Alert Issued'}
@@ -1078,7 +1078,7 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedDashboardAlert(null)}
-                  className="rounded-lg bg-gray-800 px-4 py-2 text-xs font-semibold text-white hover:bg-gray-700 transition"
+                  className="rounded-lg bg-sidebar px-4 py-2 text-xs font-semibold text-white hover:bg-background transition"
                 >
                   Close
                 </button>
@@ -1094,24 +1094,24 @@ const Dashboard = () => {
         {/* Card 1: Attendance Posted */}
         <div 
           onClick={() => setShowBreakdownModal(true)}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          className="group relative bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[var(--primary-light)] transition-all duration-200 cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm shadow-blue-200">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm shadow-primary">
                 <Users size={19} />
               </div>
-              <ChevronRight size={18} className="text-blue-500 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight size={18} className="text-primary group-hover:translate-x-0.5 transition-transform" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 leading-none">
+            <p className="text-2xl font-bold text-main leading-none">
               {currentPeriodAttendance.rate}%
             </p>
-            <p className="text-xs font-semibold text-gray-600 mt-1.5">
+            <p className="text-xs font-semibold text-sub mt-1.5">
               Attendance Posted
             </p>
           </div>
-          <div className="mt-4 pt-2.5 border-t border-gray-100 flex items-center justify-between text-[11px] leading-tight">
-            <span className="text-gray-500 font-medium">
+          <div className="mt-4 pt-2.5 border-t border-border flex items-center justify-between text-[11px] leading-tight">
+            <span className="text-muted-text font-medium">
               {collegesPostedCount} / {totalCollegesCount} Colleges Posted
             </span>
             <button
@@ -1120,7 +1120,7 @@ const Dashboard = () => {
                 e.stopPropagation();
                 setShowBreakdownModal(true);
               }}
-              className="text-blue-600 font-semibold hover:underline flex-shrink-0 ml-1"
+              className="text-primary font-semibold hover:underline flex-shrink-0 ml-1"
             >
               View Breakdown
             </button>
@@ -1130,24 +1130,24 @@ const Dashboard = () => {
         {/* Card 2: Upcoming Events */}
         <div 
           onClick={() => navigate('/events')}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          className="group relative bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[var(--success-light)] transition-all duration-200 cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm shadow-emerald-200">
+              <div className="w-10 h-10 rounded-xl bg-success flex items-center justify-center text-white shadow-sm shadow-success">
                 <Calendar size={19} />
               </div>
-              <ChevronRight size={18} className="text-emerald-500 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight size={18} className="text-success group-hover:translate-x-0.5 transition-transform" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 leading-none">
+            <p className="text-2xl font-bold text-main leading-none">
               {(eventsData.totalUpcoming || eventsData.list?.length || 567).toLocaleString()}
             </p>
-            <p className="text-xs font-semibold text-gray-600 mt-1.5">
+            <p className="text-xs font-semibold text-sub mt-1.5">
               Upcoming Events
             </p>
           </div>
-          <div className="mt-4 pt-2.5 border-t border-gray-100 flex items-center text-[11px] leading-tight">
-            <span className="text-emerald-600 font-medium">
+          <div className="mt-4 pt-2.5 border-t border-border flex items-center text-[11px] leading-tight">
+            <span className="text-success font-medium">
               {(eventsData.totalUpcoming || eventsData.list?.length || 567).toLocaleString()} Active Events
             </span>
           </div>
@@ -1156,24 +1156,24 @@ const Dashboard = () => {
         {/* Card 4: Maintenance Tickets */}
         <div 
           onClick={() => navigate('/task-management')}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-orange-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          className="group relative bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[var(--warning-light)] transition-all duration-200 cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white shadow-sm shadow-orange-200">
+              <div className="w-10 h-10 rounded-xl bg-warning flex items-center justify-center text-white shadow-sm shadow-warning">
                 <Wrench size={19} />
               </div>
-              <ChevronRight size={18} className="text-orange-500 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight size={18} className="text-warning group-hover:translate-x-0.5 transition-transform" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 leading-none">
+            <p className="text-2xl font-bold text-main leading-none">
               {(maintenanceTickets.summary?.total || 48).toLocaleString()}
             </p>
-            <p className="text-xs font-semibold text-gray-600 mt-1.5">
+            <p className="text-xs font-semibold text-sub mt-1.5">
               Maintenance Tickets
             </p>
           </div>
-          <div className="mt-4 pt-2.5 border-t border-gray-100 flex items-center text-[11px] leading-tight">
-            <span className="text-gray-500 font-medium">
+          <div className="mt-4 pt-2.5 border-t border-border flex items-center text-[11px] leading-tight">
+            <span className="text-muted-text font-medium">
               {maintenanceTickets.summary?.open ?? 11} Open - {maintenanceTickets.summary?.in_progress ?? 3} In Progress
             </span>
           </div>
@@ -1182,24 +1182,24 @@ const Dashboard = () => {
         {/* Card 5: Profile Requests */}
         <div 
           onClick={() => setShowProfileRequestsModal(true)}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          className="group relative bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[var(--primary-light)] transition-all duration-200 cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm shadow-indigo-100">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm shadow-primary">
                 <UserCheck size={19} />
               </div>
-              <ChevronRight size={18} className="text-indigo-500 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight size={18} className="text-primary group-hover:translate-x-0.5 transition-transform" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 leading-none">
+            <p className="text-2xl font-bold text-main leading-none">
               {(profilePendingCount || profileTotalCount || profileRequests.summary?.total || 1887).toLocaleString()}
             </p>
-            <p className="text-xs font-semibold text-gray-600 mt-1.5">
+            <p className="text-xs font-semibold text-sub mt-1.5">
               Profile Requests
             </p>
           </div>
-          <div className="mt-4 pt-2.5 border-t border-gray-100 flex items-center justify-between text-[11px] leading-tight">
-            <span className="text-gray-500 font-medium">
+          <div className="mt-4 pt-2.5 border-t border-border flex items-center justify-between text-[11px] leading-tight">
+            <span className="text-muted-text font-medium">
               Pending for Review
             </span>
             <button
@@ -1208,7 +1208,7 @@ const Dashboard = () => {
                 e.stopPropagation();
                 setShowProfileRequestsModal(true);
               }}
-              className="text-indigo-600 font-semibold hover:underline cursor-pointer"
+              className="text-primary font-semibold hover:underline cursor-pointer"
             >
               View Breakdown
             </button>
@@ -1218,24 +1218,24 @@ const Dashboard = () => {
         {/* Card 6: Registrations */}
         <div 
           onClick={() => navigate('/students/self-registration')}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-teal-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          className="group relative bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-[var(--primary-light)] transition-all duration-200 cursor-pointer flex flex-col justify-between"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center text-white shadow-sm shadow-teal-200">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm shadow-primary">
                 <CheckSquare size={19} />
               </div>
-              <ChevronRight size={18} className="text-teal-500 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight size={18} className="text-primary group-hover:translate-x-0.5 transition-transform" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 leading-none">
+            <p className="text-2xl font-bold text-main leading-none">
               {(registrations.summary?.pending ?? 3628).toLocaleString()}
             </p>
-            <p className="text-xs font-semibold text-gray-600 mt-1.5">
+            <p className="text-xs font-semibold text-sub mt-1.5">
               Pending Registrations
             </p>
           </div>
-          <div className="mt-4 pt-2.5 border-t border-gray-100 flex items-center text-[11px] leading-tight">
-            <span className="text-gray-500 font-medium">
+          <div className="mt-4 pt-2.5 border-t border-border flex items-center text-[11px] leading-tight">
+            <span className="text-muted-text font-medium">
               {(registrations.summary?.total || stats?.totalStudents || 5938).toLocaleString()} Total - {registrations.summary?.total ? Math.round(((registrations.summary.approved || 0) / registrations.summary.total) * 100) : 37}% Approved
             </span>
           </div>
@@ -1244,24 +1244,24 @@ const Dashboard = () => {
       </div>
 
       {dashboardAlerts.length > 0 && (
-        <section className="rounded-2xl border border-gray-200/90 bg-white p-4 shadow-sm sm:p-5" aria-label="ID card PIN update alerts">
+        <section className="rounded-2xl border border-border bg-surface p-4 shadow-sm sm:p-5" aria-label="ID card PIN update alerts">
           {/* Section Header */}
-          <div className="mb-4 flex flex-col gap-3 border-b border-gray-100 pb-3.5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-4 flex flex-col gap-3 border-b border-border pb-3.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--primary-light)] text-primary">
                 <CreditCard size={18} />
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-sm font-bold text-gray-900 sm:text-base">ID Card PIN update alerts</h2>
-                  <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">
+                  <h2 className="text-sm font-bold text-main sm:text-base">ID Card PIN update alerts</h2>
+                  <span className="rounded-full bg-[var(--primary-light)] px-2.5 py-0.5 text-[11px] font-semibold text-primary">
                     {totalPendingStudents} student{totalPendingStudents === 1 ? '' : 's'} pending
                   </span>
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                  <span className="rounded-full bg-background px-2 py-0.5 text-[10px] font-medium text-sub">
                     {dashboardAlerts.length} batch{dashboardAlerts.length === 1 ? '' : 'es'}
                   </span>
                 </div>
-                <p className="mt-0.5 text-xs text-gray-500">
+                <p className="mt-0.5 text-xs text-muted-text">
                   PIN numbers were updated. Review student details in the pop-up modal or mark as issued.
                 </p>
               </div>
@@ -1279,7 +1279,7 @@ const Dashboard = () => {
                     totalStudents: totalPendingStudents
                   });
                 }}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--primary-light)] bg-[var(--primary-light)] px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-[var(--primary-light)]"
               >
                 <Eye size={13} />
                 View Complete Details ({totalPendingStudents})
@@ -1289,7 +1289,7 @@ const Dashboard = () => {
                 type="button"
                 disabled={completingAllAlerts}
                 onClick={markAllDashboardAlertsIssued}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-success px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-success disabled:opacity-60"
               >
                 <CheckCircle size={13} />
                 {completingAllAlerts ? 'Updating…' : 'Mark All Issued'}
@@ -1322,17 +1322,17 @@ const Dashboard = () => {
                 });
               }
             }}
-            className="cursor-pointer rounded-xl border border-blue-100 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-white p-3.5 transition hover:border-blue-300 hover:shadow-sm sm:p-4"
+            className="cursor-pointer rounded-xl border border-[var(--primary-light)] bg-gradient-to-r from-[var(--primary-light)] via-[var(--primary-light)] to-surface p-3.5 transition hover:border-[var(--primary-light)] hover:shadow-sm sm:p-4"
           >
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-                  <span className="text-xs font-semibold text-gray-900 sm:text-sm">
+                  <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-xs font-semibold text-main sm:text-sm">
                     {totalPendingStudents} Student{totalPendingStudents === 1 ? '' : 's'} need ID cards issued
                   </span>
                 </div>
-                <p className="mt-1 text-xs text-gray-600">
+                <p className="mt-1 text-xs text-sub">
                   Updated across {aggregatedGroups.length} branch group{aggregatedGroups.length === 1 ? '' : 's'}. Click here or any alert batch to view complete details in the pop-up modal.
                 </p>
 
@@ -1342,13 +1342,13 @@ const Dashboard = () => {
                     {aggregatedGroups.slice(0, 5).map((group, idx) => (
                       <span
                         key={`agg-group-${idx}`}
-                        className="rounded-md border border-blue-200/80 bg-white px-2 py-0.5 text-[10px] font-medium text-gray-700 shadow-2xs"
+                        className="rounded-md border border-[var(--primary-light)] bg-surface px-2 py-0.5 text-[10px] font-medium text-sub shadow-2xs"
                       >
-                        {group.label} — <strong className="text-blue-700">{group.studentCount}</strong>
+                        {group.label} — <strong className="text-primary">{group.studentCount}</strong>
                       </span>
                     ))}
                     {aggregatedGroups.length > 5 && (
-                      <span className="rounded-md bg-blue-100/70 px-2 py-0.5 text-[10px] font-semibold text-blue-800">
+                      <span className="rounded-md bg-[var(--primary-light)] px-2 py-0.5 text-[10px] font-semibold text-primary">
                         +{aggregatedGroups.length - 5} more branches
                       </span>
                     )}
@@ -1356,7 +1356,7 @@ const Dashboard = () => {
                 )}
               </div>
 
-              <div className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-800 self-start sm:self-center">
+              <div className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary self-start sm:self-center">
                 <span>Click to view complete details</span>
                 <ArrowRight size={14} />
               </div>
@@ -1366,14 +1366,14 @@ const Dashboard = () => {
           {/* Batches Preview List with View More toggle */}
           <div className="mt-3.5">
             <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-xs font-semibold text-gray-700">
+              <h3 className="text-xs font-semibold text-sub">
                 Recent Alert Batches ({dashboardAlerts.length})
               </h3>
               {dashboardAlerts.length > 3 && (
                 <button
                   type="button"
                   onClick={() => setShowAllDashboardAlerts(!showAllDashboardAlerts)}
-                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 hover:text-blue-800"
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-primary transition hover:bg-[var(--primary-light)] hover:text-primary"
                 >
                   {showAllDashboardAlerts ? (
                     <>
@@ -1416,16 +1416,16 @@ const Dashboard = () => {
                         setSelectedDashboardAlert(notification);
                       }
                     }}
-                    className="cursor-pointer rounded-lg border border-gray-100 bg-gray-50/70 p-3 transition hover:border-blue-200 hover:bg-blue-50/30 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="cursor-pointer rounded-lg border border-border bg-[var(--background)]/70 p-3 transition hover:border-[var(--primary-light)] hover:bg-[var(--primary-light)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
                     aria-label={`View students for ${notification.title}`}
                   >
                     <div className="flex items-start gap-2.5">
-                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                           <div className="min-w-0">
-                            <h4 className="text-xs font-semibold text-gray-800">{notification.title}</h4>
-                            <p className="mt-0.5 text-[11px] text-gray-500">
+                            <h4 className="text-xs font-semibold text-main">{notification.title}</h4>
+                            <p className="mt-0.5 text-[11px] text-muted-text">
                               {totalStudents ? `${totalStudents} student${totalStudents === 1 ? '' : 's'} need ID cards issued.` : notification.message}
                             </p>
                           </div>
@@ -1436,7 +1436,7 @@ const Dashboard = () => {
                               event.stopPropagation();
                               markDashboardAlertIssued(notification.id);
                             }}
-                            className="inline-flex shrink-0 items-center justify-center gap-1.5 self-start rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-wait disabled:opacity-60 sm:self-auto"
+                            className="inline-flex shrink-0 items-center justify-center gap-1.5 self-start rounded-lg bg-success px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-success disabled:cursor-wait disabled:opacity-60 sm:self-auto"
                           >
                             <CheckCircle size={13} />
                             {completingDashboardAlertId === notification.id ? 'Updating…' : 'Mark Issued'}
@@ -1448,7 +1448,7 @@ const Dashboard = () => {
                             {groups.map((group, groupIndex) => (
                               <span
                                 key={`${group.college}-${group.batch}-${group.course}-${group.branch}-${groupIndex}`}
-                                className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[10px] text-gray-600"
+                                className="rounded-md border border-border bg-surface px-2 py-1 text-[10px] text-sub"
                               >
                                 {[group.college, group.batch, group.course, group.branch].filter(Boolean).join(' · ')}
                                 {' — '}{group.studentCount || 0}
@@ -1456,8 +1456,8 @@ const Dashboard = () => {
                             ))}
                           </div>
                         )}
-                        {alertTime && <p className="mt-2 text-[10px] text-gray-400">{alertTime}</p>}
-                        <p className="mt-1 text-[10px] font-medium text-blue-600">Click to view student details</p>
+                        {alertTime && <p className="mt-2 text-[10px] text-muted-text">{alertTime}</p>}
+                        <p className="mt-1 text-[10px] font-medium text-primary">Click to view student details</p>
                       </div>
                     </div>
                   </div>
@@ -1472,14 +1472,14 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         
         {/* LEFT: Student Attendance Status Donut & Breakdown */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
           <div>
             {/* Header with Title and Dropdown */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-1.5">
-                <h2 className="text-base sm:text-lg font-bold text-gray-900">Student Attendance Status</h2>
+                <h2 className="text-base sm:text-lg font-bold text-main">Student Attendance Status</h2>
                 <div title="Attendance rate across selected period" className="cursor-help">
-                  <Info size={15} className="text-gray-400" />
+                  <Info size={15} className="text-muted-text" />
                 </div>
               </div>
 
@@ -1487,7 +1487,7 @@ const Dashboard = () => {
               <select
                 value={attendancePeriod}
                 onChange={(e) => setAttendancePeriod(e.target.value)}
-                className="text-xs font-medium bg-gray-50 border border-gray-200 text-gray-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="text-xs font-medium bg-background border border-border text-sub rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
               >
                 <option value="today">Today</option>
                 <option value="weekly">Weekly</option>
@@ -1506,16 +1506,16 @@ const Dashboard = () => {
                 >
                   <DonutChart
                     percentage={currentPeriodAttendance.rate}
-                    color="#f59e0b"
-                    trackColor="#f1f5f9"
+                    color="var(--warning)"
+                    trackColor="var(--background)"
                     size={146}
                     strokeWidth={15}
                     centerContent={
                       <>
-                        <span className="text-2xl font-extrabold text-gray-900 leading-none">
+                        <span className="text-2xl font-extrabold text-main leading-none">
                           {currentPeriodAttendance.rate}%
                         </span>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">
+                        <span className="text-[10px] font-bold text-muted-text uppercase tracking-wider mt-1">
                           POSTED RATE
                         </span>
                       </>
@@ -1529,48 +1529,48 @@ const Dashboard = () => {
                   className="flex-1 w-full space-y-2 text-xs cursor-pointer group"
                   title="Click to view course-wise attendance for Today"
                 >
-                  <div className="flex items-center justify-between py-1 border-b border-gray-100 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
+                  <div className="flex items-center justify-between py-1 border-b border-border group-hover:bg-[var(--primary-light)] rounded px-1 transition-colors">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                      <span className="text-gray-600 font-medium">Present</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-success" />
+                      <span className="text-sub font-medium">Present</span>
                     </div>
-                    <span className="font-bold text-gray-900 tabular-nums">
+                    <span className="font-bold text-main tabular-nums">
                       {currentPeriodAttendance.present.toLocaleString()}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between py-1 border-b border-gray-100 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
+                  <div className="flex items-center justify-between py-1 border-b border-border group-hover:bg-[var(--primary-light)] rounded px-1 transition-colors">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                      <span className="text-gray-600 font-medium">Absent</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-danger" />
+                      <span className="text-sub font-medium">Absent</span>
                     </div>
-                    <span className="font-bold text-gray-900 tabular-nums">
+                    <span className="font-bold text-main tabular-nums">
                       {currentPeriodAttendance.absent.toLocaleString()}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between py-1 border-b border-gray-100 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
+                  <div className="flex items-center justify-between py-1 border-b border-border group-hover:bg-[var(--primary-light)] rounded px-1 transition-colors">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                      <span className="text-gray-600 font-medium">Pending / Holiday</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-warning" />
+                      <span className="text-sub font-medium">Pending / Holiday</span>
                     </div>
-                    <span className="font-bold text-gray-900 tabular-nums">
+                    <span className="font-bold text-main tabular-nums">
                       {(currentPeriodAttendance.pending + currentPeriodAttendance.holiday).toLocaleString()}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between py-1 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
+                  <div className="flex items-center justify-between py-1 group-hover:bg-[var(--primary-light)] rounded px-1 transition-colors">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-gray-400" />
-                      <span className="text-gray-600 font-medium">Total Over All</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-background" />
+                      <span className="text-sub font-medium">Total Over All</span>
                     </div>
-                    <span className="font-bold text-gray-900 tabular-nums">
+                    <span className="font-bold text-main tabular-nums">
                       {currentPeriodAttendance.total.toLocaleString()}
                     </span>
                   </div>
 
                   <div className="pt-1 flex items-center justify-end">
-                    <span className="text-[11px] font-bold text-blue-600 group-hover:underline flex items-center gap-0.5">
+                    <span className="text-[11px] font-bold text-primary group-hover:underline flex items-center gap-0.5">
                       Course Wise Details <ChevronRight size={13} />
                     </span>
                   </div>
@@ -1580,23 +1580,23 @@ const Dashboard = () => {
               /* MONTHLY: In-Card Calendar */
               <div className="py-1 space-y-2">
                 {/* Month Navigator & Summary Row */}
-                <div className="flex items-center justify-between pb-2 border-b border-gray-100 text-xs">
-                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-1 py-0.5">
+                <div className="flex items-center justify-between pb-2 border-b border-border text-xs">
+                  <div className="flex items-center gap-1 bg-background border border-border rounded-lg px-1 py-0.5">
                     <button
                       type="button"
                       onClick={() => handleCalendarMonthChange(-1)}
-                      className="p-1 rounded text-gray-600 hover:text-gray-900 hover:bg-white transition-colors cursor-pointer"
+                      className="p-1 rounded text-sub hover:text-main hover:bg-surface transition-colors cursor-pointer"
                       title="Previous Month"
                     >
                       <ChevronLeft size={13} />
                     </button>
-                    <span className="font-bold text-gray-800 text-[11px] min-w-[70px] text-center select-none">
+                    <span className="font-bold text-main text-[11px] min-w-[70px] text-center select-none">
                       {calendarMonthLabel}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleCalendarMonthChange(1)}
-                      className="p-1 rounded text-gray-600 hover:text-gray-900 hover:bg-white transition-colors cursor-pointer"
+                      className="p-1 rounded text-sub hover:text-main hover:bg-surface transition-colors cursor-pointer"
                       title="Next Month"
                     >
                       <ChevronRight size={13} />
@@ -1610,7 +1610,7 @@ const Dashboard = () => {
                     <span
                       key={d}
                       className={`text-[10px] font-bold uppercase tracking-wider ${
-                        i === 0 ? 'text-rose-500' : 'text-gray-400'
+                        i === 0 ? 'text-danger' : 'text-muted-text'
                       }`}
                     >
                       {d}
@@ -1628,29 +1628,29 @@ const Dashboard = () => {
                         onClick={() => cell.hasData ? handleOpenCourseAttendance(cell) : null}
                         className={`p-1 rounded-md border flex flex-col justify-between transition-all min-h-[50px] ${
                           !cell.isCurrentMonth
-                            ? 'bg-gray-50/40 border-gray-100 opacity-25 pointer-events-none'
+                            ? 'bg-[var(--background)]/40 border-border opacity-25 pointer-events-none'
                             : cell.isToday
-                            ? 'bg-blue-50/50 border-blue-400 ring-1 ring-blue-300 shadow-xs'
+                            ? 'bg-[var(--primary-light)] border-primary ring-1 ring-[var(--primary-light)] shadow-xs'
                             : isSelected
-                            ? 'bg-amber-50/70 border-amber-400 ring-1 ring-amber-300'
-                            : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-xs'
-                        } ${cell.hasData ? 'cursor-pointer hover:border-blue-400' : ''}`}
+                            ? 'bg-[var(--warning-light)] border-warning ring-1 ring-[var(--warning-light)]'
+                            : 'bg-surface border-border hover:border-border-strong hover:shadow-xs'
+                        } ${cell.hasData ? 'cursor-pointer hover:border-primary' : ''}`}
                       >
                         {/* Day number */}
                         <div className="flex items-center justify-between leading-none mb-0.5">
                           <span
                             className={`text-[9px] font-bold ${
                               cell.isToday
-                                ? 'w-3.5 h-3.5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[8px]'
+                                ? 'w-3.5 h-3.5 rounded-full bg-primary text-white flex items-center justify-center text-[8px]'
                                 : cell.isSunday
-                                ? 'text-rose-500 font-semibold'
-                                : 'text-gray-700'
+                                ? 'text-danger font-semibold'
+                                : 'text-sub'
                             }`}
                           >
                             {cell.dayNum}
                           </span>
                           {cell.hasData && (cell.present + cell.absent > 0) && (
-                            <span className="text-[7.5px] font-semibold text-gray-400">
+                            <span className="text-[7.5px] font-semibold text-muted-text">
                               {Math.round((cell.present / (cell.present + cell.absent)) * 100)}%
                             </span>
                           )}
@@ -1660,28 +1660,28 @@ const Dashboard = () => {
                         {cell.hasData && !cell.isSunday ? (
                           <div className="space-y-0.5">
                             <div
-                              className="text-[7.5px] sm:text-[8px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200/60 flex items-center justify-between leading-none"
+                              className="text-[7.5px] sm:text-[8px] font-bold text-success bg-[var(--success-light)] px-1 py-0.5 rounded border border-[var(--success-light)] flex items-center justify-between leading-none"
                               title={`Present: ${cell.present.toLocaleString()}`}
                             >
-                              <span className="text-emerald-600 font-extrabold">P:</span>
+                              <span className="text-success font-extrabold">P:</span>
                               <span className="tabular-nums font-bold">
                                 {cell.present > 9999 ? `${(cell.present / 1000).toFixed(1)}k` : cell.present.toLocaleString()}
                               </span>
                             </div>
                             <div
-                              className="text-[7.5px] sm:text-[8px] font-bold text-rose-700 bg-rose-50 px-1 py-0.5 rounded border border-rose-200/60 flex items-center justify-between leading-none"
+                              className="text-[7.5px] sm:text-[8px] font-bold text-danger bg-[var(--danger-light)] px-1 py-0.5 rounded border border-[var(--danger-light)] flex items-center justify-between leading-none"
                               title={`Absent: ${cell.absent.toLocaleString()}`}
                             >
-                              <span className="text-rose-600 font-extrabold">A:</span>
+                              <span className="text-danger font-extrabold">A:</span>
                               <span className="tabular-nums font-bold">
                                 {cell.absent > 9999 ? `${(cell.absent / 1000).toFixed(1)}k` : cell.absent.toLocaleString()}
                               </span>
                             </div>
                           </div>
                         ) : cell.isSunday ? (
-                          <div className="text-[8px] text-rose-500 font-semibold text-center py-1 bg-rose-50/50 rounded">Sun</div>
+                          <div className="text-[8px] text-danger font-semibold text-center py-1 bg-[var(--danger-light)] rounded">Sun</div>
                         ) : (
-                          <div className="text-[8px] text-gray-300 text-center py-1">-</div>
+                          <div className="text-[8px] text-muted-text text-center py-1">-</div>
                         )}
                       </div>
                     );
@@ -1692,19 +1692,19 @@ const Dashboard = () => {
                 {selectedCalendarDay && (
                   <div
                     onClick={() => handleOpenCourseAttendance(selectedCalendarDay)}
-                    className="p-2 rounded-lg bg-blue-50/80 hover:bg-blue-100/70 border border-blue-200 text-xs flex items-center justify-between cursor-pointer transition-colors"
+                    className="p-2 rounded-lg bg-[var(--primary-light)] hover:bg-[var(--primary-light)] border border-[var(--primary-light)] text-xs flex items-center justify-between cursor-pointer transition-colors"
                     title="Click to view course-wise attendance"
                   >
-                    <span className="font-bold text-gray-900 text-[11px]">{selectedCalendarDay.fullDate}</span>
+                    <span className="font-bold text-main text-[11px]">{selectedCalendarDay.fullDate}</span>
                     <div className="flex items-center gap-2 text-[11px]">
-                      <span className="text-emerald-700 font-bold">P: {selectedCalendarDay.present.toLocaleString()}</span>
-                      <span className="text-rose-700 font-bold">A: {selectedCalendarDay.absent.toLocaleString()}</span>
+                      <span className="text-success font-bold">P: {selectedCalendarDay.present.toLocaleString()}</span>
+                      <span className="text-danger font-bold">A: {selectedCalendarDay.absent.toLocaleString()}</span>
                       {selectedCalendarDay.rate !== undefined && (
-                        <span className="px-1.5 py-0.2 rounded bg-blue-600 text-white font-extrabold text-[10px]">
+                        <span className="px-1.5 py-0.2 rounded bg-primary text-white font-extrabold text-[10px]">
                           {selectedCalendarDay.rate}%
                         </span>
                       )}
-                      <span className="text-blue-600 font-bold text-[10px] flex items-center ml-0.5">
+                      <span className="text-primary font-bold text-[10px] flex items-center ml-0.5">
                         Courses <ChevronRight size={12} />
                       </span>
                     </div>
@@ -1715,27 +1715,27 @@ const Dashboard = () => {
               /* WEEKLY: Bar Graph */
               <div className="py-1">
                 {/* Summary badges strip */}
-                <div className="flex items-center justify-between flex-wrap gap-2 text-xs pb-2 border-b border-gray-100">
+                <div className="flex items-center justify-between flex-wrap gap-2 text-xs pb-2 border-b border-border">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                      <span className="text-gray-600 text-xs font-medium">Present:</span>
-                      <span className="font-bold text-gray-900 tabular-nums">{currentPeriodAttendance.present.toLocaleString()}</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-success" />
+                      <span className="text-sub text-xs font-medium">Present:</span>
+                      <span className="font-bold text-main tabular-nums">{currentPeriodAttendance.present.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                      <span className="text-gray-600 text-xs font-medium">Absent:</span>
-                      <span className="font-bold text-gray-900 tabular-nums">{currentPeriodAttendance.absent.toLocaleString()}</span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-danger" />
+                      <span className="text-sub text-xs font-medium">Absent:</span>
+                      <span className="font-bold text-main tabular-nums">{currentPeriodAttendance.absent.toLocaleString()}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                       {currentPeriodAttendance.rate}% Rate
                     </span>
                     <button
                       type="button"
                       onClick={() => handleOpenCourseAttendance({ dateKey: todayKey, fullDate: `This Week (${todayLabel})` })}
-                      className="text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline flex items-center"
+                      className="text-[11px] font-bold text-primary hover:text-primary hover:underline flex items-center"
                     >
                       Course Wise <ChevronRight size={12} />
                     </button>
@@ -1755,15 +1755,15 @@ const Dashboard = () => {
                         }
                       }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--background)" />
                       <XAxis
                         dataKey="name"
-                        tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
-                        axisLine={{ stroke: '#e2e8f0' }}
+                        tick={{ fontSize: 11, fill: 'var(--text-secondary)', fontWeight: 500 }}
+                        axisLine={{ stroke: 'var(--border)' }}
                         tickLine={false}
                       />
                       <YAxis
-                        tick={{ fontSize: 10, fill: '#94a3b8' }}
+                        tick={{ fontSize: 10, fill: 'var(--text-muted)' }}
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
@@ -1771,7 +1771,7 @@ const Dashboard = () => {
                       <RechartsTooltip content={<AttendanceBarTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.6)' }} />
                       <Bar
                         dataKey="present"
-                        fill="#10b981"
+                        fill="var(--success)"
                         name="Present"
                         radius={[4, 4, 0, 0]}
                         maxBarSize={20}
@@ -1780,7 +1780,7 @@ const Dashboard = () => {
                       />
                       <Bar
                         dataKey="absent"
-                        fill="#ef4444"
+                        fill="var(--danger)"
                         name="Absent"
                         radius={[4, 4, 0, 0]}
                         maxBarSize={20}
@@ -1795,8 +1795,8 @@ const Dashboard = () => {
           </div>
 
           {/* Footer of attendance status */}
-          <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
-            <span className="text-gray-500 font-medium">
+          <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs">
+            <span className="text-muted-text font-medium">
               {collegesPostedCount} / {totalCollegesCount} Colleges Posted
             </span>
             <div className="flex items-center gap-3">
@@ -1805,14 +1805,14 @@ const Dashboard = () => {
                 onClick={() => handleOpenCourseAttendance(
                   selectedCalendarDay || { dateKey: todayKey, fullDate: attendancePeriod === 'today' ? `Today (${todayLabel})` : attendancePeriod === 'weekly' ? 'This Week' : calendarMonthLabel }
                 )}
-                className="text-emerald-600 font-semibold hover:underline flex items-center gap-0.5 cursor-pointer"
+                className="text-success font-semibold hover:underline flex items-center gap-0.5 cursor-pointer"
               >
                 Course Wise Details <ChevronRight size={13} />
               </button>
               <button
                 type="button"
                 onClick={() => setShowBreakdownModal(true)}
-                className="text-blue-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                className="text-primary font-semibold hover:underline flex items-center gap-1 cursor-pointer"
               >
                 College Wise Details <ChevronRight size={14} />
               </button>
@@ -1821,11 +1821,11 @@ const Dashboard = () => {
         </div>
 
         {/* MIDDLE: Calendar Widget */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base sm:text-lg font-bold text-gray-900">Calendar</h2>
-              <Link to="/events" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+              <h2 className="text-base sm:text-lg font-bold text-main">Calendar</h2>
+              <Link to="/events" className="text-xs font-semibold text-primary hover:text-primary">
                 View All
               </Link>
             </div>
@@ -1844,34 +1844,34 @@ const Dashboard = () => {
                 return (
                   <div 
                     key={ev.id || idx}
-                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50/80 transition-colors"
+                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--background)]/80 transition-colors"
                   >
                     {/* Date Badge */}
-                    <div className="flex flex-col items-center justify-center min-w-[46px] h-[46px] rounded-xl border border-red-200 bg-red-50/50 flex-shrink-0">
-                      <span className="text-red-700 font-extrabold text-sm leading-none">{dayNum}</span>
-                      <span className="text-red-600 font-bold text-[9px] tracking-wider mt-0.5">{monthStr}</span>
+                    <div className="flex flex-col items-center justify-center min-w-[46px] h-[46px] rounded-xl border border-[var(--danger-light)] bg-[var(--danger-light)] flex-shrink-0">
+                      <span className="text-danger font-extrabold text-sm leading-none">{dayNum}</span>
+                      <span className="text-danger font-bold text-[9px] tracking-wider mt-0.5">{monthStr}</span>
                     </div>
 
                     {/* Content */}
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm font-bold text-gray-900 truncate leading-snug">
+                      <p className="text-xs sm:text-sm font-bold text-main truncate leading-snug">
                         {ev.title}
                       </p>
-                      <div className="flex items-center gap-2 text-[11px] text-gray-500 mt-1">
+                      <div className="flex items-center gap-2 text-[11px] text-muted-text mt-1">
                         <span className="flex items-center gap-0.5 truncate">
-                          <MapPin size={11} className="text-gray-400 flex-shrink-0" />
+                          <MapPin size={11} className="text-muted-text flex-shrink-0" />
                           {venue}
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-0.5 flex-shrink-0">
-                          <Clock size={11} className="text-gray-400" />
+                          <Clock size={11} className="text-muted-text" />
                           {timeStr}
                         </span>
                       </div>
                     </div>
 
                     {/* Tag badge */}
-                    <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-100">
+                    <span className="flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                       {ev.badge || 'Today'}
                     </span>
                   </div>
@@ -1880,26 +1880,26 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-gray-100 text-right">
-            <Link to="/events" className="text-xs font-semibold text-blue-600 hover:underline">
+          <div className="mt-4 pt-3 border-t border-border text-right">
+            <Link to="/events" className="text-xs font-semibold text-primary hover:underline">
               Browse full calendar →
             </Link>
           </div>
         </div>
 
         {/* RIGHT OF CALENDAR: Announcements Widget */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-1.5 mb-4">
               <div className="flex items-center gap-1.5 min-w-0">
-                <h2 className="text-base font-bold text-gray-900 truncate">Announcements</h2>
+                <h2 className="text-base font-bold text-main truncate">Announcements</h2>
                 {displayAnnouncements.length > 0 && (
-                  <span className="whitespace-nowrap flex-shrink-0 inline-flex items-center text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 leading-normal">
+                  <span className="whitespace-nowrap flex-shrink-0 inline-flex items-center text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] leading-normal">
                     {displayAnnouncements.length} Recent
                   </span>
                 )}
               </div>
-              <Link to="/announcements" className="whitespace-nowrap flex-shrink-0 text-xs font-semibold text-blue-600 hover:text-blue-700 ml-1">
+              <Link to="/announcements" className="whitespace-nowrap flex-shrink-0 text-xs font-semibold text-primary hover:text-primary ml-1">
                 View All
               </Link>
             </div>
@@ -1909,10 +1909,10 @@ const Dashboard = () => {
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="flex items-center gap-3 p-2 rounded-xl animate-pulse">
-                    <div className="w-[46px] h-[46px] min-w-[46px] max-w-[46px] rounded-xl bg-gray-100 flex-shrink-0" />
+                    <div className="w-[46px] h-[46px] min-w-[46px] max-w-[46px] rounded-xl bg-background flex-shrink-0" />
                     <div className="min-w-0 flex-1 space-y-1.5">
-                      <div className="h-3.5 bg-gray-200 rounded w-3/4" />
-                      <div className="h-2.5 bg-gray-100 rounded w-1/2" />
+                      <div className="h-3.5 bg-background rounded w-3/4" />
+                      <div className="h-2.5 bg-background rounded w-1/2" />
                     </div>
                   </div>
                 ))}
@@ -1930,10 +1930,10 @@ const Dashboard = () => {
                     <div
                       key={ann.id || idx}
                       onClick={() => navigate('/announcements')}
-                      className="group flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50/80 transition-colors cursor-pointer"
+                      className="group flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--background)]/80 transition-colors cursor-pointer"
                     >
                       {/* Image Thumbnail (matching announcements page, evenly sized) */}
-                      <div className="w-[46px] h-[46px] min-w-[46px] max-w-[46px] rounded-xl overflow-hidden bg-slate-900 border border-blue-200/80 flex-shrink-0">
+                      <div className="w-[46px] h-[46px] min-w-[46px] max-w-[46px] rounded-xl overflow-hidden bg-sidebar border border-[var(--primary-light)] flex-shrink-0">
                         <img
                           src={ann.image_url || '/images/announcement-fallback.jpg'}
                           alt={ann.title || ''}
@@ -1948,16 +1948,16 @@ const Dashboard = () => {
 
                       {/* Content */}
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-sm font-bold text-gray-900 truncate leading-snug group-hover:text-blue-600 transition-colors">
+                        <p className="text-xs sm:text-sm font-bold text-main truncate leading-snug group-hover:text-primary transition-colors">
                           {ann.title}
                         </p>
-                        <div className="flex items-center gap-2 text-[11px] text-gray-500 mt-1">
+                        <div className="flex items-center gap-2 text-[11px] text-muted-text mt-1">
                           <span className="flex items-center gap-1 truncate">
-                            <Clock size={11} className={isExpired ? 'text-red-500' : 'text-gray-400'} />
+                            <Clock size={11} className={isExpired ? 'text-danger' : 'text-muted-text'} />
                             <span>{dateStr}</span>
                           </span>
                           <span>•</span>
-                          <span className="truncate text-gray-400">
+                          <span className="truncate text-muted-text">
                             {ann.content ? ann.content.replace(/[\r\n]+/g, ' ').slice(0, 32) : 'Notice'}
                           </span>
                         </div>
@@ -1966,10 +1966,10 @@ const Dashboard = () => {
                       {/* Tag badge */}
                       <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
                         isExpired
-                          ? 'bg-red-50 text-red-600 border-red-200'
+                          ? 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)]'
                           : ann.is_active === 0
-                          ? 'bg-gray-100 text-gray-500 border-gray-200'
-                          : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          ? 'bg-background text-muted-text border-border'
+                          : 'bg-[var(--success-light)] text-success border-[var(--success-light)]'
                       }`}>
                         {isExpired ? 'Expired' : 'Active'}
                       </span>
@@ -1978,32 +1978,32 @@ const Dashboard = () => {
                 })}
               </div>
             ) : (
-              <div className="py-8 flex flex-col items-center justify-center text-center text-gray-400">
-                <Megaphone size={28} className="text-gray-300 mb-2 opacity-60" />
-                <p className="text-xs font-semibold text-gray-600">No Announcements</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">No recent announcements published</p>
+              <div className="py-8 flex flex-col items-center justify-center text-center text-muted-text">
+                <Megaphone size={28} className="text-muted-text mb-2 opacity-60" />
+                <p className="text-xs font-semibold text-sub">No Announcements</p>
+                <p className="text-[11px] text-muted-text mt-0.5">No recent announcements published</p>
               </div>
             )}
           </div>
 
-          <div className="mt-4 pt-3 border-t border-gray-100 text-right">
-            <Link to="/announcements" className="text-xs font-semibold text-blue-600 hover:underline">
+          <div className="mt-4 pt-3 border-t border-border text-right">
+            <Link to="/announcements" className="text-xs font-semibold text-primary hover:underline">
               Browse all announcements →
             </Link>
           </div>
         </div>
 
         {/* RIGHT: Students Registration Status (4 Stages) Widget */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3.5">
               <div className="flex items-center gap-2">
-                <h2 className="text-base sm:text-lg font-bold text-gray-900">Registration Status</h2>
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                <h2 className="text-base sm:text-lg font-bold text-main">Registration Status</h2>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                   {stageTotal.toLocaleString()} Students
                 </span>
               </div>
-              <Link to="/reports" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+              <Link to="/reports" className="text-xs font-semibold text-primary hover:text-primary">
                 View All
               </Link>
             </div>
@@ -2014,93 +2014,93 @@ const Dashboard = () => {
               {/* Step 1: REGISTRATION */}
               <div 
                 onClick={() => navigate('/reports')}
-                className="p-3 rounded-xl border border-gray-200 bg-gray-50/50 hover:bg-gray-100/70 transition-all cursor-pointer flex items-center justify-between gap-3"
+                className="p-3 rounded-xl border border-border bg-[var(--background)]/50 hover:bg-[var(--background)]/70 transition-all cursor-pointer flex items-center justify-between gap-3"
               >
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-gray-700 tracking-wider uppercase">
+                  <p className="text-xs font-bold text-sub tracking-wider uppercase">
                     Registration
                   </p>
-                  <p className="text-[10px] text-gray-400 font-medium mt-0.5">
+                  <p className="text-[10px] text-muted-text font-medium mt-0.5">
                     Click number to view pending
                   </p>
                 </div>
                 <div className="text-base sm:text-lg font-black tracking-tight leading-none text-right flex-shrink-0">
-                  <span className="text-emerald-600">{regStage.completed.toLocaleString()}</span>
-                  <span className="text-gray-300 font-normal mx-1">/</span>
-                  <span className="text-amber-500">{regStage.temporary.toLocaleString()}</span>
-                  <span className="text-gray-300 font-normal mx-1">/</span>
-                  <span className="text-red-500">{regStage.pending.toLocaleString()}</span>
+                  <span className="text-success">{regStage.completed.toLocaleString()}</span>
+                  <span className="text-muted-text font-normal mx-1">/</span>
+                  <span className="text-warning">{regStage.temporary.toLocaleString()}</span>
+                  <span className="text-muted-text font-normal mx-1">/</span>
+                  <span className="text-danger">{regStage.pending.toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Step 2: VERIFICATION */}
               <div 
                 onClick={() => navigate('/reports')}
-                className="p-3 rounded-xl border border-amber-200 bg-amber-50/40 hover:bg-amber-100/50 transition-all cursor-pointer flex items-center justify-between gap-3"
+                className="p-3 rounded-xl border border-[var(--warning-light)] bg-[var(--warning-light)] hover:bg-[var(--warning-light)] transition-all cursor-pointer flex items-center justify-between gap-3"
               >
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-amber-700 tracking-wider uppercase">
+                  <p className="text-xs font-bold text-warning tracking-wider uppercase">
                     Verification
                   </p>
-                  <p className="text-[10px] text-amber-600/70 font-medium mt-0.5">
+                  <p className="text-[10px] text-warning font-medium mt-0.5">
                     Click number to view pending
                   </p>
                 </div>
                 <div className="text-base sm:text-lg font-black tracking-tight leading-none text-right flex-shrink-0">
-                  <span className="text-emerald-600">{verStage.completed.toLocaleString()}</span>
-                  <span className="text-gray-300 font-normal mx-1">/</span>
-                  <span className="text-red-500">{verStage.pending.toLocaleString()}</span>
+                  <span className="text-success">{verStage.completed.toLocaleString()}</span>
+                  <span className="text-muted-text font-normal mx-1">/</span>
+                  <span className="text-danger">{verStage.pending.toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Step 3: CERTIFICATES */}
               <div 
                 onClick={() => navigate('/reports')}
-                className="p-3 rounded-xl border border-purple-200 bg-purple-50/40 hover:bg-purple-100/50 transition-all cursor-pointer flex items-center justify-between gap-3"
+                className="p-3 rounded-xl border border-[var(--primary-light)] bg-[var(--primary-light)] hover:bg-[var(--primary-light)] transition-all cursor-pointer flex items-center justify-between gap-3"
               >
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-purple-700 tracking-wider uppercase">
+                  <p className="text-xs font-bold text-secondary tracking-wider uppercase">
                     Certificates
                   </p>
-                  <p className="text-[10px] text-purple-600/70 font-medium mt-0.5">
+                  <p className="text-[10px] text-secondary font-medium mt-0.5">
                     Click number to view pending
                   </p>
                 </div>
                 <div className="text-base sm:text-lg font-black tracking-tight leading-none text-right flex-shrink-0">
-                  <span className="text-emerald-600">{certStage.verified.toLocaleString()}</span>
-                  <span className="text-gray-300 font-normal mx-1">/</span>
-                  <span className="text-amber-500">{certStage.temporary.toLocaleString()}</span>
-                  <span className="text-gray-300 font-normal mx-1">/</span>
-                  <span className="text-red-500">{certStage.pending.toLocaleString()}</span>
+                  <span className="text-success">{certStage.verified.toLocaleString()}</span>
+                  <span className="text-muted-text font-normal mx-1">/</span>
+                  <span className="text-warning">{certStage.temporary.toLocaleString()}</span>
+                  <span className="text-muted-text font-normal mx-1">/</span>
+                  <span className="text-danger">{certStage.pending.toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Step 4: FEES */}
               <div 
                 onClick={() => navigate('/reports')}
-                className="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 hover:bg-emerald-100/50 transition-all cursor-pointer flex items-center justify-between gap-3"
+                className="p-3 rounded-xl border border-[var(--success-light)] bg-[var(--success-light)] hover:bg-[var(--success-light)] transition-all cursor-pointer flex items-center justify-between gap-3"
               >
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-emerald-700 tracking-wider uppercase">
+                  <p className="text-xs font-bold text-success tracking-wider uppercase">
                     Fees
                   </p>
-                  <p className="text-[10px] text-emerald-600/70 font-medium mt-0.5">
+                  <p className="text-[10px] text-success font-medium mt-0.5">
                     Click number to view pending
                   </p>
                 </div>
                 <div className="text-base sm:text-lg font-black tracking-tight leading-none text-right flex-shrink-0">
-                  <span className="text-emerald-600">{feeStage.cleared.toLocaleString()}</span>
-                  <span className="text-gray-300 font-normal mx-1">/</span>
-                  <span className="text-red-500">{feeStage.pending.toLocaleString()}</span>
+                  <span className="text-success">{feeStage.cleared.toLocaleString()}</span>
+                  <span className="text-muted-text font-normal mx-1">/</span>
+                  <span className="text-danger">{feeStage.pending.toLocaleString()}</span>
                 </div>
               </div>
 
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
-            <span className="text-gray-500 font-medium">4 Stage Registration Abstract</span>
-            <Link to="/reports" className="text-xs font-semibold text-blue-600 hover:underline">
+          <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs">
+            <span className="text-muted-text font-medium">4 Stage Registration Abstract</span>
+            <Link to="/reports" className="text-xs font-semibold text-primary hover:underline">
               Registration Abstract →
             </Link>
           </div>
@@ -2112,11 +2112,11 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
 
         {/* Maintenance Tickets Card */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold text-gray-900">Maintenance Tickets</h3>
-              <Link to="/task-management" className="text-xs font-semibold text-blue-600 hover:underline">
+              <h3 className="text-base font-bold text-main">Maintenance Tickets</h3>
+              <Link to="/task-management" className="text-xs font-semibold text-primary hover:underline">
                 View All
               </Link>
             </div>
@@ -2125,37 +2125,37 @@ const Dashboard = () => {
               <MultiSegmentDonut
                 total={maintenanceTickets.summary?.total || 48}
                 segments={[
-                  { label: 'Open', value: maintenanceTickets.summary?.open ?? 11, color: '#ef4444' },
-                  { label: 'In Progress', value: maintenanceTickets.summary?.in_progress ?? 3, color: '#f59e0b' },
-                  { label: 'Resolved', value: maintenanceTickets.summary?.resolved ?? 30, color: '#10b981' },
-                  { label: 'Closed', value: maintenanceTickets.summary?.closed ?? 4, color: '#64748b' }
+                  { label: 'Open', value: maintenanceTickets.summary?.open ?? 11, color: 'var(--danger)' },
+                  { label: 'In Progress', value: maintenanceTickets.summary?.in_progress ?? 3, color: 'var(--warning)' },
+                  { label: 'Resolved', value: maintenanceTickets.summary?.resolved ?? 30, color: 'var(--success)' },
+                  { label: 'Closed', value: maintenanceTickets.summary?.closed ?? 4, color: 'var(--text-secondary)' }
                 ]}
                 size={110}
                 strokeWidth={12}
                 centerContent={
-                  <span className="text-xl font-bold text-gray-900">
+                  <span className="text-xl font-bold text-main">
                     {maintenanceTickets.summary?.total || 48}
                   </span>
                 }
               />
               <div className="space-y-1.5 text-xs flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-red-500" /> Open
+                  <span className="text-muted-text flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-danger" /> Open
                   </span>
-                  <span className="font-semibold text-gray-900">{maintenanceTickets.summary?.open ?? 11}</span>
+                  <span className="font-semibold text-main">{maintenanceTickets.summary?.open ?? 11}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-500" /> In Progress
+                  <span className="text-muted-text flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-warning" /> In Progress
                   </span>
-                  <span className="font-semibold text-gray-900">{maintenanceTickets.summary?.in_progress ?? 3}</span>
+                  <span className="font-semibold text-main">{maintenanceTickets.summary?.in_progress ?? 3}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" /> Resolved
+                  <span className="text-muted-text flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-success" /> Resolved
                   </span>
-                  <span className="font-semibold text-gray-900">{maintenanceTickets.summary?.resolved ?? 30}</span>
+                  <span className="font-semibold text-main">{maintenanceTickets.summary?.resolved ?? 30}</span>
                 </div>
               </div>
             </div>
@@ -2163,11 +2163,11 @@ const Dashboard = () => {
         </div>
 
         {/* Student Profile Requests Card */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold text-gray-900">Student Profile Requests</h3>
-              <Link to="/students/profile-change-requests" className="text-xs font-semibold text-blue-600 hover:underline">
+              <h3 className="text-base font-bold text-main">Student Profile Requests</h3>
+              <Link to="/students/profile-change-requests" className="text-xs font-semibold text-primary hover:underline">
                 View All
               </Link>
             </div>
@@ -2176,36 +2176,36 @@ const Dashboard = () => {
               <MultiSegmentDonut
                 total={profileRequests.summary?.total || 1236}
                 segments={[
-                  { label: 'Pending', value: profileRequests.summary?.pending ?? 1236, color: '#ec4899' },
-                  { label: 'Approved', value: profileRequests.summary?.approved ?? 0, color: '#10b981' },
-                  { label: 'Rejected', value: profileRequests.summary?.rejected ?? 0, color: '#ef4444' }
+                  { label: 'Pending', value: profileRequests.summary?.pending ?? 1236, color: 'var(--accent)' },
+                  { label: 'Approved', value: profileRequests.summary?.approved ?? 0, color: 'var(--success)' },
+                  { label: 'Rejected', value: profileRequests.summary?.rejected ?? 0, color: 'var(--danger)' }
                 ]}
                 size={110}
                 strokeWidth={12}
                 centerContent={
-                  <span className="text-xl font-bold text-gray-900">
+                  <span className="text-xl font-bold text-main">
                     {(profileRequests.summary?.total || 1236).toLocaleString()}
                   </span>
                 }
               />
               <div className="space-y-1.5 text-xs flex-1">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-500" /> Pending
+                  <span className="text-muted-text flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-warning" /> Pending
                   </span>
-                  <span className="font-semibold text-gray-900">{(profileRequests.summary?.pending ?? 1236).toLocaleString()}</span>
+                  <span className="font-semibold text-main">{(profileRequests.summary?.pending ?? 1236).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" /> Approved
+                  <span className="text-muted-text flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-success" /> Approved
                   </span>
-                  <span className="font-semibold text-gray-900">{(profileRequests.summary?.approved ?? 0).toLocaleString()}</span>
+                  <span className="font-semibold text-main">{(profileRequests.summary?.approved ?? 0).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-500 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-red-500" /> Rejected
+                  <span className="text-muted-text flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-danger" /> Rejected
                   </span>
-                  <span className="font-semibold text-gray-900">{(profileRequests.summary?.rejected ?? 0).toLocaleString()}</span>
+                  <span className="font-semibold text-main">{(profileRequests.summary?.rejected ?? 0).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -2218,20 +2218,20 @@ const Dashboard = () => {
       {/* 6. College Attendance Breakdown Modal */}
       {showBreakdownModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-gray-100">
+          <div className="bg-surface rounded-2xl shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-border">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50/60">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-[var(--background)]/60">
               <div className="flex items-center gap-2">
-                <Building2 size={20} className="text-blue-600" />
-                <h3 className="text-lg font-bold text-gray-900">College-Wise Attendance Breakdown</h3>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold ml-2">
+                <Building2 size={20} className="text-primary" />
+                <h3 className="text-lg font-bold text-main">College-Wise Attendance Breakdown</h3>
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--primary-light)] text-primary font-semibold ml-2">
                   Today
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setShowBreakdownModal(false)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-colors"
+                className="p-1.5 rounded-lg text-muted-text hover:text-sub hover:bg-background transition-colors"
               >
                 <X size={20} />
               </button>
@@ -2241,11 +2241,11 @@ const Dashboard = () => {
             <div className="p-6 overflow-y-auto flex-1 space-y-3">
               {collegeList && collegeList.length > 0 ? (
                 <>
-                  <div className="hidden sm:grid sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-3 px-3 pb-2 border-b border-gray-200 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                  <div className="hidden sm:grid sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-3 px-3 pb-2 border-b border-border text-xs font-semibold text-muted-text uppercase tracking-wide">
                     <span>College</span>
-                    <span className="text-center text-blue-500">Total</span>
-                    <span className="text-center text-emerald-500">Present</span>
-                    <span className="text-center text-red-500">Absent</span>
+                    <span className="text-center text-primary">Total</span>
+                    <span className="text-center text-success">Present</span>
+                    <span className="text-center text-danger">Absent</span>
                     <span className="text-right">Rate</span>
                   </div>
 
@@ -2266,49 +2266,49 @@ const Dashboard = () => {
                             college
                           );
                         }}
-                        className="grid grid-cols-1 sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-2 sm:gap-3 p-3.5 rounded-xl border border-gray-200 hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group"
+                        className="grid grid-cols-1 sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-2 sm:gap-3 p-3.5 rounded-xl border border-border hover:border-primary hover:bg-[var(--primary-light)] transition-all cursor-pointer group"
                         title={`Click to view course-wise attendance for ${college.name}`}
                       >
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <p className="font-bold text-gray-900 text-sm leading-tight group-hover:text-blue-600 transition-colors">
+                            <p className="font-bold text-main text-sm leading-tight group-hover:text-primary transition-colors">
                               {college.name}
                             </p>
-                            <ChevronRight size={14} className="text-gray-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                            <ChevronRight size={14} className="text-muted-text opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
-                            {college.code && <span className="text-xs text-purple-600 font-medium">{college.code}</span>}
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPosted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                            {college.code && <span className="text-xs text-secondary font-medium">{college.code}</span>}
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPosted ? 'bg-[var(--success-light)] text-success' : 'bg-background text-muted-text'}`}>
                               {isPosted ? 'Attendance Posted' : 'Not Posted'}
                             </span>
-                            <span className="text-[10px] text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity font-medium">
+                            <span className="text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity font-medium">
                               View courses →
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-center gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5">
-                          <Users size={12} className="text-blue-500 flex-shrink-0" />
-                          <span className="text-sm font-bold text-blue-700 tabular-nums">{totalStudents.toLocaleString()}</span>
+                        <div className="flex items-center justify-center gap-1.5 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg px-3 py-1.5">
+                          <Users size={12} className="text-primary flex-shrink-0" />
+                          <span className="text-sm font-bold text-primary tabular-nums">{totalStudents.toLocaleString()}</span>
                         </div>
 
-                        <div className="flex items-center justify-center gap-1.5 bg-green-50 border border-green-100 rounded-lg px-3 py-1.5">
-                          <CheckCircle size={12} className="text-green-500 flex-shrink-0" />
-                          <span className="text-sm font-bold text-green-700 tabular-nums">{present.toLocaleString()}</span>
+                        <div className="flex items-center justify-center gap-1.5 bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg px-3 py-1.5">
+                          <CheckCircle size={12} className="text-success flex-shrink-0" />
+                          <span className="text-sm font-bold text-success tabular-nums">{present.toLocaleString()}</span>
                         </div>
 
-                        <div className="flex items-center justify-center gap-1.5 bg-red-50 border border-red-100 rounded-lg px-3 py-1.5">
-                          <XCircle size={12} className="text-red-500 flex-shrink-0" />
-                          <span className="text-sm font-bold text-red-700 tabular-nums">{absent.toLocaleString()}</span>
+                        <div className="flex items-center justify-center gap-1.5 bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-lg px-3 py-1.5">
+                          <XCircle size={12} className="text-danger flex-shrink-0" />
+                          <span className="text-sm font-bold text-danger tabular-nums">{absent.toLocaleString()}</span>
                         </div>
 
                         <div className="flex flex-col items-end gap-1">
-                          <span className="text-xs font-bold text-gray-800">
+                          <span className="text-xs font-bold text-main">
                             {rate !== null ? `${rate}%` : 'N/A'}
                           </span>
-                          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="w-full h-1.5 bg-background rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-500 ${rate >= 75 ? 'bg-emerald-500' : rate >= 50 ? 'bg-amber-400' : 'bg-red-500'}`}
+                              className={`h-full rounded-full transition-all duration-500 ${rate >= 75 ? 'bg-success' : rate >= 50 ? 'bg-warning' : 'bg-danger'}`}
                               style={{ width: `${rate !== null ? Math.min(rate, 100) : 0}%` }}
                             />
                           </div>
@@ -2318,7 +2318,7 @@ const Dashboard = () => {
                   })}
                 </>
               ) : (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-muted-text">
                   <Building2 size={40} className="mx-auto mb-2 opacity-40" />
                   <p className="text-sm font-medium">No college data available for this account</p>
                 </div>
@@ -2326,14 +2326,14 @@ const Dashboard = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-3.5 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-              <span className="text-xs text-gray-500">
+            <div className="px-6 py-3.5 border-t border-border bg-background flex items-center justify-between">
+              <span className="text-xs text-muted-text">
                 Showing {collegeList.length} college{collegeList.length !== 1 ? 's' : ''}
               </span>
               <button
                 type="button"
                 onClick={() => setShowBreakdownModal(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-sidebar text-white hover:bg-sidebar transition-colors"
               >
                 Close
               </button>
@@ -2345,16 +2345,16 @@ const Dashboard = () => {
       {/* 7. Course Attendance Breakdown Modal */}
       {showCourseModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-gray-100">
+          <div className="bg-surface rounded-2xl shadow-xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden border border-border">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50/60">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-[var(--background)]/60">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                <div className="p-2 bg-[var(--primary-light)] text-primary rounded-xl">
                   <GraduationCap size={20} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Course-Wise Attendance Breakdown</h3>
-                  <p className="text-xs text-gray-500">
+                  <h3 className="text-lg font-bold text-main">Course-Wise Attendance Breakdown</h3>
+                  <p className="text-xs text-muted-text">
                     {courseModalDate?.fullDate || courseModalDate?.dateKey || courseModalData?.date || 'Selected Date'}
                   </p>
                 </div>
@@ -2362,22 +2362,22 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={() => setShowCourseModal(false)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg text-muted-text hover:text-sub hover:bg-background transition-colors cursor-pointer"
               >
                 <X size={20} />
               </button>
             </div>
 
             {/* Filter and View Controls Bar */}
-            <div className="px-6 py-2.5 bg-gray-50/80 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
+            <div className="px-6 py-2.5 bg-[var(--background)]/80 border-b border-border flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-gray-600 flex items-center gap-1">
-                  <Building2 size={13} className="text-gray-500" /> College:
+                <span className="text-xs font-semibold text-sub flex items-center gap-1">
+                  <Building2 size={13} className="text-muted-text" /> College:
                 </span>
                 <select
                   value={courseModalCollegeFilter}
                   onChange={(e) => setCourseModalCollegeFilter(e.target.value)}
-                  className="text-xs font-medium bg-white border border-gray-200 text-gray-800 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-sm"
+                  className="text-xs font-medium bg-surface border border-border text-main rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer shadow-sm"
                 >
                   <option value="all">All Colleges {courseModalColleges.length ? `(${courseModalColleges.length})` : ''}</option>
                   {courseModalColleges.map((col) => (
@@ -2389,14 +2389,14 @@ const Dashboard = () => {
               </div>
 
               {/* View Toggle: By College vs Consolidated */}
-              <div className="flex items-center bg-gray-200/80 p-0.5 rounded-lg text-xs font-semibold">
+              <div className="flex items-center bg-[var(--background)]/80 p-0.5 rounded-lg text-xs font-semibold">
                 <button
                   type="button"
                   onClick={() => setCourseModalViewMode('detailed')}
                   className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                     courseModalViewMode === 'detailed'
-                      ? 'bg-white text-blue-700 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-surface text-primary shadow-sm'
+                      : 'text-sub hover:text-main'
                   }`}
                   title="Show courses separated by college"
                 >
@@ -2407,8 +2407,8 @@ const Dashboard = () => {
                   onClick={() => setCourseModalViewMode('consolidated')}
                   className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
                     courseModalViewMode === 'consolidated'
-                      ? 'bg-white text-blue-700 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-surface text-primary shadow-sm'
+                      : 'text-sub hover:text-main'
                   }`}
                   title="Show consolidated courses across all colleges"
                 >
@@ -2419,23 +2419,23 @@ const Dashboard = () => {
 
             {/* Date Summary bar */}
             {courseModalData && (
-              <div className="px-6 py-3 bg-blue-50/40 border-b border-blue-100/60 flex items-center justify-between flex-wrap gap-2 text-xs">
-                <span className="font-semibold text-gray-700">
-                  Total Students: <strong className="text-gray-900">{courseModalSummary.totalStudents?.toLocaleString()}</strong>
+              <div className="px-6 py-3 bg-[var(--primary-light)] border-b border-[var(--primary-light)] flex items-center justify-between flex-wrap gap-2 text-xs">
+                <span className="font-semibold text-sub">
+                  Total Students: <strong className="text-main">{courseModalSummary.totalStudents?.toLocaleString()}</strong>
                   {courseModalCollegeFilter !== 'all' && (
-                    <span className="ml-2 text-xs font-normal text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">
+                    <span className="ml-2 text-xs font-normal text-secondary bg-[var(--primary-light)] px-2 py-0.5 rounded border border-[var(--primary-light)]">
                       Filtered: {courseModalCollegeFilter}
                     </span>
                   )}
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[var(--success-light)] text-success font-bold">
                     P: {courseModalSummary.present?.toLocaleString()}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[var(--danger-light)] text-danger font-bold">
                     A: {courseModalSummary.absent?.toLocaleString()}
                   </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-600 text-white font-extrabold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-primary text-white font-extrabold">
                     {courseModalSummary.rate}% Rate
                   </span>
                 </div>
@@ -2445,22 +2445,22 @@ const Dashboard = () => {
             {/* Modal Body: Courses List */}
             <div className="p-6 overflow-y-auto flex-1 space-y-3">
               {courseModalLoading ? (
-                <div className="py-16 flex flex-col items-center justify-center text-gray-400 gap-3">
-                  <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                <div className="py-16 flex flex-col items-center justify-center text-muted-text gap-3">
+                  <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
                   <p className="text-xs font-medium">Loading course-wise attendance...</p>
                 </div>
               ) : courseModalError ? (
-                <div className="text-center py-12 text-rose-500">
+                <div className="text-center py-12 text-danger">
                   <AlertCircle size={36} className="mx-auto mb-2 opacity-60" />
                   <p className="text-sm font-medium">{courseModalError}</p>
                 </div>
               ) : displayedCourses && displayedCourses.length > 0 ? (
                 <>
-                  <div className="hidden sm:grid sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-3 px-3 pb-2 border-b border-gray-200 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                  <div className="hidden sm:grid sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-3 px-3 pb-2 border-b border-border text-xs font-semibold text-muted-text uppercase tracking-wide">
                     <span>Course {courseModalViewMode === 'detailed' ? '& College' : ''}</span>
-                    <span className="text-center text-blue-500">Total</span>
-                    <span className="text-center text-emerald-500">Present</span>
-                    <span className="text-center text-red-500">Absent</span>
+                    <span className="text-center text-primary">Total</span>
+                    <span className="text-center text-success">Present</span>
+                    <span className="text-center text-danger">Absent</span>
                     <span className="text-right">Rate</span>
                   </div>
 
@@ -2474,54 +2474,54 @@ const Dashboard = () => {
                     return (
                       <div
                         key={course.id || `${course.collegeCode || course.collegeName || ''}-${course.name}`}
-                        className="grid grid-cols-1 sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-2 sm:gap-3 p-3.5 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50/20 transition-all"
+                        className="grid grid-cols-1 sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-2 sm:gap-3 p-3.5 rounded-xl border border-border hover:border-[var(--primary-light)] hover:bg-[var(--primary-light)] transition-all"
                       >
                         <div>
-                          <p className="font-bold text-gray-900 text-sm leading-tight">{course.name}</p>
+                          <p className="font-bold text-main text-sm leading-tight">{course.name}</p>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             {courseModalViewMode === 'detailed' && (course.collegeCode || course.collegeName) && (
-                              <span className="text-[11px] text-purple-700 font-semibold bg-purple-50 px-2 py-0.5 rounded border border-purple-100">
+                              <span className="text-[11px] text-secondary font-semibold bg-[var(--primary-light)] px-2 py-0.5 rounded border border-[var(--primary-light)]">
                                 {course.collegeCode || course.collegeName}
                               </span>
                             )}
                             {courseModalViewMode === 'detailed' && course.collegeName && course.collegeCode && (
-                              <span className="text-[11px] text-gray-500 font-medium truncate max-w-[220px]" title={course.collegeName}>
+                              <span className="text-[11px] text-muted-text font-medium truncate max-w-[220px]" title={course.collegeName}>
                                 {course.collegeName}
                               </span>
                             )}
                             {courseModalViewMode === 'consolidated' && Array.isArray(course.colleges) && course.colleges.length > 0 && (
-                              <span className="text-[10px] text-indigo-700 font-semibold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                              <span className="text-[10px] text-primary font-semibold bg-[var(--primary-light)] px-2 py-0.5 rounded border border-[var(--primary-light)]">
                                 {course.colleges.length} {course.colleges.length === 1 ? 'College' : 'Colleges'} ({course.colleges.map(c => c.collegeCode || c.collegeName).filter(Boolean).join(', ')})
                               </span>
                             )}
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPosted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPosted ? 'bg-[var(--success-light)] text-success' : 'bg-background text-muted-text'}`}>
                               {isPosted ? 'Attendance Posted' : 'Not Posted'}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-center gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5">
-                          <Users size={12} className="text-blue-500 flex-shrink-0" />
-                          <span className="text-sm font-bold text-blue-700 tabular-nums">{totalStudents.toLocaleString()}</span>
+                        <div className="flex items-center justify-center gap-1.5 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg px-3 py-1.5">
+                          <Users size={12} className="text-primary flex-shrink-0" />
+                          <span className="text-sm font-bold text-primary tabular-nums">{totalStudents.toLocaleString()}</span>
                         </div>
 
-                        <div className="flex items-center justify-center gap-1.5 bg-green-50 border border-green-100 rounded-lg px-3 py-1.5">
-                          <CheckCircle size={12} className="text-green-500 flex-shrink-0" />
-                          <span className="text-sm font-bold text-green-700 tabular-nums">{present.toLocaleString()}</span>
+                        <div className="flex items-center justify-center gap-1.5 bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg px-3 py-1.5">
+                          <CheckCircle size={12} className="text-success flex-shrink-0" />
+                          <span className="text-sm font-bold text-success tabular-nums">{present.toLocaleString()}</span>
                         </div>
 
-                        <div className="flex items-center justify-center gap-1.5 bg-red-50 border border-red-100 rounded-lg px-3 py-1.5">
-                          <XCircle size={12} className="text-red-500 flex-shrink-0" />
-                          <span className="text-sm font-bold text-red-700 tabular-nums">{absent.toLocaleString()}</span>
+                        <div className="flex items-center justify-center gap-1.5 bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-lg px-3 py-1.5">
+                          <XCircle size={12} className="text-danger flex-shrink-0" />
+                          <span className="text-sm font-bold text-danger tabular-nums">{absent.toLocaleString()}</span>
                         </div>
 
                         <div className="flex flex-col items-end gap-1">
-                          <span className="text-xs font-bold text-gray-800">
+                          <span className="text-xs font-bold text-main">
                             {isPosted ? `${rate}%` : 'N/A'}
                           </span>
-                          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="w-full h-1.5 bg-background rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-500 ${rate >= 75 ? 'bg-emerald-500' : rate >= 50 ? 'bg-amber-400' : 'bg-red-500'}`}
+                              className={`h-full rounded-full transition-all duration-500 ${rate >= 75 ? 'bg-success' : rate >= 50 ? 'bg-warning' : 'bg-danger'}`}
                               style={{ width: `${isPosted ? Math.min(rate, 100) : 0}%` }}
                             />
                           </div>
@@ -2531,7 +2531,7 @@ const Dashboard = () => {
                   })}
                 </>
               ) : (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-muted-text">
                   <GraduationCap size={40} className="mx-auto mb-2 opacity-40" />
                   <p className="text-sm font-medium">
                     {courseModalCollegeFilter !== 'all'
@@ -2543,8 +2543,8 @@ const Dashboard = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-3.5 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-              <span className="text-xs text-gray-500">
+            <div className="px-6 py-3.5 border-t border-border bg-background flex items-center justify-between">
+              <span className="text-xs text-muted-text">
                 {displayedCourses?.length
                   ? `Showing ${displayedCourses.length} ${displayedCourses.length === 1 ? 'course' : 'courses'}${
                       courseModalCollegeFilter !== 'all' ? ` for ${courseModalCollegeFilter}` : ''
@@ -2554,7 +2554,7 @@ const Dashboard = () => {
               <button
                 type="button"
                 onClick={() => setShowCourseModal(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold bg-sidebar text-white hover:bg-sidebar transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -2566,21 +2566,21 @@ const Dashboard = () => {
 {/* 8. College Profile Requests Abstract Modal */}
       {showProfileRequestsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] flex flex-col overflow-hidden border border-gray-100">
+          <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] flex flex-col overflow-hidden border border-border">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-slate-50 via-white to-indigo-50/40">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-gradient-to-r from-[var(--background)] via-surface to-[var(--primary-light)]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-100">
+                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-md shadow-primary">
                   <UserCheck size={20} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-bold text-gray-900">Profile Requests Abstract</h3>
-                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">
+                    <h3 className="text-lg font-bold text-main">Profile Requests Abstract</h3>
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--warning-light)] text-warning font-bold">
                       {profilePendingCount.toLocaleString()} Pending
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-muted-text mt-0.5">
                     College-wise breakdown with programs and branches
                   </p>
                 </div>
@@ -2589,15 +2589,15 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={() => fetchProfileAbstract()}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-muted-text hover:text-primary hover:bg-[var(--primary-light)] transition-colors cursor-pointer"
                   title="Refresh college abstract data"
                 >
-                  <RotateCw size={17} className={loadingProfileAbstract ? 'animate-spin text-indigo-600' : ''} />
+                  <RotateCw size={17} className={loadingProfileAbstract ? 'animate-spin text-primary' : ''} />
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowProfileRequestsModal(false)}
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-muted-text hover:text-sub hover:bg-background transition-colors cursor-pointer"
                 >
                   <X size={20} />
                 </button>
@@ -2608,27 +2608,27 @@ const Dashboard = () => {
             <div className="p-6 overflow-y-auto flex-1 space-y-4">
               {/* Summary Strip */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3">
-                  <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide">Pending Review</p>
-                  <p className="text-2xl font-black text-amber-900 mt-0.5">
+                <div className="bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl p-3">
+                  <p className="text-[11px] font-semibold text-warning uppercase tracking-wide">Pending Review</p>
+                  <p className="text-2xl font-black text-warning mt-0.5">
                     {profilePendingCount.toLocaleString()}
                   </p>
                 </div>
-                <div className="bg-emerald-50/80 border border-emerald-100 rounded-xl p-3">
-                  <p className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wide">Approved</p>
-                  <p className="text-2xl font-black text-emerald-900 mt-0.5">
+                <div className="bg-[var(--success-light)] border border-[var(--success-light)] rounded-xl p-3">
+                  <p className="text-[11px] font-semibold text-success uppercase tracking-wide">Approved</p>
+                  <p className="text-2xl font-black text-success mt-0.5">
                     {profileApprovedCount.toLocaleString()}
                   </p>
                 </div>
-                <div className="bg-rose-50/80 border border-rose-100 rounded-xl p-3">
-                  <p className="text-[11px] font-semibold text-rose-700 uppercase tracking-wide">Rejected</p>
-                  <p className="text-2xl font-black text-rose-900 mt-0.5">
+                <div className="bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-xl p-3">
+                  <p className="text-[11px] font-semibold text-danger uppercase tracking-wide">Rejected</p>
+                  <p className="text-2xl font-black text-danger mt-0.5">
                     {profileRejectedCount.toLocaleString()}
                   </p>
                 </div>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-                  <p className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">Total Requests</p>
-                  <p className="text-2xl font-black text-slate-800 mt-0.5">
+                <div className="bg-background border border-border rounded-xl p-3">
+                  <p className="text-[11px] font-semibold text-sub uppercase tracking-wide">Total Requests</p>
+                  <p className="text-2xl font-black text-main mt-0.5">
                     {profileTotalCount.toLocaleString()}
                   </p>
                 </div>
@@ -2636,36 +2636,36 @@ const Dashboard = () => {
 
               {/* Search within colleges */}
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" />
                 <input
                   type="text"
                   placeholder="Search college, program, or branch..."
                   value={profileModalSearch}
                   onChange={(e) => setProfileModalSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                  className="w-full pl-9 pr-4 py-2 border border-border rounded-xl text-xs focus:ring-2 focus:ring-primary focus:border-primary outline-none"
                 />
               </div>
 
               {/* Colleges Accordion List */}
               {loadingProfileAbstract ? (
-                <div className="py-12 text-center text-gray-500">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-3"></div>
+                <div className="py-12 text-center text-muted-text">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3"></div>
                   <p className="text-xs">Loading college-wise abstract...</p>
                 </div>
               ) : filteredProfileColleges.length === 0 ? (
-                <div className="py-12 text-center text-gray-400 border border-dashed rounded-xl p-6">
-                  <UserCheck size={36} className="mx-auto mb-2 opacity-40 text-indigo-500" />
-                  <p className="text-sm font-semibold text-gray-700">
+                <div className="py-12 text-center text-muted-text border border-dashed rounded-xl p-6">
+                  <UserCheck size={36} className="mx-auto mb-2 opacity-40 text-primary" />
+                  <p className="text-sm font-semibold text-sub">
                     {profileModalSearch ? 'No requests match your search criteria' : 'No profile change requests loaded'}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-text mt-1">
                     {profileModalSearch ? 'Try a different search query.' : 'Click the button below to reload the college abstract from the server.'}
                   </p>
                   {!profileModalSearch && (
                     <button
                       type="button"
                       onClick={() => fetchProfileAbstract()}
-                      className="mt-3 px-3.5 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                      className="mt-3 px-3.5 py-1.5 bg-[var(--primary-light)] text-primary hover:bg-[var(--primary-light)] rounded-lg text-xs font-semibold transition-colors cursor-pointer inline-flex items-center gap-1.5"
                     >
                       <RotateCw size={13} />
                       <span>Retry Fetching Abstract</span>
@@ -2679,31 +2679,31 @@ const Dashboard = () => {
                     return (
                       <div
                         key={college.college}
-                        className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-xs hover:border-indigo-200 transition-all"
+                        className="border border-border rounded-xl overflow-hidden bg-surface shadow-xs hover:border-[var(--primary-light)] transition-all"
                       >
                         {/* College Header Row */}
                         <div
                           onClick={() => toggleProfileCollege(college.college)}
-                          className="p-3.5 bg-gray-50/70 hover:bg-indigo-50/30 cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
+                          className="p-3.5 bg-[var(--background)]/70 hover:bg-[var(--primary-light)] cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700 shrink-0">
+                            <div className="w-8 h-8 rounded-lg bg-[var(--primary-light)] flex items-center justify-center text-primary shrink-0">
                               <Building2 size={16} />
                             </div>
                             <div>
-                              <p className="font-bold text-gray-900 text-sm leading-tight">{college.college}</p>
-                              <p className="text-[11px] text-gray-500 mt-0.5">
+                              <p className="font-bold text-main text-sm leading-tight">{college.college}</p>
+                              <p className="text-[11px] text-muted-text mt-0.5">
                                 {college.programs?.length || 0} Programs • {(college.total || 0).toLocaleString()} Total Requests
                               </p>
                             </div>
                           </div>
 
                           <div className="flex items-center gap-2 self-end sm:self-center">
-                            <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                               {college.pending} Pending
                             </span>
                             {college.approved > 0 && (
-                              <span className="px-2 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hidden sm:inline-block">
+                              <span className="px-2 py-1 rounded-md text-xs font-semibold bg-[var(--success-light)] text-success border border-[var(--success-light)] hidden sm:inline-block">
                                 {college.approved} Approved
                               </span>
                             )}
@@ -2714,13 +2714,13 @@ const Dashboard = () => {
                                 setShowProfileRequestsModal(false);
                                 navigate(`/students/profile-change-requests?college=${encodeURIComponent(college.college)}&status=pending`);
                               }}
-                              className="px-2.5 py-1 rounded-md text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 rounded-md text-xs font-semibold text-primary hover:bg-[var(--primary-light)] transition-colors flex items-center gap-1 cursor-pointer"
                               title="Open requests for this college"
                             >
                               <span>View</span>
                               <ChevronRight size={13} />
                             </button>
-                            <div className="p-1 text-gray-400">
+                            <div className="p-1 text-muted-text">
                               {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                             </div>
                           </div>
@@ -2728,8 +2728,8 @@ const Dashboard = () => {
 
                         {/* Collapsible Programs List */}
                         {isExpanded && (
-                          <div className="p-3 bg-white border-t border-gray-100 space-y-2">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">
+                          <div className="p-3 bg-surface border-t border-border space-y-2">
+                            <p className="text-[10px] font-bold text-muted-text uppercase tracking-wider px-1">
                               Programs & Branches Breakdown
                             </p>
                             {college.programs?.map((program) => {
@@ -2738,19 +2738,19 @@ const Dashboard = () => {
                               return (
                                 <div
                                   key={program.course}
-                                  className="border border-gray-100 rounded-lg p-2.5 bg-gray-50/40"
+                                  className="border border-border rounded-lg p-2.5 bg-[var(--background)]/40"
                                 >
                                   <div
                                     onClick={() => toggleProfileProgram(progKey)}
                                     className="flex items-center justify-between cursor-pointer"
                                   >
                                     <div className="flex items-center gap-2">
-                                      <GraduationCap size={15} className="text-indigo-600 shrink-0" />
-                                      <span className="font-semibold text-xs text-gray-900">{program.course}</span>
-                                      <span className="text-[10px] text-gray-400">({program.branches?.length || 0} branches)</span>
+                                      <GraduationCap size={15} className="text-primary shrink-0" />
+                                      <span className="font-semibold text-xs text-main">{program.course}</span>
+                                      <span className="text-[10px] text-muted-text">({program.branches?.length || 0} branches)</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                                      <span className="text-[11px] font-bold text-primary bg-[var(--primary-light)] px-2 py-0.5 rounded border border-[var(--primary-light)]">
                                         {program.pending} pending
                                       </span>
                                       <button
@@ -2760,12 +2760,12 @@ const Dashboard = () => {
                                           setShowProfileRequestsModal(false);
                                           navigate(`/students/profile-change-requests?college=${encodeURIComponent(college.college)}&course=${encodeURIComponent(program.course)}&status=pending`);
                                         }}
-                                        className="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold hover:underline cursor-pointer"
+                                        className="text-[10px] text-primary hover:text-primary font-semibold hover:underline cursor-pointer"
                                       >
                                         Filter →
                                       </button>
                                       {program.branches?.length > 1 && (
-                                        <div className="text-gray-400">
+                                        <div className="text-muted-text">
                                           {isProgExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                                         </div>
                                       )}
@@ -2774,7 +2774,7 @@ const Dashboard = () => {
 
                                   {/* Branches pills */}
                                   {isProgExpanded && program.branches?.length > 0 && (
-                                    <div className="mt-2 pt-2 border-t border-gray-200/60 flex flex-wrap gap-1.5">
+                                    <div className="mt-2 pt-2 border-t border-border flex flex-wrap gap-1.5">
                                       {program.branches.map((b) => (
                                         <button
                                           key={b.branch}
@@ -2783,11 +2783,11 @@ const Dashboard = () => {
                                             setShowProfileRequestsModal(false);
                                             navigate(`/students/profile-change-requests?college=${encodeURIComponent(college.college)}&course=${encodeURIComponent(program.course)}&branch=${encodeURIComponent(b.branch)}&status=pending`);
                                           }}
-                                          className="text-[11px] px-2 py-1 rounded bg-white border border-gray-200 hover:border-indigo-300 hover:bg-indigo-50/40 text-gray-700 transition-all flex items-center gap-1.5 group cursor-pointer"
+                                          className="text-[11px] px-2 py-1 rounded bg-surface border border-border hover:border-[var(--primary-light)] hover:bg-[var(--primary-light)] text-sub transition-all flex items-center gap-1.5 group cursor-pointer"
                                           title={`Filter by ${b.branch}`}
                                         >
                                           <span className="font-medium">{b.branch}</span>
-                                          <span className="font-bold text-[10px] px-1 py-0.2 rounded bg-indigo-100 text-indigo-700 group-hover:bg-indigo-200">
+                                          <span className="font-bold text-[10px] px-1 py-0.2 rounded bg-[var(--primary-light)] text-primary group-hover:bg-[var(--primary-light)]">
                                             {b.pending}
                                           </span>
                                         </button>
@@ -2807,8 +2807,8 @@ const Dashboard = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-3.5 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-              <span className="text-xs text-gray-500">
+            <div className="px-6 py-3.5 border-t border-border bg-background flex items-center justify-between">
+              <span className="text-xs text-muted-text">
                 {collegesList.length} Colleges with Profile Requests
               </span>
               <div className="flex items-center gap-2">
@@ -2818,14 +2818,14 @@ const Dashboard = () => {
                     setShowProfileRequestsModal(false);
                     navigate('/students/profile-change-requests');
                   }}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-sm cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-primary text-white hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
                 >
                   Go to Profile Requests Page →
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowProfileRequestsModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold bg-background text-sub hover:bg-background transition-colors cursor-pointer"
                 >
                   Close
                 </button>

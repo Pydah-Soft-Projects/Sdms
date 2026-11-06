@@ -294,67 +294,67 @@ const YearHistoryModal = ({ year, entries, student, meta, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
+        className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-amber-50/70">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-[var(--warning-light)]">
           <div>
-            <h4 className="text-sm font-bold text-gray-900">Year {year} Scholarship History</h4>
-            <p className="text-[11px] text-gray-500 mt-0.5">Archived records before overwrite</p>
+            <h4 className="text-sm font-bold text-main">Year {year} Scholarship History</h4>
+            <p className="text-[11px] text-muted-text mt-0.5">Archived records before overwrite</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white text-gray-500"
+            className="p-2 rounded-lg hover:bg-surface text-muted-text"
           >
             <X size={18} />
           </button>
         </div>
         <div className="overflow-y-auto p-4">
           {entries.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">No archived history for Year {year} yet.</p>
+            <p className="text-sm text-muted-text text-center py-8">No archived history for Year {year} yet.</p>
           ) : (
             <div className="space-y-4">
               {entries.map((entry) => {
                 const snapshot = entry.snapshot || {};
                 const releases = Array.isArray(snapshot.releases) ? snapshot.releases : [];
                 return (
-                  <div key={entry.id} className="rounded-xl border border-gray-100 p-4 bg-gray-50/40">
+                  <div key={entry.id} className="rounded-xl border border-border p-4 bg-[var(--background)]/40">
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                      <p className="text-sm font-bold text-gray-900 text-center w-full sm:w-auto sm:text-left">
+                      <p className="text-sm font-bold text-main text-center w-full sm:w-auto sm:text-left">
                         Year {entry.academic_year}
                         {entry.scholar_status ? (
-                          <span className="ml-2 text-indigo-700">
+                          <span className="ml-2 text-primary">
                             {formatScholarshipStatusDisplay(entry.scholar_status)}
                           </span>
                         ) : null}
                       </p>
-                      <p className="text-[11px] text-gray-500 w-full text-center sm:w-auto sm:text-right">
+                      <p className="text-[11px] text-muted-text w-full text-center sm:w-auto sm:text-right">
                         {formatArchivedAt(entry.archived_at)}
                       </p>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                       <div className="text-center sm:text-left">
-                        <p className="text-[10px] uppercase text-gray-400 font-bold">Application ID</p>
-                        <p className="text-gray-800">{snapshot.application_id || '—'}</p>
+                        <p className="text-[10px] uppercase text-muted-text font-bold">Application ID</p>
+                        <p className="text-main">{snapshot.application_id || '—'}</p>
                       </div>
                       <div className="text-center">
-                        <p className="text-[10px] uppercase text-gray-400 font-bold">Sanctioned</p>
-                        <p className="text-gray-800">{formatCurrency(snapshot.sanctioned_amount)}</p>
+                        <p className="text-[10px] uppercase text-muted-text font-bold">Sanctioned</p>
+                        <p className="text-main">{formatCurrency(snapshot.sanctioned_amount)}</p>
                       </div>
                       <div className="text-center sm:text-right">
-                        <p className="text-[10px] uppercase text-gray-400 font-bold">{SCHOLARSHIP_RTF_RELEASED_LABEL}</p>
-                        <p className="text-gray-800">{formatCurrency(snapshot.released_amount)}</p>
+                        <p className="text-[10px] uppercase text-muted-text font-bold">{SCHOLARSHIP_RTF_RELEASED_LABEL}</p>
+                        <p className="text-main">{formatCurrency(snapshot.released_amount)}</p>
                       </div>
                     </div>
                     {Array.isArray(snapshot.semesters) && snapshot.semesters.length > 0 && (
                       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                         {snapshot.semesters.map((semester) => (
                           <div key={`${entry.id}-sem-${semester.student_semester}`} className="text-center sm:text-left">
-                            <p className="text-[10px] uppercase text-gray-400 font-bold">
+                            <p className="text-[10px] uppercase text-muted-text font-bold">
                               Sem {semester.student_semester}
                             </p>
-                            <p className="text-gray-800">{formatScholarshipStatusDisplay(semester.eligible)}</p>
+                            <p className="text-main">{formatScholarshipStatusDisplay(semester.eligible)}</p>
                           </div>
                         ))}
                       </div>
@@ -363,13 +363,13 @@ const YearHistoryModal = ({ year, entries, student, meta, onClose }) => {
                       <div className="mt-3 overflow-x-auto">
                         <table className="w-full text-xs">
                           <thead>
-                            <tr className="text-left text-[10px] uppercase tracking-wide text-gray-500">
+                            <tr className="text-left text-[10px] uppercase tracking-wide text-muted-text">
                               <th className="px-2 py-1">Academic Year</th>
                               <th className="px-2 py-1">RTF Emitted</th>
                               <th className="px-2 py-1 text-right">Amount</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-50">
+                          <tbody className="divide-y divide-border">
                             {releases.map((release, index) => (
                               <tr key={`${entry.id}-release-${index}`}>
                                 <td className="px-2 py-1">
@@ -1344,17 +1344,17 @@ const StudentScholarshipHistoryTab = ({
   if (loading) {
     return (
       <div className="space-y-4 animate-pulse p-3">
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
+        <div className="bg-surface rounded-2xl border border-border p-4 space-y-3">
           <SkeletonBox height="h-4" width="w-36" />
           <div className="flex justify-between items-center">
             <SkeletonBox height="h-8" width="w-28" className="rounded-lg" />
             <SkeletonBox height="h-6" width="w-24" className="rounded-full" />
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
+        <div className="bg-surface rounded-2xl border border-border p-4 space-y-3">
           <SkeletonBox height="h-4" width="w-48" />
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="p-3 bg-gray-50 rounded-xl border border-gray-100 space-y-2">
+            <div key={i} className="p-3 bg-background rounded-xl border border-border space-y-2">
               <SkeletonBox height="h-4" width="w-1/3" />
               <SkeletonBox height="h-3" width="w-2/3" />
             </div>
@@ -1366,7 +1366,7 @@ const StudentScholarshipHistoryTab = ({
 
   if (!admissionNumber) {
     return (
-      <div className="py-16 flex flex-col items-center gap-3 text-gray-500">
+      <div className="py-16 flex flex-col items-center gap-3 text-muted-text">
         <AlertTriangle size={28} />
         <p>Select a student to view scholarship history.</p>
       </div>
@@ -1376,7 +1376,7 @@ const StudentScholarshipHistoryTab = ({
   return (
     <div className="space-y-3.5">
       {quotaLocked && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="rounded-2xl border border-[var(--warning-light)] bg-[var(--warning-light)] px-4 py-3 text-sm text-warning">
           This student is under Management Quota, Spot Admission, or Lateral Spot. Scholarship is automatically
           marked as <span className="font-semibold">Not eligible</span> for all years and cannot be edited.
         </div>
@@ -1384,8 +1384,8 @@ const StudentScholarshipHistoryTab = ({
       {scholarshipOptionalForRegistration && programYear > 1 && (
         <div className={`rounded-2xl border px-4 py-3 text-sm ${
           registrationScholarshipCtx.satisfied
-            ? 'border-green-200 bg-green-50 text-green-900'
-            : 'border-blue-200 bg-blue-50 text-blue-900'
+            ? 'border-[var(--success-light)] bg-[var(--success-light)] text-success'
+            : 'border-[var(--primary-light)] bg-[var(--primary-light)] text-primary'
         }`}>
           Scholarship is optional for registration in Year {programYear}. Update the prior program year
           {' '}
@@ -1402,7 +1402,7 @@ const StudentScholarshipHistoryTab = ({
         </div>
       )}
       {scholarshipOptionalForRegistration && programYear <= 1 && (
-        <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+        <div className="rounded-2xl border border-[var(--primary-light)] bg-[var(--primary-light)] px-4 py-3 text-sm text-primary">
           Scholarship is optional for registration in Year 1. Current-year scholarship entry is not required
           to complete registration.
         </div>
@@ -1410,12 +1410,12 @@ const StudentScholarshipHistoryTab = ({
       {!readOnly && !hideHeader && (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-pink-50 text-pink-600">
+            <div className="p-2 rounded-xl bg-[var(--primary-light)] text-accent">
               <GraduationCap size={20} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900">Student Scholarship</h3>
-              <p className="text-xs text-gray-500">
+              <h3 className="text-sm font-bold text-main">Student Scholarship</h3>
+              <p className="text-xs text-muted-text">
                 {meta?.student?.student_name || student?.student_name || admissionNumber}
                 {meta?.firstAcademicYear ? ` · First academic year ${meta.firstAcademicYear}` : ''}
                 {meta?.totalYears ? ` · ${meta.totalYears} year(s)` : ''}
@@ -1427,7 +1427,7 @@ const StudentScholarshipHistoryTab = ({
               type="button"
               onClick={handleSave}
               disabled={saving || hasApplicationIdErrors}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-hover disabled:opacity-60"
             >
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
               Save Scholarship
@@ -1436,19 +1436,19 @@ const StudentScholarshipHistoryTab = ({
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-3.5 py-3 text-xs space-y-2">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm px-3.5 py-3 text-xs space-y-2">
         <div className="flex items-start justify-between gap-3">
           {/* Left Column: Caste & Fee Status Labels */}
           <div className="space-y-2.5">
             <div className="flex flex-col gap-0.5">
-              <label className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Caste</label>
+              <label className="text-[9px] font-bold uppercase tracking-wider text-muted-text">Caste</label>
               {isEditingDisabled ? (
-                <span className="text-xs font-semibold text-gray-800">{selectedCaste || student?.caste || '—'}</span>
+                <span className="text-xs font-semibold text-main">{selectedCaste || student?.caste || '—'}</span>
               ) : (
                 <select
                   value={selectedCaste}
                   onChange={(e) => handleCasteChange(e.target.value)}
-                  className="w-full min-w-[140px] px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-800 bg-white focus:ring-2 focus:ring-indigo-500"
+                  className="w-full min-w-[140px] px-2 py-1 border border-border rounded-lg text-xs text-main bg-surface focus:ring-2 focus:ring-primary"
                 >
                   <option value="">Select caste</option>
                   {casteOptions.map((caste) => (
@@ -1459,7 +1459,7 @@ const StudentScholarshipHistoryTab = ({
             </div>
 
             <div className="flex flex-col gap-0.5">
-              <label className="text-[9px] font-bold uppercase tracking-wider text-gray-500">Fee Status</label>
+              <label className="text-[9px] font-bold uppercase tracking-wider text-muted-text">Fee Status</label>
             </div>
           </div>
 
@@ -1468,8 +1468,8 @@ const StudentScholarshipHistoryTab = ({
             {selectedCaste && casteAccountTypes[selectedCaste] && (
               <span className={`inline-flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full border ${
                 casteAccountTypes[selectedCaste] === 'college'
-                  ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
-                  : 'text-blue-700 bg-blue-50 border-blue-200'
+                  ? 'text-success bg-[var(--success-light)] border-[var(--success-light)]'
+                  : 'text-primary bg-[var(--primary-light)] border-[var(--primary-light)]'
               }`}>
                 {casteAccountTypes[selectedCaste] === 'college' ? 'College Account' : 'Mother Account'}
               </span>
@@ -1478,10 +1478,10 @@ const StudentScholarshipHistoryTab = ({
             {isFeeEditingDisabled ? (
               <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-bold capitalize ${
                 feeStatus === 'no due' || feeStatus === 'no_due' || feeStatus === 'nodue'
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
                   : feeStatus === 'permitted'
-                  ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                  : 'bg-amber-50 text-amber-700 border border-amber-200'
+                  ? 'bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)]'
+                  : 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
               }`}>
                 {feeStatus || 'due'}
               </span>
@@ -1490,7 +1490,7 @@ const StudentScholarshipHistoryTab = ({
                 value={feeStatus || 'due'}
                 onChange={(e) => handleFeeStatusChange(e.target.value)}
                 disabled={feeStatusUpdating}
-                className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-800 bg-white font-semibold capitalize focus:ring-2 focus:ring-indigo-500"
+                className="px-2 py-1 border border-border rounded-lg text-xs text-main bg-surface font-semibold capitalize focus:ring-2 focus:ring-primary"
               >
                 <option value="no due">No Due</option>
                 <option value="due">Due</option>
@@ -1502,14 +1502,14 @@ const StudentScholarshipHistoryTab = ({
 
         {/* Permit Details (if Fee Status is 'permitted') */}
         {feeStatus === 'permitted' && (
-          <div className="flex flex-wrap items-center gap-2.5 bg-purple-50/70 border border-purple-200/80 px-2.5 py-1 rounded-xl">
+          <div className="flex flex-wrap items-center gap-2.5 bg-[var(--primary-light)] border border-[var(--primary-light)] px-2.5 py-1 rounded-xl">
             <div>
-              <span className="text-[8.5px] font-bold uppercase text-purple-600 block">Permit Ending Date</span>
-              <span className="text-[11px] font-bold text-purple-900">{formatCalendarDate(permitEndingDate) || 'Not set'}</span>
+              <span className="text-[8.5px] font-bold uppercase text-secondary block">Permit Ending Date</span>
+              <span className="text-[11px] font-bold text-secondary">{formatCalendarDate(permitEndingDate) || 'Not set'}</span>
             </div>
             <div>
-              <span className="text-[8.5px] font-bold uppercase text-purple-600 block">Permit Remarks</span>
-              <span className="text-[11px] font-bold text-purple-900 max-w-[160px] truncate block" title={permitRemarks}>
+              <span className="text-[8.5px] font-bold uppercase text-secondary block">Permit Remarks</span>
+              <span className="text-[11px] font-bold text-secondary max-w-[160px] truncate block" title={permitRemarks}>
                 {permitRemarks || 'No remarks'}
               </span>
             </div>
@@ -1517,7 +1517,7 @@ const StudentScholarshipHistoryTab = ({
               <button
                 type="button"
                 onClick={handleOpenEditPermit}
-                className="text-[10px] font-bold text-purple-700 hover:text-purple-900 underline ml-1"
+                className="text-[10px] font-bold text-secondary hover:text-secondary underline ml-1"
               >
                 Edit Permit Info
               </button>
@@ -1527,18 +1527,18 @@ const StudentScholarshipHistoryTab = ({
       </div>
 
       {hasLockedFutureYears && !isEditingDisabled && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        <div className="rounded-xl border border-[var(--warning-light)] bg-[var(--warning-light)] px-3 py-2 text-xs text-warning">
           Scholarship entry is limited to program Year {maxAccessibleProgramYear} and earlier.
           Future program years unlock when the student advances.
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-3.5 py-2 border-b border-gray-100 bg-gray-50/70">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Year-wise Scholarship Summary</h4>
+      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+        <div className="px-3.5 py-2 border-b border-border bg-[var(--background)]/70">
+          <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-text">Year-wise Scholarship Summary</h4>
         </div>
         {/* Mobile View (< sm) */}
-        <div className="block sm:hidden divide-y divide-gray-100">
+        <div className="block sm:hidden divide-y divide-border">
           {summaryYears.map((year, yearIndex) => {
             const semesters = year.semesters?.length
               ? year.semesters
@@ -1552,11 +1552,11 @@ const StudentScholarshipHistoryTab = ({
             return (
               <div key={`mobile-summary-${year.student_year}`} className="p-2.5 space-y-2">
                 {/* Header & App ID & Expand Toggle */}
-                <div className="flex items-center justify-between bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 gap-1.5">
+                <div className="flex items-center justify-between bg-background px-2.5 py-1.5 rounded-lg border border-border gap-1.5">
                   <div className="flex items-center gap-1.5 px-1 min-w-0">
-                    <span className="text-[8.5px] uppercase font-bold text-gray-400 block leading-tight shrink-0">App ID</span>
+                    <span className="text-[8.5px] uppercase font-bold text-muted-text block leading-tight shrink-0">App ID</span>
                     {yearEditingDisabled ? (
-                      <span className="text-xs font-mono text-gray-700 font-semibold block truncate">{year.application_id || '—'}</span>
+                      <span className="text-xs font-mono text-sub font-semibold block truncate">{year.application_id || '—'}</span>
                     ) : (
                       <input
                         type="text"
@@ -1565,16 +1565,16 @@ const StudentScholarshipHistoryTab = ({
                         maxLength={SCHOLARSHIP_APPLICATION_ID_LENGTH}
                         value={year.application_id || ''}
                         onChange={(e) => updateYearField(yearIndex, 'application_id', e.target.value)}
-                        className="w-28 px-1.5 py-0.5 border rounded text-xs text-center font-mono bg-white focus:ring-1 focus:ring-indigo-500"
+                        className="w-28 px-1.5 py-0.5 border rounded text-xs text-center font-mono bg-surface focus:ring-1 focus:ring-primary"
                         placeholder={`${SCHOLARSHIP_APPLICATION_ID_LENGTH}-digit`}
                       />
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="flex items-center gap-1 shrink-0">
-                      <span className="font-bold text-gray-900 text-xs whitespace-nowrap">Year {year.student_year}</span>
+                      <span className="font-bold text-main text-xs whitespace-nowrap">Year {year.student_year}</span>
                       {yearEditingDisabled && !isEditingDisabled && (
-                        <span className="text-[8.5px] font-semibold uppercase tracking-wide text-gray-400 bg-gray-200/60 px-1 py-0.5 rounded">
+                        <span className="text-[8.5px] font-semibold uppercase tracking-wide text-muted-text bg-[var(--background)]/60 px-1 py-0.5 rounded">
                           Locked
                         </span>
                       )}
@@ -1582,7 +1582,7 @@ const StudentScholarshipHistoryTab = ({
                     <button
                       type="button"
                       onClick={() => toggleMobileYearExpand(year.student_year)}
-                      className="inline-flex items-center justify-center p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors shrink-0"
+                      className="inline-flex items-center justify-center p-1.5 rounded-lg bg-background hover:bg-background text-sub transition-colors shrink-0"
                       title={isExpanded ? `Collapse Year ${year.student_year} details` : `Expand Year ${year.student_year} details`}
                     >
                       {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -1593,10 +1593,10 @@ const StudentScholarshipHistoryTab = ({
                 {isExpanded && (
                   <>
                     {/* Financial Overview Grid — 3 columns inline */}
-                    <div className="grid grid-cols-3 gap-1 bg-slate-50 p-2 rounded-lg border border-slate-100 text-[11px]">
+                    <div className="grid grid-cols-3 gap-1 bg-background p-2 rounded-lg border border-border text-[11px]">
                       <div>
-                        <span className="text-[8.5px] text-gray-500 uppercase font-bold block leading-tight">{sanctionedColumnLabel}</span>
-                        <span className="font-bold text-gray-900 text-[11px]">
+                        <span className="text-[8.5px] text-muted-text uppercase font-bold block leading-tight">{sanctionedColumnLabel}</span>
+                        <span className="font-bold text-main text-[11px]">
                           {year.financialTracking
                             ? (year.tuitionFeeMode ? formatCurrency(0) : formatCurrency(year.display_sanctioned_amount ?? year.effective_sanctioned_amount ?? year.sanctioned_amount))
                             : '—'}
@@ -1604,15 +1604,15 @@ const StudentScholarshipHistoryTab = ({
                       </div>
 
                       <div>
-                        <span className="text-[8.5px] text-emerald-600 uppercase font-bold block leading-tight">RTF Released</span>
-                        <span className="font-bold text-emerald-700 text-[11px]">
+                        <span className="text-[8.5px] text-success uppercase font-bold block leading-tight">RTF Released</span>
+                        <span className="font-bold text-success text-[11px]">
                           {year.releasesEligible ? formatCurrency(year.released_amount) : '—'}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-[8.5px] text-pink-600 uppercase font-bold block leading-tight">RTF Due</span>
-                        <span className={`font-bold text-[11px] ${(year.due_amount ?? 0) > 0 ? 'text-pink-600' : 'text-gray-400'}`}>
+                        <span className="text-[8.5px] text-accent uppercase font-bold block leading-tight">RTF Due</span>
+                        <span className={`font-bold text-[11px] ${(year.due_amount ?? 0) > 0 ? 'text-accent' : 'text-muted-text'}`}>
                           {(year.releasesEligible || year.tuitionFeeMode || year.feeOnlyMode) && (year.due_amount ?? 0) >= 0
                             ? formatCurrency(year.due_amount ?? 0)
                             : '—'}
@@ -1621,8 +1621,8 @@ const StudentScholarshipHistoryTab = ({
 
                       {hasAnyAdvance && (
                         <div>
-                          <span className="text-[8.5px] text-violet-600 uppercase font-bold block leading-tight">Advance</span>
-                          <span className="font-bold text-violet-700 text-[11px]">
+                          <span className="text-[8.5px] text-secondary uppercase font-bold block leading-tight">Advance</span>
+                          <span className="font-bold text-secondary text-[11px]">
                             {year.releasesEligible && year.advance_amount > 0 ? formatCurrency(year.advance_amount) : '—'}
                           </span>
                         </div>
@@ -1631,14 +1631,14 @@ const StudentScholarshipHistoryTab = ({
                       {!SCHOLARSHIP_HIDE_SUMMARY_PAID_FEE_COLUMNS && (
                         <>
                           <div>
-                            <span className="text-[8.5px] text-blue-600 uppercase font-bold block leading-tight">Paid</span>
-                            <span className="font-bold text-blue-700 text-[11px]">
+                            <span className="text-[8.5px] text-primary uppercase font-bold block leading-tight">Paid</span>
+                            <span className="font-bold text-primary text-[11px]">
                               {year.showPaidAmount ? formatCurrency(year.paid_amount) : '—'}
                             </span>
                           </div>
                           <div>
-                            <span className="text-[8.5px] text-amber-600 uppercase font-bold block leading-tight">Fee Due</span>
-                            <span className={`font-bold text-[11px] ${year.fee_due_amount > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
+                            <span className="text-[8.5px] text-warning uppercase font-bold block leading-tight">Fee Due</span>
+                            <span className={`font-bold text-[11px] ${year.fee_due_amount > 0 ? 'text-warning' : 'text-muted-text'}`}>
                               {year.financialTracking ? formatCurrency(year.fee_due_amount) : '—'}
                             </span>
                           </div>
@@ -1647,21 +1647,21 @@ const StudentScholarshipHistoryTab = ({
                     </div>
 
                     {/* Semesters & Eligible Status — Side by Side */}
-                    <div className="bg-gray-50/50 p-2 rounded-lg border border-gray-100 space-y-1">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 block mb-0.5">Semesters</span>
+                    <div className="bg-[var(--background)]/50 p-2 rounded-lg border border-border space-y-1">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-muted-text block mb-0.5">Semesters</span>
                       <div className="flex items-center justify-between gap-1.5">
                         {semesters.map((semester, semesterIndex) => (
-                          <div key={`mobile-sem-${year.student_year}-${semester.student_semester}`} className="flex items-center gap-1 text-[11px] bg-white px-2 py-1 rounded-lg border border-gray-100 flex-1 justify-between min-w-0">
-                            <span className="text-gray-600 font-medium shrink-0 text-[11px]">Sem {semester.student_semester}</span>
+                          <div key={`mobile-sem-${year.student_year}-${semester.student_semester}`} className="flex items-center gap-1 text-[11px] bg-surface px-2 py-1 rounded-lg border border-border flex-1 justify-between min-w-0">
+                            <span className="text-sub font-medium shrink-0 text-[11px]">Sem {semester.student_semester}</span>
                             {yearEditingDisabled ? (
-                              <span className="font-semibold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded text-[10px] shrink-0">
+                              <span className="font-semibold text-success bg-[var(--success-light)] px-1 py-0.5 rounded text-[10px] shrink-0">
                                 {getScholarshipStatusDropdownLabel(semester.eligible) || '—'}
                               </span>
                             ) : (
                               <select
                                 value={normalizeScholarshipStatusValue(semester.eligible) || ''}
                                 onChange={(e) => updateSemesterField(yearIndex, semesterIndex, e.target.value)}
-                                className="px-1 py-0.5 border border-gray-200 rounded text-[11px] text-gray-800 bg-white shrink-0"
+                                className="px-1 py-0.5 border border-border rounded text-[11px] text-main bg-surface shrink-0"
                               >
                                 {ELIGIBLE_OPTIONS.map((option) => (
                                   <option key={option.value || 'blank'} value={option.value}>
@@ -1677,7 +1677,7 @@ const StudentScholarshipHistoryTab = ({
 
                     {/* Remarks if present */}
                     {semesters.some((s) => s.remark) && (
-                      <div className="text-[10px] text-gray-500 pt-0.5 truncate">
+                      <div className="text-[10px] text-muted-text pt-0.5 truncate">
                         Remark: {semesters.map((s) => s.remark).filter(Boolean).join(', ')}
                       </div>
                     )}
@@ -1692,31 +1692,31 @@ const StudentScholarshipHistoryTab = ({
         <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 text-left text-[11px] uppercase tracking-wide text-gray-500">
+              <tr className="bg-background text-left text-[11px] uppercase tracking-wide text-muted-text">
                 <th className="px-2 py-2.5 font-bold text-center leading-tight">Year</th>
-                <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">APPLICATION</span><span className="block text-[10px] text-gray-400">ID</span></th>
+                <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">APPLICATION</span><span className="block text-[10px] text-muted-text">ID</span></th>
                 <th className="px-2 py-2.5 font-bold text-center leading-tight">Sem</th>
                 <th className="px-2 py-2.5 font-bold leading-tight">Eligible</th>
                 {showFeePaidColumn && (
-                  <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">FEE</span><span className="block text-[10px] text-emerald-600">PAID</span></th>
+                  <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">FEE</span><span className="block text-[10px] text-success">PAID</span></th>
                 )}
                 <th className="px-2 py-2.5 font-bold text-center leading-tight">{sanctionedColumnLabel}</th>
-                <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">RTF</span><span className="block text-[10px] text-emerald-600">RELEASED</span></th>
+                <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">RTF</span><span className="block text-[10px] text-success">RELEASED</span></th>
                 {hasAnyAdvance && (
                   <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">ADVANCE</span></th>
                 )}
-                <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">RTF</span><span className="block text-[10px] text-pink-600">DUE</span></th>
+                <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">RTF</span><span className="block text-[10px] text-accent">DUE</span></th>
                 {!SCHOLARSHIP_HIDE_SUMMARY_PAID_FEE_COLUMNS && (
                   <>
                     <th className="px-2 py-2.5 font-bold text-center leading-tight">Paid</th>
-                    <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">FEE</span><span className="block text-[10px] text-amber-600">DUE</span></th>
+                    <th className="px-2 py-2.5 font-bold text-center leading-tight"><span className="block">FEE</span><span className="block text-[10px] text-warning">DUE</span></th>
                   </>
                 )}
                 <th className="px-2 py-2.5 font-bold leading-tight">Remarks</th>
                 <th className="px-2 py-2.5 font-bold text-center leading-tight">History</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {summaryYears.map((year, yearIndex) => {
                 const semesters = year.semesters?.length
                   ? year.semesters
@@ -1730,19 +1730,19 @@ const StudentScholarshipHistoryTab = ({
                 return semesters.map((semester, semesterIndex) => (
                   <tr
                     key={`${year.student_year}-sem-${semester.student_semester}`}
-                    className={`hover:bg-gray-50/60 ${yearEditingDisabled && !isEditingDisabled ? 'bg-gray-50/40' : ''}`}
+                    className={`hover:bg-[var(--background)]/60 ${yearEditingDisabled && !isEditingDisabled ? 'bg-[var(--background)]/40' : ''}`}
                   >
                     {semesterIndex === 0 && (
                       <td
                         rowSpan={rowSpan}
-                        className="px-2 py-2 align-middle text-center border-r border-gray-50"
+                        className="px-2 py-2 align-middle text-center border-r border-border"
                       >
                         <div className="flex flex-col items-center gap-1">
-                          <span className="font-semibold text-gray-900 whitespace-nowrap text-xs">
+                          <span className="font-semibold text-main whitespace-nowrap text-xs">
                             Year {year.student_year}
                           </span>
                           {yearEditingDisabled && !isEditingDisabled && (
-                            <span className="text-[9px] font-semibold uppercase tracking-wide text-gray-400">
+                            <span className="text-[9px] font-semibold uppercase tracking-wide text-muted-text">
                               Locked
                             </span>
                           )}
@@ -1752,10 +1752,10 @@ const StudentScholarshipHistoryTab = ({
                     {semesterIndex === 0 && (
                       <td
                         rowSpan={rowSpan}
-                        className="px-2 py-2 align-middle text-center border-r border-gray-50"
+                        className="px-2 py-2 align-middle text-center border-r border-border"
                       >
                         {yearEditingDisabled ? (
-                          <span className="text-gray-700 text-xs">{year.application_id || '—'}</span>
+                          <span className="text-sub text-xs">{year.application_id || '—'}</span>
                         ) : (
                           <div className="flex flex-col items-center gap-1 min-w-[120px]">
                             <input
@@ -1767,10 +1767,10 @@ const StudentScholarshipHistoryTab = ({
                               onChange={(e) => updateYearField(yearIndex, 'application_id', e.target.value)}
                               className={`w-full px-1.5 py-1 border rounded-lg text-xs text-center tracking-wider ${
                                 applicationIdFeedbackByYear[year.student_year]?.type === 'error'
-                                  ? 'border-red-300 bg-red-50/40'
+                                  ? 'border-[var(--danger-light)] bg-[var(--danger-light)]'
                                   : applicationIdFeedbackByYear[year.student_year]?.type === 'success'
-                                    ? 'border-green-300 bg-green-50/40'
-                                    : 'border-gray-200'
+                                    ? 'border-[var(--success-light)] bg-[var(--success-light)]'
+                                    : 'border-border'
                               }`}
                               placeholder={`${SCHOLARSHIP_APPLICATION_ID_LENGTH}-digit`}
                             />
@@ -1778,12 +1778,12 @@ const StudentScholarshipHistoryTab = ({
                               <p
                                 className={`text-[10px] leading-tight text-center max-w-[120px] ${
                                   applicationIdFeedbackByYear[year.student_year]?.type === 'error'
-                                    ? 'text-red-600'
+                                    ? 'text-danger'
                                     : applicationIdFeedbackByYear[year.student_year]?.type === 'success'
-                                      ? 'text-green-600'
+                                      ? 'text-success'
                                       : applicationIdFeedbackByYear[year.student_year]?.type === 'checking'
-                                        ? 'text-gray-500'
-                                        : 'text-amber-600'
+                                        ? 'text-muted-text'
+                                        : 'text-warning'
                                 }`}
                               >
                                 {applicationIdFeedbackByYear[year.student_year].message}
@@ -1793,19 +1793,19 @@ const StudentScholarshipHistoryTab = ({
                         )}
                       </td>
                     )}
-                    <td className="px-2 py-2 whitespace-nowrap text-gray-700 text-xs">
+                    <td className="px-2 py-2 whitespace-nowrap text-sub text-xs">
                       Sem {semester.student_semester}
                     </td>
                     <td className="px-2 py-2">
                       {yearEditingDisabled ? (
-                        <span className="text-gray-700 text-xs">
+                        <span className="text-sub text-xs">
                           {getScholarshipStatusDropdownLabel(semester.eligible)}
                         </span>
                       ) : (
                         <select
                           value={normalizeScholarshipStatusValue(semester.eligible) || ''}
                           onChange={(e) => updateSemesterField(yearIndex, semesterIndex, e.target.value)}
-                          className="w-full min-w-[110px] px-1.5 py-1 border border-gray-200 rounded-lg text-xs"
+                          className="w-full min-w-[110px] px-1.5 py-1 border border-border rounded-lg text-xs"
                         >
                           {ELIGIBLE_OPTIONS.map((option) => (
                             <option key={option.value || 'blank'} value={option.value}>
@@ -1826,7 +1826,7 @@ const StudentScholarshipHistoryTab = ({
                         const feePaid = semester.fee_paid === true || semester.fee_paid === 1;
 
                         if (!isConv || !isNotEligible) {
-                          return <span className="text-gray-300 text-xs">—</span>;
+                          return <span className="text-muted-text text-xs">—</span>;
                         }
 
                         if (yearEditingDisabled) {
@@ -1834,8 +1834,8 @@ const StudentScholarshipHistoryTab = ({
                             <span
                               className={`inline-flex items-center justify-center w-4 h-4 rounded border ${
                                 feePaid
-                                  ? 'bg-green-500 border-green-500 text-white'
-                                  : 'bg-white border-gray-300'
+                                  ? 'bg-success border-success text-white'
+                                  : 'bg-surface border-border-strong'
                               }`}
                               title={feePaid ? 'Fee Paid' : 'Fee Not Paid'}
                             >
@@ -1853,10 +1853,10 @@ const StudentScholarshipHistoryTab = ({
                               type="checkbox"
                               checked={feePaid}
                               onChange={(e) => updateSemesterFeePaid(yearIndex, semesterIndex, e.target.checked)}
-                              className="w-3.5 h-3.5 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                              className="w-3.5 h-3.5 rounded border-border-strong text-success focus:ring-success cursor-pointer"
                               title="Mark fee as paid for this semester"
                             />
-                            <span className={`text-[10px] font-medium whitespace-nowrap ${feePaid ? 'text-green-700' : 'text-gray-400'}`}>
+                            <span className={`text-[10px] font-medium whitespace-nowrap ${feePaid ? 'text-success' : 'text-muted-text'}`}>
                               {feePaid ? 'Paid' : 'No'}
                             </span>
                           </label>
@@ -1867,15 +1867,15 @@ const StudentScholarshipHistoryTab = ({
                     {semesterIndex === 0 && (
                       <td
                         rowSpan={rowSpan}
-                        className="px-2 py-2 align-middle text-center border-l border-gray-50"
+                        className="px-2 py-2 align-middle text-center border-l border-border"
                       >
                         {year.financialTracking ? (
                           year.tuitionFeeMode ? (
-                            <span className="font-medium text-gray-800 text-xs">
+                            <span className="font-medium text-main text-xs">
                               {formatCurrency(0)}
                             </span>
                           ) : yearEditingDisabled ? (
-                            <span className="font-medium text-gray-800 text-xs">
+                            <span className="font-medium text-main text-xs">
                               {formatCurrency(year.display_sanctioned_amount ?? year.effective_sanctioned_amount ?? year.sanctioned_amount)}
                             </span>
                           ) : (
@@ -1886,7 +1886,7 @@ const StudentScholarshipHistoryTab = ({
                               maxLength={5}
                               value={year.sanctioned_amount ?? ''}
                               onChange={(e) => updateYearField(yearIndex, 'sanctioned_amount', e.target.value)}
-                              className="w-full min-w-[80px] px-1.5 py-1 border border-gray-200 rounded-lg text-xs text-center"
+                              className="w-full min-w-[80px] px-1.5 py-1 border border-border rounded-lg text-xs text-center"
                               placeholder={`Max ${SCHOLARSHIP_MAX_AMOUNT}`}
                               title={
                                 shouldUseTuitionFeeLabels(student, year)
@@ -1896,89 +1896,89 @@ const StudentScholarshipHistoryTab = ({
                             />
                           )
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-muted-text">—</span>
                         )}
                       </td>
                     )}
                     {semesterIndex === 0 && (
                       <td
                         rowSpan={rowSpan}
-                        className="px-2 py-2 align-middle text-center whitespace-nowrap border-l border-gray-50"
+                        className="px-2 py-2 align-middle text-center whitespace-nowrap border-l border-border"
                       >
                         {year.releasesEligible ? (
-                          <span className="font-semibold text-emerald-700 text-xs">
+                          <span className="font-semibold text-success text-xs">
                             {formatCurrency(year.released_amount)}
                           </span>
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-muted-text">—</span>
                         )}
                       </td>
                     )}
                     {hasAnyAdvance && semesterIndex === 0 && (
                       <td
                         rowSpan={rowSpan}
-                        className="px-2 py-2 align-middle text-center whitespace-nowrap border-l border-gray-50"
+                        className="px-2 py-2 align-middle text-center whitespace-nowrap border-l border-border"
                       >
                         {year.releasesEligible && year.advance_amount > 0 ? (
-                          <span className="font-semibold text-violet-700 text-xs">
+                          <span className="font-semibold text-secondary text-xs">
                             {formatCurrency(year.advance_amount)}
                           </span>
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-muted-text">—</span>
                         )}
                       </td>
                     )}
                     {semesterIndex === 0 && (
                       <td
                         rowSpan={rowSpan}
-                        className="px-2 py-2 align-middle text-center whitespace-nowrap border-l border-gray-50"
+                        className="px-2 py-2 align-middle text-center whitespace-nowrap border-l border-border"
                       >
                         {(year.releasesEligible || year.tuitionFeeMode || year.feeOnlyMode) && (year.due_amount ?? 0) >= 0 ? (
-                          <span className={`font-semibold text-xs ${(year.due_amount ?? 0) > 0 ? 'text-pink-600' : 'text-gray-400'}`}>
+                          <span className={`font-semibold text-xs ${(year.due_amount ?? 0) > 0 ? 'text-accent' : 'text-muted-text'}`}>
                             {formatCurrency(year.due_amount ?? 0)}
                           </span>
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-muted-text">—</span>
                         )}
                       </td>
                     )}
                     {!SCHOLARSHIP_HIDE_SUMMARY_PAID_FEE_COLUMNS && semesterIndex === 0 && (
                       <td
                         rowSpan={rowSpan}
-                        className="px-2 py-2 align-middle text-center whitespace-nowrap border-l border-gray-50"
+                        className="px-2 py-2 align-middle text-center whitespace-nowrap border-l border-border"
                       >
                         {year.showPaidAmount ? (
-                          <span className="font-semibold text-blue-700 text-xs">
+                          <span className="font-semibold text-primary text-xs">
                             {formatCurrency(year.paid_amount)}
                           </span>
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-muted-text">—</span>
                         )}
                       </td>
                     )}
                     {!SCHOLARSHIP_HIDE_SUMMARY_PAID_FEE_COLUMNS && semesterIndex === 0 && (
                       <td
                         rowSpan={rowSpan}
-                        className="px-2 py-2 align-middle text-center whitespace-nowrap border-l border-gray-50"
+                        className="px-2 py-2 align-middle text-center whitespace-nowrap border-l border-border"
                       >
                         {year.financialTracking ? (
-                          <span className={`font-semibold text-xs ${year.fee_due_amount > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
+                          <span className={`font-semibold text-xs ${year.fee_due_amount > 0 ? 'text-warning' : 'text-muted-text'}`}>
                             {formatCurrency(year.fee_due_amount)}
                           </span>
                         ) : (
-                          <span className="text-gray-400">—</span>
+                          <span className="text-muted-text">—</span>
                         )}
                       </td>
                     )}
                     <td className="px-2 py-2 min-w-[120px]">
                       {yearEditingDisabled ? (
-                        <span className="text-gray-700 text-xs">{semester.remark || '—'}</span>
+                        <span className="text-sub text-xs">{semester.remark || '—'}</span>
                       ) : (
                         <input
                           type="text"
                           value={semester.remark || ''}
                           onChange={(e) => updateSemesterRemark(yearIndex, semesterIndex, e.target.value)}
-                          className="w-full min-w-[90px] px-1.5 py-1 border border-gray-200 rounded-lg text-xs"
+                          className="w-full min-w-[90px] px-1.5 py-1 border border-border rounded-lg text-xs"
                           placeholder={`Sem ${semester.student_semester} remark`}
                         />
                       )}
@@ -1986,12 +1986,12 @@ const StudentScholarshipHistoryTab = ({
                     {semesterIndex === 0 && (
                       <td
                         rowSpan={rowSpan}
-                        className="px-2 py-2 align-middle text-center border-l border-gray-50"
+                        className="px-2 py-2 align-middle text-center border-l border-border"
                       >
                         <button
                           type="button"
                           onClick={() => setHistoryYear(year.student_year)}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 text-amber-800 text-[10px] font-bold hover:bg-amber-100 border border-amber-100"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--warning-light)] text-warning text-[10px] font-bold hover:bg-[var(--warning-light)] border border-[var(--warning-light)]"
                           title={`View archived scholarship history for Year ${year.student_year}`}
                         >
                           <History size={11} />
@@ -2011,8 +2011,8 @@ const StudentScholarshipHistoryTab = ({
       <>
       <div className="space-y-2.5">
         <div className="px-1 py-0.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500">{SCHOLARSHIP_RTF_RELEASED_TRANSACTIONS_TITLE}</h4>
-          <div className="text-[10px] text-gray-400 flex flex-col sm:flex-row sm:items-center gap-1.5">
+          <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-text">{SCHOLARSHIP_RTF_RELEASED_TRANSACTIONS_TITLE}</h4>
+          <div className="text-[10px] text-muted-text flex flex-col sm:flex-row sm:items-center gap-1.5">
             <span>
               {hasAnyAdvance && isCollegeAccount() && (
                 <span>
@@ -2021,7 +2021,7 @@ const StudentScholarshipHistoryTab = ({
               )}
             </span>
             {isCollegeAccount() && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0 w-fit">
+              <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-success bg-[var(--success-light)] px-2 py-0.5 rounded-full border border-[var(--success-light)] shrink-0 w-fit">
                 College Account — Paid Transactions auto-filled from {SCHOLARSHIP_RTF_RELEASED_LABEL}
               </span>
             )}
@@ -2029,7 +2029,7 @@ const StudentScholarshipHistoryTab = ({
         </div>
 
         {releaseTransactionYears.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 p-4 text-xs text-gray-500 text-center">
+          <div className="bg-surface rounded-xl border border-border p-4 text-xs text-muted-text text-center">
             No RTF released transactions — mark all semesters as Eligible to record releases.
           </div>
         ) : (
@@ -2051,25 +2051,25 @@ const StudentScholarshipHistoryTab = ({
             const isReleasedOver = sanctionedAmt > 0 && totalReleasedAmt > sanctionedAmt;
 
             return (
-            <div key={`rtf-releases-${year.student_year}`} className="bg-white rounded-xl border border-gray-100 shadow-2xs p-3 space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-1.5 pb-2 border-b border-gray-50">
-                <h5 className="text-xs font-bold text-gray-800">Year {year.student_year}</h5>
+            <div key={`rtf-releases-${year.student_year}`} className="bg-surface rounded-xl border border-border shadow-2xs p-3 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-1.5 pb-2 border-b border-border">
+                <h5 className="text-xs font-bold text-main">Year {year.student_year}</h5>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={`text-[11px] font-semibold ${isReleasedOver ? 'text-red-600' : 'text-emerald-700'}`}>
+                  <span className={`text-[11px] font-semibold ${isReleasedOver ? 'text-danger' : 'text-success'}`}>
                     {SCHOLARSHIP_RTF_RELEASED_LABEL}: {formatCurrency(totalReleasedAmt)}
                     {isReleasedOver && (
-                      <span className="ml-1 text-red-500">
+                      <span className="ml-1 text-danger">
                         (exceeds sanctioned {formatCurrency(sanctionedAmt)})
                       </span>
                     )}
                   </span>
                   {hasAnyAdvance && showAdvanceForYear && (
-                    <span className="text-[11px] font-semibold text-violet-700">
+                    <span className="text-[11px] font-semibold text-secondary">
                       {SCHOLARSHIP_ADVANCE_LABEL}: {formatCurrency(totalAdvanceAmt)}
                     </span>
                   )}
                   {sanctionedAmt > 0 && (
-                    <span className={`text-[11px] font-semibold ${totalRtfDueAmt > 0 ? 'text-pink-600' : 'text-gray-500'}`}>
+                    <span className={`text-[11px] font-semibold ${totalRtfDueAmt > 0 ? 'text-accent' : 'text-muted-text'}`}>
                       {SCHOLARSHIP_RTF_DUE_LABEL}: {formatCurrency(totalRtfDueAmt)}
                     </span>
                   )}
@@ -2079,7 +2079,7 @@ const StudentScholarshipHistoryTab = ({
               <div className="w-full overflow-x-auto sm:overflow-visible">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="text-left text-[9.5px] uppercase tracking-wide text-gray-500">
+                    <tr className="text-left text-[9.5px] uppercase tracking-wide text-muted-text">
                       <th className="px-1.5 py-1 font-bold leading-tight">Year</th>
                       <th className="px-1.5 py-1 font-bold leading-tight">Date</th>
                       <th className="px-1.5 py-1 font-bold text-right leading-tight">Released</th>
@@ -2087,7 +2087,7 @@ const StudentScholarshipHistoryTab = ({
                       {!isEditingDisabled && <th className="px-1.5 py-1 font-bold text-center w-14">Actions</th>}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-border">
                     {stateYear.releases.map((release, releaseIndex) => {
                       const rowReleased = parseAmount(release.released_amount);
                       const isAdvanceRow = hasAnyAdvance && showAdvanceForYear && rowReleased > 0;
@@ -2106,13 +2106,13 @@ const StudentScholarshipHistoryTab = ({
                       return (
                       <tr key={`${year.student_year}-rtf-${releaseIndex}`}>
                         <td className="px-1.5 py-1">
-                          <span className="text-gray-700 whitespace-nowrap text-xs">
+                          <span className="text-sub whitespace-nowrap text-xs">
                             {release.academic_year || academicYearLabel}
                           </span>
                         </td>
                         <td className="px-1.5 py-1">
                           {isEditingDisabled ? (
-                            <span className="text-gray-700 text-xs">{formatCalendarDate(release.rtf_released_date) || '—'}</span>
+                            <span className="text-sub text-xs">{formatCalendarDate(release.rtf_released_date) || '—'}</span>
                           ) : (
                             <input
                               type="date"
@@ -2121,16 +2121,16 @@ const StudentScholarshipHistoryTab = ({
                               value={release.rtf_released_date || ''}
                               onChange={(e) => updateReleaseField(yearIndex, releaseIndex, 'rtf_released_date', e.target.value)}
                               onBlur={(e) => handleReleaseDateBlur(yearIndex, releaseIndex, e.target.value)}
-                              className="w-full min-w-[90px] px-1 py-1 border border-gray-200 rounded-lg text-xs"
+                              className="w-full min-w-[90px] px-1 py-1 border border-border rounded-lg text-xs"
                             />
                           )}
                         </td>
                         <td className="px-1.5 py-1 text-right">
                           {isEditingDisabled ? (
                             <div className="flex flex-col items-end gap-0.5">
-                              <span className="font-medium text-gray-800 text-xs">{formatCurrency(release.released_amount)}</span>
+                              <span className="font-medium text-main text-xs">{formatCurrency(release.released_amount)}</span>
                               {isAdvanceRow && (
-                                <span className="text-[9px] text-violet-600 font-semibold bg-violet-50 px-1 rounded">{SCHOLARSHIP_ADVANCE_LABEL}</span>
+                                <span className="text-[9px] text-secondary font-semibold bg-[var(--primary-light)] px-1 rounded">{SCHOLARSHIP_ADVANCE_LABEL}</span>
                               )}
                             </div>
                           ) : (
@@ -2142,7 +2142,7 @@ const StudentScholarshipHistoryTab = ({
                                 maxLength={5}
                                 value={release.released_amount}
                                 onChange={(e) => updateReleaseField(yearIndex, releaseIndex, 'released_amount', e.target.value)}
-                                className={`w-full min-w-[80px] px-1 py-1 border rounded-lg text-xs text-right ${isRowReleasedOver ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-200'}`}
+                                className={`w-full min-w-[80px] px-1 py-1 border rounded-lg text-xs text-right ${isRowReleasedOver ? 'border-danger bg-[var(--danger-light)] text-danger' : 'border-border'}`}
                                 placeholder={
                                   isAdvanceRow
                                     ? SCHOLARSHIP_ADVANCE_LABEL
@@ -2150,7 +2150,7 @@ const StudentScholarshipHistoryTab = ({
                                 }
                               />
                               {isRowReleasedOver && (
-                                <p className="text-[10px] text-red-500 mt-0.5 text-right">
+                                <p className="text-[10px] text-danger mt-0.5 text-right">
                                   Exceeds {SCHOLARSHIP_RTF_DUE_LABEL.toLowerCase()} ({formatCurrency(remainingRtfDueBefore)})
                                 </p>
                               )}
@@ -2159,11 +2159,11 @@ const StudentScholarshipHistoryTab = ({
                         </td>
                         <td className="px-1.5 py-1 text-right">
                           {sanctionedAmt > 0 ? (
-                            <span className={`text-xs font-semibold tabular-nums ${rtfDueAfterRow > 0 ? 'text-pink-600' : 'text-gray-400'}`}>
+                            <span className={`text-xs font-semibold tabular-nums ${rtfDueAfterRow > 0 ? 'text-accent' : 'text-muted-text'}`}>
                               {formatCurrency(rtfDueAfterRow)}
                             </span>
                           ) : (
-                            <span className="text-gray-300">—</span>
+                            <span className="text-muted-text">—</span>
                           )}
                         </td>
                         {!isEditingDisabled && (
@@ -2172,7 +2172,7 @@ const StudentScholarshipHistoryTab = ({
                               <button
                                 type="button"
                                 onClick={() => addReleaseRow(yearIndex)}
-                                className="p-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                className="p-1 rounded-lg bg-[var(--success-light)] text-success hover:bg-[var(--success-light)]"
                                 title="Add another RTF released row for this year"
                               >
                                 <Plus size={13} />
@@ -2181,7 +2181,7 @@ const StudentScholarshipHistoryTab = ({
                                 <button
                                   type="button"
                                   onClick={() => removeReleaseRow(yearIndex, releaseIndex)}
-                                  className="p-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
+                                  className="p-1 rounded-lg bg-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)]"
                                   title="Remove row"
                                 >
                                   <Trash2 size={13} />
@@ -2206,18 +2206,18 @@ const StudentScholarshipHistoryTab = ({
       {!quotaLocked && showPaidTransactionsSection && (
       <div className="space-y-2.5">
         <div className="px-1 py-0.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-          <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-500">{SCHOLARSHIP_PAID_TRANSACTIONS_TITLE}</h4>
-          <div className="text-[10px] text-gray-400 flex flex-col sm:flex-row sm:items-center gap-1.5">
+          <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-text">{SCHOLARSHIP_PAID_TRANSACTIONS_TITLE}</h4>
+          <div className="text-[10px] text-muted-text flex flex-col sm:flex-row sm:items-center gap-1.5">
             <span>
               Fee paid to college — add a row for each payment.
             </span>
             {isCollegeAccount() && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0 w-fit">
+              <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-success bg-[var(--success-light)] px-2 py-0.5 rounded-full border border-[var(--success-light)] shrink-0 w-fit">
                 College Account — auto-filled from {SCHOLARSHIP_RTF_RELEASED_LABEL} when Eligible; manual entry for other statuses
               </span>
             )}
             {!isCollegeAccount() && selectedCaste && casteAccountTypes[selectedCaste] !== undefined && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200 shrink-0 w-fit">
+              <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-primary bg-[var(--primary-light)] px-2 py-0.5 rounded-full border border-[var(--primary-light)] shrink-0 w-fit">
                 Mother Account — enter paid amount and date manually
               </span>
             )}
@@ -2225,7 +2225,7 @@ const StudentScholarshipHistoryTab = ({
         </div>
 
         {displayPaidTransactionYears.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 p-4 text-xs text-gray-500 text-center">
+          <div className="bg-surface rounded-xl border border-border p-4 text-xs text-muted-text text-center">
             No paid transactions — mark all semesters as Eligible, or assign a status (Pending, Not eligible, etc.) to track fee paid to college.
           </div>
         ) : (
@@ -2251,18 +2251,18 @@ const StudentScholarshipHistoryTab = ({
             const amountCapLabel = tuitionFeeMode ? SCHOLARSHIP_TUITION_FEE_LABEL.toLowerCase() : 'sanctioned';
 
             return (
-            <div key={`paid-transactions-${year.student_year}`} className="bg-white rounded-xl border border-gray-100 shadow-2xs p-3 space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-1.5 pb-2 border-b border-gray-50">
-                <h5 className="text-xs font-bold text-gray-800">Year {year.student_year}</h5>
+            <div key={`paid-transactions-${year.student_year}`} className="bg-surface rounded-xl border border-border shadow-2xs p-3 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-1.5 pb-2 border-b border-border">
+                <h5 className="text-xs font-bold text-main">Year {year.student_year}</h5>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className={`text-[11px] font-semibold ${isPaidOver ? 'text-red-600' : 'text-blue-700'}`}>
+                  <span className={`text-[11px] font-semibold ${isPaidOver ? 'text-danger' : 'text-primary'}`}>
                     {paidLabel}: {formatCurrency(totalPaidAmt)}
                     {isPaidOver && (
                       <span className="ml-1">(exceeds {amountCapLabel})</span>
                     )}
                   </span>
                   {sanctionedAmt > 0 && (
-                    <span className={`text-[11px] font-semibold ${totalFeeDueAmt > 0 ? 'text-amber-600' : 'text-gray-500'}`}>
+                    <span className={`text-[11px] font-semibold ${totalFeeDueAmt > 0 ? 'text-warning' : 'text-muted-text'}`}>
                       {feeDueLabel}: {formatCurrency(totalFeeDueAmt)}
                     </span>
                   )}
@@ -2272,7 +2272,7 @@ const StudentScholarshipHistoryTab = ({
               <div className="w-full overflow-x-auto sm:overflow-visible">
                 <table className="w-full text-xs">
                   <thead>
-                    <tr className="text-left text-[9.5px] uppercase tracking-wide text-gray-500">
+                    <tr className="text-left text-[9.5px] uppercase tracking-wide text-muted-text">
                       <th className="px-1.5 py-1 font-bold leading-tight">Year</th>
                       <th className="px-1.5 py-1 font-bold leading-tight">Date</th>
                       <th className="px-1.5 py-1 font-bold text-right leading-tight">
@@ -2284,7 +2284,7 @@ const StudentScholarshipHistoryTab = ({
                       )}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50">
+                  <tbody className="divide-y divide-border">
                     {paidTransactions.map((transaction, transactionIndex) => {
                       const rowPaid = parseAmount(transaction.paid_amount);
                       const remainingBeforeRow = calculateRemainingFeeDueBeforeRow(
@@ -2303,16 +2303,16 @@ const StudentScholarshipHistoryTab = ({
                       return (
                       <tr key={`${year.student_year}-paid-${transactionIndex}`}>
                         <td className="px-1.5 py-1">
-                          <span className="text-gray-700 whitespace-nowrap text-xs">
+                          <span className="text-sub whitespace-nowrap text-xs">
                             {transaction.academic_year || academicYearLabel}
                           </span>
                         </td>
                         <td className="px-1.5 py-1">
                           {yearPaidEditingDisabled || isAutoRow ? (
                             <div className="flex flex-col gap-0.5">
-                              <span className="text-gray-700 text-xs">{formatCalendarDate(transaction.paid_date) || '—'}</span>
+                              <span className="text-sub text-xs">{formatCalendarDate(transaction.paid_date) || '—'}</span>
                               {isAutoRow && !yearPaidEditingDisabled && transaction.paid_date && (
-                                <span className="text-[9px] text-emerald-600 font-semibold bg-emerald-50 px-1 rounded w-fit">auto</span>
+                                <span className="text-[9px] text-success font-semibold bg-[var(--success-light)] px-1 rounded w-fit">auto</span>
                               )}
                             </div>
                           ) : (
@@ -2323,16 +2323,16 @@ const StudentScholarshipHistoryTab = ({
                               value={transaction.paid_date || ''}
                               onChange={(e) => updatePaidTransactionField(yearIndex, transactionIndex, 'paid_date', e.target.value)}
                               onBlur={(e) => handlePaidDateBlur(yearIndex, transactionIndex, e.target.value)}
-                              className="w-full min-w-[90px] px-1 py-1 border border-gray-200 rounded-lg text-xs"
+                              className="w-full min-w-[90px] px-1 py-1 border border-border rounded-lg text-xs"
                             />
                           )}
                         </td>
                         <td className="px-1.5 py-1 text-right">
                           {yearPaidEditingDisabled || isAutoRow ? (
                             <div className="flex flex-col items-end gap-0.5">
-                              <span className="font-medium text-blue-700 text-xs">{rowPaid > 0 ? formatCurrency(rowPaid) : '—'}</span>
+                              <span className="font-medium text-primary text-xs">{rowPaid > 0 ? formatCurrency(rowPaid) : '—'}</span>
                               {isAutoRow && !yearPaidEditingDisabled && (
-                                <span className="text-[9px] text-emerald-600 font-semibold bg-emerald-50 px-1 rounded">auto</span>
+                                <span className="text-[9px] text-success font-semibold bg-[var(--success-light)] px-1 rounded">auto</span>
                               )}
                             </div>
                           ) : (
@@ -2344,11 +2344,11 @@ const StudentScholarshipHistoryTab = ({
                                 maxLength={5}
                                 value={transaction.paid_amount}
                                 onChange={(e) => updatePaidTransactionField(yearIndex, transactionIndex, 'paid_amount', e.target.value)}
-                                className={`w-full min-w-[80px] px-1 py-1 border rounded-lg text-xs text-right ${isRowPaidOver ? 'border-red-400 bg-red-50 text-red-700' : 'border-gray-200'}`}
+                                className={`w-full min-w-[80px] px-1 py-1 border rounded-lg text-xs text-right ${isRowPaidOver ? 'border-danger bg-[var(--danger-light)] text-danger' : 'border-border'}`}
                                 placeholder={remainingBeforeRow > 0 ? `Max ${remainingBeforeRow}` : 'Amount paid'}
                               />
                               {isRowPaidOver && (
-                                <p className="text-[10px] text-red-500 mt-0.5 text-right">
+                                <p className="text-[10px] text-danger mt-0.5 text-right">
                                   Exceeds {feeDueLabel.toLowerCase()} ({formatCurrency(remainingBeforeRow)})
                                 </p>
                               )}
@@ -2357,11 +2357,11 @@ const StudentScholarshipHistoryTab = ({
                         </td>
                         <td className="px-1.5 py-1 text-right">
                           {sanctionedAmt > 0 ? (
-                            <span className={`text-xs font-semibold tabular-nums ${feeDueAfterRow > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
+                            <span className={`text-xs font-semibold tabular-nums ${feeDueAfterRow > 0 ? 'text-warning' : 'text-muted-text'}`}>
                               {formatCurrency(feeDueAfterRow)}
                             </span>
                           ) : (
-                            <span className="text-gray-300">—</span>
+                            <span className="text-muted-text">—</span>
                           )}
                         </td>
                         {!yearPaidEditingDisabled && (
@@ -2370,7 +2370,7 @@ const StudentScholarshipHistoryTab = ({
                               <button
                                 type="button"
                                 onClick={() => addPaidTransactionRow(yearIndex)}
-                                className="p-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                className="p-1 rounded-lg bg-[var(--success-light)] text-success hover:bg-[var(--success-light)]"
                                 title="Add another paid transaction row for this year"
                               >
                                 <Plus size={13} />
@@ -2379,7 +2379,7 @@ const StudentScholarshipHistoryTab = ({
                                 <button
                                   type="button"
                                   onClick={() => removePaidTransactionRow(yearIndex, transactionIndex)}
-                                  className="p-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100"
+                                  className="p-1 rounded-lg bg-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)]"
                                   title="Remove row"
                                 >
                                   <Trash2 size={13} />
@@ -2414,16 +2414,16 @@ const StudentScholarshipHistoryTab = ({
 
       {/* Scholarship History — all archived records visible in the page */}
       {archivedHistory.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/70 flex items-center gap-2">
-            <History size={14} className="text-amber-600" />
-            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500">Scholarship History</h4>
-            <span className="ml-auto text-[11px] text-gray-400">{archivedHistory.length} record{archivedHistory.length !== 1 ? 's' : ''}</span>
+        <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-border bg-[var(--background)]/70 flex items-center gap-2">
+            <History size={14} className="text-warning" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-text">Scholarship History</h4>
+            <span className="ml-auto text-[11px] text-muted-text">{archivedHistory.length} record{archivedHistory.length !== 1 ? 's' : ''}</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 text-left text-[11px] uppercase tracking-wide text-gray-500">
+                <tr className="bg-background text-left text-[11px] uppercase tracking-wide text-muted-text">
                   <th className="px-3 py-2 font-bold text-center leading-tight">Year</th>
                   <th className="px-3 py-2 font-bold text-center leading-tight">Sem</th>
                   <th className="px-3 py-2 font-bold leading-tight">Status</th>
@@ -2434,7 +2434,7 @@ const StudentScholarshipHistoryTab = ({
                   <th className="px-3 py-2 font-bold leading-tight"><span className="block">ARCHIVED</span><span className="block">ON</span></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-border">
                 {archivedHistory.map((entry) => {
                   const snapshot = entry.snapshot || {};
                   const status = entry.scholar_status || snapshot.eligible || '';
@@ -2444,24 +2444,24 @@ const StudentScholarshipHistoryTab = ({
                       ? 'Initial sync'
                       : entry.source || '—';
                   const sourceColor = entry.source === 'scholarship_overwrite'
-                    ? 'bg-amber-50 text-amber-700'
-                    : 'bg-blue-50 text-blue-700';
+                    ? 'bg-[var(--warning-light)] text-warning'
+                    : 'bg-[var(--primary-light)] text-primary';
 
                   // Status badge colour
-                  let statusColor = 'bg-gray-100 text-gray-600';
+                  let statusColor = 'bg-background text-sub';
                   const normalizedStatus = String(status).trim().toLowerCase();
-                  if (normalizedStatus === 'eligible') statusColor = 'bg-green-100 text-green-700';
-                  else if (normalizedStatus === 'not_eligible' || normalizedStatus === 'not eligible') statusColor = 'bg-red-100 text-red-700';
-                  else if (normalizedStatus === 'rejected') statusColor = 'bg-red-100 text-red-700';
-                  else if (normalizedStatus === 'pending') statusColor = 'bg-yellow-100 text-yellow-700';
-                  else if (normalizedStatus === 'not_applied') statusColor = 'bg-gray-100 text-gray-500';
+                  if (normalizedStatus === 'eligible') statusColor = 'bg-[var(--success-light)] text-success';
+                  else if (normalizedStatus === 'not_eligible' || normalizedStatus === 'not eligible') statusColor = 'bg-[var(--danger-light)] text-danger';
+                  else if (normalizedStatus === 'rejected') statusColor = 'bg-[var(--danger-light)] text-danger';
+                  else if (normalizedStatus === 'pending') statusColor = 'bg-[var(--warning-light)] text-warning';
+                  else if (normalizedStatus === 'not_applied') statusColor = 'bg-background text-muted-text';
 
                   return (
-                    <tr key={entry.id} className="hover:bg-gray-50/60">
-                      <td className="px-3 py-2 text-center font-medium text-gray-800">
+                    <tr key={entry.id} className="hover:bg-[var(--background)]/60">
+                      <td className="px-3 py-2 text-center font-medium text-main">
                         {entry.academic_year ?? '—'}
                       </td>
-                      <td className="px-3 py-2 text-center text-gray-600">
+                      <td className="px-3 py-2 text-center text-sub">
                         {entry.academic_semester ?? '—'}
                       </td>
                       <td className="px-3 py-2">
@@ -2469,15 +2469,15 @@ const StudentScholarshipHistoryTab = ({
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize ${statusColor}`}>
                             {formatScholarshipStatusDisplay(status)}
                           </span>
-                        ) : <span className="text-gray-400">—</span>}
+                        ) : <span className="text-muted-text">—</span>}
                       </td>
-                      <td className="px-3 py-2 text-gray-700 font-mono text-xs">
+                      <td className="px-3 py-2 text-sub font-mono text-xs">
                         {snapshot.application_id || '—'}
                       </td>
-                      <td className="px-3 py-2 text-right text-gray-700 tabular-nums">
+                      <td className="px-3 py-2 text-right text-sub tabular-nums">
                         {snapshot.sanctioned_amount ? formatCurrency(snapshot.sanctioned_amount) : '—'}
                       </td>
-                      <td className="px-3 py-2 text-right text-emerald-700 tabular-nums font-medium">
+                      <td className="px-3 py-2 text-right text-success tabular-nums font-medium">
                         {snapshot.released_amount ? formatCurrency(snapshot.released_amount) : '—'}
                       </td>
                       <td className="px-3 py-2">
@@ -2485,7 +2485,7 @@ const StudentScholarshipHistoryTab = ({
                           {sourceLabel}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-gray-500 text-xs whitespace-nowrap">
+                      <td className="px-3 py-2 text-muted-text text-xs whitespace-nowrap">
                         {formatArchivedAt(entry.archived_at)}
                       </td>
                     </tr>
@@ -2499,13 +2499,13 @@ const StudentScholarshipHistoryTab = ({
 
       {showPermitModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-[9999]">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-scale-up">
+          <div className="bg-surface rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-scale-up">
             <div className="flex items-center justify-between border-b pb-3">
-              <h3 className="font-bold text-gray-900 text-base">Permit Fee Status Details</h3>
+              <h3 className="font-bold text-main text-base">Permit Fee Status Details</h3>
               <button
                 type="button"
                 onClick={() => setShowPermitModal(false)}
-                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg"
+                className="text-muted-text hover:text-sub p-1 rounded-lg"
               >
                 <X size={18} />
               </button>
@@ -2513,27 +2513,27 @@ const StudentScholarshipHistoryTab = ({
 
             <div className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-gray-700 mb-1">
-                  Permit Ending Date <span className="text-red-500">*</span>
+                <label className="block font-bold text-sub mb-1">
+                  Permit Ending Date <span className="text-danger">*</span>
                 </label>
                 <input
                   type="date"
                   value={modalPermitDate}
                   onChange={(e) => setModalPermitDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-xs font-medium"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary text-xs font-medium"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-gray-700 mb-1">
-                  Permit Remarks <span className="text-red-500">*</span>
+                <label className="block font-bold text-sub mb-1">
+                  Permit Remarks <span className="text-danger">*</span>
                 </label>
                 <textarea
                   value={modalPermitRemarks}
                   onChange={(e) => setModalPermitRemarks(e.target.value)}
                   placeholder="Enter reason for permitting student..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-xs font-medium"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary text-xs font-medium"
                 />
               </div>
             </div>
@@ -2542,7 +2542,7 @@ const StudentScholarshipHistoryTab = ({
               <button
                 type="button"
                 onClick={() => setShowPermitModal(false)}
-                className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-bold text-sub hover:bg-background rounded-lg transition-colors"
               >
                 Cancel
               </button>
@@ -2550,7 +2550,7 @@ const StudentScholarshipHistoryTab = ({
                 type="button"
                 disabled={feeStatusUpdating}
                 onClick={handleConfirmPermit}
-                className="px-4 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 text-xs font-bold text-white bg-secondary hover:bg-secondary rounded-lg transition-colors flex items-center gap-1.5"
               >
                 {feeStatusUpdating && <Loader2 size={13} className="animate-spin" />}
                 Save Permit Status

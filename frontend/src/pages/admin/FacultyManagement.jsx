@@ -704,15 +704,15 @@ const FacultyManagement = () => {
 
   const renderHodYearPicker = () => (
     <div>
-      <label className="block text-sm font-semibold text-slate-700 mb-2">Year access</label>
+      <label className="block text-sm font-semibold text-sub mb-2">Year access</label>
       {loadingAvailableYears ? (
-        <p className="text-sm text-slate-500">Loading years…</p>
+        <p className="text-sm text-muted-text">Loading years…</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={selectAllHodYears}
-            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${allHodYearsSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${allHodYearsSelected ? 'bg-primary text-white' : 'bg-background text-sub hover:bg-background'}`}
           >
             All years
           </button>
@@ -721,14 +721,14 @@ const FacultyManagement = () => {
               key={y}
               type="button"
               onClick={() => toggleHodYear(y)}
-              className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${!allHodYearsSelected && selectedHodYears.includes(y) ? 'bg-indigo-600 text-white' : allHodYearsSelected ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${!allHodYearsSelected && selectedHodYears.includes(y) ? 'bg-primary text-white' : allHodYearsSelected ? 'bg-[var(--primary-light)] text-primary' : 'bg-background text-sub hover:bg-background'}`}
             >
               {formatHodYearLabel(y)}
             </button>
           ))}
         </div>
       )}
-      <p className="text-xs text-slate-500 mt-1">
+      <p className="text-xs text-muted-text mt-1">
         Years are based on the selected course/branch duration. Choose all years or a particular year (1st Year, 2nd Year, …).
       </p>
     </div>
@@ -755,17 +755,17 @@ const FacultyManagement = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen w-full bg-gradient-to-b from-[var(--background)] to-surface">
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         {/* Page header */}
         <header className="mb-6 lg:mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20">
               <GraduationCap className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Faculty Management</h1>
-              <p className="text-slate-500 text-sm mt-0.5">
+              <h1 className="text-2xl sm:text-3xl font-bold text-main tracking-tight">Faculty Management</h1>
+              <p className="text-muted-text text-sm mt-0.5">
                 Principals, HODs & faculty · Assign branches · Create users in User Management
               </p>
             </div>
@@ -779,8 +779,8 @@ const FacultyManagement = () => {
               key={id}
               onClick={() => setTab(id)}
               className={`flex items-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${tab === id
-                ? 'bg-slate-800 text-white shadow-lg shadow-slate-800/25 scale-[1.02]'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 hover:border-slate-300'
+                ? 'bg-sidebar text-white shadow-lg shadow-sidebar/25 scale-[1.02]'
+                : 'bg-surface text-sub hover:bg-background border border-border hover:border-border-strong'
                 }`}
             >
               <Icon className="w-4 h-4" />
@@ -790,10 +790,10 @@ const FacultyManagement = () => {
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
             <div className="p-12 flex flex-col items-center justify-center gap-4">
-              <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-slate-500 font-medium">Loading faculty data…</p>
+              <div className="w-10 h-10 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="text-muted-text font-medium">Loading faculty data…</p>
             </div>
           </div>
         ) : (
@@ -801,9 +801,9 @@ const FacultyManagement = () => {
             {/* Employees tab – with sub-tabs: All, Principals, AOs, HODs, Faculty */}
             {tab === 'employees' && (
               <div className="space-y-6">
-                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
-                    <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-3">Filter by role</h3>
+                <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-border bg-[var(--background)]/50">
+                    <h3 className="text-sm font-bold text-sub uppercase tracking-wider mb-3">Filter by role</h3>
                     <div className="flex flex-wrap gap-2">
                       {[
                         { id: 'all', label: 'All', count: (employees.all || []).length },
@@ -817,12 +817,12 @@ const FacultyManagement = () => {
                           type="button"
                           onClick={() => setEmployeeFilter(id)}
                           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${employeeFilter === id
-                            ? 'bg-indigo-600 text-white shadow-md'
-                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                            ? 'bg-primary text-white shadow-md'
+                            : 'bg-surface text-sub border border-border hover:bg-background hover:border-border-strong'
                             }`}
                         >
                           {label}
-                          <span className={`px-1.5 py-0.5 rounded-md text-xs font-bold ${employeeFilter === id ? 'bg-white/20' : 'bg-slate-100 text-slate-500'}`}>
+                          <span className={`px-1.5 py-0.5 rounded-md text-xs font-bold ${employeeFilter === id ? 'bg-[var(--surface)]/20' : 'bg-background text-muted-text'}`}>
                             {count}
                           </span>
                         </button>
@@ -831,7 +831,7 @@ const FacultyManagement = () => {
                   </div>
                   <div className="p-4 sm:p-6">
                     {filteredEmployees.length === 0 ? (
-                      <p className="py-12 text-center text-slate-500 text-sm">No employees in this category.</p>
+                      <p className="py-12 text-center text-muted-text text-sm">No employees in this category.</p>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {filteredEmployees.map((e) => {
@@ -843,45 +843,45 @@ const FacultyManagement = () => {
                             <div
                               key={e.id}
                               onDoubleClick={() => setEmployeeDetail(e)}
-                              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer"
+                              className="rounded-xl border border-border bg-surface p-4 shadow-sm hover:shadow-md hover:border-border-strong transition-all cursor-pointer"
                             >
                               <div className="flex items-start justify-between gap-2 mb-2">
-                                <span className="inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-100 text-indigo-700">
+                                <span className="inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold bg-[var(--primary-light)] text-primary">
                                   {e.roleLabel}
                                 </span>
                               </div>
-                              <h4 className="font-semibold text-slate-800 text-sm mb-0.5">{e.name}</h4>
-                              <p className="text-xs text-slate-500 mb-3 break-all">{e.email}</p>
+                              <h4 className="font-semibold text-main text-sm mb-0.5">{e.name}</h4>
+                              <p className="text-xs text-muted-text mb-3 break-all">{e.email}</p>
                               <div className="space-y-2 text-xs">
                                 <div>
-                                  <span className="text-slate-400 font-medium">Colleges</span>
+                                  <span className="text-muted-text font-medium">Colleges</span>
                                   <div className="flex flex-wrap gap-1 mt-0.5">
                                     {collegeList.slice(0, 2).map((c, i) => (
-                                      <span key={i} className="px-2 py-0.5 rounded bg-slate-100 text-slate-600">{c}</span>
+                                      <span key={i} className="px-2 py-0.5 rounded bg-background text-sub">{c}</span>
                                     ))}
-                                    {collegeList.length > 2 && <span className="text-slate-400">+{collegeList.length - 2}</span>}
+                                    {collegeList.length > 2 && <span className="text-muted-text">+{collegeList.length - 2}</span>}
                                   </div>
                                 </div>
                                 <div>
-                                  <span className="text-slate-400 font-medium">Courses</span>
+                                  <span className="text-muted-text font-medium">Courses</span>
                                   <div className="flex flex-wrap gap-1 mt-0.5">
                                     {courseList.slice(0, 2).map((c, i) => (
-                                      <span key={i} className="px-2 py-0.5 rounded bg-slate-100 text-slate-600">{c}</span>
+                                      <span key={i} className="px-2 py-0.5 rounded bg-background text-sub">{c}</span>
                                     ))}
-                                    {courseList.length > 2 && <span className="text-slate-400">+{courseList.length - 2}</span>}
+                                    {courseList.length > 2 && <span className="text-muted-text">+{courseList.length - 2}</span>}
                                   </div>
                                 </div>
                                 <div>
-                                  <span className="text-slate-400 font-medium">Branches</span>
+                                  <span className="text-muted-text font-medium">Branches</span>
                                   <div className="flex flex-wrap gap-1 mt-0.5">
                                     {branchList.slice(0, 3).map((b, i) => (
-                                      <span key={i} className="px-2 py-0.5 rounded bg-slate-100 text-slate-600">{b}</span>
+                                      <span key={i} className="px-2 py-0.5 rounded bg-background text-sub">{b}</span>
                                     ))}
-                                    {branchList.length > 3 && <span className="text-slate-400">+{branchList.length - 3}</span>}
+                                    {branchList.length > 3 && <span className="text-muted-text">+{branchList.length - 3}</span>}
                                   </div>
                                 </div>
                               </div>
-                              <p className="text-[10px] text-slate-400 mt-2">Double-click to view details</p>
+                              <p className="text-[10px] text-muted-text mt-2">Double-click to view details</p>
                             </div>
                           );
                         })}
@@ -895,15 +895,15 @@ const FacultyManagement = () => {
             {/* Assign HODs tab – branches with HOD assigned or Pending */}
             {tab === 'assign-hods' && (
               <div className="flex gap-4 flex-col lg:flex-row">
-                <div className="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 space-y-4">
+                <div className="flex-1 min-w-0 bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-border bg-[var(--background)]/50 space-y-4">
                     <div className="flex flex-wrap gap-4 items-end">
                       <div className="flex-1 min-w-[200px]">
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Select college</label>
+                        <label className="block text-sm font-semibold text-sub mb-2">Select college</label>
                         <select
                           value={selectedCollegeId}
                           onChange={(e) => setSelectedCollegeId(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                          className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-main font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-shadow"
                         >
                           <option value="">— Select college —</option>
                           {colleges.map((c) => (
@@ -912,11 +912,11 @@ const FacultyManagement = () => {
                         </select>
                       </div>
                       <div className="flex-1 min-w-[200px]">
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Select program (course)</label>
+                        <label className="block text-sm font-semibold text-sub mb-2">Select program (course)</label>
                         <select
                           value={selectedProgramId}
                           onChange={(e) => setSelectedProgramId(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                          className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-main font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-shadow"
                         >
                           <option value="">— All programs —</option>
                           {programs.map((p) => (
@@ -927,16 +927,16 @@ const FacultyManagement = () => {
                     </div>
                   </div>
                   {!selectedCollegeId ? (
-                    <div className="p-12 text-center text-slate-500 text-sm">Select a college to see branches and HOD assignment.</div>
+                    <div className="p-12 text-center text-muted-text text-sm">Select a college to see branches and HOD assignment.</div>
                   ) : loadingBranches ? (
                     <div className="p-12 flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-slate-500 text-sm">Loading branches…</p>
+                      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <p className="text-muted-text text-sm">Loading branches…</p>
                     </div>
                   ) : (
                     <div className="p-4 sm:p-6">
                       {filteredBranches.length === 0 ? (
-                        <p className="py-12 text-center text-slate-500 text-sm">
+                        <p className="py-12 text-center text-muted-text text-sm">
                           {selectedProgramId ? 'No branches in this program.' : 'No branches in this college.'}
                         </p>
                       ) : (
@@ -946,24 +946,24 @@ const FacultyManagement = () => {
                               key={b.id}
                               onClick={(e) => { if (!e.target.closest('button')) setSelectedBranchForSubjects(prev => prev?.id === b.id ? null : b); }}
                               onDoubleClick={(e) => { if (!e.target.closest('button')) { setTab('assign-subjects'); setBranchYearSemDetail(b); } }}
-                              className={`rounded-xl border bg-white p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${selectedBranchForSubjects?.id === b.id ? 'border-indigo-500 ring-2 ring-indigo-200' : 'border-slate-200 hover:border-slate-300'
+                              className={`rounded-xl border bg-surface p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${selectedBranchForSubjects?.id === b.id ? 'border-primary ring-2 ring-[var(--primary-light)]' : 'border-border hover:border-border-strong'
                                 }`}
                             >
                               <div className="flex items-center justify-between gap-2 mb-2">
-                                <h4 className="font-semibold text-slate-800">{b.name}</h4>
-                                <span className="px-2 py-0.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600">
+                                <h4 className="font-semibold text-main">{b.name}</h4>
+                                <span className="px-2 py-0.5 rounded-lg text-xs font-medium bg-background text-sub">
                                   {b.course_name || '–'}
                                 </span>
                               </div>
-                              <div className="pt-2 border-t border-slate-100">
+                              <div className="pt-2 border-t border-border">
                                 {(b.hods && b.hods.length > 0) || b.hod ? (
                                   <div className="space-y-2">
                                     {((b.hods && b.hods.length) ? b.hods : (b.hod ? [b.hod] : [])).map((h) => (
-                                      <div key={h.id} className="flex items-start justify-between gap-1 rounded-lg bg-slate-50 p-2">
+                                      <div key={h.id} className="flex items-start justify-between gap-1 rounded-lg bg-background p-2">
                                         <div className="min-w-0 flex-1">
-                                          <p className="font-medium text-slate-800 text-sm">{h.name}</p>
-                                          {h.email && <p className="text-xs text-slate-500 break-all">{h.email}</p>}
-                                          <p className="text-[10px] text-indigo-600 mt-0.5">
+                                          <p className="font-medium text-main text-sm">{h.name}</p>
+                                          {h.email && <p className="text-xs text-muted-text break-all">{h.email}</p>}
+                                          <p className="text-[10px] text-primary mt-0.5">
                                             Year{h.years?.length > 1 ? 's' : ''} {Array.isArray(h.years) ? h.years.join(', ') : '1–6'}
                                           </p>
                                         </div>
@@ -971,7 +971,7 @@ const FacultyManagement = () => {
                                           <button
                                             type="button"
                                             onClick={(e) => { e.stopPropagation(); openEditHodModal(b, h); }}
-                                            className="p-1 rounded text-slate-400 hover:bg-indigo-50 hover:text-indigo-600"
+                                            className="p-1 rounded text-muted-text hover:bg-[var(--primary-light)] hover:text-primary"
                                             title="Edit years"
                                           >
                                             <Pencil className="w-3.5 h-3.5" />
@@ -980,7 +980,7 @@ const FacultyManagement = () => {
                                             type="button"
                                             onClick={(e) => { e.stopPropagation(); handleUnassignHod(b, h); }}
                                             disabled={unassigningHod}
-                                            className="p-1 rounded text-slate-400 hover:bg-red-50 hover:text-red-600"
+                                            className="p-1 rounded text-muted-text hover:bg-[var(--danger-light)] hover:text-danger"
                                             title="Unassign HOD"
                                           >
                                             <Trash2 className="w-3.5 h-3.5" />
@@ -991,17 +991,17 @@ const FacultyManagement = () => {
                                     <button
                                       type="button"
                                       onClick={(e) => { e.stopPropagation(); setAssignHodBranch(b); setSelectedHodUserId(''); setSelectedHodYears([1, 2, 3, 4]); }}
-                                      className="w-full inline-flex items-center justify-center gap-1 px-2 py-2 rounded-lg border border-dashed border-slate-300 text-slate-600 text-xs font-medium hover:bg-slate-50"
+                                      className="w-full inline-flex items-center justify-center gap-1 px-2 py-2 rounded-lg border border-dashed border-border-strong text-sub text-xs font-medium hover:bg-background"
                                     >
                                       <Plus className="w-3 h-3" /> Add another HOD
                                     </button>
-                                    <p className="text-[10px] text-slate-400">Double-click to manage subjects by sem</p>
+                                    <p className="text-[10px] text-muted-text">Double-click to manage subjects by sem</p>
                                   </div>
                                 ) : (
                                   <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); setAssignHodBranch(b); setSelectedHodUserId(''); setSelectedHodYears([1, 2, 3, 4]); }}
-                                    className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-amber-100 text-amber-800 text-sm font-semibold hover:bg-amber-200 transition-colors"
+                                    className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[var(--warning-light)] text-warning text-sm font-semibold hover:bg-[var(--warning-light)] transition-colors"
                                   >
                                     Pending – Assign HOD
                                   </button>
@@ -1016,16 +1016,16 @@ const FacultyManagement = () => {
                 </div>
                 {/* Side panel – subjects for selected branch */}
                 {selectedBranchForSubjects && (
-                  <div className="w-full lg:w-96 flex-shrink-0 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                    <div className="px-4 py-3 border-b border-slate-100 bg-indigo-50/50 flex items-center justify-between">
-                      <h3 className="font-semibold text-slate-800 flex items-center gap-2">
-                        <BookOpen className="w-4 h-4 text-indigo-600" />
+                  <div className="w-full lg:w-96 flex-shrink-0 bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 border-b border-border bg-[var(--primary-light)] flex items-center justify-between">
+                      <h3 className="font-semibold text-main flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-primary" />
                         Subjects – {selectedBranchForSubjects.name}
                       </h3>
                       <button
                         type="button"
                         onClick={() => setSelectedBranchForSubjects(null)}
-                        className="p-1.5 rounded-lg hover:bg-slate-200/80 text-slate-500"
+                        className="p-1.5 rounded-lg hover:bg-[var(--background)]/80 text-muted-text"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -1033,25 +1033,25 @@ const FacultyManagement = () => {
                     <div className="p-4 max-h-[calc(100vh-16rem)] overflow-y-auto">
                       {loadingSidePanelSubjects ? (
                         <div className="py-8 flex flex-col items-center gap-2">
-                          <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                          <p className="text-slate-500 text-xs">Loading subjects…</p>
+                          <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                          <p className="text-muted-text text-xs">Loading subjects…</p>
                         </div>
                       ) : sidePanelSubjectsData?.yearSemList?.length === 0 ? (
-                        <p className="py-6 text-center text-slate-500 text-sm">No year/sem data. Double-click the branch card to manage subjects.</p>
+                        <p className="py-6 text-center text-muted-text text-sm">No year/sem data. Double-click the branch card to manage subjects.</p>
                       ) : (
                         <div className="space-y-3">
                           {sidePanelSubjectsData?.yearSemList?.map(({ year, semester, label }) => {
                             const key = `${year}-${semester}`;
                             const assigned = sidePanelSubjectsData.assignmentsByKey[key] || [];
                             return (
-                              <div key={key} className="rounded-lg border border-slate-100 bg-slate-50/50 p-3">
-                                <h4 className="text-xs font-semibold text-slate-600 mb-2">{label}</h4>
+                              <div key={key} className="rounded-lg border border-border bg-[var(--background)]/50 p-3">
+                                <h4 className="text-xs font-semibold text-sub mb-2">{label}</h4>
                                 {assigned.length === 0 ? (
-                                  <p className="text-xs text-slate-400">No subjects assigned</p>
+                                  <p className="text-xs text-muted-text">No subjects assigned</p>
                                 ) : (
                                   <ul className="space-y-1">
                                     {assigned.map((a) => (
-                                      <li key={a.subjectId} className="text-sm text-slate-700">{a.subjectName}{a.subjectCode ? ` (${a.subjectCode})` : ''}</li>
+                                      <li key={a.subjectId} className="text-sm text-sub">{a.subjectName}{a.subjectCode ? ` (${a.subjectCode})` : ''}</li>
                                     ))}
                                   </ul>
                                 )}
@@ -1060,7 +1060,7 @@ const FacultyManagement = () => {
                           })}
                         </div>
                       )}
-                      <p className="text-[10px] text-slate-400 mt-3">Double-click branch card to manage subjects</p>
+                      <p className="text-[10px] text-muted-text mt-3">Double-click branch card to manage subjects</p>
                     </div>
                   </div>
                 )}
@@ -1070,15 +1070,15 @@ const FacultyManagement = () => {
             {/* Assign Subjects tab */}
             {tab === 'assign-subjects' && (
               <div className="flex gap-4 flex-col lg:flex-row">
-                <div className="flex-1 min-w-0 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 space-y-4">
+                <div className="flex-1 min-w-0 bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 border-b border-border bg-[var(--background)]/50 space-y-4">
                     <div className="flex flex-wrap gap-4 items-end">
                       <div className="flex-1 min-w-[200px]">
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Select college</label>
+                        <label className="block text-sm font-semibold text-sub mb-2">Select college</label>
                         <select
                           value={selectedCollegeId}
                           onChange={(e) => { setSelectedCollegeId(e.target.value); setBranchYearSemDetail(null); }}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                          className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-main font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-shadow"
                         >
                           <option value="">— Select college —</option>
                           {colleges.map((c) => (
@@ -1087,11 +1087,11 @@ const FacultyManagement = () => {
                         </select>
                       </div>
                       <div className="flex-1 min-w-[200px]">
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Select program (course)</label>
+                        <label className="block text-sm font-semibold text-sub mb-2">Select program (course)</label>
                         <select
                           value={selectedProgramId}
                           onChange={(e) => { setSelectedProgramId(e.target.value); setBranchYearSemDetail(null); }}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                          className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-main font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-shadow"
                         >
                           <option value="">— All programs —</option>
                           {programs.map((p) => (
@@ -1100,11 +1100,11 @@ const FacultyManagement = () => {
                         </select>
                       </div>
                       <div className="flex-1 min-w-[150px]">
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Select year</label>
+                        <label className="block text-sm font-semibold text-sub mb-2">Select year</label>
                         <select
                           value={selectedYearForSubjects}
                           onChange={(e) => setSelectedYearForSubjects(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 transition-shadow"
+                          className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-main font-medium focus:ring-2 focus:ring-primary transition-shadow"
                         >
                           <option value="">— All years —</option>
                           {[1, 2, 3, 4, 5, 6].map((y) => (
@@ -1115,66 +1115,66 @@ const FacultyManagement = () => {
                     </div>
                   </div>
                   {!selectedCollegeId ? (
-                    <div className="p-12 text-center text-slate-500 text-sm">Select a college to see branches.</div>
+                    <div className="p-12 text-center text-muted-text text-sm">Select a college to see branches.</div>
                   ) : loadingBranches ? (
                     <div className="p-12 flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-slate-500 text-sm">Loading branches…</p>
+                      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <p className="text-muted-text text-sm">Loading branches…</p>
                     </div>
                   ) : (
                     <div className="flex h-[calc(100vh-24rem)]">
                       {/* Branch List */}
-                      <div className="w-1/3 border-r border-slate-100 overflow-y-auto p-4 space-y-2">
+                      <div className="w-1/3 border-r border-border overflow-y-auto p-4 space-y-2">
                         {filteredBranches.length === 0 ? (
-                          <p className="text-center text-slate-500 text-sm py-4">No branches found.</p>
+                          <p className="text-center text-muted-text text-sm py-4">No branches found.</p>
                         ) : (
                           filteredBranches.map((b) => (
                             <div
                               key={b.id}
                               onClick={() => setBranchYearSemDetail(b)}
                               className={`p-4 rounded-xl border cursor-pointer transition-all ${branchYearSemDetail?.id === b.id
-                                ? 'bg-indigo-50 border-indigo-500 shadow-sm'
-                                : 'bg-white border-slate-200 hover:border-indigo-300 hover:shadow-sm'
+                                ? 'bg-[var(--primary-light)] border-primary shadow-sm'
+                                : 'bg-surface border-border hover:border-[var(--primary-light)] hover:shadow-sm'
                                 }`}
                             >
                               <div className="flex justify-between items-start mb-2">
-                                <h4 className={`font-semibold ${branchYearSemDetail?.id === b.id ? 'text-indigo-900' : 'text-slate-800'}`}>{b.name}</h4>
+                                <h4 className={`font-semibold ${branchYearSemDetail?.id === b.id ? 'text-primary' : 'text-main'}`}>{b.name}</h4>
                                 {((b.hods && b.hods.length > 0) || b.hod) ? (
-                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">HOD Assigned</span>
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[var(--success-light)] text-success">HOD Assigned</span>
                                 ) : (
-                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">HOD Pending</span>
+                                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[var(--warning-light)] text-warning">HOD Pending</span>
                                 )}
                               </div>
-                              <p className="text-xs text-slate-500">{b.course_name}</p>
+                              <p className="text-xs text-muted-text">{b.course_name}</p>
                             </div>
                           ))
                         )}
                       </div>
 
                       {/* Subject Management Area */}
-                      <div className="w-2/3 overflow-y-auto p-6 bg-slate-50/30">
+                      <div className="w-2/3 overflow-y-auto p-6 bg-[var(--background)]/30">
                         {!branchYearSemDetail ? (
-                          <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                          <div className="h-full flex flex-col items-center justify-center text-muted-text">
                             <BookOpen className="w-12 h-12 mb-3 opacity-20" />
                             <p>Select a branch to manage subjects</p>
                           </div>
                         ) : (
                           <div>
                             <div className="mb-6">
-                              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                <BookOpen className="w-6 h-6 text-indigo-600" />
+                              <h3 className="text-xl font-bold text-main flex items-center gap-2">
+                                <BookOpen className="w-6 h-6 text-primary" />
                                 {branchYearSemDetail.name}
                               </h3>
-                              <p className="text-slate-500 text-sm">Manage subjects for each semester</p>
+                              <p className="text-muted-text text-sm">Manage subjects for each semester</p>
                             </div>
 
                             {loadingYearSem ? (
                               <div className="py-12 flex flex-col items-center gap-3">
-                                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                                <p className="text-slate-500 text-sm">Loading semesters…</p>
+                                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                <p className="text-muted-text text-sm">Loading semesters…</p>
                               </div>
                             ) : yearSemData.yearSemList.length === 0 ? (
-                              <p className="py-8 text-center text-slate-500 text-sm">
+                              <p className="py-8 text-center text-muted-text text-sm">
                                 No academic years found. Ensure students are enrolled in this branch.
                               </p>
                             ) : (
@@ -1197,11 +1197,11 @@ const FacultyManagement = () => {
                                     const selectedId = newSubjectSelect[key] || '';
 
                                     return (
-                                      <div key={key} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                                        <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
-                                          <h4 className="font-semibold text-slate-800">{label}</h4>
+                                      <div key={key} className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
+                                        <div className="px-4 py-3 bg-background border-b border-border flex justify-between items-center">
+                                          <h4 className="font-semibold text-main">{label}</h4>
                                           {!isHodAssignedForYear && (
-                                            <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-100 flex items-center gap-1">
+                                            <span className="text-xs font-medium text-warning bg-[var(--warning-light)] px-2 py-1 rounded border border-[var(--warning-light)] flex items-center gap-1">
                                               ⚠️ No HOD for Year {year}
                                             </span>
                                           )}
@@ -1212,22 +1212,22 @@ const FacultyManagement = () => {
                                           {assignedDetails.length > 0 ? (
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                               {assignedDetails.map((a) => (
-                                                <div key={a.subjectId} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all group">
+                                                <div key={a.subjectId} className="flex items-center justify-between p-3 rounded-lg border border-border hover:border-border hover:bg-background transition-all group">
                                                   <div>
-                                                    <p className="font-medium text-slate-700 text-sm">{a.subjectName}</p>
-                                                    {a.subjectCode && <p className="text-xs text-slate-400">{a.subjectCode}</p>}
+                                                    <p className="font-medium text-sub text-sm">{a.subjectName}</p>
+                                                    {a.subjectCode && <p className="text-xs text-muted-text">{a.subjectCode}</p>}
                                                   </div>
                                                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                                     <button
                                                       onClick={() => handleEditSubject(year, semester, label, a.subjectId)}
-                                                      className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
+                                                      className="p-1.5 text-muted-text hover:text-primary hover:bg-[var(--primary-light)] rounded-lg transition-all"
                                                       title="Edit subject"
                                                     >
                                                       <Pencil className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                       onClick={() => handleRemoveSubjectFromSem(year, semester, a.subjectId)}
-                                                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                      className="p-1.5 text-muted-text hover:text-danger hover:bg-[var(--danger-light)] rounded-lg transition-all"
                                                       title="Remove subject"
                                                     >
                                                       <Trash2 className="w-4 h-4" />
@@ -1237,17 +1237,17 @@ const FacultyManagement = () => {
                                               ))}
                                             </div>
                                           ) : (
-                                            <p className="text-sm text-slate-400 italic py-2">No subjects assigned yet.</p>
+                                            <p className="text-sm text-muted-text italic py-2">No subjects assigned yet.</p>
                                           )}
 
                                           {/* Add Subject Controls */}
-                                          <div className="mt-4 pt-4 border-t border-slate-100">
+                                          <div className="mt-4 pt-4 border-t border-border">
                                             {isHodAssignedForYear ? (
                                               <div className="flex gap-2 items-center">
                                                 <select
                                                   value={selectedId}
                                                   onChange={(e) => setNewSubjectSelect(prev => ({ ...prev, [key]: e.target.value }))}
-                                                  className="flex-1 text-sm border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                                  className="flex-1 text-sm border-border rounded-lg focus:ring-2 focus:ring-primary"
                                                 >
                                                   <option value="">Select subject...</option>
                                                   {availableSubjects.map((s) => (
@@ -1257,24 +1257,24 @@ const FacultyManagement = () => {
                                                 <button
                                                   onClick={() => handleAddSubjectToSem(year, semester, selectedId)}
                                                   disabled={!selectedId || addingSubjectKey === key}
-                                                  className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50"
+                                                  className="px-3 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-hover disabled:opacity-50"
                                                 >
                                                   <Plus className="w-4 h-4" />
                                                 </button>
-                                                <div className="w-px h-8 bg-slate-200 mx-2"></div>
+                                                <div className="w-px h-8 bg-background mx-2"></div>
                                                 <button
                                                   onClick={() => { setCreateSubjectForSem({ year, semester, label }); setNewSubjectName(''); setNewSubjectCode(''); }}
-                                                  className="px-3 py-2 border border-indigo-200 text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-50"
+                                                  className="px-3 py-2 border border-[var(--primary-light)] text-primary rounded-lg text-sm font-medium hover:bg-[var(--primary-light)]"
                                                 >
                                                   Create New
                                                 </button>
                                               </div>
                                             ) : (
-                                              <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
-                                                <p className="text-sm text-amber-800">Assign an HOD to Year {year} to manage subjects.</p>
+                                              <div className="flex items-center justify-between p-3 bg-[var(--warning-light)] rounded-lg border border-[var(--warning-light)]">
+                                                <p className="text-sm text-warning">Assign an HOD to Year {year} to manage subjects.</p>
                                                 <button
                                                   onClick={() => setTab('assign-hods')}
-                                                  className="text-xs font-bold text-amber-700 underline hover:text-amber-900"
+                                                  className="text-xs font-bold text-warning underline hover:text-warning"
                                                 >
                                                   Go to Assign HODs
                                                 </button>
@@ -1299,15 +1299,15 @@ const FacultyManagement = () => {
 
             {/* Assign Staff tab */}
             {tab === 'assign-staff' && (
-              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-border bg-[var(--background)]/50">
                   <div className="flex flex-wrap gap-4 items-end">
                     <div className="flex-1 min-w-[180px]">
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Select college</label>
+                      <label className="block text-sm font-semibold text-sub mb-2">Select college</label>
                       <select
                         value={selectedCollegeId}
                         onChange={(e) => { setSelectedCollegeId(e.target.value); setSelectedYearForStaff(''); setSelectedBranchForStaff(null); }}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                        className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-main font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-shadow"
                       >
                         <option value="">— Select college —</option>
                         {colleges.map((c) => (
@@ -1316,11 +1316,11 @@ const FacultyManagement = () => {
                       </select>
                     </div>
                     <div className="flex-1 min-w-[180px]">
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Select program (course)</label>
+                      <label className="block text-sm font-semibold text-sub mb-2">Select program (course)</label>
                       <select
                         value={selectedProgramId}
                         onChange={(e) => { setSelectedProgramId(e.target.value); setSelectedYearForStaff(''); setSelectedBranchForStaff(null); }}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow"
+                        className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-main font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-shadow"
                       >
                         <option value="">— Select program —</option>
                         {programs.map((p) => (
@@ -1329,12 +1329,12 @@ const FacultyManagement = () => {
                       </select>
                     </div>
                     <div className="flex-1 min-w-[140px]">
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Select year</label>
+                      <label className="block text-sm font-semibold text-sub mb-2">Select year</label>
                       <select
                         value={selectedYearForStaff}
                         onChange={(e) => { setSelectedYearForStaff(e.target.value); setSelectedBranchForStaff(null); }}
                         disabled={!selectedCollegeId || !selectedProgramId}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-main font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-shadow disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         <option value="">— Select year —</option>
                         {(staffTabData.yearsAvailable?.length > 0 ? staffTabData.yearsAvailable : [1, 2, 3, 4, 5, 6]).map((y) => (
@@ -1343,12 +1343,12 @@ const FacultyManagement = () => {
                       </select>
                     </div>
                     <div className="flex-1 min-w-[140px]">
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Select semester</label>
+                      <label className="block text-sm font-semibold text-sub mb-2">Select semester</label>
                       <select
                         value={selectedSemesterForStaff}
                         onChange={(e) => setSelectedSemesterForStaff(e.target.value)}
                         disabled={!selectedYearForStaff}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow disabled:opacity-60 disabled:cursor-not-allowed uppercase text-xs tracking-wider"
+                        className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-main font-medium focus:ring-2 focus:ring-primary focus:border-primary transition-shadow disabled:opacity-60 disabled:cursor-not-allowed uppercase text-xs tracking-wider"
                       >
                         <option value="">— All Semesters —</option>
                         {(() => {
@@ -1369,23 +1369,23 @@ const FacultyManagement = () => {
                 </div>
                 <div className="p-6">
                   {!selectedCollegeId || !selectedProgramId ? (
-                    <div className="py-12 text-center text-slate-500 text-sm">Select college and program to see subjects.</div>
+                    <div className="py-12 text-center text-muted-text text-sm">Select college and program to see subjects.</div>
                   ) : !selectedYearForStaff ? (
-                    <div className="py-12 text-center text-slate-500 text-sm">Select a year to see subjects and assign staff.</div>
+                    <div className="py-12 text-center text-muted-text text-sm">Select a year to see subjects and assign staff.</div>
                   ) : loadingStaffTab ? (
                     <div className="py-12 flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                      <p className="text-slate-500 text-sm">Loading subjects…</p>
+                      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <p className="text-muted-text text-sm">Loading subjects…</p>
                     </div>
                   ) : !staffTabData.branches || staffTabData.branches.length === 0 ? (
-                    <div className="py-12 text-center text-slate-500 text-sm">No branches or subjects in this program for Year {selectedYearForStaff}. Create subjects first (Assign HODs → double-click branch → manage subjects).</div>
+                    <div className="py-12 text-center text-muted-text text-sm">No branches or subjects in this program for Year {selectedYearForStaff}. Create subjects first (Assign HODs → double-click branch → manage subjects).</div>
                   ) : (
                     <div className="flex gap-6 flex-col lg:flex-row min-h-[500px]">
                       {/* Left – branches list */}
                       <div className="w-full lg:w-72 flex-shrink-0">
-                        <div className="bg-slate-50/50 rounded-2xl border border-slate-200 overflow-hidden sticky top-6">
-                          <div className="px-5 py-4 border-b border-slate-200 bg-slate-100/50">
-                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Branches</h4>
+                        <div className="bg-[var(--background)]/50 rounded-2xl border border-border overflow-hidden sticky top-6">
+                          <div className="px-5 py-4 border-b border-border bg-[var(--background)]/50">
+                            <h4 className="text-xs font-bold text-muted-text uppercase tracking-wider">Branches</h4>
                           </div>
                           <div className="p-3 max-h-[calc(100vh-24rem)] overflow-y-auto space-y-2">
                             {staffTabData.branches.map((branch) => (
@@ -1394,8 +1394,8 @@ const FacultyManagement = () => {
                                 type="button"
                                 onClick={() => setSelectedBranchForStaff(prev => prev?.id === branch.id ? null : branch)}
                                 className={`w-full text-left px-4 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 border ${selectedBranchForStaff?.id === branch.id
-                                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200 scale-[1.02]'
-                                  : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-200 hover:border-indigo-300'
+                                  ? 'bg-primary text-white border-primary shadow-md shadow-primary scale-[1.02]'
+                                  : 'bg-surface text-sub hover:bg-background border-border hover:border-[var(--primary-light)]'
                                   }`}
                               >
                                 {branch.name}
@@ -1408,23 +1408,23 @@ const FacultyManagement = () => {
                       {/* Right – subjects for selected branch */}
                       <div className="flex-1 min-w-0">
                         {selectedBranchForStaff ? (
-                          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div className="px-6 py-4 border-b border-slate-200 bg-indigo-50/30 flex items-center justify-between">
+                          <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+                            <div className="px-6 py-4 border-b border-border bg-[var(--primary-light)] flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
-                                  <BookOpen className="w-5 h-5 text-indigo-600" />
+                                <div className="w-10 h-10 rounded-xl bg-[var(--primary-light)] flex items-center justify-center">
+                                  <BookOpen className="w-5 h-5 text-primary" />
                                 </div>
                                 <div>
-                                  <h4 className="font-bold text-slate-800">Subjects – {selectedBranchForStaff.name}</h4>
-                                  <p className="text-xs text-indigo-600 font-semibold">Academic Year {selectedYearForStaff}</p>
+                                  <h4 className="font-bold text-main">Subjects – {selectedBranchForStaff.name}</h4>
+                                  <p className="text-xs text-primary font-semibold">Academic Year {selectedYearForStaff}</p>
                                 </div>
                               </div>
                             </div>
                             <div className="p-6 max-h-[calc(100vh-24rem)] overflow-y-auto space-y-8">
                               {(!selectedBranchForStaff.yearSemList || selectedBranchForStaff.yearSemList.length === 0) ? (
                                 <div className="py-12 text-center">
-                                  <BookOpen className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-                                  <p className="text-sm text-slate-500">No semesters for Year {selectedYearForStaff} in this branch.</p>
+                                  <BookOpen className="w-12 h-12 text-muted-text mx-auto mb-3" />
+                                  <p className="text-sm text-muted-text">No semesters for Year {selectedYearForStaff} in this branch.</p>
                                 </div>
                               ) : (
                                 selectedBranchForStaff.yearSemList
@@ -1435,36 +1435,36 @@ const FacultyManagement = () => {
                                     return (
                                       <div key={key} className="space-y-4">
                                         <div className="flex items-center gap-4">
-                                          <div className="h-px flex-1 bg-slate-100"></div>
-                                          <h5 className="text-sm font-bold text-slate-400 uppercase tracking-widest">{label}</h5>
-                                          <div className="h-px flex-1 bg-slate-100"></div>
+                                          <div className="h-px flex-1 bg-background"></div>
+                                          <h5 className="text-sm font-bold text-muted-text uppercase tracking-widest">{label}</h5>
+                                          <div className="h-px flex-1 bg-background"></div>
                                         </div>
 
                                         {assigned.length === 0 ? (
-                                          <div className="text-center py-6 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                                            <p className="text-sm text-slate-400">No subjects assigned to this semester</p>
+                                          <div className="text-center py-6 bg-[var(--background)]/50 rounded-2xl border border-dashed border-border">
+                                            <p className="text-sm text-muted-text">No subjects assigned to this semester</p>
                                           </div>
                                         ) : (
                                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {assigned.map((a) => (
-                                              <div key={a.subjectId} className="group rounded-2xl border border-slate-200 bg-white p-5 hover:border-indigo-500/50 transition-all hover:shadow-lg hover:shadow-slate-100">
+                                              <div key={a.subjectId} className="group rounded-2xl border border-border bg-surface p-5 hover:border-primary transition-all hover:shadow-lg hover:shadow-border">
                                                 <div className="flex items-start justify-between gap-4 mb-4">
                                                   <div>
                                                     <div className="flex items-center gap-2 mb-1">
                                                       <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wide ${a.subjectType === 'lab'
-                                                        ? 'bg-purple-100 text-purple-700'
-                                                        : 'bg-blue-100 text-blue-700'
+                                                        ? 'bg-[var(--primary-light)] text-secondary'
+                                                        : 'bg-[var(--primary-light)] text-primary'
                                                         }`}>
                                                         {a.subjectType || 'Theory'}
                                                       </span>
-                                                      {a.subjectCode && <span className="text-[10px] font-mono text-slate-400">{a.subjectCode}</span>}
+                                                      {a.subjectCode && <span className="text-[10px] font-mono text-muted-text">{a.subjectCode}</span>}
                                                     </div>
-                                                    <h6 className="font-bold text-slate-800 leading-tight group-hover:text-indigo-600 transition-colors uppercase">{a.subjectName}</h6>
+                                                    <h6 className="font-bold text-main leading-tight group-hover:text-primary transition-colors uppercase">{a.subjectName}</h6>
                                                     <div className="flex items-center gap-2 mt-2">
-                                                      <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                      <span className="text-[10px] font-bold text-muted-text bg-background px-1.5 py-0.5 rounded">
                                                         {a.credits} Credits
                                                       </span>
-                                                      <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                      <span className="text-[10px] font-bold text-muted-text bg-background px-1.5 py-0.5 rounded">
                                                         {a.subjectType === 'lab' ? `${a.experimentsCount} Experiments` : `${a.units} Units`}
                                                       </span>
                                                     </div>
@@ -1475,20 +1475,20 @@ const FacultyManagement = () => {
                                                   <div className="flex flex-wrap gap-2">
                                                     {(a.faculty || []).length > 0 ? (
                                                       (a.faculty || []).map((f) => (
-                                                        <div key={f.id} className="flex items-center justify-between gap-2 w-full py-2.5 pl-3 pr-3 rounded-xl bg-slate-50 border border-indigo-100 group/faculty transition-all hover:bg-white hover:shadow-sm">
+                                                        <div key={f.id} className="flex items-center justify-between gap-2 w-full py-2.5 pl-3 pr-3 rounded-xl bg-background border border-[var(--primary-light)] group/faculty transition-all hover:bg-surface hover:shadow-sm">
                                                           <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-sm shadow-indigo-200">
+                                                            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-xs font-bold text-white shadow-sm shadow-primary">
                                                               {f.name.charAt(0)}
                                                             </div>
                                                             <div>
-                                                              <p className="text-xs font-bold text-slate-800 leading-none mb-0.5">{f.name}</p>
-                                                              <p className="text-[10px] text-indigo-600 font-semibold italic">Assigned Faculty</p>
+                                                              <p className="text-xs font-bold text-main leading-none mb-0.5">{f.name}</p>
+                                                              <p className="text-[10px] text-primary font-semibold italic">Assigned Faculty</p>
                                                             </div>
                                                           </div>
                                                           <button
                                                             type="button"
                                                             onClick={() => handleUnassignStaffFromSubject(a.subjectId, f.id)}
-                                                            className="p-1.5 rounded-lg text-slate-300 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover/faculty:opacity-100"
+                                                            className="p-1.5 rounded-lg text-muted-text hover:text-danger hover:bg-[var(--danger-light)] transition-all opacity-0 group-hover/faculty:opacity-100"
                                                             title="Unassign Faculty"
                                                           >
                                                             <Trash2 className="w-4 h-4" />
@@ -1496,19 +1496,19 @@ const FacultyManagement = () => {
                                                         </div>
                                                       ))
                                                     ) : (
-                                                      <div className="w-full py-3 px-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/30 text-center">
-                                                        <p className="text-[11px] text-slate-400 font-medium italic">Pending faculty assignment</p>
+                                                      <div className="w-full py-3 px-4 rounded-xl border border-dashed border-border bg-[var(--background)]/30 text-center">
+                                                        <p className="text-[11px] text-muted-text font-medium italic">Pending faculty assignment</p>
                                                       </div>
                                                     )}
                                                   </div>
 
                                                   {/* Only show assignment controls if NO faculty is assigned */}
                                                   {(!a.faculty || a.faculty.length === 0) && (
-                                                    <div className="pt-3 border-t border-slate-50 flex gap-2">
+                                                    <div className="pt-3 border-t border-border flex gap-2">
                                                       <select
                                                         value={staffAssignSelect[a.subjectId] || ''}
                                                         onChange={(e) => setStaffAssignSelect(prev => ({ ...prev, [a.subjectId]: e.target.value }))}
-                                                        className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all"
+                                                        className="flex-1 min-w-0 px-3 py-2.5 rounded-xl border border-border bg-[var(--background)]/50 text-xs font-semibold text-main focus:ring-2 focus:ring-primary focus:bg-surface outline-none transition-all"
                                                       >
                                                         <option value="">— Select Faculty —</option>
                                                         {[...(employees.all || [])]
@@ -1521,7 +1521,7 @@ const FacultyManagement = () => {
                                                         type="button"
                                                         disabled={!staffAssignSelect[a.subjectId] || assigningStaff}
                                                         onClick={() => handleAssignStaffToSubject(a.subjectId, staffAssignSelect[a.subjectId])}
-                                                        className="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-extrabold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-indigo-100 active:scale-95"
+                                                        className="px-4 py-2.5 rounded-xl bg-primary text-white text-xs font-extrabold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-primary active:scale-95"
                                                       >
                                                         Assign
                                                       </button>
@@ -1539,12 +1539,12 @@ const FacultyManagement = () => {
                             </div>
                           </div>
                         ) : (
-                          <div className="flex flex-col items-center justify-center h-[500px] border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/30">
-                            <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center mb-4 text-slate-300">
+                          <div className="flex flex-col items-center justify-center h-[500px] border-2 border-dashed border-border rounded-3xl bg-[var(--background)]/30">
+                            <div className="w-16 h-16 rounded-2xl bg-surface shadow-sm border border-border flex items-center justify-center mb-4 text-muted-text">
                               <UserPlus className="w-8 h-8" />
                             </div>
-                            <h5 className="font-bold text-slate-800 mb-1">No Branch Selected</h5>
-                            <p className="text-sm text-slate-500 max-w-[240px] text-center">Select a branch from the list to manage faculty assignments for its subjects.</p>
+                            <h5 className="font-bold text-main mb-1">No Branch Selected</h5>
+                            <p className="text-sm text-muted-text max-w-[240px] text-center">Select a branch from the list to manage faculty assignments for its subjects.</p>
                           </div>
                         )}
                       </div>
@@ -1557,26 +1557,26 @@ const FacultyManagement = () => {
             {tab === 'time-table' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {/* Advanced Selection Bar */}
-                <div className="bg-white rounded-[2rem] border border-slate-200 p-6 mb-8 shadow-sm">
+                <div className="bg-surface rounded-[2rem] border border-border p-6 mb-8 shadow-sm">
                   <div className="flex flex-col lg:flex-row items-end gap-6">
                     <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">College</label>
+                        <label className="text-[11px] font-bold text-muted-text uppercase tracking-widest px-1">College</label>
                         <select
                           value={selectedCollegeId}
                           onChange={(e) => setSelectedCollegeId(e.target.value)}
-                          className="w-full h-12 px-4 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer shadow-sm hover:border-indigo-300"
+                          className="w-full h-12 px-4 rounded-xl border border-border-strong bg-surface text-sm font-semibold text-main focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer shadow-sm hover:border-[var(--primary-light)]"
                         >
                           <option value="">Select College</option>
                           {colleges.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Program</label>
+                        <label className="text-[11px] font-bold text-muted-text uppercase tracking-widest px-1">Program</label>
                         <select
                           value={selectedProgramId}
                           onChange={(e) => setSelectedProgramId(e.target.value)}
-                          className="w-full h-12 px-4 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer shadow-sm hover:border-indigo-300"
+                          className="w-full h-12 px-4 rounded-xl border border-border-strong bg-surface text-sm font-semibold text-main focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer shadow-sm hover:border-[var(--primary-light)]"
                         >
                           <option value="">Select Program</option>
                           {programs.map(c => (
@@ -1585,7 +1585,7 @@ const FacultyManagement = () => {
                         </select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Year</label>
+                        <label className="text-[11px] font-bold text-muted-text uppercase tracking-widest px-1">Year</label>
                         <select
                           value={selectedYearForTimetable}
                           onChange={(e) => {
@@ -1593,7 +1593,7 @@ const FacultyManagement = () => {
                             setSelectedSemesterForTimetable('');
                           }}
                           disabled={!selectedCollegeId || !selectedProgramId}
-                          className="w-full h-12 px-4 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer shadow-sm hover:border-indigo-300 disabled:opacity-50"
+                          className="w-full h-12 px-4 rounded-xl border border-border-strong bg-surface text-sm font-semibold text-main focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer shadow-sm hover:border-[var(--primary-light)] disabled:opacity-50"
                         >
                           <option value="">Select Year</option>
                           {(staffTabData.yearsAvailable?.length > 0 ? staffTabData.yearsAvailable : [1, 2, 3, 4, 5, 6]).map((y) => (
@@ -1602,12 +1602,12 @@ const FacultyManagement = () => {
                         </select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Semester</label>
+                        <label className="text-[11px] font-bold text-muted-text uppercase tracking-widest px-1">Semester</label>
                         <select
                           value={selectedSemesterForTimetable}
                           onChange={(e) => setSelectedSemesterForTimetable(e.target.value)}
                           disabled={!selectedYearForTimetable}
-                          className="w-full h-12 px-4 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer shadow-sm hover:border-indigo-300 disabled:opacity-50"
+                          className="w-full h-12 px-4 rounded-xl border border-border-strong bg-surface text-sm font-semibold text-main focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer shadow-sm hover:border-[var(--primary-light)] disabled:opacity-50"
                         >
                           <option value="">Select Semester</option>
                           {(() => {
@@ -1630,9 +1630,9 @@ const FacultyManagement = () => {
                 <div className="flex gap-6 flex-col lg:flex-row min-h-[500px]">
                   {/* Left – branches list */}
                   <div className="w-full lg:w-72 flex-shrink-0">
-                    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden sticky top-6 shadow-sm">
-                      <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
-                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Select Branch</h4>
+                    <div className="bg-surface rounded-2xl border border-border overflow-hidden sticky top-6 shadow-sm">
+                      <div className="px-5 py-4 border-b border-border bg-[var(--background)]/50">
+                        <h4 className="text-xs font-bold text-muted-text uppercase tracking-wider">Select Branch</h4>
                       </div>
                       <div className="p-4 max-h-[calc(100vh-24rem)] overflow-y-auto space-y-2">
                         {staffTabData.branches.map((branch) => (
@@ -1641,8 +1641,8 @@ const FacultyManagement = () => {
                             type="button"
                             onClick={() => setSelectedBranchForTimetable(prev => prev?.id === branch.id ? null : branch)}
                             className={`w-full text-left px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-200 border ${selectedBranchForTimetable?.id === branch.id
-                              ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100'
-                              : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-200 hover:border-indigo-300'
+                              ? 'bg-primary text-white border-primary shadow-lg shadow-primary'
+                              : 'bg-surface text-sub hover:bg-background border-border hover:border-[var(--primary-light)]'
                               }`}
                           >
                             {branch.name}
@@ -1655,60 +1655,60 @@ const FacultyManagement = () => {
                   {/* Right – Timetable Grid */}
                   <div className="flex-1 min-w-0">
                     {!selectedBranchForTimetable || !selectedYearForTimetable || !selectedSemesterForTimetable ? (
-                      <div className="flex flex-col items-center justify-center min-h-[500px] border-2 border-dashed border-slate-200 rounded-[2rem] bg-slate-50/30 p-12 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center mb-4 text-slate-300">
+                      <div className="flex flex-col items-center justify-center min-h-[500px] border-2 border-dashed border-border rounded-[2rem] bg-[var(--background)]/30 p-12 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-surface shadow-sm border border-border flex items-center justify-center mb-4 text-muted-text">
                           <Clock className="w-8 h-8" />
                         </div>
-                        <h5 className="font-bold text-slate-800 mb-1">Configuration Required</h5>
-                        <p className="text-sm text-slate-500 max-w-[320px]">Select a branch, year, and semester to view or manage the academic timetable.</p>
+                        <h5 className="font-bold text-main mb-1">Configuration Required</h5>
+                        <p className="text-sm text-muted-text max-w-[320px]">Select a branch, year, and semester to view or manage the academic timetable.</p>
                       </div>
                     ) : loadingTimetable ? (
                       <div className="flex flex-col items-center justify-center min-h-[500px]">
-                        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4" />
-                        <p className="text-sm font-bold text-slate-500 animate-pulse uppercase tracking-widest">Building Schedule...</p>
+                        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+                        <p className="text-sm font-bold text-muted-text animate-pulse uppercase tracking-widest">Building Schedule...</p>
                       </div>
                     ) : periodSlots.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center min-h-[500px] bg-white rounded-[2rem] border border-slate-200 p-12 text-center shadow-sm">
-                        <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-4 text-amber-500">
+                      <div className="flex flex-col items-center justify-center min-h-[500px] bg-surface rounded-[2rem] border border-border p-12 text-center shadow-sm">
+                        <div className="w-16 h-16 rounded-2xl bg-[var(--warning-light)] flex items-center justify-center mb-4 text-warning">
                           <Clock className="w-8 h-8" />
                         </div>
-                        <h5 className="font-bold text-slate-800 mb-1">No Period Slots Defined</h5>
-                        <p className="text-sm text-slate-500 max-w-[320px] mb-6">Definitions for class timings (Period Slots) must be created to build the timetable grid.</p>
+                        <h5 className="font-bold text-main mb-1">No Period Slots Defined</h5>
+                        <p className="text-sm text-muted-text max-w-[320px] mb-6">Definitions for class timings (Period Slots) must be created to build the timetable grid.</p>
                         <button
                           onClick={() => setShowManageSlotsModal(true)}
-                          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition-all shadow-lg shadow-amber-100"
+                          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-warning text-white text-sm font-bold hover:bg-warning transition-all shadow-lg shadow-warning"
                         >
                           <Settings2 className="w-4 h-4" />
                           Configure Timings
                         </button>
                       </div>
                     ) : (
-                      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                        <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="bg-surface rounded-[2rem] border border-border shadow-sm overflow-hidden flex flex-col">
+                        <div className="px-8 py-6 border-b border-border bg-[var(--background)]/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded uppercase tracking-wider">Class Timetable</span>
-                              <span className="text-[10px] font-bold text-slate-400">•</span>
-                              <span className="text-[10px] font-bold text-slate-500">{selectedBranchForTimetable.name}</span>
+                              <span className="px-2 py-0.5 bg-[var(--primary-light)] text-primary text-[10px] font-bold rounded uppercase tracking-wider">Class Timetable</span>
+                              <span className="text-[10px] font-bold text-muted-text">•</span>
+                              <span className="text-[10px] font-bold text-muted-text">{selectedBranchForTimetable.name}</span>
                             </div>
-                            <h4 className="text-xl font-bold text-slate-800 uppercase tracking-tight">Year {selectedYearForTimetable} • Semester {selectedSemesterForTimetable}</h4>
+                            <h4 className="text-xl font-bold text-main uppercase tracking-tight">Year {selectedYearForTimetable} • Semester {selectedSemesterForTimetable}</h4>
                           </div>
                           <div className="flex items-center gap-3">
                             <button
                               onClick={() => setShowAllocationAbstract(true)}
-                              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-indigo-600 text-xs font-bold hover:bg-indigo-50 hover:border-indigo-200 transition-all shadow-sm active:scale-95"
+                              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-surface text-primary text-xs font-bold hover:bg-[var(--primary-light)] hover:border-[var(--primary-light)] transition-all shadow-sm active:scale-95"
                             >
                               <FileText className="w-4 h-4" />
                               View Abstract
                             </button>
                             <button
                               onClick={() => setShowManageSlotsModal(true)}
-                              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 text-xs font-bold hover:bg-slate-50 transition-all"
+                              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-surface text-sub text-xs font-bold hover:bg-background transition-all"
                             >
                               <Clock className="w-4 h-4" />
                               Manage Timings
                             </button>
-                            <button className="flex items-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95">
+                            <button className="flex items-center gap-2 px-5 py-3 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-hover transition-all shadow-lg shadow-primary active:scale-95">
                               <Save className="w-4 h-4" />
                               Save Draft
                             </button>
@@ -1731,26 +1731,26 @@ const FacultyManagement = () => {
                 {/* Edit Slot Sidebar */}
                 {editingSlot && (
                   <div className="fixed inset-0 z-[100] flex justify-end">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300" onClick={() => setEditingSlot(null)} />
-                    <div className="relative w-full max-w-sm bg-white shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col border-l border-white/20">
-                      <div className="p-8 border-b border-slate-100 bg-slate-50/50">
+                    <div className="absolute inset-0 bg-[var(--sidebar)]/60 backdrop-blur-md transition-opacity duration-300" onClick={() => setEditingSlot(null)} />
+                    <div className="relative w-full max-w-sm bg-surface shadow-2xl animate-in slide-in-from-right duration-300 flex flex-col border-l border-surface">
+                      <div className="p-8 border-b border-border bg-[var(--background)]/50">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
+                          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
                             <Calendar className="w-5 h-5" />
                           </div>
-                          <button onClick={() => setEditingSlot(null)} className="p-2 rounded-xl hover:bg-white text-slate-400 transition-colors shadow-sm">
+                          <button onClick={() => setEditingSlot(null)} className="p-2 rounded-xl hover:bg-surface text-muted-text transition-colors shadow-sm">
                             <X className="w-5 h-5" />
                           </button>
                         </div>
-                        <h3 className="text-xl font-bold text-slate-800">Edit Class Slot</h3>
-                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">
-                          <span className="text-indigo-600">{editingSlot.day}</span> • Slot {periodSlots.find(s => s.id === editingSlot.slotId)?.name}
+                        <h3 className="text-xl font-bold text-main">Edit Class Slot</h3>
+                        <p className="text-xs text-muted-text font-bold uppercase tracking-widest mt-1">
+                          <span className="text-primary">{editingSlot.day}</span> • Slot {periodSlots.find(s => s.id === editingSlot.slotId)?.name}
                         </p>
                       </div>
 
                       <div className="flex-1 overflow-y-auto p-8 space-y-8">
                         <div className="space-y-4">
-                          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block px-1">Type of Entry</label>
+                          <label className="text-[11px] font-bold text-muted-text uppercase tracking-widest block px-1">Type of Entry</label>
                           <div className="grid grid-cols-2 gap-3">
                             {['subject', 'lab', 'break', 'other'].map(type => (
                               <button
@@ -1758,8 +1758,8 @@ const FacultyManagement = () => {
                                 type="button"
                                 onClick={() => setSlotFormData(prev => ({ ...prev, type }))}
                                 className={`py-4 px-4 rounded-xl text-[10px] font-black border transition-all uppercase tracking-widest ${slotFormData.type === type
-                                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xl shadow-indigo-200'
-                                  : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-400'
+                                  ? 'bg-primary text-white border-primary shadow-xl shadow-primary'
+                                  : 'bg-surface text-sub border-border hover:border-primary'
                                   }`}
                               >
                                 {type}
@@ -1770,11 +1770,11 @@ const FacultyManagement = () => {
 
                         {['subject', 'lab'].includes(slotFormData.type) ? (
                           <div className="space-y-4">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block px-1">Assign Subject</label>
+                            <label className="text-[11px] font-bold text-muted-text uppercase tracking-widest block px-1">Assign Subject</label>
                             <select
                               value={slotFormData.subject_id}
                               onChange={(e) => setSlotFormData(prev => ({ ...prev, subject_id: e.target.value }))}
-                              className="w-full h-14 px-5 rounded-2xl border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-800 focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all appearance-none"
+                              className="w-full h-14 px-5 rounded-2xl border-2 border-border bg-[var(--background)]/50 text-sm font-bold text-main focus:ring-4 focus:ring-[var(--primary-light)] focus:border-primary outline-none transition-all appearance-none"
                             >
                               <option value="">— Select from Course —</option>
                               {staffTabData.branches
@@ -1789,32 +1789,32 @@ const FacultyManagement = () => {
                           </div>
                         ) : (
                           <div className="space-y-4">
-                            <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block px-1">Label (e.g. Lunch Break)</label>
+                            <label className="text-[11px] font-bold text-muted-text uppercase tracking-widest block px-1">Label (e.g. Lunch Break)</label>
                             <input
                               type="text"
                               placeholder="Enter label (e.g. Lunch)..."
                               value={slotFormData.custom_label}
                               onChange={(e) => setSlotFormData(prev => ({ ...prev, custom_label: e.target.value }))}
-                              className="w-full h-14 px-5 rounded-2xl border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-800 focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all"
+                              className="w-full h-14 px-5 rounded-2xl border-2 border-border bg-[var(--background)]/50 text-sm font-bold text-main focus:ring-4 focus:ring-[var(--primary-light)] focus:border-primary outline-none transition-all"
                             />
                           </div>
                         )}
 
                         <div className="space-y-4">
-                          <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest block px-1">Duration (Slots)</label>
+                          <label className="text-[11px] font-bold text-muted-text uppercase tracking-widest block px-1">Duration (Slots)</label>
                           <input
                             type="number"
                             min="1"
                             max="4"
                             value={slotFormData.span}
                             onChange={(e) => setSlotFormData(prev => ({ ...prev, span: parseInt(e.target.value) || 1 }))}
-                            className="w-full h-14 px-5 rounded-2xl border-2 border-slate-100 bg-slate-50/50 text-sm font-bold text-slate-800 focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all"
+                            className="w-full h-14 px-5 rounded-2xl border-2 border-border bg-[var(--background)]/50 text-sm font-bold text-main focus:ring-4 focus:ring-[var(--primary-light)] focus:border-primary outline-none transition-all"
                           />
-                          <p className="text-[10px] text-slate-400 font-bold italic px-1">Set to 2 or more for Lab sessions or multi-period events.</p>
+                          <p className="text-[10px] text-muted-text font-bold italic px-1">Set to 2 or more for Lab sessions or multi-period events.</p>
                         </div>
                       </div>
 
-                      <div className="p-8 border-t border-slate-100 flex gap-4 bg-slate-50/30">
+                      <div className="p-8 border-t border-border flex gap-4 bg-[var(--background)]/30">
                         <button
                           type="button"
                           onClick={async () => {
@@ -1838,7 +1838,7 @@ const FacultyManagement = () => {
                               toast.error('Failed to clear slot');
                             }
                           }}
-                          className="flex-1 py-4 rounded-2xl border-2 border-slate-200 bg-white text-slate-500 text-[10px] font-black hover:bg-slate-50 transition-all uppercase tracking-widest shadow-sm"
+                          className="flex-1 py-4 rounded-2xl border-2 border-border bg-surface text-muted-text text-[10px] font-black hover:bg-background transition-all uppercase tracking-widest shadow-sm"
                         >
                           Clear
                         </button>
@@ -1870,7 +1870,7 @@ const FacultyManagement = () => {
                               toast.error('Failed to save assignment');
                             }
                           }}
-                          className="flex-[2] py-4 rounded-2xl bg-indigo-600 text-white text-[10px] font-black hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 uppercase tracking-widest active:scale-95"
+                          className="flex-[2] py-4 rounded-2xl bg-primary text-white text-[10px] font-black hover:bg-primary-hover transition-all shadow-xl shadow-primary uppercase tracking-widest active:scale-95"
                         >
                           Save Slot
                         </button>
@@ -1884,18 +1884,18 @@ const FacultyManagement = () => {
 
             {/* Allocation Abstract Modal */}
             {showAllocationAbstract && (
-              <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
-                <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-8 duration-500">
-                  <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div className="fixed inset-0 z-[110] flex items-center justify-center bg-[var(--sidebar)]/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
+                <div className="bg-surface rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-8 duration-500">
+                  <div className="px-8 py-6 border-b border-border flex items-center justify-between bg-[var(--background)]/50">
                     <div>
-                      <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">Allocation Abstract</h3>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                      <h3 className="text-xl font-black text-main uppercase tracking-tight">Allocation Abstract</h3>
+                      <p className="text-xs font-bold text-muted-text uppercase tracking-widest mt-1">
                         {selectedBranchForTimetable.name} • Year {selectedYearForTimetable} • Sem {selectedSemesterForTimetable}
                       </p>
                     </div>
                     <button
                       onClick={() => setShowAllocationAbstract(false)}
-                      className="w-11 h-11 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:border-slate-300 transition-all shadow-sm"
+                      className="w-11 h-11 rounded-2xl bg-surface border border-border flex items-center justify-center text-muted-text hover:text-sub hover:border-border-strong transition-all shadow-sm"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -1904,31 +1904,31 @@ const FacultyManagement = () => {
                   <div className="p-8 overflow-y-auto max-h-[70vh]">
                     <div className="space-y-6">
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100/50">
-                          <div className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Total Theory Slots</div>
-                          <div className="text-2xl font-black text-indigo-700 leading-none">
+                        <div className="bg-[var(--primary-light)] rounded-2xl p-4 border border-[var(--primary-light)]">
+                          <div className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Total Theory Slots</div>
+                          <div className="text-2xl font-black text-primary leading-none">
                             {timetableData.filter(e => e.type === 'subject').reduce((sum, e) => sum + (e.span || 1), 0)}
                           </div>
                         </div>
-                        <div className="bg-purple-50 rounded-2xl p-4 border border-purple-100/50">
-                          <div className="text-[10px] font-black text-purple-400 uppercase tracking-widest mb-1">Total Lab Slots</div>
-                          <div className="text-2xl font-black text-purple-700 leading-none">
+                        <div className="bg-[var(--primary-light)] rounded-2xl p-4 border border-[var(--primary-light)]">
+                          <div className="text-[10px] font-black text-secondary uppercase tracking-widest mb-1">Total Lab Slots</div>
+                          <div className="text-2xl font-black text-secondary leading-none">
                             {timetableData.filter(e => e.type === 'lab').reduce((sum, e) => sum + (e.span || 1), 0)}
                           </div>
                         </div>
                       </div>
 
-                      <div className="border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                      <div className="border border-border rounded-3xl overflow-hidden shadow-sm">
                         <table className="w-full text-left border-collapse">
                           <thead>
-                            <tr className="bg-slate-50 border-b border-slate-200">
-                              <th className="px-5 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Subject</th>
-                              <th className="px-5 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Theory</th>
-                              <th className="px-5 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Lab</th>
-                              <th className="px-5 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">Total</th>
+                            <tr className="bg-background border-b border-border">
+                              <th className="px-5 py-4 text-[10px] font-black text-muted-text uppercase tracking-widest">Subject</th>
+                              <th className="px-5 py-4 text-[10px] font-black text-muted-text uppercase tracking-widest text-center">Theory</th>
+                              <th className="px-5 py-4 text-[10px] font-black text-muted-text uppercase tracking-widest text-center">Lab</th>
+                              <th className="px-5 py-4 text-[10px] font-black text-muted-text uppercase tracking-widest text-center">Total</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100">
+                          <tbody className="divide-y divide-border">
                             {(() => {
                               const branchData = staffTabData.branches.find(b => b.id === selectedBranchForTimetable.id);
                               const subjects = branchData?.assignmentsByKey[`${selectedYearForTimetable}-${selectedSemesterForTimetable}`] || [];
@@ -1936,7 +1936,7 @@ const FacultyManagement = () => {
                               if (subjects.length === 0) {
                                 return (
                                   <tr>
-                                    <td colSpan="4" className="px-5 py-12 text-center text-slate-400 font-bold italic text-sm">
+                                    <td colSpan="4" className="px-5 py-12 text-center text-muted-text font-bold italic text-sm">
                                       No subjects assigned to this semester.
                                     </td>
                                   </tr>
@@ -1952,23 +1952,23 @@ const FacultyManagement = () => {
                                   .reduce((sum, e) => sum + (e.span || 1), 0);
 
                                 return (
-                                  <tr key={sub.subjectId} className="hover:bg-slate-50/50 transition-colors">
+                                  <tr key={sub.subjectId} className="hover:bg-[var(--background)]/50 transition-colors">
                                     <td className="px-5 py-4">
-                                      <div className="text-[13px] font-black text-slate-800 leading-tight uppercase">{sub.subjectCode || 'N/A'}</div>
-                                      <div className="text-[11px] font-bold text-slate-400 mt-0.5 truncate max-w-[240px]">{sub.subjectName}</div>
+                                      <div className="text-[13px] font-black text-main leading-tight uppercase">{sub.subjectCode || 'N/A'}</div>
+                                      <div className="text-[11px] font-bold text-muted-text mt-0.5 truncate max-w-[240px]">{sub.subjectName}</div>
                                     </td>
                                     <td className="px-5 py-4 text-center">
-                                      <span className={`text-[13px] font-bold ${theoryTotal > 0 ? 'text-indigo-600' : 'text-slate-300'}`}>
+                                      <span className={`text-[13px] font-bold ${theoryTotal > 0 ? 'text-primary' : 'text-muted-text'}`}>
                                         {theoryTotal}
                                       </span>
                                     </td>
                                     <td className="px-5 py-4 text-center">
-                                      <span className={`text-[13px] font-bold ${labTotal > 0 ? 'text-purple-600' : 'text-slate-300'}`}>
+                                      <span className={`text-[13px] font-bold ${labTotal > 0 ? 'text-secondary' : 'text-muted-text'}`}>
                                         {labTotal}
                                       </span>
                                     </td>
                                     <td className="px-5 py-4 text-center">
-                                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-[13px] font-black text-slate-700">
+                                      <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-background text-[13px] font-black text-sub">
                                         {theoryTotal + labTotal}
                                       </div>
                                     </td>
@@ -1982,10 +1982,10 @@ const FacultyManagement = () => {
                     </div>
                   </div>
 
-                  <div className="p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+                  <div className="p-6 bg-background border-t border-border flex items-center justify-end">
                     <button
                       onClick={() => setShowAllocationAbstract(false)}
-                      className="px-6 py-2.5 rounded-xl bg-slate-800 text-white text-xs font-bold hover:bg-slate-900 transition-all shadow-lg shadow-slate-200"
+                      className="px-6 py-2.5 rounded-xl bg-sidebar text-white text-xs font-bold hover:bg-sidebar transition-all shadow-lg shadow-border"
                     >
                       Close Abstract
                     </button>
@@ -1997,10 +1997,10 @@ const FacultyManagement = () => {
             {/* Employee detail modal – open on double-click */}
             {employeeDetail && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setEmployeeDetail(null)}>
-                <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+                <div className="bg-surface rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-slate-800">Employee details</h3>
-                    <button type="button" onClick={() => setEmployeeDetail(null)} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500">
+                    <h3 className="text-lg font-bold text-main">Employee details</h3>
+                    <button type="button" onClick={() => setEmployeeDetail(null)} className="p-2 rounded-lg hover:bg-background text-muted-text">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
@@ -2008,13 +2008,13 @@ const FacultyManagement = () => {
                     const { colleges, courses, branches } = getScopeDisplay(employeeDetail);
                     return (
                       <div className="space-y-4 text-sm">
-                        <p><span className="font-semibold text-slate-600">Name</span> {employeeDetail.name}</p>
-                        <p><span className="font-semibold text-slate-600">Email</span> {employeeDetail.email}</p>
-                        <p><span className="font-semibold text-slate-600">Role</span> {employeeDetail.roleLabel}</p>
-                        <p><span className="font-semibold text-slate-600">College(s)</span> {colleges}</p>
-                        <p><span className="font-semibold text-slate-600">Course(s)</span> {courses}</p>
-                        <p><span className="font-semibold text-slate-600">Branch(es)</span> {branches}</p>
-                        <a href="/admin/user-management" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-4 text-indigo-600 font-semibold hover:underline">
+                        <p><span className="font-semibold text-sub">Name</span> {employeeDetail.name}</p>
+                        <p><span className="font-semibold text-sub">Email</span> {employeeDetail.email}</p>
+                        <p><span className="font-semibold text-sub">Role</span> {employeeDetail.roleLabel}</p>
+                        <p><span className="font-semibold text-sub">College(s)</span> {colleges}</p>
+                        <p><span className="font-semibold text-sub">Course(s)</span> {courses}</p>
+                        <p><span className="font-semibold text-sub">Branch(es)</span> {branches}</p>
+                        <a href="/admin/user-management" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-4 text-primary font-semibold hover:underline">
                           <ExternalLink className="w-4 h-4" /> Open in User Management
                         </a>
                       </div>
@@ -2029,13 +2029,13 @@ const FacultyManagement = () => {
             {/* Create Subject Modal */}
             {createSubjectForSem && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setCreateSubjectForSem(null)}>
-                <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scaleIn" onClick={e => e.stopPropagation()}>
+                <div className="bg-surface rounded-2xl shadow-2xl max-w-md w-full p-6 animate-scaleIn" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-xl font-bold text-slate-800 tracking-tight">{editingSubject ? 'Edit Subject' : 'Create New Subject'}</h3>
-                      <p className="text-sm text-slate-500 mt-1">{editingSubject ? `Updating ${editingSubject.name}` : `Assigning to ${createSubjectForSem.label}`}</p>
+                      <h3 className="text-xl font-bold text-main tracking-tight">{editingSubject ? 'Edit Subject' : 'Create New Subject'}</h3>
+                      <p className="text-sm text-muted-text mt-1">{editingSubject ? `Updating ${editingSubject.name}` : `Assigning to ${createSubjectForSem.label}`}</p>
                     </div>
-                    <button type="button" onClick={() => { setCreateSubjectForSem(null); setEditingSubject(null); }} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition-colors">
+                    <button type="button" onClick={() => { setCreateSubjectForSem(null); setEditingSubject(null); }} className="p-2 rounded-xl hover:bg-background text-muted-text transition-colors">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
@@ -2043,39 +2043,39 @@ const FacultyManagement = () => {
                   <div className="space-y-5">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
-                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Subject Name *</label>
+                        <label className="block text-sm font-semibold text-sub mb-1.5">Subject Name *</label>
                         <input
                           type="text"
                           value={newSubjectName}
                           onChange={(e) => setNewSubjectName(e.target.value)}
                           placeholder="e.g. Data Structures"
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                          className="w-full px-4 py-3 rounded-xl border border-border bg-[var(--background)]/50 text-main focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none"
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Subject Code *</label>
+                        <label className="block text-sm font-semibold text-sub mb-1.5">Subject Code *</label>
                         <input
                           type="text"
                           value={newSubjectCode}
                           onChange={(e) => setNewSubjectCode(e.target.value)}
                           placeholder="e.g. CS101"
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                          className="w-full px-4 py-3 rounded-xl border border-border bg-[var(--background)]/50 text-main focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none"
                         />
                       </div>
                     </div>
 
-                    <div className="p-1 bg-slate-100 rounded-xl flex">
+                    <div className="p-1 bg-background rounded-xl flex">
                       <button
                         type="button"
                         onClick={() => setSubjectType('theory')}
-                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${subjectType === 'theory' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${subjectType === 'theory' ? 'bg-surface text-primary shadow-sm' : 'text-muted-text hover:text-sub'}`}
                       >
                         📚 Theory
                       </button>
                       <button
                         type="button"
                         onClick={() => setSubjectType('lab')}
-                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${subjectType === 'lab' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${subjectType === 'lab' ? 'bg-surface text-primary shadow-sm' : 'text-muted-text hover:text-sub'}`}
                       >
                         🧪 Lab
                       </button>
@@ -2084,45 +2084,45 @@ const FacultyManagement = () => {
                     <div className="grid grid-cols-2 gap-4">
                       {subjectType === 'theory' ? (
                         <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1.5">No. of Units *</label>
+                          <label className="block text-sm font-semibold text-sub mb-1.5">No. of Units *</label>
                           <input
                             type="number"
                             value={units}
                             onChange={(e) => setUnits(e.target.value)}
                             placeholder="e.g. 5"
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                            className="w-full px-4 py-3 rounded-xl border border-border bg-[var(--background)]/50 text-main focus:ring-2 focus:ring-primary transition-all outline-none"
                           />
                         </div>
                       ) : (
                         <div>
-                          <label className="block text-sm font-semibold text-slate-700 mb-1.5">No. of Experiments *</label>
+                          <label className="block text-sm font-semibold text-sub mb-1.5">No. of Experiments *</label>
                           <input
                             type="number"
                             value={experimentsCount}
                             onChange={(e) => setExperimentsCount(e.target.value)}
                             placeholder="e.g. 12"
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                            className="w-full px-4 py-3 rounded-xl border border-border bg-[var(--background)]/50 text-main focus:ring-2 focus:ring-primary transition-all outline-none"
                           />
                         </div>
                       )}
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-1.5">Credits *</label>
+                        <label className="block text-sm font-semibold text-sub mb-1.5">Credits *</label>
                         <input
                           type="number"
                           step="0.1"
                           value={credits}
                           onChange={(e) => setCredits(e.target.value)}
                           placeholder="e.g. 3.0"
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-all outline-none"
+                          className="w-full px-4 py-3 rounded-xl border border-border bg-[var(--background)]/50 text-main focus:ring-2 focus:ring-primary transition-all outline-none"
                         />
                       </div>
                     </div>
 
-                    <div className="flex gap-3 pt-4 border-t border-slate-100">
+                    <div className="flex gap-3 pt-4 border-t border-border">
                       <button
                         type="button"
                         onClick={() => { setCreateSubjectForSem(null); setEditingSubject(null); }}
-                        className="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors"
+                        className="flex-1 px-4 py-3 rounded-xl border border-border text-sub font-bold hover:bg-background transition-colors"
                       >
                         Cancel
                       </button>
@@ -2130,7 +2130,7 @@ const FacultyManagement = () => {
                         type="button"
                         disabled={creatingSubject || !newSubjectName || !newSubjectCode || !credits || (subjectType === 'theory' ? !units : !experimentsCount)}
                         onClick={handleCreateSubjectForSem}
-                        className="flex-1 px-4 py-3 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200 transition-all active:scale-95"
+                        className="flex-1 px-4 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary transition-all active:scale-95"
                       >
                         {creatingSubject ? 'Saving...' : (editingSubject ? 'Update Subject' : 'Create Subject')}
                       </button>
@@ -2144,25 +2144,25 @@ const FacultyManagement = () => {
             {/* Assign HOD dialog – select existing user, create new HOD, or edit years */}
             {assignHodBranch && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={closeAssignHodModal}>
-                <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="bg-surface rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-slate-800">
+                    <h3 className="text-lg font-bold text-main">
                       {editingHod ? `Edit years – ${editingHod.hod.name}` : `Assign HOD – ${assignHodBranch.name}`}
                     </h3>
-                    <button type="button" onClick={closeAssignHodModal} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500">
+                    <button type="button" onClick={closeAssignHodModal} className="p-2 rounded-lg hover:bg-background text-muted-text">
                       <X className="w-5 h-5" />
                     </button>
                   </div>
 
                   {editingHod ? (
                     <div className="space-y-4">
-                      <p className="text-slate-600 text-sm">Branch: <strong>{assignHodBranch.name}</strong></p>
+                      <p className="text-sub text-sm">Branch: <strong>{assignHodBranch.name}</strong></p>
                       {renderHodYearPicker()}
                       <div className="flex gap-2 pt-2">
                         <button
                           type="button"
                           onClick={closeAssignHodModal}
-                          className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                          className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sub font-semibold hover:bg-background"
                         >
                           Cancel
                         </button>
@@ -2170,7 +2170,7 @@ const FacultyManagement = () => {
                           type="button"
                           disabled={selectedHodYears.length === 0 || assigningHod || loadingAvailableYears}
                           onClick={handleAssignHodSubmit}
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-primary text-white font-semibold hover:bg-primary-hover disabled:opacity-50"
                         >
                           {assigningHod ? 'Updating…' : 'Update years'}
                         </button>
@@ -2178,18 +2178,18 @@ const FacultyManagement = () => {
                     </div>
                   ) : (
                     <>
-                      <div className="flex gap-2 mb-4 p-1 bg-slate-100 rounded-xl">
+                      <div className="flex gap-2 mb-4 p-1 bg-background rounded-xl">
                         <button
                           type="button"
                           onClick={() => setAssignHodMode('select')}
-                          className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${assignHodMode === 'select' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-600 hover:text-slate-800'}`}
+                          className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${assignHodMode === 'select' ? 'bg-surface text-main shadow-sm' : 'text-sub hover:text-main'}`}
                         >
                           Select existing user
                         </button>
                         <button
                           type="button"
                           onClick={() => setAssignHodMode('create')}
-                          className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${assignHodMode === 'create' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-600 hover:text-slate-800'}`}
+                          className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${assignHodMode === 'create' ? 'bg-surface text-main shadow-sm' : 'text-sub hover:text-main'}`}
                         >
                           Create new HOD
                         </button>
@@ -2197,17 +2197,17 @@ const FacultyManagement = () => {
 
                       {assignHodMode === 'select' ? (
                         <div className="space-y-4">
-                          <label className="block text-sm font-semibold text-slate-700">Select existing user</label>
+                          <label className="block text-sm font-semibold text-sub">Select existing user</label>
                           {loadingUsers ? (
-                            <div className="flex items-center gap-2 text-slate-500 text-sm">
-                              <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                            <div className="flex items-center gap-2 text-muted-text text-sm">
+                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                               Loading users…
                             </div>
                           ) : (
                             <select
                               value={selectedHodUserId}
                               onChange={(e) => setSelectedHodUserId(e.target.value)}
-                              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 font-medium focus:ring-2 focus:ring-indigo-500"
+                              className="w-full px-4 py-3 rounded-xl border border-border bg-[var(--background)]/50 text-main font-medium focus:ring-2 focus:ring-primary"
                             >
                               <option value="">— Select user —</option>
                               {rbacUsers.map((u) => (
@@ -2220,7 +2220,7 @@ const FacultyManagement = () => {
                             <button
                               type="button"
                               onClick={closeAssignHodModal}
-                              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                              className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sub font-semibold hover:bg-background"
                             >
                               Cancel
                             </button>
@@ -2228,7 +2228,7 @@ const FacultyManagement = () => {
                               type="button"
                               disabled={!selectedHodUserId || assigningHod || loadingAvailableYears}
                               onClick={handleAssignHodSubmit}
-                              className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                              className="flex-1 px-4 py-2.5 rounded-xl bg-primary text-white font-semibold hover:bg-primary-hover disabled:opacity-50"
                             >
                               {assigningHod ? 'Assigning…' : 'Assign HOD'}
                             </button>
@@ -2236,45 +2236,45 @@ const FacultyManagement = () => {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <p className="text-slate-600 text-sm">Create a new user with HOD role for branch <strong>{assignHodBranch.name}</strong>. They will appear in User Management.</p>
+                          <p className="text-sub text-sm">Create a new user with HOD role for branch <strong>{assignHodBranch.name}</strong>. They will appear in User Management.</p>
                           <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1">Name *</label>
+                            <label className="block text-sm font-semibold text-sub mb-1">Name *</label>
                             <input
                               type="text"
                               value={newHodName}
                               onChange={(e) => setNewHodName(e.target.value)}
                               placeholder="Full name"
-                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              className="w-full px-4 py-2.5 rounded-xl border border-border bg-[var(--background)]/50 text-main focus:ring-2 focus:ring-primary focus:border-primary"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1">Email *</label>
+                            <label className="block text-sm font-semibold text-sub mb-1">Email *</label>
                             <input
                               type="email"
                               value={newHodEmail}
                               onChange={(e) => setNewHodEmail(e.target.value)}
                               placeholder="email@example.com"
-                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              className="w-full px-4 py-2.5 rounded-xl border border-border bg-[var(--background)]/50 text-main focus:ring-2 focus:ring-primary focus:border-primary"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1">Username *</label>
+                            <label className="block text-sm font-semibold text-sub mb-1">Username *</label>
                             <input
                               type="text"
                               value={newHodUsername}
                               onChange={(e) => setNewHodUsername(e.target.value)}
                               placeholder="Login username"
-                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              className="w-full px-4 py-2.5 rounded-xl border border-border bg-[var(--background)]/50 text-main focus:ring-2 focus:ring-primary focus:border-primary"
                             />
                           </div>
                           <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1">Password * (min 6 characters)</label>
+                            <label className="block text-sm font-semibold text-sub mb-1">Password * (min 6 characters)</label>
                             <input
                               type="password"
                               value={newHodPassword}
                               onChange={(e) => setNewHodPassword(e.target.value)}
                               placeholder="••••••••"
-                              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                              className="w-full px-4 py-2.5 rounded-xl border border-border bg-[var(--background)]/50 text-main focus:ring-2 focus:ring-primary focus:border-primary"
                             />
                           </div>
                           {renderHodYearPicker()}
@@ -2282,7 +2282,7 @@ const FacultyManagement = () => {
                             <button
                               type="button"
                               onClick={closeAssignHodModal}
-                              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50"
+                              className="flex-1 px-4 py-2.5 rounded-xl border border-border text-sub font-semibold hover:bg-background"
                             >
                               Cancel
                             </button>
@@ -2290,7 +2290,7 @@ const FacultyManagement = () => {
                               type="button"
                               disabled={creatingUser || loadingAvailableYears}
                               onClick={handleCreateHodSubmit}
-                              className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                              className="flex-1 px-4 py-2.5 rounded-xl bg-primary text-white font-semibold hover:bg-primary-hover disabled:opacity-50"
                             >
                               {creatingUser ? 'Creating…' : 'Create & assign HOD'}
                             </button>
@@ -2306,12 +2306,12 @@ const FacultyManagement = () => {
         )}
         {/* Manage Slots Modal */}
         {showManageSlotsModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-300 flex flex-col">
-              <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[var(--sidebar)]/50 backdrop-blur-sm p-4">
+            <div className="bg-surface rounded-[2.5rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-300 flex flex-col">
+              <div className="px-8 py-6 border-b border-border bg-[var(--background)]/50 flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-800">Manage Period Slots</h3>
-                  <p className="text-sm text-slate-500">Define class timings and duration for the timetable</p>
+                  <h3 className="text-xl font-bold text-main">Manage Period Slots</h3>
+                  <p className="text-sm text-muted-text">Define class timings and duration for the timetable</p>
                 </div>
                 <button
                   onClick={() => {
@@ -2319,7 +2319,7 @@ const FacultyManagement = () => {
                     setEditingSlotId(null);
                     setNewPeriodSlot({ name: '', start_time: '', end_time: '', sort_order: 0 });
                   }}
-                  className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:border-slate-300 transition-all"
+                  className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-muted-text hover:text-sub hover:border-border-strong transition-all"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -2329,55 +2329,55 @@ const FacultyManagement = () => {
                 <div className="p-8 flex flex-col lg:flex-row gap-8 h-full">
                   {/* Add/Edit Form */}
                   <div className="lg:w-80 space-y-6">
-                    <div className="bg-indigo-50/50 rounded-2xl p-6 border border-indigo-100">
-                      <h4 className="text-sm font-bold text-indigo-900 mb-4">{editingSlotId ? 'Edit Slot' : 'Add New Slot'}</h4>
+                    <div className="bg-[var(--primary-light)] rounded-2xl p-6 border border-[var(--primary-light)]">
+                      <h4 className="text-sm font-bold text-primary mb-4">{editingSlotId ? 'Edit Slot' : 'Add New Slot'}</h4>
                       <form onSubmit={handleSavePeriodSlot} className="space-y-4">
                         <div className="space-y-1.5">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Slot Name</label>
+                          <label className="text-[10px] font-bold text-muted-text uppercase tracking-widest px-1">Slot Name</label>
                           <input
                             type="text"
                             required
                             value={newPeriodSlot.name}
                             onChange={e => setNewPeriodSlot({ ...newPeriodSlot, name: e.target.value })}
                             placeholder="e.g. Period 1, Lunch Break"
-                            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none"
+                            className="w-full h-11 px-4 rounded-xl border border-border text-sm font-semibold focus:ring-2 focus:ring-primary outline-none"
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Start</label>
+                            <label className="text-[10px] font-bold text-muted-text uppercase tracking-widest px-1">Start</label>
                             <input
                               type="time"
                               required
                               value={newPeriodSlot.start_time}
                               onChange={e => setNewPeriodSlot({ ...newPeriodSlot, start_time: e.target.value })}
-                              className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none"
+                              className="w-full h-11 px-4 rounded-xl border border-border text-sm font-semibold focus:ring-2 focus:ring-primary outline-none"
                             />
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">End</label>
+                            <label className="text-[10px] font-bold text-muted-text uppercase tracking-widest px-1">End</label>
                             <input
                               type="time"
                               required
                               value={newPeriodSlot.end_time}
                               onChange={e => setNewPeriodSlot({ ...newPeriodSlot, end_time: e.target.value })}
-                              className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none"
+                              className="w-full h-11 px-4 rounded-xl border border-border text-sm font-semibold focus:ring-2 focus:ring-primary outline-none"
                             />
                           </div>
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Sort & Position</label>
+                          <label className="text-[10px] font-bold text-muted-text uppercase tracking-widest px-1">Sort & Position</label>
                           <input
                             type="number"
                             value={newPeriodSlot.sort_order}
                             onChange={e => setNewPeriodSlot({ ...newPeriodSlot, sort_order: Number(e.target.value) })}
-                            className="w-full h-11 px-4 rounded-xl border border-slate-200 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none"
+                            className="w-full h-11 px-4 rounded-xl border border-border text-sm font-semibold focus:ring-2 focus:ring-primary outline-none"
                           />
                         </div>
                         <button
                           type="submit"
                           disabled={savingPeriodSlot}
-                          className="w-full h-12 bg-indigo-600 text-white rounded-xl font-bold text-sm hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 disabled:opacity-50"
+                          className="w-full h-12 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary-hover transition-all shadow-lg shadow-primary disabled:opacity-50"
                         >
                           {savingPeriodSlot ? 'Saving...' : editingSlotId ? 'Update Slot' : 'Add Slot'}
                         </button>
@@ -2388,7 +2388,7 @@ const FacultyManagement = () => {
                               setEditingSlotId(null);
                               setNewPeriodSlot({ name: '', start_time: '', end_time: '', sort_order: 0 });
                             }}
-                            className="w-full h-12 bg-white text-slate-600 border border-slate-200 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all"
+                            className="w-full h-12 bg-surface text-sub border border-border rounded-xl font-bold text-sm hover:bg-background transition-all"
                           >
                             Cancel Edit
                           </button>
@@ -2400,13 +2400,13 @@ const FacultyManagement = () => {
                   {/* Slots List */}
                   <div className="flex-1 overflow-hidden flex flex-col">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-sm font-bold text-slate-800">Available Slots</h4>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{periodSlots.length} Slots defined</span>
+                      <h4 className="text-sm font-bold text-main">Available Slots</h4>
+                      <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest">{periodSlots.length} Slots defined</span>
                     </div>
                     <div className="flex-1 overflow-y-auto space-y-3 pr-2">
                       {periodSlots.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-slate-100 rounded-3xl">
-                          <p className="text-sm text-slate-400 font-medium">No slots defined yet</p>
+                        <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-border rounded-3xl">
+                          <p className="text-sm text-muted-text font-medium">No slots defined yet</p>
                         </div>
                       ) : (
                         <div className="space-y-1">
@@ -2420,21 +2420,21 @@ const FacultyManagement = () => {
                                       setNewPeriodSlot({ name: '', start_time: '', end_time: '', sort_order: (slot.sort_order || 1) - 1 });
                                       document.getElementById('period-slot-name')?.focus();
                                     }}
-                                    className="w-6 h-6 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-500 hover:bg-indigo-50 transition-all opacity-0 group-hover/add:opacity-100 shadow-md scale-95 hover:scale-110"
+                                    className="w-6 h-6 rounded-full bg-surface border-2 border-border flex items-center justify-center text-muted-text hover:text-primary hover:border-primary hover:bg-[var(--primary-light)] transition-all opacity-0 group-hover/add:opacity-100 shadow-md scale-95 hover:scale-110"
                                     title="Add slot at beginning"
                                   >
                                     <Plus className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
                               )}
-                              <div className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl group/item hover:border-indigo-200 transition-all shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-indigo-100/50">
+                              <div className="flex items-center justify-between p-4 bg-surface border border-border rounded-2xl group/item hover:border-[var(--primary-light)] transition-all shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-primary/50">
                                 <div className="flex items-center gap-4">
-                                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 group-hover/item:bg-indigo-50 group-hover/item:text-indigo-600 transition-all font-black text-xs ring-1 ring-slate-100">
+                                  <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center text-muted-text group-hover/item:bg-[var(--primary-light)] group-hover/item:text-primary transition-all font-black text-xs ring-1 ring-border-strong">
                                     {slot.sort_order}
                                   </div>
                                   <div>
-                                    <div className="text-[13px] font-bold text-slate-800 uppercase tracking-tight leading-none mb-1">{slot.name}</div>
-                                    <div className="text-[11px] font-bold text-indigo-500 font-mono italic">
+                                    <div className="text-[13px] font-bold text-main uppercase tracking-tight leading-none mb-1">{slot.name}</div>
+                                    <div className="text-[11px] font-bold text-primary font-mono italic">
                                       {slot.start_time.substring(0, 5)} — {slot.end_time.substring(0, 5)}
                                     </div>
                                   </div>
@@ -2451,13 +2451,13 @@ const FacultyManagement = () => {
                                       });
                                       document.getElementById('period-slot-name')?.focus();
                                     }}
-                                    className="w-9 h-9 rounded-lg border border-slate-100 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all"
+                                    className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-text hover:text-primary hover:border-[var(--primary-light)] hover:bg-[var(--primary-light)] transition-all"
                                   >
                                     <Pencil className="w-4 h-4" />
                                   </button>
                                   <button
                                     onClick={() => handleDeletePeriodSlot(slot.id)}
-                                    className="w-9 h-9 rounded-lg border border-slate-100 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 transition-all"
+                                    className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-text hover:text-danger hover:border-[var(--danger-light)] hover:bg-[var(--danger-light)] transition-all"
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </button>
@@ -2473,7 +2473,7 @@ const FacultyManagement = () => {
                                     setNewPeriodSlot({ name: '', start_time: '', end_time: '', sort_order: nextOrder });
                                     document.getElementById('period-slot-name')?.focus();
                                   }}
-                                  className="w-6 h-6 rounded-full bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-500 hover:bg-indigo-50 transition-all opacity-0 group-hover/add:opacity-100 shadow-md scale-95 hover:scale-110"
+                                  className="w-6 h-6 rounded-full bg-surface border-2 border-border flex items-center justify-center text-muted-text hover:text-primary hover:border-primary hover:bg-[var(--primary-light)] transition-all opacity-0 group-hover/add:opacity-100 shadow-md scale-95 hover:scale-110"
                                   title="Insert slot here"
                                 >
                                   <Plus className="w-3.5 h-3.5" />

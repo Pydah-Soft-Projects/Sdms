@@ -33,11 +33,11 @@ function CategoryReport() {
   if (!hasAccess && user) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] p-4 text-center">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-          <Lock className="text-red-500" size={32} />
+        <div className="w-16 h-16 bg-[var(--danger-light)] rounded-full flex items-center justify-center mb-4">
+          <Lock className="text-danger" size={32} />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
-        <p className="text-gray-600 max-w-sm">
+        <h2 className="text-xl font-bold text-main mb-2">Access Denied</h2>
+        <p className="text-sub max-w-sm">
           You do not have permission to view Category Reports.
         </p>
       </div>
@@ -272,12 +272,12 @@ function CategoryReport() {
       {/* Page header */}
       <header className="flex-shrink-0 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-indigo-100 p-2 text-indigo-600">
+          <div className="rounded-lg bg-[var(--primary-light)] p-2 text-primary">
             <BarChart3 size={24} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Category Report</h1>
-            <p className="text-sm text-gray-500">Caste-wise student counts by college, batch, program and branch</p>
+            <h1 className="text-xl font-bold text-main">Category Report</h1>
+            <p className="text-sm text-muted-text">Caste-wise student counts by college, batch, program and branch</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -285,7 +285,7 @@ function CategoryReport() {
             type="button"
             onClick={() => setRefreshKey((k) => k + 1)}
             disabled={loading}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border-strong text-sub hover:bg-background text-sm font-medium disabled:opacity-50"
           >
             {loading ? <RefreshCw size={16} className="animate-spin" /> : <RefreshCw size={16} />}
             Refresh
@@ -294,7 +294,7 @@ function CategoryReport() {
             type="button"
             onClick={() => handleDownload('excel')}
             disabled={downloading || categoryData.length === 0}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-green-500 text-green-600 hover:bg-green-50 text-sm font-medium disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-success text-success hover:bg-[var(--success-light)] text-sm font-medium disabled:opacity-50"
           >
             <Download size={16} />
             Download Excel
@@ -303,7 +303,7 @@ function CategoryReport() {
             type="button"
             onClick={() => handleDownload('pdf')}
             disabled={downloading || categoryData.length === 0}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-500 text-red-600 hover:bg-red-50 text-sm font-medium disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-danger text-danger hover:bg-[var(--danger-light)] text-sm font-medium disabled:opacity-50"
           >
             <FileText size={16} />
             Download PDF
@@ -312,18 +312,18 @@ function CategoryReport() {
       </header>
 
       {/* Filters */}
-      <section className="flex-shrink-0 bg-white border border-gray-200 rounded-xl shadow-sm p-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+      <section className="flex-shrink-0 bg-surface border border-border rounded-xl shadow-sm p-4">
+        <h2 className="text-sm font-semibold text-sub mb-3 flex items-center gap-2">
           <Layers size={16} />
           Filters
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">College</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">College</label>
             <select
               value={filters.college || ''}
               onChange={(e) => handleFilterChange('college', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
             >
               <option value="">All Colleges</option>
               {(filterOptions.colleges || []).map((c) => (
@@ -332,11 +332,11 @@ function CategoryReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Level</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Level</label>
             <select
               value={filters.level || ''}
               onChange={(e) => handleFilterChange('level', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
             >
               <option value="">All Levels</option>
               <option value="diploma">Diploma</option>
@@ -345,11 +345,11 @@ function CategoryReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Batch</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Batch</label>
             <select
               value={filters.batch || ''}
               onChange={(e) => handleFilterChange('batch', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
             >
               <option value="">All Batches</option>
               {(filterOptions.batches || []).map((b) => (
@@ -358,11 +358,11 @@ function CategoryReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Program</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Program</label>
             <select
               value={filters.course || ''}
               onChange={(e) => handleFilterChange('course', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
             >
               <option value="">All Programs</option>
               {availableCourses.map((c) => (
@@ -371,11 +371,11 @@ function CategoryReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Branch</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Branch</label>
             <select
               value={filters.branch || ''}
               onChange={(e) => handleFilterChange('branch', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
             >
               <option value="">All Branches</option>
               {(filterOptions.branches || []).map((b) => (
@@ -384,11 +384,11 @@ function CategoryReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Year</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Year</label>
             <select
               value={filters.year || ''}
               onChange={(e) => handleFilterChange('year', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
             >
               <option value="">All Years</option>
               {availableYears.map((y) => (
@@ -397,11 +397,11 @@ function CategoryReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Semester</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Semester</label>
             <select
               value={filters.semester || ''}
               onChange={(e) => handleFilterChange('semester', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-primary"
             >
               <option value="">All Semesters</option>
               {availableSemesters.map((s) => (
@@ -414,7 +414,7 @@ function CategoryReport() {
           <button
             type="button"
             onClick={clearFilters}
-            className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium"
+            className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)] text-sm font-medium"
           >
             <XCircle size={16} />
             Clear filters
@@ -424,35 +424,35 @@ function CategoryReport() {
 
       {/* Summary: selected filters */}
       {hasActiveFilters && (
-        <div className="flex-shrink-0 flex flex-wrap items-center gap-2 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-          <span className="font-medium text-gray-700">Showing:</span>
+        <div className="flex-shrink-0 flex flex-wrap items-center gap-2 text-sm text-sub bg-background border border-border rounded-lg px-4 py-3">
+          <span className="font-medium text-sub">Showing:</span>
           {filters.college && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-gray-200">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border">
               <Building2 size={14} /> College: {filters.college}
             </span>
           )}
           {filters.batch && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-gray-200">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border">
               <Calendar size={14} /> Batch: {filters.batch}
             </span>
           )}
           {filters.course && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-gray-200">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border">
               <BookOpen size={14} /> Program: {filters.course}
             </span>
           )}
           {filters.branch && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-gray-200">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border">
               <GitBranch size={14} /> Branch: {filters.branch}
             </span>
           )}
           {filters.year && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-gray-200">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border">
               <Hash size={14} /> Year: {filters.year}
             </span>
           )}
           {filters.semester && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-gray-200">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border">
               <Layers size={14} /> Semester: {filters.semester}
             </span>
           )}
@@ -460,55 +460,55 @@ function CategoryReport() {
       )}
 
       {/* Table: abstract style - College, Batch, Program, Branch, Year, Sem, Total, then category columns */}
-      <div className="flex-1 min-h-0 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+      <div className="flex-1 min-h-0 bg-surface border border-border rounded-xl shadow-sm overflow-hidden flex flex-col">
         <div className="flex-1 overflow-auto">
           {loading ? (
-            <div className="flex flex-col items-center justify-center gap-3 text-gray-500 py-16">
+            <div className="flex flex-col items-center justify-center gap-3 text-muted-text py-16">
               <RefreshCw className="animate-spin" size={32} />
               <p>Loading category report...</p>
             </div>
           ) : categoryData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 text-gray-500 py-16">
+            <div className="flex flex-col items-center justify-center gap-3 text-muted-text py-16">
               <AlertCircle size={40} />
               <p>No category data found for the current filters.</p>
             </div>
           ) : isAbstract ? (
             <table className="w-full text-sm text-left relative">
-              <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+              <thead className="bg-background text-sub font-medium border-b border-border sticky top-0 z-10 shadow-sm">
                 <tr>
-                  <th className="px-3 py-2.5 whitespace-nowrap bg-gray-50">College</th>
-                  <th className="px-3 py-2.5 whitespace-nowrap bg-gray-50">Batch</th>
-                  <th className="px-3 py-2.5 whitespace-nowrap bg-gray-50">Program</th>
-                  <th className="px-3 py-2.5 bg-gray-50 max-w-[140px] whitespace-normal">Branch</th>
-                  <th className="px-3 py-2.5 whitespace-nowrap text-center bg-gray-50">Year</th>
-                  <th className="px-3 py-2.5 whitespace-nowrap text-center bg-gray-50">Sem</th>
-                  <th className="px-3 py-2.5 whitespace-nowrap text-center bg-gray-50">Total</th>
+                  <th className="px-3 py-2.5 whitespace-nowrap bg-background">College</th>
+                  <th className="px-3 py-2.5 whitespace-nowrap bg-background">Batch</th>
+                  <th className="px-3 py-2.5 whitespace-nowrap bg-background">Program</th>
+                  <th className="px-3 py-2.5 bg-background max-w-[140px] whitespace-normal">Branch</th>
+                  <th className="px-3 py-2.5 whitespace-nowrap text-center bg-background">Year</th>
+                  <th className="px-3 py-2.5 whitespace-nowrap text-center bg-background">Sem</th>
+                  <th className="px-3 py-2.5 whitespace-nowrap text-center bg-background">Total</th>
                   {categoryColumns.map((cat) => (
-                    <th key={cat} className="px-3 py-2.5 whitespace-nowrap text-center text-xs text-gray-500 bg-gray-50">
+                    <th key={cat} className="px-3 py-2.5 whitespace-nowrap text-center text-xs text-muted-text bg-background">
                       {cat}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {categoryData.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-2.5 text-gray-700">{row.college || '-'}</td>
-                    <td className="px-3 py-2.5 text-gray-700">{row.batch || '-'}</td>
-                    <td className="px-3 py-2.5 font-medium text-gray-900">{row.course || '-'}</td>
-                    <td className="px-3 py-2.5 text-gray-700">{row.branch || '-'}</td>
-                    <td className="px-3 py-2.5 text-center text-gray-700">{row.current_year ?? '-'}</td>
-                    <td className="px-3 py-2.5 text-center text-gray-700">{row.current_semester ?? '-'}</td>
+                  <tr key={idx} className="hover:bg-background transition-colors">
+                    <td className="px-3 py-2.5 text-sub">{row.college || '-'}</td>
+                    <td className="px-3 py-2.5 text-sub">{row.batch || '-'}</td>
+                    <td className="px-3 py-2.5 font-medium text-main">{row.course || '-'}</td>
+                    <td className="px-3 py-2.5 text-sub">{row.branch || '-'}</td>
+                    <td className="px-3 py-2.5 text-center text-sub">{row.current_year ?? '-'}</td>
+                    <td className="px-3 py-2.5 text-center text-sub">{row.current_semester ?? '-'}</td>
                     <td className="px-3 py-2.5 text-center font-semibold">{row.total ?? 0}</td>
                     {categoryColumns.map((cat) => (
-                      <td key={cat} className="px-3 py-2.5 text-center text-gray-600">
+                      <td key={cat} className="px-3 py-2.5 text-center text-sub">
                         {row.category_breakdown?.[cat] ?? 0}
                       </td>
                     ))}
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="bg-gray-50 font-bold border-t-2 border-gray-200 sticky bottom-0 z-20 shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
+              <tfoot className="bg-background font-bold border-t-2 border-border sticky bottom-0 z-20 shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
                 <tr>
                   <td className="px-3 py-2.5" colSpan={6}>Total</td>
                   <td className="px-3 py-2.5 text-center">{totalCount}</td>
@@ -522,21 +522,21 @@ function CategoryReport() {
             </table>
           ) : (
             <table className="w-full text-sm text-left">
-              <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200 sticky top-0">
+              <thead className="bg-background text-sub font-medium border-b border-border sticky top-0">
                 <tr>
                   <th className="px-4 py-3">Caste / Subcaste</th>
                   <th className="px-4 py-3 text-right">Count</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {categoryData.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">{row.category || '-'}</td>
-                    <td className="px-4 py-3 text-right text-gray-700">{row.count}</td>
+                  <tr key={idx} className="hover:bg-background">
+                    <td className="px-4 py-3 font-medium text-main">{row.category || '-'}</td>
+                    <td className="px-4 py-3 text-right text-sub">{row.count}</td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="bg-gray-50 font-semibold border-t-2 border-gray-200 sticky bottom-0">
+              <tfoot className="bg-background font-semibold border-t-2 border-border sticky bottom-0">
                 <tr>
                   <td className="px-4 py-3">Total</td>
                   <td className="px-4 py-3 text-right">{totalCount}</td>

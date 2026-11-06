@@ -151,7 +151,7 @@ const showDismissibleWarningToast = (message, duration = 7000) => {
       <button
         type="button"
         onClick={() => toast.dismiss(t.id)}
-        className="flex-shrink-0 rounded p-0.5 text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+        className="flex-shrink-0 rounded p-0.5 text-white/60 hover:text-white hover:bg-[var(--surface)]/10 transition-colors"
         aria-label="Dismiss notification"
       >
         <X size={16} />
@@ -190,11 +190,11 @@ const Attendance = () => {
   if (!hasAccess && user) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] p-4 text-center">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-          <Lock className="text-red-500" size={32} />
+        <div className="w-16 h-16 bg-[var(--danger-light)] rounded-full flex items-center justify-center mb-4">
+          <Lock className="text-danger" size={32} />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
-        <p className="text-gray-600 max-w-sm">
+        <h2 className="text-xl font-bold text-main mb-2">Access Denied</h2>
+        <p className="text-sub max-w-sm">
           You do not have permission to view Daily Attendance.
         </p>
       </div>
@@ -202,16 +202,16 @@ const Attendance = () => {
   }
   const StatPill = ({ label, value, color }) => {
     const colorMap = {
-      gray: 'bg-gray-50 border-gray-200 text-gray-900',
-      green: 'bg-green-50 border-green-100 text-green-800',
-      blue: 'bg-blue-50 border-blue-100 text-blue-800',
-      red: 'bg-red-50 border-red-100 text-red-800',
-      amber: 'bg-amber-50 border-amber-100 text-amber-800'
+      gray: 'bg-background border-border text-main',
+      green: 'bg-[var(--success-light)] border-[var(--success-light)] text-success',
+      blue: 'bg-[var(--primary-light)] border-[var(--primary-light)] text-primary',
+      red: 'bg-[var(--danger-light)] border-[var(--danger-light)] text-danger',
+      amber: 'bg-[var(--warning-light)] border-[var(--warning-light)] text-warning'
     };
     const safeValue = Number.isFinite(value) ? value : Number(value) || 0;
     return (
       <div className={`border rounded-lg p-2 ${colorMap[color] || colorMap.gray}`}>
-        <p className="text-[10px] text-gray-600 leading-tight whitespace-normal">{label}</p>
+        <p className="text-[10px] text-sub leading-tight whitespace-normal">{label}</p>
         <p className="text-sm sm:text-base font-bold">{safeValue}</p>
       </div>
     );
@@ -1024,19 +1024,19 @@ const Attendance = () => {
   const statusSummaryMeta = {
     submitted: {
       message: 'Attendance already submitted for this date.',
-      className: 'border-emerald-200 bg-emerald-50 text-emerald-700'
+      className: 'border-[var(--success-light)] bg-[var(--success-light)] text-success'
     },
     not_marked: {
       message: 'Attendance was not marked on this date.',
-      className: 'border-rose-200 bg-rose-50 text-rose-700'
+      className: 'border-[var(--danger-light)] bg-[var(--danger-light)] text-danger'
     },
     pending: {
       message: 'Attendance is pending submission today.',
-      className: 'border-amber-200 bg-amber-50 text-amber-700'
+      className: 'border-[var(--warning-light)] bg-[var(--warning-light)] text-warning'
     },
     upcoming: {
       message: 'This is an upcoming day. Attendance opens on the selected date.',
-      className: 'border-blue-200 bg-blue-50 text-blue-700'
+      className: 'border-[var(--primary-light)] bg-[var(--primary-light)] text-primary'
     }
   };
 
@@ -2515,21 +2515,21 @@ const Attendance = () => {
         return `inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold border transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
           active
             ? tone === 'green'
-              ? 'bg-green-600 text-white border-green-600'
-              : 'bg-red-600 text-white border-red-600'
+              ? 'bg-success text-white border-success'
+              : 'bg-danger text-white border-danger'
             : tone === 'green'
-              ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-              : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+              ? 'bg-[var(--success-light)] text-success border-[var(--success-light)] hover:bg-[var(--success-light)]'
+              : 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)] hover:bg-[var(--danger-light)]'
         }`;
       }
       return `inline-flex flex-1 items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border transition-colors touch-manipulation min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed ${
         active
           ? tone === 'green'
-            ? 'bg-green-600 text-white border-green-600'
-            : 'bg-red-600 text-white border-red-600'
+            ? 'bg-success text-white border-success'
+            : 'bg-danger text-white border-danger'
           : tone === 'green'
-            ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
-            : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
+            ? 'bg-[var(--success-light)] text-success border-[var(--success-light)] hover:bg-[var(--success-light)]'
+            : 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)] hover:bg-[var(--danger-light)]'
       }`;
     };
 
@@ -3051,7 +3051,7 @@ const Attendance = () => {
         <img
           src={src}
           alt={student.studentName || 'Student'}
-          className="w-7 h-7 rounded-full object-cover border border-gray-100"
+          className="w-7 h-7 rounded-full object-cover border border-border"
         />
       );
     }
@@ -3064,7 +3064,7 @@ const Attendance = () => {
       .toUpperCase();
 
     return (
-      <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-semibold">
+      <div className="w-7 h-7 rounded-full bg-[var(--primary-light)] text-primary flex items-center justify-center text-[10px] font-semibold">
         {initials || 'NA'}
       </div>
     );
@@ -3211,12 +3211,12 @@ const Attendance = () => {
     <div className="h-full flex flex-col overflow-hidden space-y-2 lg:space-y-3">
       <header className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between py-1">
         <div className="flex items-center gap-2">
-          <div className="rounded-full bg-blue-100 p-1.5 text-blue-600 flex-shrink-0">
+          <div className="rounded-full bg-[var(--primary-light)] p-1.5 text-primary flex-shrink-0">
             <CalendarCheck size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-bold text-gray-900 heading-font">Attendance</h1>
-            <p className="text-[10px] sm:text-[11px] text-gray-600 leading-tight">
+            <h1 className="text-lg font-bold text-main heading-font">Attendance</h1>
+            <p className="text-[10px] sm:text-[11px] text-sub leading-tight">
               Mark daily attendance.
             </p>
           </div>
@@ -3226,12 +3226,12 @@ const Attendance = () => {
             type="date"
             value={attendanceDate}
             onChange={(e) => handleAttendanceDateChange(e.target.value)}
-            className="flex-1 sm:flex-none rounded-md border border-gray-300 px-3 py-2.5 sm:py-2 text-base sm:text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation min-h-[44px]"
+            className="flex-1 sm:flex-none rounded-md border border-border-strong px-3 py-2.5 sm:py-2 text-base sm:text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[44px]"
           />
           <button
             type="button"
             onClick={handleOpenCalendarModal}
-            className="rounded-md border border-gray-300 px-3 py-2.5 sm:py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="rounded-md border border-border-strong px-3 py-2.5 sm:py-2 text-sm text-sub hover:bg-background active:bg-background transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
             title="Open calendar"
           >
             <CalendarDays size={18} />
@@ -3240,7 +3240,7 @@ const Attendance = () => {
             <button
               type="button"
               onClick={() => setSettingsModalOpen(true)}
-              className="rounded-md border border-gray-300 px-3 py-2.5 sm:py-2 text-sm text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="rounded-md border border-border-strong px-3 py-2.5 sm:py-2 text-sm text-sub hover:bg-background active:bg-background transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
               title="Configuration"
             >
               <Settings size={18} />
@@ -3249,11 +3249,11 @@ const Attendance = () => {
         </div>
       </header >
 
-      <section className="bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-sm p-2 sm:p-2.5">
+      <section className="bg-surface border border-border rounded-lg sm:rounded-xl shadow-sm p-2 sm:p-2.5">
         <div className="space-y-3">
           <div className="flex items-center gap-1.5 px-0.5">
-            <Filter size={14} className="text-gray-600 flex-shrink-0" />
-            <h3 className="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Filters</h3>
+            <Filter size={14} className="text-sub flex-shrink-0" />
+            <h3 className="text-[11px] font-bold text-sub uppercase tracking-wider">Filters</h3>
           </div>
 
           {/* Dropdown Filters and Buttons */}
@@ -3261,7 +3261,7 @@ const Attendance = () => {
             <select
               value={filters.batch}
               onChange={(event) => handleFilterChange('batch', event.target.value)}
-              className="min-w-[120px] flex-1 sm:flex-none rounded-md border border-gray-300 px-1.5 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation min-h-[36px]"
+              className="min-w-[120px] flex-1 sm:flex-none rounded-md border border-border-strong px-1.5 py-1 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[36px]"
             >
               <option value="">All Batches</option>
               {filterOptions.batches.map((batchOption) => (
@@ -3271,7 +3271,7 @@ const Attendance = () => {
             <select
               value={filters.level || ''}
               onChange={(event) => handleFilterChange('level', event.target.value)}
-              className="min-w-[100px] flex-1 sm:flex-none rounded-md border border-gray-300 px-1.5 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation min-h-[36px]"
+              className="min-w-[100px] flex-1 sm:flex-none rounded-md border border-border-strong px-1.5 py-1 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[36px]"
             >
               <option value="">All Levels</option>
               <option value="diploma">Diploma</option>
@@ -3288,7 +3288,7 @@ const Attendance = () => {
                 }
                 loadFilterOptions(filtersForFetch, 'course');
               }}
-              className="min-w-[120px] flex-1 sm:flex-none rounded-md border border-gray-300 px-1.5 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation min-h-[36px]"
+              className="min-w-[120px] flex-1 sm:flex-none rounded-md border border-border-strong px-1.5 py-1 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[36px]"
             >
               <option value="">All Programs</option>
               {filterOptions.courses
@@ -3314,7 +3314,7 @@ const Attendance = () => {
                 }
                 loadFilterOptions(filtersForFetch, 'branch');
               }}
-              className="min-w-[120px] flex-1 sm:flex-none rounded-md border border-gray-300 px-1.5 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation min-h-[36px]"
+              className="min-w-[120px] flex-1 sm:flex-none rounded-md border border-border-strong px-1.5 py-1 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[36px]"
             >
               <option value="">All Branches</option>
               {availableBranches.map((branchOption) => (
@@ -3325,7 +3325,7 @@ const Attendance = () => {
               <select
                 value={filters.section || ''}
                 onChange={(event) => handleFilterChange('section', event.target.value)}
-                className="min-w-[110px] flex-1 sm:flex-none rounded-md border border-gray-300 px-1.5 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation min-h-[36px]"
+                className="min-w-[110px] flex-1 sm:flex-none rounded-md border border-border-strong px-1.5 py-1 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[36px]"
               >
                 <option value="">All Sections</option>
                 {sectionFilterOptions.map((sectionOption) => (
@@ -3336,7 +3336,7 @@ const Attendance = () => {
             <select
               value={filters.currentYear}
               onChange={(event) => handleFilterChange('currentYear', event.target.value)}
-              className="min-w-[100px] flex-1 sm:flex-none rounded-md border border-gray-300 px-1.5 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation min-h-[36px]"
+              className="min-w-[100px] flex-1 sm:flex-none rounded-md border border-border-strong px-1.5 py-1 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[36px]"
             >
               <option value="">All Years</option>
               {filterOptions.years.map((yearOption) => (
@@ -3348,7 +3348,7 @@ const Attendance = () => {
             <select
               value={filters.currentSemester}
               onChange={(event) => handleFilterChange('currentSemester', event.target.value)}
-              className="min-w-[110px] flex-1 sm:flex-none rounded-md border border-gray-300 px-1.5 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation min-h-[36px]"
+              className="min-w-[110px] flex-1 sm:flex-none rounded-md border border-border-strong px-1.5 py-1 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[36px]"
             >
               <option value="">All Semesters</option>
               {filterOptions.semesters.map((semesterOption) => (
@@ -3366,7 +3366,7 @@ const Attendance = () => {
               type="button"
               onClick={handleDayEndReport}
               disabled={dayEndReportLoading}
-              className="inline-flex items-center justify-center gap-1 px-3 py-1 rounded-md bg-indigo-600 text-white text-xs font-semibold shadow hover:bg-indigo-700 active:bg-indigo-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-h-[36px] whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-1 px-3 py-1 rounded-md bg-primary text-white text-xs font-semibold shadow hover:bg-primary-hover active:bg-primary transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-h-[36px] whitespace-nowrap"
             >
               <Download size={14} />
               {dayEndReportLoading ? 'Loading...' : 'Day End Report'}
@@ -3376,7 +3376,7 @@ const Attendance = () => {
               type="button"
               onClick={handleOverallAttendanceReport}
               disabled={overallAttendanceLoading}
-              className="inline-flex items-center justify-center gap-1 px-3 py-1 rounded-md bg-emerald-600 text-white text-xs font-semibold shadow hover:bg-emerald-700 active:bg-emerald-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-h-[36px] whitespace-nowrap"
+              className="inline-flex items-center justify-center gap-1 px-3 py-1 rounded-md bg-success text-white text-xs font-semibold shadow hover:bg-success active:bg-success transition-colors disabled:opacity-60 disabled:cursor-not-allowed min-h-[36px] whitespace-nowrap"
             >
               <Users size={14} />
               {overallAttendanceLoading ? 'Loading...' : 'Overall Attendance'}
@@ -3387,7 +3387,7 @@ const Attendance = () => {
                 type="button"
                 onClick={handleMarkHolidayForFiltered}
                 disabled={markHolidayLoading}
-                className="inline-flex items-center justify-center gap-1 px-2.5 py-1 text-[10px] sm:text-xs font-bold text-white bg-amber-600 rounded-md hover:bg-amber-700 active:bg-amber-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation min-h-[36px] px-3"
+                className="inline-flex items-center justify-center gap-1 px-2.5 py-1 text-[10px] sm:text-xs font-bold text-white bg-warning rounded-md hover:bg-warning active:bg-warning transition-colors disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation min-h-[36px] px-3"
               >
                 {markHolidayLoading ? <Loader2 size={12} className="animate-spin" /> : <AlertTriangle size={12} />}
                 Mark No Class
@@ -3398,23 +3398,23 @@ const Attendance = () => {
           {/* Search Inputs - Full Width on Mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             <div className="relative">
-              <Search size={14} className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <Search size={14} className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-text pointer-events-none" />
               <input
                 type="text"
                 placeholder="Student name, PIN, or roll no"
                 value={filters.studentName}
                 onChange={(event) => handleFilterChange('studentName', event.target.value)}
-                className="w-full rounded-md border border-gray-300 pl-8 pr-2 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation min-h-[36px]"
+                className="w-full rounded-md border border-border-strong pl-8 pr-2 py-1 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[36px]"
               />
             </div>
             <div className="relative">
-              <Search size={14} className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <Search size={14} className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-muted-text pointer-events-none" />
               <input
                 type="text"
                 placeholder="Parent mobile"
                 value={filters.parentMobile}
                 onChange={(event) => handleFilterChange('parentMobile', event.target.value)}
-                className="w-full rounded-md border border-gray-300 pl-8 pr-2 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 touch-manipulation min-h-[36px]"
+                className="w-full rounded-md border border-border-strong pl-8 pr-2 py-1 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[36px]"
               />
             </div>
           </div>
@@ -3426,22 +3426,22 @@ const Attendance = () => {
       {/* Day End Report Modal */}
       {dayEndReportOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[95%] my-8 overflow-hidden animate-scale-in border border-gray-100 flex flex-col max-h-[90vh]">
+          <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-[95%] my-8 overflow-hidden animate-scale-in border border-border flex flex-col max-h-[90vh]">
             {/* Header */}
-            <div className="p-6 border-b flex justify-between items-center bg-white sticky top-0 z-10 shrink-0">
+            <div className="p-6 border-b flex justify-between items-center bg-surface sticky top-0 z-10 shrink-0">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--primary-light)] flex items-center justify-center text-primary shadow-inner">
                   <FileText size={24} />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-gray-900 tracking-tight">
+                  <h2 className="text-xl font-black text-main tracking-tight">
                     {dayEndReportMode === 'previous-pending'
                       ? 'Previous Day Pending Attendance'
                       : dayEndReportMode === 'overall'
                       ? 'Overall Attendance Abstract Report'
                       : 'Day End Abstract Report'}
                   </h2>
-                  <p className="text-xs text-gray-500 font-medium">
+                  <p className="text-xs text-muted-text font-medium">
                     {formatFriendlyDate(dayEndReportData?.date || attendanceDate)}
                     {dayEndReportMode === 'previous-pending' && dayEndReportData?.pendingBatchCount
                       ? ` · ${dayEndReportData.pendingBatchCount} batch(es) · ${dayEndReportData.totalPendingStudents || 0} student(s) pending`
@@ -3450,7 +3450,7 @@ const Attendance = () => {
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="hidden md:flex items-center bg-gray-100 p-1 rounded-xl">
+                <div className="hidden md:flex items-center bg-background p-1 rounded-xl">
                   {[
                     { id: 'all', label: 'All' },
                     { id: 'marked', label: 'Marked' },
@@ -3460,8 +3460,8 @@ const Attendance = () => {
                       key={btn.id}
                       onClick={() => setDayEndPreviewFilter(btn.id)}
                       className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${dayEndPreviewFilter === btn.id
-                        ? 'bg-white text-blue-600 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-surface text-primary shadow-sm'
+                        : 'text-muted-text hover:text-sub'
                         }`}
                     >
                       {btn.label}
@@ -3470,17 +3470,17 @@ const Attendance = () => {
                 </div>
                 <button
                   onClick={() => setDayEndReportOpen(false)}
-                  className="p-2.5 hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-500 transition-all active:scale-95"
+                  className="p-2.5 hover:bg-[var(--danger-light)] rounded-xl text-muted-text hover:text-danger transition-all active:scale-95"
                 >
                   <X size={24} />
                 </button>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto bg-gray-50/30 p-4 sm:p-6">
+            <div className="flex-1 overflow-y-auto bg-[var(--background)]/30 p-4 sm:p-6">
               <div className="w-full mx-auto space-y-6">
                 {dayEndReportMode === 'previous-pending' && (
-                  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  <div className="rounded-2xl border border-[var(--warning-light)] bg-[var(--warning-light)] px-4 py-3 text-sm text-warning">
                     <div className="flex items-start gap-2">
                       <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
                       <span>
@@ -3492,7 +3492,7 @@ const Attendance = () => {
                 )}
 
                 {/* Mobile Filter Toggles */}
-                <div className="flex md:hidden items-center bg-white p-1 rounded-2xl border border-gray-200 shadow-sm">
+                <div className="flex md:hidden items-center bg-surface p-1 rounded-2xl border border-border shadow-sm">
                   {[
                     { id: 'all', label: 'All' },
                     { id: 'marked', label: 'Marked' },
@@ -3502,8 +3502,8 @@ const Attendance = () => {
                       key={btn.id}
                       onClick={() => setDayEndPreviewFilter(btn.id)}
                       className={`flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${dayEndPreviewFilter === btn.id
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
-                        : 'text-gray-500 hover:bg-gray-50'
+                        ? 'bg-primary text-white shadow-lg shadow-primary'
+                        : 'text-muted-text hover:bg-background'
                         }`}
                     >
                       {btn.label}
@@ -3512,31 +3512,31 @@ const Attendance = () => {
                 </div>
 
                 {/* Sticky Stats Section */}
-                <div className="sticky top-0 z-20 bg-gray-50/30 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2 pb-4 backdrop-blur-sm">
+                <div className="sticky top-0 z-20 bg-[var(--background)]/30 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2 pb-4 backdrop-blur-sm">
                   <div className="grid grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
-                    <div className="bg-white p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-gray-100 shadow-sm text-center lg:text-left">
-                      <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5 sm:mb-1">Total</p>
-                      <h3 className="text-sm sm:text-xl font-black text-gray-900">{filteredStats.totalStudents}</h3>
+                    <div className="bg-surface p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-border shadow-sm text-center lg:text-left">
+                      <p className="text-[9px] sm:text-[10px] font-black text-muted-text uppercase tracking-widest mb-0.5 sm:mb-1">Total</p>
+                      <h3 className="text-sm sm:text-xl font-black text-main">{filteredStats.totalStudents}</h3>
                     </div>
-                    <div className="bg-white p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-gray-100 shadow-sm text-center lg:text-left">
-                      <p className="text-[9px] sm:text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-0.5 sm:mb-1">Marked</p>
-                      <h3 className="text-sm sm:text-xl font-black text-emerald-600">{filteredStats.markedToday}</h3>
+                    <div className="bg-surface p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-border shadow-sm text-center lg:text-left">
+                      <p className="text-[9px] sm:text-[10px] font-black text-success uppercase tracking-widest mb-0.5 sm:mb-1">Marked</p>
+                      <h3 className="text-sm sm:text-xl font-black text-success">{filteredStats.markedToday}</h3>
                     </div>
-                    <div className="bg-white p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-gray-100 shadow-sm text-center lg:text-left">
-                      <p className="text-[9px] sm:text-[10px] font-black text-rose-500 uppercase tracking-widest mb-0.5 sm:mb-1">Absent</p>
-                      <h3 className="text-sm sm:text-xl font-black text-rose-600">{filteredStats.absentToday}</h3>
+                    <div className="bg-surface p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-border shadow-sm text-center lg:text-left">
+                      <p className="text-[9px] sm:text-[10px] font-black text-danger uppercase tracking-widest mb-0.5 sm:mb-1">Absent</p>
+                      <h3 className="text-sm sm:text-xl font-black text-danger">{filteredStats.absentToday}</h3>
                     </div>
-                    <div className="bg-white p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-gray-100 shadow-sm text-center lg:text-left">
-                      <p className="text-[9px] sm:text-[10px] font-black text-blue-500 uppercase tracking-widest mb-0.5 sm:mb-1">Present</p>
-                      <h3 className="text-sm sm:text-xl font-black text-blue-600">{filteredStats.presentToday}</h3>
+                    <div className="bg-surface p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-border shadow-sm text-center lg:text-left">
+                      <p className="text-[9px] sm:text-[10px] font-black text-primary uppercase tracking-widest mb-0.5 sm:mb-1">Present</p>
+                      <h3 className="text-sm sm:text-xl font-black text-primary">{filteredStats.presentToday}</h3>
                     </div>
-                    <div className="bg-white p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-gray-100 shadow-sm overflow-hidden text-center lg:text-left" title={filteredStats.holidayReason}>
-                      <p className="text-[9px] sm:text-[10px] font-black text-amber-500 uppercase tracking-widest mb-0.5 sm:mb-1 truncate">No Class</p>
-                      <h3 className="text-sm sm:text-xl font-black text-amber-600">{filteredStats.holidayToday}</h3>
+                    <div className="bg-surface p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-border shadow-sm overflow-hidden text-center lg:text-left" title={filteredStats.holidayReason}>
+                      <p className="text-[9px] sm:text-[10px] font-black text-warning uppercase tracking-widest mb-0.5 sm:mb-1 truncate">No Class</p>
+                      <h3 className="text-sm sm:text-xl font-black text-warning">{filteredStats.holidayToday}</h3>
                     </div>
-                    <div className="bg-white p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-gray-100 shadow-sm text-center lg:text-left">
-                      <p className="text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5 sm:mb-1">Pending</p>
-                      <h3 className="text-sm sm:text-xl font-black text-gray-600">{filteredStats.unmarkedToday || 0}</h3>
+                    <div className="bg-surface p-2 sm:p-4 rounded-xl sm:rounded-3xl border border-border shadow-sm text-center lg:text-left">
+                      <p className="text-[9px] sm:text-[10px] font-black text-muted-text uppercase tracking-widest mb-0.5 sm:mb-1">Pending</p>
+                      <h3 className="text-sm sm:text-xl font-black text-sub">{filteredStats.unmarkedToday || 0}</h3>
                     </div>
                   </div>
                 </div>
@@ -3544,97 +3544,97 @@ const Attendance = () => {
                 {/* Mobile View: Cards */}
                 <div className="md:hidden space-y-4">
                   {dayEndGroupedDisplay.map((row, idx) => (
-                    <div key={idx} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xl overflow-hidden p-6 relative">
+                    <div key={idx} className="bg-surface rounded-[2.5rem] border border-border shadow-xl overflow-hidden p-6 relative">
                       <div className="absolute top-0 right-0 p-4">
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${row.totalStudents > 0 && (row.presentToday / row.totalStudents * 100) > 75 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${row.totalStudents > 0 && (row.presentToday / row.totalStudents * 100) > 75 ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--danger-light)] text-danger'}`}>
                           {row.totalStudents > 0 ? ((row.presentToday / row.totalStudents) * 100).toFixed(1) + '%' : '0.0%'}
                         </span>
                       </div>
                       <div className="mb-4">
-                        <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">{row.batch || '—'} BATCH</div>
-                        <h4 className="text-lg font-black text-gray-900 leading-tight mb-1">{row.course || '—'}</h4>
-                        <p className="text-xs font-bold text-gray-500 uppercase tracking-tight">{row.branch || '—'}</p>
-                        <p className="text-[10px] font-bold text-gray-400 mt-1">YEAR {row.year} • SEM {row.semester}</p>
+                        <div className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{row.batch || '—'} BATCH</div>
+                        <h4 className="text-lg font-black text-main leading-tight mb-1">{row.course || '—'}</h4>
+                        <p className="text-xs font-bold text-muted-text uppercase tracking-tight">{row.branch || '—'}</p>
+                        <p className="text-[10px] font-bold text-muted-text mt-1">YEAR {row.year} • SEM {row.semester}</p>
                       </div>
 
                       {dayEndReportMode === 'overall' ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 bg-gray-50 rounded-2xl p-4 text-xs font-bold text-gray-700">
-                          <div className="col-span-2 sm:col-span-4 grid grid-cols-2 sm:grid-cols-3 gap-3 border-b border-gray-200 pb-3 mb-1">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 bg-background rounded-2xl p-4 text-xs font-bold text-sub">
+                          <div className="col-span-2 sm:col-span-4 grid grid-cols-2 sm:grid-cols-3 gap-3 border-b border-border pb-3 mb-1">
                             <div>
-                              <div className="text-[9px] font-black text-indigo-500 uppercase mb-0.5">Academic Year</div>
-                              <div className="text-indigo-700">{row.academicYear || '—'}</div>
+                              <div className="text-[9px] font-black text-primary uppercase mb-0.5">Academic Year</div>
+                              <div className="text-primary">{row.academicYear || '—'}</div>
                             </div>
                             <div>
-                              <div className="text-[9px] font-black text-indigo-500 uppercase mb-0.5">Start Date</div>
-                              <div className="text-indigo-700">{row.startDate && row.startDate !== '—' ? formatFriendlyDate(row.startDate) : '—'}</div>
+                              <div className="text-[9px] font-black text-primary uppercase mb-0.5">Start Date</div>
+                              <div className="text-primary">{row.startDate && row.startDate !== '—' ? formatFriendlyDate(row.startDate) : '—'}</div>
                             </div>
                             <div>
-                              <div className="text-[9px] font-black text-indigo-500 uppercase mb-0.5">End Date</div>
-                              <div className="text-indigo-700">{row.endDate && row.endDate !== '—' ? formatFriendlyDate(row.endDate) : '—'}</div>
+                              <div className="text-[9px] font-black text-primary uppercase mb-0.5">End Date</div>
+                              <div className="text-primary">{row.endDate && row.endDate !== '—' ? formatFriendlyDate(row.endDate) : '—'}</div>
                             </div>
                           </div>
                           <div>
-                            <div className="text-[9px] font-black text-gray-400 uppercase mb-0.5">Total</div>
-                            <div className="text-gray-900">{row.totalStudents || 0}</div>
+                            <div className="text-[9px] font-black text-muted-text uppercase mb-0.5">Total</div>
+                            <div className="text-main">{row.totalStudents || 0}</div>
                           </div>
                           <div>
-                            <div className="text-[9px] font-black text-gray-400 uppercase mb-0.5">Pending</div>
-                            <div className="text-gray-900">{row.pendingToday || 0}</div>
+                            <div className="text-[9px] font-black text-muted-text uppercase mb-0.5">Pending</div>
+                            <div className="text-main">{row.pendingToday || 0}</div>
                           </div>
                           <div>
-                            <div className="text-[9px] font-black text-emerald-600 uppercase mb-0.5">Class Pres</div>
-                            <div className="text-emerald-700">{row.dailyPresent || 0}</div>
+                            <div className="text-[9px] font-black text-success uppercase mb-0.5">Class Pres</div>
+                            <div className="text-success">{row.dailyPresent || 0}</div>
                           </div>
                           <div>
-                            <div className="text-[9px] font-black text-rose-600 uppercase mb-0.5">Class Abs</div>
-                            <div className="text-rose-700">{row.dailyAbsent || 0}</div>
+                            <div className="text-[9px] font-black text-danger uppercase mb-0.5">Class Abs</div>
+                            <div className="text-danger">{row.dailyAbsent || 0}</div>
                           </div>
                           <div>
-                            <div className="text-[9px] font-black text-emerald-800 uppercase mb-0.5">Intern Pres</div>
-                            <div className="text-emerald-900">{row.internshipPresent || 0}</div>
+                            <div className="text-[9px] font-black text-success uppercase mb-0.5">Intern Pres</div>
+                            <div className="text-success">{row.internshipPresent || 0}</div>
                           </div>
                           <div>
-                            <div className="text-[9px] font-black text-rose-800 uppercase mb-0.5">Intern Abs</div>
-                            <div className="text-rose-900">{(row.internshipAbsent || 0) + (row.rejectedToday || 0)}</div>
+                            <div className="text-[9px] font-black text-danger uppercase mb-0.5">Intern Abs</div>
+                            <div className="text-danger">{(row.internshipAbsent || 0) + (row.rejectedToday || 0)}</div>
                           </div>
                           <div>
-                            <div className="text-[9px] font-black text-amber-500 uppercase mb-0.5">No Class</div>
-                            <div className="text-amber-600">{row.holidayToday || 0}</div>
+                            <div className="text-[9px] font-black text-warning uppercase mb-0.5">No Class</div>
+                            <div className="text-warning">{row.holidayToday || 0}</div>
                           </div>
                           {(row.remarks || row.holidayReasons) && (
-                            <div className="col-span-2 sm:col-span-4 border-t border-gray-200 pt-2 mt-1">
-                              <div className="text-[9px] font-black text-violet-500 uppercase mb-0.5">Remarks</div>
-                              <div className="text-[10px] font-medium text-gray-600 italic">{row.remarks || row.holidayReasons}</div>
+                            <div className="col-span-2 sm:col-span-4 border-t border-border pt-2 mt-1">
+                              <div className="text-[9px] font-black text-secondary uppercase mb-0.5">Remarks</div>
+                              <div className="text-[10px] font-medium text-sub italic">{row.remarks || row.holidayReasons}</div>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <div className="grid grid-cols-4 gap-2 mb-4 bg-gray-50 rounded-2xl p-4">
+                        <div className="grid grid-cols-4 gap-2 mb-4 bg-background rounded-2xl p-4">
                           <div className="text-center">
-                            <div className="text-[10px] font-black text-gray-400 uppercase mb-1">Ttl</div>
-                            <div className="text-xs font-black text-gray-900">{row.totalStudents || 0}</div>
+                            <div className="text-[10px] font-black text-muted-text uppercase mb-1">Ttl</div>
+                            <div className="text-xs font-black text-main">{row.totalStudents || 0}</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-[10px] font-black text-emerald-500 uppercase mb-1">P</div>
-                            <div className="text-xs font-black text-emerald-600">{row.presentToday || 0}</div>
+                            <div className="text-[10px] font-black text-success uppercase mb-1">P</div>
+                            <div className="text-xs font-black text-success">{row.presentToday || 0}</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-[10px] font-black text-rose-500 uppercase mb-1">A</div>
-                            <div className="text-xs font-black text-rose-600">{row.absentToday || 0}</div>
+                            <div className="text-[10px] font-black text-danger uppercase mb-1">A</div>
+                            <div className="text-xs font-black text-danger">{row.absentToday || 0}</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-[10px] font-black text-amber-500 uppercase mb-1">N.C</div>
-                            <div className="text-xs font-black text-amber-600">{row.holidayToday || 0}</div>
+                            <div className="text-[10px] font-black text-warning uppercase mb-1">N.C</div>
+                            <div className="text-xs font-black text-warning">{row.holidayToday || 0}</div>
                           </div>
                         </div>
                       )}
 
                       <div className="flex items-center justify-between pt-2">
-                        <div className="text-[9px] font-medium text-gray-400">
+                        <div className="text-[9px] font-medium text-muted-text">
                           Updated: {row.lastUpdated ? new Date(row.lastUpdated).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—'}
                         </div>
                         {row.holidayReasons && (
-                          <div className="text-[9px] font-bold text-amber-600 italic truncate max-w-[150px]">
+                          <div className="text-[9px] font-bold text-warning italic truncate max-w-[150px]">
                             {row.holidayReasons}
                           </div>
                         )}
@@ -3642,26 +3642,26 @@ const Attendance = () => {
                     </div>
                   ))}
                   {dayEndGroupedDisplay.length === 0 && (
-                    <div className="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-gray-100">
-                      <p className="text-gray-400 font-bold">No records found for this view</p>
+                    <div className="bg-surface rounded-3xl p-12 text-center border-2 border-dashed border-border">
+                      <p className="text-muted-text font-bold">No records found for this view</p>
                     </div>
                   )}
                 </div>
 
                 {/* Desktop View: Table */}
-                <div className="hidden md:block bg-white rounded-[2.5rem] border border-gray-200 shadow-2xl overflow-hidden">
+                <div className="hidden md:block bg-surface rounded-[2.5rem] border border-border shadow-2xl overflow-hidden">
                   <div className="overflow-x-auto min-h-[400px]">
                     <table className={`w-full text-left border-collapse table-fixed ${dayEndReportMode === 'overall' ? 'min-w-[1850px]' : 'min-w-[1500px]'}`}>
                       <thead>
-                        <tr className="bg-gray-900 text-white">
+                        <tr className="bg-sidebar text-white">
                           <th className="px-6 py-5 w-[240px] text-[10px] font-bold uppercase tracking-widest">
                             <select
                               value={dayEndFilters.college}
                               onChange={(e) => setDayEndFilters(prev => ({ ...prev, college: e.target.value, course: '', branch: '' }))}
                               className="bg-transparent border-none focus:ring-0 cursor-pointer w-[200px] text-ellipsis overflow-hidden text-[10px] font-bold"
                             >
-                              <option value="" className="text-gray-900">COLLEGE</option>
-                              {dayEndFilterOptions.colleges.map((opt) => <option key={opt} value={opt.id || opt} className="text-gray-900">{opt.name || opt}</option>)}
+                              <option value="" className="text-main">COLLEGE</option>
+                              {dayEndFilterOptions.colleges.map((opt) => <option key={opt} value={opt.id || opt} className="text-main">{opt.name || opt}</option>)}
                             </select>
                           </th>
                           <th className="px-6 py-5 w-[100px] text-[10px] font-bold uppercase tracking-widest text-left">
@@ -3670,8 +3670,8 @@ const Attendance = () => {
                               onChange={(e) => setDayEndFilters(prev => ({ ...prev, batch: e.target.value, branch: '', year: '', semester: '' }))}
                               className="bg-transparent border-none focus:ring-0 cursor-pointer w-[80px] text-ellipsis overflow-hidden text-[10px] font-bold p-0"
                             >
-                              <option value="" className="text-gray-900">BATCH</option>
-                              {filteredDayEndBatches.map((opt) => <option key={opt} value={opt.id || opt} className="text-gray-900">{opt.name || opt}</option>)}
+                              <option value="" className="text-main">BATCH</option>
+                              {filteredDayEndBatches.map((opt) => <option key={opt} value={opt.id || opt} className="text-main">{opt.name || opt}</option>)}
                             </select>
                           </th>
                           <th className="px-6 py-5 w-[180px] text-[10px] font-bold uppercase tracking-widest text-left">
@@ -3680,8 +3680,8 @@ const Attendance = () => {
                               onChange={(e) => setDayEndFilters(prev => ({ ...prev, branch: e.target.value, year: '', semester: '' }))}
                               className="bg-transparent border-none focus:ring-0 cursor-pointer w-[140px] text-ellipsis overflow-hidden text-[10px] font-bold p-0"
                             >
-                              <option value="" className="text-gray-900">BRANCH</option>
-                              {filteredDayEndBranches.map((opt) => <option key={opt} value={opt.id || opt} className="text-gray-900">{opt.name || opt}</option>)}
+                              <option value="" className="text-main">BRANCH</option>
+                              {filteredDayEndBranches.map((opt) => <option key={opt} value={opt.id || opt} className="text-main">{opt.name || opt}</option>)}
                             </select>
                           </th>
                           <th className="px-6 py-5 w-[100px] text-[10px] font-bold uppercase tracking-widest text-center">
@@ -3690,8 +3690,8 @@ const Attendance = () => {
                               onChange={(e) => setDayEndFilters(prev => ({ ...prev, year: e.target.value, semester: '' }))}
                               className="bg-transparent border-none focus:ring-0 cursor-pointer w-full text-[10px] font-bold p-0 text-center"
                             >
-                              <option value="" className="text-gray-900">YEAR</option>
-                              {filteredDayEndYears.map((opt) => <option key={opt} value={opt.id || opt} className="text-gray-900">{opt.name || opt}</option>)}
+                              <option value="" className="text-main">YEAR</option>
+                              {filteredDayEndYears.map((opt) => <option key={opt} value={opt.id || opt} className="text-main">{opt.name || opt}</option>)}
                             </select>
                           </th>
                           <th className="px-6 py-5 w-[100px] text-[10px] font-bold uppercase tracking-widest text-center">
@@ -3700,28 +3700,28 @@ const Attendance = () => {
                               onChange={(e) => setDayEndFilters(prev => ({ ...prev, semester: e.target.value }))}
                               className="bg-transparent border-none focus:ring-0 cursor-pointer w-full text-[10px] font-bold p-0 text-center"
                             >
-                              <option value="" className="text-gray-900">SEM</option>
-                              {filteredDayEndSemesters.map((opt) => <option key={opt} value={opt.id || opt} className="text-gray-900">{opt.name || opt}</option>)}
+                              <option value="" className="text-main">SEM</option>
+                              {filteredDayEndSemesters.map((opt) => <option key={opt} value={opt.id || opt} className="text-main">{opt.name || opt}</option>)}
                             </select>
                           </th>
                           {dayEndReportMode === 'overall' && (
                             <>
-                              <th className="px-4 py-5 w-[110px] text-[10px] font-bold uppercase tracking-widest text-center text-indigo-300">Acad Year</th>
-                              <th className="px-4 py-5 w-[110px] text-[10px] font-bold uppercase tracking-widest text-center text-indigo-300">Start Date</th>
-                              <th className="px-4 py-5 w-[110px] text-[10px] font-bold uppercase tracking-widest text-center text-indigo-300">End Date</th>
+                              <th className="px-4 py-5 w-[110px] text-[10px] font-bold uppercase tracking-widest text-center text-primary">Acad Year</th>
+                              <th className="px-4 py-5 w-[110px] text-[10px] font-bold uppercase tracking-widest text-center text-primary">Start Date</th>
+                              <th className="px-4 py-5 w-[110px] text-[10px] font-bold uppercase tracking-widest text-center text-primary">End Date</th>
                             </>
                           )}
                           <th className="px-6 py-5 w-[100px] text-[10px] font-bold uppercase tracking-widest text-right">Students</th>
                           {dayEndReportMode === 'overall' ? (
                             <>
-                              <th className="px-4 py-5 w-[85px] text-[10px] font-bold uppercase tracking-widest text-right text-emerald-600">Class P</th>
-                              <th className="px-4 py-5 w-[85px] text-[10px] font-bold uppercase tracking-widest text-right text-rose-600">Class A</th>
-                              <th className="px-4 py-5 w-[85px] text-[10px] font-bold uppercase tracking-widest text-right text-emerald-800">Intern P</th>
-                              <th className="px-4 py-5 w-[85px] text-[10px] font-bold uppercase tracking-widest text-right text-rose-800">Intern A</th>
-                              <th className="px-4 py-5 w-[90px] text-[10px] font-bold uppercase tracking-widest text-right text-amber-500">No Class</th>
+                              <th className="px-4 py-5 w-[85px] text-[10px] font-bold uppercase tracking-widest text-right text-success">Class P</th>
+                              <th className="px-4 py-5 w-[85px] text-[10px] font-bold uppercase tracking-widest text-right text-danger">Class A</th>
+                              <th className="px-4 py-5 w-[85px] text-[10px] font-bold uppercase tracking-widest text-right text-success">Intern P</th>
+                              <th className="px-4 py-5 w-[85px] text-[10px] font-bold uppercase tracking-widest text-right text-danger">Intern A</th>
+                              <th className="px-4 py-5 w-[90px] text-[10px] font-bold uppercase tracking-widest text-right text-warning">No Class</th>
                               <th className="px-4 py-5 w-[80px] text-[10px] font-bold uppercase tracking-widest text-right">Pending</th>
                               <th className="px-4 py-5 w-[90px] text-[10px] font-bold uppercase tracking-widest text-center">Status %</th>
-                              <th className="px-4 py-5 w-[160px] text-[10px] font-bold uppercase tracking-widest text-left text-violet-400">Remarks</th>
+                              <th className="px-4 py-5 w-[160px] text-[10px] font-bold uppercase tracking-widest text-left text-secondary">Remarks</th>
                             </>
                           ) : (
                             <>
@@ -3734,73 +3734,73 @@ const Attendance = () => {
                           <th className="px-6 py-5 w-[120px] text-[10px] font-bold uppercase tracking-widest text-right">Updated At</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-50">
+                      <tbody className="divide-y divide-border">
                         {dayEndGroupedDisplay.map((row, idx) => (
-                          <tr key={idx} className="hover:bg-blue-50/30 transition-colors group">
-                            <td className="px-6 py-4 text-[11px] font-medium text-gray-800 truncate" title={row.college}>{row.college || '—'}</td>
-                            <td className="px-6 py-4 text-[11px] font-bold text-blue-700">{row.batch || '—'}</td>
-                            <td className="px-6 py-4 text-[11px] font-bold text-gray-800 uppercase truncate" title={row.branch}>{row.branch || '—'}</td>
-                            <td className="px-6 py-4 text-center text-[11px] font-bold text-gray-600">{row.year || '—'}</td>
-                            <td className="px-6 py-4 text-center text-[11px] font-bold text-gray-600">{row.semester || '—'}</td>
+                          <tr key={idx} className="hover:bg-[var(--primary-light)] transition-colors group">
+                            <td className="px-6 py-4 text-[11px] font-medium text-main truncate" title={row.college}>{row.college || '—'}</td>
+                            <td className="px-6 py-4 text-[11px] font-bold text-primary">{row.batch || '—'}</td>
+                            <td className="px-6 py-4 text-[11px] font-bold text-main uppercase truncate" title={row.branch}>{row.branch || '—'}</td>
+                            <td className="px-6 py-4 text-center text-[11px] font-bold text-sub">{row.year || '—'}</td>
+                            <td className="px-6 py-4 text-center text-[11px] font-bold text-sub">{row.semester || '—'}</td>
                             {dayEndReportMode === 'overall' && (
                               <>
-                                <td className="px-4 py-4 text-center text-[11px] font-bold text-indigo-700">{row.academicYear || '—'}</td>
-                                <td className="px-4 py-4 text-center text-[11px] font-medium text-indigo-700 whitespace-nowrap">
+                                <td className="px-4 py-4 text-center text-[11px] font-bold text-primary">{row.academicYear || '—'}</td>
+                                <td className="px-4 py-4 text-center text-[11px] font-medium text-primary whitespace-nowrap">
                                   {row.startDate && row.startDate !== '—' ? formatFriendlyDate(row.startDate) : '—'}
                                 </td>
-                                <td className="px-4 py-4 text-center text-[11px] font-medium text-indigo-700 whitespace-nowrap">
+                                <td className="px-4 py-4 text-center text-[11px] font-medium text-primary whitespace-nowrap">
                                   {row.endDate && row.endDate !== '—' ? formatFriendlyDate(row.endDate) : '—'}
                                 </td>
                               </>
                             )}
-                            <td className="px-6 py-4 text-right text-xs font-bold text-gray-900">{row.totalStudents ?? 0}</td>
+                            <td className="px-6 py-4 text-right text-xs font-bold text-main">{row.totalStudents ?? 0}</td>
                             {dayEndReportMode === 'overall' ? (
                               <>
                                 <td className="px-4 py-4 text-right">
-                                  <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-lg font-bold text-[11px]">
+                                  <span className="bg-[var(--success-light)] text-success px-2 py-1 rounded-lg font-bold text-[11px]">
                                     {row.dailyPresent ?? 0}
                                   </span>
                                 </td>
                                 <td className="px-4 py-4 text-right">
-                                  <span className="bg-rose-50 text-rose-700 px-2 py-1 rounded-lg font-bold text-[11px]">
+                                  <span className="bg-[var(--danger-light)] text-danger px-2 py-1 rounded-lg font-bold text-[11px]">
                                     {row.dailyAbsent ?? 0}
                                   </span>
                                 </td>
                                 <td className="px-4 py-4 text-right">
-                                  <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-lg font-bold text-[11px]">
+                                  <span className="bg-[var(--success-light)] text-success px-2 py-1 rounded-lg font-bold text-[11px]">
                                     {row.internshipPresent ?? 0}
                                   </span>
                                 </td>
                                 <td className="px-4 py-4 text-right">
-                                  <span className="bg-rose-100 text-rose-800 px-2 py-1 rounded-lg font-bold text-[11px]">
+                                  <span className="bg-[var(--danger-light)] text-danger px-2 py-1 rounded-lg font-bold text-[11px]">
                                     {(row.internshipAbsent ?? 0) + (row.rejectedToday ?? 0)}
                                   </span>
                                 </td>
                                 <td className="px-4 py-4 text-right">
-                                  <span className="text-amber-600 font-bold text-[11px]">
+                                  <span className="text-warning font-bold text-[11px]">
                                     {row.holidayToday ?? 0}
                                   </span>
                                 </td>
                                 <td className="px-4 py-4 text-right">
-                                  <span className="text-gray-500 font-bold text-[11px]">
+                                  <span className="text-muted-text font-bold text-[11px]">
                                     {row.pendingToday ?? 0}
                                   </span>
                                 </td>
                                 <td className="px-4 py-4">
                                   <div className="flex flex-col items-center gap-1">
-                                    <span className={`text-[11px] font-bold ${row.totalStudents > 0 && (row.presentToday / row.totalStudents * 100) > 75 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                    <span className={`text-[11px] font-bold ${row.totalStudents > 0 && (row.presentToday / row.totalStudents * 100) > 75 ? 'text-success' : 'text-danger'}`}>
                                       {row.totalStudents > 0 ? ((row.presentToday / row.totalStudents) * 100).toFixed(1) + '%' : '0.0%'}
                                     </span>
-                                    <div className="w-12 h-1 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                                    <div className="w-12 h-1 bg-background rounded-full overflow-hidden shadow-inner">
                                       <div
-                                        className={`h-full transition-all duration-1000 ${row.totalStudents > 0 && (row.presentToday / row.totalStudents * 100) > 75 ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                                        className={`h-full transition-all duration-1000 ${row.totalStudents > 0 && (row.presentToday / row.totalStudents * 100) > 75 ? 'bg-success' : 'bg-danger'}`}
                                         style={{ width: `${row.totalStudents > 0 ? (row.presentToday / row.totalStudents * 100) : 0}%` }}
                                       ></div>
                                     </div>
                                   </div>
                                 </td>
                                 <td className="px-4 py-4 text-left max-w-[160px]">
-                                  <span className="text-[11px] font-medium text-violet-600 italic leading-tight line-clamp-2" title={row.remarks || row.holidayReasons || ''}>
+                                  <span className="text-[11px] font-medium text-secondary italic leading-tight line-clamp-2" title={row.remarks || row.holidayReasons || ''}>
                                     {row.remarks || row.holidayReasons || '—'}
                                   </span>
                                 </td>
@@ -3808,23 +3808,23 @@ const Attendance = () => {
                             ) : (
                               <>
                                 <td className="px-6 py-4 text-right">
-                                  <span className="bg-rose-50 text-rose-700 px-2.5 py-1.5 rounded-xl font-bold text-[11px]">
+                                  <span className="bg-[var(--danger-light)] text-danger px-2.5 py-1.5 rounded-xl font-bold text-[11px]">
                                     {row.absentToday ?? 0}
                                   </span>
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                  <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1.5 rounded-xl font-bold text-[11px]">
+                                  <span className="bg-[var(--success-light)] text-success px-2.5 py-1.5 rounded-xl font-bold text-[11px]">
                                     {row.presentToday ?? 0}
                                   </span>
                                 </td>
                                 <td className="px-6 py-4">
                                   <div className="flex flex-col items-center gap-1.5">
-                                    <span className={`text-[11px] font-bold ${row.totalStudents > 0 && (row.presentToday / row.totalStudents * 100) > 75 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                    <span className={`text-[11px] font-bold ${row.totalStudents > 0 && (row.presentToday / row.totalStudents * 100) > 75 ? 'text-success' : 'text-danger'}`}>
                                       {row.totalStudents > 0 ? ((row.presentToday / row.totalStudents) * 100).toFixed(1) + '%' : '0.0%'}
                                     </span>
-                                    <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                                    <div className="w-16 h-1.5 bg-background rounded-full overflow-hidden shadow-inner">
                                       <div
-                                        className={`h-full transition-all duration-1000 ${row.totalStudents > 0 && (row.presentToday / row.totalStudents * 100) > 75 ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                                        className={`h-full transition-all duration-1000 ${row.totalStudents > 0 && (row.presentToday / row.totalStudents * 100) > 75 ? 'bg-success' : 'bg-danger'}`}
                                         style={{ width: `${row.totalStudents > 0 ? (row.presentToday / row.totalStudents * 100) : 0}%` }}
                                       ></div>
                                     </div>
@@ -3832,13 +3832,13 @@ const Attendance = () => {
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                   <div className="flex flex-col items-end">
-                                    <span className="font-bold text-amber-600 text-[11px]">{row.holidayToday ?? 0}</span>
-                                    {row.holidayReasons && <span className="text-[10px] font-medium text-gray-500 truncate max-w-[120px]" title={row.holidayReasons}>{row.holidayReasons}</span>}
+                                    <span className="font-bold text-warning text-[11px]">{row.holidayToday ?? 0}</span>
+                                    {row.holidayReasons && <span className="text-[10px] font-medium text-muted-text truncate max-w-[120px]" title={row.holidayReasons}>{row.holidayReasons}</span>}
                                   </div>
                                 </td>
                               </>
                             )}
-                            <td className="px-6 py-4 text-right text-[11px] font-medium text-gray-500 tabular-nums">
+                            <td className="px-6 py-4 text-right text-[11px] font-medium text-muted-text tabular-nums">
                               {row.lastUpdated ? new Date(row.lastUpdated).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—'}
                             </td>
                           </tr>
@@ -3850,13 +3850,13 @@ const Attendance = () => {
               </div>
             </div>
 
-            <div className="p-6 border-t bg-white flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0">
+            <div className="p-6 border-t bg-surface flex flex-col sm:flex-row justify-between items-center gap-4 shrink-0">
               <div className="flex items-center gap-4 w-full sm:w-auto">
                 <button
                   onClick={() => handleDayEndDownload('xlsx')}
                   disabled={dayEndDownloading || dayEndReportLoading || overallAttendanceLoading || !dayEndGrouped.length}
                   title={!dayEndGrouped.length ? 'Wait for report data to load' : dayEndDownloading ? 'Download in progress' : 'Download Excel'}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-2xl font-bold transition-all text-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-background hover:bg-background text-sub px-5 py-3 rounded-2xl font-bold transition-all text-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                 >
                   {dayEndDownloading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                   Excel
@@ -3865,7 +3865,7 @@ const Attendance = () => {
                   onClick={() => handleDayEndDownload('pdf')}
                   disabled={dayEndDownloading || dayEndReportLoading || overallAttendanceLoading || !dayEndGrouped.length}
                   title={!dayEndGrouped.length ? 'Wait for report data to load' : dayEndDownloading ? 'Download in progress' : 'Download PDF'}
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-3 rounded-2xl font-bold transition-all text-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-background hover:bg-background text-sub px-5 py-3 rounded-2xl font-bold transition-all text-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
                 >
                   {dayEndDownloading ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />}
                   PDF
@@ -3875,7 +3875,7 @@ const Attendance = () => {
                 {dayEndReportMode === 'previous-pending' && (
                   <button
                     onClick={handleGoToPreviousPendingDay}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-8 py-3 rounded-2xl font-black shadow-lg shadow-amber-500/20 transform transition-all hover:-translate-y-0.5 active:scale-90"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-warning to-warning hover:from-warning hover:to-warning text-white px-8 py-3 rounded-2xl font-black shadow-lg shadow-warning/20 transform transition-all hover:-translate-y-0.5 active:scale-90"
                   >
                     <CalendarCheck size={18} />
                     <span>Mark Previous Day</span>
@@ -3885,7 +3885,7 @@ const Attendance = () => {
                   <button
                     onClick={handleSendDayEndReports}
                     disabled={sendingReports}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-2xl font-black shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transform transition-all hover:-translate-y-0.5 disabled:opacity-50 active:scale-90"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary text-white px-8 py-3 rounded-2xl font-black shadow-lg shadow-primary/20 hover:shadow-primary/40 transform transition-all hover:-translate-y-0.5 disabled:opacity-50 active:scale-90"
                   >
                     {sendingReports ? <Loader2 className="animate-spin" size={18} /> : <Mail size={18} />}
                     <span>Broadcast to Admin</span>
@@ -3893,7 +3893,7 @@ const Attendance = () => {
                 )}
                 <button
                   onClick={() => setDayEndReportOpen(false)}
-                  className="hidden sm:block px-6 py-3 border border-gray-200 rounded-2xl font-bold text-gray-600 hover:bg-gray-50 transition-all active:scale-95"
+                  className="hidden sm:block px-6 py-3 border border-border rounded-2xl font-bold text-sub hover:bg-background transition-all active:scale-95"
                 >
                   Close
                 </button>
@@ -3907,11 +3907,11 @@ const Attendance = () => {
       {
         holidayReasonModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 py-6">
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-              <div className="px-5 py-4 flex items-center justify-between border-b border-gray-200">
+            <div className="bg-surface w-full max-w-md rounded-2xl shadow-xl border border-border overflow-hidden">
+              <div className="px-5 py-4 flex items-center justify-between border-b border-border">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Mark as No Class Work</h3>
-                  <p className="text-xs text-gray-500">Enter reason for marking {pendingHolidayRecords.length} students as no class work</p>
+                  <h3 className="text-lg font-semibold text-main">Mark as No Class Work</h3>
+                  <p className="text-xs text-muted-text">Enter reason for marking {pendingHolidayRecords.length} students as no class work</p>
                 </div>
                 <button
                   onClick={() => {
@@ -3919,21 +3919,21 @@ const Attendance = () => {
                     setHolidayReason('');
                     setPendingHolidayRecords([]);
                   }}
-                  className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
+                  className="p-2 rounded-full hover:bg-background text-muted-text"
                 >
                   <X size={16} />
                 </button>
               </div>
               <div className="p-5 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    No Class Work Reason <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-sub mb-2">
+                    No Class Work Reason <span className="text-danger">*</span>
                   </label>
                   <textarea
                     value={holidayReason}
                     onChange={(e) => setHolidayReason(e.target.value)}
                     placeholder="e.g., Festival holiday, College function, etc."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                    className="w-full px-3 py-2 border border-border-strong rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                     rows={4}
                     required
                   />
@@ -3945,14 +3945,14 @@ const Attendance = () => {
                       setHolidayReason('');
                       setPendingHolidayRecords([]);
                     }}
-                    className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="px-4 py-2 rounded-md border border-border-strong text-sub hover:bg-background"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleConfirmHolidayMarking}
                     disabled={markHolidayLoading || !holidayReason.trim()}
-                    className="px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 rounded-md bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {markHolidayLoading ? 'Marking...' : 'Mark as No Class Work'}
                   </button>
@@ -3967,11 +3967,11 @@ const Attendance = () => {
       {
         deleteConfirmModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4 py-6">
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
-              <div className="px-5 py-4 flex items-center justify-between border-b border-gray-200">
+            <div className="bg-surface w-full max-w-md rounded-2xl shadow-xl border border-border overflow-hidden">
+              <div className="px-5 py-4 flex items-center justify-between border-b border-border">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Clear Today's Attendance</h3>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <h3 className="text-lg font-semibold text-main">Clear Today's Attendance</h3>
+                  <p className="text-xs text-muted-text mt-1">
                     This will delete attendance records for {attendanceDate} matching your current filters
                   </p>
                 </div>
@@ -3980,23 +3980,23 @@ const Attendance = () => {
                     setDeleteConfirmModalOpen(false);
                     setDeleteCount(0);
                   }}
-                  className="p-2 rounded-full hover:bg-gray-100 text-gray-500"
+                  className="p-2 rounded-full hover:bg-background text-muted-text"
                   disabled={deleteLoading}
                 >
                   <X size={16} />
                 </button>
               </div>
               <div className="p-5 space-y-4">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-lg p-4">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-red-100 p-2">
-                      <AlertTriangle size={20} className="text-red-600" />
+                    <div className="rounded-full bg-[var(--danger-light)] p-2">
+                      <AlertTriangle size={20} className="text-danger" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-red-900">
+                      <p className="text-sm font-medium text-danger">
                         {deleteCount} attendance record{deleteCount !== 1 ? 's' : ''} will be deleted
                       </p>
-                      <p className="text-xs text-red-700 mt-1">
+                      <p className="text-xs text-danger mt-1">
                         This action cannot be undone. Make sure you want to delete these records.
                       </p>
                     </div>
@@ -4009,14 +4009,14 @@ const Attendance = () => {
                       setDeleteCount(0);
                     }}
                     disabled={deleteLoading}
-                    className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 rounded-md border border-border-strong text-sub hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleConfirmDelete}
                     disabled={deleteLoading}
-                    className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-4 py-2 rounded-md bg-danger text-white hover:bg-danger disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {deleteLoading ? (
                       <>
@@ -4037,77 +4037,77 @@ const Attendance = () => {
       {/* Attendance Statistics */}
       <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
         {/* Total Students Card */}
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-1.5 sm:p-2">
+        <div className="bg-surface border border-border rounded-lg shadow-sm p-1.5 sm:p-2">
           <div className="flex items-center gap-2">
-            <div className="rounded-full bg-slate-100 p-1">
-              <Users size={14} className="text-slate-600" />
+            <div className="rounded-full bg-background p-1">
+              <Users size={14} className="text-sub" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] text-gray-600 leading-tight">Total Students</p>
+              <p className="text-[10px] text-sub leading-tight">Total Students</p>
               {loading && totalStudents === 0 ? (
-                <div className="animate-pulse bg-gray-200 rounded h-4 w-12 mt-0.5" />
+                <div className="animate-pulse bg-background rounded h-4 w-12 mt-0.5" />
               ) : (
-                <p className="text-sm font-bold text-slate-700 leading-tight">{totalStudents.toLocaleString()}</p>
+                <p className="text-sm font-bold text-sub leading-tight">{totalStudents.toLocaleString()}</p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-1.5 sm:p-2">
+        <div className="bg-surface border border-border rounded-lg shadow-sm p-1.5 sm:p-2">
           <div className="flex items-center gap-2">
-            <div className="rounded-full bg-green-100 p-1">
-              <Check size={14} className="text-green-600" />
+            <div className="rounded-full bg-[var(--success-light)] p-1">
+              <Check size={14} className="text-success" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] text-gray-600 leading-tight">Total Present</p>
+              <p className="text-[10px] text-sub leading-tight">Total Present</p>
               {loading && attendanceStatistics.total === 0 ? (
-                <div className="animate-pulse bg-gray-200 rounded h-4 w-12 mt-0.5" />
+                <div className="animate-pulse bg-background rounded h-4 w-12 mt-0.5" />
               ) : (
-                <p className="text-sm font-bold text-green-700 leading-tight">{presentCount}</p>
+                <p className="text-sm font-bold text-success leading-tight">{presentCount}</p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-1.5 sm:p-2">
+        <div className="bg-surface border border-border rounded-lg shadow-sm p-1.5 sm:p-2">
           <div className="flex items-center gap-2">
-            <div className="rounded-full bg-red-100 p-1">
-              <X size={14} className="text-red-600" />
+            <div className="rounded-full bg-[var(--danger-light)] p-1">
+              <X size={14} className="text-danger" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] text-gray-600 leading-tight">Total Absent</p>
+              <p className="text-[10px] text-sub leading-tight">Total Absent</p>
               {loading && attendanceStatistics.total === 0 ? (
-                <div className="animate-pulse bg-gray-200 rounded h-4 w-12 mt-0.5" />
+                <div className="animate-pulse bg-background rounded h-4 w-12 mt-0.5" />
               ) : (
-                <p className="text-sm font-bold text-red-700 leading-tight">{absentCount}</p>
+                <p className="text-sm font-bold text-danger leading-tight">{absentCount}</p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-1.5 sm:p-2">
+        <div className="bg-surface border border-border rounded-lg shadow-sm p-1.5 sm:p-2">
           <div className="flex items-center gap-2">
-            <div className="rounded-full bg-blue-100 p-1">
-              <CalendarCheck size={14} className="text-blue-600" />
+            <div className="rounded-full bg-[var(--primary-light)] p-1">
+              <CalendarCheck size={14} className="text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] text-gray-600 leading-tight">Completed Marking</p>
+              <p className="text-[10px] text-sub leading-tight">Completed Marking</p>
               {loading && attendanceStatistics.total === 0 ? (
-                <div className="animate-pulse bg-gray-200 rounded h-4 w-12 mt-0.5" />
+                <div className="animate-pulse bg-background rounded h-4 w-12 mt-0.5" />
               ) : (
-                <p className="text-sm font-bold text-blue-700 leading-tight">{markedCount}</p>
+                <p className="text-sm font-bold text-primary leading-tight">{markedCount}</p>
               )}
             </div>
           </div>
         </div>
 
         <div
-          className={`bg-white border rounded-lg shadow-sm p-1.5 sm:p-2 transition-all duration-200 
+          className={`bg-surface border rounded-lg shadow-sm p-1.5 sm:p-2 transition-all duration-200
             ${pendingFilter === 'pending'
-              ? 'border-amber-500 ring-1 ring-amber-200 bg-amber-50'
+              ? 'border-warning ring-1 ring-[var(--warning-light)] bg-[var(--warning-light)]'
               : pendingCount > 0 && !loading
-                ? 'border-amber-300 hover:border-amber-400 hover:bg-gray-50 cursor-pointer'
-                : 'border-gray-200'
+                ? 'border-[var(--warning-light)] hover:border-warning hover:bg-background cursor-pointer'
+                : 'border-border'
             }`}
           onClick={() => {
             if (pendingCount > 0 && !loading) {
@@ -4117,24 +4117,24 @@ const Attendance = () => {
           title={pendingCount > 0 && !loading ? "Click to view pending students" : ""}
         >
           <div className="flex items-center gap-2">
-            <div className="rounded-full bg-amber-100 p-1">
-              <AlertTriangle size={14} className="text-amber-600" />
+            <div className="rounded-full bg-[var(--warning-light)] p-1">
+              <AlertTriangle size={14} className="text-warning" />
             </div>
             <div className="flex-1">
-              <p className="text-[10px] text-gray-600 leading-tight">Pending Marking</p>
+              <p className="text-[10px] text-sub leading-tight">Pending Marking</p>
               {loading && attendanceStatistics.total === 0 ? (
-                <div className="animate-pulse bg-gray-200 rounded h-4 w-12 mt-0.5" />
+                <div className="animate-pulse bg-background rounded h-4 w-12 mt-0.5" />
               ) : (
-                <p className="text-sm font-bold text-amber-700 leading-tight">{pendingCount}</p>
+                <p className="text-sm font-bold text-warning leading-tight">{pendingCount}</p>
               )}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="flex-1 min-h-0 bg-white border border-gray-200 rounded-lg sm:rounded-xl shadow-sm overflow-hidden flex flex-col">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-2.5 py-2 border-b border-gray-200">
-          <div className="flex items-center gap-2 text-gray-700 font-semibold text-xs">
+      <section className="flex-1 min-h-0 bg-surface border border-border rounded-lg sm:rounded-xl shadow-sm overflow-hidden flex flex-col">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-2.5 py-2 border-b border-border">
+          <div className="flex items-center gap-2 text-sub font-semibold text-xs">
             <CalendarCheck size={16} />
             <span>Daily Attendance</span>
           </div>
@@ -4144,7 +4144,7 @@ const Attendance = () => {
                 type="button"
                 onClick={handleGetDeleteCount}
                 disabled={gettingDeleteCount || deleteLoading}
-                className="inline-flex items-center justify-center gap-1 px-3 py-1 rounded-md text-xs font-semibold bg-red-600 text-white hover:bg-red-700 active:bg-red-800 transition-colors touch-manipulation min-h-[32px] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center justify-center gap-1 px-3 py-1 rounded-md text-xs font-semibold bg-danger text-white hover:bg-danger active:bg-danger transition-colors touch-manipulation min-h-[32px] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {gettingDeleteCount || deleteLoading ? (
                   <>
@@ -4164,13 +4164,13 @@ const Attendance = () => {
               onClick={handleSave}
               disabled={!hasChanges || saving || editingLocked}
               className={`inline-flex items-center justify-center gap-1 px-3 py-1 rounded-md text-xs font-semibold transition-colors touch-manipulation min-h-[32px] ${hasChanges && !saving && !editingLocked
-                ? 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
-                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                ? 'bg-primary text-white hover:bg-primary-hover active:bg-primary'
+                : 'bg-background text-muted-text cursor-not-allowed'
                 }`}
             >
               {saving ? (
                 <>
-                  <span className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span className="h-3 w-3 border-2 border-surface border-t-transparent rounded-full animate-spin" />
                   Saving...
                 </>
               ) : (
@@ -4183,7 +4183,7 @@ const Attendance = () => {
           </div>
         </div>
         {isToday && (attendanceGate?.pendingCount || 0) > 0 && attendanceGate?.previousDate && (
-          <div className="px-4 py-3 border-b border-amber-200 bg-amber-50 text-sm text-amber-900">
+          <div className="px-4 py-3 border-b border-[var(--warning-light)] bg-[var(--warning-light)] text-sm text-warning">
             <div className="flex items-start gap-2">
               <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
               <span>
@@ -4198,7 +4198,7 @@ const Attendance = () => {
           </div>
         )}
         {isResolvingPreviousPending && (
-          <div className="px-4 py-3 border-b border-amber-200 bg-amber-50 text-sm text-amber-900">
+          <div className="px-4 py-3 border-b border-[var(--warning-light)] bg-[var(--warning-light)] text-sm text-warning">
             <div className="flex items-start gap-2">
               <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
               <span>
@@ -4215,7 +4215,7 @@ const Attendance = () => {
           </div>
         )}
         {semesterCalendarEnforced && (
-          <div className="px-4 py-2 border-b border-blue-100 bg-blue-50 text-xs text-blue-800">
+          <div className="px-4 py-2 border-b border-[var(--primary-light)] bg-[var(--primary-light)] text-xs text-primary">
             {semesterCalendar?.configured && !isOutsideSemesterCalendar ? (
               <>
                 Semester period: {formatFriendlyDate(semesterCalendar.startDate)} – {formatFriendlyDate(semesterCalendar.endDate)} (Academic Calendar).
@@ -4232,7 +4232,7 @@ const Attendance = () => {
           </div>
         )}
         {editingLocked && (
-          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 text-sm text-gray-600">
+          <div className="px-4 py-3 border-b border-border bg-background text-sm text-sub">
             {editingLockReason || 'Attendance is read-only for this date.'}
           </div>
         )}
@@ -4242,7 +4242,7 @@ const Attendance = () => {
             <SkeletonAttendanceTable rows={pageSize || 10} />
           </div>
         ) : sortedStudents.length === 0 ? (
-          <div className="py-12 flex flex-col items-center gap-3 text-gray-500">
+          <div className="py-12 flex flex-col items-center gap-3 text-muted-text">
             <AlertTriangle size={32} />
             <p>
               {pendingFilter === 'pending'
@@ -4256,7 +4256,7 @@ const Attendance = () => {
             {pendingFilter !== 'all' && (
               <button
                 onClick={() => setPendingFilter('all')}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-4 py-2 text-sm bg-primary text-white rounded-md hover:bg-primary-hover"
               >
                 Show All Students
               </button>
@@ -4267,9 +4267,9 @@ const Attendance = () => {
             <div ref={scrollContainerRef} className="flex-1 overflow-auto no-scrollbar">
               {/* Desktop Table View */}
               <div className="hidden lg:block overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr className="text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-background">
+                    <tr className="text-left text-xs font-semibold text-sub uppercase tracking-wider">
                       {displayColumnOrder.map((columnKey) => {
                         const columnConfig = {
                           student: { label: 'Student', sortable: true },
@@ -4295,7 +4295,7 @@ const Attendance = () => {
                                 {config.sortable ? (
                                   <button
                                     onClick={() => handleSort(columnKey)}
-                                    className="flex items-center gap-1 hover:text-gray-900 transition-colors"
+                                    className="flex items-center gap-1 hover:text-main transition-colors"
                                   >
                                     <span>{config.label}</span>
                                     {sortConfig.field === columnKey && (
@@ -4310,7 +4310,7 @@ const Attendance = () => {
                                 <button
                                   onClick={() => moveColumn(columnKey, 'left')}
                                   disabled={displayColumnOrder.indexOf(columnKey) === 0}
-                                  className="p-0.5 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                                  className="p-0.5 hover:bg-background rounded disabled:opacity-30 disabled:cursor-not-allowed"
                                   title="Move left"
                                 >
                                   <ChevronLeft size={12} />
@@ -4318,7 +4318,7 @@ const Attendance = () => {
                                 <button
                                   onClick={() => moveColumn(columnKey, 'right')}
                                   disabled={displayColumnOrder.indexOf(columnKey) === displayColumnOrder.length - 1}
-                                  className="p-0.5 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                                  className="p-0.5 hover:bg-background rounded disabled:opacity-30 disabled:cursor-not-allowed"
                                   title="Move right"
                                 >
                                   <ChevronRight size={12} />
@@ -4330,14 +4330,14 @@ const Attendance = () => {
                       })}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
+                  <tbody className="bg-surface divide-y divide-border">
                     {sortedStudents.map((student) => {
                       const status = effectiveStatus(student.id, nonWorkingDayDetails.isNonWorkingDay);
                       const parentContact = student.parentMobile1 || student.parentMobile2 || 'Not available';
                       return (
                         <tr
                           key={student.id}
-                          className="hover:bg-gray-50"
+                          className="hover:bg-background"
                         >
                           {displayColumnOrder.map((columnKey) => {
                             if (columnKey === 'student') {
@@ -4349,7 +4349,7 @@ const Attendance = () => {
                                       studentName={student.studentName}
                                       className="w-7 h-7"
                                     />
-                                    <div className="font-semibold text-gray-900 text-[10px] leading-tight max-w-[90px] truncate" title={student.studentName}>
+                                    <div className="font-semibold text-main text-[10px] leading-tight max-w-[90px] truncate" title={student.studentName}>
                                       {student.studentName || 'Unknown Student'}
                                     </div>
                                   </div>
@@ -4358,24 +4358,24 @@ const Attendance = () => {
                             }
                             if (columnKey === 'pin') {
                               return (
-                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
+                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-sub" onClick={(e) => e.stopPropagation()}>
                                   {student.pinNumber || 'N/A'}
                                 </td>
                               );
                             }
                             if (columnKey === 'registrationStatus') {
                               return (
-                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
+                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-sub" onClick={(e) => e.stopPropagation()}>
                                   {(() => {
                                     const raw = (student.registration_status || '').toLowerCase();
                                     const isCompleted = raw === 'completed' || raw === 'registered' || raw === 'done';
                                     const isTemporary = raw === 'temporary';
                                     const label = isCompleted ? 'Completed' : isTemporary ? 'Temporary' : 'Pending';
                                     const cls = isCompleted
-                                      ? 'bg-green-100 text-green-800'
+                                      ? 'bg-[var(--success-light)] text-success'
                                       : isTemporary
-                                        ? 'bg-amber-100 text-amber-800'
-                                        : 'bg-yellow-100 text-yellow-800';
+                                        ? 'bg-[var(--warning-light)] text-warning'
+                                        : 'bg-[var(--warning-light)] text-warning';
                                     return (
                                       <span
                                         title="Registration status is updated when student completes registration on student portal"
@@ -4390,49 +4390,49 @@ const Attendance = () => {
                             }
                             if (columnKey === 'batch') {
                               return (
-                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
+                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-sub" onClick={(e) => e.stopPropagation()}>
                                   {student.batch || 'N/A'}
                                 </td>
                               );
                             }
                             if (columnKey === 'course') {
                               return (
-                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
+                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-sub" onClick={(e) => e.stopPropagation()}>
                                   {student.course || 'N/A'}
                                 </td>
                               );
                             }
                             if (columnKey === 'branch') {
                               return (
-                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
+                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-sub" onClick={(e) => e.stopPropagation()}>
                                   {student.branch || 'N/A'}
                                 </td>
                               );
                             }
                             if (columnKey === 'section') {
                               return (
-                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
+                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-sub" onClick={(e) => e.stopPropagation()}>
                                   {student.section || 'N/A'}
                                 </td>
                               );
                             }
                             if (columnKey === 'year') {
                               return (
-                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
+                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-sub" onClick={(e) => e.stopPropagation()}>
                                   {student.currentYear ? `Year ${student.currentYear}` : 'N/A'}
                                 </td>
                               );
                             }
                             if (columnKey === 'semester') {
                               return (
-                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
+                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-sub" onClick={(e) => e.stopPropagation()}>
                                   {student.currentSemester ? `Semester ${student.currentSemester}` : 'N/A'}
                                 </td>
                               );
                             }
                             if (columnKey === 'parentContact') {
                               return (
-                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-gray-700" onClick={(e) => e.stopPropagation()}>
+                                <td key={columnKey} className="px-1 py-1.5 text-[10px] text-sub" onClick={(e) => e.stopPropagation()}>
                                   <div>{parentContact}</div>
                                 </td>
                               );
@@ -4443,7 +4443,7 @@ const Attendance = () => {
                                   {(() => {
                                     if (status === 'holiday') {
                                       return (
-                                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                                           <AlertTriangle size={12} />
                                           <div className="flex flex-col items-start text-left leading-tight">
                                             <span>No Class</span>
@@ -4471,7 +4471,7 @@ const Attendance = () => {
                                           <button
                                             onClick={() => handleRetrySms(student)}
                                             disabled={retryingSmsFor === student.id}
-                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors cursor-pointer disabled:opacity-50"
+                                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[var(--warning-light)] text-warning hover:bg-[var(--warning-light)] transition-colors cursor-pointer disabled:opacity-50"
                                             title="Click to send SMS notification"
                                           >
                                             {retryingSmsFor === student.id ? (
@@ -4488,7 +4488,7 @@ const Attendance = () => {
                                           </button>
                                         );
                                       }
-                                      return <span className="text-xs text-gray-400">-</span>;
+                                      return <span className="text-xs text-muted-text">-</span>;
                                     }
 
                                     if (smsStatus.success) {
@@ -4496,7 +4496,7 @@ const Attendance = () => {
                                         <button
                                           onClick={() => handleRetrySms(student)}
                                           disabled={retryingSmsFor === student.id}
-                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors cursor-pointer disabled:opacity-50"
+                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[var(--primary-light)] text-primary hover:bg-[var(--primary-light)] transition-colors cursor-pointer disabled:opacity-50"
                                           title="Test mode - Click to send again"
                                         >
                                           {retryingSmsFor === student.id ? (
@@ -4515,7 +4515,7 @@ const Attendance = () => {
                                         <button
                                           onClick={() => handleRetrySms(student)}
                                           disabled={retryingSmsFor === student.id}
-                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-green-100 text-green-700 hover:bg-green-200 transition-colors cursor-pointer disabled:opacity-50"
+                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[var(--success-light)] text-success hover:bg-[var(--success-light)] transition-colors cursor-pointer disabled:opacity-50"
                                           title="SMS sent - Click to send again"
                                         >
                                           {retryingSmsFor === student.id ? (
@@ -4535,7 +4535,7 @@ const Attendance = () => {
 
                                     if (smsStatus.skipped) {
                                       return (
-                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-700" title={smsStatus.reason}>
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[var(--warning-light)] text-warning" title={smsStatus.reason}>
                                           <AlertTriangle size={10} />
                                           {smsStatus.reason === 'missing_parent_mobile' ? 'No Mobile' : 'Skipped'}
                                         </span>
@@ -4546,7 +4546,7 @@ const Attendance = () => {
                                       <button
                                         onClick={() => handleRetrySms(student)}
                                         disabled={retryingSmsFor === student.id}
-                                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-100 text-red-700 hover:bg-red-200 transition-colors cursor-pointer disabled:opacity-50"
+                                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)] transition-colors cursor-pointer disabled:opacity-50"
                                         title={`Failed: ${smsStatus.reason || 'Unknown error'}. Click to retry.`}
                                       >
                                         {retryingSmsFor === student.id ? (
@@ -4585,54 +4585,54 @@ const Attendance = () => {
                   return (
                     <div
                       key={student.id}
-                      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                      className="bg-surface border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow"
                     >
                       <div className="p-4 space-y-3">
                         {/* Header with Photo and Name */}
                         <div className="flex items-start gap-3">
                           {renderPhoto(student)}
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 text-base truncate">{student.studentName || 'Unknown Student'}</h3>
-                            <p className="text-sm text-gray-600 mt-1">{student.pinNumber || 'N/A'}</p>
+                            <h3 className="font-semibold text-main text-base truncate">{student.studentName || 'Unknown Student'}</h3>
+                            <p className="text-sm text-sub mt-1">{student.pinNumber || 'N/A'}</p>
                           </div>
                         </div>
 
                         {/* Key Information */}
-                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
                           <div>
-                            <p className="text-xs text-gray-500">Batch</p>
-                            <p className="text-sm font-medium text-gray-900">{student.batch || 'N/A'}</p>
+                            <p className="text-xs text-muted-text">Batch</p>
+                            <p className="text-sm font-medium text-main">{student.batch || 'N/A'}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500">Course</p>
-                            <p className="text-sm font-medium text-gray-900 truncate" title={student.course || ''}>{student.course || 'N/A'}</p>
+                            <p className="text-xs text-muted-text">Course</p>
+                            <p className="text-sm font-medium text-main truncate" title={student.course || ''}>{student.course || 'N/A'}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-gray-500">Branch</p>
-                            <p className="text-sm font-medium text-gray-900 truncate" title={student.branch || ''}>{student.branch || 'N/A'}</p>
+                            <p className="text-xs text-muted-text">Branch</p>
+                            <p className="text-sm font-medium text-main truncate" title={student.branch || ''}>{student.branch || 'N/A'}</p>
                           </div>
                           {showSectionFilters && (
                             <div>
-                              <p className="text-xs text-gray-500">Section</p>
-                              <p className="text-sm font-medium text-gray-900">{student.section || 'N/A'}</p>
+                              <p className="text-xs text-muted-text">Section</p>
+                              <p className="text-sm font-medium text-main">{student.section || 'N/A'}</p>
                             </div>
                           )}
                           <div>
-                            <p className="text-xs text-gray-500">Year/Sem</p>
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-xs text-muted-text">Year/Sem</p>
+                            <p className="text-sm font-medium text-main">
                               {student.currentYear ? `Y${student.currentYear}` : 'N/A'}/{student.currentSemester ? `S${student.currentSemester}` : 'N/A'}
                             </p>
                           </div>
                           <div className="col-span-2">
-                            <p className="text-xs text-gray-500">Parent Contact</p>
-                            <p className="text-sm font-medium text-gray-900">{parentContact}</p>
+                            <p className="text-xs text-muted-text">Parent Contact</p>
+                            <p className="text-sm font-medium text-main">{parentContact}</p>
                           </div>
                         </div>
 
                         {/* Attendance Status */}
-                        <div className="pt-2 border-t border-gray-100" onClick={(e) => e.stopPropagation()}>
+                        <div className="pt-2 border-t border-border" onClick={(e) => e.stopPropagation()}>
                           {status === 'holiday' ? (
-                            <div className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                            <div className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                               <AlertTriangle size={16} />
                               <span>No Class</span>
                             </div>
@@ -4655,7 +4655,7 @@ const Attendance = () => {
                   return (
                     <div ref={scrollObserverRef} className="py-4 flex justify-center">
                       {loadingMore && (
-                        <div className="flex items-center gap-2 text-gray-600">
+                        <div className="flex items-center gap-2 text-sub">
                           <Loader2 size={20} className="animate-spin" />
                           <span className="text-sm">Loading more students...</span>
                         </div>
@@ -4666,8 +4666,8 @@ const Attendance = () => {
                 return null;
               })()}
             </div>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 border-t border-gray-100">
-              <div className="text-[11px] text-gray-600">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 border-t border-border">
+              <div className="text-[11px] text-sub">
                 {totalStudents === 0
                   ? 'No students to display'
                   : (() => {
@@ -4690,13 +4690,13 @@ const Attendance = () => {
                 }
                 return (
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                    <label className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-600">
+                    <label className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-sub">
                       <span className="hidden sm:inline">Rows per page</span>
                       <span className="sm:hidden">Per page</span>
                       <select
                         value={pageSize}
                         onChange={handlePageSizeChange}
-                        className="px-1.5 py-0.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-[11px] touch-manipulation min-h-[28px] sm:min-h-[32px]"
+                        className="px-1.5 py-0.5 border border-border-strong rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-[11px] touch-manipulation min-h-[28px] sm:min-h-[32px]"
                         disabled={loading}
                       >
                         {pageSizeOptions.map((option) => (
@@ -4709,18 +4709,18 @@ const Attendance = () => {
                         type="button"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={isFirstPage || loading || totalStudents === 0}
-                        className="flex-1 sm:flex-none px-2 py-1 border border-gray-300 rounded-md text-[11px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation min-h-[32px] font-semibold"
+                        className="flex-1 sm:flex-none px-2 py-1 border border-border-strong rounded-md text-[11px] text-sub hover:bg-background active:bg-background disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation min-h-[32px] font-semibold"
                       >
                         Previous
                       </button>
-                      <span className="text-[10px] sm:text-[11px] text-gray-600 px-1 text-center whitespace-nowrap">
+                      <span className="text-[10px] sm:text-[11px] text-sub px-1 text-center whitespace-nowrap">
                         Page {Math.min(currentPage, totalPages).toLocaleString()} of {totalPages.toLocaleString()}
                       </span>
                       <button
                         type="button"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={isLastPage || loading || totalStudents === 0}
-                        className="flex-1 sm:flex-none px-2 py-1 border border-gray-300 rounded-md text-[11px] text-gray-700 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation min-h-[32px] font-semibold"
+                        className="flex-1 sm:flex-none px-2 py-1 border border-border-strong rounded-md text-[11px] text-sub hover:bg-background active:bg-background disabled:opacity-50 disabled:cursor-not-allowed transition-colors touch-manipulation min-h-[32px] font-semibold"
                       >
                         Next
                       </button>
@@ -4738,11 +4738,11 @@ const Attendance = () => {
         smsResults.length > 0 && (
           <button
             onClick={() => setSmsModalOpen(true)}
-            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            className="fixed bottom-6 right-6 z-40 flex items-center gap-2 bg-gradient-to-r from-primary to-primary text-white px-4 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-105"
           >
             <CalendarCheck size={20} />
             <span className="font-medium">SMS Report</span>
-            <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
+            <span className="bg-[var(--surface)]/20 px-2 py-0.5 rounded-full text-xs">
               {smsResults.length}
             </span>
           </button>
@@ -4753,14 +4753,14 @@ const Attendance = () => {
       {
         smsModalOpen && smsResults.length > 0 && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
               {/* Modal Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between flex-shrink-0">
+              <div className="bg-gradient-to-r from-primary to-primary px-6 py-4 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <CalendarCheck size={24} className="text-white" />
                   <div>
                     <h3 className="font-bold text-white text-lg">SMS Dispatch Summary</h3>
-                    <p className="text-blue-100 text-sm">{attendanceDate} • {smsResults.length} students</p>
+                    <p className="text-primary text-sm">{attendanceDate} • {smsResults.length} students</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -4794,14 +4794,14 @@ const Attendance = () => {
                       URL.revokeObjectURL(link.href);
                       toast.success('SMS report downloaded');
                     }}
-                    className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-1.5 bg-[var(--surface)]/20 hover:bg-[var(--surface)]/30 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
                   >
                     <Download size={16} />
                     Download CSV
                   </button>
                   <button
                     onClick={() => setSmsModalOpen(false)}
-                    className="p-2 hover:bg-white/20 rounded-lg transition-colors text-white"
+                    className="p-2 hover:bg-[var(--surface)]/20 rounded-lg transition-colors text-white"
                   >
                     <X size={20} />
                   </button>
@@ -4809,39 +4809,39 @@ const Attendance = () => {
               </div>
 
               {/* Summary Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-gray-50 border-b border-gray-200 flex-shrink-0">
-                <div className="flex items-center gap-2 bg-green-100 border border-green-200 rounded-lg px-3 py-2">
-                  <Check size={16} className="text-green-600" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-background border-b border-border flex-shrink-0">
+                <div className="flex items-center gap-2 bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg px-3 py-2">
+                  <Check size={16} className="text-success" />
                   <div>
-                    <div className="text-xs text-green-700 font-medium">Sent</div>
-                    <div className="text-lg font-bold text-green-800">
+                    <div className="text-xs text-success font-medium">Sent</div>
+                    <div className="text-lg font-bold text-success">
                       {smsResults.filter(r => r.success && !r.mocked).length}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 bg-blue-100 border border-blue-200 rounded-lg px-3 py-2">
-                  <RefreshCw size={16} className="text-blue-600" />
+                <div className="flex items-center gap-2 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg px-3 py-2">
+                  <RefreshCw size={16} className="text-primary" />
                   <div>
-                    <div className="text-xs text-blue-700 font-medium">Test Mode</div>
-                    <div className="text-lg font-bold text-blue-800">
+                    <div className="text-xs text-primary font-medium">Test Mode</div>
+                    <div className="text-lg font-bold text-primary">
                       {smsResults.filter(r => r.success && r.mocked).length}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 bg-amber-100 border border-amber-200 rounded-lg px-3 py-2">
-                  <AlertTriangle size={16} className="text-amber-600" />
+                <div className="flex items-center gap-2 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-lg px-3 py-2">
+                  <AlertTriangle size={16} className="text-warning" />
                   <div>
-                    <div className="text-xs text-amber-700 font-medium">Skipped</div>
-                    <div className="text-lg font-bold text-amber-800">
+                    <div className="text-xs text-warning font-medium">Skipped</div>
+                    <div className="text-lg font-bold text-warning">
                       {smsResults.filter(r => r.skipped).length}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 bg-red-100 border border-red-200 rounded-lg px-3 py-2">
-                  <X size={16} className="text-red-600" />
+                <div className="flex items-center gap-2 bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-lg px-3 py-2">
+                  <X size={16} className="text-danger" />
                   <div>
-                    <div className="text-xs text-red-700 font-medium">Failed</div>
-                    <div className="text-lg font-bold text-red-800">
+                    <div className="text-xs text-danger font-medium">Failed</div>
+                    <div className="text-lg font-bold text-danger">
                       {smsResults.filter(r => !r.success && !r.skipped).length}
                     </div>
                   </div>
@@ -4851,54 +4851,54 @@ const Attendance = () => {
               {/* Detailed Table with Scroll */}
               <div className="flex-1 overflow-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
+                  <thead className="bg-background border-b border-border sticky top-0">
                     <tr>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-700">Student Name</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-700">PIN</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-700">Admission No</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-700">College</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-700">Program</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-700">Branch</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-700">Year</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-700">Sem</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-700">Parent Mobile</th>
-                      <th className="px-3 py-2 text-left font-semibold text-gray-700">Status</th>
+                      <th className="px-3 py-2 text-left font-semibold text-sub">Student Name</th>
+                      <th className="px-3 py-2 text-left font-semibold text-sub">PIN</th>
+                      <th className="px-3 py-2 text-left font-semibold text-sub">Admission No</th>
+                      <th className="px-3 py-2 text-left font-semibold text-sub">College</th>
+                      <th className="px-3 py-2 text-left font-semibold text-sub">Program</th>
+                      <th className="px-3 py-2 text-left font-semibold text-sub">Branch</th>
+                      <th className="px-3 py-2 text-left font-semibold text-sub">Year</th>
+                      <th className="px-3 py-2 text-left font-semibold text-sub">Sem</th>
+                      <th className="px-3 py-2 text-left font-semibold text-sub">Parent Mobile</th>
+                      <th className="px-3 py-2 text-left font-semibold text-sub">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-border">
                     {smsResults
                       .slice((smsCurrentPage - 1) * smsPageSize, smsCurrentPage * smsPageSize)
                       .map((result, index) => (
-                        <tr key={result.studentId || index} className="hover:bg-gray-50">
-                          <td className="px-3 py-2 font-medium text-gray-900">{result.studentName || '-'}</td>
-                          <td className="px-3 py-2 text-gray-600">{result.pinNumber || '-'}</td>
-                          <td className="px-3 py-2 text-gray-600">{result.admissionNumber || '-'}</td>
-                          <td className="px-3 py-2 text-gray-600 max-w-[150px] truncate" title={result.college}>{result.college || '-'}</td>
-                          <td className="px-3 py-2 text-gray-600">{result.course || '-'}</td>
-                          <td className="px-3 py-2 text-gray-600">{result.branch || '-'}</td>
-                          <td className="px-3 py-2 text-gray-600">{result.year || '-'}</td>
-                          <td className="px-3 py-2 text-gray-600">{result.semester || '-'}</td>
-                          <td className="px-3 py-2 text-gray-600 font-mono text-xs">{result.sentTo || result.parentMobile || '-'}</td>
+                        <tr key={result.studentId || index} className="hover:bg-background">
+                          <td className="px-3 py-2 font-medium text-main">{result.studentName || '-'}</td>
+                          <td className="px-3 py-2 text-sub">{result.pinNumber || '-'}</td>
+                          <td className="px-3 py-2 text-sub">{result.admissionNumber || '-'}</td>
+                          <td className="px-3 py-2 text-sub max-w-[150px] truncate" title={result.college}>{result.college || '-'}</td>
+                          <td className="px-3 py-2 text-sub">{result.course || '-'}</td>
+                          <td className="px-3 py-2 text-sub">{result.branch || '-'}</td>
+                          <td className="px-3 py-2 text-sub">{result.year || '-'}</td>
+                          <td className="px-3 py-2 text-sub">{result.semester || '-'}</td>
+                          <td className="px-3 py-2 text-sub font-mono text-xs">{result.sentTo || result.parentMobile || '-'}</td>
                           <td className="px-3 py-2">
                             {result.success ? (
                               result.mocked ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--primary-light)] text-primary">
                                   <RefreshCw size={12} />
                                   Test Mode
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--success-light)] text-success">
                                   <Check size={12} />
                                   Sent
                                 </span>
                               )
                             ) : result.skipped ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700" title={result.reason}>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--warning-light)] text-warning" title={result.reason}>
                                 <AlertTriangle size={12} />
                                 {result.reason === 'missing_parent_mobile' ? 'No Mobile' : 'Skipped'}
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700" title={result.reason || result.details}>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--danger-light)] text-danger" title={result.reason || result.details}>
                                 <X size={12} />
                                 Failed
                               </span>
@@ -4912,25 +4912,25 @@ const Attendance = () => {
 
               {/* Pagination Footer */}
               {smsResults.length > smsPageSize && (
-                <div className="flex items-center justify-between px-4 py-1.5 border-t border-gray-200 bg-gray-50 flex-shrink-0">
-                  <div className="text-[11px] text-gray-600">
+                <div className="flex items-center justify-between px-4 py-1.5 border-t border-border bg-background flex-shrink-0">
+                  <div className="text-[11px] text-sub">
                     Showing {((smsCurrentPage - 1) * smsPageSize) + 1} to {Math.min(smsCurrentPage * smsPageSize, smsResults.length)} of {smsResults.length} students
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSmsCurrentPage(p => Math.max(1, p - 1))}
                       disabled={smsCurrentPage === 1}
-                      className="px-2 py-1 text-[11px] font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed min-h-[28px]"
+                      className="px-2 py-1 text-[11px] font-semibold text-sub bg-surface border border-border-strong rounded-md hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed min-h-[28px]"
                     >
                       Previous
                     </button>
-                    <span className="text-[11px] text-gray-600">
+                    <span className="text-[11px] text-sub">
                       Page {smsCurrentPage} of {Math.ceil(smsResults.length / smsPageSize)}
                     </span>
                     <button
                       onClick={() => setSmsCurrentPage(p => Math.min(Math.ceil(smsResults.length / smsPageSize), p + 1))}
                       disabled={smsCurrentPage >= Math.ceil(smsResults.length / smsPageSize)}
-                      className="px-2 py-1 text-[11px] font-semibold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed min-h-[28px]"
+                      className="px-2 py-1 text-[11px] font-semibold text-sub bg-surface border border-border-strong rounded-md hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed min-h-[28px]"
                     >
                       Next
                     </button>
@@ -4945,25 +4945,25 @@ const Attendance = () => {
       {
         showHolidayAlert && (nonWorkingDayDetails.isGlobalHoliday || publicHolidayMatches.length > 0 || selectedDateIsSunday) && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-3 py-6">
-            <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+            <div className="bg-surface rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
               <div className="flex items-start gap-4">
-                <div className="rounded-full bg-amber-100 p-3 flex-shrink-0">
-                  <AlertTriangle className="text-amber-600" size={24} />
+                <div className="rounded-full bg-[var(--warning-light)] p-3 flex-shrink-0">
+                  <AlertTriangle className="text-warning" size={24} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">Today is a Holiday</h3>
+                  <h3 className="text-lg font-bold text-main mb-2">Today is a Holiday</h3>
                   <div className="space-y-2">
                     {/* Institute Holiday Section - Show prominently */}
                     {(nonWorkingDayDetails.customHoliday || customHolidayForDate || selectedDateHolidayInfo?.customHoliday) && (
-                      <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-purple-800 mb-1">
+                      <div className="p-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-secondary mb-1">
                           Institute Holiday
                         </div>
-                        <div className="text-sm font-semibold text-purple-900">
+                        <div className="text-sm font-semibold text-secondary">
                           {(nonWorkingDayDetails.customHoliday || customHolidayForDate || selectedDateHolidayInfo?.customHoliday)?.title || 'Institute Holiday'}
                         </div>
                         {(nonWorkingDayDetails.customHoliday || customHolidayForDate || selectedDateHolidayInfo?.customHoliday)?.description && (
-                          <div className="text-xs text-purple-700 mt-1">
+                          <div className="text-xs text-secondary mt-1">
                             {(nonWorkingDayDetails.customHoliday || customHolidayForDate || selectedDateHolidayInfo?.customHoliday).description}
                           </div>
                         )}
@@ -4986,15 +4986,15 @@ const Attendance = () => {
                       return publicHolidays.length > 0 ? (
                         <div className="space-y-2">
                           {publicHolidays.map((holiday, index) => (
-                            <div key={index} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                              <div className="text-xs font-semibold uppercase tracking-wide text-orange-800 mb-1">
+                            <div key={index} className="p-3 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-lg">
+                              <div className="text-xs font-semibold uppercase tracking-wide text-warning mb-1">
                                 Public Holiday
                               </div>
-                              <div className="text-sm font-semibold text-orange-900">
+                              <div className="text-sm font-semibold text-warning">
                                 {holiday.localName || holiday.name}
                               </div>
                               {holiday.name && holiday.localName && holiday.localName !== holiday.name && (
-                                <div className="text-xs text-orange-700 mt-1">
+                                <div className="text-xs text-warning mt-1">
                                   {holiday.name}
                                 </div>
                               )}
@@ -5006,11 +5006,11 @@ const Attendance = () => {
 
                     {/* Sunday Section */}
                     {selectedDateIsSunday && !nonWorkingDayDetails.customHoliday && !customHolidayForDate && publicHolidayMatches.length === 0 && (
-                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-amber-800 mb-1">
+                      <div className="p-3 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-lg">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-warning mb-1">
                           Weekly Holiday
                         </div>
-                        <div className="text-sm font-semibold text-amber-900">
+                        <div className="text-sm font-semibold text-warning">
                           Sunday
                         </div>
                       </div>
@@ -5018,7 +5018,7 @@ const Attendance = () => {
 
                     {/* General reasons list if available */}
                     {nonWorkingDayDetails.reasons && nonWorkingDayDetails.reasons.length > 0 && (
-                      <div className="space-y-1 text-sm text-gray-600">
+                      <div className="space-y-1 text-sm text-sub">
                         {nonWorkingDayDetails.reasons.map((reason, index) => (
                           <div key={index} className="text-xs">
                             • {reason}
@@ -5027,22 +5027,22 @@ const Attendance = () => {
                       </div>
                     )}
 
-                    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                      <div className="text-sm text-amber-800">
+                    <div className="mt-4 p-3 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-lg">
+                      <div className="text-sm text-warning">
                         <strong>Note:</strong> Attendance cannot be marked on holidays. Please select a working day to mark attendance.
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
+              <div className="flex justify-end gap-2 pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => {
                     setShowHolidayAlert(false);
                     setHolidayAlertShown(true);
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+                  className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-hover transition-colors font-medium"
                 >
                   Understood
                 </button>
@@ -5056,55 +5056,55 @@ const Attendance = () => {
       {
         showReportModal && attendanceReport && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50 px-4">
-            <div className="bg-white w-full max-w-3xl rounded-xl shadow-2xl border border-gray-200 max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Attendance Report</h2>
+            <div className="bg-surface w-full max-w-3xl rounded-xl shadow-2xl border border-border max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-surface border-b border-border px-6 py-4 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-main">Attendance Report</h2>
                 <button
                   onClick={() => setShowReportModal(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-muted-text hover:text-sub transition-colors"
                 >
                   <X size={24} />
                 </button>
               </div>
               <div className="p-6 space-y-6">
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 mb-1">Total Students</p>
-                    <p className="text-2xl font-bold text-blue-700">{attendanceReport.totalStudents.toLocaleString()}</p>
+                  <div className="bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg p-4">
+                    <p className="text-sm text-sub mb-1">Total Students</p>
+                    <p className="text-2xl font-bold text-primary">{attendanceReport.totalStudents.toLocaleString()}</p>
                   </div>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 mb-1">Present</p>
-                    <p className="text-2xl font-bold text-green-700">{attendanceReport.presentCount.toLocaleString()}</p>
+                  <div className="bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg p-4">
+                    <p className="text-sm text-sub mb-1">Present</p>
+                    <p className="text-2xl font-bold text-success">{attendanceReport.presentCount.toLocaleString()}</p>
                   </div>
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-sm text-gray-600 mb-1">Absent</p>
-                    <p className="text-2xl font-bold text-red-700">{attendanceReport.absentCount.toLocaleString()}</p>
+                  <div className="bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-lg p-4">
+                    <p className="text-sm text-sub mb-1">Absent</p>
+                    <p className="text-2xl font-bold text-danger">{attendanceReport.absentCount.toLocaleString()}</p>
                   </div>
                 </div>
 
                 {attendanceReport.absentCount > 0 && (
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Absent Students PIN Numbers</h3>
+                  <div className="border border-border rounded-lg p-4">
+                    <h3 className="text-sm font-semibold text-sub mb-3">Absent Students PIN Numbers</h3>
                     <div className="flex flex-wrap gap-2">
                       {attendanceReport.absentPinNumbers.length > 0 ? (
                         attendanceReport.absentPinNumbers.map((pin, index) => (
                           <span
                             key={index}
-                            className="inline-flex items-center px-3 py-1 rounded-md bg-red-100 text-red-800 text-sm font-medium border border-red-200"
+                            className="inline-flex items-center px-3 py-1 rounded-md bg-[var(--danger-light)] text-danger text-sm font-medium border border-[var(--danger-light)]"
                           >
                             {pin}
                           </span>
                         ))
                       ) : (
-                        <p className="text-sm text-gray-500">No PIN numbers available for absent students</p>
+                        <p className="text-sm text-muted-text">No PIN numbers available for absent students</p>
                       )}
                     </div>
                   </div>
                 )}
 
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Date & Filters</h3>
-                  <div className="space-y-2 text-sm text-gray-600">
+                <div className="border border-border rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-sub mb-3">Date & Filters</h3>
+                  <div className="space-y-2 text-sm text-sub">
                     <p><span className="font-medium">Date:</span> {attendanceDateLabel}</p>
                     {filters.batch && <p><span className="font-medium">Batch:</span> {filters.batch}</p>}
                     {filters.course && <p><span className="font-medium">Course:</span> {filters.course}</p>}
@@ -5114,17 +5114,17 @@ const Attendance = () => {
                   </div>
                 </div>
               </div>
-              <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+              <div className="sticky bottom-0 bg-background border-t border-border px-6 py-4 flex items-center justify-end gap-3">
                 <button
                   onClick={() => setShowReportModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                  className="px-4 py-2 border border-border-strong rounded-md text-sm font-medium text-sub hover:bg-background transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmSave}
                   disabled={saving}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 bg-primary text-white rounded-md text-sm font-medium hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {saving ? 'Saving...' : 'Confirm & Save'}
                 </button>

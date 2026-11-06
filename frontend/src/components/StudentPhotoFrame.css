@@ -31,7 +31,7 @@
   overflow: hidden;
   position: relative;
   z-index: 1;
-  background-color: #f8fafc;
+  background-color: var(--background);
   border: none;
   box-shadow: none;
 }

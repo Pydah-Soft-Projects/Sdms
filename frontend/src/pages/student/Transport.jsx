@@ -25,17 +25,17 @@ const customMapStyles = `
     border: none !important;
   }
   .stage-tooltip {
-    background: #ffffff !important;
-    color: #0f172a !important;
+    background: var(--surface) !important;
+    color: var(--text-primary) !important;
     font-size: 12px !important;
     font-weight: 700 !important;
-    border: 1px solid #cbd5e1 !important;
+    border: 1px solid var(--border-strong) !important;
     border-radius: 8px !important;
     padding: 6px 12px !important;
     box-shadow: 0 4px 14px rgba(0,0,0,0.12) !important;
   }
   .stage-tooltip:before {
-    border-top-color: #ffffff !important;
+    border-top-color: var(--surface) !important;
   }
 `;
 
@@ -404,20 +404,20 @@ const Transport = () => {
                 <div style="position:relative;width:56px;height:56px;display:flex;align-items:center;justify-content:center;">
                     <!-- Concentric Radar Pulse Waves when in Movement -->
                     ${isMoving ? `
-                    <div style="position:absolute;inset:-8px;border-radius:50%;background:#10b981;opacity:0.35;animation:ping 1.3s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
-                    <div style="position:absolute;inset:-3px;border-radius:50%;background:#3b82f6;opacity:0.25;animation:ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+                    <div style="position:absolute;inset:-8px;border-radius:50%;background:var(--success);opacity:0.35;animation:ping 1.3s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+                    <div style="position:absolute;inset:-3px;border-radius:50%;background:var(--primary);opacity:0.25;animation:ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
                     ` : `
-                    <div style="position:absolute;inset:-4px;border-radius:50%;background:#3b82f6;opacity:0.2;animation:pulse 2s infinite;"></div>
+                    <div style="position:absolute;inset:-4px;border-radius:50%;background:var(--primary);opacity:0.2;animation:pulse 2s infinite;"></div>
                     `}
 
                     <!-- Main Bus Round Icon -->
-                    <div style="position:relative;width:40px;height:40px;border-radius:50%;background:${isMoving ? '#059669' : '#2563eb'};color:#ffffff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);border:2.5px solid #ffffff;">
+                    <div style="position:relative;width:40px;height:40px;border-radius:50%;background:${isMoving ? 'var(--success)' : 'var(--primary)'};color:var(--surface);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);border:2.5px solid var(--surface);">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg>
 
                         <!-- Heading Compass Direction Pointer -->
                         ${heading > 0 ? `
-                        <div style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:#0284c7;border:1.5px solid #fff;display:flex;align-items:center;justify-content:center;transform:rotate(${heading}deg);box-shadow:0 2px 5px rgba(0,0,0,0.2);">
-                            <svg width="10" height="10" fill="#fff" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+                        <div style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--info);border:1.5px solid var(--surface);display:flex;align-items:center;justify-content:center;transform:rotate(${heading}deg);box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+                            <svg width="10" height="10" fill="var(--surface)" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
                         </div>` : ''}
                     </div>
                 </div>
@@ -436,8 +436,8 @@ const Transport = () => {
             className: 'clean-leaflet-marker',
             html: `
                 <div style="position:relative;width:46px;height:46px;display:flex;align-items:center;justify-content:center;">
-                    <div style="position:absolute;inset:-6px;border-radius:50%;background:#10b981;opacity:0.35;animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
-                    <div style="position:relative;width:36px;height:36px;border-radius:50%;background:#059669;color:#ffffff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);border:2.5px solid #ffffff;">
+                    <div style="position:absolute;inset:-6px;border-radius:50%;background:var(--success);opacity:0.35;animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
+                    <div style="position:relative;width:36px;height:36px;border-radius:50%;background:var(--success);color:var(--surface);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);border:2.5px solid var(--surface);">
                         <svg width="19" height="19" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                     </div>
                 </div>
@@ -456,7 +456,7 @@ const Transport = () => {
             className: 'clean-leaflet-marker',
             html: `
                 <div style="position:relative;width:46px;height:46px;display:flex;align-items:center;justify-content:center;">
-                    <div style="position:relative;width:36px;height:36px;border-radius:50%;background:#7c3aed;color:#ffffff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);border:2.5px solid #ffffff;">
+                    <div style="position:relative;width:36px;height:36px;border-radius:50%;background:var(--secondary);color:var(--surface);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.25);border:2.5px solid var(--surface);">
                         <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
                     </div>
                 </div>
@@ -475,7 +475,7 @@ const Transport = () => {
             className: 'clean-leaflet-marker',
             html: `
                 <div style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;">
-                    <div style="position:relative;width:30px;height:30px;border-radius:50%;background:#0284c7;color:#ffffff;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,0.22);border:2px solid #ffffff;">
+                    <div style="position:relative;width:30px;height:30px;border-radius:50%;background:var(--info);color:var(--surface);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,0.22);border:2px solid var(--surface);">
                         <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                     </div>
                 </div>
@@ -492,7 +492,7 @@ const Transport = () => {
             className: 'clean-leaflet-marker',
             html: `
                 <div style="display:flex;flex-direction:column;align-items:center;cursor:pointer;">
-                    <div style="width:16px;height:16px;border-radius:50%;background:#3b82f6;color:#ffffff;font-size:8.5px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.3);border:1.5px solid #ffffff;">
+                    <div style="width:16px;height:16px;border-radius:50%;background:var(--primary);color:var(--surface);font-size:8.5px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.3);border:1.5px solid var(--surface);">
                         ${stageNumber}
                     </div>
                 </div>
@@ -512,14 +512,14 @@ const Transport = () => {
     if (loading) {
         return (
             <div className="max-w-7xl mx-auto space-y-4 animate-pulse p-3 sm:p-4">
-                <div className="bg-white rounded-2xl p-4 border border-gray-100 space-y-3">
+                <div className="bg-surface rounded-2xl p-4 border border-border space-y-3">
                     <div className="flex justify-between items-center">
                         <SkeletonBox height="h-6" width="w-36" />
                         <SkeletonBox height="h-5" width="w-20" className="rounded-full" />
                     </div>
                     <SkeletonBox height="h-4" width="w-56" />
                 </div>
-                <div className="bg-white rounded-2xl p-4 border border-gray-100 space-y-3 min-h-[350px]">
+                <div className="bg-surface rounded-2xl p-4 border border-border space-y-3 min-h-[350px]">
                     <SkeletonBox height="h-full" className="w-full min-h-[320px] rounded-xl" />
                 </div>
             </div>
@@ -533,39 +533,39 @@ const Transport = () => {
             {hasActivePass ? (
                 <>
                     {/* TOP UNIFIED TRANSIT PASS CARD */}
-                    <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-gray-100 space-y-2.5">
+                    <div className="bg-surface rounded-2xl p-3 sm:p-4 shadow-sm border border-border space-y-2.5">
                         {/* Header Row: Active Pass & Live GPS Signal */}
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
-                                <h1 className="text-lg font-bold text-gray-900">Transport Pass</h1>
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <h1 className="text-lg font-bold text-main">Transport Pass</h1>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[var(--success-light)] text-success border border-[var(--success-light)]">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
                                     Active
                                 </span>
                             </div>
-                            <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-medium">
-                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                                <span className="text-emerald-700 font-semibold">Live GPS</span>
+                            <div className="flex items-center gap-1.5 text-[11px] text-muted-text font-medium">
+                                <span className="w-2 h-2 rounded-full bg-success animate-ping"></span>
+                                <span className="text-success font-semibold">Live GPS</span>
                                 <span>•</span>
                                 <span className="font-mono">{lastPingTime}</span>
                             </div>
                         </div>
 
                         {/* Route Corridor Ribbon */}
-                        <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                        <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-background border border-border text-xs">
                             <div className="flex items-center gap-2 min-w-0 flex-1">
                                 {activePass.routeId && (
-                                    <span className="px-2 py-0.5 rounded bg-indigo-600 text-white font-black text-[11px] shrink-0">
+                                    <span className="px-2 py-0.5 rounded bg-primary text-white font-black text-[11px] shrink-0">
                                         {activePass.routeId}
                                     </span>
                                 )}
-                                <span className="font-bold text-gray-800 truncate text-xs sm:text-sm" title={activePass.routeName || activePass.routeDetails?.routeName}>
+                                <span className="font-bold text-main truncate text-xs sm:text-sm" title={activePass.routeName || activePass.routeDetails?.routeName}>
                                     {activePass.routeName || activePass.routeDetails?.routeName || (activePass.routeId ? `Route ${activePass.routeId}` : 'Assigned Route')}
                                 </span>
                             </div>
                             <button
                                 onClick={() => setShowFullRouteModal(true)}
-                                className="px-2.5 py-1 bg-white hover:bg-indigo-50 text-indigo-700 font-bold text-[11px] rounded-lg border border-indigo-100 shadow-sm shrink-0 transition-all flex items-center gap-1 active:scale-95"
+                                className="px-2.5 py-1 bg-surface hover:bg-[var(--primary-light)] text-primary font-bold text-[11px] rounded-lg border border-[var(--primary-light)] shadow-sm shrink-0 transition-all flex items-center gap-1 active:scale-95"
                             >
                                 <RiRouteFill size={13} />
                                 <span>{allRouteStages.length} Stops</span>
@@ -575,15 +575,15 @@ const Transport = () => {
                         {/* LIVE BUS MOVEMENT & REAL-TIME DYNAMIC TIMINGS BAR (CLEAN LIGHT PORTAL THEME) */}
                         <div className={`p-3 rounded-xl border transition-all ${
                             isMoving
-                                ? 'bg-gradient-to-r from-emerald-50/90 via-teal-50/50 to-emerald-50/90 border-emerald-200 shadow-xs'
-                                : 'bg-slate-50/90 border-slate-200 text-slate-800'
+                                ? 'bg-gradient-to-r from-[var(--success-light)] via-[var(--primary-light)] to-[var(--success-light)] border-[var(--success-light)] shadow-xs'
+                                : 'bg-[var(--background)]/90 border-border text-main'
                         }`}>
                             <div className="flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-2.5 min-w-0">
                                     <div className={`w-10 h-10 rounded-full flex flex-col items-center justify-center shrink-0 shadow-sm border-2 ${
                                         isMoving
-                                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                                            : 'border-slate-300 bg-slate-100 text-slate-500'
+                                            ? 'border-success bg-[var(--success-light)] text-success'
+                                            : 'border-border-strong bg-background text-muted-text'
                                     }`}>
                                         <span className="font-black text-sm leading-none">{isMoving ? liveSpeed : '0'}</span>
                                         <span className="text-[7px] font-black uppercase mt-0.5">km/h</span>
@@ -591,22 +591,22 @@ const Transport = () => {
                                     <div className="min-w-0 flex flex-col justify-center">
                                         <div className="flex items-center gap-2 mb-0.5">
                                             <span className={`flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest ${
-                                                isMoving ? 'text-emerald-700' : 'text-amber-700'
+                                                isMoving ? 'text-success' : 'text-warning'
                                             }`}>
                                                 {isMoving ? (
                                                     <>
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-success animate-ping"></span>
                                                         IN MOTION
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-warning"></span>
                                                         STATIONARY
                                                     </>
                                                 )}
                                             </span>
                                         </div>
-                                        <div className="text-[11px] sm:text-xs font-semibold text-gray-600 truncate">
+                                        <div className="text-[11px] sm:text-xs font-semibold text-sub truncate">
                                             {isMoving
                                                 ? `Heading to ${activePass.stopName || studentStage?.stageName || 'stop'}`
                                                 : `Parked • Engine ${ignitionActive ? 'ON' : 'OFF'}`
@@ -619,15 +619,15 @@ const Transport = () => {
                                 <div className="text-right shrink-0">
                                     {etaToStop ? (
                                         <>
-                                            <div className={`font-mono font-black text-sm sm:text-base leading-none ${isMoving ? 'text-emerald-700' : 'text-slate-500'}`}>
+                                            <div className={`font-mono font-black text-sm sm:text-base leading-none ${isMoving ? 'text-success' : 'text-muted-text'}`}>
                                                 ETA: {isMoving ? `~${etaToStop.etaClock}` : '--'}
                                             </div>
-                                            <div className="text-[10px] font-semibold text-gray-500 mt-0.5">
+                                            <div className="text-[10px] font-semibold text-muted-text mt-0.5">
                                                 {isMoving ? `${etaToStop.formattedTime} (${distanceBusToStop || '--'} km)` : '--'}
                                             </div>
                                         </>
                                     ) : (
-                                        <span className="text-xs text-gray-400 font-medium">Calculating...</span>
+                                        <span className="text-xs text-muted-text font-medium">Calculating...</span>
                                     )}
                                 </div>
                             </div>
@@ -636,15 +636,15 @@ const Transport = () => {
                         {/* 2 Clean Structured Stat Cards (Boarding Stop & Live Bus) */}
                         <div className="grid grid-cols-2 gap-2 text-xs">
                             {/* Boarding Stop Card */}
-                            <div className="p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-100 flex flex-col justify-between">
-                                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                            <div className="p-2.5 rounded-xl bg-[var(--success-light)] border border-[var(--success-light)] flex flex-col justify-between">
+                                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-success">
                                     <span>Boarding Stop</span>
-                                    <RiMapPin2Fill size={14} className="text-emerald-600" />
+                                    <RiMapPin2Fill size={14} className="text-success" />
                                 </div>
-                                <div className="font-black text-emerald-950 text-sm sm:text-base truncate mt-0.5">
+                                <div className="font-black text-success text-sm sm:text-base truncate mt-0.5">
                                     {activePass.stopName || studentStage?.stageName || 'Assigned Stop'}
                                 </div>
-                                <div className="text-[10px] font-medium text-emerald-800/90 mt-1 flex items-center gap-1 truncate">
+                                <div className="text-[10px] font-medium text-success mt-1 flex items-center gap-1 truncate">
                                     <span>{studentStageIndex ? `Stage #${studentStageIndex}` : 'Your Stop'}</span>
                                     {distanceBusToStop && (
                                         <>
@@ -656,19 +656,19 @@ const Transport = () => {
                             </div>
 
                             {/* Assigned Bus Card */}
-                            <div className="p-2.5 rounded-xl bg-blue-50/50 border border-blue-100 flex flex-col justify-between">
-                                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                            <div className="p-2.5 rounded-xl bg-[var(--primary-light)] border border-[var(--primary-light)] flex flex-col justify-between">
+                                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-primary">
                                     <span>Assigned Bus</span>
-                                    <RiBusFill size={14} className="text-blue-600" />
+                                    <RiBusFill size={14} className="text-primary" />
                                 </div>
-                                <div className="font-black text-blue-950 text-sm sm:text-base truncate mt-0.5">
+                                <div className="font-black text-primary text-sm sm:text-base truncate mt-0.5">
                                     {activePass.busId || liveBusData?.busNumber || activePass?.busDetails?.busNumber || 'Assigned Bus'}
                                 </div>
-                                <div className="text-[10px] font-medium text-blue-800/90 mt-1 flex items-center gap-1 truncate">
+                                <div className="text-[10px] font-medium text-primary mt-1 flex items-center gap-1 truncate">
                                     <span className={`px-1.5 py-0.2 rounded font-bold uppercase text-[9px] ${
                                         isMoving
-                                            ? 'bg-emerald-100 text-emerald-800 font-black'
-                                            : 'bg-amber-100 text-amber-800 font-semibold'
+                                            ? 'bg-[var(--success-light)] text-success font-black'
+                                            : 'bg-[var(--warning-light)] text-warning font-semibold'
                                     }`}>
                                         {isMoving ? `Moving (${liveSpeed}k)` : (liveBusData?.location?.status || 'Stopped')}
                                     </span>
@@ -678,12 +678,12 @@ const Transport = () => {
                     </div>
 
                     {/* ADVANCED GOOGLE MAPS HYBRID LIVE TRACKING & NAVIGATION VIEW */}
-                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 relative flex-1 flex flex-col min-h-0">
+                    <div className="bg-surface rounded-2xl overflow-hidden shadow-sm border border-border relative flex-1 flex flex-col min-h-0">
                         {/* MAP QUICK ACTION BUTTONS (CLEAN BOTTOM-CENTER PILL BAR, ZERO OVERLAP) */}
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-1 bg-white/95 backdrop-blur-md px-2 py-1 rounded-2xl shadow-xl border border-gray-200">
+                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[1000] flex items-center gap-1 bg-[var(--surface)]/95 backdrop-blur-md px-2 py-1 rounded-2xl shadow-xl border border-border">
                             <button
                                 onClick={() => setMapFocus('bus')}
-                                className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95"
+                                className="px-2.5 py-1 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95"
                                 title="Center on Live Bus"
                             >
                                 <RiBusFill size={13} />
@@ -691,7 +691,7 @@ const Transport = () => {
                             </button>
                             <button
                                 onClick={() => setMapFocus('stop')}
-                                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95"
+                                className="px-2.5 py-1 bg-[var(--success-light)] hover:bg-[var(--success-light)] text-success text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95"
                                 title="Center on My Boarding Stop"
                             >
                                 <RiMapPin2Fill size={13} />
@@ -699,7 +699,7 @@ const Transport = () => {
                             </button>
                             <button
                                 onClick={() => setMapFocus('campus')}
-                                className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95"
+                                className="px-2.5 py-1 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-secondary text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95"
                                 title="Center on Final Destination (Campus)"
                             >
                                 <RiBuilding2Fill size={13} />
@@ -707,7 +707,7 @@ const Transport = () => {
                             </button>
                             <button
                                 onClick={() => setMapFocus('fit')}
-                                className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95"
+                                className="px-2.5 py-1 bg-background hover:bg-background text-sub text-xs font-bold rounded-xl flex items-center gap-1 transition-all active:scale-95"
                                 title="Fit Entire Route"
                             >
                                 <RiCrosshair2Line size={13} />
@@ -770,13 +770,13 @@ const Transport = () => {
                                     <>
                                         <Polyline
                                             positions={activePolyline}
-                                            pathOptions={{ color: '#0ea5e9', weight: 6.5, opacity: 0.45 }}
+                                            pathOptions={{ color: 'var(--info)', weight: 6.5, opacity: 0.45 }}
                                             smoothFactor={2}
                                             interactive={false}
                                         />
                                         <Polyline
                                             positions={activePolyline}
-                                            pathOptions={{ color: '#2563eb', weight: 3.5, opacity: 0.95 }}
+                                            pathOptions={{ color: 'var(--primary)', weight: 3.5, opacity: 0.95 }}
                                             smoothFactor={2}
                                             interactive={false}
                                         />
@@ -790,8 +790,8 @@ const Transport = () => {
                                         radius={campusRadius}
                                         interactive={false}
                                         pathOptions={{
-                                            color: '#7c3aed',
-                                            fillColor: '#8b5cf6',
+                                            color: 'var(--secondary)',
+                                            fillColor: 'var(--primary)',
                                             fillOpacity: 0.22,
                                             weight: 2,
                                             dashArray: '4, 4'
@@ -804,18 +804,18 @@ const Transport = () => {
                                     <Marker position={originCoords} icon={originIcon}>
                                         <Popup>
                                             <div className="p-1.5 space-y-1 text-xs">
-                                                <div className="font-bold text-blue-600">
+                                                <div className="font-bold text-primary">
                                                     🚩 Route Origin: {allRouteStages[0]?.stageName || activePass?.routeDetails?.startPoint || 'Route Origin'}
                                                 </div>
-                                                <p className="text-gray-700">
+                                                <p className="text-sub">
                                                     <strong>Morning Start:</strong> {MORNING_ORIGIN_START_TIME}
                                                 </p>
                                                 {allRouteStages.length > 0 && (
-                                                    <p className="text-gray-700">
+                                                    <p className="text-sub">
                                                         <strong>Evening Terminus:</strong> ~{getStageMetrics(allRouteStages[0]).eveningScheduledTime}
                                                     </p>
                                                 )}
-                                                <p className="text-gray-500">Commencement point • 0 KM</p>
+                                                <p className="text-muted-text">Commencement point • 0 KM</p>
                                             </div>
                                         </Popup>
                                     </Marker>
@@ -826,26 +826,26 @@ const Transport = () => {
                                     <Marker position={stopCoords} icon={stopIcon}>
                                         <Popup>
                                             <div className="p-2 space-y-1 text-xs min-w-[210px]">
-                                                <div className="font-bold text-emerald-600 flex items-center gap-1 border-b border-gray-100 pb-1">
+                                                <div className="font-bold text-success flex items-center gap-1 border-b border-border pb-1">
                                                     <RiMapPin2Fill size={15} />
                                                     <span>Your Boarding Stop: {activePass.stopName || studentStage?.stageName}</span>
                                                 </div>
-                                                <div className="bg-emerald-50/70 p-2 rounded-xl border border-emerald-100 space-y-1 text-emerald-950">
+                                                <div className="bg-[var(--success-light)] p-2 rounded-xl border border-[var(--success-light)] space-y-1 text-success">
                                                     <p className="font-bold flex items-center justify-between">
                                                         <span>🌅 Morning Pickup:</span>
-                                                        <span className="font-mono text-emerald-800">~{studentStopMetrics.morningTime}</span>
+                                                        <span className="font-mono text-success">~{studentStopMetrics.morningTime}</span>
                                                     </p>
                                                     <p className="font-bold flex items-center justify-between">
                                                         <span>🌇 Evening Drop:</span>
-                                                        <span className="font-mono text-emerald-800">~{studentStopMetrics.eveningTime}</span>
+                                                        <span className="font-mono text-success">~{studentStopMetrics.eveningTime}</span>
                                                     </p>
                                                 </div>
                                                 {etaToStop && (
-                                                    <p className="text-blue-700 font-bold pt-0.5">
+                                                    <p className="text-primary font-bold pt-0.5">
                                                         Live GPS ETA: ~{etaToStop?.etaClock} ({etaToStop?.formattedTime})
                                                     </p>
                                                 )}
-                                                <p className="text-gray-500 text-[11px]">
+                                                <p className="text-muted-text text-[11px]">
                                                     Distance: {studentStage?.distanceFromStart != null ? `${studentStage.distanceFromStart} KM from start` : 'Assigned Route Stop'}
                                                     {studentStage?.distanceToDestination != null ? ` • ${studentStage.distanceToDestination} KM to campus` : ''}
                                                 </p>
@@ -859,21 +859,21 @@ const Transport = () => {
                                     <Marker position={campusCoords} icon={campusIcon}>
                                         <Popup>
                                             <div className="p-2 space-y-1 text-xs min-w-[210px]">
-                                                <div className="font-bold text-purple-600 flex items-center gap-1 border-b border-gray-100 pb-1">
+                                                <div className="font-bold text-secondary flex items-center gap-1 border-b border-border pb-1">
                                                     <RiBuilding2Fill size={15} />
                                                     <span>🏁 Final Destination: {activePass?.routeDetails?.destination?.name || 'Campus Gate'}</span>
                                                 </div>
-                                                <div className="bg-purple-50/70 p-2 rounded-xl border border-purple-100 space-y-1 text-purple-950">
+                                                <div className="bg-[var(--primary-light)] p-2 rounded-xl border border-[var(--primary-light)] space-y-1 text-secondary">
                                                     <p className="font-bold flex items-center justify-between">
                                                         <span>🌅 Morning Arrival:</span>
-                                                        <span className="font-mono text-purple-800">~{MORNING_CAMPUS_END_TIME}</span>
+                                                        <span className="font-mono text-secondary">~{MORNING_CAMPUS_END_TIME}</span>
                                                     </p>
                                                     <p className="font-bold flex items-center justify-between">
                                                         <span>🌇 Evening Dispersal:</span>
-                                                        <span className="font-mono text-purple-800">{EVENING_CAMPUS_START_TIME}</span>
+                                                        <span className="font-mono text-secondary">{EVENING_CAMPUS_START_TIME}</span>
                                                     </p>
                                                 </div>
-                                                <p className="text-gray-500 text-[11px]">
+                                                <p className="text-muted-text text-[11px]">
                                                     Total Route: {routeDistanceKm || activePass?.routeDetails?.totalDistance || '--'} KM • Geofence: {campusRadius}m radius
                                                 </p>
                                             </div>
@@ -899,20 +899,20 @@ const Transport = () => {
                                         >
                                             <Popup>
                                                 <div className="p-1.5 text-xs space-y-1.5 min-w-[190px]">
-                                                    <div className="font-bold text-indigo-600 text-sm border-b border-gray-100 pb-0.5">
+                                                    <div className="font-bold text-primary text-sm border-b border-border pb-0.5">
                                                         Stage #{idx + 1}: {stage.stageName}
                                                     </div>
-                                                    <div className="bg-slate-50 p-1.5 rounded-lg border border-slate-100 space-y-0.5 text-slate-800">
-                                                        <div className="flex items-center justify-between font-bold text-emerald-700">
+                                                    <div className="bg-background p-1.5 rounded-lg border border-border space-y-0.5 text-main">
+                                                        <div className="flex items-center justify-between font-bold text-success">
                                                             <span>🌅 Morning Pickup:</span>
                                                             <span className="font-mono">~{metrics.morningScheduledTime}</span>
                                                         </div>
-                                                        <div className="flex items-center justify-between font-bold text-indigo-700">
+                                                        <div className="flex items-center justify-between font-bold text-primary">
                                                             <span>🌇 Evening Drop:</span>
                                                             <span className="font-mono">~{metrics.eveningScheduledTime}</span>
                                                         </div>
                                                     </div>
-                                                    <div className="text-gray-500 text-[10px] flex items-center justify-between pt-0.5">
+                                                    <div className="text-muted-text text-[10px] flex items-center justify-between pt-0.5">
                                                         <span>From Start: {metrics.distFromStart} KM</span>
                                                         <span>To Campus: {metrics.distToCampus} KM</span>
                                                     </div>
@@ -927,41 +927,41 @@ const Transport = () => {
                                     <Marker position={busCoords} icon={busIcon}>
                                         <Popup>
                                             <div className="p-1.5 space-y-1.5 text-xs min-w-[200px]">
-                                                <div className="flex items-center justify-between text-blue-600 font-bold border-b border-gray-100 pb-1">
+                                                <div className="flex items-center justify-between text-primary font-bold border-b border-border pb-1">
                                                     <div className="flex items-center gap-1.5">
                                                         <RiBusFill size={16} />
                                                         <span>Live GPS Telemetry</span>
                                                     </div>
                                                     <span className={`px-1.5 py-0.2 rounded font-bold uppercase text-[9px] ${
-                                                        isMoving ? 'bg-emerald-100 text-emerald-800 font-black' : 'bg-amber-100 text-amber-800'
+                                                        isMoving ? 'bg-[var(--success-light)] text-success font-black' : 'bg-[var(--warning-light)] text-warning'
                                                     }`}>
                                                         {isMoving ? 'In Motion' : 'Stopped'}
                                                     </span>
                                                 </div>
-                                                <p className="font-black text-gray-900 text-base">
+                                                <p className="font-black text-main text-base">
                                                     {activePass.busId || liveBusData?.busNumber || activePass?.busDetails?.busNumber || 'Assigned Bus'}
                                                 </p>
                                                 
-                                                <div className="grid grid-cols-2 gap-1.5 bg-slate-50 p-2 rounded-xl text-slate-800">
+                                                <div className="grid grid-cols-2 gap-1.5 bg-background p-2 rounded-xl text-main">
                                                     <div>
-                                                        <span className="text-gray-400 text-[9px] uppercase font-bold block">Live Speed</span>
-                                                        <span className="font-mono font-black text-sm text-blue-700">{liveSpeed} km/h</span>
+                                                        <span className="text-muted-text text-[9px] uppercase font-bold block">Live Speed</span>
+                                                        <span className="font-mono font-black text-sm text-primary">{liveSpeed} km/h</span>
                                                     </div>
                                                     <div>
-                                                        <span className="text-gray-400 text-[9px] uppercase font-bold block">Ignition</span>
-                                                        <span className={`font-bold text-xs ${ignitionActive ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                                        <span className="text-muted-text text-[9px] uppercase font-bold block">Ignition</span>
+                                                        <span className={`font-bold text-xs ${ignitionActive ? 'text-success' : 'text-muted-text'}`}>
                                                             {ignitionActive ? 'Engine ON' : 'Engine OFF'}
                                                         </span>
                                                     </div>
                                                 </div>
 
                                                 {etaToStop && (
-                                                    <div className="text-emerald-700 font-bold text-xs pt-0.5">
+                                                    <div className="text-success font-bold text-xs pt-0.5">
                                                         ETA to your stop: ~{etaToStop?.etaClock} ({etaToStop?.formattedTime})
                                                     </div>
                                                 )}
 
-                                                <div className="text-gray-400 text-[10px] pt-1 border-t border-gray-100 flex items-center justify-between">
+                                                <div className="text-muted-text text-[10px] pt-1 border-t border-border flex items-center justify-between">
                                                     <span>Telemetry: {lastPingTime}</span>
                                                     {busHeading > 0 && <span>Heading: {busHeading}°</span>}
                                                 </div>
@@ -976,30 +976,30 @@ const Transport = () => {
                     {/* MODAL: FULL BUS ROUTE & STAGES TIMELINE (WITH BOTH SIDES TIMINGS) */}
                     {showFullRouteModal && (
                         <div className="fixed inset-0 z-[2000] bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 animate-fade-in">
-                            <div className="bg-white rounded-2xl max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-gray-100 overflow-hidden">
+                            <div className="bg-surface rounded-2xl max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-border overflow-hidden">
                                 {/* Modal Header */}
-                                <div className="p-4 sm:px-5 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                                <div className="p-4 sm:px-5 bg-background border-b border-border flex items-center justify-between">
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <span className="px-2 py-0.5 rounded bg-indigo-600 text-white text-xs font-bold">
+                                            <span className="px-2 py-0.5 rounded bg-primary text-white text-xs font-bold">
                                                 {activePass.routeId}
                                             </span>
-                                            <h3 className="font-bold text-gray-900 text-base">Route Schedule (Both Directions)</h3>
+                                            <h3 className="font-bold text-main text-base">Route Schedule (Both Directions)</h3>
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-0.5">
+                                        <p className="text-xs text-muted-text mt-0.5">
                                             Morning Start: <strong>{MORNING_ORIGIN_START_TIME}</strong> • Evening Dispersal: <strong>{EVENING_CAMPUS_START_TIME}</strong>
                                         </p>
                                     </div>
                                     <button
                                         onClick={() => setShowFullRouteModal(false)}
-                                        className="p-1.5 rounded-lg hover:bg-gray-200 text-gray-500 transition-all"
+                                        className="p-1.5 rounded-lg hover:bg-background text-muted-text transition-all"
                                     >
                                         <RiCloseLine size={20} />
                                     </button>
                                 </div>
 
                                 {/* Stages List with Both Sides Timings */}
-                                <div className="overflow-y-auto p-3 sm:p-4 space-y-2 divide-y divide-gray-100">
+                                <div className="overflow-y-auto p-3 sm:p-4 space-y-2 divide-y divide-border">
                                     {allRouteStages.map((stage, idx) => {
                                         const isStudentStop = activePass?.stopName && stage.stageName?.trim().toLowerCase() === activePass.stopName.trim().toLowerCase();
                                         const isOrigin = idx === 0;
@@ -1011,20 +1011,20 @@ const Transport = () => {
                                             <div
                                                 key={`modal_stage_${idx}`}
                                                 className={`pt-2.5 first:pt-0 flex items-center justify-between gap-3 text-xs ${
-                                                    isStudentStop ? 'bg-emerald-50 -mx-2 px-2.5 py-2.5 rounded-xl border border-emerald-200' : ''
+                                                    isStudentStop ? 'bg-[var(--success-light)] -mx-2 px-2.5 py-2.5 rounded-xl border border-[var(--success-light)]' : ''
                                                 } ${
-                                                    isCampus ? 'bg-purple-50 -mx-2 px-2.5 py-2.5 rounded-xl border border-purple-200' : ''
+                                                    isCampus ? 'bg-[var(--primary-light)] -mx-2 px-2.5 py-2.5 rounded-xl border border-[var(--primary-light)]' : ''
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                                                     <div className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${
                                                         isStudentStop
-                                                            ? 'bg-emerald-600 text-white'
+                                                            ? 'bg-success text-white'
                                                             : isCampus
-                                                            ? 'bg-purple-600 text-white'
+                                                            ? 'bg-secondary text-white'
                                                             : isOrigin
-                                                            ? 'bg-blue-600 text-white'
-                                                            : 'bg-gray-100 text-gray-700'
+                                                            ? 'bg-primary text-white'
+                                                            : 'bg-background text-sub'
                                                     }`}>
                                                         {isCampus ? '🏁' : isOrigin ? '🚩' : idx + 1}
                                                     </div>
@@ -1032,17 +1032,17 @@ const Transport = () => {
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex items-center gap-1.5 flex-wrap">
                                                             <span className={`font-bold text-sm ${
-                                                                isStudentStop ? 'text-emerald-950 font-black' : isCampus ? 'text-purple-950 font-black' : 'text-gray-900'
+                                                                isStudentStop ? 'text-success font-black' : isCampus ? 'text-secondary font-black' : 'text-main'
                                                             }`}>
                                                                 {stage.stageName}
                                                             </span>
                                                             {isStudentStop && (
-                                                                <span className="px-1.5 py-0.2 rounded bg-emerald-600 text-white text-[9px] font-bold">
+                                                                <span className="px-1.5 py-0.2 rounded bg-success text-white text-[9px] font-bold">
                                                                     Your Stop
                                                                 </span>
                                                             )}
                                                             {isCampus && (
-                                                                <span className="px-1.5 py-0.2 rounded bg-purple-600 text-white text-[9px] font-bold">
+                                                                <span className="px-1.5 py-0.2 rounded bg-secondary text-white text-[9px] font-bold">
                                                                     Final Destination
                                                                 </span>
                                                             )}
@@ -1050,10 +1050,10 @@ const Transport = () => {
 
                                                         {/* Both Sides Timings Row */}
                                                         <div className="grid grid-cols-2 gap-1.5 mt-1 text-xs">
-                                                            <div className="bg-blue-50/80 px-2 py-1 rounded text-blue-900 font-medium">
+                                                            <div className="bg-[var(--primary-light)] px-2 py-1 rounded text-primary font-medium">
                                                                 🌅 Pickup: <strong>~{metrics.morningScheduledTime}</strong>
                                                             </div>
-                                                            <div className="bg-indigo-50/80 px-2 py-1 rounded text-indigo-900 font-medium">
+                                                            <div className="bg-[var(--primary-light)] px-2 py-1 rounded text-primary font-medium">
                                                                 🌇 Drop: <strong>~{metrics.eveningScheduledTime}</strong>
                                                             </div>
                                                         </div>
@@ -1062,9 +1062,9 @@ const Transport = () => {
 
                                                 <button
                                                     onClick={() => handleLocateStage(coords)}
-                                                    className="px-2 py-1 bg-white hover:bg-gray-100 text-gray-700 font-bold text-[10px] rounded-lg border border-gray-200 shadow-sm shrink-0 flex items-center gap-1 transition-all"
+                                                    className="px-2 py-1 bg-surface hover:bg-background text-sub font-bold text-[10px] rounded-lg border border-border shadow-sm shrink-0 flex items-center gap-1 transition-all"
                                                 >
-                                                    <RiFocus3Line size={12} className="text-indigo-600" />
+                                                    <RiFocus3Line size={12} className="text-primary" />
                                                     <span>Locate</span>
                                                 </button>
                                             </div>
@@ -1073,11 +1073,11 @@ const Transport = () => {
                                 </div>
 
                                 {/* Modal Footer */}
-                                <div className="p-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-                                    <span className="text-[11px] text-gray-500">Tap Locate to center on any stop</span>
+                                <div className="p-3 bg-background border-t border-border flex items-center justify-between">
+                                    <span className="text-[11px] text-muted-text">Tap Locate to center on any stop</span>
                                     <button
                                         onClick={() => setShowFullRouteModal(false)}
-                                        className="px-3 py-1 bg-gray-900 hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition-all shadow-sm"
+                                        className="px-3 py-1 bg-sidebar hover:bg-sidebar text-white rounded-lg text-xs font-bold transition-all shadow-sm"
                                     >
                                         Close
                                     </button>
@@ -1088,20 +1088,20 @@ const Transport = () => {
                 </>
             ) : (
                 /* Empty / Inactive Fallback */
-                <div className="bg-white rounded-3xl p-10 sm:p-14 text-center shadow-sm border border-gray-100 max-w-xl mx-auto space-y-4">
-                    <div className="w-16 h-16 rounded-2xl bg-gray-50 text-gray-400 flex items-center justify-center mx-auto">
+                <div className="bg-surface rounded-3xl p-10 sm:p-14 text-center shadow-sm border border-border max-w-xl mx-auto space-y-4">
+                    <div className="w-16 h-16 rounded-2xl bg-background text-muted-text flex items-center justify-center mx-auto">
                         <RiBusFill size={32} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">No Active Transport Pass</h2>
-                        <p className="text-sm text-gray-500 mt-1 leading-relaxed">
+                        <h2 className="text-xl font-bold text-main">No Active Transport Pass</h2>
+                        <p className="text-sm text-muted-text mt-1 leading-relaxed">
                             No active transport pass found for admission number{' '}
-                            <span className="font-semibold text-gray-800">{user?.admission_number || '–'}</span>.
+                            <span className="font-semibold text-main">{user?.admission_number || '–'}</span>.
                         </p>
                     </div>
-                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100 text-amber-800 text-xs text-left">
+                    <div className="p-4 rounded-2xl bg-[var(--warning-light)] border border-[var(--warning-light)] text-warning text-xs text-left">
                         <p className="font-bold">Need Transport Facility?</p>
-                        <p className="mt-0.5 text-amber-700">
+                        <p className="mt-0.5 text-warning">
                             If you recently availed college bus transport, please contact the transport department to activate your pass.
                         </p>
                     </div>

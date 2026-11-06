@@ -223,15 +223,15 @@ const FrontBottomWaveSVG = () => {
       <defs>
         {/* Light red accent ribbon matching back header */}
         <linearGradient id={accentGradId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FCA5A5" />
-          <stop offset="50%" stopColor="#F87171" />
-          <stop offset="100%" stopColor="#DC2626" />
+          <stop offset="0%" stopColor="var(--danger)" />
+          <stop offset="50%" stopColor="var(--danger)" />
+          <stop offset="100%" stopColor="var(--danger)" />
         </linearGradient>
 
         {/* Primary foreground vibrant red wave matching back header */}
         <linearGradient id={brightGradId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#D71920" />
-          <stop offset="100%" stopColor="#991B1B" />
+          <stop offset="0%" stopColor="var(--danger)" />
+          <stop offset="100%" stopColor="var(--danger)" />
         </linearGradient>
       </defs>
 
@@ -247,7 +247,7 @@ const FrontBottomWaveSVG = () => {
         "
         fill={`url(#${accentGradId})`}
         fillOpacity="0.88"
-        style={{ fill: `url(#${accentGradId}) #F87171` }}
+        style={{ fill: `url(#${accentGradId}) var(--danger)` }}
       />
 
       {/* Layer 2: Primary foreground vibrant red wave */}
@@ -261,7 +261,7 @@ const FrontBottomWaveSVG = () => {
           Z
         "
         fill={`url(#${brightGradId})`}
-        style={{ fill: `url(#${brightGradId}) #D71920` }}
+        style={{ fill: `url(#${brightGradId}) var(--danger)` }}
       />
     </svg>
   );
@@ -294,7 +294,7 @@ const StudentPhotoRing = () => (
       cy="100"
       r="74"
       fill="none"
-      stroke="#f3d3d6"
+      stroke="var(--danger-light)"
       strokeWidth="2.5"
     />
 
@@ -304,7 +304,7 @@ const StudentPhotoRing = () => (
       cy="100"
       r="74"
       fill="none"
-      stroke="#d71920"
+      stroke="var(--danger)"
       strokeWidth="5.5"
       strokeLinecap="round"
       strokeDasharray="205 260"
@@ -317,7 +317,7 @@ const StudentPhotoRing = () => (
       cy="100"
       r="74"
       fill="none"
-      stroke="#d71920"
+      stroke="var(--danger)"
       strokeWidth="5.5"
       strokeLinecap="round"
       strokeDasharray="110 340"
@@ -1027,8 +1027,8 @@ const DigitalStudentCard = ({
         className={`
           rounded-xl
           border
-          border-slate-200
-          bg-white
+          border-border
+          bg-surface
           shadow-md
           overflow-hidden
           flex
@@ -1051,8 +1051,8 @@ const DigitalStudentCard = ({
             h-10
             rounded-full
             border
-            border-red-600
-            bg-slate-100
+            border-danger
+            bg-background
             overflow-hidden
             flex
             items-center
@@ -1108,7 +1108,7 @@ const DigitalStudentCard = ({
               className="
                 w-5
                 h-5
-                text-slate-400
+                text-muted-text
               "
             />
 
@@ -1130,7 +1130,7 @@ const DigitalStudentCard = ({
             className="
               text-xs
               font-bold
-              text-slate-900
+              text-main
               truncate
             "
             title={name}
@@ -1143,7 +1143,7 @@ const DigitalStudentCard = ({
             className="
               text-[10px]
               font-mono
-              text-red-600
+              text-danger
             "
           >
             {pinNo}
@@ -1153,7 +1153,7 @@ const DigitalStudentCard = ({
           <p
             className="
               text-[10px]
-              text-slate-500
+              text-muted-text
               truncate
             "
           >
@@ -1217,8 +1217,8 @@ const DigitalStudentCard = ({
         id-card-print-root
         relative
         overflow-hidden
-        bg-white
-        text-gray-900
+        bg-surface
+        text-main
         select-none
         ${className}
       `}
@@ -1227,8 +1227,8 @@ const DigitalStudentCard = ({
         height: '85.6mm',
         boxSizing: 'border-box',
         position: 'relative',
-        background: '#ffffff',
-        border: '1px solid #e5e7eb',
+        background: 'var(--surface)',
+        border: '1px solid var(--border)',
         borderRadius: '12px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -1287,7 +1287,7 @@ const DigitalStudentCard = ({
           style={{
             width: '1px',
             height: '8.0mm',
-            backgroundColor: '#CBD5E1',
+            backgroundColor: 'var(--border-strong)',
             margin: '0 2.2mm',
             flexShrink: 0,
           }}
@@ -1316,7 +1316,7 @@ const DigitalStudentCard = ({
                   style={{
                     display: 'block',
                     fontFamily: "'Inter', sans-serif",
-                    color: '#d41723',
+                    color: 'var(--danger)',
                     fontWeight: 900,
                     fontSize: dynamicCollegeFontSize,
                     lineHeight: '1.2',
@@ -1334,7 +1334,7 @@ const DigitalStudentCard = ({
                     style={{
                       display: 'block',
                       fontFamily: "'Inter', sans-serif",
-                      color: '#d41723',
+                      color: 'var(--danger)',
                       fontWeight: 900,
                       fontSize: dynamicCollegeFontSize,
                       lineHeight: '1.2',
@@ -1645,8 +1645,8 @@ const DigitalStudentCard = ({
               size={300}
               level="M"
               includeMargin={false}
-              fgColor="#111111"
-              bgColor="#ffffff"
+              fgColor="var(--text-primary)"
+              bgColor="var(--surface)"
               style={{ width: '100%', height: '100%', display: 'block' }}
             />
           </div>
@@ -1681,7 +1681,7 @@ const DigitalStudentCard = ({
             <div
               style={{
                 width: '10mm',
-                borderTop: '0.5pt solid #374151',
+                borderTop: '0.5pt solid var(--primary)',
                 marginTop: '0.5mm',
                 paddingTop: '0.4mm',
                 textAlign: 'center',
@@ -1718,7 +1718,7 @@ const DigitalStudentCard = ({
             level="M"
             includeMargin={false}
             fgColor="#000000"
-            bgColor="#ffffff"
+            bgColor="var(--surface)"
             style={{ width: '100%', height: '100%', display: 'block' }}
           />
         </div>
@@ -1751,7 +1751,7 @@ const DigitalStudentCard = ({
             <span
               style={{
                 display: 'block',
-                color: '#ffffff',
+                color: 'var(--surface)',
                 fontWeight: 700,
                 fontSize: websiteFontSize,
                 lineHeight: '1',

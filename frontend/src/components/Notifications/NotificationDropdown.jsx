@@ -48,14 +48,14 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
     return (
         <div
             ref={dropdownRef}
-            className="absolute right-0 top-full mt-4 w-80 md:w-96 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-5 duration-200"
+            className="absolute right-0 top-full mt-4 w-80 md:w-96 bg-surface rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-border overflow-hidden z-50 animate-in fade-in slide-in-from-top-5 duration-200"
         >
             {/* Header */}
-            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 backdrop-blur-sm">
+            <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-[var(--background)]/50 backdrop-blur-sm">
                 <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-gray-800">Notifications</h3>
+                    <h3 className="font-semibold text-main">Notifications</h3>
                     {unreadCount > 0 && (
-                        <span className="bg-blue-100 text-blue-600 text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span className="bg-[var(--primary-light)] text-primary text-xs font-bold px-2 py-0.5 rounded-full">
                             {unreadCount} New
                         </span>
                     )}
@@ -64,7 +64,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                     {unreadCount > 0 && (
                         <button
                             onClick={markAllAsRead}
-                            className="text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 hover:bg-blue-50 rounded-md transition-colors"
+                            className="text-xs text-primary hover:text-primary font-medium px-2 py-1 hover:bg-[var(--primary-light)] rounded-md transition-colors"
                             title="Mark all as read"
                         >
                             Mark all read
@@ -73,7 +73,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                     {notifications.length > 0 && (
                         <button
                             onClick={clearAllNotifications}
-                            className="text-gray-400 hover:text-red-500 p-1.5 hover:bg-red-50 rounded-md transition-colors"
+                            className="text-muted-text hover:text-danger p-1.5 hover:bg-[var(--danger-light)] rounded-md transition-colors"
                             title="Clear all"
                         >
                             <Trash2 size={16} />
@@ -86,26 +86,26 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
             <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                 {notifications.length === 0 && !isLoading ? (
                     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                        <div className="bg-gray-100 p-3 rounded-full mb-3">
-                            <Bell size={24} className="text-gray-400" />
+                        <div className="bg-background p-3 rounded-full mb-3">
+                            <Bell size={24} className="text-muted-text" />
                         </div>
-                        <p className="text-gray-500 font-medium">No notifications yet</p>
-                        <p className="text-xs text-gray-400 mt-1">We'll notify you when something important happens</p>
+                        <p className="text-muted-text font-medium">No notifications yet</p>
+                        <p className="text-xs text-muted-text mt-1">We'll notify you when something important happens</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-50">
+                    <div className="divide-y divide-border">
                         {notifications.map((notification) => (
                             <div
                                 key={notification.id}
-                                className={`group p-4 hover:bg-gray-50 transition-colors relative ${!notification.is_read ? 'bg-blue-50/30' : ''}`}
+                                className={`group p-4 hover:bg-background transition-colors relative ${!notification.is_read ? 'bg-[var(--primary-light)]' : ''}`}
                             >
                                 <div className="flex gap-3">
-                                    <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${!notification.is_read ? 'bg-blue-500' : 'bg-transparent'}`} />
+                                    <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${!notification.is_read ? 'bg-primary' : 'bg-transparent'}`} />
                                     <div className="flex-1 min-w-0">
-                                        <h4 className={`text-sm font-medium ${!notification.is_read ? 'text-gray-900' : 'text-gray-700'}`}>
+                                        <h4 className={`text-sm font-medium ${!notification.is_read ? 'text-main' : 'text-sub'}`}>
                                             {notification.title || 'Notification'}
                                         </h4>
-                                        <p className={`text-xs text-gray-500 mt-0.5 ${
+                                        <p className={`text-xs text-muted-text mt-0.5 ${
                                             expandedNotificationId === notification.id
                                                 ? 'whitespace-pre-line break-words'
                                                 : 'line-clamp-2'
@@ -117,12 +117,12 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                                                 onClick={() => setExpandedNotificationId(
                                                     expandedNotificationId === notification.id ? null : notification.id
                                                 )}
-                                                className="text-[10px] text-blue-600 hover:text-blue-700 mt-1"
+                                                className="text-[10px] text-primary hover:text-primary mt-1"
                                             >
                                                 {expandedNotificationId === notification.id ? 'Show less' : 'Show details'}
                                             </button>
                                         )}
-                                        <span className="text-[10px] text-gray-400 mt-2 block">
+                                        <span className="text-[10px] text-muted-text mt-2 block">
                                             {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                                         </span>
                                     </div>
@@ -132,7 +132,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                                         {!notification.is_read && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); markAsRead(notification.id); }}
-                                                className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded"
+                                                className="p-1 text-muted-text hover:text-primary hover:bg-[var(--primary-light)] rounded"
                                                 title="Mark as read"
                                             >
                                                 <Check size={14} />
@@ -140,7 +140,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                                         )}
                                         <button
                                             onClick={(e) => { e.stopPropagation(); deleteNotification(notification.id); }}
-                                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+                                            className="p-1 text-muted-text hover:text-danger hover:bg-[var(--danger-light)] rounded"
                                             title="Delete"
                                         >
                                             <X size={14} />
@@ -155,7 +155,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
                             <button
                                 onClick={() => fetchNotifications(page + 1)}
                                 disabled={isLoading}
-                                className="w-full py-2 text-xs text-center text-blue-600 hover:bg-blue-50 transition-colors font-medium border-t border-gray-100"
+                                className="w-full py-2 text-xs text-center text-primary hover:bg-[var(--primary-light)] transition-colors font-medium border-t border-border"
                             >
                                 {isLoading ? 'Loading...' : 'Load More'}
                             </button>

@@ -37,13 +37,13 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-          <div className="max-w-md w-full bg-white border rounded-xl p-6 text-center">
-            <h1 className="text-xl font-semibold text-gray-900">Something went wrong</h1>
-            <p className="text-sm text-gray-600 mt-2">An unexpected error occurred while rendering this page.</p>
+        <div className="min-h-screen flex items-center justify-center bg-background p-6">
+          <div className="max-w-md w-full bg-surface border rounded-xl p-6 text-center">
+            <h1 className="text-xl font-semibold text-main">Something went wrong</h1>
+            <p className="text-sm text-sub mt-2">An unexpected error occurred while rendering this page.</p>
             <div className="mt-6 flex items-center justify-center gap-3">
               <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer"
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover cursor-pointer"
                 onClick={() => {
                   if (typeof window !== 'undefined') {
                     window.sessionStorage?.removeItem('chunk_error_reloaded');
@@ -55,12 +55,12 @@ class ErrorBoundary extends Component {
               </button>
               <a
                 href="/"
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 cursor-pointer"
+                className="px-4 py-2 border border-border-strong text-sub rounded-lg hover:bg-background cursor-pointer"
               >
                 Go Home
               </a>
             </div>
-            <div className="mt-4 text-xs text-gray-400">
+            <div className="mt-4 text-xs text-muted-text">
               {this.state.error?.message}
             </div>
           </div>

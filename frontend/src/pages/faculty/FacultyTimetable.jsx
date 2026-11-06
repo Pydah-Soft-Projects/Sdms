@@ -67,8 +67,8 @@ const FacultyTimetable = () => {
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
-                <p className="text-slate-500 font-medium">Loading your teaching schedule...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <p className="text-muted-text font-medium">Loading your teaching schedule...</p>
             </div>
         );
     }
@@ -76,22 +76,22 @@ const FacultyTimetable = () => {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
             {/* Header section */}
-            <div className="bg-white rounded-[2rem] border border-slate-200 p-8 mb-8 shadow-sm">
+            <div className="bg-surface rounded-[2rem] border border-border p-8 mb-8 shadow-sm">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900 mb-2">My Teaching Schedule</h1>
-                        <p className="text-slate-500 flex items-center gap-2">
+                        <h1 className="text-3xl font-bold text-main mb-2">My Teaching Schedule</h1>
+                        <p className="text-muted-text flex items-center gap-2">
                             <BookOpen className="w-4 h-4" />
                             Weekly timetable for all your assigned subjects
                         </p>
                     </div>
-                    <div className="flex items-center gap-4 bg-teal-50 px-6 py-4 rounded-2xl border border-teal-100/50">
-                        <div className="w-12 h-12 rounded-xl bg-teal-600 flex items-center justify-center text-white shadow-lg shadow-teal-100">
+                    <div className="flex items-center gap-4 bg-[var(--primary-light)] px-6 py-4 rounded-2xl border border-[var(--primary-light)]">
+                        <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary">
                             <Calendar className="w-6 h-6" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-bold text-teal-400 uppercase tracking-widest leading-none mb-1">Current Day</p>
-                            <p className="text-lg font-bold text-teal-900 leading-none">
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest leading-none mb-1">Current Day</p>
+                            <p className="text-lg font-bold text-primary leading-none">
                                 {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                             </p>
                         </div>
@@ -100,14 +100,14 @@ const FacultyTimetable = () => {
             </div>
 
             {/* Timetable Grid Container */}
-            <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl overflow-hidden">
+            <div className="bg-surface rounded-[2.5rem] border border-border shadow-xl overflow-hidden">
                 {!timetableData || timetableData.length === 0 ? (
                     <div className="flex flex-col items-center justify-center p-16 sm:p-24 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 mb-4 shadow-xs">
+                        <div className="w-16 h-16 rounded-2xl bg-[var(--warning-light)] border border-[var(--warning-light)] flex items-center justify-center text-warning mb-4 shadow-xs">
                             <Calendar className="w-8 h-8" />
                         </div>
-                        <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-1.5">Timetable Not Configured</h3>
-                        <p className="text-slate-500 max-w-sm text-xs sm:text-sm">
+                        <h3 className="text-lg sm:text-xl font-black text-main mb-1.5">Timetable Not Configured</h3>
+                        <p className="text-muted-text max-w-sm text-xs sm:text-sm">
                             No teaching schedule has been configured in the Academic Portal for your profile yet. Please coordinate with your department HOD.
                         </p>
                     </div>
@@ -115,16 +115,16 @@ const FacultyTimetable = () => {
                     <div className="overflow-x-auto custom-scrollbar">
                     <div className="min-w-[1000px]">
                         {/* Grid Header */}
-                        <div className="flex border-b border-slate-100 bg-slate-50/50">
-                            <div className="w-24 flex-shrink-0 p-6 flex items-center justify-center border-r border-slate-100">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">DAY</span>
+                        <div className="flex border-b border-border bg-[var(--background)]/50">
+                            <div className="w-24 flex-shrink-0 p-6 flex items-center justify-center border-r border-border">
+                                <span className="text-[10px] font-black text-muted-text uppercase tracking-[0.2em]">DAY</span>
                             </div>
                             <div className="flex-1 flex">
                                 {periodSlots.map((slot) => (
-                                    <div key={slot.id} className="flex-1 min-w-[120px] p-6 text-center border-r border-slate-100 last:border-r-0">
-                                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">{slot.slot_name}</p>
-                                        <p className="text-sm font-bold text-slate-800 flex items-center justify-center gap-1.5">
-                                            <Clock className="w-3.5 h-3.5 text-teal-500" />
+                                    <div key={slot.id} className="flex-1 min-w-[120px] p-6 text-center border-r border-border last:border-r-0">
+                                        <p className="text-[11px] font-black text-muted-text uppercase tracking-widest mb-1">{slot.slot_name}</p>
+                                        <p className="text-sm font-bold text-main flex items-center justify-center gap-1.5">
+                                            <Clock className="w-3.5 h-3.5 text-primary" />
                                             {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
                                         </p>
                                     </div>
@@ -133,12 +133,12 @@ const FacultyTimetable = () => {
                         </div>
 
                         {/* Grid Body */}
-                        <div className="divide-y divide-slate-100">
+                        <div className="divide-y divide-border">
                             {days.map((day) => (
-                                <div key={day} className={`flex group transition-colors ${day === currentDay ? 'bg-teal-50/30' : 'hover:bg-slate-50/50'}`}>
+                                <div key={day} className={`flex group transition-colors ${day === currentDay ? 'bg-[var(--primary-light)]' : 'hover:bg-[var(--background)]/50'}`}>
                                     {/* Day Label */}
-                                    <div className={`w-24 flex-shrink-0 p-6 flex items-center justify-center border-r border-slate-100 font-black text-sm tracking-tighter ${day === currentDay ? 'text-teal-600' : 'text-slate-400'}`}>
-                                        {day === currentDay && <div className="absolute left-0 w-1 h-12 bg-teal-600 rounded-r-full" />}
+                                    <div className={`w-24 flex-shrink-0 p-6 flex items-center justify-center border-r border-border font-black text-sm tracking-tighter ${day === currentDay ? 'text-primary' : 'text-muted-text'}`}>
+                                        {day === currentDay && <div className="absolute left-0 w-1 h-12 bg-primary rounded-r-full" />}
                                         {day}
                                     </div>
 
@@ -150,27 +150,27 @@ const FacultyTimetable = () => {
                                             return (
                                                 <div
                                                     key={slot.id}
-                                                    className="flex-1 min-w-[140px] p-2 border-r border-slate-100 last:border-r-0 min-h-[110px]"
+                                                    className="flex-1 min-w-[140px] p-2 border-r border-border last:border-r-0 min-h-[110px]"
                                                 >
                                                     {entries.length > 0 ? (
                                                         <div className="flex flex-col gap-2">
                                                             {entries.map(entry => (
-                                                                <div key={entry.id} className={`rounded-xl p-3 border shadow-sm ${entry.type === 'subject' ? 'bg-white border-slate-200' :
-                                                                        entry.type === 'lab' ? 'bg-purple-50 border-purple-100' :
-                                                                            'bg-amber-50 border-amber-100'
+                                                                <div key={entry.id} className={`rounded-xl p-3 border shadow-sm ${entry.type === 'subject' ? 'bg-surface border-border' :
+                                                                        entry.type === 'lab' ? 'bg-[var(--primary-light)] border-[var(--primary-light)]' :
+                                                                            'bg-[var(--warning-light)] border-[var(--warning-light)]'
                                                                     }`}>
                                                                     <div className="flex items-start justify-between mb-1">
-                                                                        <span className={`text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full ${entry.type === 'subject' ? 'bg-teal-100 text-teal-700' :
-                                                                                entry.type === 'lab' ? 'bg-purple-100 text-purple-700' :
-                                                                                    'bg-amber-100 text-amber-700'
+                                                                        <span className={`text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full ${entry.type === 'subject' ? 'bg-[var(--primary-light)] text-primary' :
+                                                                                entry.type === 'lab' ? 'bg-[var(--primary-light)] text-secondary' :
+                                                                                    'bg-[var(--warning-light)] text-warning'
                                                                             }`}>
                                                                             {entry.type}
                                                                         </span>
                                                                     </div>
-                                                                    <h4 className="font-bold text-slate-800 text-[11px] leading-tight mb-1">
+                                                                    <h4 className="font-bold text-main text-[11px] leading-tight mb-1">
                                                                         {entry.type === 'subject' ? entry.subject_name : entry.custom_label}
                                                                     </h4>
-                                                                    <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400">
+                                                                    <div className="flex items-center gap-1 text-[9px] font-bold text-muted-text">
                                                                         <MapPin className="w-2.5 h-2.5" />
                                                                         {entry.branch_name}
                                                                     </div>
@@ -178,8 +178,8 @@ const FacultyTimetable = () => {
                                                             ))}
                                                         </div>
                                                     ) : (
-                                                        <div className="h-full rounded-2xl border border-dashed border-slate-100 flex items-center justify-center opacity-40">
-                                                            <span className="text-[10px] font-bold text-slate-200 uppercase tracking-widest">Free</span>
+                                                        <div className="h-full rounded-2xl border border-dashed border-border flex items-center justify-center opacity-40">
+                                                            <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest">Free</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -195,11 +195,11 @@ const FacultyTimetable = () => {
         </div>
 
             {/* Info Tip */}
-            <div className="mt-8 bg-teal-50/50 border border-teal-100 p-6 rounded-[2rem] flex gap-4">
-                <Info className="w-6 h-6 text-teal-500 shrink-0" />
+            <div className="mt-8 bg-[var(--primary-light)] border border-[var(--primary-light)] p-6 rounded-[2rem] flex gap-4">
+                <Info className="w-6 h-6 text-primary shrink-0" />
                 <div>
-                    <h4 className="font-bold text-teal-900 text-sm mb-1">About Your Schedule</h4>
-                    <p className="text-xs text-teal-700 leading-relaxed font-medium">
+                    <h4 className="font-bold text-primary text-sm mb-1">About Your Schedule</h4>
+                    <p className="text-xs text-primary leading-relaxed font-medium">
                         This schedule is generated based on the class timetables created by the respective Branch HODs. If there are any discrepancies or missing slots, please coordinate with your HOD to update the central timetable.
                     </p>
                 </div>

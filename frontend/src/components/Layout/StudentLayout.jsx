@@ -435,22 +435,22 @@ const StudentLayout = ({ children }) => {
 
 
     return (
-        <div data-student-portal="true" className={`flex h-screen overflow-hidden transition-colors duration-500 ${isBirthday ? 'bg-gradient-to-br from-amber-50 via-orange-50/70 to-pink-50' : 'bg-slate-50'}`}>
+        <div data-student-portal="true" className={`flex h-screen overflow-hidden transition-colors duration-500 ${isBirthday ? 'bg-gradient-to-br from-[var(--warning-light)] via-[var(--warning-light)] to-[var(--primary-light)]' : 'bg-background'}`}>
             {/* Background Pattern - birthday: festive dots; default: gray dots */}
             <div
                 className="fixed inset-0 -z-10 pointer-events-none transition-opacity duration-500"
                 style={isBirthday ? {
                     opacity: 0.5,
                     backgroundImage: `
-                        radial-gradient(#F59E0B 1.2px, transparent 1.2px),
-                        radial-gradient(#EC4899 1px, transparent 1px),
-                        radial-gradient(#F97316 1px, transparent 1px)
+                        radial-gradient(var(--warning) 1.2px, transparent 1.2px),
+                        radial-gradient(var(--accent) 1px, transparent 1px),
+                        radial-gradient(var(--warning) 1px, transparent 1px)
                     `,
                     backgroundSize: '28px 28px, 20px 20px, 24px 24px',
                     backgroundPosition: '0 0, 4px 4px, 12px 12px'
                 } : {
                     opacity: 0.4,
-                    backgroundImage: 'radial-gradient(#BAE6FD 1.2px, transparent 1.2px)',
+                    backgroundImage: 'radial-gradient(var(--primary-light) 1.2px, transparent 1.2px)',
                     backgroundSize: '24px 24px'
                 }}
             />
@@ -471,7 +471,7 @@ const StudentLayout = ({ children }) => {
             {/* Desktop Sidebar Toggle Button */}
             {!desktopSidebarOpen && (
                 <button
-                    className={`hidden lg:flex fixed top-6 left-6 z-50 p-2 backdrop-blur-md rounded-lg shadow-sm border transition-all hover:scale-105 active:scale-95 ${isBirthday ? 'bg-amber-50/90 border-amber-200 text-amber-700 hover:text-amber-900' : 'bg-white/80 border-gray-200 text-gray-500 hover:text-gray-900'}`}
+                    className={`hidden lg:flex fixed top-6 left-6 z-50 p-2 backdrop-blur-md rounded-lg shadow-sm border transition-all hover:scale-105 active:scale-95 ${isBirthday ? 'bg-[var(--warning-light)] border-[var(--warning-light)] text-warning hover:text-warning' : 'bg-[var(--surface)]/80 border-border text-muted-text hover:text-main'}`}
                     onClick={() => setDesktopSidebarOpen(true)}
                     title="Expand Sidebar"
                 >
@@ -483,25 +483,25 @@ const StudentLayout = ({ children }) => {
             <aside className={`
                 hidden lg:flex
                 fixed inset-y-0 left-0 z-40 w-72 backdrop-blur-xl border-r transform transition-all duration-500 ease-in-out
-                ${isBirthday ? 'bg-white/95 border-amber-200/60 shadow-[4px_0_24px_-2px_rgba(245,158,11,0.05)]' : 'bg-white/95 border-gray-200/60 shadow-[4px_0_24px_-2px_rgba(0,0,0,0.02)]'}
+                ${isBirthday ? 'bg-[var(--surface)]/95 border-[var(--warning-light)] shadow-[4px_0_24px_-2px_rgba(245,158,11,0.05)]' : 'bg-[var(--surface)]/95 border-border shadow-[4px_0_24px_-2px_rgba(0,0,0,0.02)]'}
                 ${desktopSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             `}>
                 <div className="h-full w-full flex flex-col min-h-0 overflow-hidden">
                     {/* Logo Area */}
-                    <div className={`shrink-0 h-16 lg:h-[4.25rem] flex items-center justify-between px-5 border-b transition-all duration-300 ${isBirthday ? 'border-amber-100 bg-gradient-to-r from-amber-50/50 to-orange-50/30' : 'border-gray-100/80 bg-white/50'}`}>
+                    <div className={`shrink-0 h-16 lg:h-[4.25rem] flex items-center justify-between px-5 border-b transition-all duration-300 ${isBirthday ? 'border-[var(--warning-light)] bg-gradient-to-r from-[var(--warning-light)] to-[var(--warning-light)]' : 'border-border bg-[var(--surface)]/50'}`}>
                         <div className="flex items-center gap-3.5 group cursor-pointer" onClick={() => navigate('/student/dashboard')}>
-                            <div className={`h-11 w-11 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${isBirthday ? 'bg-gradient-to-br from-amber-500 to-orange-500 shadow-amber-200' : 'bg-gradient-to-br from-sky-500 to-indigo-600 shadow-sky-200'}`}>
+                            <div className={`h-11 w-11 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${isBirthday ? 'bg-gradient-to-br from-warning to-warning shadow-warning' : 'bg-gradient-to-br from-info to-primary shadow-info'}`}>
                                 {isBirthday ? <span className="text-xl">🎂</span> : <span className="font-black text-xl tracking-tighter">S</span>}
                             </div>
                             <div className="flex flex-col justify-center">
-                                <span className="text-lg font-black text-gray-900 tracking-tight leading-none">
+                                <span className="text-lg font-black text-main tracking-tight leading-none">
                                     {isBirthday ? 'Happy Day!' : 'Student'}
                                 </span>
                             </div>
                         </div>
                         <button
                             onClick={() => setDesktopSidebarOpen(false)}
-                            className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition-all active:scale-90"
+                            className="p-2 text-muted-text hover:text-main hover:bg-[var(--background)]/80 rounded-xl transition-all active:scale-90"
                         >
                             <RiMenuLine size={18} />
                         </button>
@@ -517,10 +517,10 @@ const StudentLayout = ({ children }) => {
                                     onClick={() => navigateToCrtApp('/student/dashboard')}
                                     className={`
                                       relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] font-bold transition-all duration-200 group w-full text-left
-                                      ${isBirthday ? 'text-gray-500 hover:bg-amber-50 hover:text-amber-700' : 'text-gray-500 hover:bg-sky-100 hover:text-sky-700'}
+                                      ${isBirthday ? 'text-muted-text hover:bg-[var(--warning-light)] hover:text-warning' : 'text-muted-text hover:bg-[var(--primary-light)] hover:text-info'}
                                     `}
                                 >
-                                    <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-r-full transition-all duration-300 opacity-0 scale-y-0 ${isBirthday ? 'bg-amber-500' : 'bg-sky-500'}`}></span>
+                                    <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-r-full transition-all duration-300 opacity-0 scale-y-0 ${isBirthday ? 'bg-warning' : 'bg-info'}`}></span>
                                     <item.icon size={20} className="transition-transform duration-300 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
                                     <span className="tracking-tight">{item.label}</span>
                                 </button>
@@ -530,10 +530,10 @@ const StudentLayout = ({ children }) => {
                                     href={item.isTicketApp ? getTicketAppUrl(item.path) : item.path}
                                     className={`
                                       relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] font-bold transition-all duration-200 group
-                                      ${isBirthday ? 'text-gray-500 hover:bg-amber-50 hover:text-amber-700' : 'text-gray-500 hover:bg-sky-100 hover:text-sky-700'}
+                                      ${isBirthday ? 'text-muted-text hover:bg-[var(--warning-light)] hover:text-warning' : 'text-muted-text hover:bg-[var(--primary-light)] hover:text-info'}
                                     `}
                                 >
-                                    <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-r-full transition-all duration-300 opacity-0 scale-y-0 ${isBirthday ? 'bg-amber-500' : 'bg-sky-500'}`}></span>
+                                    <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-r-full transition-all duration-300 opacity-0 scale-y-0 ${isBirthday ? 'bg-warning' : 'bg-info'}`}></span>
                                     <item.icon size={20} className="transition-transform duration-300 group-hover:scale-110 opacity-80 group-hover:opacity-100" />
                                     <span className="tracking-tight">{item.label}</span>
                                 </a>
@@ -545,19 +545,19 @@ const StudentLayout = ({ children }) => {
                                     className={({ isActive }) => `
                                       relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] font-bold transition-all duration-200 group
                                       ${isActive
-                                            ? isBirthday ? 'bg-amber-100/60 text-amber-700 shadow-sm' : 'bg-sky-100 text-sky-700 shadow-sm border border-sky-500/20'
-                                            : 'text-gray-500 hover:bg-gray-50/80 hover:text-gray-900'}
+                                            ? isBirthday ? 'bg-[var(--warning-light)] text-warning shadow-sm' : 'bg-[var(--primary-light)] text-info shadow-sm border border-info'
+                                            : 'text-muted-text hover:bg-[var(--background)]/80 hover:text-main'}
                                     `}
                                 >
                                     {({ isActive }) => {
                                         const Icon = isActive ? item.activeIcon : item.icon;
                                         return (
                                             <>
-                                                <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-r-full transition-all duration-500 ${isBirthday ? 'bg-amber-500' : 'bg-sky-500'} ${isActive ? 'opacity-100 translate-x-[-8px]' : 'opacity-0 scale-y-0'}`}></span>
+                                                <span className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-r-full transition-all duration-500 ${isBirthday ? 'bg-warning' : 'bg-info'} ${isActive ? 'opacity-100 translate-x-[-8px]' : 'opacity-0 scale-y-0'}`}></span>
                                                 <Icon size={20} className={`transition-all duration-300 ${isActive ? 'scale-110 opacity-100' : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'}`} />
                                                 <span className="tracking-tight">{item.label}</span>
                                                 {isActive && (
-                                                    <div className={`ml-auto w-1.5 h-1.5 rounded-full animate-pulse transition-all ${isBirthday ? 'bg-amber-500 shadow-lg shadow-amber-400' : 'bg-sky-500 shadow-lg shadow-sky-500/40'}`}></div>
+                                                    <div className={`ml-auto w-1.5 h-1.5 rounded-full animate-pulse transition-all ${isBirthday ? 'bg-warning shadow-lg shadow-warning' : 'bg-info shadow-lg shadow-info/40'}`}></div>
                                                 )}
                                             </>
                                         );
@@ -570,36 +570,36 @@ const StudentLayout = ({ children }) => {
                     {/* User Info Card */}
                     <div
                         onClick={() => navigate('/student/profile')}
-                        className={`shrink-0 mx-5 mb-3 p-3.5 rounded-2xl border relative overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-500 ${isBirthday ? 'bg-white border-amber-100 shadow-amber-100/20' : 'bg-white border-sky-100 shadow-sky-500/10'}`}
+                        className={`shrink-0 mx-5 mb-3 p-3.5 rounded-2xl border relative overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-500 ${isBirthday ? 'bg-surface border-[var(--warning-light)] shadow-warning/20' : 'bg-surface border-[var(--primary-light)] shadow-info/10'}`}
                     >
-                        <div className={`absolute top-0 right-0 w-20 h-20 rounded-bl-full -mr-10 -mt-10 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12 ${isBirthday ? 'bg-amber-50/80' : 'bg-sky-100/80'}`}></div>
+                        <div className={`absolute top-0 right-0 w-20 h-20 rounded-bl-full -mr-10 -mt-10 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12 ${isBirthday ? 'bg-[var(--warning-light)]' : 'bg-[var(--primary-light)]'}`}></div>
                         <div className="flex items-center gap-3.5 relative z-10">
                             <div className="relative shrink-0">
-                                <div className="h-11 w-11 rounded-full ring-2 ring-white shadow-lg bg-gray-100 overflow-hidden relative z-10 transition-transform duration-500 group-hover:scale-105">
+                                <div className="h-11 w-11 rounded-full ring-2 ring-white shadow-lg bg-background overflow-hidden relative z-10 transition-transform duration-500 group-hover:scale-105">
                                     {user?.student_photo ? (
                                         <img src={user.student_photo} alt="Profile" className="h-full w-full object-cover" />
                                     ) : (
-                                        <div className={`h-full w-full flex items-center justify-center ${isBirthday ? 'bg-amber-100 text-amber-600' : 'bg-sky-100 text-sky-700'}`}>
+                                        <div className={`h-full w-full flex items-center justify-center ${isBirthday ? 'bg-[var(--warning-light)] text-warning' : 'bg-[var(--primary-light)] text-info'}`}>
                                             <RiUser3Fill size={20} />
                                         </div>
                                     )}
                                 </div>
-                                <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-white z-20 ${isBirthday ? 'bg-amber-500' : 'bg-green-500'}`}></div>
+                                <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-surface z-20 ${isBirthday ? 'bg-warning' : 'bg-success'}`}></div>
                             </div>
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-[13px] font-black text-gray-900 truncate tracking-tight">{user?.name || 'Student'}</p>
+                                    <p className="text-[13px] font-black text-main truncate tracking-tight">{user?.name || 'Student'}</p>
                                 </div>
-                                <p className="text-[11px] font-bold text-gray-400 truncate tracking-wide uppercase">{user?.admission_number}</p>
+                                <p className="text-[11px] font-bold text-muted-text truncate tracking-wide uppercase">{user?.admission_number}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Logout */}
-                    <div className={`shrink-0 p-4 border-t ${isBirthday ? 'border-amber-100 bg-amber-50/30' : 'border-gray-100 bg-gray-50/30'}`}>
+                    <div className={`shrink-0 p-4 border-t ${isBirthday ? 'border-[var(--warning-light)] bg-[var(--warning-light)]' : 'border-border bg-[var(--background)]/30'}`}>
                         <button
                             onClick={handleLogout}
-                            className={`flex items-center justify-center gap-2.5 px-4 py-3.5 w-full rounded-xl text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 group ${isBirthday ? 'bg-gray-800 hover:bg-gray-700' : 'bg-gray-900 hover:bg-gray-800'}`}
+                            className={`flex items-center justify-center gap-2.5 px-4 py-3.5 w-full rounded-xl text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 group ${isBirthday ? 'bg-sidebar hover:bg-background' : 'bg-sidebar hover:bg-sidebar'}`}
                         >
                             <RiLogoutBoxRLine size={18} className="group-hover:-translate-x-1 transition-transform" />
                             Sign Out
@@ -619,7 +619,7 @@ const StudentLayout = ({ children }) => {
 
                 {/* Birthday banner strip */}
                 {isBirthday && (
-                    <div className="mb-4 rounded-xl bg-gradient-to-r from-amber-400/90 via-orange-400/90 to-pink-400/90 text-white px-4 py-2.5 shadow-lg shadow-amber-200/40 flex items-center justify-center gap-2 text-sm font-bold">
+                    <div className="mb-4 rounded-xl bg-gradient-to-r from-[var(--warning-light)] via-[var(--warning-light)] to-[var(--primary-light)] text-white px-4 py-2.5 shadow-lg shadow-warning/40 flex items-center justify-center gap-2 text-sm font-bold">
                         <span className="text-lg">🎂</span>
                         <span>Happy Birthday! Have a wonderful day.</span>
                         <span className="text-lg">🎈</span>

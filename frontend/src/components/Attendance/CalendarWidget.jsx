@@ -21,15 +21,15 @@ const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const STATUS_META = {
     present: {
         label: 'Present',
-        badgeClass: 'bg-green-100 text-green-700 border border-green-200'
+        badgeClass: 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
     },
     absent: {
         label: 'Absent',
-        badgeClass: 'bg-red-100 text-red-700 border border-red-200'
+        badgeClass: 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
     },
     not_marked: {
         label: 'Not marked',
-        badgeClass: 'bg-gray-100 text-gray-700 border border-gray-200'
+        badgeClass: 'bg-background text-sub border border-border'
     }
 };
 
@@ -148,24 +148,24 @@ const CalendarWidget = ({
     };
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden h-full flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+        <div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden h-full flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-[var(--background)]/50">
                 <div className="flex items-center gap-2">
-                    <CalendarDays size={18} className="text-blue-600" />
-                    <span className="font-semibold text-gray-900">{monthLabel}</span>
+                    <CalendarDays size={18} className="text-primary" />
+                    <span className="font-semibold text-main">{monthLabel}</span>
                 </div>
                 <div className="flex items-center gap-1">
-                    <button onClick={handlePrevMonth} className="p-1.5 hover:bg-white rounded-lg transition-colors text-gray-500 hover:text-gray-900 border border-transparent hover:border-gray-200 hover:shadow-sm">
+                    <button onClick={handlePrevMonth} className="p-1.5 hover:bg-surface rounded-lg transition-colors text-muted-text hover:text-main border border-transparent hover:border-border hover:shadow-sm">
                         <ChevronLeft size={16} />
                     </button>
-                    <button onClick={handleNextMonth} className="p-1.5 hover:bg-white rounded-lg transition-colors text-gray-500 hover:text-gray-900 border border-transparent hover:border-gray-200 hover:shadow-sm">
+                    <button onClick={handleNextMonth} className="p-1.5 hover:bg-surface rounded-lg transition-colors text-muted-text hover:text-main border border-transparent hover:border-border hover:shadow-sm">
                         <ChevronRight size={16} />
                     </button>
                 </div>
             </div>
 
             <div className="p-3">
-                <div className="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <div className="grid grid-cols-7 text-center text-[10px] font-bold text-muted-text uppercase tracking-wider mb-2">
                     {WEEKDAY_NAMES.map(d => <div key={d}>{d}</div>)}
                 </div>
                 <div className="grid grid-cols-7 gap-1">
@@ -177,21 +177,21 @@ const CalendarWidget = ({
                         const isHoliday = Boolean(publicHoliday || customHoliday || isSunday);
                         const statusInfo = !isHoliday && status && STATUS_META[status];
 
-                        let cellClass = "bg-white text-gray-700";
+                        let cellClass = "bg-surface text-sub";
                         if (isHoliday) {
                             // Holidays in yellow
-                            if (publicHoliday) cellClass = "bg-yellow-100 text-yellow-800 font-medium border border-yellow-200";
-                            else if (customHoliday) cellClass = "bg-yellow-100 text-yellow-800 font-medium border border-yellow-200";
-                            else if (isSunday) cellClass = "bg-yellow-100 text-yellow-800 font-medium border border-yellow-200";
+                            if (publicHoliday) cellClass = "bg-[var(--warning-light)] text-warning font-medium border border-[var(--warning-light)]";
+                            else if (customHoliday) cellClass = "bg-[var(--warning-light)] text-warning font-medium border border-[var(--warning-light)]";
+                            else if (isSunday) cellClass = "bg-[var(--warning-light)] text-warning font-medium border border-[var(--warning-light)]";
                         } else if (status === 'present') {
                             // Marked days (present) in green
-                            cellClass = "bg-green-100 text-green-800 font-bold border border-green-300";
+                            cellClass = "bg-[var(--success-light)] text-success font-bold border border-[var(--success-light)]";
                         } else if (status === 'absent') {
                             // Unmarked days in red
-                            cellClass = "bg-red-100 text-red-800 font-bold border border-red-300";
+                            cellClass = "bg-[var(--danger-light)] text-danger font-bold border border-[var(--danger-light)]";
                         } else if (cell.isCurrentMonth) {
                             // Unmarked working days in red
-                            cellClass = "bg-red-50 text-red-400 border border-red-100";
+                            cellClass = "bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]";
                         }
 
                         if (!cell.isCurrentMonth) {
@@ -208,10 +208,10 @@ const CalendarWidget = ({
                 </div>
             </div>
 
-            <div className="mt-auto p-3 border-t border-gray-100 bg-gray-50/30 text-xs text-gray-500 space-y-1">
-                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500"></div> Marked Days</div>
-                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-red-500"></div> Unmarked Days</div>
-                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-yellow-400"></div> Holiday</div>
+            <div className="mt-auto p-3 border-t border-border bg-[var(--background)]/30 text-xs text-muted-text space-y-1">
+                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-success"></div> Marked Days</div>
+                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-danger"></div> Unmarked Days</div>
+                <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-warning"></div> Holiday</div>
             </div>
         </div>
     );

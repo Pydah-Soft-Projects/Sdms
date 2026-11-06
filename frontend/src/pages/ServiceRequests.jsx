@@ -470,14 +470,14 @@ const ServiceRequests = () => {
 
     const getStatusBadge = (status) => {
         const styles = {
-            pending: 'bg-yellow-100 text-yellow-800',
-            processing: 'bg-blue-100 text-blue-800',
-            ready_to_collect: 'bg-purple-100 text-purple-800',
-            closed: 'bg-green-100 text-green-800',
-            rejected: 'bg-red-100 text-red-800'
+            pending: 'bg-[var(--warning-light)] text-warning',
+            processing: 'bg-[var(--primary-light)] text-primary',
+            ready_to_collect: 'bg-[var(--primary-light)] text-secondary',
+            closed: 'bg-[var(--success-light)] text-success',
+            rejected: 'bg-[var(--danger-light)] text-danger'
         };
         return (
-            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${styles[status] || 'bg-gray-100'}`}>
+            <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${styles[status] || 'bg-background'}`}>
                 {status.replace(/_/g, ' ')}
             </span>
         );
@@ -487,24 +487,24 @@ const ServiceRequests = () => {
         <div className="p-6 space-y-6 animate-fade-in relative">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Service Requests</h1>
-                    <p className="text-gray-500">Manage student service requests</p>
+                    <h1 className="text-2xl font-bold text-main">Service Requests</h1>
+                    <p className="text-muted-text">Manage student service requests</p>
                 </div>
 
                 <div className="flex gap-3">
                     <button
                         onClick={() => setActionType('create_request')}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium shadow-sm"
+                        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover flex items-center gap-2 font-medium shadow-sm"
                     >
                         <Plus size={18} /> Issue Service
                     </button>
 
-                    <div className="flex items-center gap-2 bg-white p-1 rounded-lg border border-gray-200">
-                        <Filter size={16} className="text-gray-400 ml-2" />
+                    <div className="flex items-center gap-2 bg-surface p-1 rounded-lg border border-border">
+                        <Filter size={16} className="text-muted-text ml-2" />
                         <select
                             value={filterStatus}
                             onChange={(e) => setFilterStatus(e.target.value)}
-                            className="bg-transparent border-none text-sm font-medium focus:ring-0 text-gray-700 py-1"
+                            className="bg-transparent border-none text-sm font-medium focus:ring-0 text-sub py-1"
                         >
                             <option value="">All Status</option>
                             <option value="pending">Pending</option>
@@ -516,10 +516,10 @@ const ServiceRequests = () => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left whitespace-nowrap">
-                        <thead className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                        <thead className="bg-background text-muted-text text-xs uppercase tracking-wider">
                             <tr>
                                 <th className="px-6 py-4">Request Info</th>
                                 <th className="px-6 py-4">Student</th>
@@ -530,41 +530,41 @@ const ServiceRequests = () => {
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-border">
                             {loading ? (
                                 <tr><td colSpan="5" className="p-8 text-center">Loading...</td></tr>
                             ) : requests.length === 0 ? (
-                                <tr><td colSpan="5" className="p-8 text-center text-gray-500">No requests found</td></tr>
+                                <tr><td colSpan="5" className="p-8 text-center text-muted-text">No requests found</td></tr>
                             ) : (
                                 requests.map((req) => (
-                                    <tr key={req.id} className="hover:bg-gray-50">
+                                    <tr key={req.id} className="hover:bg-background">
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="font-semibold text-gray-900">{req.service_name}</span>
-                                                <span className="text-xs text-gray-500">ID: #{req.id}</span>
+                                                <span className="font-semibold text-main">{req.service_name}</span>
+                                                <span className="text-xs text-muted-text">ID: #{req.id}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="font-medium text-gray-900">{req.student_name}</span>
-                                                <span className="text-xs text-gray-500">{req.admission_number} | {req.course}-{req.branch}</span>
+                                                <span className="font-medium text-main">{req.student_name}</span>
+                                                <span className="text-xs text-muted-text">{req.admission_number} | {req.course}-{req.branch}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">
+                                        <td className="px-6 py-4 text-sm text-muted-text">
                                             {req.student_mobile || '-'}
                                         </td>
                                         <td className="px-6 py-4">
                                             {getStatusBadge(req.status)}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${req.payment_status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${req.payment_status === 'paid' ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--danger-light)] text-danger'}`}>
                                                 {req.payment_status || 'pending'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">
+                                        <td className="px-6 py-4 text-sm text-muted-text">
                                             <div>Req: {new Date(req.request_date).toLocaleDateString()}</div>
                                             {req.collect_date && (
-                                                <div className="text-purple-600 font-medium">Col: {new Date(req.collect_date).toLocaleDateString()}</div>
+                                                <div className="text-secondary font-medium">Col: {new Date(req.collect_date).toLocaleDateString()}</div>
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
@@ -572,7 +572,7 @@ const ServiceRequests = () => {
                                                 {req.payment_status === 'pending' && (
                                                     <button
                                                         onClick={() => handlePayment(req)}
-                                                        className="px-3 py-1.5 bg-green-50 text-green-700 text-xs font-semibold rounded hover:bg-green-100 flex items-center gap-1"
+                                                        className="px-3 py-1.5 bg-[var(--success-light)] text-success text-xs font-semibold rounded hover:bg-[var(--success-light)] flex items-center gap-1"
                                                     >
                                                         <CreditCard size={12} /> Mark Paid
                                                     </button>
@@ -580,7 +580,7 @@ const ServiceRequests = () => {
                                                 {req.payment_status === 'paid' && (
                                                     <button
                                                         onClick={() => handleVerifyAndPrint(req)}
-                                                        className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded hover:bg-gray-200 flex items-center gap-1"
+                                                        className="px-3 py-1.5 bg-background text-sub text-xs font-semibold rounded hover:bg-background flex items-center gap-1"
                                                         title="Verify details & Print"
                                                     >
                                                         <Printer size={12} /> Verify & Print
@@ -589,7 +589,7 @@ const ServiceRequests = () => {
                                                 {req.status === 'pending' && (
                                                     <button
                                                         onClick={() => { setSelectedRequest(req); setActionType('processing'); handleUpdateStatus(); }}
-                                                        className="px-3 py-1.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded hover:bg-blue-100"
+                                                        className="px-3 py-1.5 bg-[var(--primary-light)] text-primary text-xs font-semibold rounded hover:bg-[var(--primary-light)]"
                                                     >
                                                         Process
                                                     </button>
@@ -597,7 +597,7 @@ const ServiceRequests = () => {
                                                 {(req.status === 'pending' || req.status === 'processing') && (
                                                     <button
                                                         onClick={() => openActionModal(req, 'ready')}
-                                                        className="px-3 py-1.5 bg-purple-50 text-purple-600 text-xs font-semibold rounded hover:bg-purple-100 flex items-center gap-1"
+                                                        className="px-3 py-1.5 bg-[var(--primary-light)] text-secondary text-xs font-semibold rounded hover:bg-[var(--primary-light)] flex items-center gap-1"
                                                     >
                                                         Mark Ready
                                                     </button>
@@ -605,7 +605,7 @@ const ServiceRequests = () => {
                                                 {req.status === 'ready_to_collect' && (
                                                     <button
                                                         onClick={() => { setSelectedRequest(req); setActionType('close'); }}
-                                                        className="px-3 py-1.5 bg-green-50 text-green-600 text-xs font-semibold rounded hover:bg-green-100 flex items-center gap-1"
+                                                        className="px-3 py-1.5 bg-[var(--success-light)] text-success text-xs font-semibold rounded hover:bg-[var(--success-light)] flex items-center gap-1"
                                                     >
                                                         Close
                                                     </button>
@@ -623,10 +623,10 @@ const ServiceRequests = () => {
             {/* Create Request Modal - Dynamic Form */}
             {actionType === 'create_request' && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-4xl p-6 shadow-xl animate-scale-in max-h-[95vh] overflow-y-auto">
+                    <div className="bg-surface rounded-2xl w-full max-w-4xl p-6 shadow-xl animate-scale-in max-h-[95vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-gray-900">Issue New Service</h2>
-                            <button onClick={() => { setActionType(null); }} className="text-gray-400 hover:text-gray-600">
+                            <h2 className="text-xl font-bold text-main">Issue New Service</h2>
+                            <button onClick={() => { setActionType(null); }} className="text-muted-text hover:text-sub">
                                 <X size={24} />
                             </button>
                         </div>
@@ -634,11 +634,11 @@ const ServiceRequests = () => {
                         <form onSubmit={handleCreateRequest} className="space-y-6">
 
                             {/* 1. Service Selection */}
-                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                                <label className="block text-sm font-bold text-gray-900 mb-2">Select Certificate / Service <span className="text-red-500">*</span></label>
+                            <div className="bg-background p-4 rounded-lg border border-border">
+                                <label className="block text-sm font-bold text-main mb-2">Select Certificate / Service <span className="text-danger">*</span></label>
                                 <select
                                     required
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-lg"
+                                    className="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary outline-none bg-surface text-lg"
                                     value={createForm.service_id || ''}
                                     onChange={e => setCreateForm(prev => ({ ...prev, service_id: e.target.value }))}
                                 >
@@ -654,9 +654,9 @@ const ServiceRequests = () => {
                                 <div className="animate-fade-in space-y-6">
 
                                     {getTemplateFields(createForm.service_id).map((section, secIdx) => (
-                                        <div key={secIdx} className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
-                                            <h3 className="text-md font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                                <span className="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs">{secIdx + 1}</span>
+                                        <div key={secIdx} className="bg-surface p-5 rounded-lg border border-border shadow-sm">
+                                            <h3 className="text-md font-bold text-main mb-4 flex items-center gap-2">
+                                                <span className="bg-[var(--primary-light)] text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs">{secIdx + 1}</span>
                                                 {section.section}
                                             </h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -665,15 +665,15 @@ const ServiceRequests = () => {
                                                         key={fIdx}
                                                         className={`${field.type === 'textarea' || field.name === 'custody_list' ? 'md:col-span-2 lg:col-span-3' : ''} ${field.className || ''}`}
                                                     >
-                                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                            {field.label} {field.required && <span className="text-red-500">*</span>}
+                                                        <label className="block text-sm font-medium text-sub mb-1">
+                                                            {field.label} {field.required && <span className="text-danger">*</span>}
                                                         </label>
 
                                                         {field.type === 'textarea' ? (
                                                             <textarea
                                                                 required={field.required}
                                                                 rows="3"
-                                                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                                                 placeholder={field.placeholder || ''}
                                                                 value={createForm[field.name] || ''}
                                                                 onChange={e => setCreateForm({ ...createForm, [field.name]: e.target.value })}
@@ -683,7 +683,7 @@ const ServiceRequests = () => {
                                                                 type={field.type || 'text'}
                                                                 required={field.required}
                                                                 autoFocus={field.autoFocus}
-                                                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${field.name === 'admission_number' ? 'bg-yellow-50 font-medium uppercase' : ''}`}
+                                                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none ${field.name === 'admission_number' ? 'bg-[var(--warning-light)] font-medium uppercase' : ''}`}
                                                                 placeholder={field.placeholder || ''}
                                                                 value={createForm[field.name] || ''}
                                                                 onChange={e => setCreateForm({ ...createForm, [field.name]: e.target.value })}
@@ -698,7 +698,7 @@ const ServiceRequests = () => {
 
                                     <button
                                         type="submit"
-                                        className="w-full py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 mt-4 shadow-lg text-lg flex items-center justify-center gap-2"
+                                        className="w-full py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover mt-4 shadow-lg text-lg flex items-center justify-center gap-2"
                                     >
                                         <Printer size={20} /> Issue & Generate
                                     </button>
@@ -706,7 +706,7 @@ const ServiceRequests = () => {
                             )}
 
                             {!createForm.service_id && (
-                                <div className="text-center py-10 text-gray-400">
+                                <div className="text-center py-10 text-muted-text">
                                     <div className="text-6xl mb-4">📄</div>
                                     <p>Select a template above to start</p>
                                 </div>
@@ -719,68 +719,68 @@ const ServiceRequests = () => {
             {/* Student Edit Modal (Before Printing) */}
             {selectedRequest && actionType === 'edit_student' && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-2xl p-6 shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+                    <div className="bg-surface rounded-2xl w-full max-w-2xl p-6 shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-6 border-b pb-4">
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900">Verify Details</h2>
-                                <p className="text-sm text-gray-500">Ensure details are correct before printing.</p>
+                                <h2 className="text-xl font-bold text-main">Verify Details</h2>
+                                <p className="text-sm text-muted-text">Ensure details are correct before printing.</p>
                             </div>
-                            <button onClick={() => { setActionType(null); setEditingStudent(null); }} className="text-gray-400 hover:text-gray-600">
+                            <button onClick={() => { setActionType(null); setEditingStudent(null); }} className="text-muted-text hover:text-sub">
                                 <X size={24} />
                             </button>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Student Name</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     value={studentForm.student_name}
                                     onChange={e => setStudentForm({ ...studentForm, student_name: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Father's / Guardian's Name</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Father's / Guardian's Name</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     value={studentForm.father_name}
                                     onChange={e => setStudentForm({ ...studentForm, father_name: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Admission Number</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Admission Number</label>
                                 <input
                                     type="text"
                                     disabled
-                                    className="w-full px-3 py-2 border rounded-lg bg-gray-50 text-gray-500"
+                                    className="w-full px-3 py-2 border rounded-lg bg-background text-muted-text"
                                     value={studentForm.admission_number}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Academic Year</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     value={studentForm.academic_year || ''}
                                     onChange={e => setStudentForm({ ...studentForm, academic_year: e.target.value })}
                                     placeholder="2024-2025"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Date of Birth</label>
                                 <input
                                     type="date"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     value={studentForm.dob}
                                     onChange={e => setStudentForm({ ...studentForm, dob: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Gender</label>
                                 <select
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     value={studentForm.gender}
                                     onChange={e => setStudentForm({ ...studentForm, gender: e.target.value })}
                                 >
@@ -790,37 +790,37 @@ const ServiceRequests = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Caste</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Caste</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     value={studentForm.caste}
                                     onChange={e => setStudentForm({ ...studentForm, caste: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Mobile</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Mobile</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     value={studentForm.student_mobile}
                                     onChange={e => setStudentForm({ ...studentForm, student_mobile: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Course</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     value={studentForm.course}
                                     onChange={e => setStudentForm({ ...studentForm, course: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Branch</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Branch</label>
                                 <input
                                     type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     value={studentForm.branch}
                                     onChange={e => setStudentForm({ ...studentForm, branch: e.target.value })}
                                 />
@@ -828,19 +828,19 @@ const ServiceRequests = () => {
                             <div>
                                 <div className="flex gap-2">
                                     <div className="flex-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                                        <label className="block text-sm font-medium text-sub mb-1">Year</label>
                                         <input
                                             type="number"
-                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                             value={studentForm.current_year}
                                             onChange={e => setStudentForm({ ...studentForm, current_year: e.target.value })}
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Sem</label>
+                                        <label className="block text-sm font-medium text-sub mb-1">Sem</label>
                                         <input
                                             type="number"
-                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                             value={studentForm.current_semester}
                                             onChange={e => setStudentForm({ ...studentForm, current_semester: e.target.value })}
                                         />
@@ -848,9 +848,9 @@ const ServiceRequests = () => {
                                 </div>
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Address</label>
                                 <textarea
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     rows="2"
                                     value={studentForm.student_address}
                                     onChange={e => setStudentForm({ ...studentForm, student_address: e.target.value })}
@@ -861,20 +861,20 @@ const ServiceRequests = () => {
                         <div className="flex gap-3 pt-2">
                             <button
                                 onClick={() => handleDirectPrint(selectedRequest)}
-                                className="px-6 py-2.5 bg-gray-100 rounded-lg font-medium text-gray-700 hover:bg-gray-200"
+                                className="px-6 py-2.5 bg-background rounded-lg font-medium text-sub hover:bg-background"
                             >
                                 Skip & Print
                             </button>
                             <div className="flex-1"></div>
                             <button
                                 onClick={() => { setActionType(null); setEditingStudent(null); }}
-                                className="px-6 py-2.5 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
+                                className="px-6 py-2.5 bg-surface border border-border-strong rounded-lg font-medium text-sub hover:bg-background"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleUpdateStudentAndPrint}
-                                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 shadow-sm flex items-center gap-2"
+                                className="px-6 py-2.5 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover shadow-sm flex items-center gap-2"
                             >
                                 <CheckCircle size={18} /> Update & Generate
                             </button>
@@ -886,25 +886,25 @@ const ServiceRequests = () => {
             {/* Action Modal */}
             {selectedRequest && actionType === 'ready' && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+                    <div className="bg-surface rounded-2xl w-full max-w-md p-6 shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
                         <h2 className="text-xl font-bold mb-4">Mark as Ready to Collect</h2>
                         <div className="space-y-4">
                             {/* Dynamic Admin Fields */}
                             {selectedRequest?.admin_fields && selectedRequest.admin_fields.length > 0 && (
-                                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 mb-2">
-                                    <h3 className="text-sm font-bold text-blue-800 mb-2">Required Information</h3>
+                                <div className="p-3 bg-[var(--primary-light)] rounded-lg border border-[var(--primary-light)] mb-2">
+                                    <h3 className="text-sm font-bold text-primary mb-2">Required Information</h3>
                                     <div className="space-y-3">
                                         {(typeof selectedRequest.admin_fields === 'string'
                                             ? JSON.parse(selectedRequest.admin_fields)
                                             : selectedRequest.admin_fields
                                         ).map((field, idx) => (
                                             <div key={idx}>
-                                                <label className="block text-xs font-medium text-gray-700 mb-1">
+                                                <label className="block text-xs font-medium text-sub mb-1">
                                                     {field.label}
                                                 </label>
                                                 {field.type === 'select' ? (
                                                     <select
-                                                        className="w-full px-3 py-1.5 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                        className="w-full px-3 py-1.5 border rounded text-sm focus:ring-2 focus:ring-primary outline-none"
                                                         value={actionData[field.name] || ''}
                                                         onChange={e => setActionData({ ...actionData, [field.name]: e.target.value })}
                                                     >
@@ -916,7 +916,7 @@ const ServiceRequests = () => {
                                                 ) : (
                                                     <input
                                                         type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
-                                                        className="w-full px-3 py-1.5 border rounded text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                        className="w-full px-3 py-1.5 border rounded text-sm focus:ring-2 focus:ring-primary outline-none"
                                                         value={actionData[field.name] || ''}
                                                         onChange={e => setActionData({ ...actionData, [field.name]: e.target.value })}
                                                         placeholder={`Enter ${field.label}`}
@@ -929,18 +929,18 @@ const ServiceRequests = () => {
                             )}
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Collect Date</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Collect Date</label>
                                 <input
                                     type="date"
-                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     value={actionData.collect_date}
                                     onChange={e => setActionData({ ...actionData, collect_date: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Notification to Student</label>
+                                <label className="block text-sm font-medium text-sub mb-1">Notification to Student</label>
                                 <textarea
-                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
                                     rows="3"
                                     value={actionData.admin_note}
                                     onChange={e => setActionData({ ...actionData, admin_note: e.target.value })}
@@ -948,8 +948,8 @@ const ServiceRequests = () => {
                                 />
                             </div>
                             <div className="flex gap-3 pt-2">
-                                <button onClick={() => setSelectedRequest(null)} className="flex-1 py-2.5 bg-gray-100 rounded-lg font-medium text-gray-700">Cancel</button>
-                                <button onClick={handleUpdateStatus} className="flex-1 py-2.5 bg-purple-600 text-white rounded-lg font-medium">Confirm</button>
+                                <button onClick={() => setSelectedRequest(null)} className="flex-1 py-2.5 bg-background rounded-lg font-medium text-sub">Cancel</button>
+                                <button onClick={handleUpdateStatus} className="flex-1 py-2.5 bg-secondary text-white rounded-lg font-medium">Confirm</button>
                             </div>
                         </div>
                     </div>
@@ -959,15 +959,15 @@ const ServiceRequests = () => {
             {/* Close Confirmation Modal */}
             {selectedRequest && actionType === 'close' && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl animate-scale-in text-center">
-                        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+                    <div className="bg-surface rounded-2xl w-full max-w-sm p-6 shadow-xl animate-scale-in text-center">
+                        <div className="w-12 h-12 bg-[var(--success-light)] rounded-full flex items-center justify-center mx-auto mb-4 text-success">
                             <CheckCircle size={24} />
                         </div>
                         <h2 className="text-xl font-bold mb-2">Close Request?</h2>
-                        <p className="text-gray-500 mb-6">This will mark the service as completed and closed.</p>
+                        <p className="text-muted-text mb-6">This will mark the service as completed and closed.</p>
                         <div className="flex gap-3">
-                            <button onClick={() => setSelectedRequest(null)} className="flex-1 py-2.5 bg-gray-100 rounded-lg font-medium text-gray-700">Cancel</button>
-                            <button onClick={handleUpdateStatus} className="flex-1 py-2.5 bg-green-600 text-white rounded-lg font-medium">Yes, Close it</button>
+                            <button onClick={() => setSelectedRequest(null)} className="flex-1 py-2.5 bg-background rounded-lg font-medium text-sub">Cancel</button>
+                            <button onClick={handleUpdateStatus} className="flex-1 py-2.5 bg-success text-white rounded-lg font-medium">Yes, Close it</button>
                         </div>
                     </div>
                 </div>
@@ -975,10 +975,10 @@ const ServiceRequests = () => {
             {/* Print Preview Modal */}
             {previewUrl && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <div className="bg-white rounded-xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl animate-scale-in">
+                    <div className="bg-surface rounded-xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl animate-scale-in">
                         <div className="flex justify-between items-center p-4 border-b">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                <Printer className="text-blue-600" /> Certificate Preview
+                            <h2 className="text-xl font-bold text-main flex items-center gap-2">
+                                <Printer className="text-primary" /> Certificate Preview
                             </h2>
                             <div className="flex items-center gap-3">
                                 <button
@@ -986,23 +986,23 @@ const ServiceRequests = () => {
                                         const iframe = document.getElementById('pdf-preview-frame');
                                         if (iframe) iframe.contentWindow.print();
                                     }}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition flex items-center gap-2"
+                                    className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover transition flex items-center gap-2"
                                 >
                                     <Printer size={18} /> Print Certificate
                                 </button>
                                 <button
                                     onClick={() => setPreviewUrl(null)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition"
+                                    className="p-2 hover:bg-background rounded-full transition"
                                 >
-                                    <X size={24} className="text-gray-500" />
+                                    <X size={24} className="text-muted-text" />
                                 </button>
                             </div>
                         </div>
-                        <div className="flex-1 bg-gray-100 p-4">
+                        <div className="flex-1 bg-background p-4">
                             <iframe
                                 id="pdf-preview-frame"
                                 src={previewUrl}
-                                className="w-full h-full rounded-lg shadow-inner bg-white"
+                                className="w-full h-full rounded-lg shadow-inner bg-surface"
                                 title="Certificate Preview"
                             />
                         </div>

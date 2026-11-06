@@ -462,14 +462,14 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 shrink-0">
+      <div className="bg-surface rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="bg-gradient-to-r from-primary to-primary text-white p-4 shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xl font-bold">Bulk Upload Dashboard</h3>
-              <p className="text-blue-100 text-xs mt-1">Upload and manage student data in bulk</p>
+              <p className="text-primary text-xs mt-1">Upload and manage student data in bulk</p>
             </div>
-            <button onClick={handleClose} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-colors">
+            <button onClick={handleClose} className="p-2 hover:bg-surface hover:bg-opacity-20 rounded-lg transition-colors">
               <X size={20} />
             </button>
           </div>
@@ -479,8 +479,8 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
           <div className="space-y-6">
             {/* College Selection */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Select College * <span className="text-red-500">(Required for validation)</span>
+              <label className="block text-xs font-medium text-sub mb-1">
+                Select College * <span className="text-danger">(Required for validation)</span>
               </label>
               <select
                 value={selectedCollegeId}
@@ -489,7 +489,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                   setPreviewData(null);
                   setUploadResult(null);
                 }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none disabled:bg-gray-100 disabled:text-gray-500"
+                className="w-full px-4 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none disabled:bg-background disabled:text-muted-text"
                 disabled={collegesLoading}
               >
                 <option value="">
@@ -506,7 +506,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                 )}
               </select>
               {selectedCollegeId && (
-                <p className="text-xs text-blue-600 mt-1">
+                <p className="text-xs text-primary mt-1">
                   Courses and branches will be validated against this college
                 </p>
               )}
@@ -514,13 +514,13 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
 
             {/* Form Selection */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-sub mb-1">
                 Select Form *
               </label>
               <select
                 value={selectedForm}
                 onChange={(e) => setSelectedForm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none disabled:bg-gray-100 disabled:text-gray-500"
+                className="w-full px-4 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none disabled:bg-background disabled:text-muted-text"
                 disabled={isLoadingForms || !forms || forms.length === 0}
               >
                 <option value="">
@@ -537,7 +537,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                 )}
               </select>
               {isLoadingForms && (
-                <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+                <div className="mt-2 flex items-center gap-2 text-sm text-muted-text">
                   <LoadingAnimation width={16} height={16} variant="inline" showMessage={false} />
                   <span>Fetching available templates...</span>
                 </div>
@@ -546,16 +546,16 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
 
             {/* Download Template */}
             {selectedForm && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+              <div className="bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg p-4 space-y-4">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+                  <AlertCircle className="text-primary flex-shrink-0 mt-0.5" size={20} />
                   <div className="flex-1">
-                    <p className="text-sm text-blue-800 mb-2">
+                    <p className="text-sm text-primary mb-2">
                       Download the Excel template for the selected form. You can optionally pre-select a course and branch to pre-fill the sample row in the sheet.
                     </p>
                     <button
                       onClick={downloadTemplate}
-                      className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                      className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors text-sm"
                     >
                       <Download size={16} />
                       Download Excel Template
@@ -564,14 +564,14 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-blue-900 uppercase tracking-wide mb-1">
+                    <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1">
                       Program for sample row
                     </label>
                     <select
                       value={selectedCourseId}
                       onChange={(e) => setSelectedCourseId(e.target.value)}
                       disabled={metadataLoading || courseOptions.length === 0}
-                      className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white disabled:bg-blue-100 disabled:text-blue-500"
+                      className="w-full px-3 py-2 border border-[var(--primary-light)] rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-surface disabled:bg-[var(--primary-light)] disabled:text-primary"
                     >
                       <option value="">
                         {metadataLoading
@@ -587,13 +587,13 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                       ))}
                     </select>
                     {!metadataLoading && courseOptions.length === 0 && (
-                      <p className="text-xs text-blue-700 mt-1">
+                      <p className="text-xs text-primary mt-1">
                         Configure programs in the Settings page to enable quick selections.
                       </p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-blue-900 uppercase tracking-wide mb-1">
+                    <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1">
                       Branch for sample row
                     </label>
                     <select
@@ -604,7 +604,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                         !selectedCourseOption ||
                         branchOptions.length === 0
                       }
-                      className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white disabled:bg-blue-100 disabled:text-blue-500"
+                      className="w-full px-3 py-2 border border-[var(--primary-light)] rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent text-sm bg-surface disabled:bg-[var(--primary-light)] disabled:text-primary"
                     >
                       <option value="">
                         {!selectedCourseOption
@@ -620,14 +620,14 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                       ))}
                     </select>
                     {selectedCourseOption && branchOptions.length === 0 && !metadataLoading && (
-                      <p className="text-xs text-blue-700 mt-1">
+                      <p className="text-xs text-primary mt-1">
                         This course does not have active branches. Update the course configuration to add branches.
                       </p>
                     )}
                   </div>
                 </div>
                 {metadataError && (
-                  <div className="bg-red-100 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-700">
+                  <div className="bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-lg px-3 py-2 text-sm text-danger">
                     {metadataError}
                   </div>
                 )}
@@ -635,14 +635,14 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
             )}
 
             {selectedForm && (
-              <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 space-y-3">
+              <div className="bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg p-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <CheckCircle className="text-indigo-600 flex-shrink-0 mt-0.5" size={20} />
+                  <CheckCircle className="text-primary flex-shrink-0 mt-0.5" size={20} />
                   <div>
-                    <p className="text-sm text-indigo-800 font-medium mb-2">
+                    <p className="text-sm text-primary font-medium mb-2">
                       Make sure your Excel file includes the required academic structure columns so students are linked to the correct course, branch, year and semester.
                     </p>
-                    <ul className="text-sm text-indigo-700 list-disc ml-5 space-y-1">
+                    <ul className="text-sm text-primary list-disc ml-5 space-y-1">
                       <li>
                         <span className="font-semibold">Course</span>{' '}
                         {stageFieldSummary?.courseField
@@ -668,7 +668,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                           : '→ add a column named "Current Semester"'}
                       </li>
                     </ul>
-                    <p className="text-xs text-indigo-600 mt-2">
+                    <p className="text-xs text-primary mt-2">
                       These columns ensure that each uploaded student is grouped under the correct course & branch and is placed in the right academic stage.
                     </p>
                   </div>
@@ -678,10 +678,10 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
 
             {/* File Upload */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-sub mb-1">
                 Upload CSV File *
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
+              <div className="border-2 border-dashed border-border-strong rounded-lg p-6 text-center hover:border-primary-500 transition-colors">
                 <input
                   type="file"
                   accept=".csv,.xlsx,.xls"
@@ -694,38 +694,38 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                   htmlFor="csv-upload"
                   className={`cursor-pointer ${!selectedForm || !selectedCollegeId ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <Upload className="mx-auto text-gray-400 mb-2" size={32} />
-                  <p className="text-sm text-gray-600 mb-1">
+                  <Upload className="mx-auto text-muted-text mb-2" size={32} />
+                  <p className="text-sm text-sub mb-1">
                     {file ? file.name : 'Click to upload CSV or Excel file'}
                   </p>
-                  <p className="text-xs text-gray-500">CSV or Excel files only</p>
+                  <p className="text-xs text-muted-text">CSV or Excel files only</p>
                 </label>
               </div>
             </div>
 
             {previewData && (
               <div className="space-y-3">
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <div className="bg-background border border-border rounded-lg p-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-800">Upload Preview</h4>
-                      <p className="text-xs text-gray-600">
+                      <h4 className="text-sm font-semibold text-main">Upload Preview</h4>
+                      <p className="text-xs text-sub">
                         Review valid and invalid student records before committing them to the master database.
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-green-700 font-semibold flex items-center gap-1">
+                      <span className="text-xs text-success font-semibold flex items-center gap-1">
                         <CheckCircle size={14} />
                         {previewData.summary?.validCount || 0} valid
                       </span>
-                      <span className="text-xs text-red-700 font-semibold flex items-center gap-1">
+                      <span className="text-xs text-danger font-semibold flex items-center gap-1">
                         <AlertCircle size={14} />
                         {previewData.summary?.invalidCount || 0} invalid
                       </span>
                       {previewData.invalidRecords?.length > 0 && (
                         <button
                           onClick={() => setShowAllErrors(!showAllErrors)}
-                          className="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors flex items-center gap-1"
+                          className="text-xs bg-danger text-white px-3 py-1 rounded hover:bg-danger transition-colors flex items-center gap-1"
                         >
                           <AlertCircle size={12} />
                           {showAllErrors ? 'Hide' : 'Show'} All Errors
@@ -736,46 +736,46 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                 </div>
 
                 {showAllErrors && previewData.invalidRecords?.length > 0 && (
-                  <div className="bg-red-50 border-2 border-red-300 rounded-lg p-3">
+                  <div className="bg-[var(--danger-light)] border-2 border-[var(--danger-light)] rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <h5 className="text-sm font-semibold text-red-800 flex items-center gap-2">
+                      <h5 className="text-sm font-semibold text-danger flex items-center gap-2">
                         <AlertCircle size={16} />
                         All Invalid Records ({previewData.invalidRecords.length})
                       </h5>
                       <button
                         onClick={() => setShowAllErrors(false)}
-                        className="text-xs text-red-700 hover:text-red-900"
+                        className="text-xs text-danger hover:text-danger"
                       >
                         Close
                       </button>
                     </div>
                     <div className="overflow-x-auto max-h-[60vh]">
                       <table className="min-w-full text-xs border-collapse">
-                        <thead className="sticky top-0 bg-red-200 z-10">
-                          <tr className="text-left text-red-800 uppercase tracking-wide">
-                            <th className="px-2 py-1.5 border border-red-300 font-semibold">Row</th>
-                            <th className="px-2 py-1.5 border border-red-300 font-semibold">Admission #</th>
-                            <th className="px-2 py-1.5 border border-red-300 font-semibold">Name</th>
+                        <thead className="sticky top-0 bg-[var(--danger-light)] z-10">
+                          <tr className="text-left text-danger uppercase tracking-wide">
+                            <th className="px-2 py-1.5 border border-[var(--danger-light)] font-semibold">Row</th>
+                            <th className="px-2 py-1.5 border border-[var(--danger-light)] font-semibold">Admission #</th>
+                            <th className="px-2 py-1.5 border border-[var(--danger-light)] font-semibold">Name</th>
                             {allColumns.slice(0, 10).map((col) => (
-                              <th key={col} className="px-2 py-1.5 border border-red-300 font-semibold whitespace-nowrap">
+                              <th key={col} className="px-2 py-1.5 border border-[var(--danger-light)] font-semibold whitespace-nowrap">
                                 {col}
                               </th>
                             ))}
-                            <th className="px-2 py-1.5 border border-red-300 font-semibold">Issues</th>
+                            <th className="px-2 py-1.5 border border-[var(--danger-light)] font-semibold">Issues</th>
                           </tr>
                         </thead>
-                        <tbody className="text-red-900">
+                        <tbody className="text-danger">
                           {previewData.invalidRecords.map((record) => (
-                            <tr key={`invalid-all-${record.rowNumber}`} className="border-t border-red-200 hover:bg-red-100">
-                              <td className="px-2 py-1.5 border border-red-200 font-medium">{record.rowNumber}</td>
-                              <td className="px-2 py-1.5 border border-red-200">{record.sanitizedData?.admission_number || '-'}</td>
-                              <td className="px-2 py-1.5 border border-red-200">{record.sanitizedData?.student_name || '-'}</td>
+                            <tr key={`invalid-all-${record.rowNumber}`} className="border-t border-[var(--danger-light)] hover:bg-[var(--danger-light)]">
+                              <td className="px-2 py-1.5 border border-[var(--danger-light)] font-medium">{record.rowNumber}</td>
+                              <td className="px-2 py-1.5 border border-[var(--danger-light)]">{record.sanitizedData?.admission_number || '-'}</td>
+                              <td className="px-2 py-1.5 border border-[var(--danger-light)]">{record.sanitizedData?.student_name || '-'}</td>
                               {allColumns.slice(0, 10).map((col) => (
-                                <td key={col} className="px-2 py-1.5 border border-red-200 whitespace-nowrap">
+                                <td key={col} className="px-2 py-1.5 border border-[var(--danger-light)] whitespace-nowrap">
                                   {record.rawData?.[col] || record.sanitizedData?.[col] || '-'}
                                 </td>
                               ))}
-                              <td className="px-2 py-1.5 border border-red-200">
+                              <td className="px-2 py-1.5 border border-[var(--danger-light)]">
                                 <ul className="list-disc list-inside space-y-0.5 text-[10px]">
                                   {record.issues.map((issue, idx) => (
                                     <li key={idx}>{issue}</li>
@@ -792,13 +792,13 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
 
                 {!showAllErrors && (
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
-                        <h5 className="text-xs font-semibold text-green-800 flex items-center gap-1">
+                        <h5 className="text-xs font-semibold text-success flex items-center gap-1">
                           <CheckCircle size={14} />
                           Valid Students
                         </h5>
-                        <span className="text-xs text-green-700">
+                        <span className="text-xs text-success">
                           {previewData.summary?.validCount || 0} ready
                         </span>
                       </div>
@@ -806,22 +806,22 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                         <>
                           <div className="overflow-x-auto max-h-[50vh]">
                             <table className="min-w-full text-xs border-collapse">
-                              <thead className="sticky top-0 bg-green-200 z-10">
-                                <tr className="text-left text-green-800 uppercase tracking-wide">
-                                  <th className="px-2 py-1 border border-green-300 font-semibold">Row</th>
+                              <thead className="sticky top-0 bg-[var(--success-light)] z-10">
+                                <tr className="text-left text-success uppercase tracking-wide">
+                                  <th className="px-2 py-1 border border-[var(--success-light)] font-semibold">Row</th>
                                   {allColumns.map((col) => (
-                                    <th key={col} className="px-2 py-1 border border-green-300 font-semibold whitespace-nowrap">
+                                    <th key={col} className="px-2 py-1 border border-[var(--success-light)] font-semibold whitespace-nowrap">
                                       {col}
                                     </th>
                                   ))}
                                 </tr>
                               </thead>
-                              <tbody className="text-green-900">
+                              <tbody className="text-success">
                                 {paginatedValidRecords.map((record) => (
-                                  <tr key={`valid-${record.rowNumber}`} className="border-t border-green-200 hover:bg-green-100">
-                                    <td className="px-2 py-1 border border-green-200 font-medium">{record.rowNumber}</td>
+                                  <tr key={`valid-${record.rowNumber}`} className="border-t border-[var(--success-light)] hover:bg-[var(--success-light)]">
+                                    <td className="px-2 py-1 border border-[var(--success-light)] font-medium">{record.rowNumber}</td>
                                     {allColumns.map((col) => (
-                                      <td key={col} className="px-2 py-1 border border-green-200 whitespace-nowrap">
+                                      <td key={col} className="px-2 py-1 border border-[var(--success-light)] whitespace-nowrap">
                                         {record.rawData?.[col] || record.sanitizedData?.[col] || '-'}
                                       </td>
                                     ))}
@@ -831,22 +831,22 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                             </table>
                           </div>
                           {validRecordsTotalPages > 1 && (
-                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-green-200">
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-[var(--success-light)]">
                               <button
                                 onClick={() => setValidRecordsPage(p => Math.max(1, p - 1))}
                                 disabled={validRecordsPage === 1}
-                                className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                className="px-2 py-1 text-xs bg-success text-white rounded hover:bg-success disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                               >
                                 <ChevronLeft size={12} />
                                 Previous
                               </button>
-                              <span className="text-xs text-green-700">
+                              <span className="text-xs text-success">
                                 Page {validRecordsPage} of {validRecordsTotalPages} ({previewData.validRecords.length} total)
                               </span>
                               <button
                                 onClick={() => setValidRecordsPage(p => Math.min(validRecordsTotalPages, p + 1))}
                                 disabled={validRecordsPage === validRecordsTotalPages}
-                                className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                className="px-2 py-1 text-xs bg-success text-white rounded hover:bg-success disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                               >
                                 Next
                                 <ChevronRight size={12} />
@@ -855,17 +855,17 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                           )}
                         </>
                       ) : (
-                        <p className="text-xs text-green-700">No valid records detected.</p>
+                        <p className="text-xs text-success">No valid records detected.</p>
                       )}
                     </div>
 
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div className="bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
-                        <h5 className="text-xs font-semibold text-red-800 flex items-center gap-1">
+                        <h5 className="text-xs font-semibold text-danger flex items-center gap-1">
                           <AlertCircle size={14} />
                           Invalid Students
                         </h5>
-                        <span className="text-xs text-red-700">
+                        <span className="text-xs text-danger">
                           {previewData.summary?.invalidCount || 0} need attention
                         </span>
                       </div>
@@ -873,31 +873,31 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                         <>
                           <div className="overflow-x-auto max-h-[50vh]">
                             <table className="min-w-full text-xs border-collapse">
-                              <thead className="sticky top-0 bg-red-200 z-10">
-                                <tr className="text-left text-red-800 uppercase tracking-wide">
-                                  <th className="px-2 py-1 border border-red-300 font-semibold">Row</th>
-                                  <th className="px-2 py-1 border border-red-300 font-semibold">Admission #</th>
-                                  <th className="px-2 py-1 border border-red-300 font-semibold">Name</th>
+                              <thead className="sticky top-0 bg-[var(--danger-light)] z-10">
+                                <tr className="text-left text-danger uppercase tracking-wide">
+                                  <th className="px-2 py-1 border border-[var(--danger-light)] font-semibold">Row</th>
+                                  <th className="px-2 py-1 border border-[var(--danger-light)] font-semibold">Admission #</th>
+                                  <th className="px-2 py-1 border border-[var(--danger-light)] font-semibold">Name</th>
                                   {allColumns.slice(0, 5).map((col) => (
-                                    <th key={col} className="px-2 py-1 border border-red-300 font-semibold whitespace-nowrap">
+                                    <th key={col} className="px-2 py-1 border border-[var(--danger-light)] font-semibold whitespace-nowrap">
                                       {col}
                                     </th>
                                   ))}
-                                  <th className="px-2 py-1 border border-red-300 font-semibold">Issues</th>
+                                  <th className="px-2 py-1 border border-[var(--danger-light)] font-semibold">Issues</th>
                                 </tr>
                               </thead>
-                              <tbody className="text-red-900">
+                              <tbody className="text-danger">
                                 {paginatedInvalidRecords.map((record) => (
-                                  <tr key={`invalid-${record.rowNumber}`} className="border-t border-red-200 hover:bg-red-100 align-top">
-                                    <td className="px-2 py-1 border border-red-200 font-medium">{record.rowNumber}</td>
-                                    <td className="px-2 py-1 border border-red-200">{record.sanitizedData?.admission_number || '-'}</td>
-                                    <td className="px-2 py-1 border border-red-200">{record.sanitizedData?.student_name || '-'}</td>
+                                  <tr key={`invalid-${record.rowNumber}`} className="border-t border-[var(--danger-light)] hover:bg-[var(--danger-light)] align-top">
+                                    <td className="px-2 py-1 border border-[var(--danger-light)] font-medium">{record.rowNumber}</td>
+                                    <td className="px-2 py-1 border border-[var(--danger-light)]">{record.sanitizedData?.admission_number || '-'}</td>
+                                    <td className="px-2 py-1 border border-[var(--danger-light)]">{record.sanitizedData?.student_name || '-'}</td>
                                     {allColumns.slice(0, 5).map((col) => (
-                                      <td key={col} className="px-2 py-1 border border-red-200 whitespace-nowrap">
+                                      <td key={col} className="px-2 py-1 border border-[var(--danger-light)] whitespace-nowrap">
                                         {record.rawData?.[col] || record.sanitizedData?.[col] || '-'}
                                       </td>
                                     ))}
-                                    <td className="px-2 py-1 border border-red-200">
+                                    <td className="px-2 py-1 border border-[var(--danger-light)]">
                                       <ul className="list-disc list-inside space-y-0.5 text-[10px]">
                                         {record.issues.map((issue, idx) => (
                                           <li key={idx}>{issue}</li>
@@ -910,22 +910,22 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                             </table>
                           </div>
                           {invalidRecordsTotalPages > 1 && (
-                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-red-200">
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-[var(--danger-light)]">
                               <button
                                 onClick={() => setInvalidRecordsPage(p => Math.max(1, p - 1))}
                                 disabled={invalidRecordsPage === 1}
-                                className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                className="px-2 py-1 text-xs bg-danger text-white rounded hover:bg-danger disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                               >
                                 <ChevronLeft size={12} />
                                 Previous
                               </button>
-                              <span className="text-xs text-red-700">
+                              <span className="text-xs text-danger">
                                 Page {invalidRecordsPage} of {invalidRecordsTotalPages} ({previewData.invalidRecords.length} total)
                               </span>
                               <button
                                 onClick={() => setInvalidRecordsPage(p => Math.min(invalidRecordsTotalPages, p + 1))}
                                 disabled={invalidRecordsPage === invalidRecordsTotalPages}
-                                className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                                className="px-2 py-1 text-xs bg-danger text-white rounded hover:bg-danger disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                               >
                                 Next
                                 <ChevronRight size={12} />
@@ -934,7 +934,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                           )}
                         </>
                       ) : (
-                        <p className="text-xs text-red-700">Great! No invalid records detected.</p>
+                        <p className="text-xs text-danger">Great! No invalid records detected.</p>
                       )}
                     </div>
                   </div>
@@ -944,7 +944,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
 
             {/* Upload Progress Indicator */}
             {uploading && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+              <div className="bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl p-6 mb-6">
                 <div className="flex items-center gap-4">
                   <div className="flex-shrink-0">
                     <LoadingAnimation
@@ -955,12 +955,12 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                     />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-lg font-semibold text-blue-800 mb-2">Processing Upload...</h4>
-                    <p className="text-sm text-blue-700">
+                    <h4 className="text-lg font-semibold text-primary mb-2">Processing Upload...</h4>
+                    <p className="text-sm text-primary">
                       {uploadProgress || 'Please wait while we process your data...'}
                     </p>
-                    <div className="mt-3 w-full bg-blue-200 rounded-full h-2">
-                      <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                    <div className="mt-3 w-full bg-[var(--primary-light)] rounded-full h-2">
+                      <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
                     </div>
                   </div>
                 </div>
@@ -969,24 +969,24 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
 
             {/* Error Recovery Actions */}
             {uploadResult && !uploadResult.success && (uploadResult.failedCount > 0 || uploadResult.duplicateCount > 0 || uploadResult.missingFieldCount > 0) && (
-              <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h6 className="text-sm font-semibold text-yellow-800 mb-3">Suggested Actions</h6>
+              <div className="mt-6 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-lg p-4">
+                <h6 className="text-sm font-semibold text-warning mb-3">Suggested Actions</h6>
                 <div className="flex flex-wrap gap-2">
                   {uploadResult.duplicateCount > 0 && (
-                    <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors text-sm flex items-center gap-2">
+                    <button className="bg-warning text-white px-4 py-2 rounded-lg hover:bg-warning transition-colors text-sm flex items-center gap-2">
                       <AlertCircle size={16} />
                       Review Duplicates
                     </button>
                   )}
                   {uploadResult.missingFieldCount > 0 && (
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center gap-2">
+                    <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors text-sm flex items-center gap-2">
                       <Upload size={16} />
                       Fix Missing Fields
                     </button>
                   )}
                   <button
                     onClick={handleClose}
-                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                    className="bg-background text-white px-4 py-2 rounded-lg hover:bg-background transition-colors text-sm"
                   >
                     Try Again
                   </button>
@@ -996,49 +996,49 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
 
             {uploadResult && (
               <div
-                className={`border rounded-xl p-6 ${uploadResult.success ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                className={`border rounded-xl p-6 ${uploadResult.success ? 'bg-[var(--success-light)] border-[var(--success-light)]' : 'bg-[var(--danger-light)] border-[var(--danger-light)]'
                   }`}
               >
                 <div className="flex items-start gap-4">
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center ${uploadResult.success ? 'bg-green-100' : 'bg-red-100'
+                    className={`w-12 h-12 rounded-full flex items-center justify-center ${uploadResult.success ? 'bg-[var(--success-light)]' : 'bg-[var(--danger-light)]'
                       }`}
                   >
                     {uploadResult.success ? (
-                      <CheckCircle className="text-green-600" size={24} />
+                      <CheckCircle className="text-success" size={24} />
                     ) : (
-                      <AlertCircle className="text-red-600" size={24} />
+                      <AlertCircle className="text-danger" size={24} />
                     )}
                   </div>
                   <div className="flex-1">
                     <h4
-                      className={`text-lg font-semibold ${uploadResult.success ? 'text-green-800' : 'text-red-800'
+                      className={`text-lg font-semibold ${uploadResult.success ? 'text-success' : 'text-danger'
                         }`}
                     >
                       {uploadResult.success ? 'Upload Completed' : 'Upload Failed'}
                     </h4>
-                    <p className="text-sm text-gray-700 mt-1">
+                    <p className="text-sm text-sub mt-1">
                       {uploadResult.message || 'No additional information provided.'}
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-                      <div className="bg-white rounded-lg border border-green-200 p-4 text-center shadow-sm">
-                        <div className="text-2xl font-bold text-green-600">
+                      <div className="bg-surface rounded-lg border border-[var(--success-light)] p-4 text-center shadow-sm">
+                        <div className="text-2xl font-bold text-success">
                           {uploadResult.successCount ?? 0}
                         </div>
-                        <div className="text-sm text-gray-600">Uploaded</div>
+                        <div className="text-sm text-sub">Uploaded</div>
                       </div>
-                      <div className="bg-white rounded-lg border border-yellow-200 p-4 text-center shadow-sm">
-                        <div className="text-2xl font-bold text-yellow-600">
+                      <div className="bg-surface rounded-lg border border-[var(--warning-light)] p-4 text-center shadow-sm">
+                        <div className="text-2xl font-bold text-warning">
                           {uploadResult.skippedCount ?? uploadResult.failedCount ?? 0}
                         </div>
-                        <div className="text-sm text-gray-600">Skipped</div>
+                        <div className="text-sm text-sub">Skipped</div>
                       </div>
                       {previewData?.summary && (
-                        <div className="bg-white rounded-lg border border-blue-200 p-4 text-center shadow-sm">
-                          <div className="text-2xl font-bold text-blue-600">
+                        <div className="bg-surface rounded-lg border border-[var(--primary-light)] p-4 text-center shadow-sm">
+                          <div className="text-2xl font-bold text-primary">
                             {previewData.summary.invalidCount || 0}
                           </div>
-                          <div className="text-sm text-gray-600">Invalid in Preview</div>
+                          <div className="text-sm text-sub">Invalid in Preview</div>
                         </div>
                       )}
                     </div>
@@ -1046,7 +1046,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                     {Array.isArray(uploadResult.details?.failures) &&
                       uploadResult.details.failures.length > 0 && (
                         <div className="mt-4">
-                          <h5 className="text-sm font-semibold text-red-800 mb-2 flex items-center gap-2">
+                          <h5 className="text-sm font-semibold text-danger mb-2 flex items-center gap-2">
                             <AlertCircle size={16} />
                             Records not uploaded
                           </h5>
@@ -1054,7 +1054,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                             {uploadResult.details.failures.slice(0, 10).map((failure, idx) => (
                               <div
                                 key={idx}
-                                className="bg-red-100 border border-red-200 rounded-lg p-3 text-sm text-red-800"
+                                className="bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-lg p-3 text-sm text-danger"
                               >
                                 <div className="font-semibold">
                                   Row {failure.rowNumber || '-'}
@@ -1070,7 +1070,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                               </div>
                             ))}
                             {uploadResult.details.failures.length > 10 && (
-                              <p className="text-xs text-red-700">
+                              <p className="text-xs text-danger">
                                 Showing first 10 of {uploadResult.details.failures.length} skipped records.
                               </p>
                             )}
@@ -1111,7 +1111,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
                 <button
                   onClick={handleConfirmUpload}
                   disabled={confirmingUpload}
-                  className="w-full md:flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs font-semibold shadow-lg"
+                  className="w-full md:flex-1 bg-success text-white px-4 py-2 rounded-lg hover:bg-success transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-xs font-semibold shadow-lg"
                 >
                   {confirmingUpload ? (
                     <>
@@ -1129,7 +1129,7 @@ const BulkUploadModal = ({ isOpen, onClose, forms, onUploadComplete, isLoadingFo
 
               <button
                 onClick={handleClose}
-                className="w-full md:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-xs"
+                className="w-full md:w-auto px-4 py-2 border border-border-strong text-sub rounded-lg hover:bg-background transition-colors text-xs"
               >
                 Close
               </button>

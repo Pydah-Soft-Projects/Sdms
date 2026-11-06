@@ -29,8 +29,8 @@ const NotificationIcon = () => {
                     duration: 3000,
                     position: 'top-center',
                     style: {
-                        background: '#333',
-                        color: '#fff',
+                        background: 'var(--text-primary)',
+                        color: 'var(--surface)',
                         borderRadius: '10px',
                         cursor: 'pointer',
                         fontWeight: '500'
@@ -54,8 +54,8 @@ const NotificationIcon = () => {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`
-                    p-3 rounded-full transition-all duration-300 relative group shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 backdrop-blur-sm
-                    ${isOpen ? 'bg-blue-600 text-white' : 'bg-white text-blue-600 hover:text-blue-700 hover:scale-110'}
+                    p-3 rounded-full transition-all duration-300 relative group shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-surface backdrop-blur-sm
+                    ${isOpen ? 'bg-primary text-white' : 'bg-surface text-primary hover:text-primary hover:scale-110'}
                 `}
                 title="Notifications"
             >
@@ -63,7 +63,7 @@ const NotificationIcon = () => {
 
                 {/* Badge */}
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white shadow-sm animate-pulse">
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center bg-danger text-white text-[10px] font-bold rounded-full border-2 border-surface shadow-sm animate-pulse">
                         {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                 )}

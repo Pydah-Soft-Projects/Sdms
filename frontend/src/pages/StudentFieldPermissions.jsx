@@ -340,45 +340,45 @@ const StudentFieldPermissions = () => {
 
     const activeGroupData = fieldCategories.find(g => g.id === activeGroup);
     const colorClasses = {
-        blue: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: 'text-blue-600' },
-        green: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: 'text-green-600' },
-        purple: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', icon: 'text-purple-600' },
-        amber: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: 'text-amber-600' },
-        rose: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', icon: 'text-rose-600' },
-        indigo: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', icon: 'text-indigo-600' },
-        slate: { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200', icon: 'text-slate-600' },
+        blue: { bg: 'bg-[var(--primary-light)]', text: 'text-primary', border: 'border-[var(--primary-light)]', icon: 'text-primary' },
+        green: { bg: 'bg-[var(--success-light)]', text: 'text-success', border: 'border-[var(--success-light)]', icon: 'text-success' },
+        purple: { bg: 'bg-[var(--primary-light)]', text: 'text-secondary', border: 'border-[var(--primary-light)]', icon: 'text-secondary' },
+        amber: { bg: 'bg-[var(--warning-light)]', text: 'text-warning', border: 'border-[var(--warning-light)]', icon: 'text-warning' },
+        rose: { bg: 'bg-[var(--danger-light)]', text: 'text-danger', border: 'border-[var(--danger-light)]', icon: 'text-danger' },
+        indigo: { bg: 'bg-[var(--primary-light)]', text: 'text-primary', border: 'border-[var(--primary-light)]', icon: 'text-primary' },
+        slate: { bg: 'bg-background', text: 'text-sub', border: 'border-border', icon: 'text-sub' },
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
                 <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-600">Loading field permissions...</p>
+                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-sub">Loading field permissions...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-background">
             {/* Header */}
-            <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+            <div className="bg-surface border-b border-border sticky top-0 z-10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="py-4 flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => navigate('/users')}
-                                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                                className="p-2 hover:bg-background rounded-lg transition-colors"
                             >
-                                <ChevronLeft size={20} className="text-slate-600" />
+                                <ChevronLeft size={20} className="text-sub" />
                             </button>
                             <div>
-                                <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                                    <Shield className="text-blue-600" size={24} />
+                                <h1 className="text-xl font-bold text-main flex items-center gap-2">
+                                    <Shield className="text-primary" size={24} />
                                     Student Field Permissions
                                 </h1>
-                                <p className="text-sm text-slate-500">
+                                <p className="text-sm text-muted-text">
                                     Configure field-level access for <span className="font-semibold">{userInfo?.name || 'Loading...'}</span> ({userInfo?.email || ''})
                                 </p>
                             </div>
@@ -386,18 +386,18 @@ const StudentFieldPermissions = () => {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => navigate('/users')}
-                                className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                                className="px-4 py-2 text-sm font-semibold text-sub bg-surface border border-border rounded-lg hover:bg-background transition-colors"
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+                                className="px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2 disabled:opacity-50"
                             >
                                 {saving ? (
                                     <>
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        <div className="w-4 h-4 border-2 border-surface border-t-transparent rounded-full animate-spin"></div>
                                         Saving...
                                     </>
                                 ) : (
@@ -414,12 +414,12 @@ const StudentFieldPermissions = () => {
 
             {/* Main Content */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg p-4 mb-6">
                     <div className="flex items-start gap-3">
-                        <AlertCircle className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+                        <AlertCircle className="text-primary flex-shrink-0 mt-0.5" size={20} />
                         <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-blue-900 mb-1">Field-Level Access Control</h3>
-                            <p className="text-xs text-blue-700 mb-3">
+                            <h3 className="text-sm font-semibold text-primary mb-1">Field-Level Access Control</h3>
+                            <p className="text-xs text-primary mb-3">
                                 Configure which specific student data fields this user can view and edit.
                                 Enable <strong>View</strong> to allow viewing the field, and <strong>Edit</strong> to allow modifications.
                                 Edit permission automatically grants view access.
@@ -437,7 +437,7 @@ const StudentFieldPermissions = () => {
                                         setFieldPermissions(allPerms);
                                         toast.success('View permission granted to all fields!');
                                     }}
-                                    className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1.5"
+                                    className="px-3 py-1.5 text-xs font-semibold bg-success text-white rounded-lg hover:bg-success transition-colors flex items-center gap-1.5"
                                 >
                                     <Eye size={14} />
                                     Grant All View
@@ -447,7 +447,7 @@ const StudentFieldPermissions = () => {
                                         setFieldPermissions({});
                                         toast.success('All permissions revoked!');
                                     }}
-                                    className="px-3 py-1.5 text-xs font-semibold bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors flex items-center gap-1.5"
+                                    className="px-3 py-1.5 text-xs font-semibold bg-background text-white rounded-lg hover:bg-background transition-colors flex items-center gap-1.5"
                                 >
                                     <X size={14} />
                                     Revoke All
@@ -460,9 +460,9 @@ const StudentFieldPermissions = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     {/* Left Sidebar - Field Groups */}
                     <div className="lg:col-span-1">
-                        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden sticky top-24">
-                            <div className="p-4 border-b border-slate-200">
-                                <h3 className="text-sm font-semibold text-slate-700">Field Categories</h3>
+                        <div className="bg-surface rounded-lg border border-border overflow-hidden sticky top-24">
+                            <div className="p-4 border-b border-border">
+                                <h3 className="text-sm font-semibold text-sub">Field Categories</h3>
                             </div>
                             <div className="p-2 space-y-1 max-h-[calc(100vh-16rem)] overflow-y-auto">
                                 {fieldCategories.map(group => {
@@ -477,18 +477,18 @@ const StudentFieldPermissions = () => {
                                             onClick={() => setActiveGroup(group.id)}
                                             className={`w-full flex items-center justify-between gap-2 p-3 rounded-lg text-left transition-all ${isActive
                                                 ? `${colors.bg} ${colors.text} border ${colors.border} shadow-sm`
-                                                : 'bg-white text-slate-700 hover:bg-slate-50'
+                                                : 'bg-surface text-sub hover:bg-background'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2 flex-1 min-w-0">
-                                                <Icon size={18} className={isActive ? colors.icon : 'text-slate-400'} />
+                                                <Icon size={18} className={isActive ? colors.icon : 'text-muted-text'} />
                                                 <span className="text-sm font-medium truncate">{group.label}</span>
                                             </div>
                                             <div className="flex flex-col items-end gap-0.5">
-                                                <span className="text-[10px] text-slate-500">
+                                                <span className="text-[10px] text-muted-text">
                                                     {stats.viewCount}/{stats.total} view
                                                 </span>
-                                                <span className="text-[10px] text-slate-500">
+                                                <span className="text-[10px] text-muted-text">
                                                     {stats.editCount}/{stats.total} edit
                                                 </span>
                                             </div>
@@ -501,7 +501,7 @@ const StudentFieldPermissions = () => {
 
                     {/* Right Content - Field Permissions */}
                     <div className="lg:col-span-3">
-                        <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                        <div className="bg-surface rounded-lg border border-border overflow-hidden">
                             {/* Group Header */}
                             {activeGroupData && (
                                 <div className={`${colorClasses[activeGroupData.color].bg} border-b ${colorClasses[activeGroupData.color].border} p-4`}>
@@ -514,7 +514,7 @@ const StudentFieldPermissions = () => {
                                                 <h2 className={`text-lg font-bold ${colorClasses[activeGroupData.color].text}`}>
                                                     {activeGroupData.label}
                                                 </h2>
-                                                <p className="text-xs text-slate-600">
+                                                <p className="text-xs text-sub">
                                                     {activeGroupData.fields.length} fields available
                                                 </p>
                                             </div>
@@ -522,13 +522,13 @@ const StudentFieldPermissions = () => {
                                         <div className="flex items-center gap-2">
                                             <button
                                                 onClick={() => setGroupPermissions(activeGroup, 'view', true)}
-                                                className="px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 border border-emerald-200 transition-colors"
+                                                className="px-3 py-1.5 text-xs font-semibold bg-[var(--success-light)] text-success rounded-lg hover:bg-[var(--success-light)] border border-[var(--success-light)] transition-colors"
                                             >
                                                 Grant All View
                                             </button>
                                             <button
                                                 onClick={() => setGroupPermissions(activeGroup, 'edit', true)}
-                                                className="px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 border border-blue-200 transition-colors"
+                                                className="px-3 py-1.5 text-xs font-semibold bg-[var(--primary-light)] text-primary rounded-lg hover:bg-[var(--primary-light)] border border-[var(--primary-light)] transition-colors"
                                             >
                                                 Grant All Edit
                                             </button>
@@ -537,7 +537,7 @@ const StudentFieldPermissions = () => {
                                                     setGroupPermissions(activeGroup, 'view', false);
                                                     setGroupPermissions(activeGroup, 'edit', false);
                                                 }}
-                                                className="px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 border border-slate-200 transition-colors"
+                                                className="px-3 py-1.5 text-xs font-semibold bg-background text-sub rounded-lg hover:bg-background border border-border transition-colors"
                                             >
                                                 Revoke All
                                             </button>
@@ -555,14 +555,14 @@ const StudentFieldPermissions = () => {
                                         return (
                                             <div
                                                 key={field.key}
-                                                className="flex items-center justify-between gap-4 p-3 border border-slate-200 rounded-lg hover:border-slate-300 transition-colors"
+                                                className="flex items-center justify-between gap-4 p-3 border border-border rounded-lg hover:border-border-strong transition-colors"
                                             >
                                                 <div className="flex-1 min-w-0">
-                                                    <h4 className="text-sm font-medium text-slate-800 truncate">
+                                                    <h4 className="text-sm font-medium text-main truncate">
                                                         {field.label}
                                                     </h4>
-                                                    <p className="text-xs text-slate-500">
-                                                        Field: <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{field.key}</code>
+                                                    <p className="text-xs text-muted-text">
+                                                        Field: <code className="text-xs bg-background px-1.5 py-0.5 rounded">{field.key}</code>
                                                         {' • '}
                                                         Type: {field.type}
                                                     </p>
@@ -573,8 +573,8 @@ const StudentFieldPermissions = () => {
                                                     <button
                                                         onClick={() => toggleFieldPermission(field.key, 'view')}
                                                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${perms.view
-                                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                                            : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                                                            ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
+                                                            : 'bg-background text-sub border border-border hover:bg-background'
                                                             }`}
                                                     >
                                                         {perms.view ? <Eye size={14} /> : <EyeOff size={14} />}
@@ -585,8 +585,8 @@ const StudentFieldPermissions = () => {
                                                     <button
                                                         onClick={() => toggleFieldPermission(field.key, 'edit')}
                                                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${perms.edit
-                                                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                                            : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                                                            ? 'bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]'
+                                                            : 'bg-background text-sub border border-border hover:bg-background'
                                                             }`}
                                                         disabled={!perms.view}
                                                     >

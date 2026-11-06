@@ -7,23 +7,23 @@ const StudentRemarksModal = ({ isOpen, onClose, student, canAddRemarks = false, 
 
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] max-h-[900px] flex flex-col overflow-hidden border border-gray-100">
+            <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] max-h-[900px] flex flex-col overflow-hidden border border-border">
                 {/* Header */}
-                <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between bg-gradient-to-r from-[var(--primary-light)] to-[var(--primary-light)]">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-200">
+                        <div className="p-2.5 bg-primary text-white rounded-xl shadow-lg shadow-primary">
                             <MessageSquare size={24} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-gray-900 leading-none mb-1">Remarks History</h3>
-                            <p className="text-xs text-gray-500 font-medium">
+                            <h3 className="text-xl font-bold text-main leading-none mb-1">Remarks History</h3>
+                            <p className="text-xs text-muted-text font-medium">
                                 {student?.student_name} • {student?.admission_number}
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-white/80 rounded-full transition-all text-gray-400 hover:text-gray-600"
+                        className="p-2 hover:bg-[var(--surface)]/80 rounded-full transition-all text-muted-text hover:text-sub"
                     >
                         <X size={20} />
                     </button>

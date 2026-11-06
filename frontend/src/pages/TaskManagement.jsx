@@ -157,12 +157,12 @@ const TaskManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Task Management</h1>
-          <p className="text-gray-600 mt-1">Manage complaint categories and sub-levels</p>
+          <h1 className="text-2xl font-bold text-main">Task Management</h1>
+          <p className="text-sub mt-1">Manage complaint categories and sub-levels</p>
         </div>
         <button
           onClick={() => openAddModal()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover flex items-center gap-2"
         >
           <Plus size={20} />
           Add Category
@@ -170,21 +170,21 @@ const TaskManagement = () => {
       </div>
 
       {/* Categories Tree */}
-      <div className="bg-white rounded-lg border">
+      <div className="bg-surface rounded-lg border">
         <div className="p-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Complaint Categories</h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <h2 className="text-lg font-semibold text-main">Complaint Categories</h2>
+          <p className="text-sm text-muted-text mt-1">
             Categories define the main complaint types. Sub-categories provide more specific options.
           </p>
         </div>
         <div className="p-4 space-y-2">
           {categories.length === 0 ? (
             <div className="text-center py-12">
-              <FolderTree className="mx-auto text-gray-400" size={48} />
-              <p className="mt-4 text-gray-500">No categories found</p>
+              <FolderTree className="mx-auto text-muted-text" size={48} />
+              <p className="mt-4 text-muted-text">No categories found</p>
               <button
                 onClick={() => openAddModal()}
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover"
               >
                 Create First Category
               </button>
@@ -253,23 +253,23 @@ const CategoryItem = ({
 
   if (isEditing && editForm) {
     return (
-      <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="p-4 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg">
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label className="block text-sm font-medium text-sub mb-1">Name</label>
             <input
               type="text"
               value={editForm.name}
               onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-sub mb-1">Description</label>
             <textarea
               value={editForm.description || ''}
               onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               rows={2}
             />
           </div>
@@ -282,17 +282,17 @@ const CategoryItem = ({
                 onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })}
                 className="mr-2"
               />
-              <label htmlFor={`active-${category.id}`} className="text-sm text-gray-700">
+              <label htmlFor={`active-${category.id}`} className="text-sm text-sub">
                 Active
               </label>
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
+              <label className="block text-sm font-medium text-sub mb-1">Display Order</label>
               <input
                 type="number"
                 value={editForm.display_order}
                 onChange={(e) => setEditForm({ ...editForm, display_order: parseInt(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               />
             </div>
           </div>
@@ -300,14 +300,14 @@ const CategoryItem = ({
             <button
               onClick={() => onUpdate(editForm)}
               disabled={updateLoading}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 bg-success text-white rounded-lg hover:bg-success disabled:opacity-50 flex items-center gap-2"
             >
               <Save size={16} />
               {updateLoading ? 'Saving...' : 'Save'}
             </button>
             <button
               onClick={onCancelEdit}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              className="px-4 py-2 bg-background text-sub rounded-lg hover:bg-background"
             >
               Cancel
             </button>
@@ -319,37 +319,37 @@ const CategoryItem = ({
 
   return (
     <div className="border rounded-lg">
-      <div className="p-4 flex items-center justify-between hover:bg-gray-50">
+      <div className="p-4 flex items-center justify-between hover:bg-background">
         <div className="flex items-center gap-3 flex-1">
           {hasSubCategories && (
-            <button onClick={onToggle} className="text-gray-400 hover:text-gray-600">
+            <button onClick={onToggle} className="text-muted-text hover:text-sub">
               {expanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
             </button>
           )}
           {!hasSubCategories && <div className="w-5" />}
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-gray-900">{category.name}</h3>
+              <h3 className="font-semibold text-main">{category.name}</h3>
               {!category.is_active && (
-                <span className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded">Inactive</span>
+                <span className="px-2 py-1 text-xs bg-background text-sub rounded">Inactive</span>
               )}
             </div>
             {category.description && (
-              <p className="text-sm text-gray-500 mt-1">{category.description}</p>
+              <p className="text-sm text-muted-text mt-1">{category.description}</p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => onAddSub()}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+            className="p-2 text-primary hover:bg-[var(--primary-light)] rounded-lg"
             title="Add Sub-category"
           >
             <Plus size={18} />
           </button>
           <button
             onClick={() => onEdit(category)}
-            className="p-2 text-green-600 hover:bg-green-50 rounded-lg"
+            className="p-2 text-success hover:bg-[var(--success-light)] rounded-lg"
             title="Edit"
           >
             <Edit size={18} />
@@ -357,7 +357,7 @@ const CategoryItem = ({
           <button
             onClick={() => onDelete(category)}
             disabled={deleteLoading}
-            className="p-2 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50"
+            className="p-2 text-danger hover:bg-[var(--danger-light)] rounded-lg disabled:opacity-50"
             title="Delete"
           >
             <Trash2 size={18} />
@@ -365,7 +365,7 @@ const CategoryItem = ({
         </div>
       </div>
       {expanded && hasSubCategories && (
-        <div className="pl-8 pr-4 pb-2 space-y-2 border-t bg-gray-50">
+        <div className="pl-8 pr-4 pb-2 space-y-2 border-t bg-background">
           {category.sub_categories.map((subCategory) => (
             <SubCategoryItem
               key={subCategory.id}
@@ -411,23 +411,23 @@ const SubCategoryItem = ({
 
   if (isEditing && editForm) {
     return (
-      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <div className="p-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg">
         <div className="space-y-2">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label className="block text-sm font-medium text-sub mb-1">Name</label>
             <input
               type="text"
               value={editForm.name}
               onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-sub mb-1">Description</label>
             <textarea
               value={editForm.description || ''}
               onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               rows={2}
             />
           </div>
@@ -440,7 +440,7 @@ const SubCategoryItem = ({
                 onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })}
                 className="mr-2"
               />
-              <label htmlFor={`active-sub-${subCategory.id}`} className="text-sm text-gray-700">
+              <label htmlFor={`active-sub-${subCategory.id}`} className="text-sm text-sub">
                 Active
               </label>
             </div>
@@ -449,14 +449,14 @@ const SubCategoryItem = ({
             <button
               onClick={() => onUpdate(editForm)}
               disabled={updateLoading}
-              className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 text-sm"
+              className="px-3 py-1.5 bg-success text-white rounded-lg hover:bg-success disabled:opacity-50 flex items-center gap-2 text-sm"
             >
               <Save size={14} />
               Save
             </button>
             <button
               onClick={onCancelEdit}
-              className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-sm"
+              className="px-3 py-1.5 bg-background text-sub rounded-lg hover:bg-background text-sm"
             >
               Cancel
             </button>
@@ -467,23 +467,23 @@ const SubCategoryItem = ({
   }
 
   return (
-    <div className="p-3 bg-white border rounded-lg flex items-center justify-between hover:bg-gray-50">
+    <div className="p-3 bg-surface border rounded-lg flex items-center justify-between hover:bg-background">
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">└─</span>
-          <h4 className="font-medium text-gray-900">{subCategory.name}</h4>
+          <span className="text-sm text-muted-text">└─</span>
+          <h4 className="font-medium text-main">{subCategory.name}</h4>
           {!subCategory.is_active && (
-            <span className="px-2 py-0.5 text-xs bg-gray-200 text-gray-600 rounded">Inactive</span>
+            <span className="px-2 py-0.5 text-xs bg-background text-sub rounded">Inactive</span>
           )}
         </div>
         {subCategory.description && (
-          <p className="text-xs text-gray-500 mt-1 ml-6">{subCategory.description}</p>
+          <p className="text-xs text-muted-text mt-1 ml-6">{subCategory.description}</p>
         )}
       </div>
       <div className="flex items-center gap-2">
         <button
           onClick={() => onEdit(subCategory)}
-          className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"
+          className="p-1.5 text-success hover:bg-[var(--success-light)] rounded-lg"
           title="Edit"
         >
           <Edit size={16} />
@@ -491,7 +491,7 @@ const SubCategoryItem = ({
         <button
           onClick={() => onDelete(subCategory)}
           disabled={deleteLoading}
-          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50"
+          className="p-1.5 text-danger hover:bg-[var(--danger-light)] rounded-lg disabled:opacity-50"
           title="Delete"
         >
           <Trash2 size={16} />
@@ -507,25 +507,25 @@ const AddCategoryModal = ({ formData, setFormData, categories, onClose, onSave, 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full">
+      <div className="bg-surface rounded-lg max-w-2xl w-full">
         <div className="p-6 border-b flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-main">
             {formData.parent_id ? 'Add Sub-category' : 'Add Category'}
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+          <button onClick={onClose} className="text-muted-text hover:text-sub">
             <X size={24} />
           </button>
         </div>
         <div className="p-6 space-y-4">
           {!formData.parent_id && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-sub mb-2">
                 Parent Category (Optional - leave empty for main category)
               </label>
               <select
                 value={formData.parent_id || ''}
                 onChange={(e) => setFormData({ ...formData, parent_id: e.target.value ? parseInt(e.target.value) : null })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               >
                 <option value="">Main Category</option>
                 {mainCategories.map((cat) => (
@@ -535,28 +535,28 @@ const AddCategoryModal = ({ formData, setFormData, categories, onClose, onSave, 
             </div>
           )}
           {formData.parent_id && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-gray-700">
+            <div className="p-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg">
+              <p className="text-sm text-sub">
                 Adding sub-category under: <strong>{mainCategories.find(c => c.id === formData.parent_id)?.name}</strong>
               </p>
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+            <label className="block text-sm font-medium text-sub mb-2">Name *</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               placeholder="Enter category name"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label className="block text-sm font-medium text-sub mb-2">Description</label>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               rows={3}
               placeholder="Enter category description"
             />
@@ -570,31 +570,31 @@ const AddCategoryModal = ({ formData, setFormData, categories, onClose, onSave, 
                 onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                 className="mr-2"
               />
-              <label htmlFor="is_active" className="text-sm text-gray-700">
+              <label htmlFor="is_active" className="text-sm text-sub">
                 Active
               </label>
             </div>
             <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Display Order</label>
+              <label className="block text-sm font-medium text-sub mb-2">Display Order</label>
               <input
                 type="number"
                 value={formData.display_order}
                 onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
               />
             </div>
           </div>
           <div className="flex items-center justify-end gap-3 pt-4">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+              className="px-4 py-2 bg-background text-sub rounded-lg hover:bg-background"
             >
               Cancel
             </button>
             <button
               onClick={onSave}
               disabled={loading || !formData.name.trim()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating...' : 'Create'}
             </button>

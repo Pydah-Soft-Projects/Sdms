@@ -244,7 +244,7 @@ const ManualRollNumberModal = ({
 
   const renderSortIcon = (field) => {
     if (sortField !== field) {
-      return <ArrowUpDown size={13} className="text-gray-400 opacity-50 group-hover:opacity-100 transition-opacity" />;
+      return <ArrowUpDown size={13} className="text-muted-text opacity-50 group-hover:opacity-100 transition-opacity" />;
     }
     return sortOrder === 'asc' ? (
       <ArrowUp size={13} className="text-primary-600 font-bold" />
@@ -368,33 +368,33 @@ const ManualRollNumberModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="bg-surface rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div>
-            <h3 className="text-2xl font-bold text-gray-900">Update PIN Numbers</h3>
-            <p className="text-sm text-gray-600 mt-1">
+            <h3 className="text-2xl font-bold text-main">Update PIN Numbers</h3>
+            <p className="text-sm text-sub mt-1">
               Filter by college / batch / program / branch, then assign PIN numbers page by page
             </p>
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-background rounded-lg transition-colors"
             type="button"
           >
             <X size={24} />
           </button>
         </div>
 
-        <div className="p-6 border-b border-gray-200 space-y-4">
+        <div className="p-6 border-b border-border space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="flex flex-col">
-              <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+              <label className="text-xs font-semibold text-muted-text mb-1 uppercase tracking-wide">
                 College
               </label>
               <select
                 value={selectedCollege ? String(selectedCollege.id) : (pinFilters.college || '')}
                 onChange={(e) => handlePinFilterChange('college', e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                className="px-3 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
               >
                 <option value="">All Colleges</option>
                 {colleges
@@ -407,13 +407,13 @@ const ManualRollNumberModal = ({
               </select>
             </div>
             <div className="flex flex-col">
-              <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+              <label className="text-xs font-semibold text-muted-text mb-1 uppercase tracking-wide">
                 Batch
               </label>
               <select
                 value={pinFilters.batch}
                 onChange={(e) => handlePinFilterChange('batch', e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                className="px-3 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
               >
                 <option value="">All Batches</option>
                 {batchOptions.map((b) => (
@@ -424,7 +424,7 @@ const ManualRollNumberModal = ({
               </select>
             </div>
             <div className="flex flex-col">
-              <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+              <label className="text-xs font-semibold text-muted-text mb-1 uppercase tracking-wide">
                 Program (Course)
               </label>
               <select
@@ -433,7 +433,7 @@ const ManualRollNumberModal = ({
                   return found ? String(found.id || found.name) : (pinFilters.course || '');
                 })()}
                 onChange={(e) => handlePinFilterChange('course', e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                className="px-3 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
               >
                 <option value="">All Programs</option>
                 {courseOptions.map((course) => (
@@ -444,7 +444,7 @@ const ManualRollNumberModal = ({
               </select>
             </div>
             <div className="flex flex-col">
-              <label className="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">
+              <label className="text-xs font-semibold text-muted-text mb-1 uppercase tracking-wide">
                 Branch
               </label>
               <select
@@ -453,7 +453,7 @@ const ManualRollNumberModal = ({
                   return found ? String(found.id || found.name || found) : (pinFilters.branch || '');
                 })()}
                 onChange={(e) => handlePinFilterChange('branch', e.target.value)}
-                className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                className="px-3 py-2 text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
               >
                 <option value="">All Branches</option>
                 {branchOptions.map((branch) => {
@@ -471,17 +471,17 @@ const ManualRollNumberModal = ({
 
           <div className="flex gap-3 flex-wrap items-center">
             <div className="flex-1 min-w-[220px] relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-text" size={20} />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by admission number, name, or PIN..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                className="w-full pl-10 pr-4 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
               />
             </div>
-            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-300">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Sort:</span>
+            <div className="flex items-center gap-2 px-3 py-2 bg-background rounded-lg border border-border-strong">
+              <span className="text-xs font-semibold text-muted-text uppercase tracking-wide">Sort:</span>
               <select
                 value={`${sortField}-${sortOrder}`}
                 onChange={(e) => {
@@ -489,7 +489,7 @@ const ManualRollNumberModal = ({
                   setSortField(f);
                   setSortOrder(o);
                 }}
-                className="text-xs font-medium text-gray-700 bg-transparent outline-none cursor-pointer"
+                className="text-xs font-medium text-sub bg-transparent outline-none cursor-pointer"
               >
                 <option value="admission_number-asc">Admission No (Ascending 0-9)</option>
                 <option value="admission_number-desc">Admission No (Descending 9-0)</option>
@@ -501,18 +501,18 @@ const ManualRollNumberModal = ({
                 <option value="status-desc">Status (Assigned First)</option>
               </select>
             </div>
-            <label className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer hover:bg-gray-100 transition-colors">
+            <label className="flex items-center gap-2 px-4 py-2 bg-background rounded-lg border border-border-strong cursor-pointer hover:bg-background transition-colors">
               <input
                 type="checkbox"
                 checked={showOnlyPending}
                 onChange={(e) => setShowOnlyPending(e.target.checked)}
                 className="w-4 h-4 text-primary-600 rounded focus:ring-2 focus:ring-primary-500"
               />
-              <span className="text-sm font-medium text-gray-700">Show only pending</span>
+              <span className="text-sm font-medium text-sub">Show only pending</span>
             </label>
           </div>
 
-          <div className="flex items-center justify-between gap-3 flex-wrap text-sm text-gray-600">
+          <div className="flex items-center justify-between gap-3 flex-wrap text-sm text-sub">
             <div>
               {hasAllFourFilters ? (
                 <>Showing all <strong>{sortedStudents.length}</strong> student(s)</>
@@ -520,10 +520,10 @@ const ManualRollNumberModal = ({
                 <>Showing <strong>{sortedStudents.length}</strong> of <strong>{totalStudents}</strong> student(s)</>
               )}
               {showOnlyPending && (
-                <span className="ml-2 text-orange-600">(without PIN numbers)</span>
+                <span className="ml-2 text-warning">(without PIN numbers)</span>
               )}
               {isFetching && !showLoading && (
-                <span className="ml-2 text-gray-400">Refreshing…</span>
+                <span className="ml-2 text-muted-text">Refreshing…</span>
               )}
             </div>
             {!hasAllFourFilters && totalPages > 1 && (
@@ -532,25 +532,25 @@ const ManualRollNumberModal = ({
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage <= 1 || loadingStudents}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50"
+                  className="p-2 border border-border-strong rounded-lg disabled:opacity-40 hover:bg-background"
                 >
                   <ChevronLeft size={18} />
                 </button>
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-sub">
                   Page {currentPage} / {totalPages}
                 </span>
                 <button
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage >= totalPages || loadingStudents}
-                  className="p-2 border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50"
+                  className="p-2 border border-border-strong rounded-lg disabled:opacity-40 hover:bg-background"
                 >
                   <ChevronRight size={18} />
                 </button>
               </div>
             )}
             {hasAllFourFilters && (
-              <span className="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-200">
+              <span className="px-3 py-1 bg-[var(--success-light)] text-success text-xs font-semibold rounded-full border border-[var(--success-light)]">
                 All Students Displayed
               </span>
             )}
@@ -563,10 +563,10 @@ const ManualRollNumberModal = ({
               <LoadingAnimation size="lg" message="Loading students..." />
             </div>
           ) : isError ? (
-            <div className="flex flex-col items-center justify-center h-64 text-red-500">
+            <div className="flex flex-col items-center justify-center h-64 text-danger">
               <AlertCircle size={48} className="mb-4" />
               <p className="text-lg font-medium">Failed to load students</p>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-muted-text mb-4">
                 {error?.response?.data?.message || error?.message || 'Please try again'}
               </p>
               <button
@@ -578,7 +578,7 @@ const ManualRollNumberModal = ({
               </button>
             </div>
           ) : sortedStudents.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+            <div className="flex flex-col items-center justify-center h-64 text-muted-text">
               <AlertCircle size={48} className="mb-4" />
               <p className="text-lg font-medium">No students found</p>
               <p className="text-sm text-center max-w-md">
@@ -587,13 +587,13 @@ const ManualRollNumberModal = ({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+            <div className="overflow-x-auto rounded-xl border border-border shadow-sm">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-100 border-b border-gray-200 text-xs font-bold text-gray-700 uppercase tracking-wider sticky top-0 z-10 select-none">
+                  <tr className="bg-background border-b border-border text-xs font-bold text-sub uppercase tracking-wider sticky top-0 z-10 select-none">
                     <th
                       onClick={() => handleSort('admission_number')}
-                      className="py-3 px-4 text-center w-14 bg-gray-100 cursor-pointer hover:bg-gray-200/80 transition-colors group"
+                      className="py-3 px-4 text-center w-14 bg-background cursor-pointer hover:bg-[var(--background)]/80 transition-colors group"
                     >
                       <div className="flex items-center justify-center gap-1">
                         <span>S.No</span>
@@ -601,7 +601,7 @@ const ManualRollNumberModal = ({
                     </th>
                     <th
                       onClick={() => handleSort('admission_number')}
-                      className="py-3 px-4 bg-gray-100 cursor-pointer hover:bg-gray-200/80 transition-colors group"
+                      className="py-3 px-4 bg-background cursor-pointer hover:bg-[var(--background)]/80 transition-colors group"
                     >
                       <div className="flex items-center gap-1.5">
                         <span>Admission No</span>
@@ -610,17 +610,17 @@ const ManualRollNumberModal = ({
                     </th>
                     <th
                       onClick={() => handleSort('name')}
-                      className="py-3 px-4 bg-gray-100 cursor-pointer hover:bg-gray-200/80 transition-colors group"
+                      className="py-3 px-4 bg-background cursor-pointer hover:bg-[var(--background)]/80 transition-colors group"
                     >
                       <div className="flex items-center gap-1.5">
                         <span>Student Name</span>
                         {renderSortIcon('name')}
                       </div>
                     </th>
-                    <th className="py-3 px-4 bg-gray-100">Program / Branch</th>
+                    <th className="py-3 px-4 bg-background">Program / Branch</th>
                     <th
                       onClick={() => handleSort('pin_no')}
-                      className="py-3 px-4 bg-gray-100 min-w-[200px] cursor-pointer hover:bg-gray-200/80 transition-colors group"
+                      className="py-3 px-4 bg-background min-w-[200px] cursor-pointer hover:bg-[var(--background)]/80 transition-colors group"
                     >
                       <div className="flex items-center gap-1.5">
                         <span>PIN Number *</span>
@@ -629,7 +629,7 @@ const ManualRollNumberModal = ({
                     </th>
                     <th
                       onClick={() => handleSort('status')}
-                      className="py-3 px-4 text-center w-28 bg-gray-100 cursor-pointer hover:bg-gray-200/80 transition-colors group"
+                      className="py-3 px-4 text-center w-28 bg-background cursor-pointer hover:bg-[var(--background)]/80 transition-colors group"
                     >
                       <div className="flex items-center justify-center gap-1.5">
                         <span>Status</span>
@@ -638,7 +638,7 @@ const ManualRollNumberModal = ({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 bg-white text-sm">
+                <tbody className="divide-y divide-border bg-surface text-sm">
                   {sortedStudents.map((student, idx) => {
                     const serialNumber = hasAllFourFilters
                       ? idx + 1
@@ -650,18 +650,18 @@ const ManualRollNumberModal = ({
                     return (
                       <tr
                         key={student.admission_number}
-                        className="hover:bg-gray-50/80 transition-colors"
+                        className="hover:bg-[var(--background)]/80 transition-colors"
                       >
-                        <td className="py-3 px-4 text-center text-xs font-medium text-gray-500">
+                        <td className="py-3 px-4 text-center text-xs font-medium text-muted-text">
                           {serialNumber}
                         </td>
-                        <td className="py-3 px-4 font-semibold text-gray-900 whitespace-nowrap">
+                        <td className="py-3 px-4 font-semibold text-main whitespace-nowrap">
                           {student.admission_number}
                         </td>
-                        <td className="py-3 px-4 text-gray-900 font-medium">
+                        <td className="py-3 px-4 text-main font-medium">
                           {extractName(student)}
                         </td>
-                        <td className="py-3 px-4 text-xs text-gray-600">
+                        <td className="py-3 px-4 text-xs text-sub">
                           {[student.course, student.branch].filter(Boolean).join(' · ') || '-'}
                         </td>
                         <td className="py-2 px-4">
@@ -675,21 +675,21 @@ const ManualRollNumberModal = ({
                             className={`w-full px-3 py-1.5 text-sm border rounded-lg outline-none font-mono transition-all ${
                               isEdited
                                 ? 'border-primary-500 bg-primary-50/30 ring-2 ring-primary-500/20'
-                                : 'border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20'
+                                : 'border-border-strong focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20'
                             }`}
                           />
                         </td>
                         <td className="py-3 px-4 text-center whitespace-nowrap">
                           {isAssigned ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--success-light)] text-success">
                               <CheckCircle size={13} /> Assigned
                             </span>
                           ) : isEdited ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--primary-light)] text-primary">
                               Draft
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                               Pending
                             </span>
                           )}
@@ -703,14 +703,14 @@ const ManualRollNumberModal = ({
           )}
         </div>
 
-        <div className="p-6 border-t border-gray-200 bg-gray-50">
+        <div className="p-6 border-t border-border bg-background">
           <div className="flex items-center gap-3">
             <button
               onClick={handleSaveAll}
               disabled={saving || showLoading || students.length === 0}
               type="button"
-              className="flex-1 bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white px-8 py-3 rounded-xl font-semibold
-             hover:from-gray-900 hover:via-black hover:to-gray-800 focus:ring-4 focus:ring-gray-500/40
+              className="flex-1 bg-gradient-to-r from-[var(--sidebar)] via-[var(--sidebar)] to-black text-white px-8 py-3 rounded-xl font-semibold
+             hover:from-[var(--sidebar)] hover:via-black hover:to-[var(--sidebar)] focus:ring-4 focus:ring-border-strong
              transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed
              flex items-center justify-center gap-2 shadow-md hover:shadow-2xl transform hover:scale-105 active:scale-95"
             >
@@ -731,7 +731,7 @@ const ManualRollNumberModal = ({
               onClick={handleClose}
               disabled={saving}
               type="button"
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium"
+              className="px-6 py-3 border border-border-strong text-sub rounded-lg hover:bg-background transition-colors font-medium"
             >
               Close
             </button>

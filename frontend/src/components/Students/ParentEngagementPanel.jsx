@@ -32,16 +32,16 @@ const ParentEngagementPanel = ({ studentId, variant = 'inline' }) => {
 
   if (loading) {
     return (
-      <div className={`${isTab ? 'min-h-[200px]' : 'mt-4'} p-4 rounded-xl border border-gray-100 bg-gray-50 animate-pulse h-32`} />
+      <div className={`${isTab ? 'min-h-[200px]' : 'mt-4'} p-4 rounded-xl border border-border bg-background animate-pulse h-32`} />
     );
   }
 
   if (!data) {
     if (!isTab) return null;
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center text-gray-500 bg-white rounded-2xl border border-gray-200">
-        <Eye size={40} className="text-gray-300 mb-3" />
-        <p className="font-semibold text-gray-700">No parent portal activity yet</p>
+      <div className="flex flex-col items-center justify-center py-16 text-center text-muted-text bg-surface rounded-2xl border border-border">
+        <Eye size={40} className="text-muted-text mb-3" />
+        <p className="font-semibold text-sub">No parent portal activity yet</p>
         <p className="text-sm mt-1 max-w-sm">
           Views and logins will appear here after a parent signs in via the Parent Portal.
         </p>
@@ -51,7 +51,7 @@ const ParentEngagementPanel = ({ studentId, variant = 'inline' }) => {
 
   const content = (
     <>
-      <h4 className={`${isTab ? 'text-base' : 'text-sm'} font-black text-indigo-900 uppercase tracking-wider mb-4 flex items-center gap-2`}>
+      <h4 className={`${isTab ? 'text-base' : 'text-sm'} font-black text-primary uppercase tracking-wider mb-4 flex items-center gap-2`}>
         <Eye size={isTab ? 20 : 16} /> Parent Portal Activity
       </h4>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -60,12 +60,12 @@ const ParentEngagementPanel = ({ studentId, variant = 'inline' }) => {
         <Stat label="Total views" value={data.total_views || 0} />
         <Stat label="Last login" value={formatDate(data.last_login_at)} small />
       </div>
-      <div className="mt-4 flex flex-wrap gap-3 text-xs text-gray-600">
+      <div className="mt-4 flex flex-wrap gap-3 text-xs text-sub">
         <span className="flex items-center gap-1">
           {data.is_parent_mobile_verified ? (
-            <CheckCircle size={14} className="text-green-600" />
+            <CheckCircle size={14} className="text-success" />
           ) : (
-            <XCircle size={14} className="text-amber-500" />
+            <XCircle size={14} className="text-warning" />
           )}
           Parent mobile {data.is_parent_mobile_verified ? 'verified' : 'not verified'}
         </span>
@@ -88,23 +88,23 @@ const ParentEngagementPanel = ({ studentId, variant = 'inline' }) => {
 
   if (isTab) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 sm:p-6">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 sm:p-6">
         {content}
       </div>
     );
   }
 
   return (
-    <div className="mt-6 p-4 rounded-2xl border border-indigo-100 bg-indigo-50/50">
+    <div className="mt-6 p-4 rounded-2xl border border-[var(--primary-light)] bg-[var(--primary-light)]">
       {content}
     </div>
   );
 };
 
 const Stat = ({ label, value, small }) => (
-  <div className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
-    <p className="text-[10px] font-bold text-gray-400 uppercase">{label}</p>
-    <p className={`font-black text-indigo-900 mt-1 ${small ? 'text-xs' : 'text-lg'}`}>{value}</p>
+  <div className="bg-surface rounded-xl p-3 border border-border shadow-sm">
+    <p className="text-[10px] font-bold text-muted-text uppercase">{label}</p>
+    <p className={`font-black text-primary mt-1 ${small ? 'text-xs' : 'text-lg'}`}>{value}</p>
   </div>
 );
 

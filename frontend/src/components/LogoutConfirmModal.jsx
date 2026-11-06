@@ -77,7 +77,7 @@ const LogoutConfirmModal = ({ isOpen, onClose, onConfirm }) => {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-[var(--sidebar)]/60 backdrop-blur-sm transition-opacity"
         aria-hidden="true"
         onClick={() => {
           if (!isLoggingOut) onClose();
@@ -86,7 +86,7 @@ const LogoutConfirmModal = ({ isOpen, onClose, onConfirm }) => {
 
       {/* Modal Card */}
       <div
-        className="relative z-10 mx-auto w-full max-w-[390px] sm:max-w-md overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-2xl transition-all dark:border-slate-800 dark:bg-slate-900"
+        className="relative z-10 mx-auto w-full max-w-[390px] sm:max-w-md overflow-hidden rounded-2xl border border-border bg-surface p-6 sm:p-7 shadow-2xl transition-all dark:border-border-strong dark:bg-sidebar"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -95,7 +95,7 @@ const LogoutConfirmModal = ({ isOpen, onClose, onConfirm }) => {
           disabled={isLoggingOut}
           onClick={onClose}
           aria-label="Close dialog"
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-text transition hover:bg-background hover:text-sub focus:outline-none focus:ring-2 focus:ring-border-strong disabled:opacity-50 dark:hover:bg-sidebar dark:hover:text-muted-text"
         >
           <X className="h-4 w-4" />
         </button>
@@ -103,28 +103,28 @@ const LogoutConfirmModal = ({ isOpen, onClose, onConfirm }) => {
         {/* Content Container (Center Aligned) */}
         <div className="flex flex-col items-center text-center">
           {/* Visual Icon Badge */}
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 ring-8 ring-rose-50/60 dark:bg-rose-950/40 dark:ring-rose-950/30">
-            <LogOut className="h-6 w-6 text-rose-600 dark:text-rose-400" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--danger-light)] ring-8 ring-[var(--danger-light)] dark:bg-[var(--danger-light)] dark:ring-[var(--danger-light)]">
+            <LogOut className="h-6 w-6 text-danger dark:text-danger" />
           </div>
 
           {/* Title */}
           <h3
             id="logout-modal-title"
-            className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight"
+            className="text-lg sm:text-xl font-bold text-main dark:text-muted-text tracking-tight"
           >
             Confirm Sign Out
           </h3>
 
           {/* Description & SSO Context */}
-          <div className="mt-2.5 w-full text-sm text-slate-600 dark:text-slate-300">
+          <div className="mt-2.5 w-full text-sm text-sub dark:text-muted-text">
             {isSSO ? (
               <div className="space-y-3">
                 <p className="leading-relaxed">
                   Are you sure you want to sign out?
                 </p>
-                <div className="rounded-xl border border-amber-200/80 bg-gradient-to-br from-amber-50 to-orange-50/60 p-3 text-center dark:border-amber-900/40 dark:from-amber-950/30 dark:to-orange-950/20 shadow-sm">
-                  <div className="flex items-center justify-center gap-2 text-xs font-medium text-amber-900 dark:text-amber-200">
-                    <ExternalLink className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                <div className="rounded-xl border border-[var(--warning-light)] bg-gradient-to-br from-[var(--warning-light)] to-[var(--warning-light)] p-3 text-center dark:border-warning dark:from-[var(--warning-light)] dark:to-[var(--warning-light)] shadow-sm">
+                  <div className="flex items-center justify-center gap-2 text-xs font-medium text-warning dark:text-warning">
+                    <ExternalLink className="h-3.5 w-3.5 text-warning dark:text-warning flex-shrink-0" />
                     <span>It will redirect to the CRM portal</span>
                   </div>
                 </div>
@@ -142,7 +142,7 @@ const LogoutConfirmModal = ({ isOpen, onClose, onConfirm }) => {
               type="button"
               disabled={isLoggingOut}
               onClick={onClose}
-              className="flex-1 cursor-pointer rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="flex-1 cursor-pointer rounded-xl border border-border-strong bg-surface px-4 py-2.5 text-sm font-semibold text-sub shadow-sm transition hover:bg-background active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-border-strong disabled:opacity-50 dark:border-border-strong dark:bg-sidebar dark:text-muted-text dark:hover:bg-background"
             >
               Cancel
             </button>
@@ -150,7 +150,7 @@ const LogoutConfirmModal = ({ isOpen, onClose, onConfirm }) => {
               type="button"
               disabled={isLoggingOut}
               onClick={handleConfirm}
-              className="flex-1 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-red-600/20 transition hover:from-red-700 hover:to-rose-700 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+              className="flex-1 cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-danger to-danger px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-danger/20 transition hover:from-danger hover:to-danger active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-danger disabled:opacity-50"
             >
               {isLoggingOut ? (
                 <>

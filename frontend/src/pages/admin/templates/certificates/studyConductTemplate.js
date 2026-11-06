@@ -13,35 +13,35 @@ export const getStudyConductTemplate = () => {
             content: '{{college_name}}',
             x: center(500), y: 20,
             fontSize: 22, font: 'Bold', align: 'center',
-            width: 500, height: 30, color: '#1E40AF' // Blue
+            width: 500, height: 30, color: 'var(--primary)' // Blue
         },
         {
             id: 'h2', type: 'text',
             content: '(Approved by AICTE, and Affiliated to JNTU, Kakinada)',
             x: center(400), y: 50,
             fontSize: 10, font: 'Helvetica', align: 'center',
-            width: 400, height: 15, color: '#1E40AF'
+            width: 400, height: 15, color: 'var(--primary)'
         },
         {
             id: 'h3', type: 'text',
             content: '{{college_address}}',
             x: center(500), y: 65,
             fontSize: 10, font: 'Helvetica', align: 'center',
-            width: 500, height: 15, color: '#1E40AF'
+            width: 500, height: 15, color: 'var(--primary)'
         },
         {
             id: 'h4', type: 'text',
             content: 'Ph: {{college_phone}}  Website : {{college_website}}',
             x: center(500), y: 80,
             fontSize: 10, font: 'Helvetica', align: 'center',
-            width: 500, height: 15, color: '#1E40AF'
+            width: 500, height: 15, color: 'var(--primary)'
         },
         // Separator Line
         {
             id: 'sep', type: 'line',
             x: 30, y: 95,
             width: 535, height: 2,
-            lineWidth: 1.5, color: '#1E40AF'
+            lineWidth: 1.5, color: 'var(--primary)'
         },
 
         // Logo (Top Right)
@@ -58,10 +58,10 @@ export const getStudyConductTemplate = () => {
             content: 'Date: {{date}}',
             x: 420, y: 105,
             fontSize: 11, font: 'Helvetica', align: 'right',
-            width: 140, height: 20, color: '#1E40AF'
+            width: 140, height: 20, color: 'var(--primary)'
         },
         // Date Underline
-        { id: 'ul_date', type: 'line', x: 455, y: 117, width: 100, height: 1, color: '#1E40AF' },
+        { id: 'ul_date', type: 'line', x: 455, y: 117, width: 100, height: 1, color: 'var(--primary)' },
 
 
         // Title
@@ -70,14 +70,14 @@ export const getStudyConductTemplate = () => {
             content: 'STUDY & CONDUCT',
             x: center(300), y: 125,
             fontSize: 18, font: 'Bold', align: 'center',
-            width: 300, height: 25, color: '#1E40AF'
+            width: 300, height: 25, color: 'var(--primary)'
         },
         // Title Underline
         {
             id: 'title_ul', type: 'line',
             x: center(180), y: 145,
             width: 180, height: 2,
-            lineWidth: 1.5, color: '#1E40AF'
+            lineWidth: 1.5, color: 'var(--primary)'
         },
 
         // Body Content
@@ -89,7 +89,7 @@ export const getStudyConductTemplate = () => {
             content: 'This is to certify that Mr./Ms.',
             x: 50, y: 170,
             fontSize: 12, font: 'Helvetica', align: 'left',
-            width: 200, height: 20, color: '#1E40AF'
+            width: 200, height: 20, color: 'var(--primary)'
         },
         {
             id: 'val_name', type: 'text',
@@ -98,7 +98,7 @@ export const getStudyConductTemplate = () => {
             fontSize: 12, font: 'Bold', align: 'center',
             width: 310, height: 20, color: '#000000'
         },
-        { id: 'ul_name', type: 'line', x: 230, y: 182, width: 315, height: 1, color: '#1E40AF' },
+        { id: 'ul_name', type: 'line', x: 230, y: 182, width: 315, height: 1, color: 'var(--primary)' },
 
         // Line 2: (PIN No. [Pin]) S/o, D/o of Sri [Parent]
         {
@@ -106,7 +106,7 @@ export const getStudyConductTemplate = () => {
             content: '(PIN No.',
             x: 50, y: 200,
             fontSize: 12, font: 'Helvetica', align: 'left',
-            width: 60, height: 20, color: '#1E40AF'
+            width: 60, height: 20, color: 'var(--primary)'
         },
         {
             id: 'val_pin', type: 'text',
@@ -115,14 +115,14 @@ export const getStudyConductTemplate = () => {
             fontSize: 12, font: 'Bold', align: 'center',
             width: 100, height: 20, color: '#000000'
         },
-        { id: 'ul_pin', type: 'line', x: 105, y: 212, width: 100, height: 1, color: '#1E40AF' },
+        { id: 'ul_pin', type: 'line', x: 105, y: 212, width: 100, height: 1, color: 'var(--primary)' },
 
         {
             id: 'lbl_2b', type: 'text',
             content: ') S/o, D/o of Sri',
             x: 210, y: 200,
             fontSize: 12, font: 'Helvetica', align: 'left',
-            width: 100, height: 20, color: '#1E40AF'
+            width: 100, height: 20, color: 'var(--primary)'
         },
         {
             id: 'val_parent', type: 'text',
@@ -131,14 +131,14 @@ export const getStudyConductTemplate = () => {
             fontSize: 12, font: 'Bold', align: 'left', // Left align usually looks better for long names
             width: 200, height: 20, color: '#000000'
         },
-        { id: 'ul_parent', type: 'line', x: 310, y: 212, width: 200, height: 1, color: '#1E40AF' },
+        { id: 'ul_parent', type: 'line', x: 310, y: 212, width: 200, height: 1, color: 'var(--primary)' },
 
         {
             id: 'lbl_2c', type: 'text',
             content: 'has studied',
             x: 515, y: 200,
             fontSize: 12, font: 'Helvetica', align: 'left',
-            width: 80, height: 20, color: '#1E40AF'
+            width: 80, height: 20, color: 'var(--primary)'
         },
 
 
@@ -148,7 +148,7 @@ export const getStudyConductTemplate = () => {
             content: 'B.Tech/M.Tech in',
             x: 50, y: 230,
             fontSize: 12, font: 'Helvetica', align: 'left',
-            width: 120, height: 20, color: '#1E40AF'
+            width: 120, height: 20, color: 'var(--primary)'
         },
         {
             id: 'val_course', type: 'text',
@@ -157,14 +157,14 @@ export const getStudyConductTemplate = () => {
             fontSize: 12, font: 'Bold', align: 'center',
             width: 280, height: 20, color: '#000000'
         },
-        { id: 'ul_course', type: 'line', x: 150, y: 242, width: 280, height: 1, color: '#1E40AF' },
+        { id: 'ul_course', type: 'line', x: 150, y: 242, width: 280, height: 1, color: 'var(--primary)' },
 
         {
             id: 'lbl_3b', type: 'text',
             content: 'during the period from',
             x: 435, y: 230,
             fontSize: 12, font: 'Helvetica', align: 'left',
-            width: 130, height: 20, color: '#1E40AF'
+            width: 130, height: 20, color: 'var(--primary)'
         },
 
         // Line 4: [From] to [To] in this college. During his / her time of study in this College,
@@ -175,14 +175,14 @@ export const getStudyConductTemplate = () => {
             fontSize: 12, font: 'Bold', align: 'center',
             width: 80, height: 20, color: '#000000'
         },
-        { id: 'ul_from', type: 'line', x: 50, y: 272, width: 80, height: 1, color: '#1E40AF' },
+        { id: 'ul_from', type: 'line', x: 50, y: 272, width: 80, height: 1, color: 'var(--primary)' },
 
         {
             id: 'lbl_4a', type: 'text',
             content: 'to',
             x: 135, y: 260,
             fontSize: 12, font: 'Helvetica', align: 'center',
-            width: 20, height: 20, color: '#1E40AF'
+            width: 20, height: 20, color: 'var(--primary)'
         },
 
         {
@@ -192,14 +192,14 @@ export const getStudyConductTemplate = () => {
             fontSize: 12, font: 'Bold', align: 'center',
             width: 80, height: 20, color: '#000000'
         },
-        { id: 'ul_to', type: 'line', x: 160, y: 272, width: 80, height: 1, color: '#1E40AF' },
+        { id: 'ul_to', type: 'line', x: 160, y: 272, width: 80, height: 1, color: 'var(--primary)' },
 
         {
             id: 'lbl_4b', type: 'text',
             content: 'in this college. During his / her time of study in this College,',
             x: 245, y: 260,
             fontSize: 12, font: 'Helvetica', align: 'left',
-            width: 350, height: 20, color: '#1E40AF'
+            width: 350, height: 20, color: 'var(--primary)'
         },
 
         // Line 5: his / her Conduct has been found [Conduct]
@@ -208,7 +208,7 @@ export const getStudyConductTemplate = () => {
             content: 'his / her Conduct has been found',
             x: 50, y: 290,
             fontSize: 12, font: 'Helvetica', align: 'left',
-            width: 200, height: 20, color: '#1E40AF'
+            width: 200, height: 20, color: 'var(--primary)'
         },
         {
             id: 'val_conduct', type: 'text',
@@ -217,7 +217,7 @@ export const getStudyConductTemplate = () => {
             fontSize: 12, font: 'Bold', align: 'left',
             width: 200, height: 20, color: '#000000'
         },
-        { id: 'ul_conduct', type: 'line', x: 250, y: 302, width: 295, height: 1, color: '#1E40AF' },
+        { id: 'ul_conduct', type: 'line', x: 250, y: 302, width: 295, height: 1, color: 'var(--primary)' },
 
 
         // Signatures
@@ -226,14 +226,14 @@ export const getStudyConductTemplate = () => {
             content: 'Seal :',
             x: 80, y: 360,
             fontSize: 12, font: 'Bold', align: 'left',
-            width: 100, height: 20, color: '#1E40AF'
+            width: 100, height: 20, color: 'var(--primary)'
         },
         {
             id: 'princ_label', type: 'text',
             content: 'PRINCIPAL',
             x: 430, y: 360,
             fontSize: 12, font: 'Bold', align: 'center',
-            width: 135, height: 20, color: '#1E40AF'
+            width: 135, height: 20, color: 'var(--primary)'
         },
     ];
 

@@ -53,7 +53,7 @@ const ParentLayout = () => {
     backgroundImage: "url('/images/login_background.png')",
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    backgroundColor: '#f8fafc',
+    backgroundColor: 'var(--background)',
   };
 
   return (
@@ -62,20 +62,20 @@ const ParentLayout = () => {
       <div
         className="fixed inset-0 pointer-events-none opacity-30 -z-10"
         style={{
-          backgroundImage: 'radial-gradient(#CBD5E1 1.5px, transparent 1.5px)',
+          backgroundImage: 'radial-gradient(var(--border-strong) 1.5px, transparent 1.5px)',
           backgroundSize: '24px 24px',
         }}
         aria-hidden
       />
 
-      <header className="lg:hidden shrink-0 z-50 w-full bg-white/95 backdrop-blur-xl border-b border-gray-200/60 shadow-sm pt-[env(safe-area-inset-top,0px)]">
+      <header className="lg:hidden shrink-0 z-50 w-full bg-[var(--surface)]/95 backdrop-blur-xl border-b border-border shadow-sm pt-[env(safe-area-inset-top,0px)]">
         <div className="h-14 w-full flex items-center gap-3 px-4">
-          <div className="h-10 w-10 flex items-center justify-center p-1 bg-white rounded-xl shadow-sm border border-gray-100 shrink-0">
+          <div className="h-10 w-10 flex items-center justify-center p-1 bg-surface rounded-xl shadow-sm border border-border shrink-0">
             <img src="/logo.png" alt="College Logo" className="max-h-full max-w-full object-contain" />
           </div>
           <div className="flex flex-col justify-center min-w-0">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-tight">Parent</p>
-            <p className="text-sm font-black text-gray-900 tracking-tight leading-tight">Portal</p>
+            <p className="text-[10px] font-bold text-muted-text uppercase tracking-widest leading-tight">Parent</p>
+            <p className="text-sm font-black text-main tracking-tight leading-tight">Portal</p>
           </div>
         </div>
       </header>
@@ -83,7 +83,7 @@ const ParentLayout = () => {
       {!desktopSidebarOpen && (
         <button
           type="button"
-          className="hidden lg:flex fixed top-6 left-6 z-50 p-2 bg-white/80 backdrop-blur-md rounded-lg shadow-sm border border-gray-200 text-gray-500 hover:text-gray-900"
+          className="hidden lg:flex fixed top-6 left-6 z-50 p-2 bg-[var(--surface)]/80 backdrop-blur-md rounded-lg shadow-sm border border-border text-muted-text hover:text-main"
           onClick={() => setDesktopSidebarOpen(true)}
         >
           <RiMenuLine size={20} />
@@ -91,25 +91,25 @@ const ParentLayout = () => {
       )}
 
       <aside
-        className={`hidden lg:flex fixed inset-y-0 left-0 z-40 w-72 bg-white/95 backdrop-blur-xl border-r border-gray-200/60 shadow-sm transform transition-all duration-500 ${
+        className={`hidden lg:flex fixed inset-y-0 left-0 z-40 w-72 bg-[var(--surface)]/95 backdrop-blur-xl border-r border-border shadow-sm transform transition-all duration-500 ${
           desktopSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         <div className="h-full flex flex-col w-full">
-          <div className="h-24 flex items-center justify-between px-6 border-b border-gray-100">
+          <div className="h-24 flex items-center justify-between px-6 border-b border-border">
             <div className="flex items-center gap-3 cursor-pointer min-w-0" onClick={() => navigate('/parent/dashboard')}>
-              <div className="h-12 w-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center p-1.5 shrink-0">
+              <div className="h-12 w-12 rounded-2xl bg-surface border border-border shadow-sm flex items-center justify-center p-1.5 shrink-0">
                 <img src="/logo.png" alt="College Logo" className="h-full w-full object-contain" />
               </div>
               <div className="min-w-0">
-                <span className="text-lg font-black text-gray-900 tracking-tight block leading-none">Parent</span>
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Portal</span>
+                <span className="text-lg font-black text-main tracking-tight block leading-none">Parent</span>
+                <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest">Portal</span>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setDesktopSidebarOpen(false)}
-              className="p-2 text-gray-400 hover:bg-gray-100 rounded-xl shrink-0"
+              className="p-2 text-muted-text hover:bg-background rounded-xl shrink-0"
             >
               <RiMenuLine size={18} />
             </button>
@@ -123,8 +123,8 @@ const ParentLayout = () => {
                 className={({ isActive }) =>
                   `relative flex items-center gap-3.5 px-4 py-3 rounded-xl text-[13px] font-bold transition-all ${
                     isActive
-                      ? 'bg-indigo-50/80 text-indigo-700 shadow-sm border border-indigo-100/30'
-                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-[var(--primary-light)] text-primary shadow-sm border border-[var(--primary-light)]'
+                      : 'text-muted-text hover:bg-background hover:text-main'
                   }`
                 }
               >
@@ -142,31 +142,31 @@ const ParentLayout = () => {
           </nav>
 
           <div
-            className="mx-5 mb-3 p-4 rounded-2xl border border-gray-100 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+            className="mx-5 mb-3 p-4 rounded-2xl border border-border bg-surface shadow-sm cursor-pointer hover:shadow-md transition-shadow"
             onClick={() => navigate('/parent/profile')}
           >
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-full overflow-hidden bg-indigo-100 ring-2 ring-white shrink-0">
+              <div className="h-11 w-11 rounded-full overflow-hidden bg-[var(--primary-light)] ring-2 ring-white shrink-0">
                 {photoUrl ? (
                   <img src={photoUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-indigo-600">
+                  <div className="w-full h-full flex items-center justify-center text-primary">
                     <RiUser3Fill size={20} />
                   </div>
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-black text-gray-900 truncate">{user?.student_name || 'Student'}</p>
-                <p className="text-[11px] font-bold text-gray-400 truncate">{user?.admission_number}</p>
+                <p className="text-[13px] font-black text-main truncate">{user?.student_name || 'Student'}</p>
+                <p className="text-[11px] font-bold text-muted-text truncate">{user?.admission_number}</p>
               </div>
             </div>
           </div>
 
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-4 border-t border-border">
             <button
               type="button"
               onClick={handleLogout}
-              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 transition-all"
+              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-sidebar text-white text-sm font-semibold hover:bg-sidebar transition-all"
             >
               <RiLogoutBoxRLine size={18} />
               Sign Out
@@ -187,7 +187,7 @@ const ParentLayout = () => {
         </div>
       </main>
 
-      <nav className="lg:hidden shrink-0 z-[55] w-full bg-white/95 backdrop-blur-3xl border-t border-gray-200/50 shadow-[0_-8px_32px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom,0px)]">
+      <nav className="lg:hidden shrink-0 z-[55] w-full bg-[var(--surface)]/95 backdrop-blur-3xl border-t border-border shadow-[0_-8px_32px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom,0px)]">
         <div className="h-[68px] w-full flex items-stretch justify-between px-1">
           {navItems.map((item) => (
             <NavLink
@@ -195,7 +195,7 @@ const ParentLayout = () => {
               to={item.path}
               className={({ isActive }) =>
                 `flex-1 flex flex-col items-center justify-center gap-0.5 min-w-0 h-full ${
-                  isActive ? 'text-indigo-600' : 'text-gray-400'
+                  isActive ? 'text-primary' : 'text-muted-text'
                 }`
               }
             >
@@ -207,7 +207,7 @@ const ParentLayout = () => {
                   item.label === 'ID Card' ? 'ID' : 'Home';
                 return (
                   <>
-                    <div className={`p-2 rounded-2xl ${isActive ? 'bg-indigo-50 -translate-y-0.5' : ''}`}>
+                    <div className={`p-2 rounded-2xl ${isActive ? 'bg-[var(--primary-light)] -translate-y-0.5' : ''}`}>
                       <Icon size={22} />
                     </div>
                     <span className={`text-[10px] font-bold leading-none ${isActive ? 'font-extrabold' : ''}`}>
@@ -221,10 +221,10 @@ const ParentLayout = () => {
           <button
             type="button"
             onClick={handleLogout}
-            className="flex-1 flex flex-col items-center justify-center gap-0.5 min-w-0 h-full text-gray-400 active:text-red-600 hover:text-red-600 transition-colors"
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 min-w-0 h-full text-muted-text active:text-danger hover:text-danger transition-colors"
             aria-label="Sign out"
           >
-            <div className="p-2 rounded-2xl active:bg-red-50">
+            <div className="p-2 rounded-2xl active:bg-[var(--danger-light)]">
               <RiLogoutBoxRLine size={22} />
             </div>
             <span className="text-[10px] font-bold leading-none">Logout</span>

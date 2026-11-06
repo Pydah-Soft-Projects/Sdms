@@ -26,34 +26,34 @@ const MultiSelect = ({ label, options, selected, onChange, placeholder, disabled
 
     return (
         <div className="relative" ref={containerRef}>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">{label}</label>
+            <label className="block text-xs font-semibold text-sub mb-1">{label}</label>
             <button
                 type="button"
-                className={`w-full p-2 text-left border rounded-lg flex justify-between items-center text-sm ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white hover:border-blue-400'}`}
+                className={`w-full p-2 text-left border rounded-lg flex justify-between items-center text-sm ${disabled ? 'bg-background cursor-not-allowed' : 'bg-surface hover:border-primary'}`}
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 disabled={disabled}
             >
-                <span className={`truncate ${Array.isArray(selected) && selected.length === 0 ? 'text-gray-400' : 'text-gray-800'}`}>
+                <span className={`truncate ${Array.isArray(selected) && selected.length === 0 ? 'text-muted-text' : 'text-main'}`}>
                     {Array.isArray(selected) && selected.length === 0 ? placeholder : `${Array.isArray(selected) ? selected.length : 0} selected`}
                 </span>
-                <ChevronDown size={14} className="text-gray-400" />
+                <ChevronDown size={14} className="text-muted-text" />
             </button>
 
             {isOpen && !disabled && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 bg-surface border border-border rounded-lg shadow-xl max-h-60 overflow-y-auto">
                     {options.length === 0 ? (
-                        <div className="p-3 text-sm text-gray-500 text-center">No options available</div>
+                        <div className="p-3 text-sm text-muted-text text-center">No options available</div>
                     ) : (
                         options.map(option => (
                             <div
                                 key={option.value}
-                                className="flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer text-sm"
+                                className="flex items-center gap-2 p-2 hover:bg-background cursor-pointer text-sm"
                                 onClick={() => toggleOption(option.value)}
                             >
-                                <div className={`w-4 h-4 border rounded flex items-center justify-center ${selected.includes(option.value) ? 'bg-blue-600 border-blue-600' : 'border-gray-300'}`}>
+                                <div className={`w-4 h-4 border rounded flex items-center justify-center ${selected.includes(option.value) ? 'bg-primary border-primary' : 'border-border-strong'}`}>
                                     {selected.includes(option.value) && <Check size={10} className="text-white" />}
                                 </div>
-                                <span className="text-gray-700">{option.label}</span>
+                                <span className="text-sub">{option.label}</span>
                             </div>
                         ))
                     )}
@@ -63,12 +63,12 @@ const MultiSelect = ({ label, options, selected, onChange, placeholder, disabled
             {Array.isArray(selected) && selected.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                     {selected.slice(0, 5).map(val => (
-                        <span key={val} className="px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-100 flex items-center gap-1">
+                        <span key={val} className="px-2 py-0.5 bg-[var(--primary-light)] text-primary text-xs rounded-full border border-[var(--primary-light)] flex items-center gap-1">
                             {options.find(o => o.value === val)?.label || val}
-                            <button type="button" onClick={() => toggleOption(val)} className="hover:text-blue-900"><X size={10} /></button>
+                            <button type="button" onClick={() => toggleOption(val)} className="hover:text-primary"><X size={10} /></button>
                         </span>
                     ))}
-                    {selected.length > 5 && <span className="text-xs text-gray-500 py-0.5">+{selected.length - 5} more</span>}
+                    {selected.length > 5 && <span className="text-xs text-muted-text py-0.5">+{selected.length - 5} more</span>}
                 </div>
             )}
         </div>
@@ -317,27 +317,27 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
 
     // Default vertical layout
     return (
-        <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 h-full flex flex-col min-h-0 space-y-2.5">
+        <div className="bg-background p-3.5 rounded-2xl border border-border h-full flex flex-col min-h-0 space-y-2.5">
             <div className="flex justify-between items-center shrink-0">
                 {!hideTitle && (
-                    <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <h3 className="text-xs font-bold text-main uppercase tracking-wider flex items-center gap-1.5">
                         <Users size={14} /> Target Audience
                     </h3>
                 )}
-                <div className="text-[11px] font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-auto">
+                <div className="text-[11px] font-semibold bg-[var(--primary-light)] text-primary px-2 py-0.5 rounded-full ml-auto">
                     Est. Recipients: {recipientCount}
                 </div>
             </div>
 
             {/* Mode Selector Toggle */}
-            <div className="flex rounded-lg border border-gray-200 p-0.5 bg-white shadow-2xs shrink-0">
+            <div className="flex rounded-lg border border-border p-0.5 bg-surface shadow-2xs shrink-0">
                 <button
                     type="button"
                     onClick={() => handleTargetTypeChange('filters')}
                     className={`flex-1 py-1 px-2 rounded-md text-[11px] font-semibold transition-all ${
                         targetType !== 'individual'
-                            ? 'bg-blue-600 text-white shadow-2xs'
-                            : 'text-gray-600 hover:text-gray-900'
+                            ? 'bg-primary text-white shadow-2xs'
+                            : 'text-sub hover:text-main'
                     }`}
                 >
                     Target By Filters
@@ -347,8 +347,8 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                     onClick={() => handleTargetTypeChange('individual')}
                     className={`flex-1 py-1 px-2 rounded-md text-[11px] font-semibold transition-all ${
                         targetType === 'individual'
-                            ? 'bg-blue-600 text-white shadow-2xs'
-                            : 'text-gray-600 hover:text-gray-900'
+                            ? 'bg-primary text-white shadow-2xs'
+                            : 'text-sub hover:text-main'
                     }`}
                 >
                     Individual Students {selectedStudents.length > 0 && `(${selectedStudents.length})`}
@@ -360,13 +360,13 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                     {/* Search Field */}
                     <div className="relative shrink-0">
                         <div className="flex justify-between items-center mb-0.5">
-                            <label className="block text-[11px] font-semibold text-gray-700">Search Student</label>
-                            <span className="text-[10px] text-gray-400">Search by name or admission no.</span>
+                            <label className="block text-[11px] font-semibold text-sub">Search Student</label>
+                            <span className="text-[10px] text-muted-text">Search by name or admission no.</span>
                         </div>
                         <div className="relative">
                             <input
                                 type="text"
-                                className="w-full py-1.5 px-2.5 pr-7 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-2xs font-medium"
+                                className="w-full py-1.5 px-2.5 pr-7 text-xs border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-surface shadow-2xs font-medium"
                                 placeholder="Type student name or adm no..."
                                 value={studentSearch}
                                 onChange={(e) => setStudentSearch(e.target.value)}
@@ -375,14 +375,14 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                                 <button
                                     type="button"
                                     onClick={() => { setStudentSearch(''); setSearchResults([]); }}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-text hover:text-sub p-0.5"
                                 >
                                     <X size={13} />
                                 </button>
                             ) : (
                                 searching && (
-                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">
-                                        <Loader2 size={14} className="animate-spin text-blue-500" />
+                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-text">
+                                        <Loader2 size={14} className="animate-spin text-primary" />
                                     </div>
                                 )
                             )}
@@ -391,15 +391,15 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
 
                     {/* Selected Students Chips Container */}
                     {selectedStudents.length > 0 && (
-                        <div className="shrink-0 bg-white border border-gray-200 rounded-lg p-2">
+                        <div className="shrink-0 bg-surface border border-border rounded-lg p-2">
                             <div className="flex justify-between items-center mb-1">
-                                <span className="text-[10px] font-bold text-gray-700 uppercase tracking-wider">
+                                <span className="text-[10px] font-bold text-sub uppercase tracking-wider">
                                     Selected ({selectedStudents.length})
                                 </span>
                                 <button
                                     type="button"
                                     onClick={() => setFormData(prev => ({ ...prev, selected_students: [], selected_student_ids: [] }))}
-                                    className="text-[10px] text-red-600 hover:underline font-semibold"
+                                    className="text-[10px] text-danger hover:underline font-semibold"
                                 >
                                     Remove All
                                 </button>
@@ -408,13 +408,13 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                                 {selectedStudents.map((s) => (
                                     <span
                                         key={s.id}
-                                        className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-800 text-[11px] rounded-md border border-blue-100 font-medium"
+                                        className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--primary-light)] text-primary text-[11px] rounded-md border border-[var(--primary-light)] font-medium"
                                     >
                                         <span className="truncate max-w-[130px]">{s.student_name || s.admission_number}</span>
                                         <button
                                             type="button"
                                             onClick={() => handleRemoveStudent(s.id)}
-                                            className="hover:text-red-600 p-0.5 rounded-full hover:bg-blue-100 transition-colors"
+                                            className="hover:text-danger p-0.5 rounded-full hover:bg-[var(--primary-light)] transition-colors"
                                         >
                                             <X size={11} />
                                         </button>
@@ -425,8 +425,8 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                     )}
 
                     {/* Inline Search Results Container — Compact row height & Select All */}
-                    <div className="flex-1 min-h-0 flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden shadow-2xs">
-                        <div className="px-2.5 py-1.5 bg-gray-50 border-b text-[11px] font-semibold text-gray-600 flex justify-between items-center shrink-0">
+                    <div className="flex-1 min-h-0 flex flex-col bg-surface border border-border rounded-lg overflow-hidden shadow-2xs">
+                        <div className="px-2.5 py-1.5 bg-background border-b text-[11px] font-semibold text-sub flex justify-between items-center shrink-0">
                             <span>Results {searchResults.length > 0 && `(${searchResults.length})`}</span>
                             {searchResults.length > 0 && (
                                 <button
@@ -454,7 +454,7 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                                             }));
                                         }
                                     }}
-                                    className="text-[11px] font-bold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                                    className="text-[11px] font-bold text-primary hover:text-primary hover:underline flex items-center gap-1"
                                 >
                                     {searchResults.every(s => selectedStudents.some(sel => sel.id === s.id))
                                         ? 'Deselect All'
@@ -462,17 +462,17 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                                 </button>
                             )}
                             {searching && searchResults.length === 0 && (
-                                <span className="text-[10px] text-blue-600 font-normal">Searching…</span>
+                                <span className="text-[10px] text-primary font-normal">Searching…</span>
                             )}
                         </div>
 
-                        <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
+                        <div className="flex-1 overflow-y-auto divide-y divide-border">
                             {searching && searchResults.length === 0 ? (
-                                <div className="flex items-center justify-center py-6 text-[11px] text-gray-400 gap-2">
-                                    <Loader2 size={14} className="animate-spin text-blue-500" /> Searching students...
+                                <div className="flex items-center justify-center py-6 text-[11px] text-muted-text gap-2">
+                                    <Loader2 size={14} className="animate-spin text-primary" /> Searching students...
                                 </div>
                             ) : searchResults.length === 0 ? (
-                                <div className="p-4 text-center text-[11px] text-gray-400">
+                                <div className="p-4 text-center text-[11px] text-muted-text">
                                     {studentSearch.trim().length >= 2
                                         ? 'No matching students found.'
                                         : 'Type at least 2 characters above to search students.'}
@@ -483,16 +483,16 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                                     return (
                                         <div
                                             key={s.id}
-                                            className={`py-1.5 px-2.5 flex items-center justify-between hover:bg-blue-50/50 transition-colors ${
-                                                isAdded ? 'bg-gray-50/80' : ''
+                                            className={`py-1.5 px-2.5 flex items-center justify-between hover:bg-[var(--primary-light)] transition-colors ${
+                                                isAdded ? 'bg-[var(--background)]/80' : ''
                                             }`}
                                         >
                                             <div className="min-w-0 flex-1 pr-2">
-                                                <div className="font-bold text-xs text-gray-900 truncate">
+                                                <div className="font-bold text-xs text-main truncate">
                                                     {s.student_name || 'No Name'}
                                                 </div>
-                                                <div className="text-[10px] text-gray-500 flex items-center gap-1.5">
-                                                    <span>Adm: <strong className="font-mono text-blue-600">{s.admission_number}</strong></span>
+                                                <div className="text-[10px] text-muted-text flex items-center gap-1.5">
+                                                    <span>Adm: <strong className="font-mono text-primary">{s.admission_number}</strong></span>
                                                     <span>•</span>
                                                     <span className="truncate">{s.course} ({s.branch || '-'})</span>
                                                 </div>
@@ -503,8 +503,8 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                                                 disabled={isAdded}
                                                 className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all shrink-0 ${
                                                     isAdded
-                                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                                                        : 'bg-blue-600 text-white hover:bg-blue-700 shadow-2xs active:scale-95'
+                                                        ? 'bg-background text-muted-text cursor-not-allowed border border-border'
+                                                        : 'bg-primary text-white hover:bg-primary-hover shadow-2xs active:scale-95'
                                                 }`}
                                             >
                                                 {isAdded ? 'Added ✓' : '+ Add'}
@@ -518,7 +518,7 @@ const TargetSelector = ({ formData, setFormData, layout = 'column', hideTitle = 
                 </div>
             ) : (
                 <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-                    <p className="text-xs text-slate-500">Leave fields empty to target everyone.</p>
+                    <p className="text-xs text-muted-text">Leave fields empty to target everyone.</p>
 
                     <div className="grid grid-cols-2 gap-4">
                         <MultiSelect

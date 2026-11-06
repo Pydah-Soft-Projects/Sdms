@@ -163,7 +163,7 @@ const NotificationSettings = ({ readOnly = false }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="animate-spin text-blue-600" size={24} />
+        <RefreshCw className="animate-spin text-primary" size={24} />
       </div>
     );
   }
@@ -176,11 +176,11 @@ const NotificationSettings = ({ readOnly = false }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Settings2 className="text-blue-600" size={28} />
+          <h2 className="text-2xl font-bold text-main flex items-center gap-2">
+            <Settings2 className="text-primary" size={28} />
             Notification Settings
           </h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-sub mt-1">
             Configure notification channels, recipients, and templates
           </p>
         </div>
@@ -188,7 +188,7 @@ const NotificationSettings = ({ readOnly = false }) => {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? (
             <>
@@ -208,9 +208,9 @@ const NotificationSettings = ({ readOnly = false }) => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar - Notification Types */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">Notification Types</h3>
+          <div className="bg-surface rounded-xl border border-border shadow-sm">
+            <div className="p-4 border-b border-border">
+              <h3 className="font-semibold text-main">Notification Types</h3>
             </div>
             <div className="p-2 space-y-1">
               {Object.values(NOTIFICATION_TYPES).map(type => {
@@ -224,30 +224,30 @@ const NotificationSettings = ({ readOnly = false }) => {
                     onClick={() => setActiveTab(type.key)}
                     className={`w-full text-left p-3 rounded-lg transition-all ${
                       isActive
-                        ? 'bg-blue-50 border-2 border-blue-500'
-                        : 'hover:bg-gray-50 border-2 border-transparent'
+                        ? 'bg-[var(--primary-light)] border-2 border-primary'
+                        : 'hover:bg-background border-2 border-transparent'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg ${
-                        isActive ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                        isActive ? 'bg-[var(--primary-light)] text-primary' : 'bg-background text-sub'
                       }`}>
                         <TypeIcon size={18} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className={`font-medium text-sm ${
-                            isActive ? 'text-blue-900' : 'text-gray-900'
+                            isActive ? 'text-primary' : 'text-main'
                           }`}>
                             {type.label}
                           </span>
                           {isEnabled ? (
-                            <CheckCircle2 size={14} className="text-green-500 flex-shrink-0" />
+                            <CheckCircle2 size={14} className="text-success flex-shrink-0" />
                           ) : (
-                            <XCircle size={14} className="text-gray-400 flex-shrink-0" />
+                            <XCircle size={14} className="text-muted-text flex-shrink-0" />
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                        <p className="text-xs text-muted-text mt-0.5 line-clamp-1">
                           {type.description}
                         </p>
                       </div>
@@ -262,25 +262,25 @@ const NotificationSettings = ({ readOnly = false }) => {
         {/* Main Content */}
         <div className="lg:col-span-3">
           {activeType && (
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-              <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+            <div className="bg-surface rounded-xl border border-border shadow-sm">
+              <div className="p-6 border-b border-border bg-gradient-to-r from-[var(--primary-light)] to-[var(--primary-light)]">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <Icon className="text-blue-600" size={24} />
+                  <div className="p-3 bg-[var(--primary-light)] rounded-lg">
+                    <Icon className="text-primary" size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">{activeType.label}</h3>
-                    <p className="text-sm text-gray-600 mt-0.5">{activeType.description}</p>
+                    <h3 className="text-xl font-bold text-main">{activeType.label}</h3>
+                    <p className="text-sm text-sub mt-0.5">{activeType.description}</p>
                   </div>
                 </div>
               </div>
 
               <div className="p-6 space-y-6">
                 {/* Enable/Disable Toggle */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-background rounded-lg">
                   <div>
-                    <label className="font-medium text-gray-900">Enable Notifications</label>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <label className="font-medium text-main">Enable Notifications</label>
+                    <p className="text-xs text-muted-text mt-0.5">
                       Turn on/off notifications for this type
                     </p>
                   </div>
@@ -291,14 +291,14 @@ const NotificationSettings = ({ readOnly = false }) => {
                       onChange={(e) => updateSetting(activeType.key, 'enabled', e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-background peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--primary-light)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface after:border-border-strong after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
 
                 {activeType.key === 'pin_update' && (
-                  <div className="p-4 border border-gray-200 rounded-lg">
-                    <h4 className="font-medium text-gray-900">Dashboard alert recipients</h4>
-                    <p className="text-xs text-gray-500 mt-1 mb-3">
+                  <div className="p-4 border border-border rounded-lg">
+                    <h4 className="font-medium text-main">Dashboard alert recipients</h4>
+                    <p className="text-xs text-muted-text mt-1 mb-3">
                       Selected roles receive alerts only for PIN updates within their assigned student scope.
                     </p>
                     <div className="grid max-h-64 grid-cols-1 gap-x-4 gap-y-2 overflow-y-auto pr-2 sm:grid-cols-2">
@@ -312,7 +312,7 @@ const NotificationSettings = ({ readOnly = false }) => {
                           ? configuredRoles
                           : activeType.defaultRecipientRoles;
                         return (
-                          <label key={role.key} className="flex items-center gap-2 text-sm text-gray-700">
+                          <label key={role.key} className="flex items-center gap-2 text-sm text-sub">
                             <input
                               type="checkbox"
                               checked={selectedRoles.includes(role.key)}
@@ -323,7 +323,7 @@ const NotificationSettings = ({ readOnly = false }) => {
                                   : selectedRoles.filter((selectedRole) => selectedRole !== role.key);
                                 updateSetting(activeType.key, 'recipientRoles', nextRoles);
                               }}
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              className="rounded border-border-strong text-primary focus:ring-primary"
                             />
                             {role.label}
                           </label>
@@ -336,11 +336,11 @@ const NotificationSettings = ({ readOnly = false }) => {
                 {/* Channel Selection */}
                 <div className="grid grid-cols-2 gap-4">
                   {activeType.channels.includes('email') && (
-                    <div className="p-4 border-2 border-gray-200 rounded-lg">
+                    <div className="p-4 border-2 border-border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <Mail size={18} className="text-blue-600" />
-                          <span className="font-medium text-gray-900">Email</span>
+                          <Mail size={18} className="text-primary" />
+                          <span className="font-medium text-main">Email</span>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
@@ -349,31 +349,31 @@ const NotificationSettings = ({ readOnly = false }) => {
                             onChange={(e) => updateSetting(activeType.key, 'emailEnabled', e.target.checked)}
                             className="sr-only peer"
                           />
-                          <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                          <div className="w-9 h-5 bg-background peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--primary-light)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface after:border-border-strong after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                         </label>
                       </div>
                       {getSetting(activeType.key, 'emailEnabled', true) && (
                         <div className="space-y-3 mt-3">
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="block text-sm font-medium text-sub mb-1">
                               Email Subject
                             </label>
                             <input
                               type="text"
                               value={getSetting(activeType.key, 'emailSubject', activeType.defaultEmailSubject)}
                               onChange={(e) => updateSetting(activeType.key, 'emailSubject', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                               placeholder="Email subject line"
                             />
                           </div>
                           <div>
                             <div className="flex items-center justify-between mb-1">
-                              <label className="block text-sm font-medium text-gray-700">
+                              <label className="block text-sm font-medium text-sub">
                                 Email Template
                               </label>
                               <button
                                 onClick={() => resetToDefault(activeType.key)}
-                                className="text-xs text-blue-600 hover:text-blue-700"
+                                className="text-xs text-primary hover:text-primary"
                               >
                                 Reset to Default
                               </button>
@@ -382,10 +382,10 @@ const NotificationSettings = ({ readOnly = false }) => {
                               value={getSetting(activeType.key, 'emailTemplate', activeType.defaultEmailTemplate)}
                               onChange={(e) => updateSetting(activeType.key, 'emailTemplate', e.target.value)}
                               rows={8}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                              className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary font-mono text-sm"
                               placeholder="Email template content"
                             />
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-muted-text mt-1">
                               Available variables: {activeType.key === 'user_creation' || activeType.key === 'password_update' 
                                 ? '{{name}}, {{username}}, {{password}}, {{role}}, {{loginUrl}}'
                                 : '{{studentName}}, {{admissionNumber}}, {{date}}'}
@@ -397,11 +397,11 @@ const NotificationSettings = ({ readOnly = false }) => {
                   )}
 
                   {activeType.channels.includes('sms') && (
-                    <div className="p-4 border-2 border-gray-200 rounded-lg">
+                    <div className="p-4 border-2 border-border rounded-lg">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <MessageSquare size={18} className="text-green-600" />
-                          <span className="font-medium text-gray-900">SMS</span>
+                          <MessageSquare size={18} className="text-success" />
+                          <span className="font-medium text-main">SMS</span>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
@@ -410,19 +410,19 @@ const NotificationSettings = ({ readOnly = false }) => {
                             onChange={(e) => updateSetting(activeType.key, 'smsEnabled', e.target.checked)}
                             className="sr-only peer"
                           />
-                          <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
+                          <div className="w-9 h-5 bg-background peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--primary-light)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface after:border-border-strong after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-success"></div>
                         </label>
                       </div>
                       {getSetting(activeType.key, 'smsEnabled', true) && (
                         <div className="space-y-3 mt-3">
                           <div>
                             <div className="flex items-center justify-between mb-1">
-                              <label className="block text-sm font-medium text-gray-700">
+                              <label className="block text-sm font-medium text-sub">
                                 SMS Template
                               </label>
                               <button
                                 onClick={() => resetToDefault(activeType.key)}
-                                className="text-xs text-green-600 hover:text-green-700"
+                                className="text-xs text-success hover:text-success"
                               >
                                 Reset to Default
                               </button>
@@ -431,26 +431,26 @@ const NotificationSettings = ({ readOnly = false }) => {
                               value={getSetting(activeType.key, 'smsTemplate', activeType.defaultSmsTemplate)}
                               onChange={(e) => updateSetting(activeType.key, 'smsTemplate', e.target.value)}
                               rows={4}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-sm"
+                              className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-success focus:border-success font-mono text-sm"
                               placeholder="SMS template content (max 160 characters recommended)"
                             />
                             <div className="flex items-center justify-between mt-1">
                               <div className="flex-1">
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-text">
                                   Available variables: {activeType.key === 'user_creation' || activeType.key === 'password_update'
                                     ? '{{name}}, {{username}}, {{password}}, {{role}}, {{loginUrl}}'
                                     : '{{studentName}}, {{admissionNumber}}, {{date}}'}
                                 </p>
                                 {activeType.key === 'attendance_absent' && (
-                                  <p className="text-xs text-amber-600 font-medium mt-1">
+                                  <p className="text-xs text-warning font-medium mt-1">
                                     Note: SMS uses DLT format with {`{#var#}`} placeholders. Variable 1: "your ward", Variable 2: date.
                                   </p>
                                 )}
                               </div>
                               <span className={`text-xs ${
                                 (getSetting(activeType.key, 'smsTemplate', activeType.defaultSmsTemplate) || '').length > 160
-                                  ? 'text-red-600 font-medium'
-                                  : 'text-gray-500'
+                                  ? 'text-danger font-medium'
+                                  : 'text-muted-text'
                               }`}>
                                 {(getSetting(activeType.key, 'smsTemplate', activeType.defaultSmsTemplate) || '').length} chars
                               </span>

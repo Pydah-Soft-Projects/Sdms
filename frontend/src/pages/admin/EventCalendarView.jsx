@@ -99,24 +99,24 @@ const EventCalendarView = () => {
     };
 
     return (
-        <div className="min-h-screen space-y-4 bg-gray-50/50 p-3 sm:p-6">
+        <div className="min-h-screen space-y-4 bg-[var(--background)]/50 p-3 sm:p-6">
             <div className="flex justify-end">
-                <div className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white p-2 shadow-sm sm:w-auto sm:justify-start">
+                <div className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-surface p-2 shadow-sm sm:w-auto sm:justify-start">
                     <button
                         type="button"
                         onClick={() => changeMonth(-1)}
-                        className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+                        className="rounded-lg p-2 text-sub hover:bg-background"
                         aria-label="Previous month"
                     >
                         <ChevronLeft size={18} />
                     </button>
-                    <h1 className="min-w-36 text-center text-sm font-bold text-gray-800">
+                    <h1 className="min-w-36 text-center text-sm font-bold text-main">
                         {currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                     </h1>
                     <button
                         type="button"
                         onClick={() => changeMonth(1)}
-                        className="rounded-lg p-2 text-gray-600 hover:bg-gray-100"
+                        className="rounded-lg p-2 text-sub hover:bg-background"
                         aria-label="Next month"
                     >
                         <ChevronRight size={18} />
@@ -127,7 +127,7 @@ const EventCalendarView = () => {
                             const now = new Date();
                             setCurrentMonth(new Date(now.getFullYear(), now.getMonth(), 1));
                         }}
-                        className="rounded-lg px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-50"
+                        className="rounded-lg px-3 py-2 text-xs font-semibold text-primary hover:bg-[var(--primary-light)]"
                     >
                         Today
                     </button>
@@ -135,16 +135,16 @@ const EventCalendarView = () => {
             </div>
 
             <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(280px,1fr)]">
-                <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm" aria-label="Examination notification calendar">
-                    <div className="grid grid-cols-7 border-b border-gray-200 bg-gray-50">
+                <section className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm" aria-label="Examination notification calendar">
+                    <div className="grid grid-cols-7 border-b border-border bg-background">
                         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                            <div key={day} className="py-2 text-center text-[10px] font-semibold text-gray-500 sm:py-3 sm:text-xs">
+                            <div key={day} className="py-2 text-center text-[10px] font-semibold text-muted-text sm:py-3 sm:text-xs">
                                 {day}
                             </div>
                         ))}
                     </div>
                     {loading ? (
-                        <div className="p-10 text-center text-sm text-gray-500">Loading calendar…</div>
+                        <div className="p-10 text-center text-sm text-muted-text">Loading calendar…</div>
                     ) : (
                         <div className="grid grid-cols-7">
                             {calendarDays.map((cell, index) => (
@@ -155,9 +155,9 @@ const EventCalendarView = () => {
                                             setSelectedDateEvents(cell);
                                         }
                                     }}
-                                    className={`h-28 sm:h-36 border-b border-r border-gray-100 p-1 sm:p-1.5 flex flex-col overflow-hidden transition-colors ${
-                                        cell?.isToday ? 'bg-blue-50/60' : cell ? 'bg-white' : 'bg-gray-50/40'
-                                    } ${cell?.events?.length ? 'cursor-pointer hover:bg-amber-50/20' : ''}`}
+                                    className={`h-28 sm:h-36 border-b border-r border-border p-1 sm:p-1.5 flex flex-col overflow-hidden transition-colors ${
+                                        cell?.isToday ? 'bg-[var(--primary-light)]' : cell ? 'bg-surface' : 'bg-[var(--background)]/40'
+                                    } ${cell?.events?.length ? 'cursor-pointer hover:bg-[var(--warning-light)]' : ''}`}
                                 >
                                     {cell && (
                                         <>
@@ -172,10 +172,10 @@ const EventCalendarView = () => {
                                                     }}
                                                     className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition-all ${
                                                         cell.isToday
-                                                            ? 'bg-blue-600 text-white font-bold shadow-xs'
+                                                            ? 'bg-primary text-white font-bold shadow-xs'
                                                             : cell.events.length > 0
-                                                            ? 'text-gray-900 font-bold hover:bg-blue-100 hover:text-blue-700'
-                                                            : 'text-gray-700'
+                                                            ? 'text-main font-bold hover:bg-[var(--primary-light)] hover:text-primary'
+                                                            : 'text-sub'
                                                     }`}
                                                     title={cell.events.length > 0 ? `Click to view all ${cell.events.length} notifications` : undefined}
                                                 >
@@ -188,7 +188,7 @@ const EventCalendarView = () => {
                                                             e.stopPropagation();
                                                             setSelectedDateEvents(cell);
                                                         }}
-                                                        className="text-[10px] font-bold text-amber-800 bg-amber-100/90 hover:bg-amber-200 border border-amber-200 rounded-md px-1.5 py-0.5 transition"
+                                                        className="text-[10px] font-bold text-warning bg-[var(--warning-light)] hover:bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-md px-1.5 py-0.5 transition"
                                                         title={`View all ${cell.events.length} notifications`}
                                                     >
                                                         {cell.events.length}
@@ -204,7 +204,7 @@ const EventCalendarView = () => {
                                                             e.stopPropagation();
                                                             setSelectedEvent(event);
                                                         }}
-                                                        className="block w-full truncate rounded border border-amber-200 bg-amber-100 px-1 py-1 text-left text-[9px] leading-tight text-amber-800 hover:bg-amber-200 sm:text-[10px] shrink-0"
+                                                        className="block w-full truncate rounded border border-[var(--warning-light)] bg-[var(--warning-light)] px-1 py-1 text-left text-[9px] leading-tight text-warning hover:bg-[var(--warning-light)] sm:text-[10px] shrink-0"
                                                         title={event.title}
                                                     >
                                                         {event.title}
@@ -220,31 +220,31 @@ const EventCalendarView = () => {
                 </section>
 
                 <aside className="space-y-4">
-                    <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm" aria-label="Upcoming examination notifications">
-                        <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-gray-800">
-                            <Clock size={16} className="text-gray-500" /> Upcoming Examinations
+                    <section className="rounded-2xl border border-border bg-surface p-4 shadow-sm" aria-label="Upcoming examination notifications">
+                        <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-main">
+                            <Clock size={16} className="text-muted-text" /> Upcoming Examinations
                         </h2>
                         <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
                             {loading ? (
-                                <p className="py-5 text-center text-sm text-gray-500">Loading examinations…</p>
+                                <p className="py-5 text-center text-sm text-muted-text">Loading examinations…</p>
                             ) : upcomingExams.length === 0 ? (
-                                <p className="py-5 text-center text-sm text-gray-500">No upcoming examination notifications.</p>
+                                <p className="py-5 text-center text-sm text-muted-text">No upcoming examination notifications.</p>
                             ) : upcomingExams.map((event) => (
                                 <button
                                     key={event.id}
                                     type="button"
                                     onClick={() => setSelectedEvent(event)}
-                                    className="w-full rounded-xl border border-gray-200 bg-gray-50 p-3 text-left transition hover:border-blue-200 hover:bg-blue-50/50"
+                                    className="w-full rounded-xl border border-border bg-background p-3 text-left transition hover:border-[var(--primary-light)] hover:bg-[var(--primary-light)]"
                                 >
                                     <div className="flex items-start justify-between gap-2">
-                                        <span className="line-clamp-2 text-xs font-semibold text-gray-800">{event.title}</span>
-                                        <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-800">EXAM</span>
+                                        <span className="line-clamp-2 text-xs font-semibold text-main">{event.title}</span>
+                                        <span className="shrink-0 rounded bg-[var(--warning-light)] px-1.5 py-0.5 text-[9px] font-bold text-warning">EXAM</span>
                                     </div>
-                                    <p className="mt-2 flex items-center gap-1.5 text-[11px] text-gray-500">
+                                    <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted-text">
                                         <CalendarDays size={12} />
                                         {new Date(`${toDateKey(event.event_date)}T00:00:00`).toLocaleDateString()}
                                     </p>
-                                    <p className="mt-2 flex items-center gap-1.5 text-[10px] text-gray-400">
+                                    <p className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-text">
                                         <Users size={12} />
                                         {hasEventTargets(event) ? 'Targeted' : 'All students'}
                                     </p>
@@ -264,15 +264,15 @@ const EventCalendarView = () => {
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="calendar-event-title"
-                        className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+                        className="w-full max-w-xl overflow-hidden rounded-2xl bg-surface shadow-2xl"
                         onClick={(event) => event.stopPropagation()}
                     >
-                        <div className="flex items-center justify-between border-b border-gray-100 p-4">
-                            <h2 id="calendar-event-title" className="text-base font-bold text-gray-900">{selectedEvent.title}</h2>
+                        <div className="flex items-center justify-between border-b border-border p-4">
+                            <h2 id="calendar-event-title" className="text-base font-bold text-main">{selectedEvent.title}</h2>
                             <button
                                 type="button"
                                 onClick={() => setSelectedEvent(null)}
-                                className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
+                                className="rounded-lg p-2 text-muted-text hover:bg-background"
                                 aria-label="Close event details"
                             >
                                 <X size={18} />
@@ -280,11 +280,11 @@ const EventCalendarView = () => {
                         </div>
                         <div className="space-y-4 p-4 sm:p-5">
                             <div className="flex flex-wrap items-center gap-2">
-                                <span className="rounded-md bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+                                <span className="rounded-md bg-[var(--warning-light)] px-2 py-0.5 text-xs font-bold text-warning">
                                     EXAMINATION NOTIFICATION
                                 </span>
-                                <span className="text-xs font-semibold text-gray-500 flex items-center gap-1">
-                                    <CalendarDays size={13} className="text-blue-600" />
+                                <span className="text-xs font-semibold text-muted-text flex items-center gap-1">
+                                    <CalendarDays size={13} className="text-primary" />
                                     {new Date(selectedEvent.event_date).toLocaleDateString()}
                                     {selectedEvent.end_date && toDateKey(selectedEvent.end_date) !== toDateKey(selectedEvent.event_date)
                                         ? ` – ${new Date(selectedEvent.end_date).toLocaleDateString()}`
@@ -292,8 +292,8 @@ const EventCalendarView = () => {
                                     {selectedEvent.start_time ? ` · ${selectedEvent.start_time}` : ''}
                                 </span>
                             </div>
-                            <div className="rounded-xl border border-gray-100 bg-gray-50/80 p-4">
-                                <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
+                            <div className="rounded-xl border border-border bg-[var(--background)]/80 p-4">
+                                <p className="whitespace-pre-wrap text-sm leading-relaxed text-sub">
                                     {selectedEvent.description || 'No description provided.'}
                                 </p>
                             </div>
@@ -312,17 +312,17 @@ const EventCalendarView = () => {
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="day-notifications-title"
-                        className="w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+                        className="w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl"
                         onClick={(event) => event.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 bg-slate-50/80">
+                        <div className="flex items-center justify-between border-b border-border px-5 py-4 bg-[var(--background)]/80">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-base shadow-xs">
+                                <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-base shadow-xs">
                                     {selectedDateEvents.day}
                                 </div>
                                 <div>
-                                    <h2 id="day-notifications-title" className="text-base sm:text-lg font-bold text-gray-900">
+                                    <h2 id="day-notifications-title" className="text-base sm:text-lg font-bold text-main">
                                         {new Date(`${selectedDateEvents.dateKey}T00:00:00`).toLocaleDateString(undefined, {
                                             weekday: 'long',
                                             month: 'long',
@@ -330,7 +330,7 @@ const EventCalendarView = () => {
                                             year: 'numeric'
                                         })}
                                     </h2>
-                                    <p className="text-xs text-gray-500 font-medium">
+                                    <p className="text-xs text-muted-text font-medium">
                                         {selectedDateEvents.events.length} {selectedDateEvents.events.length === 1 ? 'examination notification' : 'examination notifications'}
                                     </p>
                                 </div>
@@ -338,7 +338,7 @@ const EventCalendarView = () => {
                             <button
                                 type="button"
                                 onClick={() => setSelectedDateEvents(null)}
-                                className="rounded-lg p-2 text-gray-500 hover:bg-gray-200/70 hover:text-gray-800 transition"
+                                className="rounded-lg p-2 text-muted-text hover:bg-[var(--background)]/70 hover:text-main transition"
                                 aria-label="Close"
                             >
                                 <X size={20} />
@@ -350,40 +350,40 @@ const EventCalendarView = () => {
                             {selectedDateEvents.events.map((event, idx) => (
                                 <div
                                     key={event.id || idx}
-                                    className="rounded-xl border border-amber-200 bg-amber-50/40 p-4 space-y-2.5 hover:bg-amber-50/70 transition shadow-2xs"
+                                    className="rounded-xl border border-[var(--warning-light)] bg-[var(--warning-light)] p-4 space-y-2.5 hover:bg-[var(--warning-light)] transition shadow-2xs"
                                 >
                                     <div className="flex flex-wrap items-start justify-between gap-2">
-                                        <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-snug">
+                                        <h3 className="text-sm sm:text-base font-bold text-main leading-snug">
                                             {event.title}
                                         </h3>
-                                        <span className="shrink-0 rounded bg-amber-100 border border-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-800 uppercase tracking-wide">
+                                        <span className="shrink-0 rounded bg-[var(--warning-light)] border border-[var(--warning-light)] px-2 py-0.5 text-[10px] font-bold text-warning uppercase tracking-wide">
                                             EXAM
                                         </span>
                                     </div>
 
-                                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 font-medium pt-0.5">
-                                        <span className="flex items-center gap-1 text-slate-700">
-                                            <CalendarDays size={13} className="text-blue-600" />
+                                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-text font-medium pt-0.5">
+                                        <span className="flex items-center gap-1 text-sub">
+                                            <CalendarDays size={13} className="text-primary" />
                                             {new Date(event.event_date).toLocaleDateString()}
                                             {event.end_date && toDateKey(event.end_date) !== toDateKey(event.event_date)
                                                 ? ` – ${new Date(event.end_date).toLocaleDateString()}`
                                                 : ''}
                                         </span>
                                         {event.start_time && (
-                                            <span className="flex items-center gap-1 text-slate-700">
-                                                <Clock size={13} className="text-blue-600" />
+                                            <span className="flex items-center gap-1 text-sub">
+                                                <Clock size={13} className="text-primary" />
                                                 {event.start_time}{event.end_time ? ` – ${event.end_time}` : ''}
                                             </span>
                                         )}
-                                        <span className="flex items-center gap-1 text-slate-500">
-                                            <Users size={13} className="text-slate-400" />
+                                        <span className="flex items-center gap-1 text-muted-text">
+                                            <Users size={13} className="text-muted-text" />
                                             {hasEventTargets(event) ? 'Targeted Students' : 'All Students'}
                                         </span>
                                     </div>
 
                                     {event.description && (
-                                        <div className="rounded-lg bg-white/90 border border-amber-100/90 p-3 mt-1.5">
-                                            <p className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed text-gray-700">
+                                        <div className="rounded-lg bg-[var(--surface)]/90 border border-[var(--warning-light)] p-3 mt-1.5">
+                                            <p className="whitespace-pre-wrap text-xs sm:text-sm leading-relaxed text-sub">
                                                 {event.description}
                                             </p>
                                         </div>
@@ -393,11 +393,11 @@ const EventCalendarView = () => {
                         </div>
 
                         {/* Footer */}
-                        <div className="border-t border-gray-100 px-5 py-3 bg-gray-50/70 flex justify-end">
+                        <div className="border-t border-border px-5 py-3 bg-[var(--background)]/70 flex justify-end">
                             <button
                                 type="button"
                                 onClick={() => setSelectedDateEvents(null)}
-                                className="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold transition"
+                                className="px-4 py-2 rounded-xl bg-background hover:bg-background text-sub text-xs font-bold transition"
                             >
                                 Close
                             </button>

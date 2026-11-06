@@ -109,7 +109,7 @@ const StudentMeritStatusTab = ({
 
   if (!years.length) {
     return (
-      <div className="py-20 flex flex-col items-center gap-3 text-gray-500">
+      <div className="py-20 flex flex-col items-center gap-3 text-muted-text">
         <AlertTriangle size={28} />
         <p>No program years configured for this student&apos;s course/branch.</p>
       </div>
@@ -118,27 +118,27 @@ const StudentMeritStatusTab = ({
 
   return (
     <div className="space-y-5">
-      <div className="bg-white rounded-2xl border border-indigo-100 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-indigo-50 bg-indigo-50/40 flex flex-wrap items-center gap-3">
+      <div className="bg-surface rounded-2xl border border-[var(--primary-light)] shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b border-[var(--primary-light)] bg-[var(--primary-light)] flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <Award size={16} className="text-indigo-600" />
-            <h4 className="text-sm font-bold text-gray-900">Merit Status by Year</h4>
+            <Award size={16} className="text-primary" />
+            <h4 className="text-sm font-bold text-main">Merit Status by Year</h4>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-500 ml-auto">
-            <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100">
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-text ml-auto">
+            <span className="px-2 py-0.5 rounded-full bg-[var(--success-light)] text-success border border-[var(--success-light)]">
               Yes: {summary.yesCount}
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-100">
+            <span className="px-2 py-0.5 rounded-full bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]">
               No: {summary.noCount}
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-gray-50 text-gray-600 border border-gray-200">
+            <span className="px-2 py-0.5 rounded-full bg-background text-sub border border-border">
               Unset: {summary.unsetCount}
             </span>
           </div>
         </div>
 
         {(hasPartialBranch || hasOptionalYear) && (
-          <div className="px-4 py-2.5 bg-amber-50/70 border-b border-amber-100 text-[11px] text-amber-800">
+          <div className="px-4 py-2.5 bg-[var(--warning-light)] border-b border-[var(--warning-light)] text-[11px] text-warning">
             {hasPartialBranch && (
               <p>
                 Branch years are shown for {meta?.student?.branch || student?.branch} (partial-course branch mapping applied).
@@ -153,7 +153,7 @@ const StudentMeritStatusTab = ({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-gray-50 text-left text-[11px] uppercase tracking-wide text-gray-500">
+              <tr className="bg-background text-left text-[11px] uppercase tracking-wide text-muted-text">
                 <th className="px-4 py-2.5 font-bold whitespace-nowrap">Program Year</th>
                 {hasPartialBranch && (
                   <th className="px-4 py-2.5 font-bold whitespace-nowrap">Course Year</th>
@@ -161,11 +161,11 @@ const StudentMeritStatusTab = ({
                 <th className="px-4 py-2.5 font-bold whitespace-nowrap">Academic Year</th>
                 <th className="px-4 py-2.5 font-bold whitespace-nowrap">Merit Status</th>
                 <th className="px-4 py-2.5 font-bold whitespace-nowrap min-w-[220px]">
-                  Remarks <span className="font-normal normal-case text-gray-400">(optional)</span>
+                  Remarks <span className="font-normal normal-case text-muted-text">(optional)</span>
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {years.map((entry) => {
                 const isEditable = !isEditingDisabled && entry.editable !== false;
                 const isCurrent = Number(entry.student_year) === Number(meta?.currentYear || student?.current_year);
@@ -173,29 +173,29 @@ const StudentMeritStatusTab = ({
                 return (
                   <tr
                     key={entry.student_year}
-                    className={isCurrent ? 'bg-indigo-50/40' : 'bg-white'}
+                    className={isCurrent ? 'bg-[var(--primary-light)]' : 'bg-surface'}
                   >
                     <td className="px-4 py-3 align-top">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-900">{entry.label}</span>
+                        <span className="font-semibold text-main">{entry.label}</span>
                         {entry.isOptionalYear && (
-                          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
+                          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--warning-light)] text-warning">
                             Optional
                           </span>
                         )}
                         {isCurrent && (
-                          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700">
+                          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--primary-light)] text-primary">
                             Current
                           </span>
                         )}
                       </div>
                     </td>
                     {hasPartialBranch && (
-                      <td className="px-4 py-3 text-gray-600 align-top">
+                      <td className="px-4 py-3 text-sub align-top">
                         Year {entry.courseYear}
                       </td>
                     )}
-                    <td className="px-4 py-3 text-gray-600 align-top">
+                    <td className="px-4 py-3 text-sub align-top">
                       {entry.academic_year_label || '—'}
                     </td>
                     <td className="px-4 py-3 align-top">
@@ -203,7 +203,7 @@ const StudentMeritStatusTab = ({
                         <select
                           value={entry.merit_status || ''}
                           onChange={(e) => updateYearField(entry.student_year, 'merit_status', e.target.value)}
-                          className="min-w-[120px] rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                          className="min-w-[120px] rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
                         >
                           {MERIT_STATUS_OPTIONS.map((option) => (
                             <option key={option.value || 'unset'} value={option.value}>
@@ -214,10 +214,10 @@ const StudentMeritStatusTab = ({
                       ) : (
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${
                           entry.merit_status === 'yes'
-                            ? 'bg-green-50 text-green-700 border border-green-100'
+                            ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
                             : entry.merit_status === 'no'
-                              ? 'bg-red-50 text-red-700 border border-red-100'
-                              : 'bg-gray-50 text-gray-500 border border-gray-200'
+                              ? 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
+                              : 'bg-background text-muted-text border border-border'
                         }`}>
                           {formatMeritStatusDisplay(entry.merit_status)}
                         </span>
@@ -231,11 +231,11 @@ const StudentMeritStatusTab = ({
                           rows={2}
                           maxLength={1000}
                           placeholder="Optional remarks for this year"
-                          className="w-full min-w-[200px] rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-y"
+                          className="w-full min-w-[200px] rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-main placeholder:text-muted-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] resize-y"
                         />
                       ) : (
-                        <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
-                          {entry.remarks || <span className="text-gray-400">—</span>}
+                        <p className="text-sm text-sub whitespace-pre-wrap break-words">
+                          {entry.remarks || <span className="text-muted-text">—</span>}
                         </p>
                       )}
                     </td>
@@ -253,7 +253,7 @@ const StudentMeritStatusTab = ({
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold shadow-md shadow-indigo-200 hover:bg-indigo-700 disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold shadow-md shadow-primary hover:bg-primary-hover disabled:opacity-60"
           >
             {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
             {saving ? 'Saving...' : 'Save Merit Status'}

@@ -80,7 +80,10 @@ const CertificateBorrowManagement = lazy(() => import('./pages/admin/Certificate
 const StudentDashboard = lazy(() => import('./pages/student/Dashboard'));
 const StudentProfile = lazy(() => import('./pages/student/Profile'));
 const SemesterRegistration = lazy(() => import('./pages/student/SemesterRegistration'));
+const RaiseTicket = lazy(() => import('./pages/student/RaiseTicket'));
+const MyTickets = lazy(() => import('./pages/student/MyTickets'));
 
+const TicketManagement = lazy(() => import('./pages/TicketManagement'));
 const TicketAppRedirect = lazy(() => import('./components/student/TicketAppRedirect'));
 const StudentAnnouncements = lazy(() => import('./pages/student/StudentAnnouncements'));
 const StudentFeedback = lazy(() => import('./pages/student/StudentFeedback'));
@@ -326,7 +329,7 @@ React.useEffect(() => {
             <Route path="reports/sms" element={<SmsReport />} />
             <Route path="reports/scholarship" element={<ScholarshipReport />} />
             <Route path="reports/certificates" element={<CertificatesReport />} />
-            <Route path="tickets" element={<TicketAppRedirect redirectPath="/task-management" />} />
+            <Route path="tickets" element={<TicketManagement />} />
             <Route path="task-management" element={<TaskManagement />} />
             <Route path="announcements" element={<Announcements />} />
             <Route path="student-history" element={<StudentHistory />} />
@@ -367,8 +370,10 @@ React.useEffect(() => {
             <Route path="profile" element={<StudentProfile />} />
 
             <Route path="semester-registration" element={<SemesterRegistration />} />
-            <Route path="raise-ticket" element={<TicketAppRedirect />} />
-            <Route path="my-tickets" element={<TicketAppRedirect />} />
+            <Route path="raise-ticket" element={<RaiseTicket />} />
+            <Route path="my-tickets" element={<MyTickets />} />
+            <Route path="maintenance" element={<MyTickets />} />
+            <Route path="tickets" element={<MyTickets />} />
             <Route path="announcements" element={<StudentAnnouncements />} />
             <Route path="events" element={<StudentCalendar />} />
             <Route path="attendance" element={<StudentAttendance />} />

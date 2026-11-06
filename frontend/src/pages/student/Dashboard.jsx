@@ -9,7 +9,6 @@ import api from '../../config/api';
 import { serviceService } from '../../services/serviceService';
 import clubService from '../../services/clubService';
 import { toast } from 'react-hot-toast';
-import { getTicketAppUrl } from '../../utils/ticketAppUrl';
 import { navigateToCrtApp } from '../../utils/crtAppUrl';
 import EventPoster from '../../components/EventPoster';
 import {
@@ -28,7 +27,7 @@ import {
 } from 'react-icons/ri';
 
 const Dashboard = () => {
-    const { user, token } = useAuthStore(); // Get token for SSO
+    const { user } = useAuthStore();
     const navigate = useNavigate();
     const [studentData, setStudentData] = useState(null);
 
@@ -38,7 +37,6 @@ const Dashboard = () => {
         return layoutSettings[key] !== false;
     };
 
-    const ticketAppUrl = useMemo(() => getTicketAppUrl('/student/my-tickets'), [token]);
     const [loading, setLoading] = useState(!user?.admission_number);
 
     // Additional Data States
@@ -833,8 +831,7 @@ const Dashboard = () => {
             {
                 key: 'my-tickets',
                 label: 'Maintenance',
-                isExternal: true,
-                href: ticketAppUrl,
+                path: '/student/my-tickets',
                 icon: RiTicketLine,
                 iconBg: 'bg-[#dcfce7]',
                 iconColor: 'text-[#16a34a]',
@@ -886,7 +883,7 @@ const Dashboard = () => {
                 enabled: isEnabled('my-documents')
             }
         ].filter(item => item.enabled);
-    }, [layoutSettings, ticketAppUrl, hasInternship]);
+    }, [layoutSettings, hasInternship]);
 
     // Helper function to truncate content to 1-2 lines
     const truncateContent = (text, maxLength = 150) => {
@@ -1876,19 +1873,19 @@ const Dashboard = () => {
                                         <Users size={16} className="text-sky-600" />
                                         Help Desk
                                     </h3>
-                                    <a href={ticketAppUrl} className="text-sky-700 hover:bg-sky-50 p-1 rounded-lg">
+                                    <Link to="/student/my-tickets" className="text-sky-700 hover:bg-sky-50 p-1 rounded-lg">
                                         <ArrowRight size={14} />
-                                    </a>
+                                    </Link>
                                 </div>
                                 <p className="text-xs font-bold text-slate-700">Need Assistance?</p>
                                 <p className="text-xs text-slate-400 mt-0.5">Submit a ticket for technical or campus support.</p>
                             </div>
-                            <a
-                                href={ticketAppUrl}
+                            <Link
+                                to="/student/my-tickets"
                                 className="w-full mt-3 py-2 bg-sky-500 text-white text-center font-bold rounded-xl hover:bg-sky-600 transition text-xs uppercase tracking-wider"
                             >
-                                Open Ticket
-                            </a>
+                                Raise Complaint
+                            </Link>
                         </div>
                     )}
 

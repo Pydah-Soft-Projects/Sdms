@@ -24,6 +24,11 @@ router.post(
   ticketController.submitFeedback
 );
 
+router.post(
+  '/:id/reopen',
+  ticketController.reopenStudentTicket
+);
+
 // Admin routes - require ticket management permission
 router.get(
   '/',
@@ -62,4 +67,3 @@ router.post(
 );
 
 module.exports = router;
-

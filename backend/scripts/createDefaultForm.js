@@ -4,6 +4,20 @@ const QRCode = require('qrcode');
 
 const createDefaultForm = async () => {
   try {
+    const [tables] = await masterPool.query(
+      `SELECT 1
+       FROM information_schema.tables
+       WHERE table_schema = DATABASE() AND table_name = 'forms'
+       LIMIT 1`
+    );
+
+    if (tables.length === 0) {
+      console.warn(
+        'Skipping default student form creation: the forms table does not exist in the configured database. Initialize the student database schema to enable registration forms.'
+      );
+      return;
+    }
+
     // Check if the default student form already exists
     const [forms] = await masterPool.query(
       'SELECT form_id FROM forms WHERE form_name = ? LIMIT 1',
@@ -67,6 +81,7 @@ const createDefaultForm = async () => {
 
   } catch (error) {
     console.error('Error creating default form:', error);
+    throw error;
   }
 };
 

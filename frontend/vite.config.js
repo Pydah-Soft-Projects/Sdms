@@ -9,7 +9,14 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-    host: true // Expose to network
+    host: true, // Expose to network
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
   build: {
     outDir: 'dist',

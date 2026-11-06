@@ -256,6 +256,7 @@ exports.unifiedLogin = async (req, res) => {
         const token = jwt.sign({
           id: studentCred.student_id,
           admissionNumber: studentCred.admission_number,
+          name: s.student_name,
           pinNo: s.pin_no || studentCred.username,
           role: 'student',
           college_id: s.college_id,
@@ -667,9 +668,11 @@ exports.createSSOSession = async (req, res) => {
         {
           id: studentCred.student_id,
           admissionNumber: studentCred.admission_number,
+          name: s.student_name,
           role: 'student',
           college_id: s.college_id,
-          branch_id: s.branch_id
+          branch_id: s.branch_id,
+          college: s.college
         },
         process.env.JWT_SECRET,
         { expiresIn: '24h' }

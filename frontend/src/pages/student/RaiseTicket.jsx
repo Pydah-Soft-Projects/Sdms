@@ -3,114 +3,57 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
   Ticket,
-  Upload,
-  X,
   AlertCircle,
-  CheckCircle,
-  Camera,
   Sparkles,
   Plus,
   MapPin
 } from 'lucide-react';
 import api from '../../config/api';
+import { maintenanceApiUrl } from '../../config/maintenanceApi';
+import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
 
 import { motion } from 'framer-motion';
 import { SkeletonBox } from '../../components/SkeletonLoader';
 
-const DEFAULT_COLLEGES = [
-  { id: '1', name: 'Pydah College of Engineering', code: 'PCE' },
-  { id: '2', name: 'Pydah Degree College', code: 'PDC' },
-  { id: '3', name: 'Pydah College of Pharmacy', code: 'PCP' },
-  { id: '4', name: 'Pydah College of Education', code: 'PCOE' },
-  { id: '5', name: 'Pydah Polytechnic', code: 'POLY' }
-];
-
 const RaiseTicket = () => {
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
   const [formData, setFormData] = useState({
     category_id: '',
     sub_category_id: '',
-    college_id: '',
     block_no: '',
     floor_no: '',
     room_no: '',
     title: '',
-    description: '',
-    photo: null
+    description: ''
   });
-  const [photoPreview, setPhotoPreview] = useState(null);
   const queryClient = useQueryClient();
 
   // Fetch active categories
-  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
+  const {
+    data: categoriesData,
+    isLoading: categoriesLoading,
+    isError: categoriesError,
+    error: categoriesRequestError,
+    refetch: refetchCategories
+  } = useQuery({
     queryKey: ['complaint-categories-active'],
     queryFn: async () => {
-      const response = await api.get('/complaint-categories/active');
+      const response = await api.get(maintenanceApiUrl('/complaint-categories/active'));
       return response.data?.data || [];
     }
   });
 
-  // Fetch active colleges for location dropdown
-  const { data: collegesData } = useQuery({
-    queryKey: ['colleges-active'],
-    queryFn: async () => {
-      try {
-        const response = await api.get('/colleges/public');
-        return response.data?.data || [];
-      } catch (_) {
-        try {
-          const response = await api.get('/colleges/active');
-          return response.data?.data || [];
-        } catch (err) {
-          return [];
-        }
-      }
-    }
-  });
-
-  const collegesList = (collegesData && collegesData.length > 0) ? collegesData : DEFAULT_COLLEGES;
-
   // Create ticket mutation
   const createMutation = useMutation({
     mutationFn: async (formDataToSend) => {
-      const formDataObj = new FormData();
-      formDataObj.append('category_id', formDataToSend.category_id);
-      if (formDataToSend.sub_category_id) {
-        formDataObj.append('sub_category_id', formDataToSend.sub_category_id);
-      }
-      if (formDataToSend.college_id) {
-        formDataObj.append('college_id', formDataToSend.college_id);
-        const selectedCol = collegesList.find(c => String(c.id) === String(formDataToSend.college_id));
-        if (selectedCol) {
-          formDataObj.append('college_name', selectedCol.name);
-        }
-      }
-      if (formDataToSend.block_no) {
-        formDataObj.append('block_no', formDataToSend.block_no);
-      }
-      if (formDataToSend.floor_no) {
-        formDataObj.append('floor_no', formDataToSend.floor_no);
-      }
-      if (formDataToSend.room_no) {
-        formDataObj.append('room_no', formDataToSend.room_no);
-      }
-      formDataObj.append('title', formDataToSend.title || '');
-      formDataObj.append('description', formDataToSend.description || '');
-      if (formDataToSend.photo) {
-        formDataObj.append('photo', formDataToSend.photo);
-      }
-
-      const response = await api.post('/tickets', formDataObj, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await api.post(maintenanceApiUrl('/tickets'), formDataToSend);
       return response.data;
     },
     onSuccess: (data) => {
       toast.success('Ticket raised successfully!');
-      queryClient.invalidateQueries(['tickets']);
+      queryClient.invalidateQueries({ queryKey: ['student-tickets'] });
       navigate('/student/my-tickets');
     },
     onError: (error) => {
@@ -127,27 +70,6 @@ const RaiseTicket = () => {
       category_id: categoryId,
       sub_category_id: '' // Reset sub-category when main category changes
     });
-  };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('Photo size must be less than 5MB');
-        return;
-      }
-      setFormData({ ...formData, photo: file });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removePhoto = () => {
-    setFormData({ ...formData, photo: null });
-    setPhotoPreview(null);
   };
 
   const handleSubmit = (e) => {
@@ -198,6 +120,22 @@ const RaiseTicket = () => {
     );
   }
 
+  if (categoriesError) {
+    return (
+      <div role="alert" className="max-w-3xl mx-auto rounded-2xl border border-red-200 bg-red-50 p-6 text-red-800">
+        <h1 className="text-lg font-bold">Complaint categories could not be loaded</h1>
+        <p className="mt-2 text-sm">{categoriesRequestError.response?.data?.message || categoriesRequestError.message}</p>
+        <button
+          type="button"
+          onClick={() => refetchCategories()}
+          className="mt-4 rounded-lg bg-red-700 px-4 py-2 text-sm font-bold text-white hover:bg-red-800"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -213,10 +151,10 @@ const RaiseTicket = () => {
             </div>
             Support Terminal
           </h1>
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] items-center flex gap-2 ml-14">
+          <div className="text-slate-400 font-bold uppercase tracking-widest text-[10px] items-center flex gap-2 ml-14">
             <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
             Dispatching queries to infrastructure management
-          </p>
+          </div>
         </div>
       </div>
 
@@ -282,23 +220,14 @@ const RaiseTicket = () => {
             <span className="text-[10px] text-slate-400 font-medium">(Pinpoint issue location)</span>
           </div>
 
-          {/* College Dropdown */}
+          {/* Student scope is resolved by the backend from the authenticated student's record. */}
           <div>
             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">
-              College <span className="text-slate-300 text-[8px] italic ml-1">(Optional)</span>
+              College <span className="text-slate-300 text-[8px] italic ml-1">(From student details)</span>
             </label>
-            <select
-              value={formData.college_id}
-              onChange={(e) => setFormData({ ...formData, college_id: e.target.value })}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-50/50 transition-all outline-none font-medium appearance-none text-xs"
-            >
-              <option value="">Select College</option>
-              {collegesList.map((col) => (
-                <option key={col.id} value={col.id}>
-                  {col.name} {col.code ? `(${col.code})` : ''}
-                </option>
-              ))}
-            </select>
+            <div className="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-xs font-medium text-slate-600">
+              {user?.college || user?.college_name || 'Not available in student details'}
+            </div>
           </div>
 
           {/* Block, Floor, Room Grid */}
@@ -373,48 +302,6 @@ const RaiseTicket = () => {
           />
         </div>
 
-        {/* Photo Upload */}
-        <div className="relative z-10">
-          <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 px-1">
-            Visual Documentation <span className="text-slate-300 text-[8px] italic ml-2">(Optional)</span>
-          </label>
-          {!photoPreview ? (
-            <div className="group border-2 border-dashed border-slate-200 rounded-[2rem] p-12 text-center hover:border-indigo-400 hover:bg-indigo-50/30 transition-all cursor-pointer bg-slate-50/50">
-              <input
-                type="file"
-                id="photo-upload"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                className="hidden"
-              />
-              <label htmlFor="photo-upload" className="cursor-pointer block">
-                <div className="w-20 h-20 bg-white shadow-md rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all">
-                  <Camera className="text-indigo-600" size={36} />
-                </div>
-                <p className="text-lg text-slate-900 font-black mb-1">Upload Visual Proof</p>
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest italic">JPG, PNG up to 5MB</p>
-              </label>
-            </div>
-          ) : (
-            <div className="relative group overflow-hidden rounded-3xl border-2 border-blue-100 ring-8 ring-blue-50/50">
-              <img
-                src={photoPreview}
-                alt="Preview"
-                className="w-full max-h-72 object-cover transition-transform group-hover:scale-105 duration-500"
-              />
-              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <button
-                  type="button"
-                  onClick={removePhoto}
-                  className="p-3 bg-red-600 text-white rounded-2xl hover:bg-red-700 shadow-xl transform transition-all active:scale-90"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Submit Button */}
         <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 relative z-10">
           <button
@@ -430,7 +317,7 @@ const RaiseTicket = () => {
             ) : (
               <>
                 <Sparkles size={22} className="group-hover:animate-pulse text-blue-200" />
-                <span>Submit Ticket</span>
+                <span>Submit Complaint</span>
                 <Plus size={22} className="transition-transform group-hover:rotate-90" />
               </>
             )}
@@ -480,4 +367,3 @@ const RaiseTicket = () => {
 };
 
 export default RaiseTicket;
-

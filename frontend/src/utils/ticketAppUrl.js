@@ -69,5 +69,6 @@ export const getTicketAppUrl = (path = '/student/my-tickets') => {
 };
 
 export const navigateToTicketApp = (path = '/student/my-tickets') => {
-  window.location.href = getTicketAppUrl(path);
+  const internalPath = path.startsWith('/') ? path : `/${path}`;
+  window.location.href = internalPath;
 };

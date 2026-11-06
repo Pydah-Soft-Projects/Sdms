@@ -55,7 +55,6 @@ import NotificationPermissionModal from '../NotificationPermissionModal';
 import InstallPrompt from '../PWA/InstallPrompt';
 import { getSubscriptionStatus, registerServiceWorker, subscribeUser } from '../../services/pushService';
 import RegistrationPendingModal from '../RegistrationPendingModal';
-import { getTicketAppUrl } from '../../utils/ticketAppUrl';
 import { resolveRegistrationBranchYear } from '../../config/registrationBranchYear';
 import { computeRegistrationStageDisplays, isRegistrationPortalUnlocked } from '../../config/registrationStages.jsx';
 import TopHeaderBar from '../student/TopHeaderBar';
@@ -400,7 +399,7 @@ const StudentLayout = ({ children }) => {
         { icon: RiFileList3Line, activeIcon: RiFileList3Fill, label: 'Sem Registration', path: '/student/semester-registration' },
         { icon: RiServiceLine, activeIcon: RiServiceFill, label: 'Services', path: '/student/services' },
         { icon: RiBook2Line, activeIcon: RiBook2Fill, label: 'Library', path: '/student/library' },
-        { icon: RiTicketLine, activeIcon: RiTicketFill, label: 'Maintenance', path: '/student/my-tickets', isExternal: true, isTicketApp: true },
+        { icon: RiTicketLine, activeIcon: RiTicketFill, label: 'Maintenance', path: '/student/my-tickets' },
         { icon: RiBusLine, activeIcon: RiBusFill, label: 'Transport', path: '/student/transport' },
         { icon: RiWallet3Line, activeIcon: RiWallet3Fill, label: 'Fee Management', path: '/student/fees' },
         { icon: RiAwardLine, activeIcon: RiAwardFill, label: 'Scholarship', path: '/student/scholarship' },
@@ -527,7 +526,7 @@ const StudentLayout = ({ children }) => {
                             ) : item.isExternal ? (
                                 <a
                                     key={`${item.path}-${index}`}
-                                    href={item.isTicketApp ? getTicketAppUrl(item.path) : item.path}
+                                    href={item.path}
                                     className={`
                                       relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] font-bold transition-all duration-200 group
                                       ${isBirthday ? 'text-gray-500 hover:bg-amber-50 hover:text-amber-700' : 'text-gray-500 hover:bg-sky-100 hover:text-sky-700'}

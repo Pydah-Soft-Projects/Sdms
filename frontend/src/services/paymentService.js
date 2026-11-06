@@ -9,16 +9,33 @@ const loadPpgSdk = () => {
       return resolve(window.PPG);
     }
 
-    const scriptSrc = import.meta.env.VITE_PPG_SDK_URL || 'http://localhost:5000/sdk/ppg.js';
-    const existing = document.querySelector('script[src*="ppg.js"]');
+    const scriptSrc = import.meta.env.VITE_PPG_SDK_URL;
+    if (!scriptSrc) {
+      return reject(new Error('Payment checkout is not configured. Set VITE_PPG_SDK_URL to the hosted PPG SDK.'));
+    }
+    let sdkUrl;
+    try {
+      sdkUrl = new URL(scriptSrc, window.location.href);
+    } catch {
+      return reject(new Error('VITE_PPG_SDK_URL must be a valid URL.'));
+    }
+    if (import.meta.env.PROD && /^(localhost|127(?:\.\d{1,3}){3}|\[::1\])$/i.test(sdkUrl.hostname)) {
+      return reject(new Error('Payment checkout cannot use a localhost SDK URL in production. Configure VITE_PPG_SDK_URL with the hosted HTTPS SDK.'));
+    }
+
+    const existing = Array.from(document.querySelectorAll('script[src]'))
+      .find((script) => script.src === sdkUrl.href);
     if (existing) {
+      if (window.PPG && typeof window.PPG.openCheckout === 'function') {
+        return resolve(window.PPG);
+      }
       existing.addEventListener('load', () => resolve(window.PPG));
       existing.addEventListener('error', (err) => reject(err));
-      if (window.PPG) return resolve(window.PPG);
+      return;
     }
 
     const script = document.createElement('script');
-    script.src = scriptSrc;
+    script.src = sdkUrl.href;
     script.async = true;
     script.onload = () => resolve(window.PPG);
     script.onerror = () => reject(new Error('Failed to load PPG Drop-in Checkout SDK'));

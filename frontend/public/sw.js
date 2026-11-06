@@ -1,20 +1,29 @@
 // Basic PWA Requirements
 self.addEventListener('install', (event) => {
-    // self.skipWaiting();
+    event.waitUntil(self.skipWaiting());
     console.log('Service Worker installing.');
 });
 
 self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
     console.log('Service Worker activating.');
 });
 
 // A simple fetch handler is required for PWA install criteria
 self.addEventListener('fetch', (event) => {
-    // For now, just a simple network-only strategy or pass-through
-    // This satisfies the PWA requirement "Site works offline" check (technically needs to return 200, 
-    // but for installability heuristic, having the handler is the first step. 
-    // Ideally we should cache some assets, but user didn't ask for full offline mode yet.)
-    event.respondWith(fetch(event.request));
+    const requestUrl = new URL(event.request.url);
+    if (requestUrl.origin !== self.location.origin) {
+        return;
+    }
+
+    event.respondWith(
+        fetch(event.request).catch(() =>
+            new Response('Network unavailable', {
+                status: 503,
+                statusText: 'Service Unavailable'
+            })
+        )
+    );
 });
 
 self.addEventListener('push', function (event) {

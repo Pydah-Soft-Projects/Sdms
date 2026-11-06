@@ -1,16 +1,32 @@
-const { masterPool } = require('../config/database');
+const { maintenancePool, masterPool } = require('../config/database');
+
+/**
+ * Execute a query targeting maintenance_db.categories, falling back to student_database.complaint_categories
+ */
+const queryCategories = async (queryWithCategories, queryWithComplaintCategories, params = []) => {
+  const pool = maintenancePool || masterPool;
+  try {
+    return await pool.query(queryWithCategories, params);
+  } catch (err) {
+    if (err.code === 'ER_NO_SUCH_TABLE' || err.code === 'ER_BAD_DB_ERROR') {
+      return await masterPool.query(queryWithComplaintCategories, params);
+    }
+    throw err;
+  }
+};
 
 /**
  * Get all complaint categories (with sub-categories)
  */
 const getCategories = async (req, res) => {
   try {
-    const [categories] = await masterPool.query(
-      `SELECT 
-        id, name, description, parent_id, is_active, display_order,
-        created_at, updated_at
-      FROM complaint_categories
-      ORDER BY display_order ASC, name ASC`
+    const [categories] = await queryCategories(
+      `SELECT id, name, description, parent_id, is_active, display_order, created_at, updated_at
+       FROM categories
+       ORDER BY display_order ASC, name ASC`,
+      `SELECT id, name, description, parent_id, is_active, display_order, created_at, updated_at
+       FROM complaint_categories
+       ORDER BY display_order ASC, name ASC`
     );
 
     // Organize categories into hierarchy
@@ -53,13 +69,15 @@ const getCategory = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [categories] = await masterPool.query(
-      `SELECT 
-        id, name, description, parent_id, is_active, display_order,
-        created_at, updated_at
-      FROM complaint_categories
-      WHERE id = ? OR parent_id = ?
-      ORDER BY display_order ASC, name ASC`,
+    const [categories] = await queryCategories(
+      `SELECT id, name, description, parent_id, is_active, display_order, created_at, updated_at
+       FROM categories
+       WHERE id = ? OR parent_id = ?
+       ORDER BY display_order ASC, name ASC`,
+      `SELECT id, name, description, parent_id, is_active, display_order, created_at, updated_at
+       FROM complaint_categories
+       WHERE id = ? OR parent_id = ?
+       ORDER BY display_order ASC, name ASC`,
       [id, id]
     );
 
@@ -106,7 +124,8 @@ const createCategory = async (req, res) => {
 
     // If parent_id is provided, verify it exists and is a main category
     if (parent_id) {
-      const [parent] = await masterPool.query(
+      const [parent] = await queryCategories(
+        'SELECT id, parent_id FROM categories WHERE id = ?',
         'SELECT id, parent_id FROM complaint_categories WHERE id = ?',
         [parent_id]
       );
@@ -126,18 +145,24 @@ const createCategory = async (req, res) => {
       }
     }
 
-    const [result] = await masterPool.query(
-      `INSERT INTO complaint_categories (name, description, parent_id, display_order)
-       VALUES (?, ?, ?, ?)`,
-      [
-        name.trim(),
-        description || null,
-        parent_id || null,
-        display_order || 0
-      ]
-    );
+    const pool = maintenancePool || masterPool;
+    let result;
+    try {
+      [result] = await pool.query(
+        `INSERT INTO categories (name, description, parent_id, display_order, is_active, requires_approval, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 1, 0, NOW(), NOW())`,
+        [name.trim(), description || null, parent_id || null, display_order || 0]
+      );
+    } catch (e) {
+      [result] = await masterPool.query(
+        `INSERT INTO complaint_categories (name, description, parent_id, display_order)
+         VALUES (?, ?, ?, ?)`,
+        [name.trim(), description || null, parent_id || null, display_order || 0]
+      );
+    }
 
-    const [newCategory] = await masterPool.query(
+    const [newCategory] = await queryCategories(
+      'SELECT * FROM categories WHERE id = ?',
       'SELECT * FROM complaint_categories WHERE id = ?',
       [result.insertId]
     );
@@ -165,8 +190,8 @@ const updateCategory = async (req, res) => {
     const { id } = req.params;
     const { name, description, parent_id, is_active, display_order } = req.body;
 
-    // Check if category exists
-    const [existing] = await masterPool.query(
+    const [existing] = await queryCategories(
+      'SELECT id, parent_id FROM categories WHERE id = ?',
       'SELECT id, parent_id FROM complaint_categories WHERE id = ?',
       [id]
     );
@@ -178,35 +203,12 @@ const updateCategory = async (req, res) => {
       });
     }
 
-    // If changing parent_id, validate
-    if (parent_id !== undefined && parent_id !== existing[0].parent_id) {
-      if (parent_id) {
-        const [parent] = await masterPool.query(
-          'SELECT id, parent_id FROM complaint_categories WHERE id = ?',
-          [parent_id]
-        );
-
-        if (parent.length === 0) {
-          return res.status(400).json({
-            success: false,
-            message: 'Parent category not found'
-          });
-        }
-
-        if (parent[0].parent_id) {
-          return res.status(400).json({
-            success: false,
-            message: 'Cannot move to nested sub-category (only 2 levels allowed)'
-          });
-        }
-
-        // Prevent circular reference
-        if (parseInt(parent_id) === parseInt(id)) {
-          return res.status(400).json({
-            success: false,
-            message: 'Category cannot be its own parent'
-          });
-        }
+    if (parent_id !== undefined && parent_id !== null) {
+      if (parseInt(parent_id) === parseInt(id)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Category cannot be its own parent'
+        });
       }
     }
 
@@ -227,7 +229,7 @@ const updateCategory = async (req, res) => {
     }
     if (is_active !== undefined) {
       updateFields.push('is_active = ?');
-      updateValues.push(is_active);
+      updateValues.push(is_active ? 1 : 0);
     }
     if (display_order !== undefined) {
       updateFields.push('display_order = ?');
@@ -242,15 +244,21 @@ const updateCategory = async (req, res) => {
     }
 
     updateValues.push(id);
+    const pool = maintenancePool || masterPool;
+    try {
+      await pool.query(
+        `UPDATE categories SET ${updateFields.join(', ')}, updated_at = NOW() WHERE id = ?`,
+        updateValues
+      );
+    } catch {
+      await masterPool.query(
+        `UPDATE complaint_categories SET ${updateFields.join(', ')} WHERE id = ?`,
+        updateValues
+      );
+    }
 
-    await masterPool.query(
-      `UPDATE complaint_categories 
-       SET ${updateFields.join(', ')}
-       WHERE id = ?`,
-      updateValues
-    );
-
-    const [updated] = await masterPool.query(
+    const [updated] = await queryCategories(
+      'SELECT * FROM categories WHERE id = ?',
       'SELECT * FROM complaint_categories WHERE id = ?',
       [id]
     );
@@ -277,8 +285,8 @@ const deleteCategory = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if category exists
-    const [existing] = await masterPool.query(
+    const [existing] = await queryCategories(
+      'SELECT id FROM categories WHERE id = ?',
       'SELECT id FROM complaint_categories WHERE id = ?',
       [id]
     );
@@ -290,8 +298,8 @@ const deleteCategory = async (req, res) => {
       });
     }
 
-    // Check if category has sub-categories
-    const [subCategories] = await masterPool.query(
+    const [subCategories] = await queryCategories(
+      'SELECT id FROM categories WHERE parent_id = ?',
       'SELECT id FROM complaint_categories WHERE parent_id = ?',
       [id]
     );
@@ -299,24 +307,16 @@ const deleteCategory = async (req, res) => {
     if (subCategories.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot delete category with sub-categories. Please delete sub-categories first.'
+        message: 'Cannot delete category that has sub-categories. Please delete or reassign sub-categories first.'
       });
     }
 
-    // Check if category is used in any tickets
-    const [tickets] = await masterPool.query(
-      'SELECT id FROM tickets WHERE category_id = ? OR sub_category_id = ? LIMIT 1',
-      [id, id]
-    );
-
-    if (tickets.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot delete category that is used in tickets'
-      });
+    const pool = maintenancePool || masterPool;
+    try {
+      await pool.query('DELETE FROM categories WHERE id = ?', [id]);
+    } catch {
+      await masterPool.query('DELETE FROM complaint_categories WHERE id = ?', [id]);
     }
-
-    await masterPool.query('DELETE FROM complaint_categories WHERE id = ?', [id]);
 
     res.json({
       success: true,
@@ -333,16 +333,20 @@ const deleteCategory = async (req, res) => {
 };
 
 /**
- * Get categories for student portal (only active, with sub-categories)
+ * Get active categories for student portal (with sub-categories)
+ * Fetches directly from maintenance_db.categories
  */
 const getActiveCategories = async (req, res) => {
   try {
-    const [categories] = await masterPool.query(
-      `SELECT 
-        id, name, description, parent_id, is_active, display_order
-      FROM complaint_categories
-      WHERE is_active = TRUE
-      ORDER BY display_order ASC, name ASC`
+    const [categories] = await queryCategories(
+      `SELECT id, name, description, parent_id, is_active, display_order
+       FROM categories
+       WHERE is_active = 1
+       ORDER BY display_order ASC, name ASC`,
+      `SELECT id, name, description, parent_id, is_active, display_order
+       FROM complaint_categories
+       WHERE is_active = 1
+       ORDER BY display_order ASC, name ASC`
     );
 
     // Organize categories into hierarchy
@@ -375,7 +379,7 @@ const getActiveCategories = async (req, res) => {
     console.error('Error fetching active categories:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching complaint categories',
+      message: 'Error fetching active complaint categories',
       error: error.message
     });
   }
@@ -389,4 +393,3 @@ module.exports = {
   deleteCategory,
   getActiveCategories
 };
-

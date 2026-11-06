@@ -182,10 +182,38 @@ admissionsPoolRaw.on('connection', (connection) => {
   connection.query('SET time_zone = "+05:30"');
 });
 
+// Maintenance DB connection pool (Campus Maintenance, Categories & Complaints)
+const isMaintenanceConfigured = Boolean(
+  (process.env.MAINTENANCE_DB_HOST || process.env.DB_HOST) &&
+  (process.env.MAINTENANCE_DB_NAME || 'maintenance_db')
+);
+
+let maintenancePoolRaw = null;
+
+if (isMaintenanceConfigured) {
+  maintenancePoolRaw = mysql.createPool({
+    host: process.env.MAINTENANCE_DB_HOST || process.env.DB_HOST || 'localhost',
+    user: process.env.MAINTENANCE_DB_USER || process.env.DB_USER || 'root',
+    password: process.env.MAINTENANCE_DB_PASSWORD || process.env.DB_PASSWORD || '',
+    database: process.env.MAINTENANCE_DB_NAME || 'maintenance_db',
+    port: parseInt(process.env.MAINTENANCE_DB_PORT || process.env.DB_PORT, 10) || 3306,
+    connectionLimit: 15,
+    ...sharedPoolOptions,
+    ssl: ((process.env.MAINTENANCE_DB_SSL || process.env.DB_SSL) === 'true') ? {
+      rejectUnauthorized: false,
+    } : false,
+  });
+
+  maintenancePoolRaw.on('connection', (connection) => {
+    connection.query('SET time_zone = "+05:30"');
+  });
+}
+
 // Promise-based pools with connection-lost retry
 const masterPool = wrapPoolWithRetry(masterPoolRaw.promise());
 const stagingPool = wrapPoolWithRetry(stagingPoolRaw.promise());
 const admissionsPool = wrapPoolWithRetry(admissionsPoolRaw.promise());
+const maintenancePool = maintenancePoolRaw ? wrapPoolWithRetry(maintenancePoolRaw.promise()) : masterPool;
 
 // Test connections with retry logic
 const testConnection = async (retries = 3) => {
@@ -231,6 +259,15 @@ const testConnection = async (retries = 3) => {
     }
   }
 
+  // Test and log Maintenance DB connectivity
+  try {
+    const mConn = await maintenancePool.getConnection();
+    mConn.release();
+    console.log(`🔧 Maintenance DB Connected: ${process.env.MAINTENANCE_DB_NAME || 'maintenance_db'} @ ${process.env.MAINTENANCE_DB_HOST || process.env.DB_HOST || 'localhost'}`);
+  } catch (err) {
+    console.warn(`⚠️  Maintenance DB Connection Failed: ${err.message} [Target: ${process.env.MAINTENANCE_DB_NAME || 'maintenance_db'}]`);
+  }
+
   return dbConnected;
 };
 
@@ -240,6 +277,7 @@ module.exports = {
   academicPool,
   examPool,
   admissionsPool,
+  maintenancePool,
   // Backward compat: default pool points to master
   pool: masterPool,
   testConnection

@@ -1178,15 +1178,12 @@ const generateTemplatedCertificate = async (
 
   const contentWidth = pageWidth - paddingLeft - paddingRight;
 
-  // Calculate header and footer heights with validation
+  // Calculate header height with validation (footer is completely removed)
   const headerHeight = Math.min(
     Math.max(parseInt(template.header_height) || 80, 50),
     150,
   );
-  const footerHeight = Math.min(
-    Math.max(parseInt(template.footer_height) || 60, 40),
-    120,
-  );
+  const footerHeight = 0;
 
   // Set initial Y position (will be adjusted after header is rendered)
   let currentY = paddingTop;
@@ -1230,8 +1227,9 @@ const generateTemplatedCertificate = async (
     currentY = paddingTop + 10;
   }
 
-  // Calculate maximum Y position (content should not overlap footer)
-  const maxContentY = pageHeight - footerHeight - 15;
+  // Calculate maximum Y position (footer removed; maximize space up to bottom padding)
+  const hasFooter = false;
+  const maxContentY = pageHeight - paddingBottom - 10;
 
   // Helper function to render text section with justify alignment and dynamic formatting
   const renderSection = (content, yPosition, additionalSpacing = 15) => {
@@ -1240,24 +1238,137 @@ const generateTemplatedCertificate = async (
     const rawLines = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
     let y = yPosition;
 
-    rawLines.forEach((line) => {
-      // 1. Sanitize tabs & unprintable chars that corrupt PDFKit (turns into TM symbols)
-      const sanitized = line.replace(/[\t\r]/g, " ");
+    // Validate font size & line spacing
+    const fontSize = Math.min(
+      Math.max(parseInt(template.font_size) || 12, 8),
+      24,
+    );
+    const spacingMultiplier = parseFloat(template.line_spacing) || 1.6;
+    const lineGap = Math.max((spacingMultiplier - 1.0) * fontSize * 0.8, 2);
+    let emptyLineHeight = Math.max(Math.round(fontSize * spacingMultiplier * 0.8), 12);
 
-      if (sanitized.trim() === "") {
-        y += 10; // Spacing for empty lines
+    // Pre-calculate total height and auto-fit empty lines to ensure the full certificate fits on page 1
+    const availableHeight = maxContentY - yPosition;
+    let emptyLineCount = 0;
+    let estimatedTotalHeight = 0;
+    let inTableCount = false;
+
+    rawLines.forEach((l) => {
+      const tr = l.trim();
+      if (/^\[table\]/i.test(tr)) { inTableCount = true; return; }
+      if (/^\[\/table\]/i.test(tr)) { inTableCount = false; estimatedTotalHeight += 10; return; }
+      if (inTableCount) {
+        if (/^\[tr\]/i.test(tr)) estimatedTotalHeight += Math.max(fontSize * 1.8, 22);
+        return;
+      }
+      if (!tr) {
+        emptyLineCount++;
+        return;
+      }
+      let sz = fontSize;
+      const sm = l.match(/\[size:(\d+)\]/i);
+      if (sm) sz = Math.min(Math.max(parseInt(sm[1], 10), 7), 28);
+      const isB = /\[(b|bold)\]/i.test(l);
+      const fn = isB ? "Helvetica-Bold" : "Helvetica";
+      const clean = l.replace(/\[\/?(?:b|bold|size:\d+|color:[^\]]+|font:[^\]]+|center|left|right|justify)\]/gi, "");
+      estimatedTotalHeight += doc.font(fn).fontSize(sz).heightOfString(clean, {
+        width: contentWidth,
+        align: "left",
+        lineGap: lineGap,
+      });
+    });
+
+    const neededTotal = estimatedTotalHeight + (emptyLineCount * emptyLineHeight);
+    if (neededTotal > availableHeight && emptyLineCount > 0) {
+      const excess = neededTotal - availableHeight;
+      const reduceBy = Math.min(Math.ceil(excess / emptyLineCount), emptyLineHeight - 6);
+      emptyLineHeight = Math.max(emptyLineHeight - reduceBy, 6);
+    }
+
+    let inTable = false;
+    let tableRows = [];
+
+    rawLines.forEach((line) => {
+      // 0. Table Handling: [table]...[/table]
+      const trimmedLine = line.trim();
+      if (/^\[table\]/i.test(trimmedLine)) {
+        inTable = true;
+        tableRows = [];
+        return;
+      }
+      if (/^\[\/table\]/i.test(trimmedLine)) {
+        inTable = false;
+        if (tableRows.length > 0) {
+          const numCols = Math.max(...tableRows.map((r) => r.cells.length), 1);
+          const colWidth = contentWidth / numCols;
+          const rowHeight = Math.max(fontSize * 1.8, 22);
+
+          tableRows.forEach((r) => {
+            if (y + rowHeight > maxContentY) {
+              doc.addPage({ size: [pageWidth, pageHeight], margins: { top: paddingTop, bottom: paddingBottom, left: paddingLeft, right: paddingRight } });
+              y = paddingTop + 10;
+            }
+            let x = paddingLeft;
+            r.cells.forEach((cellText) => {
+              if (r.isHeader) {
+                doc.save()
+                  .rect(x, y, colWidth, rowHeight)
+                  .fillAndStroke("#f1f5f9", "#94a3b8")
+                  .restore();
+                doc.fillColor("#0f172a")
+                  .font("Helvetica-Bold")
+                  .fontSize(fontSize - 1)
+                  .text(cellText, x + 5, y + 5, { width: colWidth - 10, align: "left" });
+              } else {
+                doc.save()
+                  .rect(x, y, colWidth, rowHeight)
+                  .strokeColor("#cbd5e1")
+                  .stroke()
+                  .restore();
+                doc.fillColor("#1e293b")
+                  .font("Helvetica")
+                  .fontSize(fontSize - 1)
+                  .text(cellText, x + 5, y + 5, { width: colWidth - 10, align: "left" });
+              }
+              x += colWidth;
+            });
+            y += rowHeight;
+          });
+          y += 10;
+        }
+        return;
+      }
+      if (inTable) {
+        if (/^\[tr\]/i.test(trimmedLine)) {
+          const cells = [];
+          let isHeader = false;
+          const thMatches = trimmedLine.match(/\[th\]([\s\S]*?)\[\/th\]/gi) || [];
+          const tdMatches = trimmedLine.match(/\[td\]([\s\S]*?)\[\/td\]/gi) || [];
+          if (thMatches.length > 0) {
+            isHeader = true;
+            thMatches.forEach((m) => cells.push(m.replace(/\[\/?th\]/gi, "").trim()));
+          } else {
+            tdMatches.forEach((m) => cells.push(m.replace(/\[\/?td\]/gi, "").trim()));
+          }
+          tableRows.push({ isHeader, cells });
+        }
         return;
       }
 
-      // 2. Validate font size & line spacing
-      const fontSize = Math.min(
-        Math.max(parseInt(template.font_size) || 12, 8),
-        24,
-      );
-      const lineGap = Math.min(
-        Math.max(parseInt(template.line_spacing) || 2, 0),
-        10,
-      );
+      // 1. Sanitize tabs, unprintable chars, and decode HTML entities (e.g. &nbsp;, &amp;)
+      const sanitized = line
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/[\t\r]/g, " ");
+
+      if (sanitized.trim() === "") {
+        y += emptyLineHeight; // Spacing for empty lines matching editor canvas
+        return;
+      }
 
       // 3. Alignment fallback: default to "left" for standard certificate body flow
       const defaultAlign =
@@ -1276,16 +1387,23 @@ const generateTemplatedCertificate = async (
         cleanLine = tagMatch[2];
       }
 
-      // 5. Clean cleanLine: trim edges appropriately based on alignment
-      cleanLine = cleanLine.replace(/[\t\r]/g, " ");
+      // 5. Clean cleanLine: decode entities and trim edges appropriately based on alignment
+      cleanLine = cleanLine
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/[\t\r]/g, " ");
       if (lineAlignment === "right" || lineAlignment === "center") {
         cleanLine = cleanLine.trim();
       } else {
-        cleanLine = cleanLine.trimStart();
+        cleanLine = cleanLine.trimEnd(); // Keep leading spaces for paragraph indentation
       }
 
       if (!cleanLine || cleanLine.trim() === "") {
-        y += 10;
+        y += emptyLineHeight;
         return;
       }
 
@@ -1318,6 +1436,18 @@ const generateTemplatedCertificate = async (
         cleanLine = boldMatch[2];
       }
 
+      const fontMatch = cleanLine.match(/\[font:([^\]]+)\]([\s\S]*?)\[\/font\]/i);
+      if (fontMatch) {
+        const fName = fontMatch[1].toLowerCase();
+        if (fName.includes("times")) {
+          lineFont = boldMatch ? "Times-Bold" : "Times-Roman";
+        } else if (fName.includes("courier")) {
+          lineFont = boldMatch ? "Courier-Bold" : "Courier";
+        }
+        cleanLine = fontMatch[2];
+      }
+      cleanLine = cleanLine.replace(/\[\/?font(?::[^\]]+)?\]/gi, "");
+
       const sizeMatch = cleanLine.match(/\[size:(\d+)\]([\s\S]*?)\[\/size\]/i);
       if (sizeMatch) {
         lineFontSize = Math.min(Math.max(parseInt(sizeMatch[1], 10), 7), 28);
@@ -1330,16 +1460,17 @@ const generateTemplatedCertificate = async (
         cleanLine = colorMatch[2];
       }
 
-      // 6. Check space to prevent footer overlap
+      // 6. Check space to prevent overflow / truncation
       const lineHeight =
         doc.font(lineFont).fontSize(lineFontSize).heightOfString(cleanLine, {
           width: contentWidth,
           align: lineAlignment,
           lineGap: lineGap,
-        }) + 5;
+        });
 
       if (y + lineHeight > maxContentY) {
-        return;
+        doc.addPage({ size: [pageWidth, pageHeight], margins: { top: paddingTop, bottom: paddingBottom, left: paddingLeft, right: paddingRight } });
+        y = paddingTop + 10;
       }
 
       // 7. Render clean, perfectly aligned text
@@ -1373,8 +1504,8 @@ const generateTemplatedCertificate = async (
     50,
   );
 
-  // Render top section
-  if (processedContent.topContent) {
+  // Render top section (only if no graphic header image was already rendered)
+  if (!headerRendered && processedContent.topContent) {
     currentY = renderSection(processedContent.topContent, currentY, topSpacing);
   }
 
@@ -1394,37 +1525,7 @@ const generateTemplatedCertificate = async (
     );
   }
 
-  // Render footer image if exists (at the bottom of the page)
-  if (collegeDetails.footer_image) {
-    try {
-      const footerY = pageHeight - footerHeight;
-      doc.image(collegeDetails.footer_image, 0, footerY, {
-        width: pageWidth,
-        height: footerHeight,
-      });
-    } catch (error) {
-      console.error("Error rendering footer image from buffer:", error);
-    }
-  } else if (template.footer_image_url) {
-    try {
-      const footerPath = path.join(
-        process.cwd(),
-        template.footer_image_url.startsWith("/")
-          ? template.footer_image_url.substring(1)
-          : template.footer_image_url,
-      );
-      if (fs.existsSync(footerPath)) {
-        const footerY = pageHeight - footerHeight;
-        doc.image(footerPath, 0, footerY, {
-          width: pageWidth,
-          height: footerHeight,
-        });
-      }
-    } catch (error) {
-      console.error("Error loading footer image from path:", error);
-    }
-  }
-
+  // Footer is completely removed as certificates only use dynamic college header letterhead
   doc.end();
 
   return new Promise((resolve, reject) => {

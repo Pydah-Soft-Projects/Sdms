@@ -1427,6 +1427,413 @@ async function get_club_roles(userContext, args = {}) {
   }
 }
 
+/**
+ * 16. Get Student Service Requests & Certificates
+ * Handles Study Certificates, Bonafide, Transfer Certificates, Custodian requests, etc.
+ */
+async function get_service_requests(userContext, args = {}) {
+  try {
+    const role = String(userContext.role || '').toLowerCase();
+    const isAdmin = ['admin', 'super_admin', 'superadmin', 'subadmin'].includes(role);
+    const targetStudentId = args.student_id || args.target_student_id || args.id || args.pin || args.admission_number;
+
+    let student = null;
+    if (targetStudentId || !isAdmin) {
+      student = await resolveStudent(userContext, targetStudentId);
+    }
+
+    // If student resolved, fetch their specific service applications
+    if (student) {
+      const [rows] = await masterPool.query(
+        `SELECT sr.id, s.name AS service_name, s.description AS service_description,
+                sr.status, sr.payment_status, sr.request_date, sr.collect_date,
+                sr.admin_note, sr.created_at, sr.updated_at
+         FROM service_requests sr
+         JOIN services s ON s.id = sr.service_id
+         WHERE sr.student_id = ?
+         ORDER BY sr.created_at DESC`,
+        [student.id]
+      );
+
+      const requests = (rows || []).map(r => ({
+        request_id: r.id,
+        certificate_service: r.service_name,
+        description: r.service_description,
+        status: r.status,
+        payment_status: r.payment_status,
+        applied_on: r.created_at ? new Date(r.created_at).toLocaleDateString() : 'N/A',
+        collection_date: r.collect_date ? new Date(r.collect_date).toLocaleDateString() : 'Pending',
+        remarks: r.admin_note || 'No notes'
+      }));
+
+      return {
+        success: true,
+        student_name: student.student_name,
+        admission_number: student.admission_number,
+        pin_no: student.pin_no,
+        total_requests: requests.length,
+        requests,
+        message: requests.length > 0
+          ? `Found ${requests.length} service/certificate request(s) for ${student.student_name}.`
+          : `${student.student_name} has not submitted any service or certificate requests.`
+      };
+    }
+
+    // If Admin query without specific student, return catalog of available services + summary of pending requests
+    const [services] = await masterPool.query(
+      'SELECT id, name, description, is_active FROM services ORDER BY name ASC'
+    );
+    const [stats] = await masterPool.query(
+      'SELECT status, COUNT(*) AS count FROM service_requests GROUP BY status'
+    );
+
+    return {
+      success: true,
+      is_administrator: true,
+      available_services: (services || []).map(s => ({
+        id: s.id,
+        name: s.name,
+        description: s.description,
+        is_active: Boolean(s.is_active)
+      })),
+      request_status_summary: (stats || []).reduce((acc, row) => {
+        acc[row.status] = row.count;
+        return acc;
+      }, {}),
+      message: `Retrieved ${services.length} available student services.`
+    };
+  } catch (error) {
+    console.error('[AI Tools] get_service_requests error:', error);
+    throw new Error(`Failed to fetch service requests: ${error.message}`);
+  }
+}
+
+/**
+ * 17. Get Curriculum Subjects
+ * Retrieves subject list (theory vs lab, credits, subject code) for a student or branch/course.
+ */
+async function get_subjects(userContext, args = {}) {
+  try {
+    const role = String(userContext.role || '').toLowerCase();
+    const isAdmin = ['admin', 'super_admin', 'superadmin'].includes(role);
+    const targetStudentId = args.student_id || args.id || args.pin || args.admission_number;
+
+    let branchId = args.branch_id;
+    let semester = args.semester || args.semester_number;
+    let studentInfo = null;
+
+    if (!branchId && (targetStudentId || !isAdmin)) {
+      const student = await resolveStudent(userContext, targetStudentId);
+      if (student) {
+        studentInfo = student;
+        semester = semester || student.current_semester;
+
+        // Lookup branch_id by student branch code / name
+        if (student.branch) {
+          const [bRows] = await masterPool.query(
+            'SELECT id, name FROM course_branches WHERE name = ? OR code = ? LIMIT 1',
+            [student.branch, student.branch]
+          );
+          if (bRows && bRows.length > 0) {
+            branchId = bRows[0].id;
+          }
+        }
+      }
+    }
+
+    let query = `
+      SELECT s.id, s.name, s.code, s.subject_type, s.units, s.experiments_count, s.credits,
+             s.year_of_study, s.semester_number, s.internal_max_marks, s.external_max_marks,
+             b.name AS branch_name
+      FROM subjects s
+      LEFT JOIN course_branches b ON b.id = s.branch_id
+      WHERE s.is_active = 1
+    `;
+    const params = [];
+
+    if (branchId) {
+      query += ' AND (s.branch_id IS NULL OR s.branch_id = ?)';
+      params.push(branchId);
+    }
+    if (semester) {
+      const semNum = String(semester).replace(/[^0-9]/g, '');
+      if (semNum) {
+        query += ' AND (s.semester_number IS NULL OR s.semester_number = ?)';
+        params.push(Number(semNum));
+      }
+    }
+
+    query += ' ORDER BY s.semester_number ASC, s.subject_type DESC, s.name ASC LIMIT 50';
+
+    const [rows] = await masterPool.query(query, params);
+
+    const subjects = (rows || []).map(r => ({
+      subject_name: r.name,
+      code: r.code,
+      type: r.subject_type ? r.subject_type.toUpperCase() : 'THEORY',
+      credits: r.credits != null ? String(r.credits) : 'N/A',
+      semester: r.semester_number || semester || 'N/A',
+      internal_max: r.internal_max_marks,
+      external_max: r.external_max_marks
+    }));
+
+    return {
+      success: true,
+      student: studentInfo ? {
+        name: studentInfo.student_name,
+        branch: studentInfo.branch,
+        semester: studentInfo.current_semester
+      } : null,
+      total_subjects: subjects.length,
+      subjects,
+      message: `Found ${subjects.length} subject(s) in curriculum.`
+    };
+  } catch (error) {
+    console.error('[AI Tools] get_subjects error:', error);
+    throw new Error(`Failed to fetch curriculum subjects: ${error.message}`);
+  }
+}
+
+/**
+ * 18. Get Colleges and Courses Structure
+ * Returns all colleges under Pydah Educational Group, degrees/courses offered, and branches.
+ */
+async function get_colleges_and_courses(userContext, args = {}) {
+  try {
+    const [colleges] = await masterPool.query(
+      'SELECT id, name, code FROM colleges WHERE is_active = 1 ORDER BY id ASC'
+    );
+    const [courses] = await masterPool.query(
+      'SELECT id, college_id, name, code, total_years FROM courses WHERE is_active = 1 ORDER BY name ASC'
+    );
+    const [branches] = await masterPool.query(
+      'SELECT id, course_id, name, code FROM course_branches WHERE is_active = 1 ORDER BY name ASC'
+    );
+
+    const structure = (colleges || []).map(col => {
+      const colCourses = (courses || [])
+        .filter(c => c.college_id === col.id)
+        .map(c => ({
+          course_id: c.id,
+          name: c.name,
+          code: c.code,
+          total_years: c.total_years,
+          branches: (branches || [])
+            .filter(b => b.course_id === c.id)
+            .map(b => ({
+              branch_id: b.id,
+              name: b.name,
+              code: b.code
+            }))
+        }));
+
+      return {
+        college_id: col.id,
+        college_name: col.name,
+        college_code: col.code,
+        courses: colCourses
+      };
+    });
+
+    return {
+      success: true,
+      institution: 'Pydah Educational Group',
+      total_colleges: colleges.length,
+      colleges: structure,
+      message: `Retrieved academic structure across ${colleges.length} colleges and programs.`
+    };
+  } catch (error) {
+    console.error('[AI Tools] get_colleges_and_courses error:', error);
+    throw new Error(`Failed to fetch colleges and courses: ${error.message}`);
+  }
+}
+
+/**
+ * 19. Get College Events
+ * Retrieves scheduled campus events, workshops, technical fests, and cultural activities.
+ */
+async function get_college_events(userContext, args = {}) {
+  try {
+    const limit = Math.min(Math.max(parseInt(args.limit) || 10, 1), 30);
+    const eventType = args.event_type || args.type;
+
+    let query = `
+      SELECT id, title, description, event_date, end_date, start_time, end_time,
+             event_type, requires_registration, max_seats, registration_deadline
+      FROM events
+      WHERE is_active = 1
+    `;
+    const params = [];
+
+    if (eventType) {
+      query += ' AND LOWER(event_type) = LOWER(?)';
+      params.push(eventType);
+    }
+
+    query += ' ORDER BY event_date ASC LIMIT ?';
+    params.push(limit);
+
+    const [rows] = await masterPool.query(query, params);
+
+    const events = (rows || []).map(e => ({
+      id: e.id,
+      title: e.title,
+      description: e.description,
+      event_date: e.event_date ? new Date(e.event_date).toLocaleDateString() : 'TBD',
+      start_time: e.start_time || 'N/A',
+      end_time: e.end_time || 'N/A',
+      event_type: e.event_type || 'General',
+      requires_registration: Boolean(e.requires_registration),
+      max_seats: e.max_seats || 'Open',
+      registration_deadline: e.registration_deadline ? new Date(e.registration_deadline).toLocaleDateString() : null
+    }));
+
+    return {
+      success: true,
+      total_events: events.length,
+      events,
+      message: events.length > 0
+        ? `Found ${events.length} upcoming/scheduled college event(s).`
+        : 'No upcoming college events currently scheduled.'
+    };
+  } catch (error) {
+    console.error('[AI Tools] get_college_events error:', error);
+    throw new Error(`Failed to fetch college events: ${error.message}`);
+  }
+}
+
+/**
+ * 20. Get Profile Change Requests
+ * Retrieves profile change/correction requests submitted by a student or pending review.
+ */
+async function get_profile_change_requests(userContext, args = {}) {
+  try {
+    const role = String(userContext.role || '').toLowerCase();
+    const isAdmin = ['admin', 'super_admin', 'superadmin'].includes(role);
+    const targetStudentId = args.student_id || args.id || args.pin || args.admission_number;
+
+    let student = null;
+    if (targetStudentId || !isAdmin) {
+      student = await resolveStudent(userContext, targetStudentId);
+    }
+
+    let query = `
+      SELECT id, admission_number, requested_changes, status, created_at, updated_at, comments
+      FROM profile_change_requests
+    `;
+    const params = [];
+
+    if (student) {
+      query += ' WHERE admission_number = ?';
+      params.push(student.admission_number);
+    } else {
+      query += ' WHERE status = "pending"';
+    }
+
+    query += ' ORDER BY created_at DESC LIMIT 20';
+
+    const [rows] = await masterPool.query(query, params);
+
+    const requests = (rows || []).map(r => {
+      let changes = r.requested_changes;
+      if (typeof changes === 'string') {
+        try { changes = JSON.parse(changes); } catch (e) {}
+      }
+      return {
+        id: r.id,
+        admission_number: r.admission_number,
+        changes: changes || {},
+        status: r.status,
+        submitted_on: r.created_at ? new Date(r.created_at).toLocaleDateString() : 'N/A',
+        comments: r.comments || null
+      };
+    });
+
+    return {
+      success: true,
+      total_requests: requests.length,
+      requests,
+      message: requests.length > 0
+        ? `Found ${requests.length} profile change request(s).`
+        : 'No profile change requests found.'
+    };
+  } catch (error) {
+    console.error('[AI Tools] get_profile_change_requests error:', error);
+    throw new Error(`Failed to fetch profile change requests: ${error.message}`);
+  }
+}
+
+/**
+ * 21. Search Students
+ * Allows staff, faculty, and administrators to search students by name, PIN, branch, or semester.
+ */
+async function search_students(userContext, args = {}) {
+  try {
+    const role = String(userContext.role || '').toLowerCase();
+    const isAuthorized = ['admin', 'super_admin', 'superadmin', 'faculty', 'branch_faculty'].includes(role);
+
+    if (!isAuthorized) {
+      return {
+        success: false,
+        error: 'Student directory search is restricted to faculty and administrative personnel.'
+      };
+    }
+
+    const queryTerm = (args.query || args.search || args.name || args.student_name || args.pin || '').trim();
+    const branch = (args.branch || args.department || '').trim();
+    const semester = args.semester ? parseInt(String(args.semester).replace(/[^0-9]/g, '')) : null;
+    const limit = Math.min(Math.max(parseInt(args.limit) || 10, 1), 25);
+
+    let sql = `
+      SELECT id, admission_number, pin_no, student_name, course, branch, current_year, current_semester, student_mobile
+      FROM students
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (queryTerm) {
+      sql += ' AND (student_name LIKE ? OR pin_no LIKE ? OR admission_number LIKE ?)';
+      params.push(`%${queryTerm}%`, `%${queryTerm}%`, `%${queryTerm}%`);
+    }
+
+    if (branch) {
+      sql += ' AND (branch LIKE ? OR branch = ?)';
+      params.push(`%${branch}%`, branch);
+    }
+
+    if (semester) {
+      sql += ' AND current_semester = ?';
+      params.push(semester);
+    }
+
+    sql += ' ORDER BY student_name ASC LIMIT ?';
+    params.push(limit);
+
+    const [rows] = await masterPool.query(sql, params);
+
+    const students = (rows || []).map(s => ({
+      name: s.student_name,
+      pin_no: s.pin_no || 'N/A',
+      admission_number: s.admission_number,
+      course: s.course,
+      branch: s.branch,
+      year: s.current_year,
+      semester: s.current_semester,
+      contact: s.student_mobile ? `${s.student_mobile.slice(0, 4)}***${s.student_mobile.slice(-2)}` : 'N/A'
+    }));
+
+    return {
+      success: true,
+      count: students.length,
+      students,
+      message: `Found ${students.length} student(s) matching search criteria.`
+    };
+  } catch (error) {
+    console.error('[AI Tools] search_students error:', error);
+    throw new Error(`Failed to search students: ${error.message}`);
+  }
+}
+
 // Function Alias References
 const get_profile = get_student_profile;
 const get_my_student_profile = get_student_profile;
@@ -1550,10 +1957,107 @@ const club_roles = get_club_roles;
 const get_roles = get_club_roles;
 const roles = get_club_roles;
 
+// Service Requests & Certificates Aliases
+const service_requests = get_service_requests;
+const get_certificates = get_service_requests;
+const certificates = get_service_requests;
+const get_my_service_requests = get_service_requests;
+const service_status = get_service_requests;
+const certificate_status = get_service_requests;
+const get_available_services = get_service_requests;
+const available_services = get_service_requests;
+
+// Subjects / Curriculum Aliases
+const subjects = get_subjects;
+const curriculum = get_subjects;
+const get_my_subjects = get_subjects;
+const get_course_subjects = get_subjects;
+const syllabus = get_subjects;
+const get_syllabus = get_subjects;
+const course_subjects = get_subjects;
+
+// Colleges & Courses Aliases
+const colleges_and_courses = get_colleges_and_courses;
+const colleges = get_colleges_and_courses;
+const courses = get_colleges_and_courses;
+const get_colleges = get_colleges_and_courses;
+const get_courses = get_colleges_and_courses;
+const get_branches = get_colleges_and_courses;
+const branches = get_colleges_and_courses;
+const academic_structure = get_colleges_and_courses;
+
+// College Events Aliases
+const college_events = get_college_events;
+const campus_events = get_college_events;
+const upcoming_events = get_college_events;
+
+// Profile Change Requests Aliases
+const profile_change_requests = get_profile_change_requests;
+const profile_requests = get_profile_change_requests;
+const profile_updates = get_profile_change_requests;
+const get_profile_requests = get_profile_change_requests;
+
+// Search Students Aliases
+const find_students = search_students;
+const student_lookup = search_students;
+const student_directory = search_students;
+const lookup_student = search_students;
+
 /**
  * Comprehensive Tool Registry with exact names & aliases
  */
 const toolRegistry = {
+  // Service Requests & Certificates
+  get_service_requests,
+  service_requests,
+  get_certificates,
+  certificates,
+  get_my_service_requests,
+  service_status,
+  certificate_status,
+  get_available_services,
+  available_services,
+
+  // Curriculum & Subjects
+  get_subjects,
+  subjects,
+  curriculum,
+  get_my_subjects,
+  get_course_subjects,
+  syllabus,
+  get_syllabus,
+  course_subjects,
+
+  // Colleges, Courses & Academic Structure
+  get_colleges_and_courses,
+  colleges_and_courses,
+  colleges,
+  courses,
+  get_colleges,
+  get_courses,
+  get_branches,
+  branches,
+  academic_structure,
+
+  // Campus Events & Activities
+  get_college_events,
+  college_events,
+  campus_events,
+  upcoming_events,
+
+  // Profile Change Requests
+  get_profile_change_requests,
+  profile_change_requests,
+  profile_requests,
+  profile_updates,
+  get_profile_requests,
+
+  // Student Search / Directory (Admin & Faculty)
+  search_students,
+  find_students,
+  student_lookup,
+  student_directory,
+  lookup_student,
   // Profile Aliases
   get_student_profile,
   get_my_profile,

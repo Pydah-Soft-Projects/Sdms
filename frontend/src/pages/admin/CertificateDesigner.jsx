@@ -53,7 +53,7 @@ const CertificateDesigner = ({
     middle_section_padding: 20,
     bottom_section_padding: 10,
     header_height: 80,
-    footer_height: 60,
+    footer_height: 0,
     font_size: 12,
     line_spacing: 2,
     top_spacing: 15,
@@ -507,45 +507,25 @@ const CertificateDesigner = ({
               <h3
                 className={`font-bold text-gray-900 mb-3 uppercase tracking-wider ${isWizard ? "text-xs" : "text-sm"}`}
               >
-                Header & Footer Images
+                College Header Letterhead
               </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  {headerPreview ? (
-                    <div className="relative group">
-                      <img
-                        src={headerPreview}
-                        alt="Header"
-                        className="w-full h-16 object-contain rounded border"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition rounded flex items-center justify-center text-[10px] text-white font-medium">
-                        Header
-                      </div>
+              <div className="w-full">
+                {headerPreview ? (
+                  <div className="relative group">
+                    <img
+                      src={headerPreview}
+                      alt="Header"
+                      className="w-full h-16 object-contain rounded border"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition rounded flex items-center justify-center text-[10px] text-white font-medium">
+                      Header
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50">
-                      <ImageIcon className="text-gray-300" size={16} />
-                    </div>
-                  )}
-                </div>
-                <div>
-                  {footerPreview ? (
-                    <div className="relative group">
-                      <img
-                        src={footerPreview}
-                        alt="Footer"
-                        className="w-full h-16 object-contain rounded border"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition rounded flex items-center justify-center text-[10px] text-white font-medium">
-                        Footer
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50">
-                      <ImageIcon className="text-gray-300" size={16} />
-                    </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50">
+                    <ImageIcon className="text-gray-300" size={16} />
+                  </div>
+                )}
               </div>
               <p
                 className={`text-gray-500 italic text-center ${isWizard ? "text-[9px] mt-1.5" : "text-[10px] mt-2"}`}
@@ -575,24 +555,6 @@ const CertificateDesigner = ({
                       setFormData({
                         ...formData,
                         header_height: parseInt(e.target.value) || 0,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label
-                    className={`block font-semibold text-gray-500 mb-1 uppercase ${isWizard ? "text-[10px]" : "text-[11px]"}`}
-                  >
-                    Footer
-                  </label>
-                  <input
-                    type="number"
-                    className={`w-full border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${isWizard ? "px-2 py-1 text-xs" : "px-3 py-1.5 text-sm"}`}
-                    value={formData.footer_height || 60}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        footer_height: parseInt(e.target.value) || 0,
                       })
                     }
                   />

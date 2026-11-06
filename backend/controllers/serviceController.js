@@ -898,11 +898,23 @@ exports.downloadCertificate = async (req, res) => {
           bottomContent: replaceVariables(config.bottom_content),
         };
 
+        const enrichedConfig = {
+          ...config,
+          header_image_url: collegeDetails.header_image_url,
+          footer_image_url: null,
+          footer_height: 0,
+        };
+        const sanitizedCollegeDetails = {
+          ...collegeDetails,
+          footer_image: null,
+          footer_image_url: null,
+        };
+
         filePath = await pdfService.generateTemplatedCertificate(
-          config,
+          enrichedConfig,
           processedContent,
           request,
-          collegeDetails,
+          sanitizedCollegeDetails,
         );
       } else {
         filePath = await pdfService.generateDynamicCertificate(
@@ -1084,15 +1096,13 @@ exports.previewTemplate = async (req, res) => {
             collegeDetails.website = target.website;
           }
         }
-        // Add image URLs and binary data for templated certificate
+        // Add image URLs and binary data for templated certificate (footers omitted)
         if (target.header_image_url)
           collegeDetails.header_image_url = target.header_image_url;
-        if (target.footer_image_url)
-          collegeDetails.footer_image_url = target.footer_image_url;
+        collegeDetails.footer_image_url = null;
         if (target.header_image)
           collegeDetails.header_image = target.header_image;
-        if (target.footer_image)
-          collegeDetails.footer_image = target.footer_image;
+        collegeDetails.footer_image = null;
         if (target.principal_signature)
           collegeDetails.principal_signature = target.principal_signature;
         if (target.principal_signature_url)
@@ -1165,11 +1175,12 @@ exports.previewTemplate = async (req, res) => {
           bottomContent: replaceVariables(config.bottom_content),
         };
 
-        // Merge image URLs into config for the generator
+        // Merge image URLs into config for the generator (no footer)
         const enrichedConfig = {
           ...config,
           header_image_url: collegeDetails.header_image_url,
-          footer_image_url: collegeDetails.footer_image_url,
+          footer_image_url: null,
+          footer_height: 0,
         };
 
         filePath = await pdfService.generateTemplatedCertificate(

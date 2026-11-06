@@ -129,11 +129,38 @@ const RATING_DESCRIPTIONS = {
 
 /* ── Question Field Component ──────────────────────────────────────── */
 const QuestionField = ({ question, value, onChange }) => {
-    const { questionType, options, minValue = 1, maxValue = 5, questionText = '' } = question;
+    const {
+        minValue = 1,
+        maxValue = 5,
+        questionText = '',
+    } = question;
+    const questionType = String(question.questionType || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[\s-]+/g, '_');
+    const options = Array.isArray(question.options) ? question.options : [];
     const [hoverStar, setHoverStar] = useState(0);
 
+    const freeResponseField = (
+        <textarea
+            rows={3}
+            aria-label={questionText}
+            className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all resize-y text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 leading-relaxed"
+            placeholder="Enter your response..."
+            value={typeof value === 'string' ? value : ''}
+            onChange={(e) => onChange(e.target.value)}
+        />
+    );
+
+    if (
+        ['multiple_choice', 'radio', 'select', 'checkbox'].includes(questionType) &&
+        options.length === 0
+    ) {
+        return freeResponseField;
+    }
+
     // Multiple Choice
-    if (questionType === 'multiple_choice') {
+    if (questionType === 'multiple_choice' || questionType === 'radio') {
         const isUnitsQuestion = questionText.toLowerCase().includes('unit');
 
         return (
@@ -148,6 +175,7 @@ const QuestionField = ({ question, value, onChange }) => {
                                 key={i}
                                 type="button"
                                 onClick={() => onChange(opt)}
+                                aria-pressed={isSelected}
                                 className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold border transition-all duration-150 flex items-center justify-center gap-1.5 sm:gap-2 select-none ${
                                     isSelected
                                         ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100 ring-2 ring-indigo-500/20'
@@ -164,8 +192,53 @@ const QuestionField = ({ question, value, onChange }) => {
         );
     }
 
+    if (questionType === 'select') {
+        return (
+            <select
+                aria-label={questionText}
+                value={value || ''}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl bg-white text-slate-800 text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all"
+            >
+                <option value="" disabled>Select an option</option>
+                {(options || []).map((option, index) => (
+                    <option key={index} value={option}>{option}</option>
+                ))}
+            </select>
+        );
+    }
+
+    if (questionType === 'checkbox') {
+        const selectedOptions = Array.isArray(value) ? value : [];
+        return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {(options || []).map((option, index) => {
+                    const isSelected = selectedOptions.includes(option);
+                    return (
+                        <label
+                            key={index}
+                            className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-700 cursor-pointer hover:bg-slate-50"
+                        >
+                            <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => onChange(
+                                    isSelected
+                                        ? selectedOptions.filter((selected) => selected !== option)
+                                        : [...selectedOptions, option]
+                                )}
+                                className="h-4 w-4 rounded border-slate-300 accent-indigo-600"
+                            />
+                            <span>{option}</span>
+                        </label>
+                    );
+                })}
+            </div>
+        );
+    }
+
     // Rating Scale
-    if (questionType === 'rating_scale') {
+    if (questionType === 'rating_scale' || questionType === 'rating') {
         const stars = [];
         for (let s = Number(minValue); s <= Number(maxValue); s++) stars.push(s);
         const activeScore = hoverStar || Number(value) || 0;
@@ -211,21 +284,24 @@ const QuestionField = ({ question, value, onChange }) => {
     }
 
     // Text / Textarea
-    if (questionType === 'text' || questionType === 'textarea') {
-        return (
-            <div className="space-y-1.5">
-                <textarea
-                    rows={3}
-                    className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all resize-none text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 leading-relaxed"
-                    placeholder="Enter your feedback or suggestions here..."
+    if (['text', 'text_input', 'textarea', 'text_area', 'short_answer'].includes(questionType)) {
+        if (questionType === 'text' || questionType === 'text_input' || questionType === 'short_answer') {
+            return (
+                <input
+                    type="text"
+                    aria-label={questionText}
+                    className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all text-slate-800 text-xs sm:text-sm placeholder:text-slate-400"
+                    placeholder="Enter your response..."
                     value={value || ''}
                     onChange={(e) => onChange(e.target.value)}
                 />
-            </div>
-        );
+            );
+        }
+
+        return freeResponseField;
     }
 
-    return null;
+    return freeResponseField;
 };
 
 /* ── Main Component ────────────────────────────────────────────────── */
@@ -391,7 +467,14 @@ const StudentFeedback = () => {
             return;
         }
 
-        const missing = formQuestions.filter((q) => q.isRequired && (responses[q.id] === undefined || responses[q.id] === ''));
+        const missing = formQuestions.filter((q) => {
+            const response = responses[q.id];
+            return q.isRequired && (
+                response === undefined ||
+                response === '' ||
+                (Array.isArray(response) && response.length === 0)
+            );
+        });
         if (missing.length > 0) {
             toast.error(`Please answer all required questions (${missing.length} remaining).`);
             return;

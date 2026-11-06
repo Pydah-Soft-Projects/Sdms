@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const { sendNotificationToUser } = require('./pushController');
 const fs = require('fs');
 const Transaction = require('../MongoDb-Models/Transaction');
+const { hasPermission } = require('../constants/rbac');
 
 const StudentFee = require('../MongoDb-Models/StudentFee');
 const FeeHead = require('../MongoDb-Models/FeeHead');
@@ -898,7 +899,12 @@ const updateClub = async (req, res) => {
         let query = 'UPDATE clubs SET name = ?, description = ?, membership_fee = ?, fee_type = ?';
         let params = [finalName, finalDescription, finalFee || 0, finalFeeType || 'Yearly'];
 
-        if (admin_roles !== undefined && ['admin', 'super_admin', 'superadmin'].includes(String(req.user?.role || '').toLowerCase())) {
+        const canUpdateAdminRoles = ['admin', 'super_admin', 'superadmin'].includes(String(req.user?.role || '').toLowerCase()) ||
+            hasPermission(req.user?.permissions, 'clubs', 'manage_club_admins') ||
+            hasPermission(req.user?.permissions, 'clubs', 'manage_settings') ||
+            hasPermission(req.user?.permissions, 'clubs', 'manage');
+
+        if (admin_roles !== undefined && canUpdateAdminRoles) {
             const suppliedAdminRoles = typeof admin_roles === 'string' ? JSON.parse(admin_roles) : (admin_roles || []);
             const fullAccessUserKeys = await getFullAccessUserKeys();
             const parsedAdminRoles = JSON.stringify(applyFullAccessClubPages(suppliedAdminRoles, fullAccessUserKeys));

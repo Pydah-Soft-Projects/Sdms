@@ -285,7 +285,8 @@ const NAV_ITEMS = [
         label: "Club Settings",
         icon: Settings,
         permission: FRONTEND_MODULES.CLUBS,
-        action: 'view_settings'
+        action: 'view_settings',
+        actions: ['view_settings', 'manage_settings', 'manage_club_admins', 'manage_club_roles']
       }
     ]
   },
@@ -339,7 +340,7 @@ const CLUB_ADMIN_PAGE_BY_PATH = {
 const CLUB_PERMISSION_BY_PATH = {
   '/clubs': ['view', 'manage'],
   '/clubs/students': ['view_students', 'manage_students'],
-  '/clubs/settings': ['view_settings', 'manage_settings']
+  '/clubs/settings': ['view_settings', 'manage_settings', 'manage_club_admins', 'manage_club_roles']
 };
 
 const AdminLayout = () => {

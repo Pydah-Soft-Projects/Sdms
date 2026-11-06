@@ -274,7 +274,7 @@ const ClubChatBox = ({ club }) => {
     );
 };
 
-const ClubCard = ({ club, onViewDetails, isAdmin, onToggleStatus, onEdit }) => {
+const ClubCard = ({ club, onViewDetails, isAdmin, canEdit = isAdmin, onToggleStatus, onEdit }) => {
     const memberCount = club.memberCount ?? (club.members || []).filter(m => m.status === 'approved').length;
     const initials = club.name ? club.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
     const gradients = [
@@ -304,7 +304,7 @@ const ClubCard = ({ club, onViewDetails, isAdmin, onToggleStatus, onEdit }) => {
                 )}
                 {/* Quick action buttons */}
                 <div className="absolute top-2 right-2 flex gap-1.5">
-                    {isAdmin && onEdit && (
+                    {canEdit && onEdit && (
                         <button
                             onClick={(e) => { e.stopPropagation(); onEdit(club); }}
                             className="p-1.5 rounded-lg bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 transition-all"
@@ -500,7 +500,10 @@ const Clubs = ({ initialSubPage }) => {
         const pageActions = {
             management: { read: ['view', 'manage'], write: ['manage'] },
             students: { read: ['view_students', 'manage_students'], write: ['manage_students'] },
-            settings: { read: ['view_settings', 'manage_settings'], write: ['manage_settings'] }
+            settings: {
+                read: ['view_settings', 'manage_settings', 'manage_club_admins', 'manage_club_roles'],
+                write: ['manage_settings', 'manage_club_admins', 'manage_club_roles']
+            }
         }[pageKey];
         const globalRead = pageActions?.read.some(action => hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, action)) || false;
         const globalWrite = pageActions?.write.some(action => hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, action)) || false;
@@ -513,6 +516,18 @@ const Clubs = ({ initialSubPage }) => {
             };
         }, { read: globalRead || globalWrite, write: globalWrite });
     };
+
+    const canManageClubAdmins = isAdmin ||
+        hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage_club_admins') ||
+        hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage_settings') ||
+        hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage') ||
+        getClubPageAccess(null, 'settings').write;
+
+    const canManageClubRoles = isAdmin ||
+        hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage_club_roles') ||
+        hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage_settings') ||
+        hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage') ||
+        getClubPageAccess(null, 'settings').write;
 
     // Determine subPage directly from pathname or initialSubPage prop
     const getSubPageFromPath = () => {
@@ -528,7 +543,7 @@ const Clubs = ({ initialSubPage }) => {
     }, [location.pathname]);
 
     useEffect(() => {
-        if (!user?.clubRoles?.length || isAdmin) return;
+        if (!user?.clubRoles?.length || isAdmin || getClubPageAccess(null, subPage).read) return;
         const availablePages = [...new Set(user.clubRoles.flatMap(role => pagesFromPermissions(getPagePermissions(role))))];
         if (availablePages.includes(subPage)) return;
         const fallbackPage = availablePages[0];
@@ -670,7 +685,7 @@ const Clubs = ({ initialSubPage }) => {
 
     useEffect(() => {
         fetchClubs();
-        if (isAdmin || getClubPageAccess(null, 'settings').read) fetchDynamicRoles();
+        if (isAdmin || canManageClubRoles || canManageClubAdmins || getClubPageAccess(null, 'settings').read) fetchDynamicRoles();
         api.get('/colleges?includeInactive=false')
             .then(r => {
                 if (r.data?.success && r.data?.data) {
@@ -1529,7 +1544,7 @@ const Clubs = ({ initialSubPage }) => {
                                         <p className="text-xs text-gray-500">{clubs.length} {clubs.length === 1 ? 'club' : 'clubs'} registered</p>
                                     </div>
                                 </div>
-                                {isAdmin && (
+                                {(isAdmin || canManageClubAdmins || hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage')) && (
                                     <button
                                         onClick={() => { resetForm(); setShowCreateModal(true); }}
                                         className="w-full sm:w-auto px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-sm"
@@ -1547,6 +1562,7 @@ const Clubs = ({ initialSubPage }) => {
                                         club={club}
                                         onViewDetails={handleViewDetails}
                                         isAdmin={isAdmin}
+                                        canEdit={isAdmin || canManageClubAdmins || getClubPageAccess(club.id, 'settings').write}
                                         onToggleStatus={handleToggleStatus}
                                         onEdit={prepareEdit}
                                     />
@@ -1728,9 +1744,19 @@ const Clubs = ({ initialSubPage }) => {
 
                                         {detailsTab === 'admins' && (
                                             <div className="space-y-4 pt-2">
-                                                <div>
-                                                    <h3 className="text-base font-bold text-gray-900">Club Admins ({selectedClub?.admin_roles?.length || 0})</h3>
-                                                    <p className="text-xs text-gray-500">People assigned to manage this club and their page access.</p>
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <h3 className="text-base font-bold text-gray-900">Club Admins ({selectedClub?.admin_roles?.length || 0})</h3>
+                                                        <p className="text-xs text-gray-500">People assigned to manage this club and their page access.</p>
+                                                    </div>
+                                                    {(isAdmin || canManageClubAdmins || getClubPageAccess(selectedClub?.id, 'settings').write) && (
+                                                        <button
+                                                            onClick={() => prepareEdit(selectedClub)}
+                                                            className="px-3.5 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5 shadow-sm"
+                                                        >
+                                                            <Edit2 size={13} /> Edit Club Admins & Roles
+                                                        </button>
+                                                    )}
                                                 </div>
                                                 {selectedClub?.admin_roles?.length ? (
                                                     <div className="overflow-x-auto rounded-xl border border-gray-200">
@@ -2356,7 +2382,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         <h3 className="text-base font-bold text-gray-900">Club Configuration & Admin Roles</h3>
                                                         <p className="text-xs text-gray-500">Edit club details, upload logo, and assign dynamic leadership roles.</p>
                                                     </div>
-                                                    {isAdmin && (
+                                                    {(isAdmin || canManageClubAdmins || getClubPageAccess(selectedClub?.id, 'settings').write) && (
                                                         <button
                                                             onClick={() => prepareEdit(selectedClub)}
                                                             className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5 shadow-sm"
@@ -2584,7 +2610,7 @@ const Clubs = ({ initialSubPage }) => {
                                 <h2 className="text-lg font-bold text-gray-900">Dynamic Club Admin Roles</h2>
                                 <p className="text-xs text-gray-500">Define dynamic leadership and coordinator roles for student clubs with full edit and delete capabilities.</p>
                             </div>
-                            {isAdmin && (
+                            {(isAdmin || canManageClubRoles) && (
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -2617,7 +2643,7 @@ const Clubs = ({ initialSubPage }) => {
                                         <span className="text-[10px] font-mono text-slate-400">
                                             {role.role_code}
                                         </span>
-                                        {isAdmin && (
+                                        {(isAdmin || canManageClubRoles) && (
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => handleOpenEditRole(role)}
@@ -2721,7 +2747,7 @@ const Clubs = ({ initialSubPage }) => {
                     )}
 
                     {/* User Access Management for Club Pages Only */}
-                    {isAdmin && (
+                    {(isAdmin || canManageClubAdmins || canManageClubRoles) && (
                     <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-5">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                             <div>
@@ -2976,7 +3002,7 @@ const Clubs = ({ initialSubPage }) => {
                         </div>
                     </div>
 
-                    {isAdmin && (
+                    {(isAdmin || canManageClubAdmins) && (
                     <>
                     {/* Section: Assign Multiple Dynamic Club Admin Roles */}
                     <div className="border-t pt-4 space-y-4">
@@ -3286,7 +3312,7 @@ const Clubs = ({ initialSubPage }) => {
                             type="submit"
                             className="px-5 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm"
                         >
-                            {showEditModal ? (isAdmin ? 'Update Club & Save Admin Roles' : 'Save Club Settings') : 'Create Club'}
+                            {showEditModal ? ((isAdmin || canManageClubAdmins) ? 'Update Club & Save Admin Roles' : 'Save Club Settings') : 'Create Club'}
                         </button>
                     </div>
                 </form>

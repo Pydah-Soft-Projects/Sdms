@@ -20,7 +20,10 @@ const CLUB_PAGE_KEYS = ['management', 'students', 'settings'];
 const CLUB_PAGE_PERMISSIONS = {
     management: { read: ['view', 'manage'], write: ['manage'] },
     students: { read: ['view_students', 'manage_students'], write: ['manage_students'] },
-    settings: { read: ['view_settings', 'manage_settings'], write: ['manage_settings'] }
+    settings: {
+        read: ['view_settings', 'manage_settings', 'manage_club_admins', 'manage_club_roles'],
+        write: ['manage_settings', 'manage_club_admins', 'manage_club_roles']
+    }
 };
 const isGlobalAdmin = user => ['admin', 'super_admin', 'superadmin'].includes(String(user?.role || '').toLowerCase());
 const getPagePermission = (assignment, pageKey) => {
@@ -115,11 +118,22 @@ router.get('/:clubId', verifyToken, requireClubPage(), clubController.getClubDet
 // Student
 router.post('/:clubId/join', verifyToken, isStudent, clubController.joinClub);
 
-// Admin
+const canManageClubRoles = (req, res, next) => {
+    const user = req.user || req.admin;
+    if (isGlobalAdmin(user)) return next();
+    if (hasPermission(user?.permissions, 'clubs', 'manage_club_roles') ||
+        hasPermission(user?.permissions, 'clubs', 'manage_settings') ||
+        hasPermission(user?.permissions, 'clubs', 'manage')) {
+        return next();
+    }
+    return res.status(403).json({ success: false, message: 'Permission required to manage club roles' });
+};
+
+// Admin / Dynamic Roles
 router.post('/', verifyToken, isAdmin, upload.single('image'), clubController.createClub);
-router.post('/roles', verifyToken, isAdmin, clubController.createClubRole);
-router.put('/roles/:roleId', verifyToken, isAdmin, clubController.updateClubRole);
-router.delete('/roles/:roleId', verifyToken, isAdmin, clubController.deleteClubRole);
+router.post('/roles', verifyToken, canManageClubRoles, clubController.createClubRole);
+router.put('/roles/:roleId', verifyToken, canManageClubRoles, clubController.updateClubRole);
+router.delete('/roles/:roleId', verifyToken, canManageClubRoles, clubController.deleteClubRole);
 const activityUpload = upload.fields([
     { name: 'images', maxCount: 20 },
     { name: 'image', maxCount: 1 }

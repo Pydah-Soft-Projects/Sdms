@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
-const { verifyRole, verifyPermission, verifyCanCreateRole, verifyCanManageUser } = require('../middleware/rbac');
+const { verifyRole, verifyPermission, verifyPermissionAny, verifyCanCreateRole, verifyCanManageUser } = require('../middleware/rbac');
 const { USER_ROLES } = require('../constants/rbac');
 const rbacUserController = require('../controllers/rbacUserController');
 const studentFieldsController = require('../controllers/studentFieldsController');
@@ -24,11 +24,16 @@ router.get(
   rbacUserController.getUsers
 );
 
-// Search HRMS Employees (for pre-mapping users)
-// Requires user_management control permission
+// Search HRMS Employees (for pre-mapping users and club admin assignment)
+// Requires user_management control permission or club management privileges
 router.get(
   '/search-hrms-employee',
-  verifyPermission('user_management', 'control'),
+  verifyPermissionAny([
+    ['user_management', 'control'],
+    ['clubs', 'manage_club_admins'],
+    ['clubs', 'manage_settings'],
+    ['clubs', 'manage']
+  ]),
   rbacUserController.searchHRMSEmployee
 );
 

@@ -271,14 +271,16 @@ const MODULE_PERMISSIONS = {
     }
   },
   [MODULES.CLUBS]: {
-    permissions: ['view', 'manage', 'view_students', 'manage_students', 'view_settings', 'manage_settings'],
+    permissions: ['view', 'manage', 'view_students', 'manage_students', 'view_settings', 'manage_settings', 'manage_club_admins', 'manage_club_roles'],
     labels: {
       view: 'View Club Management',
       manage: 'Manage Club Management',
       view_students: 'View Members',
       manage_students: 'Manage Members',
       view_settings: 'View Club Settings',
-      manage_settings: 'Manage Club Settings'
+      manage_settings: 'Manage Club Settings',
+      manage_club_admins: 'Manage Club Admins & Assignments',
+      manage_club_roles: 'Manage Dynamic Club Roles'
     }
   },
   [MODULES.SEMINAR_HALLS]: {

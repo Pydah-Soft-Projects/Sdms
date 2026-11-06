@@ -2431,8 +2431,11 @@ const Students = () => {
 
     setSelectedStudent(stageSyncedStudent);
     const openDisplay = resolveStudentCaste(student);
+    const resolvedStudentName = student.student_name || student.student_data?.student_name || student.student_data?.['Student Name'] || '';
     setEditData({
       ...stageSyncedFields,
+      student_name: resolvedStudentName,
+      'Student Name': resolvedStudentName,
       caste_id: student.caste_id ?? null,
       category_id: student.category_id ?? null,
       nested_caste: openDisplay.linked ? (openDisplay.casteName || '') : '',
@@ -2443,6 +2446,8 @@ const Students = () => {
     });
     setEditBaseline(cloneStudentFormSnapshot({
       ...stageSyncedFields,
+      student_name: resolvedStudentName,
+      'Student Name': resolvedStudentName,
       caste_id: student.caste_id ?? null,
       category_id: student.category_id ?? null,
       nested_caste: openDisplay.linked ? (openDisplay.casteName || '') : '',
@@ -2497,6 +2502,8 @@ const Students = () => {
     // students.caste is the CATEGORY value (BC-A, OC…) — keep it; nested caste is optional via caste_id
     setEditData((prev) => ({
       ...prev,
+      student_name: prev.student_name || selectedStudent?.student_name || selectedStudent?.student_data?.student_name || selectedStudent?.student_data?.['Student Name'] || '',
+      'Student Name': prev['Student Name'] || prev.student_name || selectedStudent?.student_name || selectedStudent?.student_data?.student_name || selectedStudent?.student_data?.['Student Name'] || '',
       caste: selectedStudent?.caste || linked.categoryName || '',
       Caste: selectedStudent?.caste || linked.categoryName || '',
       category_id: selectedStudent?.category_id ?? byCategoryId?.id ?? null,
@@ -2913,6 +2920,10 @@ const Students = () => {
     setEditData(prev => {
       const newData = { ...prev, [key]: value };
 
+      if (key === 'student_name' || key === 'Student Name') {
+        newData.student_name = value;
+        newData['Student Name'] = value;
+      }
       if (key === 'stud_type' || key === 'quota') {
         newData.stud_type = value;
         newData.StudType = value;
@@ -4396,9 +4407,32 @@ const Students = () => {
 
                   {/* Main Details Info Header (Merged Subtitle & College) */}
                   <div className="space-y-1">
-                    <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
-                      {editData.student_name || selectedStudent?.student_name || 'Student Name'}
-                    </h2>
+                    {editMode ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={editData.student_name !== undefined ? editData.student_name : (selectedStudent?.student_name || '')}
+                          onChange={(e) => updateEditField('student_name', e.target.value)}
+                          placeholder="Enter student name"
+                          className="text-lg sm:text-2xl font-black text-gray-900 bg-white border border-blue-400 rounded-lg px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500/20 max-w-md w-full shadow-xs"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                          {editData.student_name || selectedStudent?.student_name || 'Student Name'}
+                        </h2>
+                        {!editMode && canEditStudents && !isCashier && (!frozenBatches[selectedStudent?.batch]?.includes("ALL") && !frozenBatches[selectedStudent?.student_data?.batch]?.includes("ALL")) && (
+                          <button
+                            onClick={handleEdit}
+                            className="text-gray-400 hover:text-blue-600 p-1 rounded-md hover:bg-blue-50 transition-colors"
+                            title="Edit Student Name"
+                          >
+                            <Edit size={14} />
+                          </button>
+                        )}
+                      </div>
+                    )}
 
                     <p className="text-xs sm:text-sm font-bold text-gray-600 flex flex-wrap items-center gap-1.5">
                       <span className="font-mono bg-gray-100 text-gray-800 px-2 py-0.5 rounded-md text-xs font-black">{editData.pin_no || selectedStudent?.pin_no || selectedStudent?.admission_number}</span>
@@ -4681,6 +4715,22 @@ const Students = () => {
                         </div>
 
                         <div className="space-y-2 text-[11px]">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500 font-semibold">Student Name</span>
+                            {editMode ? (
+                              <input
+                                type="text"
+                                value={editData.student_name !== undefined ? editData.student_name : (selectedStudent?.student_name || '')}
+                                onChange={(e) => updateEditField('student_name', e.target.value)}
+                                placeholder="Student Name"
+                                className="px-1.5 py-0.5 border border-gray-300 rounded text-[11px] font-bold text-right w-36 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            ) : (
+                              <span className="font-extrabold text-gray-900 truncate max-w-[150px]" title={editData.student_name || selectedStudent?.student_name || '-'}>
+                                {editData.student_name || selectedStudent?.student_name || '-'}
+                              </span>
+                            )}
+                          </div>
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500 font-semibold">Admission No</span>
                             <span className="font-extrabold text-gray-900 font-mono" title="Admission Number - Cannot be edited">

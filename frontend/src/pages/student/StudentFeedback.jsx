@@ -134,29 +134,38 @@ const QuestionField = ({ question, value, onChange }) => {
         maxValue = 5,
         questionText = '',
     } = question;
-    const questionType = String(question.questionType || '')
+    const questionType = String(question.questionType || question.type || question.question_type || '')
         .trim()
         .toLowerCase()
-        .replace(/[\s-]+/g, '_');
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
     const options = Array.isArray(question.options) ? question.options : [];
     const [hoverStar, setHoverStar] = useState(0);
 
-    const freeResponseField = (
-        <textarea
-            rows={3}
-            aria-label={questionText}
-            className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all resize-y text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 leading-relaxed"
-            placeholder="Enter your response..."
-            value={typeof value === 'string' ? value : ''}
-            onChange={(e) => onChange(e.target.value)}
-        />
-    );
-
-    if (
-        ['multiple_choice', 'radio', 'select', 'checkbox'].includes(questionType) &&
-        options.length === 0
-    ) {
-        return freeResponseField;
+    if (['yes_no', 'yesno', 'boolean'].includes(questionType)) {
+        const choices = ['Yes', 'No'];
+        return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5">
+                {choices.map((option, index) => {
+                    const isSelected = String(value) === String(option);
+                    return (
+                        <button
+                            key={index}
+                            type="button"
+                            onClick={() => onChange(option)}
+                            aria-pressed={isSelected}
+                            className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold border transition-all ${
+                                isSelected
+                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100 ring-2 ring-indigo-500/20'
+                                    : 'bg-white border-slate-200 text-slate-700 hover:border-indigo-300 hover:bg-slate-50'
+                            }`}
+                        >
+                            {option}
+                        </button>
+                    );
+                })}
+            </div>
+        );
     }
 
     // Multiple Choice
@@ -284,24 +293,67 @@ const QuestionField = ({ question, value, onChange }) => {
     }
 
     // Text / Textarea
-    if (['text', 'text_input', 'textarea', 'text_area', 'short_answer'].includes(questionType)) {
-        if (questionType === 'text' || questionType === 'text_input' || questionType === 'short_answer') {
-            return (
-                <input
-                    type="text"
-                    aria-label={questionText}
-                    className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all text-slate-800 text-xs sm:text-sm placeholder:text-slate-400"
-                    placeholder="Enter your response..."
-                    value={value || ''}
-                    onChange={(e) => onChange(e.target.value)}
-                />
-            );
-        }
-
-        return freeResponseField;
+    if ([
+        'text',
+        'text_input',
+        'text_box',
+        'short_answer',
+        'text_response',
+        'free_text',
+    ].includes(questionType)) {
+        return (
+            <input
+                type="text"
+                aria-label={questionText}
+                className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all text-slate-800 text-xs sm:text-sm placeholder:text-slate-400"
+                placeholder="Enter your response..."
+                value={value || ''}
+                onChange={(e) => onChange(e.target.value)}
+            />
+        );
     }
 
-    return freeResponseField;
+    if ([
+        'textarea',
+        'text_area',
+        'long_answer',
+        'long_text',
+        'paragraph',
+        'open_ended',
+        'open_ended_text',
+        'open_text',
+        'remarks',
+        'remarks_text',
+        'suggestions',
+        'comment',
+        'essay',
+    ].includes(questionType)) {
+        return (
+            <textarea
+                rows={3}
+                aria-label={questionText}
+                className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all resize-y text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 leading-relaxed"
+                placeholder="Enter your response..."
+                value={typeof value === 'string' ? value : ''}
+                onChange={(e) => onChange(e.target.value)}
+            />
+        );
+    }
+
+    if (/\b(remarks?|suggestions?|comments?)\b/i.test(questionText)) {
+        return (
+            <textarea
+                rows={3}
+                aria-label={questionText}
+                className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all resize-y text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 leading-relaxed"
+                placeholder="Enter your response..."
+                value={typeof value === 'string' ? value : ''}
+                onChange={(e) => onChange(e.target.value)}
+            />
+        );
+    }
+
+    return null;
 };
 
 /* ── Main Component ────────────────────────────────────────────────── */

@@ -74,11 +74,11 @@ function ScholarshipReport() {
   if (!hasAccess && user) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] p-4 text-center">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-          <Lock className="text-red-500" size={32} />
+        <div className="w-16 h-16 bg-[var(--danger-light)] rounded-full flex items-center justify-center mb-4">
+          <Lock className="text-danger" size={32} />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
-        <p className="text-gray-600 max-w-sm">
+        <h2 className="text-xl font-bold text-main mb-2">Access Denied</h2>
+        <p className="text-sub max-w-sm">
           You do not have permission to view Scholarship Reports.
         </p>
       </div>
@@ -363,10 +363,10 @@ function ScholarshipReport() {
   }, [batchTotalYears, filters.batch]);
 
   const SortIcon = ({ colKey }) => {
-    if (sort.key !== colKey) return <ArrowUpDown size={13} className="text-gray-400 ml-1 inline-block" />;
+    if (sort.key !== colKey) return <ArrowUpDown size={13} className="text-muted-text ml-1 inline-block" />;
     return sort.dir === 'asc'
-      ? <ArrowUp size={13} className="text-amber-600 ml-1 inline-block" />
-      : <ArrowDown size={13} className="text-amber-600 ml-1 inline-block" />;
+      ? <ArrowUp size={13} className="text-warning ml-1 inline-block" />
+      : <ArrowDown size={13} className="text-warning ml-1 inline-block" />;
   };
 
   const hasActiveFilters = filters.college || filters.batch || filters.course || filters.branch || filters.academic_year || filters.scholarship_status;
@@ -375,12 +375,12 @@ function ScholarshipReport() {
     <div className="flex flex-col h-full min-h-0 gap-4 p-4">
       <header className="flex-shrink-0 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-amber-100 p-2 text-amber-600">
+          <div className="rounded-lg bg-[var(--warning-light)] p-2 text-warning">
             <Award size={24} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Scholarship Report</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-xl font-bold text-main">Scholarship Report</h1>
+            <p className="text-sm text-muted-text">
               Year-wise sanctioned, released and due amounts by batch, college, program and branch
             </p>
           </div>
@@ -390,7 +390,7 @@ function ScholarshipReport() {
             type="button"
             onClick={() => setRefreshKey((k) => k + 1)}
             disabled={loading || !filtersReady}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border-strong text-sub hover:bg-background text-sm font-medium disabled:opacity-50"
           >
             {loading ? <RefreshCw size={16} className="animate-spin" /> : <RefreshCw size={16} />}
             Refresh
@@ -399,7 +399,7 @@ function ScholarshipReport() {
             type="button"
             onClick={handleDownload}
             disabled={downloading || !filtersReady || reportData.length === 0}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-green-500 text-green-600 hover:bg-green-50 text-sm font-medium disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-success text-success hover:bg-[var(--success-light)] text-sm font-medium disabled:opacity-50"
           >
             <Download size={16} />
             Download Excel
@@ -407,18 +407,18 @@ function ScholarshipReport() {
         </div>
       </header>
 
-      <section className="flex-shrink-0 bg-white border border-gray-200 rounded-xl shadow-sm p-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+      <section className="flex-shrink-0 bg-surface border border-border rounded-xl shadow-sm p-4">
+        <h2 className="text-sm font-semibold text-sub mb-3 flex items-center gap-2">
           <Layers size={16} />
           Filters
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">College</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">College</label>
             <select
               value={filters.college || ''}
               onChange={(e) => handleFilterChange('college', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-warning"
             >
               <option value="">Select College</option>
               {(filterOptions.colleges || []).map((c) => (
@@ -427,11 +427,11 @@ function ScholarshipReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Batch</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Batch</label>
             <select
               value={filters.batch || ''}
               onChange={(e) => handleFilterChange('batch', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-warning"
             >
               <option value="">Select Batch</option>
               {(filterOptions.batches || []).map((b) => (
@@ -440,11 +440,11 @@ function ScholarshipReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Program</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Program</label>
             <select
               value={filters.course || ''}
               onChange={(e) => handleFilterChange('course', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-warning"
             >
               <option value="">Select Program</option>
               {availableCourses.map((c) => (
@@ -453,11 +453,11 @@ function ScholarshipReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Branch</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Branch</label>
             <select
               value={filters.branch || ''}
               onChange={(e) => handleFilterChange('branch', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-warning"
             >
               <option value="">Select Branch</option>
               {(filterOptions.branches || []).map((b) => (
@@ -466,12 +466,12 @@ function ScholarshipReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Academic Year</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Academic Year</label>
             <select
               value={filters.academic_year || ''}
               onChange={(e) => handleFilterChange('academic_year', e.target.value)}
               disabled={!filters.batch || !filters.course}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 disabled:opacity-50 disabled:bg-gray-50"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-warning disabled:opacity-50 disabled:bg-background"
             >
               <option value="">All Years</option>
               {academicYearOptions.map(({ value, label, isCurrent }) => (
@@ -482,11 +482,11 @@ function ScholarshipReport() {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Scholarship Status</label>
+            <label className="block text-xs font-medium text-muted-text mb-1">Scholarship Status</label>
             <select
               value={filters.scholarship_status || ''}
               onChange={(e) => handleFilterChange('scholarship_status', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500"
+              className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:ring-2 focus:ring-warning"
             >
               <option value="">All Statuses</option>
               <option value="eligible">✅ Eligible</option>
@@ -498,7 +498,7 @@ function ScholarshipReport() {
           <button
             type="button"
             onClick={clearFilters}
-            className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium"
+            className="mt-3 inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)] text-sm font-medium"
           >
             <XCircle size={16} />
             Clear filters
@@ -509,92 +509,92 @@ function ScholarshipReport() {
       {filtersReady && (
         <div className="flex-shrink-0 flex flex-col gap-2">
           {/* Active filter chips + student count */}
-          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
-            <span className="font-medium text-gray-700">Showing:</span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-gray-200 text-xs">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-sub bg-background border border-border rounded-lg px-4 py-2.5">
+            <span className="font-medium text-sub">Showing:</span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border text-xs">
               <Building2 size={12} /> {filters.college}
             </span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-gray-200 text-xs">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border text-xs">
               <Calendar size={12} /> {filters.batch}
             </span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-gray-200 text-xs">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border text-xs">
               <BookOpen size={12} /> {filters.course}
             </span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white border border-gray-200 text-xs">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface border border-border text-xs">
               <GitBranch size={12} /> {filters.branch}
             </span>
             {filters.academic_year && filters.academic_year !== 'all' && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-700 font-medium text-xs">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[var(--warning-light)] border border-[var(--warning-light)] text-warning font-medium text-xs">
                 <Layers size={12} /> {formatAcademicYearLabel(filters.batch, filters.academic_year)}
               </span>
             )}
             {filters.scholarship_status && (() => {
               const statusMeta = {
-                eligible:         { label: 'Eligible',                    cls: 'bg-green-50 border-green-200 text-green-700' },
-                non_eligible_all: { label: 'All Remaining (Non-Eligible)', cls: 'bg-red-50 border-red-200 text-red-700' }
+                eligible:         { label: 'Eligible',                    cls: 'bg-[var(--success-light)] border-[var(--success-light)] text-success' },
+                non_eligible_all: { label: 'All Remaining (Non-Eligible)', cls: 'bg-[var(--danger-light)] border-[var(--danger-light)] text-danger' }
               };
-              const meta = statusMeta[filters.scholarship_status] || { label: filters.scholarship_status, cls: 'bg-gray-50 border-gray-200 text-gray-600' };
+              const meta = statusMeta[filters.scholarship_status] || { label: filters.scholarship_status, cls: 'bg-background border-border text-sub' };
               return (
                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border font-medium text-xs ${meta.cls}`}>
                   {meta.label}
                 </span>
               );
             })()}
-            <span className="ml-auto text-gray-500 text-xs font-medium">{reportData.length} students</span>
+            <span className="ml-auto text-muted-text text-xs font-medium">{reportData.length} students</span>
           </div>
         </div>
       )}
 
-      <div className="flex-1 min-h-0 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+      <div className="flex-1 min-h-0 bg-surface border border-border rounded-xl shadow-sm overflow-hidden flex flex-col">
         <div className="flex-1 overflow-auto">
           {!filtersReady ? (
-            <div className="flex flex-col items-center justify-center h-48 text-gray-500 text-sm">
+            <div className="flex flex-col items-center justify-center h-48 text-muted-text text-sm">
               Select college, batch, program and branch to load the scholarship report.
             </div>
           ) : loading ? (
-            <div className="flex items-center justify-center h-48 text-gray-500 text-sm gap-2">
+            <div className="flex items-center justify-center h-48 text-muted-text text-sm gap-2">
               <RefreshCw size={18} className="animate-spin" />
               Loading report...
             </div>
           ) : reportData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-48 text-gray-500 text-sm">
+            <div className="flex flex-col items-center justify-center h-48 text-muted-text text-sm">
               No students found for the selected filters.
             </div>
           ) : (
             <table className="min-w-full text-xs border-collapse">
-              <thead className="bg-gray-50 sticky top-0 z-10">
+              <thead className="bg-background sticky top-0 z-10">
                 <tr>
-                  <th rowSpan={2} className="border-b border-r border-gray-200 px-2 py-2 text-left font-semibold text-gray-700 whitespace-nowrap text-[11px]">
+                  <th rowSpan={2} className="border-b border-r border-border px-2 py-2 text-left font-semibold text-sub whitespace-nowrap text-[11px]">
                     #
                   </th>
                   <th
                     rowSpan={2}
                     onClick={() => handleSortToggle('name')}
-                    className="border-b border-r border-gray-200 px-2 py-2 text-left font-semibold text-gray-700 whitespace-nowrap min-w-[140px] cursor-pointer select-none hover:bg-gray-100 text-[11px]"
+                    className="border-b border-r border-border px-2 py-2 text-left font-semibold text-sub whitespace-nowrap min-w-[140px] cursor-pointer select-none hover:bg-background text-[11px]"
                   >
                     Student Name <SortIcon colKey="name" />
                   </th>
                   <th
                     rowSpan={2}
                     onClick={() => handleSortToggle('pin')}
-                    className="border-b border-r border-gray-200 px-2 py-2 text-left font-semibold text-gray-700 whitespace-nowrap cursor-pointer select-none hover:bg-gray-100 text-[11px]"
+                    className="border-b border-r border-border px-2 py-2 text-left font-semibold text-sub whitespace-nowrap cursor-pointer select-none hover:bg-background text-[11px]"
                   >
                     PIN / Adm No <SortIcon colKey="pin" />
                   </th>
-                  <th rowSpan={2} className="border-b border-r border-gray-200 px-2 py-2 text-left font-semibold text-gray-700 whitespace-nowrap text-[11px]">
+                  <th rowSpan={2} className="border-b border-r border-border px-2 py-2 text-left font-semibold text-sub whitespace-nowrap text-[11px]">
                     Branch
                   </th>
-                  <th rowSpan={2} className="border-b border-r border-gray-200 px-2 py-2 text-left font-semibold text-gray-700 whitespace-nowrap text-[11px]">
+                  <th rowSpan={2} className="border-b border-r border-border px-2 py-2 text-left font-semibold text-sub whitespace-nowrap text-[11px]">
                     Quota
                   </th>
-                  <th rowSpan={2} className="border-b border-r border-gray-200 px-2 py-2 text-left font-semibold text-gray-700 whitespace-nowrap text-[11px]">
+                  <th rowSpan={2} className="border-b border-r border-border px-2 py-2 text-left font-semibold text-sub whitespace-nowrap text-[11px]">
                     Caste
                   </th>
-                  <th rowSpan={2} className="border-b border-r border-gray-200 px-2 py-2 text-left font-semibold text-gray-700 whitespace-nowrap text-[11px]">
+                  <th rowSpan={2} className="border-b border-r border-border px-2 py-2 text-left font-semibold text-sub whitespace-nowrap text-[11px]">
                     Status
                   </th>
                   {filters.scholarship_status === 'non_eligible_all' && (
-                    <th rowSpan={2} className="border-b border-r border-gray-200 px-2 py-2 text-left font-semibold text-gray-700 whitespace-nowrap text-[11px]">
+                    <th rowSpan={2} className="border-b border-r border-border px-2 py-2 text-left font-semibold text-sub whitespace-nowrap text-[11px]">
                       Scholarship Status
                     </th>
                   )}
@@ -602,7 +602,7 @@ function ScholarshipReport() {
                     <th
                       key={`year-${year}`}
                       colSpan={colsPerYear}
-                      className="border-b border-r border-gray-200 px-2 py-1.5 text-center font-semibold text-gray-700 bg-amber-50/60 text-[11px]"
+                      className="border-b border-r border-border px-2 py-1.5 text-center font-semibold text-sub bg-[var(--warning-light)] text-[11px]"
                     >
                       {formatAcademicYearLabel(filters.batch, year)}
                     </th>
@@ -611,13 +611,13 @@ function ScholarshipReport() {
                 <tr>
                   {yearColumns.map((year) => (
                     <React.Fragment key={`sub-${year}`}>
-                      <th className="border-b border-r border-gray-200 px-1.5 py-1 text-center text-[10px] font-medium text-gray-500 whitespace-nowrap">
+                      <th className="border-b border-r border-border px-1.5 py-1 text-center text-[10px] font-medium text-muted-text whitespace-nowrap">
                         Sanctioned
                       </th>
-                      <th className="border-b border-r border-gray-200 px-1.5 py-1 text-center text-[10px] font-medium text-emerald-600 whitespace-nowrap">
+                      <th className="border-b border-r border-border px-1.5 py-1 text-center text-[10px] font-medium text-success whitespace-nowrap">
                         {SCHOLARSHIP_RTF_RELEASED_LABEL}
                       </th>
-                      <th className="border-b border-r border-gray-200 px-1.5 py-1 text-center text-[10px] font-medium text-pink-600 whitespace-nowrap">
+                      <th className="border-b border-r border-border px-1.5 py-1 text-center text-[10px] font-medium text-accent whitespace-nowrap">
                         {SCHOLARSHIP_RTF_DUE_LABEL}
                       </th>
                     </React.Fragment>
@@ -626,30 +626,30 @@ function ScholarshipReport() {
               </thead>
               <tbody>
                 {sortedData.map((student, index) => (
-                  <tr key={student.student_id || student.admission_number} className="hover:bg-gray-50/80">
-                    <td className="border-b border-r border-gray-100 px-2 py-1.5 text-gray-500 text-[11px]">{index + 1}</td>
-                    <td className="border-b border-r border-gray-100 px-2 py-1.5 font-medium text-gray-900 text-[11px]">
+                  <tr key={student.student_id || student.admission_number} className="hover:bg-[var(--background)]/80">
+                    <td className="border-b border-r border-border px-2 py-1.5 text-muted-text text-[11px]">{index + 1}</td>
+                    <td className="border-b border-r border-border px-2 py-1.5 font-medium text-main text-[11px]">
                       {student.student_name || '—'}
                     </td>
-                    <td className="border-b border-r border-gray-100 px-2 py-1.5 text-gray-700 font-mono text-[10px]">
+                    <td className="border-b border-r border-border px-2 py-1.5 text-sub font-mono text-[10px]">
                       {student.pin_no || student.admission_number || '—'}
                     </td>
-                    <td className="border-b border-r border-gray-100 px-2 py-1.5 text-gray-600 text-[11px]">
+                    <td className="border-b border-r border-border px-2 py-1.5 text-sub text-[11px]">
                       {student.branch || '—'}
                     </td>
-                    <td className="border-b border-r border-gray-100 px-2 py-1.5 text-gray-600 text-[11px]">
+                    <td className="border-b border-r border-border px-2 py-1.5 text-sub text-[11px]">
                       {student.stud_type || '—'}
                     </td>
-                    <td className="border-b border-r border-gray-100 px-2 py-1.5 text-gray-600 text-[11px]">
+                    <td className="border-b border-r border-border px-2 py-1.5 text-sub text-[11px]">
                       {student.caste || '—'}
                     </td>
-                    <td className="border-b border-r border-gray-100 px-2 py-1.5 text-[11px]">
+                    <td className="border-b border-r border-border px-2 py-1.5 text-[11px]">
                       {(() => {
                         const raw = (student.student_status || '').trim();
                         const statusMeta = {
-                          Regular:          { cls: 'text-green-700 bg-green-50 border border-green-200' },
-                          Detained:         { cls: 'text-red-700 bg-red-50 border border-red-200' },
-                          'Course Completed': { cls: 'text-blue-700 bg-blue-50 border border-blue-200' }
+                          Regular:          { cls: 'text-success bg-[var(--success-light)] border border-[var(--success-light)]' },
+                          Detained:         { cls: 'text-danger bg-[var(--danger-light)] border border-[var(--danger-light)]' },
+                          'Course Completed': { cls: 'text-primary bg-[var(--primary-light)] border border-[var(--primary-light)]' }
                         };
                         const meta = statusMeta[raw];
                         if (meta) {
@@ -659,25 +659,25 @@ function ScholarshipReport() {
                             </span>
                           );
                         }
-                        return <span className="text-gray-500">{raw || '—'}</span>;
+                        return <span className="text-muted-text">{raw || '—'}</span>;
                       })()}
                     </td>
                     {filters.scholarship_status === 'non_eligible_all' && (
-                      <td className="border-b border-r border-gray-100 px-2 py-1.5 text-[11px]">
+                      <td className="border-b border-r border-border px-2 py-1.5 text-[11px]">
                         {(() => {
                           const counts = student.year_status_counts;
 
                           // All-years mode: backend sends year_status_counts with per-status year counts
                           if (counts) {
                             const badges = [
-                              counts.eligible     > 0 && { label: 'Eligible',     count: counts.eligible,     cls: 'text-green-700 bg-green-50 border border-green-200' },
-                              counts.not_eligible > 0 && { label: 'Not Eligible', count: counts.not_eligible, cls: 'text-orange-700 bg-orange-50 border border-orange-200' },
-                              counts.rejected     > 0 && { label: 'Rejected',     count: counts.rejected,     cls: 'text-red-700 bg-red-50 border border-red-200' },
-                              counts.not_applied  > 0 && { label: 'Not Applied',  count: counts.not_applied,  cls: 'text-gray-600 bg-gray-50 border border-gray-200' },
-                              counts.pending      > 0 && { label: 'Pending',      count: counts.pending,      cls: 'text-yellow-700 bg-yellow-50 border border-yellow-200' },
+                              counts.eligible     > 0 && { label: 'Eligible',     count: counts.eligible,     cls: 'text-success bg-[var(--success-light)] border border-[var(--success-light)]' },
+                              counts.not_eligible > 0 && { label: 'Not Eligible', count: counts.not_eligible, cls: 'text-warning bg-[var(--warning-light)] border border-[var(--warning-light)]' },
+                              counts.rejected     > 0 && { label: 'Rejected',     count: counts.rejected,     cls: 'text-danger bg-[var(--danger-light)] border border-[var(--danger-light)]' },
+                              counts.not_applied  > 0 && { label: 'Not Applied',  count: counts.not_applied,  cls: 'text-sub bg-background border border-border' },
+                              counts.pending      > 0 && { label: 'Pending',      count: counts.pending,      cls: 'text-warning bg-[var(--warning-light)] border border-[var(--warning-light)]' },
                             ].filter(Boolean);
 
-                            if (!badges.length) return <span className="text-gray-400">—</span>;
+                            if (!badges.length) return <span className="text-muted-text">—</span>;
                             return (
                               <div className="flex flex-wrap gap-1">
                                 {badges.map(({ label, count, cls }) => (
@@ -692,11 +692,11 @@ function ScholarshipReport() {
                           // Specific-year mode: single status badge
                           const raw = (student.scholar_status || '').toLowerCase().trim();
                           const statusDisplay = {
-                            not_eligible: { label: 'Not Eligible',  cls: 'text-orange-700 bg-orange-50 border border-orange-200' },
-                            pending:      { label: 'Pending',        cls: 'text-yellow-700 bg-yellow-50 border border-yellow-200' },
-                            rejected:     { label: 'Rejected',       cls: 'text-red-700 bg-red-50 border border-red-200' },
-                            not_applied:  { label: 'Not Applied',    cls: 'text-gray-600 bg-gray-50 border border-gray-200' },
-                            eligible:     { label: 'Eligible',       cls: 'text-green-700 bg-green-50 border border-green-200' },
+                            not_eligible: { label: 'Not Eligible',  cls: 'text-warning bg-[var(--warning-light)] border border-[var(--warning-light)]' },
+                            pending:      { label: 'Pending',        cls: 'text-warning bg-[var(--warning-light)] border border-[var(--warning-light)]' },
+                            rejected:     { label: 'Rejected',       cls: 'text-danger bg-[var(--danger-light)] border border-[var(--danger-light)]' },
+                            not_applied:  { label: 'Not Applied',    cls: 'text-sub bg-background border border-border' },
+                            eligible:     { label: 'Eligible',       cls: 'text-success bg-[var(--success-light)] border border-[var(--success-light)]' },
                           };
                           const meta = statusDisplay[raw];
                           if (meta) {
@@ -706,7 +706,7 @@ function ScholarshipReport() {
                               </span>
                             );
                           }
-                          return <span className="text-gray-500">{student.scholar_status || '—'}</span>;
+                          return <span className="text-muted-text">{student.scholar_status || '—'}</span>;
                         })()}
                       </td>
                     )}
@@ -718,13 +718,13 @@ function ScholarshipReport() {
                       };
                       return (
                         <React.Fragment key={`${student.student_id}-${year}`}>
-                          <td className="border-b border-r border-gray-100 px-1.5 py-1.5 text-right text-gray-700 tabular-nums text-[11px]">
+                          <td className="border-b border-r border-border px-1.5 py-1.5 text-right text-sub tabular-nums text-[11px]">
                             {formatAmount(yearData.sanctioned_amount)}
                           </td>
-                          <td className="border-b border-r border-gray-100 px-1.5 py-1.5 text-right text-emerald-700 tabular-nums text-[11px]">
+                          <td className="border-b border-r border-border px-1.5 py-1.5 text-right text-success tabular-nums text-[11px]">
                             {formatAmount(yearData.released_amount)}
                           </td>
-                          <td className="border-b border-r border-gray-100 px-1.5 py-1.5 text-right text-pink-700 tabular-nums text-[11px] font-medium">
+                          <td className="border-b border-r border-border px-1.5 py-1.5 text-right text-accent tabular-nums text-[11px] font-medium">
                             {formatAmount(yearData.due_amount)}
                           </td>
                         </React.Fragment>

@@ -67,14 +67,14 @@ const StudentAvatar = ({
 
     // Random bg color based on name
     const colors = [
-        'bg-red-100 text-red-600',
-        'bg-green-100 text-green-600',
-        'bg-blue-100 text-blue-600',
-        'bg-yellow-100 text-yellow-600',
-        'bg-purple-100 text-purple-600',
-        'bg-pink-100 text-pink-600',
-        'bg-indigo-100 text-indigo-600',
-        'bg-teal-100 text-teal-600'
+        'bg-[var(--danger-light)] text-danger',
+        'bg-[var(--success-light)] text-success',
+        'bg-[var(--primary-light)] text-primary',
+        'bg-[var(--warning-light)] text-warning',
+        'bg-[var(--primary-light)] text-secondary',
+        'bg-[var(--primary-light)] text-accent',
+        'bg-[var(--primary-light)] text-primary',
+        'bg-[var(--primary-light)] text-primary'
     ];
 
     const colorIndex = studentName ? studentName.length % colors.length : 0;
@@ -86,7 +86,7 @@ const StudentAvatar = ({
             <img
                 src={photoData}
                 alt={studentName}
-                className={`${className} rounded-full object-cover border border-gray-200 shadow-sm`}
+                className={`${className} rounded-full object-cover border border-border shadow-sm`}
                 onError={() => setError(true)}
             />
         );
@@ -95,13 +95,13 @@ const StudentAvatar = ({
     // Otherwise render initials or placeholder
     return (
         <div
-            className={`${className} rounded-full flex items-center justify-center font-bold text-sm border border-gray-200 shadow-sm ${colorClass}`}
+            className={`${className} rounded-full flex items-center justify-center font-bold text-sm border border-border shadow-sm ${colorClass}`}
             title={studentName}
         >
             {error && !loading ? (
                 initials
             ) : loading ? (
-                <div className="animate-pulse bg-gray-200 w-full h-full rounded-full" />
+                <div className="animate-pulse bg-background w-full h-full rounded-full" />
             ) : (
                 initials
             )}

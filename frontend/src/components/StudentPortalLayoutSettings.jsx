@@ -110,8 +110,8 @@ const StudentPortalLayoutSettings = ({ readOnly = false }) => {
         return (
             <div className="p-12 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-500 text-sm">Loading layout settings...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 text-muted-text text-sm">Loading layout settings...</p>
                 </div>
             </div>
         );
@@ -119,19 +119,19 @@ const StudentPortalLayoutSettings = ({ readOnly = false }) => {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+            <div className="flex items-center justify-between border-b border-border pb-4">
                 <div>
-                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <Layout size={20} className="text-blue-600" />
+                    <h2 className="text-lg font-bold text-main flex items-center gap-2">
+                        <Layout size={20} className="text-primary" />
                         Student Portal Layout
                     </h2>
-                    <p className="text-sm text-gray-500">Enable or disable components on the student sidebar</p>
+                    <p className="text-sm text-muted-text">Enable or disable components on the student sidebar</p>
                 </div>
                 {!readOnly && (
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm font-medium shadow-sm transition-all disabled:opacity-50"
+                    className="px-5 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover flex items-center gap-2 text-sm font-medium shadow-sm transition-all disabled:opacity-50"
                 >
                     <Save size={16} />
                     {saving ? 'Saving...' : 'Save Changes'}
@@ -148,45 +148,45 @@ const StudentPortalLayoutSettings = ({ readOnly = false }) => {
                         <div
                             key={comp.key}
                             className={`p-4 rounded-xl border transition-all duration-300 ${isEnabled
-                                ? 'bg-white border-blue-100 shadow-sm'
-                                : 'bg-gray-50 border-gray-200'
+                                ? 'bg-surface border-[var(--primary-light)] shadow-sm'
+                                : 'bg-background border-border'
                                 }`}
                         >
                             <div className="flex items-start justify-between mb-3">
-                                <div className={`p-2 rounded-lg ${isEnabled ? 'bg-blue-50 text-blue-600' : 'bg-gray-200 text-gray-400'
+                                <div className={`p-2 rounded-lg ${isEnabled ? 'bg-[var(--primary-light)] text-primary' : 'bg-background text-muted-text'
                                     }`}>
                                     <Icon size={18} />
                                 </div>
                                 <button
                                     onClick={() => handleToggle(comp.key)}
-                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${isEnabled ? 'bg-blue-600' : 'bg-gray-200'
+                                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${isEnabled ? 'bg-primary' : 'bg-background'
                                         }`}
                                 >
                                     <span
-                                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${isEnabled ? 'translate-x-5' : 'translate-x-1'
+                                        className={`inline-block h-3 w-3 transform rounded-full bg-surface transition-transform ${isEnabled ? 'translate-x-5' : 'translate-x-1'
                                             }`}
                                     />
                                 </button>
                             </div>
 
                             <div>
-                                <h3 className={`font-bold text-sm mb-1 ${isEnabled ? 'text-gray-900' : 'text-gray-500'}`}>
+                                <h3 className={`font-bold text-sm mb-1 ${isEnabled ? 'text-main' : 'text-muted-text'}`}>
                                     {comp.label}
                                 </h3>
-                                <p className="text-[11px] text-gray-500 leading-tight h-8 overflow-hidden">
+                                <p className="text-[11px] text-muted-text leading-tight h-8 overflow-hidden">
                                     {comp.description}
                                 </p>
                             </div>
 
-                            <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
-                                <span className={`text-[10px] font-bold uppercase tracking-wider ${isEnabled ? 'text-green-600' : 'text-gray-400'
+                            <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+                                <span className={`text-[10px] font-bold uppercase tracking-wider ${isEnabled ? 'text-success' : 'text-muted-text'
                                     }`}>
                                     {isEnabled ? 'Visible' : 'Hidden'}
                                 </span>
                                 {isEnabled ? (
-                                    <Eye size={14} className="text-green-600" />
+                                    <Eye size={14} className="text-success" />
                                 ) : (
-                                    <EyeOff size={14} className="text-gray-400" />
+                                    <EyeOff size={14} className="text-muted-text" />
                                 )}
                             </div>
                         </div>
@@ -194,13 +194,13 @@ const StudentPortalLayoutSettings = ({ readOnly = false }) => {
                 })}
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg text-blue-600 h-fit">
+            <div className="bg-[var(--primary-light)] p-4 rounded-xl border border-[var(--primary-light)] flex gap-3">
+                <div className="p-2 bg-[var(--primary-light)] rounded-lg text-primary h-fit">
                     <Layout size={18} />
                 </div>
                 <div>
-                    <h4 className="font-bold text-blue-900 text-xs">Portal Visibility Note</h4>
-                    <p className="text-blue-700 text-[11px] mt-0.5">
+                    <h4 className="font-bold text-primary text-xs">Portal Visibility Note</h4>
+                    <p className="text-primary text-[11px] mt-0.5">
                         Changes here apply immediately across all student accounts. Disabling a component will hide its navigation link in the student portal sidebar.
                     </p>
                 </div>

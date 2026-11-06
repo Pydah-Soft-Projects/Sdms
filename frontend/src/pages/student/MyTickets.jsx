@@ -28,11 +28,11 @@ import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
 
 const STATUS_COLORS = {
-  pending: 'bg-amber-50 text-amber-800 border-amber-200',
-  approaching: 'bg-blue-50 text-blue-800 border-blue-200',
-  resolving: 'bg-purple-50 text-purple-800 border-purple-200',
-  completed: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-  closed: 'bg-slate-100 text-slate-800 border-slate-200'
+  pending: 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]',
+  approaching: 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]',
+  resolving: 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]',
+  completed: 'bg-[var(--success-light)] text-success border-[var(--success-light)]',
+  closed: 'bg-background text-main border-border'
 };
 
 const STATUS_LABELS = {
@@ -246,7 +246,7 @@ const MyTickets = () => {
         </div>
         <div className="space-y-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 space-y-3">
+            <div key={i} className="bg-surface rounded-2xl border border-border p-5 space-y-3">
               <SkeletonBox height="h-6" width="w-48" />
               <SkeletonBox height="h-4" width="w-full" />
             </div>
@@ -279,16 +279,16 @@ const MyTickets = () => {
       className="max-w-6xl mx-auto px-3 sm:px-6 space-y-6 pb-12"
     >
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div>
-          <div className="flex items-center gap-2 text-blue-600 mb-1">
+          <div className="flex items-center gap-2 text-primary mb-1">
             <Ticket size={16} />
             <span className="text-xs font-bold uppercase tracking-wider">Campus Maintenance</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-main heading-font tracking-tight">
             Maintenance & Complaints
           </h1>
-          <p className="text-slate-500 text-xs sm:text-sm font-medium mt-0.5">
+          <p className="text-muted-text text-xs sm:text-sm font-medium mt-0.5">
             Report facility issues and track real-time resolution status
           </p>
         </div>
@@ -296,7 +296,7 @@ const MyTickets = () => {
         {/* Action Button: Opens the Complaint Popup Modal */}
         <button
           onClick={() => setShowRaiseModal(true)}
-          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-md shadow-blue-500/20 transition-all active:scale-95 text-sm"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl font-bold shadow-md shadow-primary/20 transition-all active:scale-95 text-sm"
         >
           <Plus size={18} />
           <span>File a Complaint</span>
@@ -325,18 +325,18 @@ const MyTickets = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl border border-slate-200/80 p-8 sm:p-14 text-center shadow-sm"
+            className="bg-surface rounded-2xl border border-border p-8 sm:p-14 text-center shadow-sm"
           >
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-[var(--primary-light)] text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Ticket size={32} />
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-1">No Complaints Logged</h3>
-            <p className="text-slate-500 text-xs sm:text-sm max-w-sm mx-auto mb-6">
+            <h3 className="text-lg sm:text-xl font-bold text-main heading-font mb-1">No Complaints Logged</h3>
+            <p className="text-muted-text text-xs sm:text-sm max-w-sm mx-auto mb-6">
               Everything looks in good shape! You have not logged any maintenance or facility issues yet.
             </p>
             <button
               onClick={() => setShowRaiseModal(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-md shadow-blue-500/20 text-sm active:scale-95"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover transition shadow-md shadow-primary/20 text-sm active:scale-95"
             >
               <Plus size={18} />
               <span>File Your First Complaint</span>
@@ -352,46 +352,46 @@ const MyTickets = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.04 }}
-                  className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 hover:border-blue-300 hover:shadow-md transition-all group"
+                  className="bg-surface rounded-2xl border border-border p-4 sm:p-5 hover:border-[var(--primary-light)] hover:shadow-md transition-all group"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       {/* Title & Status */}
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <h3 className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors break-words">
+                        <h3 className="text-base sm:text-lg font-bold text-main heading-font group-hover:text-primary transition-colors break-words">
                           {t.title}
                         </h3>
                         <span
-                          className={`px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full border ${STATUS_COLORS[t.status] || 'bg-slate-100'}`}
+                          className={`px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full border ${STATUS_COLORS[t.status] || 'bg-background'}`}
                         >
                           {STATUS_LABELS[t.status] || t.status}
                         </span>
                       </div>
 
                       {/* Meta badges: ID, Category, Date, Location */}
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 mb-2">
-                        <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg font-mono font-bold text-[11px]">
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-sub mb-2">
+                        <span className="px-2.5 py-1 bg-background text-sub border border-border rounded-lg font-mono font-bold text-[11px]">
                           #{ticketNum}
                         </span>
                         {t.category_name && (
-                          <span className="px-2.5 py-1 bg-blue-50 text-blue-800 rounded-lg font-medium text-[11px]">
+                          <span className="px-2.5 py-1 bg-[var(--primary-light)] text-primary rounded-lg font-medium text-[11px]">
                             {t.category_name} {t.sub_category_name ? `› ${t.sub_category_name}` : ''}
                           </span>
                         )}
                         {t.college_name && (
-                          <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg font-medium text-[11px] flex items-center gap-1">
-                            <Building2 size={12} className="text-slate-400" />
+                          <span className="px-2.5 py-1 bg-background text-sub border border-border rounded-lg font-medium text-[11px] flex items-center gap-1">
+                            <Building2 size={12} className="text-muted-text" />
                             {t.college_name}
                           </span>
                         )}
                         {(t.block_no || t.room_no) && (
-                          <span className="px-2.5 py-1 bg-indigo-50 text-indigo-800 rounded-lg font-medium text-[11px] flex items-center gap-1">
-                            <MapPin size={12} className="text-indigo-500" />
+                          <span className="px-2.5 py-1 bg-[var(--primary-light)] text-secondary rounded-lg font-medium text-[11px] flex items-center gap-1">
+                            <MapPin size={12} className="text-secondary" />
                             {t.block_no ? `Block ${t.block_no}` : ''}
                             {t.room_no ? ` Room ${t.room_no}` : ''}
                           </span>
                         )}
-                        <span className="text-[11px] text-slate-400 flex items-center gap-1 ml-auto sm:ml-0">
+                        <span className="text-[11px] text-muted-text flex items-center gap-1 ml-auto sm:ml-0">
                           <Clock size={12} />
                           {t.created_at ? new Date(t.created_at).toLocaleDateString('en-IN') : ''}
                         </span>
@@ -399,17 +399,17 @@ const MyTickets = () => {
 
                       {/* Description snippet */}
                       {t.description && (
-                        <p className="text-xs sm:text-sm text-slate-500 line-clamp-2 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-muted-text line-clamp-2 leading-relaxed">
                           {t.description}
                         </p>
                       )}
                     </div>
 
                     {/* Action buttons on ticket card */}
-                    <div className="flex items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 self-end sm:self-center shrink-0">
+                    <div className="flex items-center gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-border self-end sm:self-center shrink-0">
                       <button
                         onClick={() => setSelectedTicket(t)}
-                        className="px-3.5 py-2 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95"
+                        className="px-3.5 py-2 bg-background hover:bg-[var(--primary-light)] text-sub hover:text-primary border border-border rounded-xl text-xs font-bold transition flex items-center gap-1.5 active:scale-95"
                         title="View Full Details"
                       >
                         <Eye size={15} />
@@ -714,21 +714,21 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback, onReopen, isReopening
   const ticketNum = ticket.complaint_number || ticket.ticket_number || `TKT-${ticket.id}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[var(--sidebar)]/60 backdrop-blur-sm overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.96 }}
-        className="bg-white rounded-t-[1.75rem] sm:rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 flex flex-col"
+        className="bg-surface rounded-t-[1.75rem] sm:rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-border flex flex-col"
       >
-        <div className="sticky top-0 bg-white/95 backdrop-blur-md px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-[var(--surface)]/95 backdrop-blur-md px-5 sm:px-6 py-4 border-b border-border flex items-center justify-between z-10">
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900">Complaint Details</h2>
-            <p className="text-xs text-blue-600 font-mono font-bold">#{ticketNum}</p>
+            <h2 className="text-lg sm:text-xl font-bold text-main heading-font">Complaint Details</h2>
+            <p className="text-xs text-primary font-mono font-bold">#{ticketNum}</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition"
+            className="p-2 text-muted-text hover:text-main rounded-xl hover:bg-background transition"
           >
             <X size={20} />
           </button>
@@ -737,7 +737,7 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback, onReopen, isReopening
         <div className="p-5 sm:p-6 space-y-5 text-xs sm:text-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span
-              className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full border ${STATUS_COLORS[ticket.status] || 'bg-slate-100'}`}
+              className={`px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full border ${STATUS_COLORS[ticket.status] || 'bg-background'}`}
             >
               {STATUS_LABELS[ticket.status] || ticket.status}
             </span>
@@ -765,42 +765,42 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback, onReopen, isReopening
               </p>
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              <label className="text-[10px] font-bold text-muted-text uppercase tracking-wider block mb-1">
                 Requester
               </label>
-              <p className="font-semibold text-slate-800">
+              <p className="font-semibold text-main">
                 {ticket.requester_name || 'Student'} ({ticket.requester_identifier || ticket.admission_number || 'N/A'})
               </p>
             </div>
           </div>
 
           {(ticket.college_name || ticket.block_no || ticket.floor_no || ticket.room_no) && (
-            <div className="p-3.5 bg-blue-50/60 border border-blue-100 rounded-xl">
-              <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                <MapPin size={13} className="text-blue-600" /> Location Details
+            <div className="p-3.5 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl">
+              <div className="text-[11px] font-bold text-primary uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                <MapPin size={13} className="text-primary" /> Location Details
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-semibold text-slate-700">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-semibold text-primary">
                 {ticket.college_name && (
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-normal">College</span>
+                    <span className="text-[10px] text-muted-text block font-normal">College</span>
                     <span>{ticket.college_name}</span>
                   </div>
                 )}
                 {ticket.block_no && (
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-normal">Block</span>
+                    <span className="text-[10px] text-muted-text block font-normal">Block</span>
                     <span>{ticket.block_no}</span>
                   </div>
                 )}
                 {ticket.floor_no && (
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-normal">Floor</span>
+                    <span className="text-[10px] text-muted-text block font-normal">Floor</span>
                     <span>{ticket.floor_no}</span>
                   </div>
                 )}
                 {ticket.room_no && (
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-normal">Room</span>
+                    <span className="text-[10px] text-muted-text block font-normal">Room</span>
                     <span>{ticket.room_no}</span>
                   </div>
                 )}
@@ -810,10 +810,10 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback, onReopen, isReopening
 
           {ticket.description && (
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              <label className="text-[10px] font-bold text-muted-text uppercase tracking-wider block mb-1">
                 Description
               </label>
-              <div className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl text-slate-700 leading-relaxed text-xs sm:text-sm">
+              <div className="p-3.5 bg-background border border-border rounded-xl text-sub leading-relaxed text-xs sm:text-sm">
                 {ticket.description}
               </div>
             </div>
@@ -859,7 +859,7 @@ const TicketDetailsModal = ({ ticket, onClose, onFeedback, onReopen, isReopening
 
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+              className="px-4 py-2 bg-background hover:bg-border text-sub border border-border rounded-xl text-xs font-bold transition"
             >
               Close
             </button>
@@ -875,19 +875,19 @@ const FeedbackModal = ({ ticket, form, setForm, onClose, onSubmit, loading }) =>
   const ticketNum = ticket.complaint_number || ticket.ticket_number || `TKT-${ticket.id}`;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[var(--sidebar)]/60 backdrop-blur-sm">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-slate-100 text-center space-y-4"
+        className="bg-surface rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-border text-center space-y-4"
       >
-        <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
+        <div className="w-12 h-12 bg-[var(--success-light)] text-success rounded-2xl flex items-center justify-center mx-auto">
           <CheckCircle size={28} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-slate-900">Rate Maintenance Resolution</h3>
-          <p className="text-xs text-slate-500 mt-1">
+          <h3 className="text-lg font-bold text-main heading-font">Rate Maintenance Resolution</h3>
+          <p className="text-xs text-muted-text mt-1">
             How satisfied are you with the work done for #{ticketNum}?
           </p>
         </div>
@@ -902,7 +902,7 @@ const FeedbackModal = ({ ticket, form, setForm, onClose, onSubmit, loading }) =>
             >
               <Star
                 size={32}
-                className={form.rating >= star ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
+                className={form.rating >= star ? 'fill-warning text-warning' : 'text-muted-text'}
               />
             </button>
           ))}
@@ -913,14 +913,14 @@ const FeedbackModal = ({ ticket, form, setForm, onClose, onSubmit, loading }) =>
           value={form.feedback_text}
           onChange={(e) => setForm((prev) => ({ ...prev, feedback_text: e.target.value }))}
           placeholder="Optional remarks (e.g. prompt service, technician was polite)..."
-          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 outline-none focus:bg-white focus:border-emerald-500 resize-none"
+          className="w-full px-3 py-2 bg-background border border-border rounded-xl text-xs sm:text-sm text-main outline-none focus:bg-surface focus:border-success resize-none"
         />
 
         <div className="flex items-center gap-2 pt-2">
           <button
             type="button"
             onClick={onClose}
-            className="w-1/2 py-2.5 text-slate-500 hover:bg-slate-100 rounded-xl font-bold text-xs"
+            className="w-1/2 py-2.5 text-muted-text hover:bg-background rounded-xl font-bold text-xs"
           >
             Cancel
           </button>
@@ -928,7 +928,7 @@ const FeedbackModal = ({ ticket, form, setForm, onClose, onSubmit, loading }) =>
             type="button"
             onClick={onSubmit}
             disabled={loading}
-            className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md shadow-emerald-500/20 disabled:opacity-50 transition active:scale-95"
+            className="w-1/2 py-2.5 bg-success hover:bg-success text-white rounded-xl font-bold text-xs shadow-md shadow-success/20 disabled:opacity-50 transition active:scale-95"
           >
             {loading ? 'Submitting...' : 'Submit Rating'}
           </button>

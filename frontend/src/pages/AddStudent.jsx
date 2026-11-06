@@ -1030,7 +1030,7 @@ const AddStudent = () => {
         </div>
         <button
           onClick={() => navigate('/students')}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-lg text-white font-medium bg-gradient-to-r from-indigo-600 to-purple-700 border border-transparent shadow-md hover:shadow-lg active:scale-95 transition-all duration-300 touch-manipulation min-h-[44px]"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-lg text-white font-medium bg-gradient-to-r from-primary to-secondary border border-transparent shadow-md hover:shadow-lg active:scale-95 transition-all duration-300 touch-manipulation min-h-[44px]"
         >
           <ArrowLeft size={18} />
           <span className="hidden sm:inline">Back to Students</span>
@@ -1043,18 +1043,18 @@ const AddStudent = () => {
           {/* Form sections */}
           <div className="border-b border-border-light pb-6">
             <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-primary rounded-full"></div>
               Basic & Academic Information
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Admission Number <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Admission Number <span className="text-danger">*</span>
                   {admissionNumberLoading && (
                     <span className="ml-2 text-xs text-primary-600">(Auto-generating...)</span>
                   )}
                   {!admissionNumberLoading && studentData.admission_no && !isAdmissionNumberManual && (
-                    <span className="ml-2 text-xs text-green-600">(Auto-generated)</span>
+                    <span className="ml-2 text-xs text-success">(Auto-generated)</span>
                   )}
                 </label>
                 <div className="relative">
@@ -1065,7 +1065,7 @@ const AddStudent = () => {
                     onChange={handleChange}
                     required
                     disabled={admissionNumberLoading}
-                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-base sm:text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-input-bg text-text-primary transition-all duration-200 hover:border-primary-300 touch-manipulation min-h-[44px] ${admissionNumberLoading ? 'bg-gray-100' : ''}`}
+                    className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-base sm:text-sm border border-border-light rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-input-bg text-text-primary transition-all duration-200 hover:border-primary-300 touch-manipulation min-h-[44px] ${admissionNumberLoading ? 'bg-background' : ''}`}
                     placeholder={admissionNumberLoading ? 'Generating...' : 'Enter admission number or select batch to auto-generate'}
                   />
                   {admissionNumberLoading && (
@@ -1075,13 +1075,13 @@ const AddStudent = () => {
                   )}
                 </div>
                 {!isAdmissionNumberManual && studentData.batch && (
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-muted-text">
                     Format: {studentData.batch.match(/\d{4}/)?.[0] || studentData.batch}XXXX (e.g., {studentData.batch.match(/\d{4}/)?.[0] || studentData.batch}0001)
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   PIN Number
                 </label>
                 <input
@@ -1089,12 +1089,12 @@ const AddStudent = () => {
                   name="pin_no"
                   value={studentData.pin_no}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Student Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Student Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -1102,12 +1102,12 @@ const AddStudent = () => {
                   value={studentData.student_name}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Father Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Father Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
@@ -1115,19 +1115,19 @@ const AddStudent = () => {
                   value={studentData.father_name}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Gender <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Gender <span className="text-danger">*</span>
                 </label>
                 <select
                   name="gender"
                   value={studentData.gender}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 >
                   <option value="">Select Gender</option>
                   <option value="M">Male</option>
@@ -1140,17 +1140,17 @@ const AddStudent = () => {
 
           <div className="border-b border-border-light pb-6">
             <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-success rounded-full"></div>
               Academic Information
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {/* 1. College */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  College <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  College <span className="text-danger">*</span>
                 </label>
                 {collegesLoading ? (
-                  <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 flex items-center gap-2">
+                  <div className="w-full px-3 py-2 border border-border rounded-lg bg-background text-muted-text flex items-center gap-2">
                     <LoadingAnimation width={16} height={16} showMessage={false} variant="inline" />
                     Loading colleges...
                   </div>
@@ -1159,7 +1159,7 @@ const AddStudent = () => {
                     value={selectedCollegeId || ''}
                     onChange={handleCollegeSelect}
                     required
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                   >
                     <option value="">Select College</option>
                     {colleges.filter(c => c.isActive !== false).map((college) => (
@@ -1173,11 +1173,11 @@ const AddStudent = () => {
 
               {/* 2. Batch */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Batch <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Batch <span className="text-danger">*</span>
                 </label>
                 {batchesLoading ? (
-                  <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 flex items-center gap-2">
+                  <div className="w-full px-3 py-2 border border-border rounded-lg bg-background text-muted-text flex items-center gap-2">
                     <LoadingAnimation width={16} height={16} showMessage={false} variant="inline" />
                     Loading batches...
                   </div>
@@ -1187,7 +1187,7 @@ const AddStudent = () => {
                     value={studentData.batch}
                     onChange={handleChange}
                     required
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                   >
                     <option value="">Select Batch</option>
                     {batches.map((b) => (
@@ -1203,17 +1203,17 @@ const AddStudent = () => {
                     value={studentData.batch}
                     onChange={handleChange}
                     placeholder="Enter batch"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                   />
                 )}
                 {studentData.batch && frozenBatches[studentData.batch]?.includes("ALL") && (
-                  <p className="mt-1 text-xs text-red-500 font-medium">This batch is completely frozen. You cannot add students to it.</p>
+                  <p className="mt-1 text-xs text-danger font-medium">This batch is completely frozen. You cannot add students to it.</p>
                 )}
               </div>
 
               {/* 3. Level */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   Level
                 </label>
                 <select
@@ -1224,7 +1224,7 @@ const AddStudent = () => {
                     setSelectedCourseName('');
                     setStudentData((prev) => ({ ...prev, course: '' }));
                   }}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 >
                   <option value="">All Levels</option>
                   <option value="diploma">Diploma</option>
@@ -1235,11 +1235,11 @@ const AddStudent = () => {
 
               {/* 4. Program - same source as Students Database (quick-filters) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Program <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Program <span className="text-danger">*</span>
                 </label>
                 {(courseOptionsLoading || (studentData.college && quickFilterCoursesLoading)) ? (
-                  <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 flex items-center gap-2">
+                  <div className="w-full px-3 py-2 border border-border rounded-lg bg-background text-muted-text flex items-center gap-2">
                     <LoadingAnimation width={16} height={16} showMessage={false} variant="inline" />
                     Loading programs...
                   </div>
@@ -1248,7 +1248,7 @@ const AddStudent = () => {
                     value={selectedCourseName}
                     onChange={handleCourseSelect}
                     required
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                   >
                     <option value="">Select Course</option>
                     {quickFilterCourses.length > 0
@@ -1268,18 +1268,18 @@ const AddStudent = () => {
                     value={studentData.course}
                     onChange={handleChange}
                     placeholder={studentData.college ? 'No programs in quick-filters for this college/batch' : 'Select college first'}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                   />
                 )}
               </div>
 
               {/* 5. Branch - same source as Students Database (quick-filters) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Branch <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Branch <span className="text-danger">*</span>
                 </label>
                 {selectedCourseName && quickFilterBranchesLoading ? (
-                  <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 flex items-center gap-2">
+                  <div className="w-full px-3 py-2 border border-border rounded-lg bg-background text-muted-text flex items-center gap-2">
                     <LoadingAnimation width={16} height={16} showMessage={false} variant="inline" />
                     Loading branches...
                   </div>
@@ -1288,7 +1288,7 @@ const AddStudent = () => {
                     value={selectedBranchName}
                     onChange={handleBranchSelect}
                     required
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                   >
                     <option value="">Select Branch</option>
                     {branchOptions.map((branch) => (
@@ -1305,15 +1305,15 @@ const AddStudent = () => {
                     onChange={handleChange}
                     required
                     placeholder={selectedCourseName ? 'No branches for this program' : 'Select program first'}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                   />
                 )}
               </div>
 
               {/* 5. Current Academic Year */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  current year <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  current year <span className="text-danger">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -1324,10 +1324,10 @@ const AddStudent = () => {
                         : '-'
                     }
                     disabled
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed outline-none touch-manipulation min-h-[44px]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg bg-background text-sub cursor-not-allowed outline-none touch-manipulation min-h-[44px]"
                   />
                   {(!studentData.batch || !studentData.course || !studentData.branch) && (
-                    <p className="absolute -bottom-5 left-0 text-xs text-orange-500 whitespace-nowrap">
+                    <p className="absolute -bottom-5 left-0 text-xs text-warning whitespace-nowrap">
                       Select batch, course & branch
                     </p>
                   )}
@@ -1336,8 +1336,8 @@ const AddStudent = () => {
 
               {/* 6. Current Semester */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Current Semester <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Current Semester <span className="text-danger">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -1348,10 +1348,10 @@ const AddStudent = () => {
                         : '-'
                     }
                     disabled
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed outline-none touch-manipulation min-h-[44px]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg bg-background text-sub cursor-not-allowed outline-none touch-manipulation min-h-[44px]"
                   />
                   {(!studentData.batch || !studentData.course || !studentData.branch) && (
-                    <p className="absolute -bottom-5 left-0 text-xs text-orange-500 whitespace-nowrap">
+                    <p className="absolute -bottom-5 left-0 text-xs text-warning whitespace-nowrap">
                       Select details to calculate
                     </p>
                   )}
@@ -1360,8 +1360,8 @@ const AddStudent = () => {
 
               {/* 7. Quota */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Quota <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Quota <span className="text-danger">*</span>
                 </label>
                 <select
                   name="stud_type"
@@ -1369,7 +1369,7 @@ const AddStudent = () => {
                   onChange={handleChange}
                   required
                   disabled={studentQuotasLoading}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 >
                   <option value="">Select Quota</option>
                   {studentQuotas.map((quota) => (
@@ -1382,15 +1382,15 @@ const AddStudent = () => {
 
               {/* 8. Student Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Student Status <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Student Status <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   name="student_status"
                   value="Regular"
                   disabled
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg bg-background text-sub cursor-not-allowed outline-none touch-manipulation min-h-[44px]"
                 />
               </div>
 
@@ -1403,13 +1403,13 @@ const AddStudent = () => {
               {/* 10. Previous College Name */}
               <div>
                 <div className="flex justify-between items-center mb-1">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-sub">
                     Previous College Name
                   </label>
                   <button
                     type="button"
                     onClick={() => setIsManageCollegesModalOpen(true)}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                    className="text-xs text-primary hover:text-primary font-medium"
                   >
                     Manage List
                   </button>
@@ -1458,13 +1458,13 @@ const AddStudent = () => {
 
           <div className="border-b border-border-light pb-6">
             <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-warning rounded-full"></div>
               Contact Information
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Student Mobile Number <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Student Mobile Number <span className="text-danger">*</span>
                 </label>
                 <input
                   type="tel"
@@ -1474,19 +1474,19 @@ const AddStudent = () => {
                   required
                   className={`w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border rounded-lg focus:ring-2 focus:border-transparent outline-none touch-manipulation min-h-[44px] ${
                     mobileValidation.hasDuplicate
-                      ? 'border-red-500 bg-red-50/20 focus:ring-red-400'
-                      : 'border-gray-300 focus:ring-primary-500'
+                      ? 'border-danger bg-[var(--danger-light)] focus:ring-danger'
+                      : 'border-border-strong focus:ring-primary-500'
                   }`}
                 />
                 {mobileValidation.hasDuplicate && (
-                  <p className="mt-1 text-xs text-red-600 font-medium flex items-center gap-1">
+                  <p className="mt-1 text-xs text-danger font-medium flex items-center gap-1">
                     ⚠️ Cannot be identical to parent mobile
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Parent Mobile Number 1 <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Parent Mobile Number 1 <span className="text-danger">*</span>
                 </label>
                 <input
                   type="tel"
@@ -1496,18 +1496,18 @@ const AddStudent = () => {
                   required
                   className={`w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border rounded-lg focus:ring-2 focus:border-transparent outline-none touch-manipulation min-h-[44px] ${
                     mobileValidation.hasDuplicate && mobileValidation.matchedField === 'parent_mobile1'
-                      ? 'border-red-500 bg-red-50/20 focus:ring-red-400'
-                      : 'border-gray-300 focus:ring-primary-500'
+                      ? 'border-danger bg-[var(--danger-light)] focus:ring-danger'
+                      : 'border-border-strong focus:ring-primary-500'
                   }`}
                 />
                 {mobileValidation.hasDuplicate && mobileValidation.matchedField === 'parent_mobile1' && (
-                  <p className="mt-1 text-xs text-red-600 font-medium flex items-center gap-1">
+                  <p className="mt-1 text-xs text-danger font-medium flex items-center gap-1">
                     ⚠️ Cannot be identical to student mobile
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   Parent Mobile Number 2
                 </label>
                 <input
@@ -1517,25 +1517,25 @@ const AddStudent = () => {
                   onChange={handleChange}
                   className={`w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border rounded-lg focus:ring-2 focus:border-transparent outline-none touch-manipulation min-h-[44px] ${
                     mobileValidation.hasDuplicate && mobileValidation.matchedField === 'parent_mobile2'
-                      ? 'border-red-500 bg-red-50/20 focus:ring-red-400'
-                      : 'border-gray-300 focus:ring-primary-500'
+                      ? 'border-danger bg-[var(--danger-light)] focus:ring-danger'
+                      : 'border-border-strong focus:ring-primary-500'
                   }`}
                 />
                 {mobileValidation.hasDuplicate && mobileValidation.matchedField === 'parent_mobile2' && (
-                  <p className="mt-1 text-xs text-red-600 font-medium flex items-center gap-1">
+                  <p className="mt-1 text-xs text-danger font-medium flex items-center gap-1">
                     ⚠️ Cannot be identical to student mobile
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   Preferred Parent Mobile
                 </label>
                 <select
                   name="preferred_parent_mobile"
                   value={studentData.preferred_parent_mobile || 'father'}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 >
                   <option value="father">Father Number</option>
                   <option value="mother">Mother Number</option>
@@ -1546,13 +1546,13 @@ const AddStudent = () => {
 
           <div className="border-b border-border-light pb-6">
             <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-secondary rounded-full"></div>
               Personal Information
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Date of Birth <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Date of Birth <span className="text-danger">*</span>
                 </label>
                 <input
                   type="date"
@@ -1560,11 +1560,11 @@ const AddStudent = () => {
                   value={studentData.dob}
                   onChange={handleChange}
                   required
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   Adhar Number
                 </label>
                 <input
@@ -1572,12 +1572,12 @@ const AddStudent = () => {
                   name="adhar_no"
                   value={studentData.adhar_no}
                   onChange={handleChange}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1">
+                  Category <span className="text-danger">*</span>
                 </label>
                 <select
                   value={selectedCasteCategoryId}
@@ -1588,7 +1588,7 @@ const AddStudent = () => {
                     setStudentData((prev) => ({ ...prev, caste: cat?.name || '' }));
                   }}
                   required
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 >
                   <option value="">Select Category</option>
                   {casteCategories
@@ -1599,7 +1599,7 @@ const AddStudent = () => {
                       </option>
                     ))}
                 </select>
-                <p className="mt-1 text-[11px] text-gray-400">
+                <p className="mt-1 text-[11px] text-muted-text">
                   Nested castes under a category can be set later on the student edit dialog.
                 </p>
               </div>
@@ -1608,12 +1608,12 @@ const AddStudent = () => {
 
           <div className="border-b border-border-light pb-6">
             <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-background rounded-full"></div>
               Address Information
             </h2>
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   Student Address
                 </label>
                 <textarea
@@ -1621,14 +1621,14 @@ const AddStudent = () => {
                   value={studentData.student_address}
                   onChange={handleChange}
                   rows="3"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 ></textarea>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
               {/* Pincode Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   Pincode
                 </label>
                 <div className="relative">
@@ -1638,7 +1638,7 @@ const AddStudent = () => {
                     value={studentData.pincode}
                     onChange={handlePincodeChange}
                     placeholder="Enter 6-digit Pincode"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                   />
                   {pincodeLoading && (
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -1650,14 +1650,14 @@ const AddStudent = () => {
 
               {/* State Dropdown */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   State
                 </label>
                 <select
                   name="state"
                   value={studentData.state}
                   onChange={handleStateChange}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 >
                   <option value="">Select State</option>
                   {Object.keys(addressData).sort().map((state) => (
@@ -1668,7 +1668,7 @@ const AddStudent = () => {
 
               {/* District Dropdown */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   District
                 </label>
                 <select
@@ -1676,7 +1676,7 @@ const AddStudent = () => {
                   value={studentData.district}
                   onChange={handleDistrictChange}
                   disabled={!studentData.state}
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px] disabled:bg-gray-100 disabled:text-gray-400"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px] disabled:bg-background disabled:text-muted-text"
                 >
                   <option value="">Select District</option>
                   {districts.map((district) => (
@@ -1687,7 +1687,7 @@ const AddStudent = () => {
 
               {/* Mandal Hybrid Dropdown */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   Mandal Name
                 </label>
                 {!isMandalInputVisible ? (
@@ -1696,7 +1696,7 @@ const AddStudent = () => {
                     value={studentData.mandal_name}
                     onChange={handleMandalSelectChange}
                     disabled={!studentData.district}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px] disabled:bg-gray-100 disabled:text-gray-400"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px] disabled:bg-background disabled:text-muted-text"
                   >
                     <option value="">{studentData.district ? "Select Mandal" : "Select District first"}</option>
                     {mandals.map((mandal) => (
@@ -1712,13 +1712,13 @@ const AddStudent = () => {
                       value={studentData.mandal_name}
                       onChange={handleChange}
                       placeholder="Enter Mandal Name"
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                       autoFocus
                     />
                     <button
                       type="button"
                       onClick={() => setIsMandalInputVisible(false)}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 hover:text-blue-800"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-primary hover:text-primary"
                     >
                       Show List
                     </button>
@@ -1728,7 +1728,7 @@ const AddStudent = () => {
 
               {/* City/Village Hybrid Dropdown */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   City/Village Name
                 </label>
                 {!isVillageInputVisible ? (
@@ -1737,7 +1737,7 @@ const AddStudent = () => {
                     value={studentData.city_village}
                     onChange={handleVillageSelectChange}
                     disabled={(!studentData.mandal_name && !isMandalInputVisible) && villages.length === 0}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px] disabled:bg-gray-100 disabled:text-gray-400"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px] disabled:bg-background disabled:text-muted-text"
                   >
                     <option value="">
                       {villagesLoading
@@ -1757,13 +1757,13 @@ const AddStudent = () => {
                       value={studentData.city_village}
                       onChange={handleChange}
                       placeholder="Enter City/Village Name"
-                      className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                       autoFocus
                     />
                     <button
                       type="button"
                       onClick={() => setIsVillageInputVisible(false)}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 hover:text-blue-800"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-primary hover:text-primary"
                     >
                       Show List
                     </button>
@@ -1775,7 +1775,7 @@ const AddStudent = () => {
 
           <div className="border-b border-border-light pb-6">
             <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-danger rounded-full"></div>
               Additional Information
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -1786,30 +1786,30 @@ const AddStudent = () => {
                 </label>
                 <div
                   onClick={() => setShowPhotoUploadModal(true)}
-                  className="border-2 border-dashed border-border-light rounded-xl p-6 text-center hover:border-indigo-400 hover:bg-indigo-50/20 transition-all cursor-pointer bg-input-bg flex flex-col items-center justify-center gap-3"
+                  className="border-2 border-dashed border-border-light rounded-xl p-6 text-center hover:border-primary hover:bg-[var(--primary-light)] transition-all cursor-pointer bg-input-bg flex flex-col items-center justify-center gap-3"
                 >
                   {studentData.student_photo && studentData.student_photo.startsWith('data:') ? (
                     <div className="relative group">
                       <img
                         src={studentData.student_photo}
                         alt="Student preview"
-                        className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-2xl border-2 border-indigo-500 shadow-md"
+                        className="w-24 h-24 sm:w-28 sm:h-28 object-cover rounded-2xl border-2 border-primary shadow-md"
                       />
                       <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-bold transition-opacity">
                         Change Photo
                       </div>
                     </div>
                   ) : (
-                    <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center shadow-xs">
+                    <div className="w-14 h-14 bg-[var(--primary-light)] text-primary rounded-2xl flex items-center justify-center shadow-xs">
                       <Camera size={26} />
                     </div>
                   )}
 
                   <div className="text-center">
-                    <p className="text-sm font-bold text-gray-800">
+                    <p className="text-sm font-bold text-main">
                       {studentData.student_photo ? 'Change Student Photo' : 'Upload or Take Student Photo'}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-muted-text mt-1">
                       Choose from Camera or File Upload (PNG, JPG up to 5MB)
                     </p>
                   </div>
@@ -1820,14 +1820,14 @@ const AddStudent = () => {
                       e.stopPropagation();
                       setShowPhotoUploadModal(true);
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold shadow-sm transition-colors"
                   >
                     <Camera size={13} />
                     {studentData.student_photo ? 'Retake / Change' : 'Capture / Upload'}
                   </button>
 
                   {studentData.student_photo && (
-                    <div className="mt-2 p-2 px-3 bg-emerald-50 rounded-lg border border-emerald-200 flex items-center gap-2 text-emerald-700 text-xs font-semibold">
+                    <div className="mt-2 p-2 px-3 bg-[var(--success-light)] rounded-lg border border-[var(--success-light)] flex items-center gap-2 text-success text-xs font-semibold">
                       <span>✓ Photo ready to be saved with student record</span>
                       <button
                         type="button"
@@ -1835,7 +1835,7 @@ const AddStudent = () => {
                           e.stopPropagation();
                           setStudentData((prev) => ({ ...prev, student_photo: '' }));
                         }}
-                        className="text-rose-600 hover:text-rose-800 underline text-[11px] ml-1"
+                        className="text-danger hover:text-danger underline text-[11px] ml-1"
                       >
                         Remove
                       </button>
@@ -1844,7 +1844,7 @@ const AddStudent = () => {
                 </div>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-sub mb-1">
                   Remarks
                 </label>
                 <textarea
@@ -1852,7 +1852,7 @@ const AddStudent = () => {
                   value={studentData.remarks}
                   onChange={handleChange}
                   rows="3"
-                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]"
                 ></textarea>
               </div>
             </div>
@@ -1862,19 +1862,19 @@ const AddStudent = () => {
           {courseType && (
             <div className="border-b border-border-light pb-6">
               <h2 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
-                <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-primary rounded-full"></div>
                 Certificate Information
               </h2>
-              <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                  <FileText size={16} className="text-gray-600" />
+              <div className="bg-background rounded-lg border border-border p-4">
+                <h3 className="text-sm font-semibold text-sub mb-4 flex items-center gap-2">
+                  <FileText size={16} className="text-sub" />
                   Default Certification Fields
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {getCertificatesForCourse().map((cert) => (
-                    <div key={cert.key} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
-                      <span className="text-sm text-gray-700">{cert.label}</span>
+                    <div key={cert.key} className="flex items-center justify-between p-2 bg-surface rounded border border-border">
+                      <span className="text-sm text-sub">{cert.label}</span>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
@@ -1887,8 +1887,8 @@ const AddStudent = () => {
                           }}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
-                        <span className="ml-2 text-xs text-gray-500">
+                        <div className="w-11 h-6 bg-background peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--primary-light)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface after:border-border-strong after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                        <span className="ml-2 text-xs text-muted-text">
                           {certificateStatus[cert.key] ? 'Yes' : 'No'}
                         </span>
                       </label>
@@ -1903,8 +1903,8 @@ const AddStudent = () => {
             <button
               type="submit"
               disabled={loading || (studentData.batch && frozenBatches[studentData.batch]?.includes("ALL"))}
-              className="flex items-center gap-2 bg-gradient-to-r from-gray-800 via-gray-900 to-black text-white px-8 py-4 rounded-xl font-semibold
-             hover:from-gray-900 hover:via-black hover:to-gray-800 focus:ring-4 focus:ring-gray-400/40 transition-all duration-300
+              className="flex items-center gap-2 bg-gradient-to-r from-[var(--sidebar)] via-[var(--sidebar)] to-black text-white px-8 py-4 rounded-xl font-semibold
+             hover:from-[var(--sidebar)] hover:via-black hover:to-[var(--sidebar)] focus:ring-4 focus:ring-border-strong transition-all duration-300
              disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-2xl transform hover:scale-105 active:scale-95"
             >
               {loading ? (

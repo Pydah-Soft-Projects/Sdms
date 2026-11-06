@@ -56,30 +56,30 @@ const STUDENT_STATUS_OPTIONS = [
 
 const getStudentStatusBadgeClass = (status) => {
   const norm = String(status || '').trim().toLowerCase();
-  if (norm === 'regular') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-  if (norm === 'course completed') return 'bg-blue-100 text-blue-800 border-blue-200';
-  if (norm.includes('rejoined') || norm.includes('re-joined')) return 'bg-purple-100 text-purple-800 border-purple-200';
-  if (norm === 'detained') return 'bg-orange-100 text-orange-800 border-orange-200';
-  if (norm === 'discontinued' || norm === 'admission cancelled') return 'bg-red-100 text-red-800 border-red-200';
-  if (norm === 'long absent') return 'bg-amber-100 text-amber-800 border-amber-200';
-  return 'bg-gray-100 text-gray-800 border-gray-200';
+  if (norm === 'regular') return 'bg-[var(--success-light)] text-success border-[var(--success-light)]';
+  if (norm === 'course completed') return 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
+  if (norm.includes('rejoined') || norm.includes('re-joined')) return 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]';
+  if (norm === 'detained') return 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]';
+  if (norm === 'discontinued' || norm === 'admission cancelled') return 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)]';
+  if (norm === 'long absent') return 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]';
+  return 'bg-background text-main border-border';
 };
 
 const getCertificateBadgeClass = (status) => {
   const norm = String(status || '').trim().toLowerCase();
-  if (norm === 'verified') return 'bg-green-100 text-green-800 border-green-200';
-  if (norm === 'temporary') return 'bg-sky-100 text-sky-800 border-sky-200';
-  if (norm === 'memo') return 'bg-amber-100 text-amber-800 border-amber-300';
-  if (norm === 'original') return 'bg-teal-100 text-teal-800 border-teal-300';
-  if (norm === 'pc') return 'bg-sky-100 text-sky-800 border-sky-300';
-  if (norm === 'od') return 'bg-indigo-100 text-indigo-800 border-indigo-300';
-  if (norm === 'submitted' || norm === 'yes') return 'bg-green-100 text-green-800 border-green-200';
-  if (norm === 'unverified' || norm === 'not verified') return 'bg-amber-100 text-amber-800 border-amber-200';
-  if (norm === 'no' || norm === 'pending') return 'bg-red-100 text-red-600 border-red-200';
-  if (norm === 'partial') return 'bg-purple-100 text-purple-800 border-purple-200';
-  if (norm === 'originals returned') return 'bg-teal-100 text-teal-800 border-teal-200';
-  if (norm === 'not required') return 'bg-gray-100 text-gray-700 border-gray-200';
-  return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+  if (norm === 'verified') return 'bg-[var(--success-light)] text-success border-[var(--success-light)]';
+  if (norm === 'temporary') return 'bg-[var(--primary-light)] text-info border-[var(--primary-light)]';
+  if (norm === 'memo') return 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]';
+  if (norm === 'original') return 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
+  if (norm === 'pc') return 'bg-[var(--primary-light)] text-info border-[var(--primary-light)]';
+  if (norm === 'od') return 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
+  if (norm === 'submitted' || norm === 'yes') return 'bg-[var(--success-light)] text-success border-[var(--success-light)]';
+  if (norm === 'unverified' || norm === 'not verified') return 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]';
+  if (norm === 'no' || norm === 'pending') return 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)]';
+  if (norm === 'partial') return 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]';
+  if (norm === 'originals returned') return 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
+  if (norm === 'not required') return 'bg-background text-sub border-border';
+  return 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]';
 };
 
 const getOptionValue = (item) => {
@@ -411,11 +411,11 @@ const CertificatesReport = () => {
   if (!hasAccess && user) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] p-4 text-center">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-          <Lock className="text-red-500" size={32} />
+        <div className="w-16 h-16 bg-[var(--danger-light)] rounded-full flex items-center justify-center mb-4">
+          <Lock className="text-danger" size={32} />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
-        <p className="text-gray-600 max-w-sm">
+        <h2 className="text-xl font-bold text-main mb-2">Access Denied</h2>
+        <p className="text-sub max-w-sm">
           You do not have permission to view Certificates Reports.
         </p>
       </div>
@@ -429,12 +429,12 @@ const CertificatesReport = () => {
         {/* Top Header & Search Controls Row */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-1">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+            <div className="p-2.5 bg-[var(--primary-light)] text-primary rounded-lg">
               <FileCheck size={24} />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Certificate Reports</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-2xl font-bold text-main">Certificate Reports</h1>
+              <p className="text-sm text-muted-text">
                 View student database and certificate submission status for enrolled students
               </p>
             </div>
@@ -443,7 +443,7 @@ const CertificatesReport = () => {
           <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full xl:w-auto justify-start xl:justify-end">
             {/* Decreased width Search Input */}
             <div className="relative w-full sm:w-64 shrink-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" size={16} />
               <input
                 type="text"
                 placeholder="Search name, roll no, adm no..."
@@ -452,12 +452,12 @@ const CertificatesReport = () => {
                   setSearchTerm(e.target.value);
                   setPage(1);
                 }}
-                className="w-full pl-8 pr-7 py-2 text-xs border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full pl-8 pr-7 py-2 text-xs border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-text hover:text-sub"
                 >
                   <X size={14} />
                 </button>
@@ -466,7 +466,7 @@ const CertificatesReport = () => {
 
             <button
               onClick={handleFetchData}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-primary hover:bg-primary-hover rounded-lg shadow-sm transition-colors whitespace-nowrap"
             >
               <Search size={14} />
               Fetch Data
@@ -478,7 +478,7 @@ const CertificatesReport = () => {
                 else if (!filters.level) toast.error('Please select a Level before fetching');
               }}
               disabled={!hasFetched}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
             >
               <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
               Refresh
@@ -487,7 +487,7 @@ const CertificatesReport = () => {
             <button
               onClick={handleExportCSV}
               disabled={isExporting}
-              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors whitespace-nowrap"
+              className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background disabled:opacity-50 transition-colors whitespace-nowrap"
             >
               <Download size={14} className={isExporting ? 'animate-spin' : ''} />
               {isExporting ? 'Exporting...' : 'Export Report'}
@@ -496,7 +496,7 @@ const CertificatesReport = () => {
             {(filters.college || filters.level || filters.batch || filters.course || filters.branch || filters.section || (Array.isArray(filters.student_status) ? (filters.student_status.length !== 1 || filters.student_status[0] !== 'Regular') : (filters.student_status && filters.student_status !== 'Regular')) || (Array.isArray(filters.certificates_status) ? filters.certificates_status.length > 0 : !!filters.certificates_status) || searchTerm) && (
               <button
                 onClick={handleClearFilters}
-                className="flex items-center gap-1 px-2.5 py-2 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-200 whitespace-nowrap"
+                className="flex items-center gap-1 px-2.5 py-2 text-xs text-danger hover:bg-[var(--danger-light)] rounded-lg transition-colors border border-[var(--danger-light)] whitespace-nowrap"
               >
                 <X size={14} />
                 Clear
@@ -509,13 +509,13 @@ const CertificatesReport = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {/* Level Filter */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">
-              Level <span className="text-red-500 font-bold">*</span>
+            <label className="block text-xs font-semibold text-sub mb-1">
+              Level <span className="text-danger font-bold">*</span>
             </label>
             <select
               value={filters.level}
               onChange={(e) => handleFilterChange('level', e.target.value)}
-              className={`w-full text-xs border rounded-lg p-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none ${!filters.level ? 'border-amber-400 bg-amber-50/20' : 'border-gray-300'}`}
+              className={`w-full text-xs border rounded-lg p-2 bg-surface focus:ring-2 focus:ring-primary outline-none ${!filters.level ? 'border-warning bg-[var(--warning-light)]' : 'border-border-strong'}`}
             >
               <option value="">Select Level (Required)</option>
               <option value="Diploma">Diploma</option>
@@ -526,11 +526,11 @@ const CertificatesReport = () => {
 
           {/* College Filter */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">College</label>
+            <label className="block text-xs font-semibold text-sub mb-1">College</label>
             <select
               value={filters.college}
               onChange={(e) => handleFilterChange('college', e.target.value)}
-              className="w-full text-xs border border-gray-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full text-xs border border-border-strong rounded-lg p-2 bg-surface focus:ring-2 focus:ring-primary outline-none"
             >
               <option value="">All Colleges</option>
               {filterOptions.colleges.map((c, idx) => {
@@ -543,11 +543,11 @@ const CertificatesReport = () => {
 
           {/* Batch Filter */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Batch</label>
+            <label className="block text-xs font-semibold text-sub mb-1">Batch</label>
             <select
               value={filters.batch}
               onChange={(e) => handleFilterChange('batch', e.target.value)}
-              className="w-full text-xs border border-gray-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full text-xs border border-border-strong rounded-lg p-2 bg-surface focus:ring-2 focus:ring-primary outline-none"
             >
               <option value="">All Batches</option>
               {filterOptions.batches.map((b, idx) => {
@@ -560,11 +560,11 @@ const CertificatesReport = () => {
 
           {/* Program / Course Filter */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Program</label>
+            <label className="block text-xs font-semibold text-sub mb-1">Program</label>
             <select
               value={filters.course}
               onChange={(e) => handleFilterChange('course', e.target.value)}
-              className="w-full text-xs border border-gray-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full text-xs border border-border-strong rounded-lg p-2 bg-surface focus:ring-2 focus:ring-primary outline-none"
             >
               <option value="">All Programs</option>
               {filterOptions.courses.map((cr, idx) => {
@@ -577,11 +577,11 @@ const CertificatesReport = () => {
 
           {/* Branch Filter */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Branch</label>
+            <label className="block text-xs font-semibold text-sub mb-1">Branch</label>
             <select
               value={filters.branch}
               onChange={(e) => handleFilterChange('branch', e.target.value)}
-              className="w-full text-xs border border-gray-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full text-xs border border-border-strong rounded-lg p-2 bg-surface focus:ring-2 focus:ring-primary outline-none"
             >
               <option value="">All Branches</option>
               {filterOptions.branches.map((br, idx) => {
@@ -594,11 +594,11 @@ const CertificatesReport = () => {
 
           {/* Section Filter */}
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1">Section</label>
+            <label className="block text-xs font-semibold text-sub mb-1">Section</label>
             <select
               value={filters.section}
               onChange={(e) => handleFilterChange('section', e.target.value)}
-              className="w-full text-xs border border-gray-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full text-xs border border-border-strong rounded-lg p-2 bg-surface focus:ring-2 focus:ring-primary outline-none"
             >
               <option value="">All Sections</option>
               {filterOptions.sections.map((sec, idx) => {
@@ -629,19 +629,19 @@ const CertificatesReport = () => {
       </div>
 
       {/* Student Certificates Table */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
         {!hasFetched ? (
-          <div className="text-center py-16 px-4 bg-gray-50/50">
-            <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-3">
+          <div className="text-center py-16 px-4 bg-[var(--background)]/50">
+            <div className="w-12 h-12 rounded-full bg-[var(--primary-light)] text-primary flex items-center justify-center mx-auto mb-3">
               <Search size={24} />
             </div>
-            <h4 className="text-base font-semibold text-gray-800 mb-1">Select Level & Click "Fetch Data"</h4>
-            <p className="text-xs text-gray-500 max-w-md mx-auto mb-4">
-              Select a mandatory <span className="font-semibold text-blue-700">Level (Diploma, UG, PG)</span> and optional filters above, then click <span className="font-semibold text-blue-700">"Fetch Data"</span> to view student certificate records.
+            <h4 className="text-base font-semibold text-main mb-1">Select Level & Click "Fetch Data"</h4>
+            <p className="text-xs text-muted-text max-w-md mx-auto mb-4">
+              Select a mandatory <span className="font-semibold text-primary">Level (Diploma, UG, PG)</span> and optional filters above, then click <span className="font-semibold text-primary">"Fetch Data"</span> to view student certificate records.
             </p>
             <button
               onClick={handleFetchData}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-xs font-bold rounded-lg shadow-sm transition-colors"
             >
               <Search size={14} />
               Fetch Data Now
@@ -649,19 +649,19 @@ const CertificatesReport = () => {
           </div>
         ) : (
           <>
-            <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
-          <div className="text-sm font-semibold text-gray-700">
-            Total Students Found: <span className="text-blue-600 font-bold">{totalStudents}</span>
+            <div className="p-4 border-b border-border flex justify-between items-center bg-[var(--background)]/50">
+          <div className="text-sm font-semibold text-sub">
+            Total Students Found: <span className="text-primary font-bold">{totalStudents}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Rows per page:</span>
+            <span className="text-xs text-muted-text">Rows per page:</span>
             <select
               value={pageSize}
               onChange={(e) => {
                 setPageSize(Number(e.target.value));
                 setPage(1);
               }}
-              className="text-xs border border-gray-300 rounded p-1 bg-white"
+              className="text-xs border border-border-strong rounded p-1 bg-surface"
             >
               <option value={10}>10</option>
               <option value={25}>25</option>
@@ -672,47 +672,47 @@ const CertificatesReport = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-gray-600">
-            <thead className="bg-gray-100/70 text-gray-700 text-xs uppercase font-semibold border-b border-gray-200">
+          <table className="w-full text-left text-sm text-sub">
+            <thead className="bg-[var(--background)]/70 text-sub text-xs uppercase font-semibold border-b border-border">
               <tr>
-                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Student Name</th>
-                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Roll Number</th>
-                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Adm No</th>
-                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Student Mobile</th>
-                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Batch</th>
-                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Branch</th>
-                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Status</th>
-                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-gray-200 bg-gray-50">Overall Status</th>
-                <th colSpan={allCertColumns.length || 1} className="py-2.5 px-4 text-center bg-blue-50/80 text-blue-900 font-bold text-xs uppercase tracking-wider border-b border-blue-200">
+                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Student Name</th>
+                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Roll Number</th>
+                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Adm No</th>
+                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Student Mobile</th>
+                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Batch</th>
+                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Branch</th>
+                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Status</th>
+                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Overall Status</th>
+                <th colSpan={allCertColumns.length || 1} className="py-2.5 px-4 text-center bg-[var(--primary-light)] text-primary font-bold text-xs uppercase tracking-wider border-b border-[var(--primary-light)]">
                   Certificate Breakdown
                 </th>
               </tr>
               <tr>
                 {allCertColumns.map((c) => (
-                  <th key={c.key} className="py-2.5 px-3 text-center whitespace-nowrap min-w-[115px] bg-gray-50/80 border-r border-gray-200 last:border-r-0" title={`${c.name} (${c.level})`}>
-                    <div className="font-semibold text-gray-800 text-[11px] normal-case">{c.name}</div>
-                    <div className="text-[9px] text-gray-400 font-normal lowercase">{c.level}</div>
+                  <th key={c.key} className="py-2.5 px-3 text-center whitespace-nowrap min-w-[115px] bg-[var(--background)]/80 border-r border-border last:border-r-0" title={`${c.name} (${c.level})`}>
+                    <div className="font-semibold text-main text-[11px] normal-case">{c.name}</div>
+                    <div className="text-[9px] text-muted-text font-normal lowercase">{c.level}</div>
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-border">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8 + (allCertColumns.length || 1)} className="text-center py-12 text-gray-500">
-                    <RefreshCw className="animate-spin mx-auto mb-2 text-blue-500" size={24} />
+                  <td colSpan={8 + (allCertColumns.length || 1)} className="text-center py-12 text-muted-text">
+                    <RefreshCw className="animate-spin mx-auto mb-2 text-primary" size={24} />
                     Loading student certificate records...
                   </td>
                 </tr>
               ) : isError ? (
                 <tr>
-                  <td colSpan={8 + (allCertColumns.length || 1)} className="text-center py-12 text-red-500">
+                  <td colSpan={8 + (allCertColumns.length || 1)} className="text-center py-12 text-danger">
                     Failed to fetch student data. Please select Level and click Refresh to try again.
                   </td>
                 </tr>
               ) : students.length === 0 ? (
                 <tr>
-                  <td colSpan={8 + (allCertColumns.length || 1)} className="text-center py-12 text-gray-500">
+                  <td colSpan={8 + (allCertColumns.length || 1)} className="text-center py-12 text-muted-text">
                     No student certificate records found matching the criteria.
                   </td>
                 </tr>
@@ -744,39 +744,39 @@ const CertificatesReport = () => {
                   const certStatus = computeOverallCertificateStatus(student, reqCerts);
 
                   return (
-                    <tr key={student.id || idx} className="hover:bg-gray-50/80 transition-colors">
-                      <td className="py-3.5 px-4 align-middle font-semibold text-gray-900 whitespace-nowrap border-r border-gray-100">
+                    <tr key={student.id || idx} className="hover:bg-[var(--background)]/80 transition-colors">
+                      <td className="py-3.5 px-4 align-middle font-semibold text-main whitespace-nowrap border-r border-border">
                         <button
                           onClick={() => handleViewStudent(student)}
-                          className="text-left font-semibold text-blue-600 hover:text-blue-800 hover:underline focus:outline-none"
+                          className="text-left font-semibold text-primary hover:text-primary hover:underline focus:outline-none"
                           title="Click to view/update full details"
                         >
                           {studentName}
                         </button>
                       </td>
-                      <td className="py-3.5 px-4 align-middle whitespace-nowrap border-r border-gray-100">
-                        <span className="font-mono text-xs font-medium text-blue-700 bg-blue-50/50 rounded px-1.5 py-0.5 inline-block">
+                      <td className="py-3.5 px-4 align-middle whitespace-nowrap border-r border-border">
+                        <span className="font-mono text-xs font-medium text-primary bg-[var(--primary-light)] rounded px-1.5 py-0.5 inline-block">
                           {rollNumber}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 align-middle text-xs text-gray-700 whitespace-nowrap border-r border-gray-100">
+                      <td className="py-3.5 px-4 align-middle text-xs text-sub whitespace-nowrap border-r border-border">
                         {admNo}
                       </td>
-                      <td className="py-3.5 px-4 align-middle text-xs font-mono text-gray-700 whitespace-nowrap border-r border-gray-100">
+                      <td className="py-3.5 px-4 align-middle text-xs font-mono text-sub whitespace-nowrap border-r border-border">
                         {studentMobile}
                       </td>
-                      <td className="py-3.5 px-4 align-middle text-xs font-medium text-gray-700 whitespace-nowrap border-r border-gray-100">
+                      <td className="py-3.5 px-4 align-middle text-xs font-medium text-sub whitespace-nowrap border-r border-border">
                         {batch}
                       </td>
-                      <td className="py-3.5 px-4 align-middle text-xs font-medium text-gray-700 whitespace-nowrap border-r border-gray-100">
+                      <td className="py-3.5 px-4 align-middle text-xs font-medium text-sub whitespace-nowrap border-r border-border">
                         {branch}
                       </td>
-                      <td className="py-3.5 px-4 align-middle whitespace-nowrap border-r border-gray-100">
+                      <td className="py-3.5 px-4 align-middle whitespace-nowrap border-r border-border">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${getStudentStatusBadgeClass(student.student_status || 'Regular')}`}>
                           {student.student_status || 'Regular'}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 align-middle whitespace-nowrap border-r border-gray-100">
+                      <td className="py-3.5 px-4 align-middle whitespace-nowrap border-r border-border">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${getCertificateBadgeClass(certStatus)}`}>
                           {certStatus}
                         </span>
@@ -786,7 +786,7 @@ const CertificatesReport = () => {
 
                         if (!isApplicable) {
                           return (
-                            <td key={certCol.key} className="py-3.5 px-3 align-middle text-center text-xs text-gray-300 border-r border-gray-100 last:border-r-0">
+                            <td key={certCol.key} className="py-3.5 px-3 align-middle text-center text-xs text-muted-text border-r border-border last:border-r-0">
                               —
                             </td>
                           );
@@ -796,7 +796,7 @@ const CertificatesReport = () => {
                         const cellInfo = formatCertificateCell(val);
 
                         return (
-                          <td key={certCol.key} className="py-3.5 px-3 align-middle text-center border-r border-gray-100 last:border-r-0">
+                          <td key={certCol.key} className="py-3.5 px-3 align-middle text-center border-r border-border last:border-r-0">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-bold border ${cellInfo.badgeClass}`}>
                               {cellInfo.text}
                             </span>
@@ -813,30 +813,30 @@ const CertificatesReport = () => {
 
         {/* Pagination Footer */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-gray-50/50">
-            <div className="text-xs text-gray-500">
-              Showing page <span className="font-semibold text-gray-900">{page}</span> of{' '}
-              <span className="font-semibold text-gray-900">{totalPages}</span> ({totalStudents} total records)
+          <div className="p-4 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4 bg-[var(--background)]/50">
+            <div className="text-xs text-muted-text">
+              Showing page <span className="font-semibold text-main">{page}</span> of{' '}
+              <span className="font-semibold text-main">{totalPages}</span> ({totalStudents} total records)
             </div>
 
             <div className="flex items-center gap-2">
               <button
                 disabled={page <= 1}
                 onClick={() => setPage(prev => Math.max(1, prev - 1))}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft size={14} />
                 Previous
               </button>
 
-              <div className="text-xs font-medium px-2 text-gray-700">
+              <div className="text-xs font-medium px-2 text-sub">
                 {page} / {totalPages}
               </div>
 
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Next
                 <ChevronRight size={14} />
@@ -969,28 +969,28 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fade-in">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-gray-200">
+      <div className="bg-surface rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto border border-border">
         {/* Header */}
-        <div className="flex justify-between items-center p-5 border-b border-gray-200 bg-gray-50/50">
+        <div className="flex justify-between items-center p-5 border-b border-border bg-[var(--background)]/50">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-100 text-blue-700 rounded-lg">
+            <div className="p-2.5 bg-[var(--primary-light)] text-primary rounded-lg">
               <FileCheck size={22} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-900">{studentName}</h2>
-                <span className="px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase bg-blue-100 text-blue-800 rounded">
+                <h2 className="text-lg font-bold text-main">{studentName}</h2>
+                <span className="px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase bg-[var(--primary-light)] text-primary rounded">
                   {courseLevel} Level
                 </span>
               </div>
-              <p className="text-xs text-gray-500 font-mono mt-0.5">
-                Roll No: <span className="font-semibold text-blue-600">{rollNumber}</span> | Adm No: <span className="font-semibold text-gray-700">{admNo}</span>
+              <p className="text-xs text-muted-text font-mono mt-0.5">
+                Roll No: <span className="font-semibold text-primary">{rollNumber}</span> | Adm No: <span className="font-semibold text-sub">{admNo}</span>
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-1.5 text-muted-text hover:text-sub rounded-lg hover:bg-background transition-colors"
           >
             <X size={20} />
           </button>
@@ -999,9 +999,9 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
         {/* Content */}
         <div className="p-6 space-y-6">
           {/* Overall Certificates Status Card */}
-          <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-100 space-y-3">
+          <div className="p-4 bg-[var(--primary-light)] rounded-xl border border-[var(--primary-light)] space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-blue-900 uppercase tracking-wider">
+              <span className="text-xs font-semibold text-primary uppercase tracking-wider">
                 Overall Certificates Status
               </span>
               <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${getCertificateBadgeClass(currentCertStatus)}`}>
@@ -1012,7 +1012,7 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
               <select
                 value={currentCertStatus}
                 onChange={(e) => setCurrentCertStatus(e.target.value)}
-                className="flex-1 text-xs border border-gray-300 rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+                className="flex-1 text-xs border border-border-strong rounded-lg p-2.5 bg-surface focus:ring-2 focus:ring-primary outline-none font-medium"
               >
                 {CERTIFICATE_STATUS_OPTIONS.map((st) => (
                   <option key={st} value={st}>{st}</option>
@@ -1021,7 +1021,7 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
               <button
                 onClick={handleSaveCertStatus}
                 disabled={updating}
-                className="px-4 py-2.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm disabled:opacity-50"
+                className="px-4 py-2.5 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors shadow-sm disabled:opacity-50"
               >
                 {updating ? 'Saving...' : 'Update All Changes'}
               </button>
@@ -1029,22 +1029,22 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
           </div>
 
           {/* Level-Based Configured Certificates List */}
-          <div className="bg-gray-50/80 p-4 rounded-xl border border-gray-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-3">
+          <div className="bg-[var(--background)]/80 p-4 rounded-xl border border-border space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
-                <Award size={18} className="text-blue-600" />
-                <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+                <Award size={18} className="text-primary" />
+                <h3 className="text-xs font-bold text-main uppercase tracking-wider">
                   {courseLevel} Program Certificates Checklist
                 </h3>
               </div>
-              <span className="text-[11px] text-gray-500 font-medium">
+              <span className="text-[11px] text-muted-text font-medium">
                 Configured in Settings for {courseLevel}
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {levelCertList.length === 0 ? (
-                <div className="col-span-2 text-center py-4 text-xs text-gray-500">
+                <div className="col-span-2 text-center py-4 text-xs text-muted-text">
                   No certificate requirements configured for {courseLevel} program level.
                 </div>
               ) : (
@@ -1054,18 +1054,18 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
                   return (
                     <div
                       key={cert.key}
-                      className="p-3 bg-white rounded-lg border border-gray-200 shadow-2xs space-y-2"
+                      className="p-3 bg-surface rounded-lg border border-border shadow-2xs space-y-2"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <span className="text-xs font-semibold text-gray-800 leading-snug">
+                        <span className="text-xs font-semibold text-main leading-snug">
                           {cert.name}
                         </span>
                         {cert.required ? (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100 shrink-0">
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] shrink-0">
                             Required
                           </span>
                         ) : (
-                          <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 shrink-0">
+                          <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-background text-muted-text shrink-0">
                             Optional
                           </span>
                         )}
@@ -1090,7 +1090,7 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
                             <select
                               value={val}
                               onChange={(e) => handleCertFieldChange(cert.key, e.target.value)}
-                              className="w-full text-xs border border-gray-300 rounded p-1.5 bg-gray-50 focus:bg-white focus:ring-1 focus:ring-blue-500 outline-none"
+                              className="w-full text-xs border border-border-strong rounded p-1.5 bg-background focus:bg-surface focus:ring-1 focus:ring-primary outline-none"
                             >
                               {uniqueOptions.map((opt) => (
                                 <option key={opt} value={opt}>{opt}</option>
@@ -1108,39 +1108,39 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
 
           {/* Academic & Institution Details */}
           <div>
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-bold text-muted-text uppercase tracking-wider mb-3">
               Academic & Institution Details
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <span className="text-gray-400 block mb-1">Batch</span>
-                <span className="font-semibold text-gray-800">{batch}</span>
+              <div className="p-3 bg-background rounded-lg border border-border">
+                <span className="text-muted-text block mb-1">Batch</span>
+                <span className="font-semibold text-main">{batch}</span>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <span className="text-gray-400 block mb-1">Status</span>
+              <div className="p-3 bg-background rounded-lg border border-border">
+                <span className="text-muted-text block mb-1">Status</span>
                 <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold border ${getStudentStatusBadgeClass(student?.student_status || 'Regular')}`}>
                   {student?.student_status || 'Regular'}
                 </span>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <span className="text-gray-400 block mb-1">College</span>
-                <span className="font-semibold text-gray-800">{college}</span>
+              <div className="p-3 bg-background rounded-lg border border-border">
+                <span className="text-muted-text block mb-1">College</span>
+                <span className="font-semibold text-main">{college}</span>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <span className="text-gray-400 block mb-1">Program</span>
-                <span className="font-semibold text-gray-800">{program} ({courseLevel})</span>
+              <div className="p-3 bg-background rounded-lg border border-border">
+                <span className="text-muted-text block mb-1">Program</span>
+                <span className="font-semibold text-main">{program} ({courseLevel})</span>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <span className="text-gray-400 block mb-1">Branch</span>
-                <span className="font-semibold text-gray-800">{branch}</span>
+              <div className="p-3 bg-background rounded-lg border border-border">
+                <span className="text-muted-text block mb-1">Branch</span>
+                <span className="font-semibold text-main">{branch}</span>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <span className="text-gray-400 block mb-1">Section</span>
-                <span className="font-semibold text-gray-800">{section}</span>
+              <div className="p-3 bg-background rounded-lg border border-border">
+                <span className="text-muted-text block mb-1">Section</span>
+                <span className="font-semibold text-main">{section}</span>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <span className="text-gray-400 block mb-1">Year / Semester</span>
-                <span className="font-semibold text-gray-800">
+              <div className="p-3 bg-background rounded-lg border border-border">
+                <span className="text-muted-text block mb-1">Year / Semester</span>
+                <span className="font-semibold text-main">
                   Year {student?.current_year || 1} - Sem {student?.current_semester || 1}
                 </span>
               </div>
@@ -1149,38 +1149,38 @@ const StudentCertificateModal = ({ student, settingsCertConfig, onClose, onUpdat
 
           {/* Personal & Contact Details */}
           <div>
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-bold text-muted-text uppercase tracking-wider mb-3">
               Student Contact & Details
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <span className="text-gray-400 block mb-1">Student Mobile</span>
-                <span className="font-medium text-gray-800">{student?.student_mobile || student?.mobile || '—'}</span>
+              <div className="p-3 bg-background rounded-lg border border-border">
+                <span className="text-muted-text block mb-1">Student Mobile</span>
+                <span className="font-medium text-main">{student?.student_mobile || student?.mobile || '—'}</span>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <span className="text-gray-400 block mb-1">Parent Mobile</span>
-                <span className="font-medium text-gray-800">{student?.parent_mobile1 || student?.parent_mobile || '—'}</span>
+              <div className="p-3 bg-background rounded-lg border border-border">
+                <span className="text-muted-text block mb-1">Parent Mobile</span>
+                <span className="font-medium text-main">{student?.parent_mobile1 || student?.parent_mobile || '—'}</span>
               </div>
-              <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                <span className="text-gray-400 block mb-1">Father Name</span>
-                <span className="font-medium text-gray-800">{student?.father_name || '—'}</span>
+              <div className="p-3 bg-background rounded-lg border border-border">
+                <span className="text-muted-text block mb-1">Father Name</span>
+                <span className="font-medium text-main">{student?.father_name || '—'}</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50/50 flex justify-end gap-3">
+        <div className="p-4 border-t border-border bg-[var(--background)]/50 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-5 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-5 py-2 text-xs font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background transition-colors"
           >
             Close
           </button>
           <button
             onClick={handleSaveCertStatus}
             disabled={updating}
-            className="px-5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm disabled:opacity-50"
+            className="px-5 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary-hover rounded-lg transition-colors shadow-sm disabled:opacity-50"
           >
             {updating ? 'Saving...' : 'Save Changes'}
           </button>
@@ -1237,44 +1237,44 @@ const MultiSelectStatusDropdown = ({ selectedStatuses = [], onChange }) => {
 
   return (
     <div className="relative w-full" ref={containerRef}>
-      <label className="block text-xs font-semibold text-gray-600 mb-1">
+      <label className="block text-xs font-semibold text-sub mb-1">
         Certificates Status
       </label>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full text-xs border rounded-lg p-2 bg-white flex justify-between items-center hover:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${selectedArray.length > 0 && selectedArray.length < CERTIFICATE_STATUS_OPTIONS.length ? 'border-blue-500 bg-blue-50/20' : 'border-gray-300'}`}
+        className={`w-full text-xs border rounded-lg p-2 bg-surface flex justify-between items-center hover:border-primary focus:ring-2 focus:ring-primary outline-none transition-colors ${selectedArray.length > 0 && selectedArray.length < CERTIFICATE_STATUS_OPTIONS.length ? 'border-primary bg-[var(--primary-light)]' : 'border-border-strong'}`}
       >
-        <span className="truncate font-medium text-gray-700">
+        <span className="truncate font-medium text-sub">
           {displayText()}
         </span>
         <div className="flex items-center gap-1 shrink-0 ml-1">
           {selectedArray.length > 0 && selectedArray.length < CERTIFICATE_STATUS_OPTIONS.length && (
-            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-600 text-white rounded-full">
+            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary text-white rounded-full">
               {selectedArray.length}
             </span>
           )}
-          <ChevronDown size={14} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown size={14} className={`text-muted-text transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 left-0 sm:left-auto sm:w-64 z-30 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2.5 space-y-2 text-xs animate-fade-in max-h-72 overflow-y-auto">
-          <div className="flex justify-between items-center border-b border-gray-100 pb-1.5 px-1">
-            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Select Statuses</span>
+        <div className="absolute right-0 left-0 sm:left-auto sm:w-64 z-30 mt-1 bg-surface border border-border rounded-lg shadow-xl p-2.5 space-y-2 text-xs animate-fade-in max-h-72 overflow-y-auto">
+          <div className="flex justify-between items-center border-b border-border pb-1.5 px-1">
+            <span className="text-[11px] font-bold text-muted-text uppercase tracking-wider">Select Statuses</span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleSelectAll}
-                className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                className="text-[11px] font-semibold text-primary hover:text-primary transition-colors"
               >
                 Select All
               </button>
-              <span className="text-gray-300">|</span>
+              <span className="text-muted-text">|</span>
               <button
                 type="button"
                 onClick={handleClearAll}
-                className="text-[11px] font-semibold text-red-500 hover:text-red-700 transition-colors"
+                className="text-[11px] font-semibold text-danger hover:text-danger transition-colors"
               >
                 Clear
               </button>
@@ -1287,16 +1287,16 @@ const MultiSelectStatusDropdown = ({ selectedStatuses = [], onChange }) => {
               return (
                 <label
                   key={st}
-                  className={`flex items-center justify-between px-2 py-1.5 hover:bg-blue-50/60 rounded cursor-pointer transition-colors ${isChecked ? 'bg-blue-50/40' : ''}`}
+                  className={`flex items-center justify-between px-2 py-1.5 hover:bg-[var(--primary-light)] rounded cursor-pointer transition-colors ${isChecked ? 'bg-[var(--primary-light)]' : ''}`}
                 >
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={isChecked}
                       onChange={() => toggleOption(st)}
-                      className="w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                      className="w-3.5 h-3.5 text-primary rounded border-border-strong focus:ring-primary cursor-pointer"
                     />
-                    <span className="text-xs font-medium text-gray-700">{st}</span>
+                    <span className="text-xs font-medium text-sub">{st}</span>
                   </div>
                   <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded border ${getCertificateBadgeClass(st)}`}>
                     {st}
@@ -1362,44 +1362,44 @@ const MultiSelectStudentStatusDropdown = ({
 
   return (
     <div className="relative w-full" ref={containerRef}>
-      <label className="block text-xs font-semibold text-gray-600 mb-1">
+      <label className="block text-xs font-semibold text-sub mb-1">
         Status
       </label>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full text-xs border rounded-lg p-2 bg-white flex justify-between items-center hover:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none transition-colors ${selectedArray.length > 0 && selectedArray.length < options.length ? 'border-blue-500 bg-blue-50/20' : 'border-gray-300'}`}
+        className={`w-full text-xs border rounded-lg p-2 bg-surface flex justify-between items-center hover:border-primary focus:ring-2 focus:ring-primary outline-none transition-colors ${selectedArray.length > 0 && selectedArray.length < options.length ? 'border-primary bg-[var(--primary-light)]' : 'border-border-strong'}`}
       >
-        <span className="truncate font-medium text-gray-700">
+        <span className="truncate font-medium text-sub">
           {displayText()}
         </span>
         <div className="flex items-center gap-1 shrink-0 ml-1">
           {selectedArray.length > 0 && selectedArray.length < options.length && (
-            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-blue-600 text-white rounded-full">
+            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-primary text-white rounded-full">
               {selectedArray.length}
             </span>
           )}
-          <ChevronDown size={14} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+          <ChevronDown size={14} className={`text-muted-text transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 left-0 sm:left-auto sm:w-64 z-30 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl p-2.5 space-y-2 text-xs animate-fade-in max-h-72 overflow-y-auto">
-          <div className="flex justify-between items-center border-b border-gray-100 pb-1.5 px-1">
-            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Select Status</span>
+        <div className="absolute right-0 left-0 sm:left-auto sm:w-64 z-30 mt-1 bg-surface border border-border rounded-lg shadow-xl p-2.5 space-y-2 text-xs animate-fade-in max-h-72 overflow-y-auto">
+          <div className="flex justify-between items-center border-b border-border pb-1.5 px-1">
+            <span className="text-[11px] font-bold text-muted-text uppercase tracking-wider">Select Status</span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleSelectAll}
-                className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition-colors"
+                className="text-[11px] font-semibold text-primary hover:text-primary transition-colors"
               >
                 Select All
               </button>
-              <span className="text-gray-300">|</span>
+              <span className="text-muted-text">|</span>
               <button
                 type="button"
                 onClick={handleClearAll}
-                className="text-[11px] font-semibold text-red-500 hover:text-red-700 transition-colors"
+                className="text-[11px] font-semibold text-danger hover:text-danger transition-colors"
               >
                 Clear
               </button>
@@ -1412,16 +1412,16 @@ const MultiSelectStudentStatusDropdown = ({
               return (
                 <label
                   key={st}
-                  className={`flex items-center justify-between px-2 py-1.5 hover:bg-blue-50/60 rounded cursor-pointer transition-colors ${isChecked ? 'bg-blue-50/40' : ''}`}
+                  className={`flex items-center justify-between px-2 py-1.5 hover:bg-[var(--primary-light)] rounded cursor-pointer transition-colors ${isChecked ? 'bg-[var(--primary-light)]' : ''}`}
                 >
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
                       checked={isChecked}
                       onChange={() => toggleOption(st)}
-                      className="w-3.5 h-3.5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                      className="w-3.5 h-3.5 text-primary rounded border-border-strong focus:ring-primary cursor-pointer"
                     />
-                    <span className="text-xs font-medium text-gray-700">{st}</span>
+                    <span className="text-xs font-medium text-sub">{st}</span>
                   </div>
                   <span className={`inline-block text-[10px] font-bold px-1.5 py-0.5 rounded border ${getStudentStatusBadgeClass(st)}`}>
                     {st}

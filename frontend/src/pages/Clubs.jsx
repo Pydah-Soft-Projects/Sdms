@@ -180,14 +180,14 @@ const ClubChatBox = ({ club }) => {
     }, {});
 
     if (loading) return (
-        <div className="flex flex-col items-center justify-center h-72 gap-3 text-gray-400">
-            <RefreshCw size={24} className="animate-spin text-blue-500" />
+        <div className="flex flex-col items-center justify-center h-72 gap-3 text-muted-text">
+            <RefreshCw size={24} className="animate-spin text-primary" />
             <p className="text-sm">Loading chatâ€¦</p>
         </div>
     );
 
     if (error) return (
-        <div className="flex flex-col items-center justify-center h-72 gap-3 text-red-400">
+        <div className="flex flex-col items-center justify-center h-72 gap-3 text-danger">
             <AlertTriangle size={28} />
             <p className="text-sm font-medium">{error}</p>
         </div>
@@ -196,20 +196,20 @@ const ClubChatBox = ({ club }) => {
     return (
         <div className="flex flex-col" style={{ height: '520px' }}>
             {/* Chat Header */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
-                <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+            <div className="flex items-center gap-3 px-4 py-3 border-b bg-gradient-to-r from-[var(--primary-light)] to-[var(--primary-light)] rounded-t-xl">
+                <div className="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center">
                     <Hash size={18} />
                 </div>
                 <div>
-                    <p className="text-sm font-bold text-gray-900">{club?.name} â€” Club Chat</p>
-                    <p className="text-[11px] text-gray-500">{messages.length} messages Â· Updates every 6s</p>
+                    <p className="text-sm font-bold text-main">{club?.name} â€” Club Chat</p>
+                    <p className="text-[11px] text-muted-text">{messages.length} messages Â· Updates every 6s</p>
                 </div>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1 bg-gray-50/50">
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1 bg-[var(--background)]/50">
                 {messages.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full gap-3 text-gray-400">
+                    <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-text">
                         <MessageSquare size={40} className="opacity-30" />
                         <p className="text-sm">No messages yet. Say hi! ðŸ‘‹</p>
                     </div>
@@ -217,31 +217,31 @@ const ClubChatBox = ({ club }) => {
                     Object.entries(groupedMessages).map(([date, dayMsgs]) => (
                         <div key={date}>
                             <div className="flex items-center gap-3 my-3">
-                                <div className="flex-1 h-px bg-gray-200" />
-                                <span className="text-[10px] text-gray-400 font-semibold px-2 py-0.5 bg-white border rounded-full">{date}</span>
-                                <div className="flex-1 h-px bg-gray-200" />
+                                <div className="flex-1 h-px bg-background" />
+                                <span className="text-[10px] text-muted-text font-semibold px-2 py-0.5 bg-surface border rounded-full">{date}</span>
+                                <div className="flex-1 h-px bg-background" />
                             </div>
                             {dayMsgs.map((msg, idx) => {
                                 const isOwn = String(msg.sender_id) === String(currentUserId);
                                 return (
                                     <div key={msg.id || idx} className={`flex gap-2 mb-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                                            isOwn ? 'bg-blue-600 text-white' : 'bg-indigo-100 text-indigo-700'
+                                            isOwn ? 'bg-primary text-white' : 'bg-[var(--primary-light)] text-primary'
                                         }`}>
                                             {(msg.sender_name || '?').charAt(0).toUpperCase()}
                                         </div>
                                         <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
                                             {!isOwn && (
-                                                <p className="text-[10px] text-gray-500 font-semibold mb-0.5 px-1">{msg.sender_name}</p>
+                                                <p className="text-[10px] text-muted-text font-semibold mb-0.5 px-1">{msg.sender_name}</p>
                                             )}
                                             <div className={`px-3.5 py-2.5 rounded-2xl text-sm break-words ${
                                                 isOwn
-                                                    ? 'bg-blue-600 text-white rounded-tr-sm'
-                                                    : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm shadow-xs'
+                                                    ? 'bg-primary text-white rounded-tr-sm'
+                                                    : 'bg-surface border border-border text-main rounded-tl-sm shadow-xs'
                                             } ${msg._optimistic ? 'opacity-70' : ''}`}>
                                                 {msg.message}
                                             </div>
-                                            <p className="text-[10px] text-gray-400 mt-0.5 px-1">{formatTime(msg.created_at)}</p>
+                                            <p className="text-[10px] text-muted-text mt-0.5 px-1">{formatTime(msg.created_at)}</p>
                                         </div>
                                     </div>
                                 );
@@ -253,19 +253,19 @@ const ClubChatBox = ({ club }) => {
             </div>
 
             {/* Input Bar */}
-            <form onSubmit={handleSend} className="flex items-center gap-2 px-3 py-2.5 border-t bg-white rounded-b-xl">
+            <form onSubmit={handleSend} className="flex items-center gap-2 px-3 py-2.5 border-t bg-surface rounded-b-xl">
                 <input
                     type="text"
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     placeholder={`Message #${club?.name}â€¦`}
                     disabled={sending}
-                    className="flex-1 px-3.5 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 placeholder-gray-400"
+                    className="flex-1 px-3.5 py-2 text-sm rounded-xl border border-border focus:outline-none focus:ring-2 focus:ring-primary bg-background placeholder:text-muted-text"
                 />
                 <button
                     type="submit"
                     disabled={!input.trim() || sending}
-                    className="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white rounded-xl transition-all shadow-sm"
+                    className="p-2.5 bg-primary hover:bg-primary-hover disabled:opacity-40 text-white rounded-xl transition-all shadow-sm"
                 >
                     <Send size={16} />
                 </button>
@@ -278,12 +278,12 @@ const ClubCard = ({ club, onViewDetails, isAdmin, canEdit = isAdmin, onToggleSta
     const memberCount = club.memberCount ?? (club.members || []).filter(m => m.status === 'approved').length;
     const initials = club.name ? club.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
     const gradients = [
-        'from-blue-500 to-indigo-600',
-        'from-violet-500 to-purple-600',
-        'from-emerald-500 to-teal-600',
-        'from-orange-500 to-rose-500',
-        'from-sky-500 to-cyan-600',
-        'from-pink-500 to-fuchsia-600',
+        'from-primary to-primary',
+        'from-secondary to-secondary',
+        'from-success to-primary',
+        'from-warning to-danger',
+        'from-info to-info',
+        'from-accent to-accent',
     ];
     const gradient = gradients[club.id % gradients.length] || gradients[0];
 
@@ -293,7 +293,7 @@ const ClubCard = ({ club, onViewDetails, isAdmin, canEdit = isAdmin, onToggleSta
             className={`relative rounded-2xl overflow-hidden flex flex-col cursor-pointer group transition-all duration-200 hover:-translate-y-1 hover:shadow-xl shadow-md ${
                 club.is_active ? '' : 'opacity-60 grayscale'
             }`}
-            style={{ background: 'white', border: '1px solid #e5e7eb' }}
+            style={{ background: 'white', border: '1px solid var(--border)' }}
         >
             {/* Gradient Banner */}
             <div className={`h-24 bg-gradient-to-br ${gradient} relative flex items-end px-4 pb-3 shrink-0`}>
@@ -307,7 +307,7 @@ const ClubCard = ({ club, onViewDetails, isAdmin, canEdit = isAdmin, onToggleSta
                     {canEdit && onEdit && (
                         <button
                             onClick={(e) => { e.stopPropagation(); onEdit(club); }}
-                            className="p-1.5 rounded-lg bg-white/20 backdrop-blur-sm text-white hover:bg-white/40 transition-all"
+                            className="p-1.5 rounded-lg bg-[var(--surface)]/20 backdrop-blur-sm text-white hover:bg-[var(--surface)]/40 transition-all"
                             title="Edit Club"
                         >
                             <Edit2 size={13} />
@@ -318,8 +318,8 @@ const ClubCard = ({ club, onViewDetails, isAdmin, canEdit = isAdmin, onToggleSta
                             onClick={(e) => { e.stopPropagation(); onToggleStatus(club.id, club.is_active); }}
                             className={`p-1.5 rounded-lg backdrop-blur-sm transition-all ${
                                 club.is_active
-                                    ? 'bg-white/20 text-white hover:bg-red-500/80'
-                                    : 'bg-white/20 text-white hover:bg-green-500/80'
+                                    ? 'bg-[var(--surface)]/20 text-white hover:bg-[var(--danger-light)]'
+                                    : 'bg-[var(--surface)]/20 text-white hover:bg-[var(--success-light)]'
                             }`}
                             title={club.is_active ? 'Deactivate' : 'Activate'}
                         >
@@ -328,7 +328,7 @@ const ClubCard = ({ club, onViewDetails, isAdmin, canEdit = isAdmin, onToggleSta
                     )}
                 </div>
                 {/* Avatar */}
-                <div className="w-14 h-14 rounded-xl border-2 border-white/60 overflow-hidden bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0 shadow-md">
+                <div className="w-14 h-14 rounded-xl border-2 border-surface overflow-hidden bg-[var(--surface)]/20 backdrop-blur-sm flex items-center justify-center shrink-0 shadow-md">
                     {club.image_url ? (
                         <img src={club.image_url} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -340,27 +340,27 @@ const ClubCard = ({ club, onViewDetails, isAdmin, canEdit = isAdmin, onToggleSta
             {/* Card Body */}
             <div className="flex flex-col flex-1 p-4 gap-2">
                 <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-gray-900 text-base leading-snug group-hover:text-blue-600 transition-colors line-clamp-1">{club.name}</h3>
+                    <h3 className="font-bold text-main text-base leading-snug group-hover:text-primary transition-colors line-clamp-1">{club.name}</h3>
                     {club.membership_fee > 0 ? (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap shrink-0">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--success-light)] text-success border border-[var(--success-light)] whitespace-nowrap shrink-0">
                             {formatMembershipFee(club.membership_fee)}
                         </span>
                     ) : (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 whitespace-nowrap shrink-0">Free</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] whitespace-nowrap shrink-0">Free</span>
                     )}
                 </div>
 
-                <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{club.description || 'No description provided.'}</p>
+                <p className="text-xs text-muted-text line-clamp-2 leading-relaxed">{club.description || 'No description provided.'}</p>
 
                 {/* Members count + fee type */}
-                <div className="flex items-center gap-3 text-xs text-gray-500">
+                <div className="flex items-center gap-3 text-xs text-muted-text">
                     <span className="flex items-center gap-1">
-                        <Users size={12} className="text-blue-500" />
-                        <span className="font-semibold text-gray-700">{memberCount}</span> Members
+                        <Users size={12} className="text-primary" />
+                        <span className="font-semibold text-sub">{memberCount}</span> Members
                     </span>
                     {club.fee_type && (
                         <span className="flex items-center gap-1">
-                            <Clock size={12} className="text-purple-400" /> {club.fee_type}
+                            <Clock size={12} className="text-secondary" /> {club.fee_type}
                         </span>
                     )}
                 </div>
@@ -369,16 +369,16 @@ const ClubCard = ({ club, onViewDetails, isAdmin, canEdit = isAdmin, onToggleSta
                 {club.admin_roles && club.admin_roles.length > 0 ? (
                     <div className="flex flex-wrap gap-1 pt-1">
                         {club.admin_roles.slice(0, 2).map((roleItem, idx) => (
-                            <span key={idx} className="text-[10px] font-semibold bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-100">
+                            <span key={idx} className="text-[10px] font-semibold bg-[var(--primary-light)] text-primary px-2 py-0.5 rounded-full border border-[var(--primary-light)]">
                                 {roleItem.roleName}: {roleItem.name?.split(' ')[0]}
                             </span>
                         ))}
                         {club.admin_roles.length > 2 && (
-                            <span className="text-[10px] font-semibold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">+{club.admin_roles.length - 2} more</span>
+                            <span className="text-[10px] font-semibold bg-background text-muted-text px-2 py-0.5 rounded-full">+{club.admin_roles.length - 2} more</span>
                         )}
                     </div>
                 ) : (
-                    <p className="text-[10px] text-gray-400 italic">No officers assigned</p>
+                    <p className="text-[10px] text-muted-text italic">No officers assigned</p>
                 )}
             </div>
 
@@ -386,7 +386,7 @@ const ClubCard = ({ club, onViewDetails, isAdmin, canEdit = isAdmin, onToggleSta
             <div className="px-4 pb-4">
                 <button
                     onClick={(e) => { e.stopPropagation(); onViewDetails(club); }}
-                    className="w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all bg-gray-50 text-gray-700 border border-gray-200 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600"
+                    className="w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all bg-background text-sub border border-border group-hover:bg-primary group-hover:text-white group-hover:border-primary"
                 >
                     <Eye size={13} /> View Details
                 </button>
@@ -403,11 +403,11 @@ const Modal = ({ show, onClose, title, children, size = 'default' }) => (
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className={`bg-white rounded-2xl w-full shadow-2xl overflow-hidden my-4 ${size === 'tall' ? 'max-w-5xl min-h-[92vh] max-h-[96vh] flex flex-col' : 'max-w-3xl'}`}
+                    className={`bg-surface rounded-2xl w-full shadow-2xl overflow-hidden my-4 ${size === 'tall' ? 'max-w-5xl min-h-[92vh] max-h-[96vh] flex flex-col' : 'max-w-3xl'}`}
                 >
-                    <div className="flex shrink-0 justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
-                        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-                        <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600">
+                    <div className="flex shrink-0 justify-between items-center p-6 border-b border-border bg-[var(--background)]/50">
+                        <h2 className="text-xl font-bold text-main">{title}</h2>
+                        <button onClick={onClose} className="p-2 hover:bg-background rounded-full text-muted-text hover:text-sub">
                             <X size={20} />
                         </button>
                     </div>
@@ -448,7 +448,7 @@ const MultiSelectDropdown = ({ label, options, value, onChange, placeholder, dis
     return (
         <div ref={containerRef} className="relative min-w-0">
             <div className="mb-1 flex min-h-4 items-center justify-between gap-2">
-                <span className="text-xs font-bold text-gray-700">{label}</span>
+                <span className="text-xs font-bold text-sub">{label}</span>
                 {headerAccessory}
             </div>
             <button
@@ -456,21 +456,21 @@ const MultiSelectDropdown = ({ label, options, value, onChange, placeholder, dis
                 disabled={disabled}
                 aria-expanded={open}
                 onClick={() => setOpen(current => !current)}
-                className="flex min-h-10 w-full items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-left text-xs text-gray-700 shadow-sm hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400"
+                className="flex min-h-10 w-full items-center justify-between gap-2 rounded-lg border border-border-strong bg-surface px-3 py-2 text-left text-xs text-sub shadow-sm hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:bg-background disabled:text-muted-text"
             >
                 <span className="truncate">{summary}</span>
-                <span className="flex shrink-0 items-center gap-1 text-[10px] text-gray-500">
+                <span className="flex shrink-0 items-center gap-1 text-[10px] text-muted-text">
                     {selectedValues.length ? `${selectedValues.length} selected` : ''}
                     <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
                 </span>
             </button>
             {open && !disabled && (
-                <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-56 overflow-y-auto rounded-lg border border-gray-200 bg-white p-1 shadow-xl">
+                <div className="absolute left-0 right-0 top-full z-40 mt-1 max-h-56 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-xl">
                     {options.length > 0 ? options.map(option => {
                         const optionValue = String(option.value);
                         const checked = selectedValues.includes(optionValue);
                         return (
-                            <label key={optionValue} className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-xs text-gray-700 hover:bg-blue-50">
+                            <label key={optionValue} className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-xs text-sub hover:bg-[var(--primary-light)]">
                                 <input
                                     type="checkbox"
                                     checked={checked}
@@ -478,12 +478,12 @@ const MultiSelectDropdown = ({ label, options, value, onChange, placeholder, dis
                                         ? selectedValues.filter(item => item !== optionValue)
                                         : [...selectedValues, optionValue]
                                     )}
-                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    className="rounded border-border-strong text-primary focus:ring-primary"
                                 />
                                 <span className="truncate">{option.label}</span>
                             </label>
                         );
-                    }) : <p className="px-3 py-2 text-xs text-gray-400">No options available</p>}
+                    }) : <p className="px-3 py-2 text-xs text-muted-text">No options available</p>}
                 </div>
             )}
         </div>
@@ -1536,18 +1536,18 @@ const Clubs = ({ initialSubPage }) => {
                             {/* Top Bar */}
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary flex items-center justify-center shadow-sm">
                                         <Users size={20} className="text-white" />
                                     </div>
                                     <div>
-                                        <h2 className="text-lg font-extrabold text-gray-900 leading-tight">Student Clubs</h2>
-                                        <p className="text-xs text-gray-500">{clubs.length} {clubs.length === 1 ? 'club' : 'clubs'} registered</p>
+                                        <h2 className="text-lg font-extrabold text-main leading-tight">Student Clubs</h2>
+                                        <p className="text-xs text-muted-text">{clubs.length} {clubs.length === 1 ? 'club' : 'clubs'} registered</p>
                                     </div>
                                 </div>
                                 {(isAdmin || canManageClubAdmins || hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage')) && (
                                     <button
                                         onClick={() => { resetForm(); setShowCreateModal(true); }}
-                                        className="w-full sm:w-auto px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-sm"
+                                        className="w-full sm:w-auto px-4 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover shadow-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-sm"
                                     >
                                         <Plus size={16} strokeWidth={2.5} /> Create Club
                                     </button>
@@ -1568,9 +1568,9 @@ const Clubs = ({ initialSubPage }) => {
                                     />
                                 ))}
                                 {clubs.length === 0 && !loading && (
-                                    <div className="col-span-full py-20 text-center text-gray-400 bg-white rounded-xl border border-dashed border-gray-300">
+                                    <div className="col-span-full py-20 text-center text-muted-text bg-surface rounded-xl border border-dashed border-border-strong">
                                         <Shield size={48} className="mx-auto mb-4 opacity-20" />
-                                        <p className="text-lg font-medium text-gray-500">No student clubs found</p>
+                                        <p className="text-lg font-medium text-muted-text">No student clubs found</p>
                                         <p className="text-sm">Click "Create New Club" to register a new student club</p>
                                     </div>
                                 )}
@@ -1578,16 +1578,16 @@ const Clubs = ({ initialSubPage }) => {
                         </div>
                     ) : (
                         /* Club Details View */
-                        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                        <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
                             {/* Gradient Banner Header */}
                             {(() => {
                                 const gradients = [
-                                    'from-blue-500 to-indigo-600',
-                                    'from-violet-500 to-purple-600',
-                                    'from-emerald-500 to-teal-600',
-                                    'from-orange-500 to-rose-500',
-                                    'from-sky-500 to-cyan-600',
-                                    'from-pink-500 to-fuchsia-600',
+                                    'from-primary to-primary',
+                                    'from-secondary to-secondary',
+                                    'from-success to-primary',
+                                    'from-warning to-danger',
+                                    'from-info to-info',
+                                    'from-accent to-accent',
                                 ];
                                 const gradient = gradients[(selectedClub?.id || 0) % gradients.length];
                                 const initials = selectedClub?.name ? selectedClub.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
@@ -1597,11 +1597,11 @@ const Clubs = ({ initialSubPage }) => {
                                             <div className="flex items-end gap-4">
                                                 <button
                                                     onClick={() => setViewMode('list')}
-                                                    className="p-2 rounded-xl bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 transition-all mb-0.5"
+                                                    className="p-2 rounded-xl bg-[var(--surface)]/20 backdrop-blur-sm text-white hover:bg-[var(--surface)]/30 transition-all mb-0.5"
                                                 >
                                                     <ArrowRight size={18} className="rotate-180" />
                                                 </button>
-                                                <div className="w-16 h-16 rounded-2xl border-2 border-white/50 overflow-hidden bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                                                <div className="w-16 h-16 rounded-2xl border-2 border-surface overflow-hidden bg-[var(--surface)]/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
                                                     {selectedClub?.image_url ? (
                                                         <img src={selectedClub.image_url} alt="" className="w-full h-full object-cover" />
                                                     ) : (
@@ -1612,7 +1612,7 @@ const Clubs = ({ initialSubPage }) => {
                                                     <div className="flex items-center gap-2 flex-wrap">
                                                         <h2 className="text-2xl font-extrabold text-white">{selectedClub?.name}</h2>
                                                         <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide ${
-                                                            selectedClub?.is_active ? 'bg-white/20 text-white' : 'bg-red-200/70 text-red-900'
+                                                            selectedClub?.is_active ? 'bg-[var(--surface)]/20 text-white' : 'bg-[var(--danger-light)] text-danger'
                                                         }`}>
                                                             {selectedClub?.is_active ? 'Active' : 'Inactive'}
                                                         </span>
@@ -1624,7 +1624,7 @@ const Clubs = ({ initialSubPage }) => {
                                                 {getClubPageAccess(selectedClub?.id, 'settings').write && (
                                                     <button
                                                         onClick={() => prepareEdit(selectedClub)}
-                                                        className="px-3.5 py-2 bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-white/30"
+                                                        className="px-3.5 py-2 bg-[var(--surface)]/20 backdrop-blur-sm text-white hover:bg-[var(--surface)]/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-surface"
                                                     >
                                                         <Edit2 size={14} /> Edit Club
                                                     </button>
@@ -1633,7 +1633,7 @@ const Clubs = ({ initialSubPage }) => {
                                                     onClick={() => setDetailsTab('chat')}
                                                     disabled={!getClubPageAccess(selectedClub?.id, 'management').read}
                                                     title={!getClubPageAccess(selectedClub?.id, 'management').read ? 'Management read access required' : 'Open club chat'}
-                                                    className="px-3.5 py-2 bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-white/30"
+                                                    className="px-3.5 py-2 bg-[var(--surface)]/20 backdrop-blur-sm text-white hover:bg-[var(--surface)]/30 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border border-surface"
                                                 >
                                                     <MessageSquare size={14} /> Chat
                                                 </button>
@@ -1654,7 +1654,7 @@ const Clubs = ({ initialSubPage }) => {
                                 return (
                                     <>
                                         {/* Tab Strip */}
-                                        <div className="border-b border-gray-200 bg-white">
+                                        <div className="border-b border-border bg-surface">
                                             <div className="flex items-center gap-0 overflow-x-auto px-6 scrollbar-hide">
                                                 {[
                                                     { key: 'overview', label: 'Overview', pageKey: 'management', icon: Shield },
@@ -1673,8 +1673,8 @@ const Clubs = ({ initialSubPage }) => {
                                                             onClick={() => setDetailsTab(tab.key)}
                                                             className={`flex items-center gap-2 px-4 py-3.5 text-xs font-bold whitespace-nowrap border-b-2 transition-all ${
                                                                 isActive
-                                                                    ? 'border-blue-600 text-blue-600'
-                                                                    : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
+                                                                    ? 'border-primary text-primary'
+                                                                    : 'border-transparent text-muted-text hover:text-main hover:border-border-strong'
                                                             }`}
                                                         >
                                                             <Icon size={14} />
@@ -1682,10 +1682,10 @@ const Clubs = ({ initialSubPage }) => {
                                                             {tab.count !== undefined && (
                                                                 <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold leading-none ${
                                                                     isActive
-                                                                        ? 'bg-blue-100 text-blue-700'
+                                                                        ? 'bg-[var(--primary-light)] text-primary'
                                                                         : tab.count > 0
-                                                                            ? 'bg-amber-100 text-amber-700'
-                                                                            : 'bg-gray-100 text-gray-500'
+                                                                            ? 'bg-[var(--warning-light)] text-warning'
+                                                                            : 'bg-background text-muted-text'
                                                                 }`}>
                                                                     {tab.count}
                                                                 </span>
@@ -1703,40 +1703,40 @@ const Clubs = ({ initialSubPage }) => {
                                         {detailsTab === 'overview' && (
                                             <div className="space-y-6 pt-2">
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                                    {getClubPageAccess(selectedClub?.id, 'students').read && <div className="p-4 rounded-xl border border-gray-100 bg-blue-50/50">
-                                                        <p className="text-xs text-blue-600 font-medium">Approved Members</p>
-                                                        <p className="text-2xl font-bold text-gray-900 mt-1">{approvedMembers.length}</p>
+                                                    {getClubPageAccess(selectedClub?.id, 'students').read && <div className="p-4 rounded-xl border border-border bg-[var(--primary-light)]">
+                                                        <p className="text-xs text-primary font-medium">Approved Members</p>
+                                                        <p className="text-2xl font-bold text-main mt-1">{approvedMembers.length}</p>
                                                     </div>}
-                                                    {getClubPageAccess(selectedClub?.id, 'students').read && <div className="p-4 rounded-xl border border-gray-100 bg-amber-50/50">
-                                                        <p className="text-xs text-amber-600 font-medium">Fee Pending Students</p>
-                                                        <p className="text-2xl font-bold text-gray-900 mt-1">{pendingFeeStudents.length}</p>
+                                                    {getClubPageAccess(selectedClub?.id, 'students').read && <div className="p-4 rounded-xl border border-border bg-[var(--warning-light)]">
+                                                        <p className="text-xs text-warning font-medium">Fee Pending Students</p>
+                                                        <p className="text-2xl font-bold text-main mt-1">{pendingFeeStudents.length}</p>
                                                     </div>}
-                                                    <div className="p-4 rounded-xl border border-gray-100 bg-green-50/50">
-                                                        <p className="text-xs text-green-600 font-medium">Membership Fee</p>
-                                                        <p className="text-2xl font-bold text-gray-900 mt-1">{formatMembershipFee(selectedClub?.membership_fee)}</p>
+                                                    <div className="p-4 rounded-xl border border-border bg-[var(--success-light)]">
+                                                        <p className="text-xs text-success font-medium">Membership Fee</p>
+                                                        <p className="text-2xl font-bold text-main mt-1">{formatMembershipFee(selectedClub?.membership_fee)}</p>
                                                     </div>
-                                                    <div className="p-4 rounded-xl border border-gray-100 bg-purple-50/50">
-                                                        <p className="text-xs text-purple-600 font-medium">Fee Schedule</p>
-                                                        <p className="text-2xl font-bold text-gray-900 mt-1">{selectedClub?.fee_type || 'Yearly'}</p>
+                                                    <div className="p-4 rounded-xl border border-border bg-[var(--primary-light)]">
+                                                        <p className="text-xs text-secondary font-medium">Fee Schedule</p>
+                                                        <p className="text-2xl font-bold text-main mt-1">{selectedClub?.fee_type || 'Yearly'}</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
-                                                    <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                                        <Shield size={18} className="text-blue-600" /> Club Officers & Dynamic Admin Roles
+                                                <div className="bg-background p-5 rounded-2xl border border-border space-y-4">
+                                                    <h3 className="text-sm font-bold text-main flex items-center gap-2">
+                                                        <Shield size={18} className="text-primary" /> Club Officers & Dynamic Admin Roles
                                                     </h3>
                                                     {selectedClub?.admin_roles && selectedClub.admin_roles.length > 0 ? (
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                                                             {selectedClub.admin_roles.map((roleItem, i) => (
-                                                                <div key={i} className="bg-white p-3.5 rounded-xl border border-slate-200 text-xs shadow-xs">
-                                                                    <p className="font-extrabold text-blue-700">{roleItem.roleName}</p>
-                                                                    <p className="font-semibold text-slate-800 mt-1">{roleItem.name}</p>
-                                                                    <p className="text-[11px] text-slate-500 truncate mt-0.5">{roleItem.email}</p>
+                                                                <div key={i} className="bg-surface p-3.5 rounded-xl border border-border text-xs shadow-xs">
+                                                                    <p className="font-extrabold text-primary">{roleItem.roleName}</p>
+                                                                    <p className="font-semibold text-main mt-1">{roleItem.name}</p>
+                                                                    <p className="text-[11px] text-muted-text truncate mt-0.5">{roleItem.email}</p>
                                                                 </div>
                                                             ))}
                                                         </div>
                                                     ) : (
-                                                        <p className="text-xs text-slate-500 italic">No admin leadership roles assigned yet. Go to Settings tab to manage officers.</p>
+                                                        <p className="text-xs text-muted-text italic">No admin leadership roles assigned yet. Go to Settings tab to manage officers.</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -1746,22 +1746,22 @@ const Clubs = ({ initialSubPage }) => {
                                             <div className="space-y-4 pt-2">
                                                 <div className="flex justify-between items-center">
                                                     <div>
-                                                        <h3 className="text-base font-bold text-gray-900">Club Admins ({selectedClub?.admin_roles?.length || 0})</h3>
-                                                        <p className="text-xs text-gray-500">People assigned to manage this club and their page access.</p>
+                                                        <h3 className="text-base font-bold text-main">Club Admins ({selectedClub?.admin_roles?.length || 0})</h3>
+                                                        <p className="text-xs text-muted-text">People assigned to manage this club and their page access.</p>
                                                     </div>
                                                     {(isAdmin || canManageClubAdmins || getClubPageAccess(selectedClub?.id, 'settings').write) && (
                                                         <button
                                                             onClick={() => prepareEdit(selectedClub)}
-                                                            className="px-3.5 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5 shadow-sm"
+                                                            className="px-3.5 py-1.5 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-hover flex items-center gap-1.5 shadow-sm"
                                                         >
                                                             <Edit2 size={13} /> Edit Club Admins & Roles
                                                         </button>
                                                     )}
                                                 </div>
                                                 {selectedClub?.admin_roles?.length ? (
-                                                    <div className="overflow-x-auto rounded-xl border border-gray-200">
+                                                    <div className="overflow-x-auto rounded-xl border border-border">
                                                         <table className="w-full text-left text-xs">
-                                                            <thead className="border-b bg-gray-50 font-semibold uppercase text-gray-600">
+                                                            <thead className="border-b bg-background font-semibold uppercase text-sub">
                                                                 <tr>
                                                                     <th className="p-3">Name</th>
                                                                     <th className="p-3">Email / Username</th>
@@ -1769,19 +1769,19 @@ const Clubs = ({ initialSubPage }) => {
                                                                     <th className="p-3">Page Access</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody className="divide-y divide-gray-100">
+                                                            <tbody className="divide-y divide-border">
                                                                 {selectedClub.admin_roles.map((assignment, index) => (
                                                                     <tr key={`${assignment.userId || assignment.email || assignment.empNo}-${index}`}>
-                                                                        <td className="p-3 font-semibold text-gray-900">{assignment.name || 'Club Admin'}</td>
-                                                                        <td className="p-3 text-gray-600">{assignment.email || assignment.empNo || '—'}</td>
-                                                                        <td className="p-3 text-gray-700">{assignment.roleName || assignment.roleCode || 'Club Admin'}</td>
+                                                                        <td className="p-3 font-semibold text-main">{assignment.name || 'Club Admin'}</td>
+                                                                        <td className="p-3 text-sub">{assignment.email || assignment.empNo || '—'}</td>
+                                                                        <td className="p-3 text-sub">{assignment.roleName || assignment.roleCode || 'Club Admin'}</td>
                                                                         <td className="p-3">
                                                                             <div className="flex flex-wrap gap-1">
                                                                                 {CLUB_ADMIN_PAGES.flatMap(page => {
                                                                                     const access = getPagePermissions(assignment)[page.key];
                                                                                     if (!access.read && !access.write) return [];
                                                                                     return [(
-                                                                                        <span key={page.key} className="rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                                                                        <span key={page.key} className="rounded border border-[var(--success-light)] bg-[var(--success-light)] px-2 py-0.5 text-[10px] font-semibold text-success">
                                                                                             {page.label}: {access.write ? 'Read/Write' : 'Read'}
                                                                                         </span>
                                                                                     )];
@@ -1794,7 +1794,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         </table>
                                                     </div>
                                                 ) : (
-                                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 py-12 text-center text-sm text-gray-500">
+                                                    <div className="rounded-xl border border-dashed border-border-strong bg-background py-12 text-center text-sm text-muted-text">
                                                         No admins are assigned to this club yet.
                                                     </div>
                                                 )}
@@ -1835,10 +1835,10 @@ const Clubs = ({ initialSubPage }) => {
                                                 <div className="space-y-4 pt-2">
                                                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                                                         <div>
-                                                            <h3 className="text-base font-bold text-gray-900">
+                                                            <h3 className="text-base font-bold text-main">
                                                                 Approved Student Members ({filteredMembers.length}{hasActiveMemberFilters ? ` of ${approvedMembers.length}` : ''})
                                                             </h3>
-                                                            <p className="text-xs text-gray-500">View and manage enrolled student club members.</p>
+                                                            <p className="text-xs text-muted-text">View and manage enrolled student club members.</p>
                                                         </div>
                                                         {getClubPageAccess(selectedClub?.id, 'students').write && (
                                                             <button
@@ -1848,7 +1848,7 @@ const Clubs = ({ initialSubPage }) => {
                                                                     setStudentSearchResults([]);
                                                                     setShowAddStudentMemberModal(true);
                                                                 }}
-                                                                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95"
+                                                                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold shadow-sm transition-all active:scale-95"
                                                             >
                                                                 <UserPlus size={14} /> Add Student Member
                                                             </button>
@@ -1856,21 +1856,21 @@ const Clubs = ({ initialSubPage }) => {
                                                     </div>
 
                                                     {/* Filter Toolbar for Members */}
-                                                    <div className="flex flex-wrap items-center gap-2.5 bg-white p-3 rounded-xl border border-gray-200">
+                                                    <div className="flex flex-wrap items-center gap-2.5 bg-surface p-3 rounded-xl border border-border">
                                                         {/* Search Box */}
                                                         <div className="relative flex-1 min-w-[200px]">
-                                                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" />
                                                             <input
                                                                 type="text"
                                                                 value={memberSearch}
                                                                 onChange={(e) => setMemberSearch(e.target.value)}
                                                                 placeholder="Search by name, PIN, branch..."
-                                                                className="w-full pl-9 pr-7 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                                                className="w-full pl-9 pr-7 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary"
                                                             />
                                                             {memberSearch && (
                                                                 <button
                                                                     onClick={() => setMemberSearch('')}
-                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-text hover:text-sub"
                                                                 >
                                                                     <X size={12} />
                                                                 </button>
@@ -1881,7 +1881,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         <select
                                                             value={memberCollege}
                                                             onChange={(e) => setMemberCollege(e.target.value)}
-                                                            className="px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700"
+                                                            className="px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary text-sub"
                                                         >
                                                             <option value="">All Colleges</option>
                                                             {memberColleges.map(c => (
@@ -1893,7 +1893,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         <select
                                                             value={memberCourse}
                                                             onChange={(e) => setMemberCourse(e.target.value)}
-                                                            className="px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700"
+                                                            className="px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary text-sub"
                                                         >
                                                             <option value="">All Courses</option>
                                                             {memberCourses.map(c => (
@@ -1905,7 +1905,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         <select
                                                             value={memberBranch}
                                                             onChange={(e) => setMemberBranch(e.target.value)}
-                                                            className="px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700"
+                                                            className="px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary text-sub"
                                                         >
                                                             <option value="">All Branches</option>
                                                             {memberBranches.map(b => (
@@ -1917,7 +1917,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         <select
                                                             value={memberYear}
                                                             onChange={(e) => setMemberYear(e.target.value)}
-                                                            className="px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700"
+                                                            className="px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary text-sub"
                                                         >
                                                             <option value="">All Years</option>
                                                             {(memberYears.length > 0 ? memberYears : [1, 2, 3, 4]).map(y => (
@@ -1934,16 +1934,16 @@ const Clubs = ({ initialSubPage }) => {
                                                                     setMemberBranch('');
                                                                     setMemberYear('');
                                                                 }}
-                                                                className="px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors flex items-center gap-1"
+                                                                className="px-2.5 py-1.5 text-xs font-semibold text-danger hover:text-danger hover:bg-[var(--danger-light)] rounded-lg transition-colors flex items-center gap-1"
                                                             >
                                                                 <X size={12} /> Clear
                                                             </button>
                                                         )}
                                                     </div>
 
-                                                    <div className="overflow-x-auto border rounded-xl bg-white shadow-xs">
+                                                    <div className="overflow-x-auto border rounded-xl bg-surface shadow-xs">
                                                         <table className="w-full text-left text-xs">
-                                                            <thead className="bg-gray-50 border-b text-gray-600 uppercase font-semibold">
+                                                            <thead className="bg-background border-b text-sub uppercase font-semibold">
                                                                 <tr>
                                                                     <th className="p-3">Student Name</th>
                                                                     <th className="p-3">Admission No</th>
@@ -1953,27 +1953,27 @@ const Clubs = ({ initialSubPage }) => {
                                                                     <th className="p-3">Payment Status</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody className="divide-y divide-gray-100">
+                                                            <tbody className="divide-y divide-border">
                                                                 {filteredMembers.map((m, idx) => (
-                                                                    <tr key={m.id || m.student_id || idx} className="hover:bg-gray-50/50 transition-colors">
-                                                                        <td className="p-3 font-semibold text-gray-900">{m.student_name || m.name}</td>
-                                                                        <td className="p-3 font-mono text-gray-600">{m.admission_number || m.student_id || '—'}</td>
-                                                                        <td className="p-3 text-gray-700">
+                                                                    <tr key={m.id || m.student_id || idx} className="hover:bg-[var(--background)]/50 transition-colors">
+                                                                        <td className="p-3 font-semibold text-main">{m.student_name || m.name}</td>
+                                                                        <td className="p-3 font-mono text-sub">{m.admission_number || m.student_id || '—'}</td>
+                                                                        <td className="p-3 text-sub">
                                                                             {m.course || m.branch ? (
                                                                                 <div>
                                                                                     <p className="font-medium">{[m.course, m.branch].filter(Boolean).join(' • ')}</p>
-                                                                                    <p className="text-[11px] text-gray-500">
+                                                                                    <p className="text-[11px] text-muted-text">
                                                                                         {m.college ? `${m.college} • ` : ''}{m.current_year ? `Year ${m.current_year}` : ''}
                                                                                     </p>
                                                                                 </div>
                                                                             ) : (
-                                                                                <span className="text-gray-400 italic">Not available</span>
+                                                                                <span className="text-muted-text italic">Not available</span>
                                                                             )}
                                                                         </td>
-                                                                        <td className="p-3 text-gray-500">{m.email || m.phone_number || m.student_mobile || '—'}</td>
-                                                                        <td className="p-3 text-gray-500">{m.joined_at ? new Date(m.joined_at).toLocaleDateString() : 'N/A'}</td>
+                                                                        <td className="p-3 text-muted-text">{m.email || m.phone_number || m.student_mobile || '—'}</td>
+                                                                        <td className="p-3 text-muted-text">{m.joined_at ? new Date(m.joined_at).toLocaleDateString() : 'N/A'}</td>
                                                                         <td className="p-3">
-                                                                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-bold text-[10px]">
+                                                                            <span className="px-2 py-0.5 bg-[var(--success-light)] text-success rounded-full font-bold text-[10px]">
                                                                                 {m.payment_status || 'Paid'}
                                                                             </span>
                                                                         </td>
@@ -1981,7 +1981,7 @@ const Clubs = ({ initialSubPage }) => {
                                                                 ))}
                                                                 {filteredMembers.length === 0 && (
                                                                     <tr>
-                                                                        <td colSpan={6} className="p-8 text-center text-gray-400">
+                                                                        <td colSpan={6} className="p-8 text-center text-muted-text">
                                                                             {hasActiveMemberFilters
                                                                                 ? 'No approved members match the selected filters.'
                                                                                 : 'No approved members found for this club yet.'}
@@ -2029,31 +2029,31 @@ const Clubs = ({ initialSubPage }) => {
                                                 <div className="space-y-4 pt-2">
                                                     <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                                                         <div>
-                                                            <h3 className="text-base font-bold text-gray-900">
+                                                            <h3 className="text-base font-bold text-main">
                                                                 Pending Students ({filteredPending.length}{hasActivePendingFilters ? ` of ${pendingFeeStudents.length}` : ''})
                                                             </h3>
-                                                            <p className="text-xs text-gray-500">
+                                                            <p className="text-xs text-muted-text">
                                                                 Students are automatically added as approved members once their club fee is paid.
                                                             </p>
                                                         </div>
                                                     </div>
 
                                                     {/* Filter Toolbar for Pending Students */}
-                                                    <div className="flex flex-wrap items-center gap-2.5 bg-white p-3 rounded-xl border border-gray-200">
+                                                    <div className="flex flex-wrap items-center gap-2.5 bg-surface p-3 rounded-xl border border-border">
                                                         {/* Search Box */}
                                                         <div className="relative flex-1 min-w-[200px]">
-                                                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" />
                                                             <input
                                                                 type="text"
                                                                 value={pendingSearch}
                                                                 onChange={(e) => setPendingSearch(e.target.value)}
                                                                 placeholder="Search by name, PIN, branch..."
-                                                                className="w-full pl-9 pr-7 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                                                                className="w-full pl-9 pr-7 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary"
                                                             />
                                                             {pendingSearch && (
                                                                 <button
                                                                     onClick={() => setPendingSearch('')}
-                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-text hover:text-sub"
                                                                 >
                                                                     <X size={12} />
                                                                 </button>
@@ -2064,7 +2064,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         <select
                                                             value={pendingCollege}
                                                             onChange={(e) => setPendingCollege(e.target.value)}
-                                                            className="px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700"
+                                                            className="px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary text-sub"
                                                         >
                                                             <option value="">All Colleges</option>
                                                             {pendingColleges.map(c => (
@@ -2076,7 +2076,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         <select
                                                             value={pendingCourse}
                                                             onChange={(e) => setPendingCourse(e.target.value)}
-                                                            className="px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700"
+                                                            className="px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary text-sub"
                                                         >
                                                             <option value="">All Courses</option>
                                                             {pendingCourses.map(c => (
@@ -2088,7 +2088,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         <select
                                                             value={pendingBranch}
                                                             onChange={(e) => setPendingBranch(e.target.value)}
-                                                            className="px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700"
+                                                            className="px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary text-sub"
                                                         >
                                                             <option value="">All Branches</option>
                                                             {pendingBranches.map(b => (
@@ -2100,7 +2100,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         <select
                                                             value={pendingYear}
                                                             onChange={(e) => setPendingYear(e.target.value)}
-                                                            className="px-2.5 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-700"
+                                                            className="px-2.5 py-1.5 text-xs bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary text-sub"
                                                         >
                                                             <option value="">All Years</option>
                                                             {(pendingYears.length > 0 ? pendingYears : [1, 2, 3, 4]).map(y => (
@@ -2117,7 +2117,7 @@ const Clubs = ({ initialSubPage }) => {
                                                                     setPendingBranch('');
                                                                     setPendingYear('');
                                                                 }}
-                                                                className="px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors flex items-center gap-1"
+                                                                className="px-2.5 py-1.5 text-xs font-semibold text-danger hover:text-danger hover:bg-[var(--danger-light)] rounded-lg transition-colors flex items-center gap-1"
                                                             >
                                                                 <X size={12} /> Clear
                                                             </button>
@@ -2125,9 +2125,9 @@ const Clubs = ({ initialSubPage }) => {
                                                     </div>
 
                                                     {/* Pending Students Table */}
-                                                    <div className="overflow-x-auto border border-gray-200 rounded-xl bg-white shadow-xs">
+                                                    <div className="overflow-x-auto border border-border rounded-xl bg-surface shadow-xs">
                                                         <table className="w-full text-left text-xs">
-                                                            <thead className="bg-gray-50/90 border-b border-gray-200 text-gray-600 uppercase font-semibold">
+                                                            <thead className="bg-[var(--background)]/90 border-b border-border text-sub uppercase font-semibold">
                                                                 <tr>
                                                                     <th className="p-3">Student Details</th>
                                                                     <th className="p-3">Academic Info</th>
@@ -2135,25 +2135,25 @@ const Clubs = ({ initialSubPage }) => {
                                                                     <th className="p-3">Membership Status</th>
                                                                 </tr>
                                                             </thead>
-                                                            <tbody className="divide-y divide-gray-100">
+                                                            <tbody className="divide-y divide-border">
                                                                 {filteredPending.map((m, idx) => {
                                                                     const feeAmount = m.due_amount !== undefined && m.due_amount !== null
                                                                         ? Number(m.due_amount)
                                                                         : (Number(selectedClub?.membership_fee) || 0);
 
                                                                     return (
-                                                                        <tr key={m.id || m.student_id || idx} className="hover:bg-gray-50/80 transition-colors">
+                                                                        <tr key={m.id || m.student_id || idx} className="hover:bg-[var(--background)]/80 transition-colors">
                                                                             {/* Student Details */}
                                                                             <td className="p-3">
                                                                                 <div className="flex items-center gap-2.5">
-                                                                                    <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-xs shrink-0">
+                                                                                    <div className="w-8 h-8 rounded-full bg-[var(--warning-light)] text-warning font-bold flex items-center justify-center text-xs shrink-0">
                                                                                         {(m.student_name || m.name || 'S').charAt(0).toUpperCase()}
                                                                                     </div>
                                                                                     <div>
-                                                                                        <p className="font-bold text-gray-900 leading-tight">
+                                                                                        <p className="font-bold text-main leading-tight">
                                                                                             {m.student_name || m.name || 'Unknown Student'}
                                                                                         </p>
-                                                                                        <p className="text-[11px] font-mono text-gray-500 mt-0.5">
+                                                                                        <p className="text-[11px] font-mono text-muted-text mt-0.5">
                                                                                             {m.admission_number || m.student_id || '—'}
                                                                                         </p>
                                                                                     </div>
@@ -2161,37 +2161,37 @@ const Clubs = ({ initialSubPage }) => {
                                                                             </td>
 
                                                                             {/* Academic Info */}
-                                                                            <td className="p-3 text-gray-700">
+                                                                            <td className="p-3 text-sub">
                                                                                 {m.course || m.branch ? (
                                                                                     <div>
                                                                                         <p className="font-medium">{[m.course, m.branch].filter(Boolean).join(' • ')}</p>
-                                                                                        <p className="text-[11px] text-gray-500">
+                                                                                        <p className="text-[11px] text-muted-text">
                                                                                             {m.college ? `${m.college} • ` : ''}{m.current_year ? `Year ${m.current_year}` : ''} {m.current_semester ? `(Sem ${m.current_semester})` : ''}
                                                                                         </p>
                                                                                     </div>
                                                                                 ) : (
-                                                                                    <span className="text-gray-400 italic">Not available</span>
+                                                                                    <span className="text-muted-text italic">Not available</span>
                                                                                 )}
                                                                             </td>
 
                                                                             {/* Club Fee Dues */}
                                                                             <td className="p-3">
                                                                                 <div className="space-y-0.5">
-                                                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-rose-100 text-rose-700 rounded-full font-bold text-[10px]">
+                                                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[var(--danger-light)] text-danger rounded-full font-bold text-[10px]">
                                                                                         <AlertCircle size={10} /> Fee Pending: ₹{feeAmount.toLocaleString('en-IN')}
                                                                                     </span>
                                                                                     {Number(m.paid_amount) > 0 && (
-                                                                                        <p className="text-[10px] text-gray-500">Paid: ₹{Number(m.paid_amount).toLocaleString('en-IN')}</p>
+                                                                                        <p className="text-[10px] text-muted-text">Paid: ₹{Number(m.paid_amount).toLocaleString('en-IN')}</p>
                                                                                     )}
                                                                                 </div>
                                                                             </td>
 
                                                                             {/* Membership Status */}
                                                                             <td className="p-3">
-                                                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full font-bold text-[10px]">
+                                                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] rounded-full font-bold text-[10px]">
                                                                                     <Clock size={10} /> Activates on Payment
                                                                                 </span>
-                                                                                <p className="text-[10px] text-gray-400 mt-1">
+                                                                                <p className="text-[10px] text-muted-text mt-1">
                                                                                     Joined: {m.joined_at ? new Date(m.joined_at).toLocaleDateString() : 'N/A'}
                                                                                 </p>
                                                                             </td>
@@ -2202,12 +2202,12 @@ const Clubs = ({ initialSubPage }) => {
                                                                 {filteredPending.length === 0 && (
                                                                     <tr>
                                                                         <td colSpan={4} className="py-12 text-center">
-                                                                            <div className="flex flex-col items-center justify-center text-gray-400 space-y-2">
-                                                                                <CheckCircle size={32} className="text-emerald-500 opacity-60" />
-                                                                                <p className="text-sm font-semibold text-gray-600">
+                                                                            <div className="flex flex-col items-center justify-center text-muted-text space-y-2">
+                                                                                <CheckCircle size={32} className="text-success opacity-60" />
+                                                                                <p className="text-sm font-semibold text-sub">
                                                                                     {hasActivePendingFilters ? 'No pending students match the selected filters' : 'No students with fee pending'}
                                                                                 </p>
-                                                                                <p className="text-xs text-gray-400 max-w-sm">
+                                                                                <p className="text-xs text-muted-text max-w-sm">
                                                                                     {hasActivePendingFilters
                                                                                         ? 'Try clearing or changing your filters to see more results.'
                                                                                         : 'All students have paid their club membership fees and are active members!'}
@@ -2228,13 +2228,13 @@ const Clubs = ({ initialSubPage }) => {
                                             <div className="space-y-4 pt-2">
                                                 <div className="flex justify-between items-center">
                                                     <div>
-                                                        <h3 className="text-base font-bold text-gray-900">Club Activities ({clubActivities.length})</h3>
-                                                        <p className="text-xs text-gray-500">Events, workshops and programs organized by this club.</p>
+                                                        <h3 className="text-base font-bold text-main">Club Activities ({clubActivities.length})</h3>
+                                                        <p className="text-xs text-muted-text">Events, workshops and programs organized by this club.</p>
                                                     </div>
                                                     {getClubPageAccess(selectedClub?.id, 'management').write && (
                                                         <button
                                                             onClick={handleOpenCreateActivity}
-                                                            className="px-3.5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5 shadow-sm transition-all"
+                                                            className="px-3.5 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-hover flex items-center gap-1.5 shadow-sm transition-all"
                                                         >
                                                             <Plus size={14} /> Add Activity
                                                         </button>
@@ -2248,10 +2248,10 @@ const Clubs = ({ initialSubPage }) => {
                                                         const canManage = getClubPageAccess(selectedClub?.id, 'management').write;
 
                                                         return (
-                                                            <div key={act.id || i} className="border border-gray-200 rounded-2xl bg-white shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-all">
+                                                            <div key={act.id || i} className="border border-border rounded-2xl bg-surface shadow-xs overflow-hidden flex flex-col justify-between hover:shadow-md transition-all">
                                                                 {/* Image or Group of Images Preview */}
                                                                 {imagesList.length > 0 && (
-                                                                    <div className="relative bg-gray-100 border-b border-gray-100">
+                                                                    <div className="relative bg-background border-b border-border">
                                                                         {imagesList.length === 1 ? (
                                                                             <div
                                                                                 onClick={() => setPreviewModalImage(imagesList[0])}
@@ -2264,13 +2264,13 @@ const Clubs = ({ initialSubPage }) => {
                                                                                 />
                                                                             </div>
                                                                         ) : (
-                                                                            <div className="p-2 bg-gray-50/70">
+                                                                            <div className="p-2 bg-[var(--background)]/70">
                                                                                 <div className="grid grid-cols-3 gap-1.5 h-44 rounded-xl overflow-hidden">
                                                                                     {imagesList.slice(0, 3).map((imgUrl, imgIdx) => (
                                                                                         <div
                                                                                             key={imgIdx}
                                                                                             onClick={() => setPreviewModalImage(imgUrl)}
-                                                                                            className="relative h-full overflow-hidden cursor-pointer group bg-gray-200"
+                                                                                            className="relative h-full overflow-hidden cursor-pointer group bg-background"
                                                                                         >
                                                                                             <img
                                                                                                 src={imgUrl}
@@ -2285,13 +2285,13 @@ const Clubs = ({ initialSubPage }) => {
                                                                                         </div>
                                                                                     ))}
                                                                                 </div>
-                                                                                <div className="flex items-center justify-between px-1 pt-1.5 text-[11px] text-gray-500 font-medium">
+                                                                                <div className="flex items-center justify-between px-1 pt-1.5 text-[11px] text-muted-text font-medium">
                                                                                     <span className="flex items-center gap-1">
-                                                                                        <Image size={12} className="text-blue-500" />
+                                                                                        <Image size={12} className="text-primary" />
                                                                                         {imagesList.length} photos attached
                                                                                     </span>
                                                                                     <span
-                                                                                        className="text-blue-600 text-[10px] hover:underline cursor-pointer"
+                                                                                        className="text-primary text-[10px] hover:underline cursor-pointer"
                                                                                         onClick={() => setPreviewModalImage(imagesList[0])}
                                                                                     >
                                                                                         Click to preview
@@ -2305,13 +2305,13 @@ const Clubs = ({ initialSubPage }) => {
                                                                 <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                                                                     <div className="space-y-1.5">
                                                                         <div className="flex items-start justify-between gap-2">
-                                                                            <h4 className="font-bold text-sm text-gray-900 leading-snug">{act.title}</h4>
+                                                                            <h4 className="font-bold text-sm text-main leading-snug">{act.title}</h4>
                                                                             {canManage && (
                                                                                 <div className="flex items-center gap-1 shrink-0">
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => handleOpenEditActivity(act)}
-                                                                                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                                        className="p-1.5 text-muted-text hover:text-primary hover:bg-[var(--primary-light)] rounded-lg transition-colors"
                                                                                         title="Edit Activity"
                                                                                     >
                                                                                         <Edit2 size={14} />
@@ -2319,7 +2319,7 @@ const Clubs = ({ initialSubPage }) => {
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => handleDeleteActivity(act.id)}
-                                                                                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                                        className="p-1.5 text-muted-text hover:text-danger hover:bg-[var(--danger-light)] rounded-lg transition-colors"
                                                                                         title="Delete Activity"
                                                                                     >
                                                                                         <Trash2 size={14} />
@@ -2328,28 +2328,28 @@ const Clubs = ({ initialSubPage }) => {
                                                                             )}
                                                                         </div>
                                                                         {act.description && (
-                                                                            <p className="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap line-clamp-3">
+                                                                            <p className="text-xs text-sub leading-relaxed whitespace-pre-wrap line-clamp-3">
                                                                                 {act.description}
                                                                             </p>
                                                                         )}
                                                                     </div>
 
-                                                                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-500 pt-2.5 border-t border-gray-100">
+                                                                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-text pt-2.5 border-t border-border">
                                                                         <div className="flex items-center gap-3">
                                                                             {(act.date || act.posted_at) && (
                                                                                 <span className="flex items-center gap-1 font-medium">
-                                                                                    <Calendar size={13} className="text-blue-500" />
+                                                                                    <Calendar size={13} className="text-primary" />
                                                                                     {act.date || new Date(act.posted_at).toLocaleDateString()}
                                                                                 </span>
                                                                             )}
                                                                             {act.location && (
-                                                                                <span className="flex items-center gap-1 font-medium text-gray-600">
+                                                                                <span className="flex items-center gap-1 font-medium text-sub">
                                                                                     ?? {act.location}
                                                                                 </span>
                                                                             )}
                                                                         </div>
                                                                         {act.posted_at && (
-                                                                            <span className="text-[10px] text-gray-400">
+                                                                            <span className="text-[10px] text-muted-text">
                                                                                 Posted {new Date(act.posted_at).toLocaleDateString()}
                                                                             </span>
                                                                         )}
@@ -2359,7 +2359,7 @@ const Clubs = ({ initialSubPage }) => {
                                                         );
                                                     })}
                                                     {clubActivities.length === 0 && (
-                                                        <div className="col-span-full py-10 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed">
+                                                        <div className="col-span-full py-10 text-center text-muted-text bg-background rounded-xl border border-dashed">
                                                             <p className="text-sm">No activities published for this club yet.</p>
                                                         </div>
                                                     )}
@@ -2369,7 +2369,7 @@ const Clubs = ({ initialSubPage }) => {
 
                                         {/* TAB 5: CHAT */}
                                         {detailsTab === 'chat' && (
-                                            <div className="rounded-2xl border border-gray-200 overflow-hidden shadow-sm mt-2">
+                                            <div className="rounded-2xl border border-border overflow-hidden shadow-sm mt-2">
                                                 <ClubChatBox club={selectedClub} />
                                             </div>
                                         )}
@@ -2379,13 +2379,13 @@ const Clubs = ({ initialSubPage }) => {
                                             <div className="space-y-6 pt-2">
                                                 <div className="flex justify-between items-center">
                                                     <div>
-                                                        <h3 className="text-base font-bold text-gray-900">Club Configuration & Admin Roles</h3>
-                                                        <p className="text-xs text-gray-500">Edit club details, upload logo, and assign dynamic leadership roles.</p>
+                                                        <h3 className="text-base font-bold text-main">Club Configuration & Admin Roles</h3>
+                                                        <p className="text-xs text-muted-text">Edit club details, upload logo, and assign dynamic leadership roles.</p>
                                                     </div>
                                                     {(isAdmin || canManageClubAdmins || getClubPageAccess(selectedClub?.id, 'settings').write) && (
                                                         <button
                                                             onClick={() => prepareEdit(selectedClub)}
-                                                            className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 flex items-center gap-1.5 shadow-sm"
+                                                            className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary-hover flex items-center gap-1.5 shadow-sm"
                                                         >
                                                             <Edit2 size={14} /> Update Settings & Assign Roles
                                                         </button>
@@ -2393,30 +2393,30 @@ const Clubs = ({ initialSubPage }) => {
                                                 </div>
 
                                                 {/* Dedicated Club Logo & Image Update Section */}
-                                                <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-xs space-y-4">
+                                                <div className="bg-surface p-5 rounded-2xl border border-border shadow-xs space-y-4">
                                                     <div className="flex items-center gap-2">
-                                                        <Image size={18} className="text-blue-600" />
-                                                        <h4 className="text-sm font-bold text-gray-900">Club Logo / Profile Image</h4>
+                                                        <Image size={18} className="text-primary" />
+                                                        <h4 className="text-sm font-bold text-main">Club Logo / Profile Image</h4>
                                                     </div>
-                                                    <p className="text-xs text-gray-500">Upload or change the official logo/image for this club. It will be displayed across student portals, club cards, and headers.</p>
+                                                    <p className="text-xs text-muted-text">Upload or change the official logo/image for this club. It will be displayed across student portals, club cards, and headers.</p>
 
                                                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 pt-1">
                                                         {/* Current or Preview Image */}
                                                         <div className="relative group">
-                                                            <div className="w-24 h-24 rounded-2xl border-2 border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center shadow-inner">
+                                                            <div className="w-24 h-24 rounded-2xl border-2 border-border overflow-hidden bg-background flex items-center justify-center shadow-inner">
                                                                 {clubLogoPreview ? (
                                                                     <img src={clubLogoPreview} alt="Preview" className="w-full h-full object-cover" />
                                                                 ) : selectedClub?.image_url ? (
                                                                     <img src={selectedClub.image_url} alt={selectedClub.name} className="w-full h-full object-cover" />
                                                                 ) : (
-                                                                    <div className="flex flex-col items-center justify-center text-gray-400">
+                                                                    <div className="flex flex-col items-center justify-center text-muted-text">
                                                                         <Users size={28} className="opacity-40 mb-1" />
                                                                         <span className="text-[10px] font-bold">No Logo</span>
                                                                     </div>
                                                                 )}
                                                             </div>
                                                             {clubLogoPreview && (
-                                                                <span className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-amber-500 text-white text-[9px] font-extrabold rounded-full shadow-xs">
+                                                                <span className="absolute -top-2 -right-2 px-1.5 py-0.5 bg-warning text-white text-[9px] font-extrabold rounded-full shadow-xs">
                                                                     New
                                                                 </span>
                                                             )}
@@ -2424,7 +2424,7 @@ const Clubs = ({ initialSubPage }) => {
 
                                                         <div className="space-y-3 flex-1">
                                                             <div className="flex flex-wrap items-center gap-2">
-                                                                <label className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-all border border-gray-300">
+                                                                <label className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2 bg-background hover:bg-background text-sub rounded-xl text-xs font-bold transition-all border border-border-strong">
                                                                     <Upload size={14} />
                                                                     <span>{clubLogoFile ? 'Choose Different Image' : 'Select Club Logo'}</span>
                                                                     <input
@@ -2447,7 +2447,7 @@ const Clubs = ({ initialSubPage }) => {
                                                                             type="button"
                                                                             onClick={() => handleUpdateClubLogo(clubLogoFile)}
                                                                             disabled={updatingLogo}
-                                                                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all disabled:opacity-50"
+                                                                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold shadow-xs transition-all disabled:opacity-50"
                                                                         >
                                                                             {updatingLogo ? <RefreshCw size={14} className="animate-spin" /> : <Check size={14} />}
                                                                             <span>{updatingLogo ? 'Uploading...' : 'Save & Update Logo'}</span>
@@ -2458,22 +2458,22 @@ const Clubs = ({ initialSubPage }) => {
                                                                                 setClubLogoFile(null);
                                                                                 setClubLogoPreview(null);
                                                                             }}
-                                                                            className="px-2.5 py-2 text-xs font-bold text-gray-500 hover:text-red-600 rounded-xl hover:bg-red-50"
+                                                                            className="px-2.5 py-2 text-xs font-bold text-muted-text hover:text-danger rounded-xl hover:bg-[var(--danger-light)]"
                                                                         >
                                                                             Cancel
                                                                         </button>
                                                                     </>
                                                                 )}
                                                             </div>
-                                                            <p className="text-[11px] text-gray-400">Supported formats: JPG, PNG, WEBP, SVG. Recommended square resolution: 400x400px.</p>
+                                                            <p className="text-[11px] text-muted-text">Supported formats: JPG, PNG, WEBP, SVG. Recommended square resolution: 400x400px.</p>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <div className="bg-gray-50 p-5 rounded-2xl border border-gray-200 space-y-3 text-xs">
-                                                    <p className="text-gray-700">Membership Fee: <b>{formatMembershipFee(selectedClub?.membership_fee)}</b> ({selectedClub?.fee_type || 'Yearly'})</p>
-                                                    <p className="text-gray-700">Active Status: <b>{selectedClub?.is_active ? 'Active' : 'Inactive'}</b></p>
-                                                    <p className="text-gray-700">Total Officers: <b>{selectedClub?.admin_roles?.length || 0}</b></p>
+                                                <div className="bg-background p-5 rounded-2xl border border-border space-y-3 text-xs">
+                                                    <p className="text-sub">Membership Fee: <b>{formatMembershipFee(selectedClub?.membership_fee)}</b> ({selectedClub?.fee_type || 'Yearly'})</p>
+                                                    <p className="text-sub">Active Status: <b>{selectedClub?.is_active ? 'Active' : 'Inactive'}</b></p>
+                                                    <p className="text-sub">Total Officers: <b>{selectedClub?.admin_roles?.length || 0}</b></p>
                                                 </div>
                                             </div>
                                         )}
@@ -2489,13 +2489,13 @@ const Clubs = ({ initialSubPage }) => {
 
             {/* ================= 2. SUBPAGE: STUDENTS ================= */}
             {subPage === 'students' && (
-                <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-5">
+                <div className="bg-surface rounded-2xl p-6 border border-border shadow-sm space-y-5">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <h2 className="text-lg font-bold text-gray-900">Student Club Members</h2>
-                            <p className="text-xs text-gray-500">View and manage all registered student club members across clubs.</p>
+                            <h2 className="text-lg font-bold text-main">Student Club Members</h2>
+                            <p className="text-xs text-muted-text">View and manage all registered student club members across clubs.</p>
                         </div>
-                        <button onClick={fetchStudents} className="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                        <button onClick={fetchStudents} className="px-3 py-2 bg-background text-sub hover:bg-background rounded-lg text-xs font-bold flex items-center gap-1.5">
                             <RefreshCw size={14} /> Refresh
                         </button>
                     </div>
@@ -2503,19 +2503,19 @@ const Clubs = ({ initialSubPage }) => {
                     {/* Filter controls */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div className="relative">
-                            <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                            <Search className="absolute left-3 top-2.5 text-muted-text" size={16} />
                             <input
                                 type="text"
                                 placeholder="Search student name / admission no..."
                                 value={studentSearch}
                                 onChange={(e) => setStudentSearch(e.target.value)}
-                                className="w-full pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full pl-9 pr-3 py-2 text-xs border border-border-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
                         <select
                             value={studentClubFilter}
                             onChange={(e) => setStudentClubFilter(e.target.value)}
-                            className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 text-xs border border-border-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                         >
                             <option value="">All Student Clubs</option>
                             {clubs.map(c => (
@@ -2525,7 +2525,7 @@ const Clubs = ({ initialSubPage }) => {
                         <select
                             value={studentStatusFilter}
                             onChange={(e) => setStudentStatusFilter(e.target.value)}
-                            className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 text-xs border border-border-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                         >
                             <option value="">All Statuses</option>
                             <option value="approved">Approved</option>
@@ -2537,7 +2537,7 @@ const Clubs = ({ initialSubPage }) => {
                     {/* Students Table */}
                     <div className="overflow-x-auto border rounded-xl">
                         <table className="w-full text-left text-xs">
-                            <thead className="bg-gray-50 border-b text-gray-600 uppercase font-semibold">
+                            <thead className="bg-background border-b text-sub uppercase font-semibold">
                                 <tr>
                                     <th className="p-3">Student Name</th>
                                     <th className="p-3">Admission No</th>
@@ -2550,37 +2550,37 @@ const Clubs = ({ initialSubPage }) => {
                             </thead>
                             <tbody className="divide-y">
                                 {filteredStudents.map((s) => (
-                                    <tr key={s.membership_id} className="hover:bg-gray-50/50">
-                                        <td className="p-3 font-semibold text-gray-900">{s.student_name}</td>
-                                        <td className="p-3 text-gray-600">{s.admission_number}</td>
-                                        <td className="p-3 font-medium text-blue-700">{s.club_name}</td>
+                                    <tr key={s.membership_id} className="hover:bg-[var(--background)]/50">
+                                        <td className="p-3 font-semibold text-main">{s.student_name}</td>
+                                        <td className="p-3 text-sub">{s.admission_number}</td>
+                                        <td className="p-3 font-medium text-primary">{s.club_name}</td>
                                         <td className="p-3">
                                             <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
-                                                s.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                                                s.status === 'approved' ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--warning-light)] text-warning'
                                             }`}>
                                                 {s.status}
                                             </span>
                                         </td>
                                         <td className="p-3">
                                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                                                s.payment_status === 'paid' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-600'
+                                                s.payment_status === 'paid' ? 'bg-[var(--success-light)] text-success' : 'bg-background text-sub'
                                             }`}>
                                                 {s.payment_status || 'free'}
                                             </span>
                                         </td>
-                                        <td className="p-3 text-gray-500">{new Date(s.joined_at).toLocaleDateString()}</td>
+                                        <td className="p-3 text-muted-text">{new Date(s.joined_at).toLocaleDateString()}</td>
                                         <td className="p-3">
                                             {s.status === 'pending' && getClubPageAccess(s.club_id, 'students').write ? (
                                                 <div className="flex gap-2">
                                                     <button
                                                         type="button"
                                                         onClick={() => handleApprovalAction(s.club_id, s.student_id, 'approved')}
-                                                        className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 font-semibold text-green-700 hover:bg-green-100"
+                                                        className="inline-flex items-center gap-1 rounded-md bg-[var(--success-light)] px-2 py-1 font-semibold text-success hover:bg-[var(--success-light)]"
                                                     ><Check size={12} /> Approve</button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleApprovalAction(s.club_id, s.student_id, 'rejected')}
-                                                        className="inline-flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 font-semibold text-red-700 hover:bg-red-100"
+                                                        className="inline-flex items-center gap-1 rounded-md bg-[var(--danger-light)] px-2 py-1 font-semibold text-danger hover:bg-[var(--danger-light)]"
                                                     ><X size={12} /> Reject</button>
                                                 </div>
                                             ) : '—'}
@@ -2589,7 +2589,7 @@ const Clubs = ({ initialSubPage }) => {
                                 ))}
                                 {filteredStudents.length === 0 && (
                                     <tr>
-                                        <td colSpan={7} className="p-8 text-center text-gray-400">
+                                        <td colSpan={7} className="p-8 text-center text-muted-text">
                                             {studentsLoading ? 'Loading members...' : 'No club students found.'}
                                         </td>
                                     </tr>
@@ -2604,11 +2604,11 @@ const Clubs = ({ initialSubPage }) => {
             {subPage === 'settings' && (
                 <div className="space-y-6">
                     {/* Dynamic Roles Creation & Management Card */}
-                    <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-4">
+                    <div className="bg-surface rounded-2xl p-6 border border-border shadow-sm space-y-4">
                         <div className="flex justify-between items-center">
                             <div>
-                                <h2 className="text-lg font-bold text-gray-900">Dynamic Club Admin Roles</h2>
-                                <p className="text-xs text-gray-500">Define dynamic leadership and coordinator roles for student clubs with full edit and delete capabilities.</p>
+                                <h2 className="text-lg font-bold text-main">Dynamic Club Admin Roles</h2>
+                                <p className="text-xs text-muted-text">Define dynamic leadership and coordinator roles for student clubs with full edit and delete capabilities.</p>
                             </div>
                             {(isAdmin || canManageClubRoles) && (
                                 <button
@@ -2618,7 +2618,7 @@ const Clubs = ({ initialSubPage }) => {
                                         setRoleForm({ role_name: '', description: '', pages: [...DEFAULT_CLUB_ADMIN_PAGES] });
                                         setShowRoleModal(true);
                                     }}
-                                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-bold text-white hover:bg-blue-700"
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white hover:bg-primary-hover"
                                 >
                                     <Plus size={14} /> Add Role
                                 </button>
@@ -2628,33 +2628,33 @@ const Clubs = ({ initialSubPage }) => {
                         {/* Roles Grid with Edit and Delete Buttons for ALL roles */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {dynamicRoles.map(role => (
-                                <div key={role.id} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2 relative group hover:bg-white hover:shadow-md transition-all flex flex-col justify-between">
+                                <div key={role.id} className="p-4 rounded-xl border border-border bg-[var(--background)]/50 space-y-2 relative group hover:bg-surface hover:shadow-md transition-all flex flex-col justify-between">
                                     <div>
                                         <div className="flex justify-between items-start gap-2">
-                                            <h3 className="font-bold text-sm text-gray-900">{role.role_name}</h3>
-                                            <span className="text-[10px] font-extrabold uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded shrink-0">
+                                            <h3 className="font-bold text-sm text-main">{role.role_name}</h3>
+                                            <span className="text-[10px] font-extrabold uppercase bg-[var(--primary-light)] text-primary px-2 py-0.5 rounded shrink-0">
                                                 Dynamic Role
                                             </span>
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{role.description || 'No description provided.'}</p>
+                                        <p className="text-xs text-muted-text mt-1 line-clamp-2">{role.description || 'No description provided.'}</p>
                                     </div>
 
-                                    <div className="pt-3 border-t border-gray-200/60 flex items-center justify-between text-xs">
-                                        <span className="text-[10px] font-mono text-slate-400">
+                                    <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
+                                        <span className="text-[10px] font-mono text-muted-text">
                                             {role.role_code}
                                         </span>
                                         {(isAdmin || canManageClubRoles) && (
                                             <div className="flex items-center gap-1">
                                                 <button
                                                     onClick={() => handleOpenEditRole(role)}
-                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    className="p-1.5 text-primary hover:bg-[var(--primary-light)] rounded-lg transition-colors"
                                                     title="Edit Role"
                                                 >
                                                     <Edit2 size={14} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteDynamicRole(role.id)}
-                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    className="p-1.5 text-danger hover:bg-[var(--danger-light)] rounded-lg transition-colors"
                                                     title="Delete Role"
                                                 >
                                                     <Trash2 size={14} />
@@ -2669,21 +2669,21 @@ const Clubs = ({ initialSubPage }) => {
 
                     {/* Announcements & Notifications Configuration */}
                     {getClubPageAccess(null, 'settings').write && (
-                    <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-5">
+                    <div className="bg-surface rounded-2xl p-6 border border-border shadow-sm space-y-5">
                         <div className="flex justify-between items-center">
                             <div>
-                                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                    <Bell size={20} className="text-blue-600" /> Club Announcements & Push Notifications
+                                <h2 className="text-lg font-bold text-main flex items-center gap-2">
+                                    <Bell size={20} className="text-primary" /> Club Announcements & Push Notifications
                                 </h2>
-                                <p className="text-xs text-gray-500">Configure global automated notification preferences for student club events and announcements.</p>
+                                <p className="text-xs text-muted-text">Configure global automated notification preferences for student club events and announcements.</p>
                             </div>
                         </div>
 
-                        <div className="space-y-4 divide-y divide-gray-100">
+                        <div className="space-y-4 divide-y divide-border">
                             <div className="flex justify-between items-center pt-2">
                                 <div>
-                                    <p className="text-sm font-bold text-gray-900">Club Announcements Notifications</p>
-                                    <p className="text-xs text-gray-500">Automatically notify registered members when new club announcements are posted.</p>
+                                    <p className="text-sm font-bold text-main">Club Announcements Notifications</p>
+                                    <p className="text-xs text-muted-text">Automatically notify registered members when new club announcements are posted.</p>
                                 </div>
                                 <button
                                     type="button"
@@ -2694,7 +2694,7 @@ const Clubs = ({ initialSubPage }) => {
                                         toast.success(`Announcement notifications ${newVal ? 'ENABLED' : 'DISABLED'}`);
                                     }}
                                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                        announcementNotify ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'
+                                        announcementNotify ? 'bg-success text-white' : 'bg-background text-sub'
                                     }`}
                                 >
                                     {announcementNotify ? 'ON' : 'OFF'}
@@ -2703,8 +2703,8 @@ const Clubs = ({ initialSubPage }) => {
 
                             <div className="flex justify-between items-center pt-4">
                                 <div>
-                                    <p className="text-sm font-bold text-gray-900">Fee Payment Alert Notifications</p>
-                                    <p className="text-xs text-gray-500">Send push reminders to students when club membership fee payments are due.</p>
+                                    <p className="text-sm font-bold text-main">Fee Payment Alert Notifications</p>
+                                    <p className="text-xs text-muted-text">Send push reminders to students when club membership fee payments are due.</p>
                                 </div>
                                 <button
                                     type="button"
@@ -2715,7 +2715,7 @@ const Clubs = ({ initialSubPage }) => {
                                         toast.success(`Fee notifications ${newVal ? 'ENABLED' : 'DISABLED'}`);
                                     }}
                                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                        feeNotify ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'
+                                        feeNotify ? 'bg-success text-white' : 'bg-background text-sub'
                                     }`}
                                 >
                                     {feeNotify ? 'ON' : 'OFF'}
@@ -2724,8 +2724,8 @@ const Clubs = ({ initialSubPage }) => {
 
                             <div className="flex justify-between items-center pt-4">
                                 <div>
-                                    <p className="text-sm font-bold text-gray-900">Member Activity Push Notifications</p>
-                                    <p className="text-xs text-gray-500">Notify club members when new events, activities, or schedule changes are published.</p>
+                                    <p className="text-sm font-bold text-main">Member Activity Push Notifications</p>
+                                    <p className="text-xs text-muted-text">Notify club members when new events, activities, or schedule changes are published.</p>
                                 </div>
                                 <button
                                     type="button"
@@ -2736,7 +2736,7 @@ const Clubs = ({ initialSubPage }) => {
                                         toast.success(`Activity notifications ${newVal ? 'ENABLED' : 'DISABLED'}`);
                                     }}
                                     className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                        activityNotify ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'
+                                        activityNotify ? 'bg-success text-white' : 'bg-background text-sub'
                                     }`}
                                 >
                                     {activityNotify ? 'ON' : 'OFF'}
@@ -2748,29 +2748,29 @@ const Clubs = ({ initialSubPage }) => {
 
                     {/* User Access Management for Club Pages Only */}
                     {(isAdmin || canManageClubAdmins || canManageClubRoles) && (
-                    <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-5">
+                    <div className="bg-surface rounded-2xl p-6 border border-border shadow-sm space-y-5">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                             <div>
-                                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                    <Shield size={20} className="text-indigo-600" /> User Access Management (Club Pages Only)
+                                <h2 className="text-lg font-bold text-main flex items-center gap-2">
+                                    <Shield size={20} className="text-primary" /> User Access Management (Club Pages Only)
                                 </h2>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-muted-text">
                                     Grant or manage user access permissions and dynamic leadership roles specifically for Club Management and Club Pages.
                                 </p>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => navigate('/users')}
-                                className="px-4 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-100 transition-all flex items-center gap-1.5 shrink-0"
+                                className="px-4 py-2 bg-[var(--primary-light)] border border-[var(--primary-light)] text-primary text-xs font-bold rounded-xl hover:bg-[var(--primary-light)] transition-all flex items-center gap-1.5 shrink-0"
                             >
                                 <UserCheck size={14} /> Full User Management
                             </button>
                         </div>
 
                         {/* Quick Employee / User Access Search & Grant */}
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                                <UserPlus size={14} className="text-indigo-600" /> Grant Club Admin Access to Employee / User
+                        <div className="bg-background p-4 rounded-xl border border-border space-y-3">
+                            <h3 className="text-xs font-bold text-main uppercase tracking-wider flex items-center gap-1.5">
+                                <UserPlus size={14} className="text-primary" /> Grant Club Admin Access to Employee / User
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div className="sm:col-span-2">
@@ -2780,11 +2780,11 @@ const Clubs = ({ initialSubPage }) => {
                                             value={hrmsSearchQuery}
                                             onChange={(e) => handleSearchHrms(e.target.value)}
                                             placeholder="Search HRMS employee by name, emp ID or email..."
-                                            className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white"
+                                            className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary bg-surface"
                                         />
                                         {searchingHrms && (
                                             <div className="absolute right-3 top-2.5">
-                                                <RefreshCw size={14} className="animate-spin text-indigo-600" />
+                                                <RefreshCw size={14} className="animate-spin text-primary" />
                                             </div>
                                         )}
                                     </div>
@@ -2793,7 +2793,7 @@ const Clubs = ({ initialSubPage }) => {
                                     type="button"
                                     onClick={() => handleSearchHrms(hrmsSearchQuery)}
                                     disabled={searchingHrms}
-                                    className="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center gap-1.5"
+                                    className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-hover transition-colors flex items-center justify-center gap-1.5"
                                 >
                                     <Search size={14} /> Search Employee
                                 </button>
@@ -2801,18 +2801,18 @@ const Clubs = ({ initialSubPage }) => {
 
                             {/* HRMS Search Results in Access Management */}
                             {hrmsSearchResults.length > 0 && (
-                                <div className="mt-2 bg-white rounded-lg border border-slate-200 divide-y max-h-48 overflow-y-auto shadow-sm">
+                                <div className="mt-2 bg-surface rounded-lg border border-border divide-y max-h-48 overflow-y-auto shadow-sm">
                                     {hrmsSearchResults.map(emp => (
                                         <div
                                             key={emp._id}
                                             onClick={() => handleSelectHrmsEmployee(emp)}
-                                            className={`p-2.5 text-xs flex justify-between items-center cursor-pointer hover:bg-indigo-50/60 transition-colors ${selectedHrmsEmployee?._id === emp._id ? 'bg-indigo-50 border-l-4 border-indigo-600' : ''}`}
+                                            className={`p-2.5 text-xs flex justify-between items-center cursor-pointer hover:bg-[var(--primary-light)] transition-colors ${selectedHrmsEmployee?._id === emp._id ? 'bg-[var(--primary-light)] border-l-4 border-primary' : ''}`}
                                         >
                                             <div>
-                                                <p className="font-bold text-gray-900">{emp.name}</p>
-                                                <p className="text-[10px] text-gray-500">{emp.emp_no} • {emp.email || 'No email'}</p>
+                                                <p className="font-bold text-main">{emp.name}</p>
+                                                <p className="text-[10px] text-muted-text">{emp.emp_no} • {emp.email || 'No email'}</p>
                                             </div>
-                                            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded">
+                                            <span className="text-[10px] font-bold text-primary bg-[var(--primary-light)] px-2 py-0.5 rounded">
                                                 Select for Club Access
                                             </span>
                                         </div>
@@ -2821,10 +2821,10 @@ const Clubs = ({ initialSubPage }) => {
                             )}
 
                             {selectedHrmsEmployee && (
-                                <div className="mt-3 p-3 bg-indigo-50/80 border border-indigo-200 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <div className="mt-3 p-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                     <div className="text-xs">
-                                        <p className="font-bold text-indigo-950">Selected: {selectedHrmsEmployee.name} ({selectedHrmsEmployee.emp_no})</p>
-                                        <p className="text-[11px] text-indigo-700">
+                                        <p className="font-bold text-primary">Selected: {selectedHrmsEmployee.name} ({selectedHrmsEmployee.emp_no})</p>
+                                        <p className="text-[11px] text-primary">
                                             {hrmsUserStatus?.checking ? 'Checking SDMS Account...' : hrmsUserStatus?.hasUserAccount ? '✓ Active SDMS Account Linked' : '⚠ No SDMS Account found.'}
                                         </p>
                                     </div>
@@ -2832,7 +2832,7 @@ const Clubs = ({ initialSubPage }) => {
                                         <button
                                             type="button"
                                             onClick={handleOpenCreateUserModal}
-                                            className="px-3 py-1.5 bg-green-600 text-white font-bold text-xs rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+                                            className="px-3 py-1.5 bg-success text-white font-bold text-xs rounded-lg hover:bg-success transition-colors shadow-sm"
                                         >
                                             + Create SDMS Account (With College)
                                         </button>
@@ -2843,15 +2843,15 @@ const Clubs = ({ initialSubPage }) => {
 
                         {/* Table of Active Club Officers / Admins */}
                         <div className="space-y-2">
-                            <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
-                                <Users size={14} className="text-indigo-600" /> Active Club Heads & Officers ({
+                            <h3 className="text-xs font-bold text-main uppercase tracking-wider flex items-center gap-1.5">
+                                <Users size={14} className="text-primary" /> Active Club Heads & Officers ({
                                     clubs.reduce((acc, c) => acc + (c.admin_roles ? c.admin_roles.length : 0), 0)
                                 })
                             </h3>
 
-                            <div className="overflow-x-auto border border-gray-200 rounded-xl shadow-sm bg-white">
+                            <div className="overflow-x-auto border border-border rounded-xl shadow-sm bg-surface">
                                 <table className="w-full text-left text-xs">
-                                    <thead className="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                                    <thead className="bg-background text-sub font-bold border-b border-border">
                                         <tr>
                                             <th className="p-3">Club Name</th>
                                             <th className="p-3">Officer Name</th>
@@ -2861,25 +2861,25 @@ const Clubs = ({ initialSubPage }) => {
                                             <th className="p-3">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100">
+                                    <tbody className="divide-y divide-border">
                                         {clubs.flatMap(c => (c.admin_roles || []).map((r, i) => ({ club: c, role: r, key: `${c.id}_${i}` }))).length > 0 ? (
                                             clubs.flatMap(c => (c.admin_roles || []).map((r, i) => (
-                                                <tr key={`${c.id}_${i}`} className="hover:bg-slate-50 transition-colors">
-                                                    <td className="p-3 font-bold text-gray-900">{c.name}</td>
-                                                    <td className="p-3 text-gray-800 font-medium">{r.name || r.email || 'Assigned Officer'}</td>
+                                                <tr key={`${c.id}_${i}`} className="hover:bg-background transition-colors">
+                                                    <td className="p-3 font-bold text-main">{c.name}</td>
+                                                    <td className="p-3 text-main font-medium">{r.name || r.email || 'Assigned Officer'}</td>
                                                     <td className="p-3">
-                                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)]">
                                                             🏆 {r.roleName || r.roleCode || 'Club Admin'}
                                                         </span>
                                                     </td>
-                                                    <td className="p-3 text-gray-500 font-mono">{r.empNo || r.userId || '—'}</td>
+                                                    <td className="p-3 text-muted-text font-mono">{r.empNo || r.userId || '—'}</td>
                                                     <td className="p-3">
                                                         <div className="flex flex-wrap gap-1">
                                                             {CLUB_ADMIN_PAGES.flatMap(page => {
                                                                 const access = getPagePermissions(r)[page.key];
                                                                 if (!access.read && !access.write) return [];
                                                                 return [(
-                                                                    <span key={page.key} title={`${page.label}: ${access.write ? 'Read and write' : 'Read only'}`} className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                                                                    <span key={page.key} title={`${page.label}: ${access.write ? 'Read and write' : 'Read only'}`} className="px-2 py-0.5 rounded bg-[var(--success-light)] text-success border border-[var(--success-light)] text-[10px] font-bold">
                                                                         {page.label}: {access.write ? 'Read/Write' : 'Read'}
                                                                     </span>
                                                                 )];
@@ -2891,7 +2891,7 @@ const Clubs = ({ initialSubPage }) => {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => openClubUserEditor(c, r, i)}
-                                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold"
+                                                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-[var(--primary-light)] bg-[var(--primary-light)] text-primary hover:bg-[var(--primary-light)] font-semibold"
                                                                 title={`Edit club role for ${r.name || r.email || ''}`}
                                                             >
                                                                 <Edit2 size={12} /> Edit Club Role
@@ -2902,7 +2902,7 @@ const Clubs = ({ initialSubPage }) => {
                                             )))
                                         ) : (
                                             <tr>
-                                                <td colSpan="6" className="p-6 text-center text-gray-500 italic">
+                                                <td colSpan="6" className="p-6 text-center text-muted-text italic">
                                                     No club admin officers assigned yet. Edit any club to assign dynamic club roles.
                                                 </td>
                                             </tr>
@@ -2925,38 +2925,38 @@ const Clubs = ({ initialSubPage }) => {
                 <form onSubmit={showEditModal ? handleUpdateClub : handleCreateClub} className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1 sm:col-span-2">
-                            <label className="text-xs font-bold text-gray-700">Club Name *</label>
+                            <label className="text-xs font-bold text-sub">Club Name *</label>
                             <input
                                 type="text"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 placeholder="e.g. Robotics & Innovation Club"
-                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary"
                                 required
                             />
                         </div>
 
                         <div className="space-y-1 sm:col-span-2">
-                            <label className="text-xs font-bold text-gray-700">Description</label>
+                            <label className="text-xs font-bold text-sub">Description</label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 placeholder="Describe the objectives and activities of this student club..."
                                 rows={3}
-                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary"
                             />
                         </div>
 
                         <div className="space-y-1 sm:col-span-2">
-                            <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                                <Image size={14} className="text-blue-600" /> Club Logo / Image
+                            <label className="text-xs font-bold text-sub flex items-center gap-1.5">
+                                <Image size={14} className="text-primary" /> Club Logo / Image
                             </label>
-                            <div className="flex items-center gap-4 p-3 bg-gray-50 border rounded-xl">
-                                <div className="w-14 h-14 rounded-xl border bg-white overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
+                            <div className="flex items-center gap-4 p-3 bg-background border rounded-xl">
+                                <div className="w-14 h-14 rounded-xl border bg-surface overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
                                     {formLogoPreview ? (
                                         <img src={formLogoPreview} alt="Logo" className="w-full h-full object-cover" />
                                     ) : (
-                                        <Users size={22} className="text-gray-400" />
+                                        <Users size={22} className="text-muted-text" />
                                     )}
                                 </div>
                                 <div className="space-y-1 flex-1">
@@ -2970,30 +2970,30 @@ const Clubs = ({ initialSubPage }) => {
                                                 setFormLogoPreview(URL.createObjectURL(file));
                                             }
                                         }}
-                                        className="text-xs text-gray-600 file:mr-2.5 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                                        className="text-xs text-sub file:mr-2.5 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[var(--primary-light)] file:text-primary hover:file:bg-[var(--primary-light)] cursor-pointer"
                                     />
-                                    <p className="text-[10px] text-gray-400">Upload or replace the official club emblem/logo (PNG, JPG, WEBP, SVG)</p>
+                                    <p className="text-[10px] text-muted-text">Upload or replace the official club emblem/logo (PNG, JPG, WEBP, SVG)</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-700">Membership Fee (INR)</label>
+                            <label className="text-xs font-bold text-sub">Membership Fee (INR)</label>
                             <input
                                 type="number"
                                 value={formData.membership_fee}
                                 onChange={(e) => setFormData({ ...formData, membership_fee: e.target.value })}
                                 placeholder="0 for free club"
-                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary"
                             />
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-700">Fee Frequency</label>
+                            <label className="text-xs font-bold text-sub">Fee Frequency</label>
                             <select
                                 value={formData.fee_type}
                                 onChange={(e) => setFormData({ ...formData, fee_type: e.target.value })}
-                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary"
                             >
                                 <option value="Yearly">Yearly</option>
                                 <option value="One-Time">One-Time</option>
@@ -3008,25 +3008,25 @@ const Clubs = ({ initialSubPage }) => {
                     <div className="border-t pt-4 space-y-4">
                         <div className="flex justify-between items-center">
                             <div>
-                                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-                                    <Shield size={16} className="text-blue-600" /> Multiple Club Admin Roles
+                                <h3 className="text-sm font-bold text-main flex items-center gap-1.5">
+                                    <Shield size={16} className="text-primary" /> Multiple Club Admin Roles
                                 </h3>
-                                <p className="text-[11px] text-gray-500">Assign multiple officers (President, Vice Presidents, Faculty Coordinators, etc.) to this club.</p>
+                                <p className="text-[11px] text-muted-text">Assign multiple officers (President, Vice Presidents, Faculty Coordinators, etc.) to this club.</p>
                             </div>
                         </div>
 
                         {/* Existing Assigned Multiple Roles List */}
                         {formData.admin_roles && formData.admin_roles.length > 0 ? (
-                            <div className="space-y-2 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
-                                <p className="text-xs font-bold text-blue-900">Currently Assigned Admin Roles ({formData.admin_roles.length}):</p>
+                            <div className="space-y-2 bg-[var(--primary-light)] p-3 rounded-xl border border-[var(--primary-light)]">
+                                <p className="text-xs font-bold text-primary">Currently Assigned Admin Roles ({formData.admin_roles.length}):</p>
                                 {formData.admin_roles.map((item, idx) => (
-                                    <div key={idx} className="bg-white p-2.5 rounded-lg border border-blue-200 text-xs shadow-2xs space-y-2">
+                                    <div key={idx} className="bg-surface p-2.5 rounded-lg border border-[var(--primary-light)] text-xs shadow-2xs space-y-2">
                                         <div className="flex justify-between items-center gap-3">
                                             <div>
                                                 <select
                                                     value={item.roleCode || ''}
                                                     onChange={event => handleChangeAssignedClubRole(idx, event.target.value)}
-                                                    className="mb-1 max-w-full rounded border border-blue-200 bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-800"
+                                                    className="mb-1 max-w-full rounded border border-[var(--primary-light)] bg-[var(--primary-light)] px-2 py-1 text-[11px] font-bold text-primary"
                                                     aria-label={`Club role for ${item.name}`}
                                                 >
                                                     {!dynamicRoles.some(role => role.role_code === item.roleCode) && item.roleCode && (
@@ -3036,34 +3036,34 @@ const Clubs = ({ initialSubPage }) => {
                                                         <option key={role.role_code} value={role.role_code}>{role.role_name}</option>
                                                     ))}
                                                 </select>
-                                                <span className="font-bold text-gray-900">{item.name}</span>
-                                                <span className="text-gray-500 text-[11px] ml-2">({item.empNo || item.email})</span>
+                                                <span className="font-bold text-main">{item.name}</span>
+                                                <span className="text-muted-text text-[11px] ml-2">({item.empNo || item.email})</span>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveAdminRoleAssignment(idx)}
-                                                className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
+                                                className="text-danger hover:text-danger p-1 rounded hover:bg-[var(--danger-light)]"
                                                 title="Remove this role assignment"
                                             >
                                                 <X size={15} />
                                             </button>
                                         </div>
-                                        <fieldset className="grid grid-cols-1 sm:grid-cols-3 gap-2 border-t border-gray-100 pt-2">
+                                        <fieldset className="grid grid-cols-1 sm:grid-cols-3 gap-2 border-t border-border pt-2">
                                             <legend className="sr-only">Read and write access for {item.name}</legend>
                                             {CLUB_ADMIN_PAGES.map(page => {
                                                 const access = getPagePermissions(item)[page.key];
                                                 return (
-                                                    <div key={page.key} className="rounded-md border border-gray-100 px-2 py-1.5">
-                                                        <p className="text-[10px] font-semibold text-gray-700">{page.label}</p>
+                                                    <div key={page.key} className="rounded-md border border-border px-2 py-1.5">
+                                                        <p className="text-[10px] font-semibold text-sub">{page.label}</p>
                                                         <div className="flex gap-3 mt-1">
                                                             {['read', 'write'].map(accessType => (
-                                                                <label key={accessType} className="inline-flex items-center gap-1 text-[10px] text-gray-600 capitalize">
+                                                                <label key={accessType} className="inline-flex items-center gap-1 text-[10px] text-sub capitalize">
                                                                     <input
                                                                         type="checkbox"
                                                                         checked={item.isSuperAdmin || access[accessType]}
                                                                         onChange={() => handleToggleAdminRolePage(idx, page.key, accessType)}
                                                                         disabled={item.isSuperAdmin}
-                                                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                                        className="rounded border-border-strong text-primary focus:ring-primary"
                                                                     />
                                                                     {accessType}
                                                                 </label>
@@ -3077,21 +3077,21 @@ const Clubs = ({ initialSubPage }) => {
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-xs text-gray-400 italic bg-gray-50 p-2.5 rounded-lg border border-dashed">
+                            <p className="text-xs text-muted-text italic bg-background p-2.5 rounded-lg border border-dashed">
                                 No admin roles assigned to this club yet. Use the form below to search and add officers.
                             </p>
                         )}
 
                         {/* Add Officer Assign Form */}
-                        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                            <p className="text-xs font-bold text-slate-800">Add New Admin Role Assignment</p>
+                        <div className="p-3.5 bg-background border border-border rounded-xl space-y-3">
+                            <p className="text-xs font-bold text-main">Add New Admin Role Assignment</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-[11px] font-bold text-slate-700">Select Dynamic Role</label>
+                                    <label className="text-[11px] font-bold text-sub">Select Dynamic Role</label>
                                     <select
                                         value={selectedRoleCode}
                                         onChange={(e) => setSelectedRoleCode(e.target.value)}
-                                        className="w-full px-2.5 py-1.5 text-xs border rounded-lg bg-white"
+                                        className="w-full px-2.5 py-1.5 text-xs border rounded-lg bg-surface"
                                     >
                                         {dynamicRoles.map(r => (
                                             <option key={r.role_code} value={r.role_code}>{r.role_name}</option>
@@ -3101,10 +3101,10 @@ const Clubs = ({ initialSubPage }) => {
 
                                 <div>
                                     <div className="flex items-center justify-between mb-1">
-                                        <label className="text-[11px] font-bold text-slate-700">
+                                        <label className="text-[11px] font-bold text-sub">
                                             {roleAssigneeType === 'student' ? 'Search Student (Members / Leaders)' : 'Search Faculty / HRMS Staff'}
                                         </label>
-                                        <div className="inline-flex rounded-md bg-gray-200 p-0.5 text-[10px] font-bold">
+                                        <div className="inline-flex rounded-md bg-background p-0.5 text-[10px] font-bold">
                                             <button
                                                 type="button"
                                                 onClick={() => {
@@ -3113,7 +3113,7 @@ const Clubs = ({ initialSubPage }) => {
                                                     setHrmsSearchQuery('');
                                                     setHrmsSearchResults([]);
                                                 }}
-                                                className={`px-2 py-0.5 rounded transition-all ${roleAssigneeType === 'student' ? 'bg-white text-blue-700 shadow-xs' : 'text-gray-600 hover:text-gray-900'}`}
+                                                className={`px-2 py-0.5 rounded transition-all ${roleAssigneeType === 'student' ? 'bg-surface text-primary shadow-xs' : 'text-sub hover:text-main'}`}
                                             >
                                                 Student
                                             </button>
@@ -3125,7 +3125,7 @@ const Clubs = ({ initialSubPage }) => {
                                                     setStudentRoleSearchQuery('');
                                                     setStudentRoleSearchResults([]);
                                                 }}
-                                                className={`px-2 py-0.5 rounded transition-all ${roleAssigneeType === 'hrms' ? 'bg-white text-blue-700 shadow-xs' : 'text-gray-600 hover:text-gray-900'}`}
+                                                className={`px-2 py-0.5 rounded transition-all ${roleAssigneeType === 'hrms' ? 'bg-surface text-primary shadow-xs' : 'text-sub hover:text-main'}`}
                                             >
                                                 Faculty / Staff
                                             </button>
@@ -3139,9 +3139,9 @@ const Clubs = ({ initialSubPage }) => {
                                                 placeholder="Type student name, admission no, PIN, branch..."
                                                 value={studentRoleSearchQuery}
                                                 onChange={(e) => handleSearchRoleStudent(e.target.value)}
-                                                className="w-full px-2.5 py-1.5 text-xs border rounded-lg bg-white"
+                                                className="w-full px-2.5 py-1.5 text-xs border rounded-lg bg-surface"
                                             />
-                                            {searchingRoleStudent && <span className="text-[10px] text-blue-600 animate-pulse">Searching students...</span>}
+                                            {searchingRoleStudent && <span className="text-[10px] text-primary animate-pulse">Searching students...</span>}
                                         </>
                                     ) : (
                                         <>
@@ -3150,9 +3150,9 @@ const Clubs = ({ initialSubPage }) => {
                                                 placeholder="Type name, emp_no, email..."
                                                 value={hrmsSearchQuery}
                                                 onChange={(e) => handleSearchHrms(e.target.value)}
-                                                className="w-full px-2.5 py-1.5 text-xs border rounded-lg bg-white"
+                                                className="w-full px-2.5 py-1.5 text-xs border rounded-lg bg-surface"
                                             />
-                                            {searchingHrms && <span className="text-[10px] text-gray-400">Searching employees...</span>}
+                                            {searchingHrms && <span className="text-[10px] text-muted-text">Searching employees...</span>}
                                         </>
                                     )}
                                 </div>
@@ -3160,7 +3160,7 @@ const Clubs = ({ initialSubPage }) => {
 
                             {/* Student Search Results Dropdown */}
                             {roleAssigneeType === 'student' && studentRoleSearchResults.length > 0 && (
-                                <div className="max-h-48 overflow-y-auto bg-white border border-slate-300 rounded-lg divide-y shadow-lg">
+                                <div className="max-h-48 overflow-y-auto bg-surface border border-border-strong rounded-lg divide-y shadow-lg">
                                     {studentRoleSearchResults.map((st, i) => (
                                         <div
                                             key={st.id || i}
@@ -3168,18 +3168,18 @@ const Clubs = ({ initialSubPage }) => {
                                                 setSelectedStudentRole(st);
                                                 setStudentRoleSearchResults([]);
                                             }}
-                                            className="p-2.5 hover:bg-blue-50 cursor-pointer text-xs flex justify-between items-center"
+                                            className="p-2.5 hover:bg-[var(--primary-light)] cursor-pointer text-xs flex justify-between items-center"
                                         >
                                             <div>
-                                                <p className="font-bold text-gray-900">{st.student_name}</p>
-                                                <p className="text-[10px] text-gray-500 font-mono">
+                                                <p className="font-bold text-main">{st.student_name}</p>
+                                                <p className="text-[10px] text-muted-text font-mono">
                                                     Adm: {st.admission_number} {st.pin_no ? `| PIN: ${st.pin_no}` : ''}
                                                 </p>
-                                                <p className="text-[10px] text-gray-500">
+                                                <p className="text-[10px] text-muted-text">
                                                     {[st.course, st.branch, st.college].filter(Boolean).join(' • ')}
                                                 </p>
                                             </div>
-                                            <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">
+                                            <span className="text-[10px] px-2 py-0.5 rounded font-bold bg-[var(--primary-light)] text-primary">
                                                 Student
                                             </span>
                                         </div>
@@ -3189,27 +3189,27 @@ const Clubs = ({ initialSubPage }) => {
 
                             {/* Selected Student Card */}
                             {roleAssigneeType === 'student' && selectedStudentRole && (
-                                <div className="bg-white p-3 border border-blue-200 rounded-xl space-y-2">
+                                <div className="bg-surface p-3 border border-[var(--primary-light)] rounded-xl space-y-2">
                                     <div className="flex justify-between items-center">
                                         <div>
-                                            <p className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                                                <GraduationCap size={15} className="text-blue-600" />
+                                            <p className="text-xs font-bold text-main flex items-center gap-1.5">
+                                                <GraduationCap size={15} className="text-primary" />
                                                 Selected: {selectedStudentRole.student_name}
                                             </p>
-                                            <p className="text-[11px] text-gray-600 font-mono mt-0.5">
+                                            <p className="text-[11px] text-sub font-mono mt-0.5">
                                                 Adm: {selectedStudentRole.admission_number} {selectedStudentRole.pin_no ? `| PIN: ${selectedStudentRole.pin_no}` : ''}
                                             </p>
-                                            <p className="text-[10px] text-gray-500">
+                                            <p className="text-[10px] text-muted-text">
                                                 {[selectedStudentRole.course, selectedStudentRole.branch, selectedStudentRole.college].filter(Boolean).join(' • ')}
                                             </p>
                                         </div>
-                                        <button type="button" onClick={() => setSelectedStudentRole(null)} className="text-xs text-red-500 font-bold hover:text-red-700">Change</button>
+                                        <button type="button" onClick={() => setSelectedStudentRole(null)} className="text-xs text-danger font-bold hover:text-danger">Change</button>
                                     </div>
-                                    <div className="flex justify-end pt-1 border-t border-gray-100">
+                                    <div className="flex justify-end pt-1 border-t border-border">
                                         <button
                                             type="button"
                                             onClick={handleAddStudentRoleAssignment}
-                                            className="px-3.5 py-1.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 text-xs shadow-xs flex items-center gap-1"
+                                            className="px-3.5 py-1.5 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover text-xs shadow-xs flex items-center gap-1"
                                         >
                                             <Plus size={13} /> Add to Role
                                         </button>
@@ -3219,19 +3219,19 @@ const Clubs = ({ initialSubPage }) => {
 
                             {/* HRMS Search Results Dropdown */}
                             {roleAssigneeType === 'hrms' && hrmsSearchResults.length > 0 && (
-                                <div className="max-h-40 overflow-y-auto bg-white border border-slate-300 rounded-lg divide-y shadow-lg">
+                                <div className="max-h-40 overflow-y-auto bg-surface border border-border-strong rounded-lg divide-y shadow-lg">
                                     {hrmsSearchResults.map((emp, i) => (
                                         <div
                                             key={i}
                                             onClick={() => handleSelectHrmsEmployee(emp)}
-                                            className="p-2.5 hover:bg-blue-50 cursor-pointer text-xs flex justify-between items-center"
+                                            className="p-2.5 hover:bg-[var(--primary-light)] cursor-pointer text-xs flex justify-between items-center"
                                         >
                                             <div>
-                                                <p className="font-bold text-gray-900">{emp.name}</p>
-                                                <p className="text-[10px] text-gray-500">ID: {emp.emp_no} | {emp.email}</p>
+                                                <p className="font-bold text-main">{emp.name}</p>
+                                                <p className="text-[10px] text-muted-text">ID: {emp.emp_no} | {emp.email}</p>
                                             </div>
                                             <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                                                emp.type === 'SDMS User' || emp.hasUserAccount ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-700'
+                                                emp.type === 'SDMS User' || emp.hasUserAccount ? 'bg-[var(--success-light)] text-success' : 'bg-background text-sub'
                                             }`}>
                                                 {emp.type || 'Employee'}
                                             </span>
@@ -3242,27 +3242,27 @@ const Clubs = ({ initialSubPage }) => {
 
                             {/* Selected Employee Card & Account Check */}
                             {roleAssigneeType === 'hrms' && selectedHrmsEmployee && (
-                                <div className="bg-white p-3 border rounded-xl space-y-2">
+                                <div className="bg-surface p-3 border rounded-xl space-y-2">
                                     <div className="flex justify-between items-center">
                                         <div>
-                                            <p className="text-xs font-bold text-gray-900">Selected: {selectedHrmsEmployee.name}</p>
-                                            <p className="text-[11px] text-gray-500">{selectedHrmsEmployee.emp_no} | {selectedHrmsEmployee.email}</p>
+                                            <p className="text-xs font-bold text-main">Selected: {selectedHrmsEmployee.name}</p>
+                                            <p className="text-[11px] text-muted-text">{selectedHrmsEmployee.emp_no} | {selectedHrmsEmployee.email}</p>
                                         </div>
-                                        <button type="button" onClick={() => setSelectedHrmsEmployee(null)} className="text-xs text-red-500 font-bold">Change</button>
+                                        <button type="button" onClick={() => setSelectedHrmsEmployee(null)} className="text-xs text-danger font-bold">Change</button>
                                     </div>
 
                                     {hrmsUserStatus?.checking && (
-                                        <p className="text-xs text-blue-600 animate-pulse">Checking SDMS User Account...</p>
+                                        <p className="text-xs text-primary animate-pulse">Checking SDMS User Account...</p>
                                     )}
 
                                     {/* ALERT IF NO SDMS USER ACCOUNT */}
                                     {hrmsUserStatus && !hrmsUserStatus.checking && !hrmsUserStatus.hasUserAccount && (
-                                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-2">
-                                            <div className="flex items-start gap-2 text-amber-800 text-xs">
-                                                <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                                        <div className="p-3 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-lg space-y-2">
+                                            <div className="flex items-start gap-2 text-warning text-xs">
+                                                <AlertTriangle size={16} className="text-warning shrink-0 mt-0.5" />
                                                 <div>
                                                     <p className="font-bold">No SDMS User Account Found!</p>
-                                                    <p className="text-[11px] text-amber-700 mt-0.5">
+                                                    <p className="text-[11px] text-warning mt-0.5">
                                                         Employee <b>{selectedHrmsEmployee.name}</b> doesn't have a user login account in SDMS. Please create an account for this employee first, then add them to the role.
                                                     </p>
                                                 </div>
@@ -3270,7 +3270,7 @@ const Clubs = ({ initialSubPage }) => {
                                             <button
                                                 type="button"
                                                 onClick={handleOpenCreateUserModal}
-                                                className="w-full py-1.5 bg-amber-600 text-white font-bold text-xs rounded-md hover:bg-amber-700 flex items-center justify-center gap-1.5 shadow-xs"
+                                                className="w-full py-1.5 bg-warning text-white font-bold text-xs rounded-md hover:bg-warning flex items-center justify-center gap-1.5 shadow-xs"
                                             >
                                                 <UserPlus size={14} /> Create SDMS Account for {selectedHrmsEmployee.name}
                                             </button>
@@ -3279,15 +3279,15 @@ const Clubs = ({ initialSubPage }) => {
 
                                     {/* SUCCESS IF SDMS USER ACCOUNT EXISTS */}
                                     {hrmsUserStatus && !hrmsUserStatus.checking && hrmsUserStatus.hasUserAccount && (
-                                        <div className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded-lg text-xs text-green-800">
+                                        <div className="flex items-center justify-between p-2 bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg text-xs text-success">
                                             <div className="flex items-center gap-1.5">
-                                                <CheckCircle size={15} className="text-green-600" />
+                                                <CheckCircle size={15} className="text-success" />
                                                 <span className="font-bold">SDMS Account Active ({hrmsUserStatus.userAccount?.username || 'User'})</span>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={handleAddAdminRoleAssignment}
-                                                className="px-3 py-1 bg-green-700 text-white rounded font-bold hover:bg-green-800 text-xs"
+                                                className="px-3 py-1 bg-success text-white rounded font-bold hover:bg-success text-xs"
                                             >
                                                 Add to Role
                                             </button>
@@ -3304,13 +3304,13 @@ const Clubs = ({ initialSubPage }) => {
                         <button
                             type="button"
                             onClick={() => { setShowCreateModal(false); setShowEditModal(false); resetForm(); }}
-                            className="px-4 py-2 text-xs font-bold text-gray-600 border rounded-lg hover:bg-gray-50"
+                            className="px-4 py-2 text-xs font-bold text-sub border rounded-lg hover:bg-background"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-5 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm"
+                            className="px-5 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary-hover shadow-sm"
                         >
                             {showEditModal ? ((isAdmin || canManageClubAdmins) ? 'Update Club & Save Admin Roles' : 'Save Club Settings') : 'Create Club'}
                         </button>
@@ -3324,11 +3324,11 @@ const Clubs = ({ initialSubPage }) => {
                 title={`Edit Club Access for ${pageAssignmentToEdit?.assignment?.name || 'Club Admin'}`}
             >
                 <div className="space-y-4">
-                    <p className="text-xs text-gray-600">
+                    <p className="text-xs text-sub">
                         Edit {pageAssignmentToEdit?.assignment?.name || 'this user'}'s role and page access for {pageAssignmentToEdit?.club?.name}.
                     </p>
                     <label className="block space-y-1.5">
-                        <span className="text-xs font-semibold text-gray-700">Club role</span>
+                        <span className="text-xs font-semibold text-sub">Club role</span>
                         <select
                             value={clubRoleDraft.roleCode}
                             onChange={(event) => {
@@ -3341,7 +3341,7 @@ const Clubs = ({ initialSubPage }) => {
                                     setPageAccessDraft(getPagePermissions({ pages: selectedRole.pages || DEFAULT_CLUB_ADMIN_PAGES }));
                                 }
                             }}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
                         >
                             {!dynamicRoles.some(role => role.role_code === clubRoleDraft.roleCode) && clubRoleDraft.roleCode && (
                                 <option value={clubRoleDraft.roleCode}>{clubRoleDraft.roleName}</option>
@@ -3352,17 +3352,17 @@ const Clubs = ({ initialSubPage }) => {
                         </select>
                     </label>
                     {pageAssignmentToEdit?.assignment?.isSuperAdmin && (
-                        <p className="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+                        <p className="rounded-md border border-[var(--primary-light)] bg-[var(--primary-light)] px-3 py-2 text-xs text-primary">
                             Superadmin accounts always have access to every club page.
                         </p>
                     )}
                     <div className="space-y-2">
                         {CLUB_ADMIN_PAGES.map(page => (
-                            <div key={page.key} className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2.5">
-                                <span className="text-sm font-medium text-gray-800">{page.label}</span>
+                            <div key={page.key} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5">
+                                <span className="text-sm font-medium text-main">{page.label}</span>
                                 <div className="flex gap-4">
                                     {['read', 'write'].map(accessType => (
-                                        <label key={accessType} className="inline-flex items-center gap-1.5 text-xs text-gray-700 capitalize">
+                                        <label key={accessType} className="inline-flex items-center gap-1.5 text-xs text-sub capitalize">
                                             <input
                                                 type="checkbox"
                                                 checked={pageAssignmentToEdit?.assignment?.isSuperAdmin || pageAccessDraft[page.key]?.[accessType] === true}
@@ -3375,7 +3375,7 @@ const Clubs = ({ initialSubPage }) => {
                                                     return pagePermissions;
                                                 })}
                                                 disabled={pageAssignmentToEdit?.assignment?.isSuperAdmin}
-                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                className="rounded border-border-strong text-primary focus:ring-primary"
                                             />
                                             {accessType}
                                         </label>
@@ -3388,13 +3388,13 @@ const Clubs = ({ initialSubPage }) => {
                         <button
                             type="button"
                             onClick={() => setPageAssignmentToEdit(null)}
-                            className="px-4 py-2 text-xs font-bold text-gray-600 border rounded-lg"
+                            className="px-4 py-2 text-xs font-bold text-sub border rounded-lg"
                         >Cancel</button>
                         <button
                             type="button"
                             onClick={handleSavePageAccess}
                             disabled={savingPageAccess}
-                            className="px-4 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                            className="px-4 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary-hover disabled:opacity-50"
                         >{savingPageAccess ? 'Saving...' : 'Save Club Role'}</button>
                     </div>
                 </div>
@@ -3408,37 +3408,37 @@ const Clubs = ({ initialSubPage }) => {
             >
                 <form onSubmit={handleSaveDynamicRole} className="space-y-4">
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-700">Role Name *</label>
+                        <label className="text-xs font-bold text-sub">Role Name *</label>
                         <input
                             type="text"
                             value={roleForm.role_name}
                             onChange={(e) => setRoleForm({ ...roleForm, role_name: e.target.value })}
                             placeholder="e.g. Media Head, Event Director, Treasurer"
-                            className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary"
                             required
                         />
                     </div>
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-700">Description</label>
+                        <label className="text-xs font-bold text-sub">Description</label>
                         <textarea
                             value={roleForm.description}
                             onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })}
                             placeholder="Role responsibilities and guidelines..."
                             rows={3}
-                            className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary"
                         />
                     </div>
-                    <fieldset className="space-y-2 border-t border-gray-200 pt-4">
-                        <legend className="text-xs font-bold text-gray-700">Club Page Access</legend>
-                        <p className="text-[11px] text-gray-500">Users assigned this role will see the selected pages.</p>
+                    <fieldset className="space-y-2 border-t border-border pt-4">
+                        <legend className="text-xs font-bold text-sub">Club Page Access</legend>
+                        <p className="text-[11px] text-muted-text">Users assigned this role will see the selected pages.</p>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             {CLUB_ADMIN_PAGES.map(page => (
-                                <label key={page.key} className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-700">
+                                <label key={page.key} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs text-sub">
                                     <input
                                         type="checkbox"
                                         checked={(roleForm.pages || DEFAULT_CLUB_ADMIN_PAGES).includes(page.key)}
                                         onChange={() => handleToggleRolePage(page.key)}
-                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        className="rounded border-border-strong text-primary focus:ring-primary"
                                     />
                                     {page.label}
                                 </label>
@@ -3446,8 +3446,8 @@ const Clubs = ({ initialSubPage }) => {
                         </div>
                     </fieldset>
                     <div className="flex justify-end gap-2 pt-3">
-                        <button type="button" onClick={() => { setShowRoleModal(false); setEditingRole(null); }} className="px-4 py-2 text-xs font-bold text-gray-600 border rounded-lg">Cancel</button>
-                        <button type="submit" className="px-5 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                        <button type="button" onClick={() => { setShowRoleModal(false); setEditingRole(null); }} className="px-4 py-2 text-xs font-bold text-sub border rounded-lg">Cancel</button>
+                        <button type="submit" className="px-5 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary-hover">
                             {editingRole ? 'Update Role' : 'Create Role'}
                         </button>
                     </div>
@@ -3462,18 +3462,18 @@ const Clubs = ({ initialSubPage }) => {
                 size="tall"
             >
                 <form onSubmit={handleCreateSDMSUserAccount} className="space-y-4">
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800 space-y-1">
+                    <div className="p-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg text-xs text-primary space-y-1">
                         <p className="font-bold">Linking HRMS Employee to SDMS</p>
                         <p className="text-[11px] mt-0.5">The employee's HRMS credentials (Employee ID as username) will be used automatically â€” no manual password required.</p>
-                        <div className="mt-2 flex items-center gap-2 bg-white/60 p-2 rounded-lg border border-blue-100">
-                            <CheckCircle size={14} className="text-green-600 shrink-0" />
-                            <span className="font-semibold text-blue-900">Username: <code className="bg-blue-100 px-1.5 py-0.5 rounded text-blue-800">{selectedHrmsEmployee?.emp_no}</code> (from HRMS)</span>
+                        <div className="mt-2 flex items-center gap-2 bg-[var(--surface)]/60 p-2 rounded-lg border border-[var(--primary-light)]">
+                            <CheckCircle size={14} className="text-success shrink-0" />
+                            <span className="font-semibold text-primary">Username: <code className="bg-[var(--primary-light)] px-1.5 py-0.5 rounded text-primary">{selectedHrmsEmployee?.emp_no}</code> (from HRMS)</span>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div>
-                            <label className="font-bold text-gray-700">Full Name *</label>
+                            <label className="font-bold text-sub">Full Name *</label>
                             <input
                                 type="text"
                                 value={createUserForm.name}
@@ -3483,7 +3483,7 @@ const Clubs = ({ initialSubPage }) => {
                             />
                         </div>
                         <div>
-                            <label className="font-bold text-gray-700">Email Address *</label>
+                            <label className="font-bold text-sub">Email Address *</label>
                             <input
                                 type="email"
                                 value={createUserForm.email}
@@ -3506,7 +3506,7 @@ const Clubs = ({ initialSubPage }) => {
                             placeholder="Select one or more colleges"
                         />
                         <div>
-                            <label className="font-bold text-gray-700">System Role *</label>
+                            <label className="font-bold text-sub">System Role *</label>
                             <select
                                 value={createUserForm.role}
                                 onChange={(e) => setCreateUserForm(prev => ({
@@ -3515,7 +3515,7 @@ const Clubs = ({ initialSubPage }) => {
                                     allCourses: e.target.value === 'branch_hod' ? false : prev.allCourses,
                                     allBranches: e.target.value === 'branch_hod' ? false : prev.allBranches
                                 }))}
-                                className="mt-1 min-h-10 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="mt-1 min-h-10 w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                 required
                             >
                                 {createUserRoleOptions.map(role => (
@@ -3537,7 +3537,7 @@ const Clubs = ({ initialSubPage }) => {
                                 placeholder={createUserForm.collegeIds.length ? 'Select courses' : 'Select colleges first'}
                                 disabled={loadingCreateUserCourses || createUserForm.collegeIds.length === 0 || createUserForm.allCourses}
                                 headerAccessory={createUserForm.role !== 'branch_hod' && (
-                                    <label className="inline-flex items-center gap-1.5 text-[10px] font-medium text-gray-600">
+                                    <label className="inline-flex items-center gap-1.5 text-[10px] font-medium text-sub">
                                         <input
                                             type="checkbox"
                                             checked={createUserForm.allCourses}
@@ -3553,8 +3553,8 @@ const Clubs = ({ initialSubPage }) => {
                                     </label>
                                 )}
                             />
-                            {createUserForm.allCourses && <p className="mt-1 text-[10px] text-emerald-700">All courses selected</p>}
-                            {loadingCreateUserCourses && <p className="mt-1 text-[10px] text-gray-500">Loading courses...</p>}
+                            {createUserForm.allCourses && <p className="mt-1 text-[10px] text-success">All courses selected</p>}
+                            {loadingCreateUserCourses && <p className="mt-1 text-[10px] text-muted-text">Loading courses...</p>}
                         </div>
                     </div>
 
@@ -3573,7 +3573,7 @@ const Clubs = ({ initialSubPage }) => {
                                     placeholder="Select branches"
                                     disabled={loadingCreateUserBranches || createUserBranches.length === 0 || createUserForm.allBranches}
                                     headerAccessory={createUserForm.role !== 'branch_hod' && (
-                                        <label className="inline-flex items-center gap-1.5 text-[10px] font-medium text-gray-600">
+                                        <label className="inline-flex items-center gap-1.5 text-[10px] font-medium text-sub">
                                             <input
                                                 type="checkbox"
                                                 checked={createUserForm.allBranches}
@@ -3587,15 +3587,15 @@ const Clubs = ({ initialSubPage }) => {
                                         </label>
                                     )}
                                 />
-                                {createUserForm.allBranches && createUserForm.role !== 'branch_hod' && <p className="mt-1 text-[10px] text-orange-700">All branches selected</p>}
-                                {loadingCreateUserBranches && <p className="mt-1 text-[10px] text-gray-500">Loading branches...</p>}
+                                {createUserForm.allBranches && createUserForm.role !== 'branch_hod' && <p className="mt-1 text-[10px] text-warning">All branches selected</p>}
+                                {loadingCreateUserBranches && <p className="mt-1 text-[10px] text-muted-text">Loading branches...</p>}
                             </div>
                         )}
                         {createUserForm.role === 'branch_hod' && createUserForm.courseIds.length > 0 && (
-                            <div className="rounded-lg border border-slate-200 p-3 lg:col-span-2">
+                            <div className="rounded-lg border border-border p-3 lg:col-span-2">
                                 <div className="flex items-center justify-between gap-3">
-                                    <label className="font-bold text-gray-700">Year Access *</label>
-                                    <label className="inline-flex items-center gap-1.5 text-[11px] text-gray-600">
+                                    <label className="font-bold text-sub">Year Access *</label>
+                                    <label className="inline-flex items-center gap-1.5 text-[11px] text-sub">
                                         <input
                                             type="checkbox"
                                             checked={createUserForm.allHodYears}
@@ -3611,7 +3611,7 @@ const Clubs = ({ initialSubPage }) => {
                                 {!createUserForm.allHodYears && (
                                     <div className="mt-2 flex flex-wrap gap-3">
                                         {Array.from({ length: createUserHodYearCount }, (_, index) => index + 1).map(year => (
-                                            <label key={year} className="inline-flex items-center gap-1.5 text-xs text-gray-700">
+                                            <label key={year} className="inline-flex items-center gap-1.5 text-xs text-sub">
                                                 <input
                                                     type="checkbox"
                                                     checked={createUserForm.hodYears.includes(year)}
@@ -3633,8 +3633,8 @@ const Clubs = ({ initialSubPage }) => {
                     )}
 
                     <div className="flex justify-end gap-2 pt-4 border-t">
-                        <button type="button" onClick={() => setShowCreateUserModal(false)} className="px-4 py-2 text-xs font-bold text-gray-600 border rounded-lg">Cancel</button>
-                        <button type="submit" disabled={creatingUser} className="px-5 py-2 text-xs font-bold text-white bg-green-600 rounded-lg hover:bg-green-700 flex items-center gap-1.5">
+                        <button type="button" onClick={() => setShowCreateUserModal(false)} className="px-4 py-2 text-xs font-bold text-sub border rounded-lg">Cancel</button>
+                        <button type="submit" disabled={creatingUser} className="px-5 py-2 text-xs font-bold text-white bg-success rounded-lg hover:bg-success flex items-center gap-1.5">
                             {creatingUser ? 'Creating Account...' : 'Create Account & Continue'}
                         </button>
                     </div>
@@ -3653,55 +3653,55 @@ const Clubs = ({ initialSubPage }) => {
                 title={editingActivityId ? 'Edit Club Activity' : 'Add Club Activity'}
             >
                 <form onSubmit={handleSaveActivity} className="space-y-4">
-                    <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
+                    <div className="p-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl text-xs text-primary">
                         <p className="font-bold">
                             {editingActivityId ? 'Editing activity for: ' : 'Adding activity to: '}
-                            <span className="text-blue-600">{selectedClub?.name}</span>
+                            <span className="text-primary">{selectedClub?.name}</span>
                         </p>
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-700">Activity Title *</label>
+                        <label className="text-xs font-bold text-sub">Activity Title *</label>
                         <input
                             type="text"
                             value={activityForm.title}
                             onChange={(e) => setActivityForm({ ...activityForm, title: e.target.value })}
                             placeholder="e.g. Annual Tech Fest, Workshop on Robotics..."
-                            className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary"
                             required
                         />
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-700">Description</label>
+                        <label className="text-xs font-bold text-sub">Description</label>
                         <textarea
                             value={activityForm.description}
                             onChange={(e) => setActivityForm({ ...activityForm, description: e.target.value })}
                             placeholder="Brief overview of the activity, objectives, and details..."
                             rows={3}
-                            className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary"
                         />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-700">Date *</label>
+                            <label className="text-xs font-bold text-sub">Date *</label>
                             <input
                                 type="date"
                                 value={activityForm.date}
                                 onChange={(e) => setActivityForm({ ...activityForm, date: e.target.value })}
-                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary"
                                 required
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-xs font-bold text-gray-700">Location / Venue</label>
+                            <label className="text-xs font-bold text-sub">Location / Venue</label>
                             <input
                                 type="text"
                                 value={activityForm.location}
                                 onChange={(e) => setActivityForm({ ...activityForm, location: e.target.value })}
                                 placeholder="e.g. Seminar Hall A"
-                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-primary"
                             />
                         </div>
                     </div>
@@ -3709,12 +3709,12 @@ const Clubs = ({ initialSubPage }) => {
                     {/* Option to add an image or group of images */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
-                                <Image size={14} className="text-blue-600" />
+                            <label className="text-xs font-bold text-sub flex items-center gap-1.5">
+                                <Image size={14} className="text-primary" />
                                 Activity Photos (Single image or group of images)
                             </label>
                             {(existingActivityImages.length > 0 || activityImageFiles.length > 0) && (
-                                <span className="text-[11px] font-semibold text-blue-600">
+                                <span className="text-[11px] font-semibold text-primary">
                                     {existingActivityImages.length + activityImageFiles.length} photo(s) selected
                                 </span>
                             )}
@@ -3723,15 +3723,15 @@ const Clubs = ({ initialSubPage }) => {
                         {/* Existing images list (when editing) */}
                         {existingActivityImages.length > 0 && (
                             <div className="space-y-1">
-                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Current Photos</span>
+                                <span className="text-[10px] font-bold text-muted-text uppercase tracking-wider">Current Photos</span>
                                 <div className="grid grid-cols-4 gap-2">
                                     {existingActivityImages.map((imgUrl, idx) => (
-                                        <div key={idx} className="relative h-18 rounded-lg overflow-hidden border border-gray-200 group">
+                                        <div key={idx} className="relative h-18 rounded-lg overflow-hidden border border-border group">
                                             <img src={imgUrl} alt="" className="w-full h-full object-cover" />
                                             <button
                                                 type="button"
                                                 onClick={() => setExistingActivityImages(prev => prev.filter((_, i) => i !== idx))}
-                                                className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 shadow-sm opacity-90 hover:opacity-100 hover:scale-110 transition-all"
+                                                className="absolute top-1 right-1 bg-danger text-white rounded-full p-0.5 shadow-sm opacity-90 hover:opacity-100 hover:scale-110 transition-all"
                                                 title="Remove photo"
                                             >
                                                 <X size={12} />
@@ -3745,17 +3745,17 @@ const Clubs = ({ initialSubPage }) => {
                         {/* New images preview list */}
                         {activityImageFiles.length > 0 && (
                             <div className="space-y-1">
-                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">New Photos to Upload</span>
+                                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">New Photos to Upload</span>
                                 <div className="grid grid-cols-4 gap-2">
                                     {activityImageFiles.map((file, idx) => {
                                         const previewUrl = URL.createObjectURL(file);
                                         return (
-                                            <div key={idx} className="relative h-18 rounded-lg overflow-hidden border border-blue-200 group">
+                                            <div key={idx} className="relative h-18 rounded-lg overflow-hidden border border-[var(--primary-light)] group">
                                                 <img src={previewUrl} alt="" className="w-full h-full object-cover" />
                                                 <button
                                                     type="button"
                                                     onClick={() => setActivityImageFiles(prev => prev.filter((_, i) => i !== idx))}
-                                                    className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 shadow-sm opacity-90 hover:opacity-100 hover:scale-110 transition-all"
+                                                    className="absolute top-1 right-1 bg-danger text-white rounded-full p-0.5 shadow-sm opacity-90 hover:opacity-100 hover:scale-110 transition-all"
                                                     title="Remove photo"
                                                 >
                                                     <X size={12} />
@@ -3768,10 +3768,10 @@ const Clubs = ({ initialSubPage }) => {
                         )}
 
                         {/* Upload Area for single or group of images */}
-                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 rounded-xl p-4 cursor-pointer bg-gray-50 hover:bg-blue-50/30 transition-all">
-                            <Upload size={22} className="text-gray-400 mb-1" />
-                            <span className="text-xs font-bold text-gray-700">Choose images to upload</span>
-                            <span className="text-[10px] text-gray-400 mt-0.5">Select a single image or group of images (hold Ctrl/Shift to pick multiple)</span>
+                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-border-strong hover:border-primary rounded-xl p-4 cursor-pointer bg-background hover:bg-[var(--primary-light)] transition-all">
+                            <Upload size={22} className="text-muted-text mb-1" />
+                            <span className="text-xs font-bold text-sub">Choose images to upload</span>
+                            <span className="text-[10px] text-muted-text mt-0.5">Select a single image or group of images (hold Ctrl/Shift to pick multiple)</span>
                             <input
                                 type="file"
                                 multiple
@@ -3798,14 +3798,14 @@ const Clubs = ({ initialSubPage }) => {
                                 setActivityImageFiles([]);
                                 setExistingActivityImages([]);
                             }}
-                            className="px-4 py-2 text-xs font-bold text-gray-600 border rounded-lg hover:bg-gray-50"
+                            className="px-4 py-2 text-xs font-bold text-sub border rounded-lg hover:bg-background"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={savingActivity}
-                            className="px-5 py-2 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 flex items-center gap-1.5 shadow-sm disabled:opacity-50"
+                            className="px-5 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary-hover flex items-center gap-1.5 shadow-sm disabled:opacity-50"
                         >
                             <Plus size={14} /> {savingActivity ? 'Saving...' : (editingActivityId ? 'Update Activity' : 'Add Activity')}
                         </button>
@@ -3823,7 +3823,7 @@ const Clubs = ({ initialSubPage }) => {
                         <button
                             type="button"
                             onClick={() => setPreviewModalImage(null)}
-                            className="absolute top-3 right-3 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full backdrop-blur-md transition-all z-10"
+                            className="absolute top-3 right-3 bg-[var(--surface)]/20 hover:bg-[var(--surface)]/40 text-white p-2 rounded-full backdrop-blur-md transition-all z-10"
                         >
                             <X size={20} />
                         </button>
@@ -3848,25 +3848,25 @@ const Clubs = ({ initialSubPage }) => {
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="text-xs font-bold text-gray-700">Search Student</label>
-                        <p className="text-[11px] text-gray-500 mb-2">Search students by student name, PIN number, admission number, or branch to add them to this club.</p>
+                        <label className="text-xs font-bold text-sub">Search Student</label>
+                        <p className="text-[11px] text-muted-text mb-2">Search students by student name, PIN number, admission number, or branch to add them to this club.</p>
                         <div className="relative">
-                            <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
+                            <Search size={16} className="absolute left-3 top-2.5 text-muted-text" />
                             <input
                                 type="text"
                                 placeholder="Type name, admission no, PIN..."
                                 value={studentSearchQuery}
                                 onChange={(e) => handleSearchStudentsForAdd(e.target.value)}
-                                className="w-full pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="w-full pl-9 pr-3 py-2 text-xs border border-border-strong rounded-xl focus:ring-2 focus:ring-primary focus:outline-none"
                                 autoFocus
                             />
                         </div>
-                        {searchingStudentsForAdd && <p className="text-[11px] text-blue-600 mt-1 animate-pulse">Searching students...</p>}
+                        {searchingStudentsForAdd && <p className="text-[11px] text-primary mt-1 animate-pulse">Searching students...</p>}
                     </div>
 
                     {/* Results */}
                     {studentSearchResults.length > 0 && (
-                        <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-xl divide-y">
+                        <div className="max-h-60 overflow-y-auto border border-border rounded-xl divide-y">
                             {studentSearchResults.map(st => {
                                 const isAlreadyMember = (selectedClub?.members || []).some(m =>
                                     String(m.student_id) === String(st.id) || String(m.admission_number) === String(st.admission_number)
@@ -3875,21 +3875,21 @@ const Clubs = ({ initialSubPage }) => {
                                     <div
                                         key={st.id}
                                         className={`p-3 text-xs flex justify-between items-center transition-colors ${
-                                            isAlreadyMember ? 'bg-gray-50 opacity-60' : 'hover:bg-blue-50/60'
+                                            isAlreadyMember ? 'bg-background opacity-60' : 'hover:bg-[var(--primary-light)]'
                                         }`}
                                     >
                                         <div>
-                                            <p className="font-bold text-gray-900">{st.student_name}</p>
-                                            <p className="text-[11px] text-gray-600 font-mono">
+                                            <p className="font-bold text-main">{st.student_name}</p>
+                                            <p className="text-[11px] text-sub font-mono">
                                                 Adm: {st.admission_number} {st.pin_no ? `| PIN: ${st.pin_no}` : ''}
                                             </p>
-                                            <p className="text-[10px] text-gray-500">
+                                            <p className="text-[10px] text-muted-text">
                                                 {[st.course, st.branch, st.current_year ? `Year ${st.current_year}` : null, st.college].filter(Boolean).join(' • ')}
                                             </p>
                                         </div>
                                         <div>
                                             {isAlreadyMember ? (
-                                                <span className="px-2.5 py-1 text-[10px] font-bold bg-green-100 text-green-700 rounded-full">
+                                                <span className="px-2.5 py-1 text-[10px] font-bold bg-[var(--success-light)] text-success rounded-full">
                                                     Already Member
                                                 </span>
                                             ) : (
@@ -3897,7 +3897,7 @@ const Clubs = ({ initialSubPage }) => {
                                                     type="button"
                                                     onClick={() => handleAddStudentToClub(st)}
                                                     disabled={addingMember}
-                                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 shadow-xs"
+                                                    className="px-3 py-1.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 shadow-xs"
                                                 >
                                                     <Plus size={13} /> Add Member
                                                 </button>
@@ -3910,7 +3910,7 @@ const Clubs = ({ initialSubPage }) => {
                     )}
 
                     {studentSearchQuery && !searchingStudentsForAdd && studentSearchResults.length === 0 && (
-                        <div className="text-center py-6 text-gray-400 text-xs border border-dashed rounded-xl">
+                        <div className="text-center py-6 text-muted-text text-xs border border-dashed rounded-xl">
                             No students found matching "{studentSearchQuery}".
                         </div>
                     )}
@@ -3923,7 +3923,7 @@ const Clubs = ({ initialSubPage }) => {
                                 setStudentSearchQuery('');
                                 setStudentSearchResults([]);
                             }}
-                            className="px-4 py-2 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-xl"
+                            className="px-4 py-2 text-xs font-bold text-sub hover:bg-background rounded-xl"
                         >
                             Close
                         </button>

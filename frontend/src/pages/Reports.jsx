@@ -54,12 +54,12 @@ const StatusBadge = ({ status, type = 'text' }) => {
   const isTemporary = display === 'Temporary';
   const isPending = display === 'Pending';
 
-  let colorClass = 'bg-yellow-100 text-yellow-700';
-  if (isCompleted) colorClass = 'bg-green-100 text-green-700';
-  else if (isTemporary) colorClass = 'bg-amber-100 text-amber-700';
-  else if (isEmpty || isPending) colorClass = 'bg-gray-100 text-gray-500';
-  else if (display === 'Not eligible' || display === 'Rejected') colorClass = 'bg-red-100 text-red-700';
-  else if (display === 'Eligible' || display === 'Not applied') colorClass = 'bg-green-100 text-green-700';
+  let colorClass = 'bg-[var(--warning-light)] text-warning';
+  if (isCompleted) colorClass = 'bg-[var(--success-light)] text-success';
+  else if (isTemporary) colorClass = 'bg-[var(--warning-light)] text-warning';
+  else if (isEmpty || isPending) colorClass = 'bg-background text-muted-text';
+  else if (display === 'Not eligible' || display === 'Rejected') colorClass = 'bg-[var(--danger-light)] text-danger';
+  else if (display === 'Eligible' || display === 'Not applied') colorClass = 'bg-[var(--success-light)] text-success';
 
   if (type === 'icon') {
     return (
@@ -144,11 +144,11 @@ const Reports = () => {
   if (!hasAccess && user) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] p-4 text-center">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-          <Lock className="text-red-500" size={32} />
+        <div className="w-16 h-16 bg-[var(--danger-light)] rounded-full flex items-center justify-center mb-4">
+          <Lock className="text-danger" size={32} />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h2>
-        <p className="text-gray-600 max-w-sm">
+        <h2 className="text-xl font-bold text-main mb-2">Access Denied</h2>
+        <p className="text-sub max-w-sm">
           You do not have permission to view {isDayEndReports ? 'Day End' : (isAttendanceReports ? 'Attendance' : 'Registration')} Reports.
         </p>
       </div>
@@ -1821,7 +1821,7 @@ const Reports = () => {
 
 
   // Chart Data Helpers
-  const renderSingleStageChart = (stageName, completed, pending, colors = ['#10B981', '#EF4444']) => {
+  const renderSingleStageChart = (stageName, completed, pending, colors = ['var(--success)', 'var(--danger)']) => {
     const data = [
       { name: 'Completed', value: completed },
       { name: 'Pending', value: pending }
@@ -1830,8 +1830,8 @@ const Reports = () => {
     if (completed === 0 && pending === 0) return null;
 
     return (
-      <div className="bg-white p-2 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center h-full">
-        <h3 className="text-xs font-semibold text-gray-700 mb-1">{stageName}</h3>
+      <div className="bg-surface p-2 rounded-xl border border-border shadow-sm flex flex-col items-center justify-center h-full">
+        <h3 className="text-xs font-semibold text-sub mb-1">{stageName}</h3>
         <div className="flex-1 w-full min-h-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -1855,11 +1855,11 @@ const Reports = () => {
         <div className="flex gap-2 text-[10px] mt-1">
           <div className="flex items-center gap-1">
             <div className={`w-1.5 h-1.5 rounded-full`} style={{ backgroundColor: colors[0] }}></div>
-            <span className="text-gray-600">{completed}</span>
+            <span className="text-sub">{completed}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className={`w-1.5 h-1.5 rounded-full`} style={{ backgroundColor: colors[1] }}></div>
-            <span className="text-gray-600">{pending}</span>
+            <span className="text-sub">{pending}</span>
           </div>
         </div>
       </div>
@@ -1874,21 +1874,21 @@ const Reports = () => {
           <button
             type="button"
             onClick={() => viewStagePendingStudents(stage)}
-            className="text-sm font-bold text-red-500 hover:text-red-700 hover:underline focus:outline-none focus:underline"
+            className="text-sm font-bold text-danger hover:text-danger hover:underline focus:outline-none focus:underline"
             title={title}
           >
             {pendingCount}
           </button>
         );
       }
-      return <span className="text-sm font-bold text-red-500">{pendingCount}</span>;
+      return <span className="text-sm font-bold text-danger">{pendingCount}</span>;
     };
 
     if (statsLoading || (abstractLoading && !stats)) {
       return (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 flex-shrink-0 animate-pulse">
           {[...Array(7)].map((_, i) => (
-            <div key={i} className="bg-gray-100 p-2 md:p-3 rounded-lg border border-gray-200 h-20"></div>
+            <div key={i} className="bg-background p-2 md:p-3 rounded-lg border border-border h-20"></div>
           ))}
         </div>
       );
@@ -1896,19 +1896,19 @@ const Reports = () => {
 
     return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 flex-shrink-0">
-      <div className="bg-blue-50 p-2 md:p-3 rounded-lg border border-blue-100">
-        <div className="text-[10px] md:text-xs text-blue-600 uppercase font-semibold">Total Students</div>
-        <div className="text-lg md:text-xl font-bold text-blue-900">
+      <div className="bg-[var(--primary-light)] p-2 md:p-3 rounded-lg border border-[var(--primary-light)]">
+        <div className="text-[10px] md:text-xs text-primary uppercase font-semibold">Total Students</div>
+        <div className="text-lg md:text-xl font-bold text-primary">
           {stats?.total || 0}
         </div>
       </div>
-      <div className="bg-gray-50 p-2 md:p-3 rounded-lg border border-gray-100">
-        <div className="text-[10px] md:text-xs text-gray-600 uppercase font-semibold">Registration</div>
+      <div className="bg-background p-2 md:p-3 rounded-lg border border-border">
+        <div className="text-[10px] md:text-xs text-sub uppercase font-semibold">Registration</div>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-sm font-bold text-green-600">{stats?.registration?.completed || 0}</span>
-          <span className="text-xs text-gray-400">/</span>
-          <span className="text-sm font-bold text-amber-500">{stats?.registration?.temporary || 0}</span>
-          <span className="text-xs text-gray-400">/</span>
+          <span className="text-sm font-bold text-success">{stats?.registration?.completed || 0}</span>
+          <span className="text-xs text-muted-text">/</span>
+          <span className="text-sm font-bold text-warning">{stats?.registration?.temporary || 0}</span>
+          <span className="text-xs text-muted-text">/</span>
           {renderPendingCount(
             stats?.registration?.pending,
             'registration',
@@ -1916,14 +1916,14 @@ const Reports = () => {
           )}
         </div>
         {(stats?.registration?.pending || 0) > 0 && (
-          <div className="text-[10px] text-gray-500 mt-0.5">Click number to view pending</div>
+          <div className="text-[10px] text-muted-text mt-0.5">Click number to view pending</div>
         )}
       </div>
-      <div className="bg-yellow-50 p-2 md:p-3 rounded-lg border border-yellow-100">
-        <div className="text-[10px] md:text-xs text-yellow-600 uppercase font-semibold">Verification</div>
+      <div className="bg-[var(--warning-light)] p-2 md:p-3 rounded-lg border border-[var(--warning-light)]">
+        <div className="text-[10px] md:text-xs text-warning uppercase font-semibold">Verification</div>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-sm font-bold text-green-600">{stats?.verification?.completed || 0}</span>
-          <span className="text-xs text-gray-400">/</span>
+          <span className="text-sm font-bold text-success">{stats?.verification?.completed || 0}</span>
+          <span className="text-xs text-muted-text">/</span>
           {renderPendingCount(
             stats?.verification?.pending,
             'verification',
@@ -1931,16 +1931,16 @@ const Reports = () => {
           )}
         </div>
         {(stats?.verification?.pending || 0) > 0 && (
-          <div className="text-[10px] text-yellow-700 mt-0.5">Click number to view pending</div>
+          <div className="text-[10px] text-warning mt-0.5">Click number to view pending</div>
         )}
       </div>
-      <div className="bg-purple-50 p-2 md:p-3 rounded-lg border border-purple-100">
-        <div className="text-[10px] md:text-xs text-purple-600 uppercase font-semibold">Certificates</div>
+      <div className="bg-[var(--primary-light)] p-2 md:p-3 rounded-lg border border-[var(--primary-light)]">
+        <div className="text-[10px] md:text-xs text-secondary uppercase font-semibold">Certificates</div>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-sm font-bold text-green-600">{stats?.certificates?.verified || 0}</span>
-          <span className="text-xs text-gray-400">/</span>
-          <span className="text-sm font-bold text-amber-500">{stats?.certificates?.temporary || 0}</span>
-          <span className="text-xs text-gray-400">/</span>
+          <span className="text-sm font-bold text-success">{stats?.certificates?.verified || 0}</span>
+          <span className="text-xs text-muted-text">/</span>
+          <span className="text-sm font-bold text-warning">{stats?.certificates?.temporary || 0}</span>
+          <span className="text-xs text-muted-text">/</span>
           {renderPendingCount(
             stats?.certificates?.pending,
             'certificates',
@@ -1948,14 +1948,14 @@ const Reports = () => {
           )}
         </div>
         {(stats?.certificates?.pending || 0) > 0 && (
-          <div className="text-[10px] text-purple-600 mt-0.5">Click number to view pending</div>
+          <div className="text-[10px] text-secondary mt-0.5">Click number to view pending</div>
         )}
       </div>
-      <div className="bg-green-50 p-2 md:p-3 rounded-lg border border-green-100">
-        <div className="text-[10px] md:text-xs text-green-600 uppercase font-semibold">Fees</div>
+      <div className="bg-[var(--success-light)] p-2 md:p-3 rounded-lg border border-[var(--success-light)]">
+        <div className="text-[10px] md:text-xs text-success uppercase font-semibold">Fees</div>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-sm font-bold text-green-600">{stats?.fees?.cleared || 0}</span>
-          <span className="text-xs text-gray-400">/</span>
+          <span className="text-sm font-bold text-success">{stats?.fees?.cleared || 0}</span>
+          <span className="text-xs text-muted-text">/</span>
           {renderPendingCount(
             stats?.fees?.pending,
             'fees',
@@ -1963,14 +1963,14 @@ const Reports = () => {
           )}
         </div>
         {(stats?.fees?.pending || 0) > 0 && (
-          <div className="text-[10px] text-green-700 mt-0.5">Click number to view pending</div>
+          <div className="text-[10px] text-success mt-0.5">Click number to view pending</div>
         )}
       </div>
-      <div className="bg-indigo-50 p-2 md:p-3 rounded-lg border border-indigo-100">
-        <div className="text-[10px] md:text-xs text-indigo-600 uppercase font-semibold">Promotion</div>
+      <div className="bg-[var(--primary-light)] p-2 md:p-3 rounded-lg border border-[var(--primary-light)]">
+        <div className="text-[10px] md:text-xs text-primary uppercase font-semibold">Promotion</div>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-sm font-bold text-green-600">{stats?.promotion?.completed || 0}</span>
-          <span className="text-xs text-gray-400">/</span>
+          <span className="text-sm font-bold text-success">{stats?.promotion?.completed || 0}</span>
+          <span className="text-xs text-muted-text">/</span>
           {renderPendingCount(
             stats?.promotion?.pending,
             'promotion',
@@ -1978,14 +1978,14 @@ const Reports = () => {
           )}
         </div>
         {(stats?.promotion?.pending || 0) > 0 && (
-          <div className="text-[10px] text-indigo-600 mt-0.5">Click number to view pending</div>
+          <div className="text-[10px] text-primary mt-0.5">Click number to view pending</div>
         )}
       </div>
-      <div className="bg-pink-50 p-2 md:p-3 rounded-lg border border-pink-100">
-        <div className="text-[10px] md:text-xs text-pink-600 uppercase font-semibold">Scholarship</div>
+      <div className="bg-[var(--primary-light)] p-2 md:p-3 rounded-lg border border-[var(--primary-light)]">
+        <div className="text-[10px] md:text-xs text-accent uppercase font-semibold">Scholarship</div>
         <div className="flex items-center gap-2 mt-1 flex-wrap">
-          <span className="text-sm font-bold text-green-600">{stats?.scholarship?.assigned || 0}</span>
-          <span className="text-xs text-gray-400">/</span>
+          <span className="text-sm font-bold text-success">{stats?.scholarship?.assigned || 0}</span>
+          <span className="text-xs text-muted-text">/</span>
           {(stats?.scholarship?.pending || 0) > 0 ? (
             <button
               type="button"
@@ -1994,17 +1994,17 @@ const Reports = () => {
                 setFilters(prev => ({ ...prev, scholarshipStatus: 'pending', stagePending: '' }));
                 setActiveTab('sheet');
               }}
-              className="text-sm font-bold text-red-500 hover:text-red-700 hover:underline focus:outline-none focus:underline"
+              className="text-sm font-bold text-danger hover:text-danger hover:underline focus:outline-none focus:underline"
               title="Show only students with scholarship pending (empty)"
             >
               {stats?.scholarship?.pending || 0}
             </button>
           ) : (
-            <span className="text-sm font-bold text-red-500">{stats?.scholarship?.pending || 0}</span>
+            <span className="text-sm font-bold text-danger">{stats?.scholarship?.pending || 0}</span>
           )}
         </div>
         {(stats?.scholarship?.pending || 0) > 0 && (
-          <div className="text-[10px] text-pink-600 mt-0.5">Click number to view pending</div>
+          <div className="text-[10px] text-accent mt-0.5">Click number to view pending</div>
         )}
       </div>
     </div>
@@ -2015,16 +2015,16 @@ const Reports = () => {
     <div className="flex flex-col gap-4 sm:gap-6 w-full h-full overflow-hidden">
       <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between flex-shrink-0">
         <div className="flex items-center gap-3 flex-1">
-          <div className="rounded-full bg-blue-100 p-3 text-blue-600">
+          <div className="rounded-full bg-[var(--primary-light)] p-3 text-primary">
             <FileText size={32} />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-4 flex-wrap">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 heading-font">
+                <h1 className="text-2xl font-bold text-main heading-font">
                   {reportType === 'registration' ? 'Registration Reports' : reportType === 'dayend' ? 'Day End Report' : 'Attendance Reports'}
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-sub">
                   {reportType === 'registration'
                     ? 'Track student registration status across the 5 stages.'
                     : reportType === 'dayend'
@@ -2035,7 +2035,7 @@ const Reports = () => {
               {/* Today/Range Tabs and Calendar - Only for Attendance Reports */}
               {reportType === 'attendance' && (
                 <>
-                  <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+                  <div className="flex items-center gap-2 bg-background p-1 rounded-lg">
                     <button
                       onClick={() => {
                         setAttendanceDateMode('today');
@@ -2043,8 +2043,8 @@ const Reports = () => {
                         setAttendanceDateRange({ fromDate: today, toDate: today });
                       }}
                       className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${attendanceDateMode === 'today'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-surface text-main shadow-sm'
+                        : 'text-muted-text hover:text-sub'
                         }`}
                     >
                       Today
@@ -2052,8 +2052,8 @@ const Reports = () => {
                     <button
                       onClick={() => setAttendanceDateMode('range')}
                       className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${attendanceDateMode === 'range'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-surface text-main shadow-sm'
+                        : 'text-muted-text hover:text-sub'
                         }`}
                     >
                       Range
@@ -2061,8 +2061,8 @@ const Reports = () => {
                     <button
                       onClick={() => setAttendanceDateMode('monthly')}
                       className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${attendanceDateMode === 'monthly'
-                        ? 'bg-white text-gray-900 shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-surface text-main shadow-sm'
+                        : 'text-muted-text hover:text-sub'
                         }`}
                     >
                       Monthly
@@ -2070,7 +2070,7 @@ const Reports = () => {
                   </div>
                   <button
                     onClick={() => setCalendarModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border-strong text-sub hover:bg-background text-sm font-medium transition-colors"
                     title="View Calendar"
                   >
                     <CalendarDays size={18} />
@@ -2084,12 +2084,12 @@ const Reports = () => {
         <div className="flex items-center gap-2">
           {/* Registration Report Tabs - Only show when registration is selected */}
           {reportType === 'registration' && (
-            <div className='flex bg-gray-100 p-1 rounded-lg mr-2'>
+            <div className='flex bg-background p-1 rounded-lg mr-2'>
               <button
                 onClick={() => setActiveTab('abstract')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'abstract'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-surface text-main shadow-sm'
+                  : 'text-muted-text hover:text-sub'
                   }`}
               >
                 Abstract
@@ -2097,8 +2097,8 @@ const Reports = () => {
               <button
                 onClick={() => setActiveTab('sheet')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'sheet'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-surface text-main shadow-sm'
+                  : 'text-muted-text hover:text-sub'
                   }`}
               >
                 Sheets
@@ -2106,8 +2106,8 @@ const Reports = () => {
               <button
                 onClick={() => setActiveTab('analytics')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${activeTab === 'analytics'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-surface text-main shadow-sm'
+                  : 'text-muted-text hover:text-sub'
                   }`}
               >
                 Graphs
@@ -2123,9 +2123,9 @@ const Reports = () => {
               <button
                 onClick={() => loadReport(filters)}
                 disabled={loading}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border-strong text-sub hover:bg-background text-sm font-medium transition-colors"
               >
-                {loading ? <span className="h-4 w-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" /> : <RefreshCw size={16} />}
+                {loading ? <span className="h-4 w-4 border-2 border-border-strong border-t-transparent rounded-full animate-spin" /> : <RefreshCw size={16} />}
                 Refresh
               </button>
               <button
@@ -2138,10 +2138,10 @@ const Reports = () => {
                       ? 'No abstract data available to download'
                       : 'Download report'
                 }
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-green-500 text-green-600 hover:bg-green-50 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-success text-success hover:bg-[var(--success-light)] text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
               >
                 {abstractLoading ? (
-                  <span className="h-4 w-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="h-4 w-4 border-2 border-success border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Download size={16} />
                 )}
@@ -2155,12 +2155,12 @@ const Reports = () => {
                 type="date"
                 value={dayEndDate}
                 onChange={(e) => setDayEndDate(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 rounded-lg border border-border-strong text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <button
                 onClick={handleDayEndReport}
                 disabled={dayEndReportLoading}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {dayEndReportLoading ? (
                   <>
@@ -2181,7 +2181,7 @@ const Reports = () => {
 
       {/* Filters Section - Only for Registration Reports */}
       {reportType === 'registration' && (
-        <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-3 flex-shrink-0">
+        <section className="bg-surface border border-border rounded-xl shadow-sm p-3 flex-shrink-0">
           {/* Filters and Actions Row */}
           <div className="flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between">
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-9 gap-3 w-full">
@@ -2191,48 +2191,48 @@ const Reports = () => {
                 <button
                   type="button"
                   onClick={() => setCollegeDropdownOpen(!collegeDropdownOpen)}
-                  className={`w-full flex items-center justify-between gap-2 rounded-lg border-2 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                  className={`w-full flex items-center justify-between gap-2 rounded-lg border-2 px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary transition-colors ${
                     selectedCollegeValues.length > 0 && selectedCollegeValues.length < displayColleges.length
-                      ? 'border-blue-500 bg-blue-50/50 text-blue-950 font-semibold'
-                      : 'border-blue-400 bg-white text-gray-800'
+                      ? 'border-primary bg-[var(--primary-light)] text-primary font-semibold'
+                      : 'border-primary bg-surface text-main'
                   }`}
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <Building2 size={16} className="text-blue-600 shrink-0" />
+                    <Building2 size={16} className="text-primary shrink-0" />
                     <span className="truncate">{collegeTriggerLabel}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {selectedCollegeValues.length > 0 && (
-                      <span className="bg-blue-100 text-blue-700 text-xs font-bold px-1.5 py-0.5 rounded-full">
+                      <span className="bg-[var(--primary-light)] text-primary text-xs font-bold px-1.5 py-0.5 rounded-full">
                         {selectedCollegeValues.length === displayColleges.length ? 'All' : selectedCollegeValues.length}
                       </span>
                     )}
-                    <ChevronDown size={16} className={`text-gray-500 transition-transform ${collegeDropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={16} className={`text-muted-text transition-transform ${collegeDropdownOpen ? 'rotate-180' : ''}`} />
                   </div>
                 </button>
 
                 {/* Dropdown Popover */}
                 {collegeDropdownOpen && (
-                  <div className="absolute left-0 top-full mt-1.5 w-72 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-3 flex flex-col gap-2">
+                  <div className="absolute left-0 top-full mt-1.5 w-72 bg-surface border border-border rounded-xl shadow-xl z-50 p-3 flex flex-col gap-2">
                     {/* Header with Quick Actions */}
-                    <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-                      <span className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <Building2 size={14} className="text-blue-600" />
+                    <div className="flex items-center justify-between pb-2 border-b border-border">
+                      <span className="text-xs font-bold text-sub uppercase tracking-wider flex items-center gap-1.5">
+                        <Building2 size={14} className="text-primary" />
                         Select Colleges
                       </span>
                       <div className="flex items-center gap-2 text-xs">
                         <button
                           type="button"
                           onClick={selectAllColleges}
-                          className="text-blue-600 hover:text-blue-800 font-medium"
+                          className="text-primary hover:text-primary font-medium"
                         >
                           Select All
                         </button>
-                        <span className="text-gray-300">|</span>
+                        <span className="text-muted-text">|</span>
                         <button
                           type="button"
                           onClick={clearAllColleges}
-                          className="text-gray-500 hover:text-gray-700 font-medium"
+                          className="text-muted-text hover:text-sub font-medium"
                         >
                           Clear
                         </button>
@@ -2242,13 +2242,13 @@ const Reports = () => {
                     {/* Search box if colleges list > 4 */}
                     {displayColleges.length > 4 && (
                       <div className="relative">
-                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-text" />
                         <input
                           type="text"
                           value={collegeSearchQuery}
                           onChange={(e) => setCollegeSearchQuery(e.target.value)}
                           placeholder="Search college..."
-                          className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-gray-50"
+                          className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-border focus:outline-none focus:ring-1 focus:ring-primary bg-background"
                         />
                       </div>
                     )}
@@ -2256,7 +2256,7 @@ const Reports = () => {
                     {/* Checkbox Options List */}
                     <div className="max-h-60 overflow-y-auto space-y-0.5 pr-1">
                       {filteredDisplayColleges.length === 0 ? (
-                        <div className="py-3 text-center text-xs text-gray-400">No colleges found</div>
+                        <div className="py-3 text-center text-xs text-muted-text">No colleges found</div>
                       ) : (
                         filteredDisplayColleges.map((college) => {
                           const colVal = String(college.id || college.name || college);
@@ -2270,17 +2270,17 @@ const Reports = () => {
                                 e.stopPropagation();
                               }}
                               className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
-                                isChecked ? 'bg-blue-50 text-blue-900 font-semibold' : 'hover:bg-gray-50 text-gray-700'
+                                isChecked ? 'bg-[var(--primary-light)] text-primary font-semibold' : 'hover:bg-background text-sub'
                               }`}
                             >
                               <input
                                 type="checkbox"
                                 checked={isChecked}
                                 onChange={() => toggleCollegeSelection(colVal)}
-                                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                                className="w-4 h-4 text-primary rounded border-border-strong focus:ring-primary cursor-pointer"
                               />
                               <span className="flex-1 leading-snug">{colName}</span>
-                              {isChecked && <Check size={14} className="text-blue-600 shrink-0" />}
+                              {isChecked && <Check size={14} className="text-primary shrink-0" />}
                             </label>
                           );
                         })
@@ -2288,12 +2288,12 @@ const Reports = () => {
                     </div>
 
                     {/* Footer Summary */}
-                    <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+                    <div className="pt-2 border-t border-border flex items-center justify-between text-[11px] text-muted-text">
                       <span>{selectedCollegeValues.length} of {displayColleges.length} selected</span>
                       <button
                         type="button"
                         onClick={() => setCollegeDropdownOpen(false)}
-                        className="px-2.5 py-1 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-700 transition-colors"
+                        className="px-2.5 py-1 bg-primary text-white rounded-md text-xs font-semibold hover:bg-primary-hover transition-colors"
                       >
                         Done
                       </button>
@@ -2306,8 +2306,8 @@ const Reports = () => {
               <select
                 value={filters.academicYear || ''}
                 onChange={(e) => handleFilterChange('academicYear', e.target.value)}
-                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-                  filters.academicYear ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300'
+                className={`w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary ${
+                  filters.academicYear ? 'border-primary bg-[var(--primary-light)]' : 'border-border-strong'
                 }`}
                 title="Filter by academic year (derived from batch + current year)"
                 disabled={academicYearLoading}
@@ -2347,7 +2347,7 @@ const Reports = () => {
               <select
                 value={filters.level || ''}
                 onChange={(e) => handleFilterChange('level', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">All Levels</option>
                 <option value="diploma">Diploma</option>
@@ -2359,7 +2359,7 @@ const Reports = () => {
               <select
                 value={filters.batch}
                 onChange={(e) => handleFilterChange('batch', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">All Batches</option>
                 {(filterOptions.batches || []).map((batch) => (
@@ -2371,7 +2371,7 @@ const Reports = () => {
               <select
                 value={filters.course || ''}
                 onChange={(e) => handleFilterChange('course', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">All Programs</option>
                 {availableCourses.map((course) => (
@@ -2383,7 +2383,7 @@ const Reports = () => {
               <select
                 value={filters.branch || ''}
                 onChange={(e) => handleFilterChange('branch', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">All Branches</option>
                 {(filterOptions.branches || []).map((branch) => (
@@ -2395,7 +2395,7 @@ const Reports = () => {
               <select
                 value={filters.year}
                 onChange={(e) => handleFilterChange('year', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">All Years</option>
                 {availableYears.map((year) => (
@@ -2409,7 +2409,7 @@ const Reports = () => {
               <select
                 value={filters.semester}
                 onChange={(e) => handleFilterChange('semester', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="">All Sems</option>
                 {availableSemesters.map((semester) => (
@@ -2423,7 +2423,7 @@ const Reports = () => {
               <select
                 value={filters.scholarshipStatus || ''}
                 onChange={(e) => handleFilterChange('scholarshipStatus', e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 title="Filter by scholarship status to find students"
               >
                 <option value="">All Scholarship</option>
@@ -2436,7 +2436,7 @@ const Reports = () => {
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium transition-colors"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)] text-sm font-medium transition-colors"
               >
                 <XCircle size={16} />
                 Clear
@@ -2457,18 +2457,18 @@ const Reports = () => {
           )}
 
           {!filters.college ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white border border-gray-200 rounded-xl shadow-sm text-center">
-              <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-3">
-                <Building2 className="text-blue-600" size={30} />
+            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-surface border border-border rounded-xl shadow-sm text-center">
+              <div className="w-14 h-14 bg-[var(--primary-light)] rounded-full flex items-center justify-center mb-3">
+                <Building2 className="text-primary" size={30} />
               </div>
-              <h3 className="text-base font-bold text-gray-900 mb-1">Select a College to View Reports</h3>
-              <p className="text-sm text-gray-500 max-w-md mb-5">
+              <h3 className="text-base font-bold text-main mb-1">Select a College to View Reports</h3>
+              <p className="text-sm text-muted-text max-w-md mb-5">
                 Please select a college below to quickly load registration data without delay.
               </p>
               <div className="flex flex-wrap gap-2.5 justify-center max-w-2xl">
                 {displayColleges.length === 0 ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
-                    <RefreshCw className="animate-spin text-blue-600" size={16} />
+                  <div className="flex items-center gap-2 text-sm text-muted-text py-2">
+                    <RefreshCw className="animate-spin text-primary" size={16} />
                     Loading colleges...
                   </div>
                 ) : (
@@ -2477,7 +2477,7 @@ const Reports = () => {
                       key={c.id || c}
                       type="button"
                       onClick={() => handleFilterChange('college', String(c.id || c))}
-                      className="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium rounded-lg text-sm transition-all border border-blue-200 shadow-sm hover:shadow"
+                      className="px-4 py-2.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary font-medium rounded-lg text-sm transition-all border border-[var(--primary-light)] shadow-sm hover:shadow"
                     >
                       {c.name || c}
                     </button>
@@ -2486,47 +2486,47 @@ const Reports = () => {
               </div>
             </div>
           ) : abstractLoading && abstractData.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-500" >
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-text" >
               <RefreshCw className="animate-spin" size={24} />
               Loading abstract data...
             </div>
           ) : abstractData.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-500">
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-text">
               <AlertCircle size={32} />
               <p>No summary data found matching current filters.</p>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col min-h-0 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden relative">
+            <div className="flex-1 flex flex-col min-h-0 bg-surface border border-border rounded-xl shadow-sm overflow-hidden relative">
               {abstractLoading && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[1px]">
-                  <RefreshCw className="animate-spin text-gray-500" size={24} />
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--surface)]/60 backdrop-blur-[1px]">
+                  <RefreshCw className="animate-spin text-muted-text" size={24} />
                 </div>
               )}
               <div className="flex-1 overflow-auto">
                 <table className="w-full text-sm text-left relative">
-                  <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                  <thead className="bg-background text-sub font-medium border-b border-border sticky top-0 z-10 shadow-sm">
                     <tr>
-                      <th className="px-4 py-3 whitespace-nowrap bg-gray-50">Batch</th>
-                      <th className="px-4 py-3 whitespace-nowrap bg-gray-50">College</th>
-                      <th className="px-4 py-3 whitespace-nowrap bg-gray-50">Program</th>
-                      <th className="px-4 py-3 bg-gray-50 max-w-[200px] whitespace-normal">Branch</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Year</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Sem</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-indigo-50 text-indigo-700 text-xs font-semibold">Academic Year</th>
+                      <th className="px-4 py-3 whitespace-nowrap bg-background">Batch</th>
+                      <th className="px-4 py-3 whitespace-nowrap bg-background">College</th>
+                      <th className="px-4 py-3 whitespace-nowrap bg-background">Program</th>
+                      <th className="px-4 py-3 bg-background max-w-[200px] whitespace-normal">Branch</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Year</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Sem</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-[var(--primary-light)] text-primary text-xs font-semibold">Academic Year</th>
                       <th className="px-4 py-3 whitespace-nowrap text-center">Total Students</th>
                       <th className="px-4 py-3 whitespace-nowrap text-center">Overall Completed</th>
                       <th className="px-4 py-3 whitespace-nowrap text-center">Temporary</th>
                       <th className="px-4 py-3 whitespace-nowrap text-center">Pending</th>
                       {/* Removed Completion % */}
                       {/* Detailed Breakdowns - Unified (No border-l) */}
-                      <th className="px-4 py-3 whitespace-nowrap text-center text-xs text-gray-500">Verification</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center text-xs text-gray-500">Certificates</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center text-xs text-gray-500">Fees</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center text-xs text-gray-500">Promotion</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center text-xs text-gray-500">Scholarship</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center text-xs text-muted-text">Verification</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center text-xs text-muted-text">Certificates</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center text-xs text-muted-text">Fees</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center text-xs text-muted-text">Promotion</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center text-xs text-muted-text">Scholarship</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-border">
                     {abstractData.map((row, idx) => {
                       const total = parseInt(row.total || 0);
                       const completed = parseInt(row.overall_completed || 0);
@@ -2546,69 +2546,69 @@ const Reports = () => {
                         : false;
 
                       return (
-                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3 text-gray-700">{row.batch || '-'}</td>
-                          <td className="px-4 py-3 text-gray-700">{row.college || '-'}</td>
-                          <td className="px-4 py-3 font-medium text-gray-900">{row.course || '-'}</td>
-                          <td className="px-4 py-3 text-gray-700">{row.branch || '-'}</td>
-                          <td className="px-4 py-3 text-center text-gray-700">{row.current_year || '-'}</td>
-                          <td className="px-4 py-3 text-center text-gray-700">{row.current_semester || '-'}</td>
+                        <tr key={idx} className="hover:bg-background transition-colors">
+                          <td className="px-4 py-3 text-sub">{row.batch || '-'}</td>
+                          <td className="px-4 py-3 text-sub">{row.college || '-'}</td>
+                          <td className="px-4 py-3 font-medium text-main">{row.course || '-'}</td>
+                          <td className="px-4 py-3 text-sub">{row.branch || '-'}</td>
+                          <td className="px-4 py-3 text-center text-sub">{row.current_year || '-'}</td>
+                          <td className="px-4 py-3 text-center text-sub">{row.current_semester || '-'}</td>
                           <td className="px-4 py-3 text-center">
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                               isCurrentAY
-                                ? 'bg-indigo-100 text-indigo-700'
-                                : 'bg-gray-100 text-gray-500'
+                                ? 'bg-[var(--primary-light)] text-primary'
+                                : 'bg-background text-muted-text'
                             }`}>
                               {academicYearLabel}
-                              {isCurrentAY && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block ml-0.5" />}
+                              {isCurrentAY && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block ml-0.5" />}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center font-semibold">{total}</td>
-                          <td className="px-4 py-3 text-center text-green-600 font-medium">{completed}</td>
-                          <td className="px-4 py-3 text-center text-amber-600 font-medium">{temporary}</td>
-                          <td className="px-4 py-3 text-center text-red-500 font-medium">{pending}</td>
+                          <td className="px-4 py-3 text-center text-success font-medium">{completed}</td>
+                          <td className="px-4 py-3 text-center text-warning font-medium">{temporary}</td>
+                          <td className="px-4 py-3 text-center text-danger font-medium">{pending}</td>
                           {/* Removed Completion % Cell */}
 
                           {/* Breakdown Columns - Matches Header */}
-                          <td className="px-4 py-3 text-center text-gray-600">
+                          <td className="px-4 py-3 text-center text-sub">
                             <div className="text-xs">
-                              <span className="text-green-600 font-medium">{row.verification_completed}</span> / <span className="text-red-400">{total - row.verification_completed}</span>
+                              <span className="text-success font-medium">{row.verification_completed}</span> / <span className="text-danger">{total - row.verification_completed}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-center text-gray-600">
+                          <td className="px-4 py-3 text-center text-sub">
                             <div className="text-xs">
-                              <span className="text-green-600 font-medium">{row.certificates_verified}</span> / <span className="text-amber-600 font-medium">{row.certificates_temporary || 0}</span> / <span className="text-red-400">{total - row.certificates_verified - parseInt(row.certificates_temporary || 0)}</span>
+                              <span className="text-success font-medium">{row.certificates_verified}</span> / <span className="text-warning font-medium">{row.certificates_temporary || 0}</span> / <span className="text-danger">{total - row.certificates_verified - parseInt(row.certificates_temporary || 0)}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-center text-gray-600">
+                          <td className="px-4 py-3 text-center text-sub">
                             <div className="text-xs">
-                              <span className="text-green-600 font-medium">{row.fee_cleared}</span> / <span className="text-red-400">{total - row.fee_cleared}</span>
+                              <span className="text-success font-medium">{row.fee_cleared}</span> / <span className="text-danger">{total - row.fee_cleared}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-center text-gray-600">
+                          <td className="px-4 py-3 text-center text-sub">
                             <div className="text-xs">
-                              <span className="text-green-600 font-medium">{row.promotion_completed}</span> / <span className="text-red-400">{total - row.promotion_completed}</span>
+                              <span className="text-success font-medium">{row.promotion_completed}</span> / <span className="text-danger">{total - row.promotion_completed}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-center text-gray-600">
+                          <td className="px-4 py-3 text-center text-sub">
                             <div className="text-xs">
-                              <span className="text-green-600 font-medium">{row.scholarship_assigned}</span> / <span className="text-red-400">{row.scholarship_pending ?? (total - row.scholarship_assigned)}</span>
+                              <span className="text-success font-medium">{row.scholarship_assigned}</span> / <span className="text-danger">{row.scholarship_pending ?? (total - row.scholarship_assigned)}</span>
                             </div>
                           </td>
                         </tr>
                       );
                     })}
                   </tbody>
-                  <tfoot className="bg-gray-50 font-bold border-t-2 border-gray-200 sticky bottom-0 z-20 shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
+                  <tfoot className="bg-background font-bold border-t-2 border-border sticky bottom-0 z-20 shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
                     {/* Grand Total Row */}
                     {abstractData.length > 0 && (
                       <tr>
                         <td className="px-4 py-3" colSpan={6}>Total</td>
-                        <td className="px-4 py-3 text-center bg-indigo-50/40"></td>
+                        <td className="px-4 py-3 text-center bg-[var(--primary-light)]"></td>
                         <td className="px-4 py-3 text-center">{abstractData.reduce((acc, r) => acc + parseInt(r.total || 0), 0)}</td>
-                        <td className="px-4 py-3 text-center text-green-700">{abstractData.reduce((acc, r) => acc + parseInt(r.overall_completed || 0), 0)}</td>
-                        <td className="px-4 py-3 text-center text-amber-600">{abstractData.reduce((acc, r) => acc + parseInt(r.overall_temporary || 0), 0)}</td>
-                        <td className="px-4 py-3 text-center text-red-600">{
+                        <td className="px-4 py-3 text-center text-success">{abstractData.reduce((acc, r) => acc + parseInt(r.overall_completed || 0), 0)}</td>
+                        <td className="px-4 py-3 text-center text-warning">{abstractData.reduce((acc, r) => acc + parseInt(r.overall_temporary || 0), 0)}</td>
+                        <td className="px-4 py-3 text-center text-danger">{
                           abstractData.reduce((acc, r) => acc + (parseInt(r.total || 0) - parseInt(r.overall_completed || 0) - parseInt(r.overall_temporary || 0)), 0)
                         }</td>
                         {/* Removed % Total Cell */}
@@ -2616,7 +2616,7 @@ const Reports = () => {
                           {abstractData.reduce((acc, r) => acc + parseInt(r.verification_completed || 0), 0)}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <span className="text-green-700">{abstractData.reduce((acc, r) => acc + parseInt(r.certificates_verified || 0), 0)}</span> / <span className="text-amber-600">{abstractData.reduce((acc, r) => acc + parseInt(r.certificates_temporary || 0), 0)}</span>
+                          <span className="text-success">{abstractData.reduce((acc, r) => acc + parseInt(r.certificates_verified || 0), 0)}</span> / <span className="text-warning">{abstractData.reduce((acc, r) => acc + parseInt(r.certificates_temporary || 0), 0)}</span>
                         </td>
                         <td className="px-4 py-3 text-center">
                           {abstractData.reduce((acc, r) => acc + parseInt(r.fee_cleared || 0), 0)}
@@ -2625,9 +2625,9 @@ const Reports = () => {
                           {abstractData.reduce((acc, r) => acc + parseInt(r.promotion_completed || 0), 0)}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <span className="text-green-700">{abstractData.reduce((acc, r) => acc + parseInt(r.scholarship_assigned || 0), 0)}</span>
+                          <span className="text-success">{abstractData.reduce((acc, r) => acc + parseInt(r.scholarship_assigned || 0), 0)}</span>
                           {' / '}
-                          <span className="text-red-600">{abstractData.reduce((acc, r) => acc + parseInt(r.scholarship_pending ?? 0), 0)}</span>
+                          <span className="text-danger">{abstractData.reduce((acc, r) => acc + parseInt(r.scholarship_pending ?? 0), 0)}</span>
                         </td>
                       </tr>
                     )}
@@ -2649,8 +2649,8 @@ const Reports = () => {
               {/* Overview Charts (Bar + Line) */}
               <div className="h-80 shrink-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Bar Chart */}
-                <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col">
-                  <h3 className="text-sm font-bold text-gray-800 mb-2 flex-shrink-0">Stage-wise Overview</h3>
+                <div className="bg-surface p-3 rounded-xl border border-border shadow-sm flex flex-col">
+                  <h3 className="text-sm font-bold text-main mb-2 flex-shrink-0">Stage-wise Overview</h3>
                   <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={overviewChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -2659,16 +2659,16 @@ const Reports = () => {
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip />
                         <Legend wrapperStyle={{ fontSize: '12px' }} />
-                        <Bar dataKey="completed" fill="#10B981" name="Completed" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="pending" fill="#EF4444" name="Pending" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="completed" fill="var(--success)" name="Completed" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="pending" fill="var(--danger)" name="Pending" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
 
                 {/* Line Chart */}
-                <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col">
-                  <h3 className="text-sm font-bold text-gray-800 mb-2 flex-shrink-0">Stage-wise Trends</h3>
+                <div className="bg-surface p-3 rounded-xl border border-border shadow-sm flex flex-col">
+                  <h3 className="text-sm font-bold text-main mb-2 flex-shrink-0">Stage-wise Trends</h3>
                   <div className="flex-1 min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={overviewChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -2677,8 +2677,8 @@ const Reports = () => {
                         <YAxis tick={{ fontSize: 12 }} />
                         <Tooltip />
                         <Legend wrapperStyle={{ fontSize: '12px' }} />
-                        <Line type="monotone" dataKey="completed" stroke="#10B981" strokeWidth={2} name="Completed" dot={{ r: 4 }} />
-                        <Line type="monotone" dataKey="pending" stroke="#EF4444" strokeWidth={2} name="Pending" dot={{ r: 4 }} />
+                        <Line type="monotone" dataKey="completed" stroke="var(--success)" strokeWidth={2} name="Completed" dot={{ r: 4 }} />
+                        <Line type="monotone" dataKey="pending" stroke="var(--danger)" strokeWidth={2} name="Pending" dot={{ r: 4 }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -2687,11 +2687,11 @@ const Reports = () => {
 
               {/* Detailed Pie Charts Grid - Strip at bottom */}
               <div className="h-48 shrink-0 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {renderSingleStageChart('Verification', stats?.verification?.completed || 0, stats?.verification?.pending || 0, ['#EAB308', '#FCA5A5'])}
-                {renderSingleStageChart('Certificates', stats?.certificates?.verified || 0, stats?.certificates?.pending || 0, ['#A855F7', '#FCA5A5'])}
-                {renderSingleStageChart('Fees', stats?.fees?.cleared || 0, stats?.fees?.pending || 0, ['#22C55E', '#FCA5A5'])}
-                {renderSingleStageChart('Promotion', stats?.promotion?.completed || 0, stats?.promotion?.pending || 0, ['#6366F1', '#FCA5A5'])}
-                {renderSingleStageChart('Scholarship', stats?.scholarship?.assigned || 0, stats?.scholarship?.pending || 0, ['#EC4899', '#FCA5A5'])}
+                {renderSingleStageChart('Verification', stats?.verification?.completed || 0, stats?.verification?.pending || 0, ['var(--warning)', 'var(--danger)'])}
+                {renderSingleStageChart('Certificates', stats?.certificates?.verified || 0, stats?.certificates?.pending || 0, ['var(--secondary)', 'var(--danger)'])}
+                {renderSingleStageChart('Fees', stats?.fees?.cleared || 0, stats?.fees?.pending || 0, ['var(--success)', 'var(--danger)'])}
+                {renderSingleStageChart('Promotion', stats?.promotion?.completed || 0, stats?.promotion?.pending || 0, ['var(--primary)', 'var(--danger)'])}
+                {renderSingleStageChart('Scholarship', stats?.scholarship?.assigned || 0, stats?.scholarship?.pending || 0, ['var(--accent)', 'var(--danger)'])}
               </div>
             </div>
           )}
@@ -2706,12 +2706,12 @@ const Reports = () => {
               <button
                 type="button"
                 onClick={returnFromDrilldown}
-                className="inline-flex items-center gap-2 self-start px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors"
+                className="inline-flex items-center gap-2 self-start px-3 py-2 rounded-lg border border-border-strong text-sub hover:bg-background text-sm font-medium transition-colors"
               >
                 <ArrowLeft size={16} />
                 Back to Previous View
               </button>
-              <h2 className="text-base font-semibold text-gray-800">
+              <h2 className="text-base font-semibold text-main">
                 Showing students with{' '}
                 {filters.stagePending
                   ? STAGE_PENDING_LABELS[filters.stagePending] || `${filters.stagePending} pending`
@@ -2729,18 +2729,18 @@ const Reports = () => {
 
           {/* Table Area - Grows to fill remaining space */}
           {!filters.college ? (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white border border-gray-200 rounded-xl shadow-sm text-center">
-              <div className="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center mb-3">
-                <Building2 className="text-blue-600" size={30} />
+            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-surface border border-border rounded-xl shadow-sm text-center">
+              <div className="w-14 h-14 bg-[var(--primary-light)] rounded-full flex items-center justify-center mb-3">
+                <Building2 className="text-primary" size={30} />
               </div>
-              <h3 className="text-base font-bold text-gray-900 mb-1">Select a College to View Student Records</h3>
-              <p className="text-sm text-gray-500 max-w-md mb-5">
+              <h3 className="text-base font-bold text-main mb-1">Select a College to View Student Records</h3>
+              <p className="text-sm text-muted-text max-w-md mb-5">
                 Select a college to instantly view and manage student registration records.
               </p>
               <div className="flex flex-wrap gap-2.5 justify-center max-w-2xl">
                 {displayColleges.length === 0 ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
-                    <RefreshCw className="animate-spin text-blue-600" size={16} />
+                  <div className="flex items-center gap-2 text-sm text-muted-text py-2">
+                    <RefreshCw className="animate-spin text-primary" size={16} />
                     Loading colleges...
                   </div>
                 ) : (
@@ -2749,7 +2749,7 @@ const Reports = () => {
                       key={c.id || c}
                       type="button"
                       onClick={() => handleFilterChange('college', String(c.id || c))}
-                      className="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium rounded-lg text-sm transition-all border border-blue-200 shadow-sm hover:shadow"
+                      className="px-4 py-2.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary font-medium rounded-lg text-sm transition-all border border-[var(--primary-light)] shadow-sm hover:shadow"
                     >
                       {c.name || c}
                     </button>
@@ -2758,66 +2758,66 @@ const Reports = () => {
               </div>
             </div>
           ) : loading ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-500" >
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-text" >
               <RefreshCw className="animate-spin" size={24} />
               Loading report data...
             </div>
           ) : reportData.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-500">
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-text">
               <AlertCircle size={32} />
               <p>No students found matching current filters.</p>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col min-h-0 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
               {/* Scrollable Table Body */}
               <div className="flex-1 overflow-auto">
                 <table className="w-full text-sm text-left relative">
-                  <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                  <thead className="bg-background text-sub font-medium border-b border-border sticky top-0 z-10 shadow-sm">
                     <tr>
-                      <th className="px-4 py-3 whitespace-nowrap bg-gray-50">Pin No</th>
-                      <th className="px-4 py-3 whitespace-nowrap bg-gray-50">Student Name</th>
-                      <th className="px-4 py-3 whitespace-nowrap bg-gray-50">Program</th>
-                      <th className="px-4 py-3 whitespace-nowrap bg-gray-50">Branch</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Year</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Sem</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-indigo-50 text-indigo-700 text-xs">Academic Year</th>
-                      <th className="px-4 py-3 whitespace-nowrap bg-gray-50">Registration Status</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Information Verification</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Certificates</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Fees</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Promotion</th>
-                      <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Scholarship</th>
+                      <th className="px-4 py-3 whitespace-nowrap bg-background">Pin No</th>
+                      <th className="px-4 py-3 whitespace-nowrap bg-background">Student Name</th>
+                      <th className="px-4 py-3 whitespace-nowrap bg-background">Program</th>
+                      <th className="px-4 py-3 whitespace-nowrap bg-background">Branch</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Year</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Sem</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-[var(--primary-light)] text-primary text-xs">Academic Year</th>
+                      <th className="px-4 py-3 whitespace-nowrap bg-background">Registration Status</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Information Verification</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Certificates</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Fees</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Promotion</th>
+                      <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Scholarship</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-border">
                     {reportData.map((student) => (
-                      <tr key={student.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-900">{student.pin_no}</td>
-                        <td className="px-4 py-3 text-gray-700">
+                      <tr key={student.id} className="hover:bg-background transition-colors">
+                        <td className="px-4 py-3 font-medium text-main">{student.pin_no}</td>
+                        <td className="px-4 py-3 text-sub">
                           <div>
                             <div className="font-medium">{student.student_name}</div>
-                            <div className="text-xs text-gray-500">{student.admission_number}</div>
+                            <div className="text-xs text-muted-text">{student.admission_number}</div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-gray-600">{student.course}</td>
-                        <td className="px-4 py-3 text-gray-600">{student.branch}</td>
-                        <td className="px-4 py-3 text-center text-gray-600">{student.current_year}</td>
-                        <td className="px-4 py-3 text-center text-gray-600">{student.current_semester}</td>
+                        <td className="px-4 py-3 text-sub">{student.course}</td>
+                        <td className="px-4 py-3 text-sub">{student.branch}</td>
+                        <td className="px-4 py-3 text-center text-sub">{student.current_year}</td>
+                        <td className="px-4 py-3 text-center text-sub">{student.current_semester}</td>
                         <td className="px-4 py-3 text-center">
                           {(() => {
                             const bStart = student.batch ? parseInt(String(student.batch).match(/\d{4}/)?.[0] || '0', 10) : 0;
                             const sYear = Math.max(1, parseInt(student.current_year || 1, 10));
                             const ayFrom = bStart ? bStart + sYear - 1 : null;
-                            if (!ayFrom) return <span className="text-gray-400 text-xs">—</span>;
+                            if (!ayFrom) return <span className="text-muted-text text-xs">—</span>;
                             const label = `${ayFrom}-${ayFrom + 1}`;
                             const now = new Date();
                             const isCurr = now >= new Date(ayFrom, 5, 1) && now <= new Date(ayFrom + 1, 4, 31);
                             return (
                               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-                                isCurr ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500'
+                                isCurr ? 'bg-[var(--primary-light)] text-primary' : 'bg-background text-muted-text'
                               }`}>
                                 {label}
-                                {isCurr && <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block" />}
+                                {isCurr && <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block" />}
                               </span>
                             );
                           })()}
@@ -2857,25 +2857,25 @@ const Reports = () => {
               </div>
 
               {/* Fixed Footer: Pagination */}
-              <div className="flex-shrink-0 bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between shadow-[0_-2px_4px_rgba(0,0,0,0.02)] z-20">
-                <div className="text-xs text-gray-500">
+              <div className="flex-shrink-0 bg-surface border-t border-border px-4 py-3 flex items-center justify-between shadow-[0_-2px_4px_rgba(0,0,0,0.02)] z-20">
+                <div className="text-xs text-muted-text">
                   Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.totalRecords)} of {pagination.totalRecords} records
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page === 1 || loading}
-                    className="px-3 py-1 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 rounded border border-border-strong bg-surface text-sm font-medium text-sub hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Previous
                   </button>
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-sub">
                     Page {pagination.page} of {pagination.totalPages}
                   </span>
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={pagination.page === pagination.totalPages || loading}
-                    className="px-3 py-1 rounded border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-3 py-1 rounded border border-border-strong bg-surface text-sm font-medium text-sub hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                   </button>
@@ -2904,7 +2904,7 @@ const Reports = () => {
                   semester: ''
                 }));
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors self-start"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-border-strong text-sub hover:bg-background text-sm font-medium transition-colors self-start"
             >
               <ArrowLeft size={18} />
               Back to Summary
@@ -2912,28 +2912,28 @@ const Reports = () => {
           )}
 
           {/* Filters Section */}
-          <section className="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex-shrink-0">
+          <section className="bg-surface border border-border rounded-xl shadow-sm p-4 flex-shrink-0">
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-12 gap-2">
                 {/* Date Range - Only show in range mode */}
                 {attendanceDateMode === 'range' && (
                   <div className="col-span-3 flex gap-2">
                     <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-700 mb-1">From Date</label>
+                      <label className="block text-xs font-medium text-sub mb-1">From Date</label>
                       <input
                         type="date"
                         value={attendanceDateRange.fromDate}
                         onChange={(e) => setAttendanceDateRange(prev => ({ ...prev, fromDate: e.target.value }))}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-700 mb-1">To Date</label>
+                      <label className="block text-xs font-medium text-sub mb-1">To Date</label>
                       <input
                         type="date"
                         value={attendanceDateRange.toDate}
                         onChange={(e) => setAttendanceDateRange(prev => ({ ...prev, toDate: e.target.value }))}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
                   </div>
@@ -2941,7 +2941,7 @@ const Reports = () => {
 
                 {/* Monthly Selection */}
                 {attendanceDateMode === 'monthly' && (
-                  <div className="col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-3 flex items-center justify-between gap-3 bg-gray-50 border border-gray-300 rounded-lg px-2 py-1">
+                  <div className="col-span-12 md:col-span-4 lg:col-span-3 xl:col-span-3 flex items-center justify-between gap-3 bg-background border border-border-strong rounded-lg px-2 py-1">
                     <button
                       onClick={() => {
                         const newMonth = selectedMonth === 1 ? 12 : selectedMonth - 1;
@@ -2949,13 +2949,13 @@ const Reports = () => {
                         setSelectedMonth(newMonth);
                         setSelectedYear(newYear);
                       }}
-                      className="p-1 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600"
+                      className="p-1 hover:bg-surface hover:shadow-sm rounded-md transition-all text-sub"
                     >
                       <ChevronLeft size={20} />
                     </button>
                     <div className="flex-1 text-center">
-                      <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Attendance Month</div>
-                      <div className="text-sm font-bold text-blue-700">
+                      <div className="text-[10px] font-medium text-muted-text uppercase tracking-wider">Attendance Month</div>
+                      <div className="text-sm font-bold text-primary">
                         {new Date(selectedYear, selectedMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}
                       </div>
                     </div>
@@ -2966,7 +2966,7 @@ const Reports = () => {
                         setSelectedMonth(newMonth);
                         setSelectedYear(newYear);
                       }}
-                      className="p-1 hover:bg-white hover:shadow-sm rounded-md transition-all text-gray-600"
+                      className="p-1 hover:bg-surface hover:shadow-sm rounded-md transition-all text-sub"
                     >
                       <ChevronRight size={20} />
                     </button>
@@ -2975,7 +2975,7 @@ const Reports = () => {
 
                 {/* College */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">College</label>
+                  <label className="block text-xs font-medium text-sub mb-1">College</label>
                   <select
                     value={attendanceFilters.college || ''}
                     onChange={(e) => {
@@ -2994,7 +2994,7 @@ const Reports = () => {
                         return newFilters;
                       });
                     }}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">All Colleges</option>
                     {filterOptions.colleges.map((college) => (
@@ -3005,7 +3005,7 @@ const Reports = () => {
 
                 {/* Level */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Level</label>
+                  <label className="block text-xs font-medium text-sub mb-1">Level</label>
                   <select
                     value={attendanceFilters.level || ''}
                     onChange={(e) => {
@@ -3023,7 +3023,7 @@ const Reports = () => {
                         return newFilters;
                       });
                     }}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">All Levels</option>
                     <option value="diploma">Diploma</option>
@@ -3034,11 +3034,11 @@ const Reports = () => {
 
                 {/* Batch */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Batch</label>
+                  <label className="block text-xs font-medium text-sub mb-1">Batch</label>
                   <select
                     value={attendanceFilters.batch || ''}
                     onChange={(e) => setAttendanceFilters(prev => ({ ...prev, batch: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">All Batches</option>
                     {(filterOptions.batches || []).map((batch) => (
@@ -3049,11 +3049,11 @@ const Reports = () => {
 
                 {/* Program */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Program</label>
+                  <label className="block text-xs font-medium text-sub mb-1">Program</label>
                   <select
                     value={attendanceFilters.course || ''}
                     onChange={(e) => setAttendanceFilters(prev => ({ ...prev, course: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">All Programs</option>
                     {(filterOptions.courses || [])
@@ -3078,11 +3078,11 @@ const Reports = () => {
 
                 {/* Branch */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Branch</label>
+                  <label className="block text-xs font-medium text-sub mb-1">Branch</label>
                   <select
                     value={attendanceFilters.branch || ''}
                     onChange={(e) => setAttendanceFilters(prev => ({ ...prev, branch: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">All Branches</option>
                     {(filterOptions.branches || []).map((branch) => (
@@ -3093,11 +3093,11 @@ const Reports = () => {
 
                 {/* Year */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Year</label>
+                  <label className="block text-xs font-medium text-sub mb-1">Year</label>
                   <select
                     value={attendanceFilters.year || ''}
                     onChange={(e) => setAttendanceFilters(prev => ({ ...prev, year: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">All Years</option>
                     {availableYears.map((year) => (
@@ -3110,11 +3110,11 @@ const Reports = () => {
 
                 {/* Semester */}
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Semester</label>
+                  <label className="block text-xs font-medium text-sub mb-1">Semester</label>
                   <select
                     value={attendanceFilters.semester || ''}
                     onChange={(e) => setAttendanceFilters(prev => ({ ...prev, semester: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-lg border border-border-strong px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   >
                     <option value="">All Sems</option>
                     {availableSemesters.map((semester) => (
@@ -3129,24 +3129,24 @@ const Reports = () => {
                 {showDetailedView && attendanceReportData && (
                   <>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">&nbsp;</label>
+                      <label className="block text-xs font-medium text-sub mb-1">&nbsp;</label>
                       <button
                         onClick={downloadAttendancePDF}
                         disabled={attendanceLoading || attendanceDownloading}
                         title={attendanceLoading ? 'Wait for report data to finish loading' : 'Download PDF'}
-                        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-red-500 text-red-600 hover:bg-red-50 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-danger text-danger hover:bg-[var(--danger-light)] text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download size={16} />
                         PDF
                       </button>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">&nbsp;</label>
+                      <label className="block text-xs font-medium text-sub mb-1">&nbsp;</label>
                       <button
                         onClick={downloadAttendanceExcel}
                         disabled={attendanceLoading || attendanceDownloading}
                         title={attendanceLoading ? 'Wait for report data to finish loading' : 'Download Excel'}
-                        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-green-500 text-green-600 hover:bg-green-50 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-success text-success hover:bg-[var(--success-light)] text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download size={16} />
                         Excel
@@ -3158,24 +3158,24 @@ const Reports = () => {
                 {!showDetailedView && attendanceAbstractData.length > 0 && (
                   <>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">&nbsp;</label>
+                      <label className="block text-xs font-medium text-sub mb-1">&nbsp;</label>
                       <button
                         onClick={downloadAbstractPDF}
                         disabled={attendanceAbstractLoading || attendanceDownloading}
                         title={attendanceAbstractLoading ? 'Wait for abstract data to finish loading' : 'Download PDF'}
-                        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-red-500 text-red-600 hover:bg-red-50 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-danger text-danger hover:bg-[var(--danger-light)] text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download size={16} />
                         PDF
                       </button>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">&nbsp;</label>
+                      <label className="block text-xs font-medium text-sub mb-1">&nbsp;</label>
                       <button
                         onClick={downloadAbstractExcel}
                         disabled={attendanceAbstractLoading || attendanceDownloading}
                         title={attendanceAbstractLoading ? 'Wait for abstract data to finish loading' : 'Download Excel'}
-                        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-green-500 text-green-600 hover:bg-green-50 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-success text-success hover:bg-[var(--success-light)] text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download size={16} />
                         Excel
@@ -3187,8 +3187,8 @@ const Reports = () => {
 
               {/* Loading Indicator */}
               {(showDetailedView ? attendanceLoading : attendanceAbstractLoading) && (
-                <div className="flex items-center gap-2 text-sm text-blue-600">
-                  <span className="h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                <div className="flex items-center gap-2 text-sm text-primary">
+                  <span className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                   Loading report...
                 </div>
               )}
@@ -3199,59 +3199,59 @@ const Reports = () => {
           {!showDetailedView && (
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden animate-in fade-in duration-300 gap-4">
               {attendanceAbstractLoading ? (
-                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-500">
+                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-text">
                   <RefreshCw className="animate-spin" size={24} />
                   Loading abstract data...
                 </div>
               ) : attendanceAbstractData.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-500">
+                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-text">
                   <AlertCircle size={32} />
                   <p>No summary data found matching current filters.</p>
                 </div>
               ) : (
-                <div className="flex-1 flex flex-col min-h-0 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="flex-1 flex flex-col min-h-0 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
                   <div className="flex-1 overflow-auto">
                     <table className="w-full text-sm text-left relative">
-                      <thead className="bg-gray-50 text-gray-600 font-medium border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+                      <thead className="bg-background text-sub font-medium border-b border-border sticky top-0 z-10 shadow-sm">
                         <tr>
-                          <th className="px-4 py-3 whitespace-nowrap bg-gray-50">College</th>
-                          <th className="px-4 py-3 whitespace-nowrap bg-gray-50">Batch</th>
-                          <th className="px-4 py-3 bg-gray-50 max-w-[200px] whitespace-normal">Branch</th>
-                          <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Year</th>
-                          <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Sem</th>
-                          <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Total Students</th>
-                          <th className="px-4 py-3 whitespace-nowrap text-center bg-gray-50">Working Days</th>
-                          <th className="px-4 py-3 whitespace-nowrap text-center bg-green-50">Present %</th>
-                          <th className="px-4 py-3 whitespace-nowrap text-center bg-red-50">Absent %</th>
-                          <th className="px-4 py-3 whitespace-nowrap text-center bg-blue-50">Attendance %</th>
+                          <th className="px-4 py-3 whitespace-nowrap bg-background">College</th>
+                          <th className="px-4 py-3 whitespace-nowrap bg-background">Batch</th>
+                          <th className="px-4 py-3 bg-background max-w-[200px] whitespace-normal">Branch</th>
+                          <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Year</th>
+                          <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Sem</th>
+                          <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Total Students</th>
+                          <th className="px-4 py-3 whitespace-nowrap text-center bg-background">Working Days</th>
+                          <th className="px-4 py-3 whitespace-nowrap text-center bg-[var(--success-light)]">Present %</th>
+                          <th className="px-4 py-3 whitespace-nowrap text-center bg-[var(--danger-light)]">Absent %</th>
+                          <th className="px-4 py-3 whitespace-nowrap text-center bg-[var(--primary-light)]">Attendance %</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-border">
                         {attendanceAbstractData.map((row, idx) => (
                           <tr
                             key={idx}
                             onClick={() => handleBranchDrillDown(row)}
-                            className="hover:bg-blue-50 transition-colors cursor-pointer"
+                            className="hover:bg-[var(--primary-light)] transition-colors cursor-pointer"
                           >
-                            <td className="px-4 py-3 text-gray-700">{row.college || '-'}</td>
-                            <td className="px-4 py-3 text-gray-700">{row.batch || '-'}</td>
-                            <td className="px-4 py-3 font-medium text-gray-900">{row.branch || '-'}</td>
-                            <td className="px-4 py-3 text-center text-gray-700">{row.year || '-'}</td>
-                            <td className="px-4 py-3 text-center text-gray-700">{row.semester || '-'}</td>
+                            <td className="px-4 py-3 text-sub">{row.college || '-'}</td>
+                            <td className="px-4 py-3 text-sub">{row.batch || '-'}</td>
+                            <td className="px-4 py-3 font-medium text-main">{row.branch || '-'}</td>
+                            <td className="px-4 py-3 text-center text-sub">{row.year || '-'}</td>
+                            <td className="px-4 py-3 text-center text-sub">{row.semester || '-'}</td>
                             <td className="px-4 py-3 text-center font-semibold">{row.totalStudents || 0}</td>
                             <td className="px-4 py-3 text-center font-semibold">{row.workingDays || 0}</td>
-                            <td className="px-4 py-3 text-center text-green-600 font-medium">
+                            <td className="px-4 py-3 text-center text-success font-medium">
                               {row.presentPercentage?.toFixed(2) || '0.00'}%
                             </td>
-                            <td className="px-4 py-3 text-center text-red-500 font-medium">
+                            <td className="px-4 py-3 text-center text-danger font-medium">
                               {row.absentPercentage?.toFixed(2) || '0.00'}%
                             </td>
                             <td className="px-4 py-3 text-center">
                               <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${row.attendancePercentage >= 75
-                                ? 'bg-green-100 text-green-800 border border-green-300'
+                                ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
                                 : row.attendancePercentage >= 60
-                                  ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                                  : 'bg-red-100 text-red-800 border border-red-300'
+                                  ? 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
+                                  : 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
                                 }`}>
                                 {row.attendancePercentage?.toFixed(2) || '0.00'}%
                               </span>
@@ -3259,7 +3259,7 @@ const Reports = () => {
                           </tr>
                         ))}
                       </tbody>
-                      <tfoot className="bg-gray-50 font-bold border-t-2 border-gray-200 sticky bottom-0 z-20 shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
+                      <tfoot className="bg-background font-bold border-t-2 border-border sticky bottom-0 z-20 shadow-[0_-2px_4px_rgba(0,0,0,0.05)]">
                         {attendanceAbstractData.length > 0 && (
                           <tr>
                             <td className="px-4 py-3" colSpan={5}>Total</td>
@@ -3269,7 +3269,7 @@ const Reports = () => {
                             <td className="px-4 py-3 text-center">
                               {attendanceAbstractData[0]?.workingDays || 0}
                             </td>
-                            <td className="px-4 py-3 text-center text-green-600">
+                            <td className="px-4 py-3 text-center text-success">
                               {(() => {
                                 const totalPresent = attendanceAbstractData.reduce((sum, row) => sum + (row.totalPresentDays || 0), 0);
                                 const totalStudents = attendanceAbstractData.reduce((sum, row) => sum + (row.totalStudents || 0), 0);
@@ -3279,7 +3279,7 @@ const Reports = () => {
                                   : '0.00';
                               })()}%
                             </td>
-                            <td className="px-4 py-3 text-center text-red-500">
+                            <td className="px-4 py-3 text-center text-danger">
                               {(() => {
                                 const totalAbsent = attendanceAbstractData.reduce((sum, row) => sum + (row.totalAbsentDays || 0), 0);
                                 const totalStudents = attendanceAbstractData.reduce((sum, row) => sum + (row.totalStudents || 0), 0);
@@ -3299,10 +3299,10 @@ const Reports = () => {
                                   : 0;
                                 return (
                                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${overallPercentage >= 75
-                                    ? 'bg-green-100 text-green-800 border border-green-300'
+                                    ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
                                     : overallPercentage >= 60
-                                      ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                                      : 'bg-red-100 text-red-800 border border-red-300'
+                                      ? 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
+                                      : 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
                                     }`}>
                                     {overallPercentage.toFixed(2)}%
                                   </span>
@@ -3325,18 +3325,18 @@ const Reports = () => {
               {/* Search Student - Only in detailed view */}
               <div className="flex-shrink-0">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-text" size={18} />
                   <input
                     type="text"
                     placeholder="Search students by name, PIN, or admission number..."
                     value={studentSearchQuery}
                     onChange={(e) => setStudentSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-border-strong focus:outline-none focus:ring-2 focus:ring-primary text-sm"
                   />
                   {studentSearchQuery && (
                     <button
                       onClick={() => setStudentSearchQuery('')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-text hover:text-sub"
                     >
                       <X size={18} />
                     </button>
@@ -3346,23 +3346,23 @@ const Reports = () => {
               {/* Statistics Cards */}
               {attendanceReportData && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 flex-shrink-0">
-                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                    <div className="text-xs text-blue-600 uppercase font-semibold">Total Students</div>
-                    <div className="text-lg font-bold text-blue-900">{attendanceReportData.statistics.totalStudents}</div>
+                  <div className="bg-[var(--primary-light)] p-3 rounded-lg border border-[var(--primary-light)]">
+                    <div className="text-xs text-primary uppercase font-semibold">Total Students</div>
+                    <div className="text-lg font-bold text-primary">{attendanceReportData.statistics.totalStudents}</div>
                   </div>
-                  <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <div className="text-xs text-gray-600 uppercase font-semibold">Working Days</div>
-                    <div className="text-lg font-bold text-gray-900">{attendanceReportData.statistics.totalWorkingDays}</div>
+                  <div className="bg-background p-3 rounded-lg border border-border">
+                    <div className="text-xs text-sub uppercase font-semibold">Working Days</div>
+                    <div className="text-lg font-bold text-main">{attendanceReportData.statistics.totalWorkingDays}</div>
                   </div>
-                  <div className="bg-green-50 p-3 rounded-lg border border-green-100">
-                    <div className="text-xs text-green-600 uppercase font-semibold">Present Students %</div>
-                    <div className="text-lg font-bold text-green-900">
+                  <div className="bg-[var(--success-light)] p-3 rounded-lg border border-[var(--success-light)]">
+                    <div className="text-xs text-success uppercase font-semibold">Present Students %</div>
+                    <div className="text-lg font-bold text-success">
                       {attendanceReportData.statistics.presentStudentsPercentage?.toFixed(2) || '0.00'}%
                     </div>
                   </div>
-                  <div className="bg-red-50 p-3 rounded-lg border border-red-100">
-                    <div className="text-xs text-red-600 uppercase font-semibold">Absent Students %</div>
-                    <div className="text-lg font-bold text-red-900">
+                  <div className="bg-[var(--danger-light)] p-3 rounded-lg border border-[var(--danger-light)]">
+                    <div className="text-xs text-danger uppercase font-semibold">Absent Students %</div>
+                    <div className="text-lg font-bold text-danger">
                       {attendanceReportData.statistics.absentStudentsPercentage?.toFixed(2) || '0.00'}%
                     </div>
                   </div>
@@ -3371,12 +3371,12 @@ const Reports = () => {
 
               {/* View Type Toggler - Only in detailed view */}
               <div className="flex items-center justify-between flex-shrink-0">
-                <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+                <div className="flex items-center gap-2 bg-background p-1 rounded-lg">
                   <button
                     onClick={() => setViewType('list')}
                     className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${viewType === 'list'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-surface text-main shadow-sm'
+                      : 'text-muted-text hover:text-sub'
                       }`}
                   >
                     List View
@@ -3384,8 +3384,8 @@ const Reports = () => {
                   <button
                     onClick={() => setViewType('grid')}
                     className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${viewType === 'grid'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
+                      ? 'bg-surface text-main shadow-sm'
+                      : 'text-muted-text hover:text-sub'
                       }`}
                   >
                     Grid View
@@ -3394,48 +3394,48 @@ const Reports = () => {
 
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span className="text-xs text-gray-600">Present (P)</span>
+                    <div className="w-3 h-3 rounded-full bg-success"></div>
+                    <span className="text-xs text-sub">Present (P)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <span className="text-xs text-gray-600">Absent (A)</span>
+                    <div className="w-3 h-3 rounded-full bg-danger"></div>
+                    <span className="text-xs text-sub">Absent (A)</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-                    <span className="text-xs text-gray-600">Holiday (H)</span>
+                    <div className="w-3 h-3 rounded-full bg-background"></div>
+                    <span className="text-xs text-sub">Holiday (H)</span>
                   </div>
                 </div>
               </div>
 
               {/* Report Table / Grid */}
               {attendanceLoading ? (
-                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-500">
+                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-text">
                   <RefreshCw className="animate-spin" size={24} />
                   Loading attendance report...
                 </div>
               ) : attendanceReportData && attendanceReportData.students.length > 0 ? (
                 viewType === 'list' ? (
-                  <div className="flex-1 flex flex-col min-h-0 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                  <div className="flex-1 flex flex-col min-h-0 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
                     <div className="flex-1 overflow-auto">
                       <table className="w-full text-sm">
-                        <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-300 sticky top-0 z-10">
+                        <thead className="bg-gradient-to-r from-[var(--background)] to-[var(--background)] border-b-2 border-border-strong sticky top-0 z-10">
                           <tr>
-                            <th className="px-4 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">PIN No</th>
-                            <th className="px-4 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Student Name</th>
-                            <th className="px-4 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Admission No</th>
-                            <th className="px-4 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Batch</th>
-                            <th className="px-4 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Course</th>
-                            <th className="px-4 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Branch</th>
-                            <th className="px-4 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Year</th>
-                            <th className="px-4 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">Sem</th>
-                            <th className="px-4 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200 bg-blue-50">Working Days</th>
-                            <th className="px-4 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200 bg-green-50">Present %</th>
-                            <th className="px-4 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200 bg-red-50">Absent %</th>
-                            <th className="px-4 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider bg-purple-50">Attendance %</th>
+                            <th className="px-4 py-3.5 text-left text-xs font-bold text-sub uppercase tracking-wider border-r border-border">PIN No</th>
+                            <th className="px-4 py-3.5 text-left text-xs font-bold text-sub uppercase tracking-wider border-r border-border">Student Name</th>
+                            <th className="px-4 py-3.5 text-left text-xs font-bold text-sub uppercase tracking-wider border-r border-border">Admission No</th>
+                            <th className="px-4 py-3.5 text-left text-xs font-bold text-sub uppercase tracking-wider border-r border-border">Batch</th>
+                            <th className="px-4 py-3.5 text-left text-xs font-bold text-sub uppercase tracking-wider border-r border-border">Course</th>
+                            <th className="px-4 py-3.5 text-left text-xs font-bold text-sub uppercase tracking-wider border-r border-border">Branch</th>
+                            <th className="px-4 py-3.5 text-center text-xs font-bold text-sub uppercase tracking-wider border-r border-border">Year</th>
+                            <th className="px-4 py-3.5 text-center text-xs font-bold text-sub uppercase tracking-wider border-r border-border">Sem</th>
+                            <th className="px-4 py-3.5 text-center text-xs font-bold text-sub uppercase tracking-wider border-r border-border bg-[var(--primary-light)]">Working Days</th>
+                            <th className="px-4 py-3.5 text-center text-xs font-bold text-sub uppercase tracking-wider border-r border-border bg-[var(--success-light)]">Present %</th>
+                            <th className="px-4 py-3.5 text-center text-xs font-bold text-sub uppercase tracking-wider border-r border-border bg-[var(--danger-light)]">Absent %</th>
+                            <th className="px-4 py-3.5 text-center text-xs font-bold text-sub uppercase tracking-wider bg-[var(--primary-light)]">Attendance %</th>
                           </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-surface divide-y divide-border">
                           {attendanceReportData.students
                             .filter(student => {
                               if (!studentSearchQuery) return true;
@@ -3453,19 +3453,19 @@ const Reports = () => {
                                   setSelectedStudent(student);
                                   setShowStudentModal(true);
                                 }}
-                                className={`hover:bg-blue-50 transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
+                                className={`hover:bg-[var(--primary-light)] transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-surface' : 'bg-[var(--background)]/50'}`}
                               >
-                                <td className="px-4 py-3 font-semibold text-gray-900 border-r border-gray-100">{student.pinNumber || '-'}</td>
-                                <td className="px-4 py-3 text-gray-800 font-medium border-r border-gray-100">{student.studentName || '-'}</td>
-                                <td className="px-4 py-3 text-gray-600 border-r border-gray-100">{student.admissionNumber || '-'}</td>
-                                <td className="px-4 py-3 text-gray-600 border-r border-gray-100">{student.batch || '-'}</td>
-                                <td className="px-4 py-3 text-gray-600 border-r border-gray-100">{student.course || '-'}</td>
-                                <td className="px-4 py-3 text-gray-600 border-r border-gray-100">{student.branch || '-'}</td>
-                                <td className="px-4 py-3 text-center text-gray-700 font-medium border-r border-gray-100">{student.year || '-'}</td>
-                                <td className="px-4 py-3 text-center text-gray-700 font-medium border-r border-gray-100">{student.semester || '-'}</td>
-                                <td className="px-4 py-3 text-center font-bold text-blue-700 bg-blue-50/50 border-r border-gray-100">{student.statistics.workingDays}</td>
-                                <td className="px-4 py-3 text-center font-bold bg-green-50/50 border-r border-gray-100">
-                                  <span className="text-green-700">
+                                <td className="px-4 py-3 font-semibold text-main border-r border-border">{student.pinNumber || '-'}</td>
+                                <td className="px-4 py-3 text-main font-medium border-r border-border">{student.studentName || '-'}</td>
+                                <td className="px-4 py-3 text-sub border-r border-border">{student.admissionNumber || '-'}</td>
+                                <td className="px-4 py-3 text-sub border-r border-border">{student.batch || '-'}</td>
+                                <td className="px-4 py-3 text-sub border-r border-border">{student.course || '-'}</td>
+                                <td className="px-4 py-3 text-sub border-r border-border">{student.branch || '-'}</td>
+                                <td className="px-4 py-3 text-center text-sub font-medium border-r border-border">{student.year || '-'}</td>
+                                <td className="px-4 py-3 text-center text-sub font-medium border-r border-border">{student.semester || '-'}</td>
+                                <td className="px-4 py-3 text-center font-bold text-primary bg-[var(--primary-light)] border-r border-border">{student.statistics.workingDays}</td>
+                                <td className="px-4 py-3 text-center font-bold bg-[var(--success-light)] border-r border-border">
+                                  <span className="text-success">
                                     {(() => {
                                       const markedDays = (student.statistics.presentDays || 0) + (student.statistics.absentDays || 0);
                                       return markedDays > 0
@@ -3474,8 +3474,8 @@ const Reports = () => {
                                     })()}%
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-center font-bold bg-red-50/50 border-r border-gray-100">
-                                  <span className="text-red-700">
+                                <td className="px-4 py-3 text-center font-bold bg-[var(--danger-light)] border-r border-border">
+                                  <span className="text-danger">
                                     {(() => {
                                       const markedDays = (student.statistics.presentDays || 0) + (student.statistics.absentDays || 0);
                                       return markedDays > 0
@@ -3484,12 +3484,12 @@ const Reports = () => {
                                     })()}%
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-center font-bold bg-purple-50/50">
+                                <td className="px-4 py-3 text-center font-bold bg-[var(--primary-light)]">
                                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${student.statistics.attendancePercentage >= 75
-                                    ? 'bg-green-100 text-green-800 border border-green-300'
+                                    ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
                                     : student.statistics.attendancePercentage >= 60
-                                      ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                                      : 'bg-red-100 text-red-800 border border-red-300'
+                                      ? 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
+                                      : 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
                                     }`}>
                                     {student.statistics.attendancePercentage.toFixed(2)}%
                                   </span>
@@ -3498,20 +3498,20 @@ const Reports = () => {
                             ))}
                         </tbody>
                         {attendanceReportData.students.length > 0 && (
-                          <tfoot className="bg-gray-100 border-t-2 border-gray-300 font-bold">
+                          <tfoot className="bg-background border-t-2 border-border-strong font-bold">
                             <tr>
-                              <td colSpan="8" className="px-4 py-3 text-right text-gray-700">Total:</td>
-                              <td className="px-4 py-3 text-center text-blue-700 bg-blue-100 border-r border-gray-200">
+                              <td colSpan="8" className="px-4 py-3 text-right text-sub">Total:</td>
+                              <td className="px-4 py-3 text-center text-primary bg-[var(--primary-light)] border-r border-border">
                                 {attendanceReportData.statistics.totalWorkingDays}
                               </td>
-                              <td className="px-4 py-3 text-center text-green-700 bg-green-100 border-r border-gray-200">
+                              <td className="px-4 py-3 text-center text-success bg-[var(--success-light)] border-r border-border">
                                 {attendanceReportData.statistics.presentStudentsPercentage?.toFixed(2) || '0.00'}%
                               </td>
-                              <td className="px-4 py-3 text-center text-red-700 bg-red-100 border-r border-gray-200">
+                              <td className="px-4 py-3 text-center text-danger bg-[var(--danger-light)] border-r border-border">
                                 {attendanceReportData.statistics.absentStudentsPercentage?.toFixed(2) || '0.00'}%
                               </td>
-                              <td className="px-4 py-3 text-center text-purple-700 bg-purple-100">
-                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-200 text-purple-900 border border-purple-300">
+                              <td className="px-4 py-3 text-center text-secondary bg-[var(--primary-light)]">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)]">
                                   {attendanceReportData.statistics.overallAttendancePercentage.toFixed(2)}%
                                 </span>
                               </td>
@@ -3522,31 +3522,31 @@ const Reports = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col min-h-0 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                  <div className="flex-1 flex flex-col min-h-0 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
                     <div className="flex-1 overflow-auto">
                       <table className="w-full text-xs text-left border-collapse">
-                        <thead className="bg-gray-50 sticky top-0 z-20">
+                        <thead className="bg-background sticky top-0 z-20">
                           <tr>
-                            <th rowSpan={2} className="px-3 py-2 border-b border-r bg-gray-50 sticky left-0 z-30 min-w-[120px] text-xs font-bold text-gray-700 uppercase">PIN No</th>
-                            <th rowSpan={2} className="px-3 py-2 border-b border-r bg-gray-50 sticky left-[120px] z-30 min-w-[200px] text-xs font-bold text-gray-700 uppercase">Student Name</th>
+                            <th rowSpan={2} className="px-3 py-2 border-b border-r bg-background sticky left-0 z-30 min-w-[120px] text-xs font-bold text-sub uppercase">PIN No</th>
+                            <th rowSpan={2} className="px-3 py-2 border-b border-r bg-background sticky left-[120px] z-30 min-w-[200px] text-xs font-bold text-sub uppercase">Student Name</th>
                             {(attendanceReportData.dates || []).map((date) => (
-                              <th key={`num-${date}`} className="px-1 py-1 border-b border-r text-center min-w-[32px] font-bold text-gray-700 bg-blue-50/30">
+                              <th key={`num-${date}`} className="px-1 py-1 border-b border-r text-center min-w-[32px] font-bold text-sub bg-[var(--primary-light)]">
                                 {new Date(date).getDate()}
                               </th>
                             ))}
-                            <th rowSpan={2} className="px-3 py-2 border-b border-r bg-blue-50 sticky right-[120px] z-30 min-w-[60px] text-center text-xs font-bold text-blue-700 uppercase">TOTAL</th>
-                            <th rowSpan={2} className="px-3 py-2 border-b border-r bg-gray-50 sticky right-[60px] z-30 min-w-[60px] text-center text-xs font-bold text-gray-700 uppercase">PRES</th>
-                            <th rowSpan={2} className="px-3 py-2 border-b bg-gray-50 sticky right-0 z-30 min-w-[60px] text-center text-xs font-bold text-gray-700 uppercase">%</th>
+                            <th rowSpan={2} className="px-3 py-2 border-b border-r bg-[var(--primary-light)] sticky right-[120px] z-30 min-w-[60px] text-center text-xs font-bold text-primary uppercase">TOTAL</th>
+                            <th rowSpan={2} className="px-3 py-2 border-b border-r bg-background sticky right-[60px] z-30 min-w-[60px] text-center text-xs font-bold text-sub uppercase">PRES</th>
+                            <th rowSpan={2} className="px-3 py-2 border-b bg-background sticky right-0 z-30 min-w-[60px] text-center text-xs font-bold text-sub uppercase">%</th>
                           </tr>
-                          <tr className="bg-gray-50">
+                          <tr className="bg-background">
                             {(attendanceReportData.dates || []).map((date) => (
-                              <th key={`day-${date}`} className="px-1 py-1 border-b border-r text-center min-w-[32px] text-[9px] font-medium uppercase text-gray-500">
+                              <th key={`day-${date}`} className="px-1 py-1 border-b border-r text-center min-w-[32px] text-[9px] font-medium uppercase text-muted-text">
                                 {new Date(date).toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
                               </th>
                             ))}
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-border">
                           {(attendanceReportData.students || [])
                             .filter(student => {
                               if (!studentSearchQuery) return true;
@@ -3564,10 +3564,10 @@ const Reports = () => {
                                   setSelectedStudent(student);
                                   setShowStudentModal(true);
                                 }}
-                                className={`hover:bg-blue-50 transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}
+                                className={`hover:bg-[var(--primary-light)] transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-surface' : 'bg-[var(--background)]/30'}`}
                               >
-                                <td className="px-3 py-2 border-r bg-white sticky left-0 z-10 font-medium">{student.pinNumber || '-'}</td>
-                                <td className="px-3 py-2 border-r bg-white sticky left-[120px] z-10 font-medium truncate max-w-[200px]" title={student.studentName}>
+                                <td className="px-3 py-2 border-r bg-surface sticky left-0 z-10 font-medium">{student.pinNumber || '-'}</td>
+                                <td className="px-3 py-2 border-r bg-surface sticky left-[120px] z-10 font-medium truncate max-w-[200px]" title={student.studentName}>
                                   {student.studentName}
                                 </td>
                                 {(attendanceReportData.dates || []).map((date) => {
@@ -3577,20 +3577,20 @@ const Reports = () => {
                                   const isBeforeJoinDate = student.attendanceStartDate && date < student.attendanceStartDate;
 
                                   let cellContent = '-';
-                                  let cellClass = 'text-gray-300';
+                                  let cellClass = 'text-muted-text';
 
                                   if (isBeforeJoinDate) {
                                     cellContent = '—';
-                                    cellClass = 'text-gray-200 bg-gray-50';
+                                    cellClass = 'text-muted-text bg-background';
                                   } else if (status === 'present') {
                                     cellContent = 'P';
-                                    cellClass = 'bg-green-100 text-green-700 font-bold';
+                                    cellClass = 'bg-[var(--success-light)] text-success font-bold';
                                   } else if (status === 'absent') {
                                     cellContent = 'A';
-                                    cellClass = 'bg-red-100 text-red-700 font-bold';
+                                    cellClass = 'bg-[var(--danger-light)] text-danger font-bold';
                                   } else if (status === 'holiday' || isHoliday) {
                                     cellContent = 'H';
-                                    cellClass = 'bg-gray-100 text-gray-500 font-bold';
+                                    cellClass = 'bg-background text-muted-text font-bold';
                                   }
 
                                   return (
@@ -3606,18 +3606,18 @@ const Reports = () => {
                                   const studentWorkingDays = student.statistics?.workingDays || 0;
                                   const pct = markedDays > 0 ? (presentDays / markedDays) * 100 : 0;
 
-                                  const colorClass = pct >= 75 ? 'bg-green-50 text-green-700' :
-                                    pct >= 60 ? 'bg-yellow-50 text-yellow-700' :
-                                      'bg-red-50 text-red-700';
+                                  const colorClass = pct >= 75 ? 'bg-[var(--success-light)] text-success' :
+                                    pct >= 60 ? 'bg-[var(--warning-light)] text-warning' :
+                                      'bg-[var(--danger-light)] text-danger';
 
                                   return (
                                     <>
-                                      <td className="px-3 py-2 sticky right-[120px] z-10 font-bold text-center border-l border-r bg-blue-50 text-blue-700">
+                                      <td className="px-3 py-2 sticky right-[120px] z-10 font-bold text-center border-l border-r bg-[var(--primary-light)] text-primary">
                                         {studentWorkingDays}
                                       </td>
-                                      <td className={`px-3 py-2 sticky right-[60px] z-10 font-bold text-center border-r ${presentDays >= markedDays * 0.75 ? 'bg-green-50 text-green-700' :
-                                        presentDays >= markedDays * 0.60 ? 'bg-yellow-50 text-yellow-700' :
-                                          'bg-red-50 text-red-700'
+                                      <td className={`px-3 py-2 sticky right-[60px] z-10 font-bold text-center border-r ${presentDays >= markedDays * 0.75 ? 'bg-[var(--success-light)] text-success' :
+                                        presentDays >= markedDays * 0.60 ? 'bg-[var(--warning-light)] text-warning' :
+                                          'bg-[var(--danger-light)] text-danger'
                                         }`}>
                                         {presentDays}
                                       </td>
@@ -3635,7 +3635,7 @@ const Reports = () => {
                   </div>
                 )
               ) : attendanceReportData && attendanceReportData.students.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-gray-500">
+                <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-text">
                   <AlertCircle size={32} />
                   <p>No students found matching the selected criteria.</p>
                 </div>
@@ -3660,25 +3660,25 @@ const Reports = () => {
 
           return (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-3 py-6 overflow-y-auto">
-              <div className="relative w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
-                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+              <div className="relative w-full max-w-4xl rounded-2xl bg-surface shadow-2xl">
+                <div className="flex items-center justify-between border-b border-border px-6 py-4">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => {
                         setShowStudentModal(false);
                         setSelectedStudent(null);
                       }}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      className="p-2 hover:bg-background rounded-lg transition-colors"
                       aria-label="Back"
                     >
-                      <ArrowLeft size={20} className="text-gray-600" />
+                      <ArrowLeft size={20} className="text-sub" />
                     </button>
-                    <div className="rounded-full bg-blue-100 p-3 text-blue-600">
+                    <div className="rounded-full bg-[var(--primary-light)] p-3 text-primary">
                       <User size={24} />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-900">{currentStudent.studentName || 'Student Details'}</h2>
-                      <p className="text-sm text-gray-500">
+                      <h2 className="text-lg font-semibold text-main">{currentStudent.studentName || 'Student Details'}</h2>
+                      <p className="text-sm text-muted-text">
                         {currentStudent.pinNumber || currentStudent.admissionNumber || 'N/A'}
                       </p>
                     </div>
@@ -3689,7 +3689,7 @@ const Reports = () => {
                       setShowStudentModal(false);
                       setSelectedStudent(null);
                     }}
-                    className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                    className="rounded-full p-2 text-muted-text transition-colors hover:bg-background hover:text-sub"
                     aria-label="Close"
                   >
                     <X size={20} />
@@ -3699,54 +3699,54 @@ const Reports = () => {
                   {/* Student Information */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase">PIN Number</label>
-                      <p className="text-sm font-medium text-gray-900 mt-1">{currentStudent.pinNumber || '-'}</p>
+                      <label className="text-xs font-semibold text-muted-text uppercase">PIN Number</label>
+                      <p className="text-sm font-medium text-main mt-1">{currentStudent.pinNumber || '-'}</p>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase">Admission Number</label>
-                      <p className="text-sm font-medium text-gray-900 mt-1">{currentStudent.admissionNumber || '-'}</p>
+                      <label className="text-xs font-semibold text-muted-text uppercase">Admission Number</label>
+                      <p className="text-sm font-medium text-main mt-1">{currentStudent.admissionNumber || '-'}</p>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase">Batch</label>
-                      <p className="text-sm font-medium text-gray-900 mt-1">{currentStudent.batch || '-'}</p>
+                      <label className="text-xs font-semibold text-muted-text uppercase">Batch</label>
+                      <p className="text-sm font-medium text-main mt-1">{currentStudent.batch || '-'}</p>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase">Program</label>
-                      <p className="text-sm font-medium text-gray-900 mt-1">{currentStudent.course || '-'}</p>
+                      <label className="text-xs font-semibold text-muted-text uppercase">Program</label>
+                      <p className="text-sm font-medium text-main mt-1">{currentStudent.course || '-'}</p>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase">Branch</label>
-                      <p className="text-sm font-medium text-gray-900 mt-1">{currentStudent.branch || '-'}</p>
+                      <label className="text-xs font-semibold text-muted-text uppercase">Branch</label>
+                      <p className="text-sm font-medium text-main mt-1">{currentStudent.branch || '-'}</p>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase">Year</label>
-                      <p className="text-sm font-medium text-gray-900 mt-1">{currentStudent.year || '-'}</p>
+                      <label className="text-xs font-semibold text-muted-text uppercase">Year</label>
+                      <p className="text-sm font-medium text-main mt-1">{currentStudent.year || '-'}</p>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-gray-500 uppercase">Semester</label>
-                      <p className="text-sm font-medium text-gray-900 mt-1">{currentStudent.semester || '-'}</p>
+                      <label className="text-xs font-semibold text-muted-text uppercase">Semester</label>
+                      <p className="text-sm font-medium text-main mt-1">{currentStudent.semester || '-'}</p>
                     </div>
                   </div>
 
                   {/* Attendance Statistics */}
-                  <div className="border-t border-gray-200 pt-6">
-                    <h3 className="text-base font-semibold text-gray-900 mb-4">Attendance Statistics</h3>
+                  <div className="border-t border-border pt-6">
+                    <h3 className="text-base font-semibold text-main mb-4">Attendance Statistics</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                        <div className="text-xs text-blue-600 uppercase font-semibold">Working Days</div>
-                        <div className="text-2xl font-bold text-blue-900 mt-1">{currentStudent.statistics?.workingDays || 0}</div>
+                      <div className="bg-[var(--primary-light)] p-4 rounded-lg border border-[var(--primary-light)]">
+                        <div className="text-xs text-primary uppercase font-semibold">Working Days</div>
+                        <div className="text-2xl font-bold text-primary mt-1">{currentStudent.statistics?.workingDays || 0}</div>
                       </div>
-                      <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                        <div className="text-xs text-green-600 uppercase font-semibold">Present Days</div>
-                        <div className="text-2xl font-bold text-green-900 mt-1">{currentStudent.statistics?.presentDays || 0}</div>
+                      <div className="bg-[var(--success-light)] p-4 rounded-lg border border-[var(--success-light)]">
+                        <div className="text-xs text-success uppercase font-semibold">Present Days</div>
+                        <div className="text-2xl font-bold text-success mt-1">{currentStudent.statistics?.presentDays || 0}</div>
                       </div>
-                      <div className="bg-red-50 p-4 rounded-lg border border-red-100">
-                        <div className="text-xs text-red-600 uppercase font-semibold">Absent Days</div>
-                        <div className="text-2xl font-bold text-red-900 mt-1">{currentStudent.statistics?.absentDays || 0}</div>
+                      <div className="bg-[var(--danger-light)] p-4 rounded-lg border border-[var(--danger-light)]">
+                        <div className="text-xs text-danger uppercase font-semibold">Absent Days</div>
+                        <div className="text-2xl font-bold text-danger mt-1">{currentStudent.statistics?.absentDays || 0}</div>
                       </div>
-                      <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                        <div className="text-xs text-purple-600 uppercase font-semibold">Agg. Attendance %</div>
-                        <div className="text-2xl font-bold text-purple-900 mt-1">{(currentStudent.statistics?.attendancePercentage || 0).toFixed(2)}%</div>
+                      <div className="bg-[var(--primary-light)] p-4 rounded-lg border border-[var(--primary-light)]">
+                        <div className="text-xs text-secondary uppercase font-semibold">Agg. Attendance %</div>
+                        <div className="text-2xl font-bold text-secondary mt-1">{(currentStudent.statistics?.attendancePercentage || 0).toFixed(2)}%</div>
                       </div>
                     </div>
                   </div>
@@ -3762,15 +3762,15 @@ const Reports = () => {
       {
         calendarModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-3 py-6 overflow-y-auto">
-            <div className="relative w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
-              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <div className="relative w-full max-w-4xl rounded-2xl bg-surface shadow-2xl">
+              <div className="flex items-center justify-between border-b border-border px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-blue-100 p-3 text-blue-600">
+                  <div className="rounded-full bg-[var(--primary-light)] p-3 text-primary">
                     <CalendarDays size={24} />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Attendance Calendar</h2>
-                    <p className="text-sm text-gray-500">
+                    <h2 className="text-lg font-semibold text-main">Attendance Calendar</h2>
+                    <p className="text-sm text-muted-text">
                       View working days and holidays for the selected period.
                     </p>
                   </div>
@@ -3778,7 +3778,7 @@ const Reports = () => {
                 <button
                   type="button"
                   onClick={() => setCalendarModalOpen(false)}
-                  className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                  className="rounded-full p-2 text-muted-text transition-colors hover:bg-background hover:text-sub"
                   aria-label="Close calendar"
                 >
                   <X size={20} />
@@ -3787,7 +3787,7 @@ const Reports = () => {
               <div className="p-6">
                 {calendarLoading ? (
                   <div className="flex items-center justify-center py-12">
-                    <div className="flex flex-col items-center gap-3 text-gray-500">
+                    <div className="flex flex-col items-center gap-3 text-muted-text">
                       <RefreshCw className="animate-spin" size={24} />
                       <p>Loading calendar data...</p>
                     </div>
@@ -3856,21 +3856,21 @@ const Reports = () => {
       {/* Day End Report Content */}
       {
         reportType === 'dayend' && (
-          <div className="flex-1 flex flex-col min-h-0 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="flex-1 flex flex-col min-h-0 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
             {/* Header Section */}
-            <div className="px-5 py-4 flex items-start justify-between border-b border-gray-200 shrink-0 bg-white">
+            <div className="px-5 py-4 flex items-start justify-between border-b border-border shrink-0 bg-surface">
               <div>
-                <p className="text-sm font-medium text-gray-700">{dayEndReportData?.date || dayEndDate}</p>
+                <p className="text-sm font-medium text-sub">{dayEndReportData?.date || dayEndDate}</p>
                 {/* Filter Toggles */}
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs font-medium text-gray-500">Show:</span>
+                  <span className="text-xs font-medium text-muted-text">Show:</span>
                   <div className="inline-flex rounded-md shadow-sm" role="group">
                     <button
                       type="button"
                       onClick={() => setDayEndPreviewFilter('all')}
                       className={`px-3 py-1 text-xs font-medium rounded-l-md ${dayEndPreviewFilter === 'all'
-                        ? 'bg-blue-100 text-blue-700 border border-blue-300'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                        ? 'bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]'
+                        : 'bg-surface text-sub hover:bg-background border border-border-strong'
                         }`}
                     >
                       All
@@ -3879,8 +3879,8 @@ const Reports = () => {
                       type="button"
                       onClick={() => setDayEndPreviewFilter('marked')}
                       className={`px-3 py-1 text-xs font-medium ${dayEndPreviewFilter === 'marked'
-                        ? 'bg-green-100 text-green-700 border border-green-300'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border-t border-b border-gray-300'
+                        ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
+                        : 'bg-surface text-sub hover:bg-background border-t border-b border-border-strong'
                         }`}
                     >
                       Marked
@@ -3889,8 +3889,8 @@ const Reports = () => {
                       type="button"
                       onClick={() => setDayEndPreviewFilter('unmarked')}
                       className={`px-3 py-1 text-xs font-medium rounded-r-md ${dayEndPreviewFilter === 'unmarked'
-                        ? 'bg-amber-100 text-amber-700 border border-amber-300'
-                        : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                        ? 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
+                        : 'bg-surface text-sub hover:bg-background border border-border-strong'
                         }`}
                     >
                       Unmarked
@@ -3904,42 +3904,42 @@ const Reports = () => {
             <div className="flex-1 overflow-y-auto min-h-0">
               {dayEndReportLoading ? (
                 <div className="flex items-center justify-center p-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
-                  <span className="ml-3 text-gray-600">Loading day end report...</span>
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <span className="ml-3 text-sub">Loading day end report...</span>
                 </div>
               ) : dayEndReportData ? (
                 <div className="p-5">
                   {/* Sticky Stats Section */}
                   <div
                     ref={dayEndStatsRef}
-                    className="sticky top-0 bg-white z-10 pb-4 border-b border-gray-200 -mx-5 px-5"
+                    className="sticky top-0 bg-surface z-10 pb-4 border-b border-border -mx-5 px-5"
                   >
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3 mb-4">
-                      <div className="bg-gray-50 p-2 rounded-lg border border-gray-200">
-                        <div className="text-xs text-gray-600 font-medium">Total Students</div>
-                        <div className="text-lg font-bold text-gray-900">{filteredStats.totalStudents}</div>
+                      <div className="bg-background p-2 rounded-lg border border-border">
+                        <div className="text-xs text-sub font-medium">Total Students</div>
+                        <div className="text-lg font-bold text-main">{filteredStats.totalStudents}</div>
                       </div>
-                      <div className="bg-green-50 p-2 rounded-lg border border-green-200">
-                        <div className="text-xs text-green-600 font-medium">Marked Today</div>
-                        <div className="text-lg font-bold text-green-700">{filteredStats.markedToday}</div>
+                      <div className="bg-[var(--success-light)] p-2 rounded-lg border border-[var(--success-light)]">
+                        <div className="text-xs text-success font-medium">Marked Today</div>
+                        <div className="text-lg font-bold text-success">{filteredStats.markedToday}</div>
                       </div>
-                      <div className="bg-red-50 p-2 rounded-lg border border-red-200">
-                        <div className="text-xs text-red-600 font-medium">Absent Today</div>
-                        <div className="text-lg font-bold text-red-700">{filteredStats.absentToday}</div>
+                      <div className="bg-[var(--danger-light)] p-2 rounded-lg border border-[var(--danger-light)]">
+                        <div className="text-xs text-danger font-medium">Absent Today</div>
+                        <div className="text-lg font-bold text-danger">{filteredStats.absentToday}</div>
                       </div>
-                      <div className="bg-blue-50 p-2 rounded-lg border border-blue-200">
-                        <div className="text-xs text-blue-600 font-medium">Present Today</div>
-                        <div className="text-lg font-bold text-blue-700">{filteredStats.presentToday}</div>
+                      <div className="bg-[var(--primary-light)] p-2 rounded-lg border border-[var(--primary-light)]">
+                        <div className="text-xs text-primary font-medium">Present Today</div>
+                        <div className="text-lg font-bold text-primary">{filteredStats.presentToday}</div>
                       </div>
-                      <div className="bg-green-50 p-2 rounded-lg border border-green-200" title={filteredStats.holidayReason}>
-                        <div className="text-xs text-green-600 font-medium truncate">
+                      <div className="bg-[var(--success-light)] p-2 rounded-lg border border-[var(--success-light)]" title={filteredStats.holidayReason}>
+                        <div className="text-xs text-success font-medium truncate">
                           {filteredStats.holidayReason ? `Holiday: ${filteredStats.holidayReason.length > 20 ? filteredStats.holidayReason.substring(0, 20) + '...' : filteredStats.holidayReason}` : 'No Class Work Today'}
                         </div>
-                        <div className="text-lg font-bold text-green-700">{filteredStats.holidayToday}</div>
+                        <div className="text-lg font-bold text-success">{filteredStats.holidayToday}</div>
                       </div>
-                      <div className="bg-amber-50 p-2 rounded-lg border border-amber-200">
-                        <div className="text-xs text-amber-600 font-medium">Unmarked Today</div>
-                        <div className="text-lg font-bold text-amber-700">{filteredStats.unmarkedToday}</div>
+                      <div className="bg-[var(--warning-light)] p-2 rounded-lg border border-[var(--warning-light)]">
+                        <div className="text-xs text-warning font-medium">Unmarked Today</div>
+                        <div className="text-lg font-bold text-warning">{filteredStats.unmarkedToday}</div>
                       </div>
                     </div>
                     {/* Table Header with Filters */}
@@ -3961,7 +3961,7 @@ const Reports = () => {
                           <col style={{ width: '150px' }} />
                           <col style={{ width: '100px' }} />
                         </colgroup>
-                        <thead className="bg-gray-50 sticky" style={{ position: 'sticky', top: `${statsSectionHeight}px`, zIndex: 20 }}>
+                        <thead className="bg-background sticky" style={{ position: 'sticky', top: `${statsSectionHeight}px`, zIndex: 20 }}>
                           <tr>
                             <th className="px-2 py-2 text-left align-top">
                               <select
@@ -4084,7 +4084,7 @@ const Reports = () => {
                     {dayEndGroupedDisplay.length > 0 ? (
                       <div className="-mx-5">
                         <div className="overflow-x-auto px-5">
-                          <table className="w-full divide-y divide-gray-200 border-collapse table-fixed">
+                          <table className="w-full divide-y divide-border border-collapse table-fixed">
                             <colgroup>
                               <col style={{ width: '180px' }} />
                               <col style={{ width: '80px' }} />
@@ -4101,62 +4101,62 @@ const Reports = () => {
                               <col style={{ width: '150px' }} />
                               <col style={{ width: '100px' }} />
                             </colgroup>
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-border">
                               {dayEndGroupedDisplay.map((row, idx) => {
                                 const courseInfo = coursesWithLevels.find(c => c.name === row.course);
                                 const level = courseInfo?.level ? courseInfo.level.toUpperCase() : '—';
                                 return (
-                                  <tr key={`${row.college || 'N/A'}-${idx}`} className="bg-white hover:bg-gray-50">
-                                    <td className="px-2 py-2 text-gray-800 text-sm truncate" title={row.college || ''}>
+                                  <tr key={`${row.college || 'N/A'}-${idx}`} className="bg-surface hover:bg-background">
+                                    <td className="px-2 py-2 text-main text-sm truncate" title={row.college || ''}>
                                       {row.college || '—'}
                                     </td>
-                                    <td className="px-2 py-2 text-gray-800 text-sm truncate" title={level}>
+                                    <td className="px-2 py-2 text-main text-sm truncate" title={level}>
                                       {level}
                                     </td>
-                                    <td className="px-2 py-2 text-gray-800 text-sm truncate" title={row.batch || ''}>
+                                    <td className="px-2 py-2 text-main text-sm truncate" title={row.batch || ''}>
                                       {row.batch || '—'}
                                     </td>
-                                    <td className="px-2 py-2 text-gray-800 text-sm truncate" title={row.course || ''}>
+                                    <td className="px-2 py-2 text-main text-sm truncate" title={row.course || ''}>
                                       {row.course || '—'}
                                     </td>
-                                    <td className="px-2 py-2 text-gray-800 text-sm truncate" title={row.branch || ''}>
+                                    <td className="px-2 py-2 text-main text-sm truncate" title={row.branch || ''}>
                                       {row.branch || '—'}
                                     </td>
-                                    <td className="px-2 py-2 text-center text-gray-800 text-sm">
+                                    <td className="px-2 py-2 text-center text-main text-sm">
                                       {row.year || '—'}
                                     </td>
-                                    <td className="px-2 py-2 text-center text-gray-800 text-sm">
+                                    <td className="px-2 py-2 text-center text-main text-sm">
                                       {row.semester || '—'}
                                     </td>
-                                    <td className="px-2 py-2 text-right font-semibold text-gray-900 text-sm">
+                                    <td className="px-2 py-2 text-right font-semibold text-main text-sm">
                                       {row.totalStudents ?? 0}
                                     </td>
-                                    <td className="px-2 py-2 text-right text-red-700 font-semibold text-sm">
+                                    <td className="px-2 py-2 text-right text-danger font-semibold text-sm">
                                       {row.absentToday ?? 0}
                                     </td>
-                                    <td className="px-2 py-2 text-right text-green-700 font-semibold text-sm">
+                                    <td className="px-2 py-2 text-right text-success font-semibold text-sm">
                                       {row.markedToday ?? 0}
                                     </td>
-                                    <td className="px-2 py-2 text-right text-blue-700 font-semibold text-sm">
+                                    <td className="px-2 py-2 text-right text-primary font-semibold text-sm">
                                       {row.totalStudents > 0
                                         ? ((row.presentToday / row.totalStudents) * 100).toFixed(1) + '%'
                                         : '0.0%'
                                       }
                                     </td>
-                                    <td className="px-2 py-2 text-right text-amber-700 font-semibold text-sm">
+                                    <td className="px-2 py-2 text-right text-warning font-semibold text-sm">
                                       {row.pendingToday ?? 0}
                                     </td>
-                                    <td className="px-2 py-2 text-right text-green-700 font-semibold text-sm">
+                                    <td className="px-2 py-2 text-right text-success font-semibold text-sm">
                                       <div className="flex flex-col items-end">
                                         <span>{row.holidayToday ?? 0}</span>
                                         {row.holidayReasons && (
-                                          <span className="text-xs text-gray-600 font-normal truncate max-w-full" title={row.holidayReasons}>
+                                          <span className="text-xs text-sub font-normal truncate max-w-full" title={row.holidayReasons}>
                                             {row.holidayReasons.length > 20 ? `${row.holidayReasons.substring(0, 20)}...` : row.holidayReasons}
                                           </span>
                                         )}
                                       </div>
                                     </td>
-                                    <td className="px-2 py-2 text-right text-gray-600 text-xs">
+                                    <td className="px-2 py-2 text-right text-sub text-xs">
                                       {row.lastUpdated ? new Date(row.lastUpdated).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' }) : '—'}
                                     </td>
                                   </tr>
@@ -4167,19 +4167,19 @@ const Reports = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="text-center py-8 text-gray-500">
+                      <div className="text-center py-8 text-muted-text">
                         No records found matching the current filters
                       </div>
                     )}
                   </>
                   {/* Fixed Download Buttons at Bottom */}
-                  <div className="sticky bottom-0 bg-white border-t border-gray-200 px-5 py-3 flex items-center justify-between mt-4">
+                  <div className="sticky bottom-0 bg-surface border-t border-border px-5 py-3 flex items-center justify-between mt-4">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleDayEndDownload('pdf')}
                         disabled={dayEndReportLoading || dayEndDownloading || !dayEndGrouped.length}
                         title={!dayEndGrouped.length ? 'Wait for report data to load' : 'Download PDF'}
-                        className="inline-flex items-center gap-1 px-3 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-1 px-3 py-2 rounded-md border border-border-strong text-sub hover:bg-background text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {dayEndDownloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         PDF
@@ -4188,7 +4188,7 @@ const Reports = () => {
                         onClick={() => handleDayEndDownload('xlsx')}
                         disabled={dayEndReportLoading || dayEndDownloading || !dayEndGrouped.length}
                         title={!dayEndGrouped.length ? 'Wait for report data to load' : 'Download Excel'}
-                        className="inline-flex items-center gap-1 px-3 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center gap-1 px-3 py-2 rounded-md border border-border-strong text-sub hover:bg-background text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {dayEndDownloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                         Excel
@@ -4198,7 +4198,7 @@ const Reports = () => {
                       <button
                         onClick={handleSendDayEndReports}
                         disabled={sendingReports}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-xs"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-white hover:bg-primary-hover active:bg-primary transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-xs"
                       >
                         {sendingReports ? (
                           <>
@@ -4216,9 +4216,9 @@ const Reports = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center p-12 text-gray-500">
+                <div className="flex items-center justify-center p-12 text-muted-text">
                   <div className="text-center">
-                    <FileText size={48} className="mx-auto mb-3 text-gray-300" />
+                    <FileText size={48} className="mx-auto mb-3 text-muted-text" />
                     <p className="text-sm">Select a date and click "Refresh Report" to generate the day end report</p>
                   </div>
                 </div>

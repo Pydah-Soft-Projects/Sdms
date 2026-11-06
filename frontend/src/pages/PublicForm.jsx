@@ -843,7 +843,7 @@ const PublicForm = () => {
   };
 
   const renderField = (field) => {
-    const commonClasses = 'w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none touch-manipulation min-h-[44px]';
+    const commonClasses = 'w-full px-3 sm:px-4 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none touch-manipulation min-h-[44px]';
     const fieldKey = field.key?.toLowerCase() || '';
     const fieldLabel = field.label?.toLowerCase() || '';
 
@@ -867,7 +867,7 @@ const PublicForm = () => {
       !fieldKey.includes('previous') && !fieldLabel.includes('previous')) {
       if (collegesLoading) {
         return (
-          <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 flex items-center gap-2 text-sm">
+          <div className="w-full px-3 py-2 border border-border rounded-lg bg-background text-muted-text flex items-center gap-2 text-sm">
             <LoadingAnimation width={16} height={16} showMessage={false} variant="inline" />
             Loading colleges...
           </div>
@@ -899,7 +899,7 @@ const PublicForm = () => {
     if (fieldKey.includes('batch') || fieldLabel.includes('batch') || fieldLabel.includes('academic year')) {
       if (academicYearsLoading) {
         return (
-          <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 flex items-center gap-2 text-sm">
+          <div className="w-full px-3 py-2 border border-border rounded-lg bg-background text-muted-text flex items-center gap-2 text-sm">
             <LoadingAnimation width={16} height={16} showMessage={false} variant="inline" />
             Loading batches...
           </div>
@@ -928,7 +928,7 @@ const PublicForm = () => {
     if (matchesFieldIdentifier(field, COURSE_FIELD_IDENTIFIERS) && availableCourses.length > 0) {
       if (courseOptionsLoading) {
         return (
-          <div className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 flex items-center gap-2 text-sm">
+          <div className="w-full px-3 py-2 border border-border rounded-lg bg-background text-muted-text flex items-center gap-2 text-sm">
             <LoadingAnimation width={16} height={16} showMessage={false} variant="inline" />
             Loading courses...
           </div>
@@ -1219,7 +1219,7 @@ const PublicForm = () => {
     if (fieldKey.includes('photo') || fieldLabel.includes('photo')) {
       return (
         <div className="space-y-2">
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors bg-gray-50">
+          <div className="border-2 border-dashed border-border-strong rounded-lg p-4 text-center hover:border-secondary transition-colors bg-background">
             <input
               type="file"
               accept="image/*"
@@ -1242,16 +1242,16 @@ const PublicForm = () => {
             />
             <label htmlFor="photo-upload-public" className="cursor-pointer flex flex-col items-center gap-2">
               {photoPreview ? (
-                <img src={photoPreview} alt="Preview" className="w-20 h-20 object-cover rounded-lg border-2 border-purple-300" />
+                <img src={photoPreview} alt="Preview" className="w-20 h-20 object-cover rounded-lg border-2 border-[var(--primary-light)]" />
               ) : (
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Upload className="w-6 h-6 text-purple-600" />
+                <div className="w-12 h-12 bg-[var(--primary-light)] rounded-full flex items-center justify-center">
+                  <Upload className="w-6 h-6 text-secondary" />
                 </div>
               )}
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-sub">
                 {photoPreview ? 'Change Photo' : 'Upload Photo'}
               </p>
-              <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+              <p className="text-xs text-muted-text">PNG, JPG up to 5MB</p>
             </label>
           </div>
         </div>
@@ -1299,10 +1299,10 @@ const PublicForm = () => {
                   value={option}
                   checked={formData[field.label] === option}
                   onChange={(e) => handleInputChange(field.label, e.target.value, field.type)}
-                  className="w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                  className="w-4 h-4 text-primary-600 border-border-strong focus:ring-primary-500"
                   required={field.required}
                 />
-                <span className="text-gray-700">{option}</span>
+                <span className="text-sub">{option}</span>
               </label>
             ))}
           </div>
@@ -1318,9 +1318,9 @@ const PublicForm = () => {
                   value={option}
                   checked={(formData[field.label] || []).includes(option)}
                   onChange={(e) => handleInputChange(field.label, option, field.type)}
-                  className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                  className="w-4 h-4 text-primary-600 border-border-strong rounded focus:ring-primary-500"
                 />
-                <span className="text-gray-700">{option}</span>
+                <span className="text-sub">{option}</span>
               </label>
             ))}
           </div>
@@ -1335,11 +1335,11 @@ const PublicForm = () => {
               accept={field.accept || 'image/*'}
               capture={field.accept && field.accept.includes('image') ? 'camera' : undefined}
               onChange={(e) => handleFileChange(field.label, e.target.files[0])}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+              className="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
               required={field.required}
             />
             {fileData[field.label] && (
-              <p className="text-sm text-green-600">
+              <p className="text-sm text-success">
                 Selected: {fileData[field.label].name}
               </p>
             )}
@@ -1357,11 +1357,11 @@ const PublicForm = () => {
                 accept="image/*"
                 capture="camera"
                 onChange={(e) => handleFileChange(field.label, e.target.files[0])}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                className="w-full px-4 py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none file:mr-4 file:py-2 file:px-4 file:rounded-l-lg file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                 required={field.required}
               />
               {fileData[field.label] && (
-                <p className="text-sm text-green-600">
+                <p className="text-sm text-success">
                   Selected: {fileData[field.label].name}
                 </p>
               )}
@@ -1402,7 +1402,7 @@ const PublicForm = () => {
 
   if (loading || fetchingForm) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-[var(--primary-light)] to-[var(--primary-light)] flex items-center justify-center p-4">
         <div className="text-center space-y-4">
           <LoadingAnimation
             width={32}
@@ -1417,14 +1417,14 @@ const PublicForm = () => {
 
   if (error && !form) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="text-red-600" size={32} />
+      <div className="min-h-screen bg-gradient-to-br from-[var(--primary-light)] to-[var(--primary-light)] flex items-center justify-center p-4">
+        <div className="bg-surface rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <div className="bg-[var(--danger-light)] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="text-danger" size={32} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Form Not Found</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <div className="text-sm text-gray-600">
+          <h2 className="text-2xl font-bold text-main mb-2">Form Not Found</h2>
+          <p className="text-sub mb-4">{error}</p>
+          <div className="text-sm text-sub">
             <p className="mb-2">Please try:</p>
             <ul className="text-left space-y-1">
               <li>• Check your internet connection</li>
@@ -1439,16 +1439,16 @@ const PublicForm = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
-          <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="text-green-600" size={32} />
+      <div className="min-h-screen bg-gradient-to-br from-[var(--primary-light)] to-[var(--primary-light)] flex items-center justify-center p-4">
+        <div className="bg-surface rounded-2xl shadow-xl p-8 max-w-md w-full text-center">
+          <div className="bg-[var(--success-light)] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="text-success" size={32} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Submission Successful!</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-2xl font-bold text-main mb-2">Submission Successful!</h2>
+          <p className="text-sub mb-6">
             Your form has been submitted successfully. It is now pending admin approval.
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-text">
             You will be notified once your submission is reviewed.
           </p>
         </div>
@@ -1457,14 +1457,14 @@ const PublicForm = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 py-3 sm:py-4 lg:py-6 px-3 sm:px-4 lg:px-6">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--primary-light)] to-[var(--primary-light)] py-3 sm:py-4 lg:py-6 px-3 sm:px-4 lg:px-6">
       <Toaster position="top-center sm:top-right" containerStyle={{ zIndex: 999999999 }} />
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg sm:rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-surface rounded-lg sm:rounded-2xl shadow-xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-700 text-white p-4 sm:p-6">
+          <div className="bg-gradient-to-r from-secondary to-primary text-white p-4 sm:p-6">
             <div className="flex items-center gap-3 sm:gap-5">
-              <div className="p-2 sm:p-2.5 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-lg flex-shrink-0">
+              <div className="p-2 sm:p-2.5 bg-[var(--surface)]/10 backdrop-blur-md rounded-xl border border-surface shadow-lg flex-shrink-0">
                 <img
                   src="/logo.png"
                   alt="Pydah DB Logo"
@@ -1475,7 +1475,7 @@ const PublicForm = () => {
               <div className="min-w-0 flex-1">
                 <h1 className="text-lg sm:text-xl lg:text-2xl font-bold break-words">{form.form_name}</h1>
                 {form.form_description && (
-                  <p className="text-purple-100 text-xs sm:text-sm mt-1">{form.form_description}</p>
+                  <p className="text-secondary text-xs sm:text-sm mt-1">{form.form_description}</p>
                 )}
               </div>
             </div>
@@ -1707,17 +1707,17 @@ const PublicForm = () => {
                   <>
                     {/* Basic Information */}
                     {basicFields.length > 0 && (
-                      <div className="border-b border-gray-200 pb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <div className="border-b border-border pb-6">
+                        <h3 className="text-lg font-semibold text-main mb-4 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-primary rounded-full"></div>
                           Basic Information
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           {basicFields.map((field, index) => (
                             <div key={index}>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-sub mb-1">
                                 {field.label}
-                                {field.required && <span className="text-red-500 ml-1">*</span>}
+                                {field.required && <span className="text-danger ml-1">*</span>}
                               </label>
                               {renderField(field)}
                             </div>
@@ -1728,17 +1728,17 @@ const PublicForm = () => {
 
                     {/* Academic Information */}
                     {academicFields.length > 0 && (
-                      <div className="border-b border-gray-200 pb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <div className="border-b border-border pb-6">
+                        <h3 className="text-lg font-semibold text-main mb-4 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-success rounded-full"></div>
                           Academic Information
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                           {academicFields.map((field, index) => (
                             <div key={index}>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-sub mb-1">
                                 {field.label}
-                                {field.required && <span className="text-red-500 ml-1">*</span>}
+                                {field.required && <span className="text-danger ml-1">*</span>}
                               </label>
                               {renderField(field)}
                             </div>
@@ -1749,17 +1749,17 @@ const PublicForm = () => {
 
                     {/* Contact Information */}
                     {contactFields.length > 0 && (
-                      <div className="border-b border-gray-200 pb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                      <div className="border-b border-border pb-6">
+                        <h3 className="text-lg font-semibold text-main mb-4 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-warning rounded-full"></div>
                           Contact Information
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                           {contactFields.map((field, index) => (
                             <div key={index}>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-sub mb-1">
                                 {field.label}
-                                {field.required && <span className="text-red-500 ml-1">*</span>}
+                                {field.required && <span className="text-danger ml-1">*</span>}
                               </label>
                               {renderField(field)}
                             </div>
@@ -1770,17 +1770,17 @@ const PublicForm = () => {
 
                     {/* Address Information */}
                     {addressFields.length > 0 && (
-                      <div className="border-b border-gray-200 pb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                      <div className="border-b border-border pb-6">
+                        <h3 className="text-lg font-semibold text-main mb-4 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-background rounded-full"></div>
                           Address Information
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                           {addressFields.map((field, index) => (
                             <div key={index}>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-sub mb-1">
                                 {field.label}
-                                {field.required && <span className="text-red-500 ml-1">*</span>}
+                                {field.required && <span className="text-danger ml-1">*</span>}
                               </label>
                               {renderField(field)}
                             </div>
@@ -1791,17 +1791,17 @@ const PublicForm = () => {
 
                     {/* Personal Information */}
                     {personalFields.length > 0 && (
-                      <div className="border-b border-gray-200 pb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                      <div className="border-b border-border pb-6">
+                        <h3 className="text-lg font-semibold text-main mb-4 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-secondary rounded-full"></div>
                           Personal Information
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                           {personalFields.map((field, index) => (
                             <div key={index}>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-sub mb-1">
                                 {field.label}
-                                {field.required && <span className="text-red-500 ml-1">*</span>}
+                                {field.required && <span className="text-danger ml-1">*</span>}
                               </label>
                               {renderField(field)}
                             </div>
@@ -1812,20 +1812,20 @@ const PublicForm = () => {
 
                     {/* Additional Information */}
                     {additionalFields.length > 0 && (
-                      <div className="border-b border-gray-200 pb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <div className="border-b border-border pb-6">
+                        <h3 className="text-lg font-semibold text-main mb-4 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-danger rounded-full"></div>
                           Additional Information
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           {additionalFields.map((field, index) => (
                             <div key={index} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-sub mb-1">
                                 {field.label}
                                 {field.required ? (
-                                  <span className="text-red-500 ml-1">*</span>
+                                  <span className="text-danger ml-1">*</span>
                                 ) : (
-                                  <span className="text-gray-400 ml-1">(Optional)</span>
+                                  <span className="text-muted-text ml-1">(Optional)</span>
                                 )}
                               </label>
                               {renderField(field)}
@@ -1837,17 +1837,17 @@ const PublicForm = () => {
 
                     {/* Other/Uncategorized Fields - Always show these */}
                     {otherFields.length > 0 && (
-                      <div className="border-b border-gray-200 pb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                          <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                      <div className="border-b border-border pb-6">
+                        <h3 className="text-lg font-semibold text-main mb-4 flex items-center gap-2">
+                          <div className="w-3 h-3 bg-background rounded-full"></div>
                           Other Information
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           {otherFields.map((field, index) => (
                             <div key={index} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                              <label className="block text-sm font-medium text-sub mb-1">
                                 {field.label}
-                                {field.required && <span className="text-red-500 ml-1">*</span>}
+                                {field.required && <span className="text-danger ml-1">*</span>}
                               </label>
                               {renderField(field)}
                             </div>
@@ -1862,23 +1862,23 @@ const PublicForm = () => {
 
               {/* Certificate Information Section - Dynamic with Yes/No toggles */}
               {courseType && (
-                <div className="border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
+                <div className="border-t border-border pt-6">
+                  <h3 className="text-lg font-semibold text-main mb-4 flex items-center gap-2">
+                    <div className="w-3 h-3 bg-primary rounded-full"></div>
                     Certificate Information
                   </h3>
-                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                      <FileText size={16} className="text-gray-600" />
+                  <div className="bg-background rounded-lg border border-border p-4">
+                    <h4 className="text-sm font-semibold text-sub mb-4 flex items-center gap-2">
+                      <FileText size={16} className="text-sub" />
                       Default Certification Fields
                     </h4>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {getCertificatesForCourse().map((cert) => (
                         <div key={cert.key} className="space-y-1">
-                          <label className="block text-sm font-medium text-gray-700">
+                          <label className="block text-sm font-medium text-sub">
                             {cert.label}
-                            {cert.required && <span className="text-red-500 ml-1">*</span>}
+                            {cert.required && <span className="text-danger ml-1">*</span>}
                           </label>
                           <select
                             value={certificateStatus[cert.key] || ''}
@@ -1888,7 +1888,7 @@ const PublicForm = () => {
                                 [cert.key]: e.target.value
                               }));
                             }}
-                            className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none text-sm transition-all shadow-sm"
+                            className="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-sm transition-all shadow-sm"
                             required={cert.required}
                           >
                             <option value="">Select status</option>
@@ -1910,11 +1910,11 @@ const PublicForm = () => {
                 </div>
               )}
 
-              <div className="flex items-center gap-3 sm:gap-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-3 sm:gap-4 pt-4 border-t border-border">
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full sm:flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3.5 sm:py-3 px-6 rounded-lg sm:rounded-xl font-semibold shadow-md hover:from-purple-700 hover:to-indigo-700 active:from-purple-800 active:to-indigo-800 hover:shadow-lg focus:ring-4 focus:ring-purple-200 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation min-h-[44px] text-base sm:text-sm"
+                  className="w-full sm:flex-1 bg-gradient-to-r from-secondary to-primary text-white py-3.5 sm:py-3 px-6 rounded-lg sm:rounded-xl font-semibold shadow-md hover:from-secondary hover:to-primary active:from-secondary active:to-primary hover:shadow-lg focus:ring-4 focus:ring-[var(--primary-light)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation min-h-[44px] text-base sm:text-sm"
                 >
                   {submitting ? (
                     <>
@@ -1933,7 +1933,7 @@ const PublicForm = () => {
           </div>
         </div>
 
-        <p className="text-center text-gray-600 text-sm mt-6">
+        <p className="text-center text-sub text-sm mt-6">
           © 2025 Pydah Student Database Management System
         </p>
       </div>

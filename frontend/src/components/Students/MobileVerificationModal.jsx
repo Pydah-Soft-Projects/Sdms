@@ -209,21 +209,21 @@ const MobileVerificationModal = ({ isOpen, onClose, student, onVerificationCompl
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999999] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[9999999] flex items-center justify-center bg-[var(--sidebar)]/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+            <div className="bg-surface rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
 
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-[var(--background)]/50">
                     <div className="flex items-center gap-2">
-                        <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                        <div className="p-2 bg-[var(--primary-light)] text-primary rounded-lg">
                             <Shield size={20} />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-gray-900">Mobile Verification</h3>
-                            <p className="text-xs text-gray-500">OTP-based verification</p>
+                            <h3 className="font-semibold text-main">Mobile Verification</h3>
+                            <p className="text-xs text-muted-text">OTP-based verification</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <button onClick={onClose} className="text-muted-text hover:text-sub transition-colors">
                         <X size={20} />
                     </button>
                 </div>
@@ -237,21 +237,21 @@ const MobileVerificationModal = ({ isOpen, onClose, student, onVerificationCompl
                             <button
                                 onClick={() => { setSelectedType('student'); setOtpSent(false); }}
                                 className={`relative p-3 rounded-lg border-2 text-left transition-all ${selectedType === 'student'
-                                    ? 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500/20'
-                                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                    ? 'border-primary bg-[var(--primary-light)] ring-1 ring-[var(--primary-light)]'
+                                    : 'border-border hover:border-border-strong hover:bg-background'
                                     }`}
                             >
                                 {isStudentVerified && (
-                                    <div className="absolute top-2 right-2 text-green-600 bg-white rounded-full">
+                                    <div className="absolute top-2 right-2 text-success bg-surface rounded-full">
                                         <CheckCircle size={16} fill="currentColor" className="text-white" />
-                                        <CheckCircle size={16} className="absolute inset-0 text-green-600" />
+                                        <CheckCircle size={16} className="absolute inset-0 text-success" />
                                     </div>
                                 )}
-                                <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Student</span>
-                                <span className="block font-medium text-gray-900 mt-0.5 truncate">
+                                <span className="block text-xs font-semibold text-muted-text uppercase tracking-wide">Student</span>
+                                <span className="block font-medium text-main mt-0.5 truncate">
                                     {studentMobile || 'No Number'}
                                 </span>
-                                <span className={`text-xs mt-2 inline-block px-1.5 py-0.5 rounded ${isStudentVerified ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                <span className={`text-xs mt-2 inline-block px-1.5 py-0.5 rounded ${isStudentVerified ? 'bg-[var(--success-light)] text-success' : 'bg-background text-sub'}`}>
                                     {isStudentVerified ? 'Verified' : 'Pending'}
                                 </span>
                             </button>
@@ -259,21 +259,21 @@ const MobileVerificationModal = ({ isOpen, onClose, student, onVerificationCompl
                             <button
                                 onClick={() => { setSelectedType('parent'); setOtpSent(false); }}
                                 className={`relative p-3 rounded-lg border-2 text-left transition-all ${selectedType === 'parent'
-                                    ? 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500/20'
-                                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                    ? 'border-primary bg-[var(--primary-light)] ring-1 ring-[var(--primary-light)]'
+                                    : 'border-border hover:border-border-strong hover:bg-background'
                                     }`}
                             >
                                 {isParentVerified && (
-                                    <div className="absolute top-2 right-2 text-green-600 bg-white rounded-full">
+                                    <div className="absolute top-2 right-2 text-success bg-surface rounded-full">
                                         <CheckCircle size={16} fill="currentColor" className="text-white" />
-                                        <CheckCircle size={16} className="absolute inset-0 text-green-600" />
+                                        <CheckCircle size={16} className="absolute inset-0 text-success" />
                                     </div>
                                 )}
-                                <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wide">Parent</span>
-                                <span className="block font-medium text-gray-900 mt-0.5 truncate">
+                                <span className="block text-xs font-semibold text-muted-text uppercase tracking-wide">Parent</span>
+                                <span className="block font-medium text-main mt-0.5 truncate">
                                     {parentMobile || 'No Number'}
                                 </span>
-                                <span className={`text-xs mt-2 inline-block px-1.5 py-0.5 rounded ${isParentVerified ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                <span className={`text-xs mt-2 inline-block px-1.5 py-0.5 rounded ${isParentVerified ? 'bg-[var(--success-light)] text-success' : 'bg-background text-sub'}`}>
                                     {isParentVerified ? 'Verified' : 'Pending'}
                                 </span>
                             </button>
@@ -282,33 +282,33 @@ const MobileVerificationModal = ({ isOpen, onClose, student, onVerificationCompl
                         {/* Action Area */}
                         <div className="pt-2">
                             {isCurrentVerified() ? (
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex flex-col items-center justify-center text-center">
-                                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2">
-                                        <CheckCircle size={24} className="text-green-600" />
+                                <div className="bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg p-4 flex flex-col items-center justify-center text-center">
+                                    <div className="w-12 h-12 bg-[var(--success-light)] rounded-full flex items-center justify-center mb-2">
+                                        <CheckCircle size={24} className="text-success" />
                                     </div>
-                                    <h4 className="font-semibold text-green-800">Verified Successfully</h4>
-                                    <p className="text-sm text-green-600 mt-1">
+                                    <h4 className="font-semibold text-success">Verified Successfully</h4>
+                                    <p className="text-sm text-success mt-1">
                                         The {selectedType} mobile number is verified.
                                     </p>
                                 </div>
                             ) : (
                                 <div className="space-y-4">
                                     {!otpSent ? (
-                                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
+                                        <div className="bg-background border border-border rounded-lg p-4 space-y-4">
                                             <div className="text-center">
-                                                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                                                    <Smartphone size={24} className="text-blue-600" />
+                                                <div className="w-12 h-12 bg-[var(--primary-light)] rounded-full flex items-center justify-center mx-auto mb-2">
+                                                    <Smartphone size={24} className="text-primary" />
                                                 </div>
-                                                <p className="text-sm text-gray-600 mb-1">Verify your details & send OTP</p>
-                                                <p className="font-semibold text-gray-900 text-lg tracking-wider">
+                                                <p className="text-sm text-sub mb-1">Verify your details & send OTP</p>
+                                                <p className="font-semibold text-main text-lg tracking-wider">
                                                     {maskMobile(getCurrentMobile())}
                                                 </p>
                                             </div>
 
                                             {/* Dynamic Profile Fields */}
                                             {profileUpdateConfig.enabledFields.length > 0 && (
-                                                <div className="space-y-3 pt-2 border-t border-gray-200">
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Verify / Update Information</p>
+                                                <div className="space-y-3 pt-2 border-t border-border">
+                                                    <p className="text-[10px] font-bold text-muted-text uppercase tracking-widest text-center">Verify / Update Information</p>
                                                     <div className="grid grid-cols-1 gap-3">
                                                         {profileUpdateConfig.enabledFields.map(fieldKey => {
                                                             const fieldDef = availableFields.find(f => f.key === fieldKey);
@@ -316,14 +316,14 @@ const MobileVerificationModal = ({ isOpen, onClose, student, onVerificationCompl
 
                                                             return (
                                                                 <div key={fieldKey} className="flex flex-col gap-1">
-                                                                    <label className="text-[10px] font-bold text-gray-500 uppercase ml-1">
+                                                                    <label className="text-[10px] font-bold text-muted-text uppercase ml-1">
                                                                         {fieldDef.label}
                                                                     </label>
                                                                     <input
                                                                         type={fieldDef.type === 'number' ? 'number' : 'text'}
                                                                         value={fieldValues[fieldKey] || ''}
                                                                         onChange={(e) => setFieldValues(prev => ({ ...prev, [fieldKey]: e.target.value }))}
-                                                                        className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none shadow-sm"
+                                                                        className="w-full px-3 py-2 bg-surface border border-border-strong rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none shadow-sm"
                                                                         placeholder={`Enter ${fieldDef.label}`}
                                                                     />
                                                                 </div>
@@ -336,10 +336,10 @@ const MobileVerificationModal = ({ isOpen, onClose, student, onVerificationCompl
                                             <button
                                                 onClick={handleSendOtp}
                                                 disabled={loading || !getCurrentMobile()}
-                                                className="w-full py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+                                                className="w-full py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
                                             >
                                                 {loading ? (
-                                                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    <span className="w-5 h-5 border-2 border-surface border-t-surface rounded-full animate-spin" />
                                                 ) : (
                                                     <>
                                                         <Send size={16} /> Send OTP
@@ -348,13 +348,13 @@ const MobileVerificationModal = ({ isOpen, onClose, student, onVerificationCompl
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                                        <div className="bg-surface border border-border rounded-lg p-4 space-y-4 animate-in fade-in slide-in-from-bottom-2">
                                             <div className="text-center">
-                                                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                                                    <KeyRound size={24} className="text-purple-600" />
+                                                <div className="w-12 h-12 bg-[var(--primary-light)] rounded-full flex items-center justify-center mx-auto mb-2">
+                                                    <KeyRound size={24} className="text-secondary" />
                                                 </div>
-                                                <h4 className="font-medium text-gray-900">Enter OTP</h4>
-                                                <p className="text-xs text-gray-500 mt-1">
+                                                <h4 className="font-medium text-main">Enter OTP</h4>
+                                                <p className="text-xs text-muted-text mt-1">
                                                     Sent to {maskMobile(getCurrentMobile())}
                                                 </p>
                                             </div>
@@ -368,7 +368,7 @@ const MobileVerificationModal = ({ isOpen, onClose, student, onVerificationCompl
                                                     setOtp(val);
                                                 }}
                                                 placeholder="- - - - - -"
-                                                className="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                                                className="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none transition-all"
                                                 maxLength={6}
                                                 disabled={loading}
                                                 autoFocus
@@ -377,10 +377,10 @@ const MobileVerificationModal = ({ isOpen, onClose, student, onVerificationCompl
                                             <button
                                                 onClick={handleVerifyOtp}
                                                 disabled={loading || otp.length < 6}
-                                                className="w-full py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+                                                className="w-full py-2.5 bg-secondary text-white rounded-lg hover:bg-secondary font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
                                             >
                                                 {loading ? (
-                                                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    <span className="w-5 h-5 border-2 border-surface border-t-surface rounded-full animate-spin" />
                                                 ) : (
                                                     'Verify OTP'
                                                 )}
@@ -388,21 +388,21 @@ const MobileVerificationModal = ({ isOpen, onClose, student, onVerificationCompl
 
                                             <div className="text-center">
                                                 {timer > 0 ? (
-                                                    <p className="text-xs text-gray-400">
+                                                    <p className="text-xs text-muted-text">
                                                         Resend in {timer}s
                                                     </p>
                                                 ) : (
                                                     <button
                                                         onClick={handleSendOtp}
                                                         disabled={loading}
-                                                        className="text-xs text-blue-600 hover:text-blue-700 hover:underline font-medium"
+                                                        className="text-xs text-primary hover:text-primary hover:underline font-medium"
                                                     >
                                                         Resend OTP
                                                     </button>
                                                 )}
                                                 <button
                                                     onClick={() => setOtpSent(false)}
-                                                    className="block w-full mt-2 text-xs text-gray-400 hover:text-gray-600"
+                                                    className="block w-full mt-2 text-xs text-muted-text hover:text-sub"
                                                 >
                                                     Change Number
                                                 </button>

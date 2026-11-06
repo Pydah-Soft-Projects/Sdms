@@ -48,7 +48,7 @@ export default function PydahAiChat({
   mode = 'widget',
   assistantId: propsAssistantId,
   authToken: propsAuthToken,
-  title = 'Pydah Admin Assistant',
+  title = 'CAMPO SD Admin Assistant',
   welcomeMessage = 'Hi! How can I help you today?',
   position = 'bottom-right',
   apiBaseUrl: propsApiBaseUrl,

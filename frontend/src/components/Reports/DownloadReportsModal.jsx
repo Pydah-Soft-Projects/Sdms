@@ -580,22 +580,22 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-surface rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-surface border-b border-border px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="rounded-full bg-blue-100 p-2 text-blue-600">
+            <div className="rounded-full bg-[var(--primary-light)] p-2 text-primary">
               <Download size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Download Attendance Reports</h2>
-              <p className="text-sm text-gray-600">Select date range and download format</p>
+              <h2 className="text-xl font-bold text-main">Download Attendance Reports</h2>
+              <p className="text-sm text-sub">Select date range and download format</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="rounded-lg p-2 text-muted-text hover:text-sub hover:bg-background transition-colors"
           >
             <X size={20} />
           </button>
@@ -606,7 +606,7 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
           {/* Date Selection */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <label className="text-sm font-semibold text-sub flex items-center gap-2">
                 <Calendar size={16} />
                 From Date
               </label>
@@ -614,12 +614,12 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
                 type="date"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-lg border border-border-strong px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 max={toDate || undefined}
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <label className="text-sm font-semibold text-sub flex items-center gap-2">
                 <Calendar size={16} />
                 To Date
               </label>
@@ -627,7 +627,7 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
                 type="date"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-lg border border-border-strong px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 min={fromDate || undefined}
               />
             </div>
@@ -641,13 +641,13 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
               disabled={loading || !fromDate || !toDate}
               className={`inline-flex items-center gap-2 px-6 py-2 rounded-lg border transition-colors ${
                 loading || !fromDate || !toDate
-                  ? 'border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed'
-                  : 'border-blue-500 text-white bg-blue-600 hover:bg-blue-700'
+                  ? 'border-border text-muted-text bg-background cursor-not-allowed'
+                  : 'border-primary text-white bg-primary hover:bg-primary-hover'
               }`}
             >
               {loading ? (
                 <>
-                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span className="h-4 w-4 border-2 border-surface border-t-transparent rounded-full animate-spin" />
                   Loading Preview...
                 </>
               ) : (
@@ -661,8 +661,8 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
 
           {/* Preview Statistics */}
           {previewData && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <div className="bg-background border border-border rounded-lg p-4 space-y-4">
+              <h3 className="text-lg font-semibold text-main flex items-center gap-2">
                 <Users size={18} />
                 {previewData.aggregatedData ? 'Summary Report Preview' : 'Report Preview'}
               </h3>
@@ -675,36 +675,36 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
                     return (
                       <>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          <div className="bg-white rounded-lg border border-gray-200 p-3">
-                            <div className="text-xs text-gray-500 uppercase tracking-wide">Total Groups</div>
-                            <div className="text-2xl font-bold text-gray-900 mt-1">
+                          <div className="bg-surface rounded-lg border border-border p-3">
+                            <div className="text-xs text-muted-text uppercase tracking-wide">Total Groups</div>
+                            <div className="text-2xl font-bold text-main mt-1">
                               {filteredPreviewData.length}
                             </div>
                           </div>
-                    <div className="bg-blue-50 rounded-lg border border-blue-200 p-3">
-                      <div className="text-xs text-blue-600 uppercase tracking-wide">Working Days</div>
-                      <div className="text-2xl font-bold text-blue-700 mt-1">
+                    <div className="bg-[var(--primary-light)] rounded-lg border border-[var(--primary-light)] p-3">
+                      <div className="text-xs text-primary uppercase tracking-wide">Working Days</div>
+                      <div className="text-2xl font-bold text-primary mt-1">
                         {previewData.totalWorkingDays || 0}
                       </div>
                     </div>
-                    <div className="bg-amber-50 rounded-lg border border-amber-200 p-3">
-                      <div className="text-xs text-amber-600 uppercase tracking-wide flex items-center gap-1">
+                    <div className="bg-[var(--warning-light)] rounded-lg border border-[var(--warning-light)] p-3">
+                      <div className="text-xs text-warning uppercase tracking-wide flex items-center gap-1">
                         <AlertCircle size={12} />
                         No Class Work Days
                       </div>
-                      <div className="text-2xl font-bold text-amber-700 mt-1">
+                      <div className="text-2xl font-bold text-warning mt-1">
                         {previewData.totalHolidays || 0}
                       </div>
                     </div>
-                    <div className="bg-purple-50 rounded-lg border border-purple-200 p-3">
-                      <div className="text-xs text-purple-600 uppercase tracking-wide">Public No Class Work Days</div>
-                      <div className="text-2xl font-bold text-purple-700 mt-1">
+                    <div className="bg-[var(--primary-light)] rounded-lg border border-[var(--primary-light)] p-3">
+                      <div className="text-xs text-secondary uppercase tracking-wide">Public No Class Work Days</div>
+                      <div className="text-2xl font-bold text-secondary mt-1">
                         {previewData.publicHolidays?.length || 0}
                       </div>
                     </div>
-                    <div className="bg-indigo-50 rounded-lg border border-indigo-200 p-3">
-                      <div className="text-xs text-indigo-600 uppercase tracking-wide">Institute No Class Work Days</div>
-                      <div className="text-2xl font-bold text-indigo-700 mt-1">
+                    <div className="bg-[var(--primary-light)] rounded-lg border border-[var(--primary-light)] p-3">
+                      <div className="text-xs text-primary uppercase tracking-wide">Institute No Class Work Days</div>
+                      <div className="text-2xl font-bold text-primary mt-1">
                         {previewData.instituteHolidays?.length || 0}
                       </div>
                     </div>
@@ -712,41 +712,41 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
 
                   {/* Aggregated Table Preview */}
                   <div className="mt-4">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Summary by Batch, Course, Branch, Year & Semester</h4>
-                    <div className="overflow-x-auto max-h-64 border border-gray-200 rounded-lg bg-white">
+                    <h4 className="text-sm font-semibold text-sub mb-2">Summary by Batch, Course, Branch, Year & Semester</h4>
+                    <div className="overflow-x-auto max-h-64 border border-border rounded-lg bg-surface">
                       <table className="min-w-full text-sm">
-                        <thead className="bg-gray-50 sticky top-0">
+                        <thead className="bg-background sticky top-0">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Batch</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Course</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Branch</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Year</th>
-                            <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Sem</th>
-                            <th className="px-3 py-2 text-right text-xs font-semibold text-gray-600">Students</th>
-                            <th className="px-3 py-2 text-right text-xs font-semibold text-green-600">Present</th>
-                            <th className="px-3 py-2 text-right text-xs font-semibold text-red-600">Absent</th>
-                            <th className="px-3 py-2 text-right text-xs font-semibold text-gray-600">Unmarked</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-sub">Batch</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-sub">Course</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-sub">Branch</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-sub">Year</th>
+                            <th className="px-3 py-2 text-left text-xs font-semibold text-sub">Sem</th>
+                            <th className="px-3 py-2 text-right text-xs font-semibold text-sub">Students</th>
+                            <th className="px-3 py-2 text-right text-xs font-semibold text-success">Present</th>
+                            <th className="px-3 py-2 text-right text-xs font-semibold text-danger">Absent</th>
+                            <th className="px-3 py-2 text-right text-xs font-semibold text-sub">Unmarked</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
+                        <tbody className="divide-y divide-border">
                           {filteredPreviewData.slice(0, 10).map((row, idx) => (
-                            <tr key={idx} className="hover:bg-gray-50">
-                              <td className="px-3 py-2 text-gray-900">{row.batch || 'N/A'}</td>
-                              <td className="px-3 py-2 text-gray-900">{row.course || 'N/A'}</td>
-                              <td className="px-3 py-2 text-gray-900">{row.branch || 'N/A'}</td>
-                              <td className="px-3 py-2 text-gray-900">{row.year || 0}</td>
-                              <td className="px-3 py-2 text-gray-900">{row.semester || 0}</td>
+                            <tr key={idx} className="hover:bg-background">
+                              <td className="px-3 py-2 text-main">{row.batch || 'N/A'}</td>
+                              <td className="px-3 py-2 text-main">{row.course || 'N/A'}</td>
+                              <td className="px-3 py-2 text-main">{row.branch || 'N/A'}</td>
+                              <td className="px-3 py-2 text-main">{row.year || 0}</td>
+                              <td className="px-3 py-2 text-main">{row.semester || 0}</td>
                               <td className="px-3 py-2 text-right font-medium">{row.studentCount}</td>
-                              <td className="px-3 py-2 text-right text-green-700 font-medium">{row.present}</td>
-                              <td className="px-3 py-2 text-right text-red-700 font-medium">{row.absent}</td>
-                              <td className="px-3 py-2 text-right text-gray-700 font-medium">{row.unmarked}</td>
+                              <td className="px-3 py-2 text-right text-success font-medium">{row.present}</td>
+                              <td className="px-3 py-2 text-right text-danger font-medium">{row.absent}</td>
+                              <td className="px-3 py-2 text-right text-sub font-medium">{row.unmarked}</td>
                             </tr>
                           ))}
                         </tbody>
                         {filteredPreviewData.length > 10 && (
-                          <tfoot className="bg-gray-50">
+                          <tfoot className="bg-background">
                             <tr>
-                              <td colSpan={9} className="px-3 py-2 text-xs text-gray-500">
+                              <td colSpan={9} className="px-3 py-2 text-xs text-muted-text">
                                 Showing first 10 of {filteredPreviewData.length} groups
                               </td>
                             </tr>
@@ -762,48 +762,48 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
               ) : (
                 // Detailed Report Preview (existing)
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-white rounded-lg border border-gray-200 p-3">
-                    <div className="text-xs text-gray-500 uppercase tracking-wide">Total Students</div>
-                    <div className="text-2xl font-bold text-gray-900 mt-1">
+                  <div className="bg-surface rounded-lg border border-border p-3">
+                    <div className="text-xs text-muted-text uppercase tracking-wide">Total Students</div>
+                    <div className="text-2xl font-bold text-main mt-1">
                       {previewData.statistics?.totalStudents || 0}
                     </div>
                   </div>
-                  <div className="bg-green-50 rounded-lg border border-green-200 p-3">
-                    <div className="text-xs text-green-600 uppercase tracking-wide flex items-center gap-1">
+                  <div className="bg-[var(--success-light)] rounded-lg border border-[var(--success-light)] p-3">
+                    <div className="text-xs text-success uppercase tracking-wide flex items-center gap-1">
                       <CheckCircle size={12} />
                       Present
                     </div>
-                    <div className="text-2xl font-bold text-green-700 mt-1">
+                    <div className="text-2xl font-bold text-success mt-1">
                       {previewData.statistics?.totalPresent || 0}
                     </div>
                   </div>
-                  <div className="bg-red-50 rounded-lg border border-red-200 p-3">
-                    <div className="text-xs text-red-600 uppercase tracking-wide flex items-center gap-1">
+                  <div className="bg-[var(--danger-light)] rounded-lg border border-[var(--danger-light)] p-3">
+                    <div className="text-xs text-danger uppercase tracking-wide flex items-center gap-1">
                       <XCircle size={12} />
                       Absent
                     </div>
-                    <div className="text-2xl font-bold text-red-700 mt-1">
+                    <div className="text-2xl font-bold text-danger mt-1">
                       {previewData.statistics?.totalAbsent || 0}
                     </div>
                   </div>
-                  <div className="bg-amber-50 rounded-lg border border-amber-200 p-3">
-                    <div className="text-xs text-amber-600 uppercase tracking-wide flex items-center gap-1">
+                  <div className="bg-[var(--warning-light)] rounded-lg border border-[var(--warning-light)] p-3">
+                    <div className="text-xs text-warning uppercase tracking-wide flex items-center gap-1">
                       <AlertCircle size={12} />
                       No Class Work Days
                     </div>
-                    <div className="text-2xl font-bold text-amber-700 mt-1">
+                    <div className="text-2xl font-bold text-warning mt-1">
                       {previewData.statistics?.totalHolidays || 0}
                     </div>
                   </div>
-                  <div className="bg-gray-50 rounded-lg border border-gray-200 p-3">
-                    <div className="text-xs text-gray-600 uppercase tracking-wide">Unmarked</div>
-                    <div className="text-2xl font-bold text-gray-700 mt-1">
+                  <div className="bg-background rounded-lg border border-border p-3">
+                    <div className="text-xs text-sub uppercase tracking-wide">Unmarked</div>
+                    <div className="text-2xl font-bold text-sub mt-1">
                       {previewData.statistics?.totalUnmarked || 0}
                     </div>
                   </div>
-                  <div className="bg-blue-50 rounded-lg border border-blue-200 p-3">
-                    <div className="text-xs text-blue-600 uppercase tracking-wide">Working Days</div>
-                    <div className="text-2xl font-bold text-blue-700 mt-1">
+                  <div className="bg-[var(--primary-light)] rounded-lg border border-[var(--primary-light)] p-3">
+                    <div className="text-xs text-primary uppercase tracking-wide">Working Days</div>
+                    <div className="text-2xl font-bold text-primary mt-1">
                       {previewData.statistics?.workingDays || 0}
                     </div>
                   </div>
@@ -811,20 +811,20 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
               )}
 
               {/* Download Buttons */}
-              <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
+              <div className="flex flex-wrap gap-3 pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => handleDownload('excel')}
                   disabled={downloading}
                   className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg border transition-colors ${
                     downloading && downloadFormat === 'excel'
-                      ? 'border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed'
-                      : 'border-green-500 text-white bg-green-600 hover:bg-green-700'
+                      ? 'border-border text-muted-text bg-background cursor-not-allowed'
+                      : 'border-success text-white bg-success hover:bg-success'
                   }`}
                 >
                   {downloading && downloadFormat === 'excel' ? (
                     <>
-                      <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span className="h-4 w-4 border-2 border-surface border-t-transparent rounded-full animate-spin" />
                       Downloading...
                     </>
                   ) : (
@@ -840,13 +840,13 @@ const DownloadReportsModal = ({ isOpen, onClose, filters }) => {
                   disabled={downloading}
                   className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg border transition-colors ${
                     downloading && downloadFormat === 'pdf'
-                      ? 'border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed'
-                      : 'border-red-500 text-white bg-red-600 hover:bg-red-700'
+                      ? 'border-border text-muted-text bg-background cursor-not-allowed'
+                      : 'border-danger text-white bg-danger hover:bg-danger'
                   }`}
                 >
                   {downloading && downloadFormat === 'pdf' ? (
                     <>
-                      <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span className="h-4 w-4 border-2 border-surface border-t-transparent rounded-full animate-spin" />
                       Generating...
                     </>
                   ) : (

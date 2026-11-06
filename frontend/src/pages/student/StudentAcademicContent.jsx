@@ -21,9 +21,9 @@ import {
 
 const typeLabels = { note: 'Lecture Note', assignment: 'Assignment', test: 'Class Test' };
 const typeColors = {
-  note: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  assignment: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-  test: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' }
+  note: { bg: 'bg-[var(--primary-light)]', text: 'text-primary', border: 'border-[var(--primary-light)]' },
+  assignment: { bg: 'bg-[var(--warning-light)]', text: 'text-warning', border: 'border-[var(--warning-light)]' },
+  test: { bg: 'bg-[var(--primary-light)]', text: 'text-secondary', border: 'border-[var(--primary-light)]' }
 };
 
 const StudentAcademicContent = () => {
@@ -203,34 +203,34 @@ const StudentAcademicContent = () => {
   return (
     <div className="max-w-6xl mx-auto space-y-4 pb-12">
       {/* ── SINGLE-LINE HEADER ── */}
-      <div className="flex items-center justify-between gap-2 sm:gap-4 bg-white px-3 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-slate-200/80 shadow-xs">
+      <div className="flex items-center justify-between gap-2 sm:gap-4 bg-surface px-3 sm:px-5 py-2.5 sm:py-3 rounded-2xl border border-border shadow-xs">
         {/* Left: Back button + Title in a single line */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={() => navigate('/student/dashboard')}
-            className="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+            className="p-1.5 sm:p-2 rounded-xl text-muted-text hover:text-main hover:bg-background transition-colors cursor-pointer shrink-0"
             title="Back to Dashboard"
           >
             <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
           </button>
           <div className="flex items-center gap-2 truncate">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[var(--primary-light)] text-primary flex items-center justify-center shrink-0">
               <BookOpen size={18} />
             </div>
-            <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-900 tracking-tight whitespace-nowrap">
+            <h1 className="text-sm sm:text-base md:text-lg font-black text-main tracking-tight whitespace-nowrap">
               Academics
             </h1>
           </div>
         </div>
 
         {/* Right: Two Main Tabs: "Class Work" & "Examinations" (Single-line Segmented Switcher) */}
-        <div className="inline-flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/70 shrink-0">
+        <div className="inline-flex items-center bg-[var(--background)]/90 p-1 rounded-xl border border-border shrink-0">
           <button
             onClick={() => handleTabChange('classwork')}
             className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'classwork'
-                ? 'bg-white text-blue-600 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-surface text-primary shadow-xs'
+                : 'text-sub hover:text-main'
             }`}
           >
             <FileText size={14} className="shrink-0" />
@@ -240,8 +240,8 @@ const StudentAcademicContent = () => {
             onClick={() => handleTabChange('examinations')}
             className={`flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
               activeTab === 'examinations'
-                ? 'bg-white text-blue-600 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-surface text-primary shadow-xs'
+                : 'text-sub hover:text-main'
             }`}
           >
             <Award size={14} className="shrink-0" />
@@ -256,7 +256,7 @@ const StudentAcademicContent = () => {
       {activeTab === 'classwork' && (
         <div className="space-y-4">
           {/* Controls Bar: Type Filters + Search */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-surface p-3 sm:p-4 rounded-2xl border border-border shadow-xs">
             {/* Filter Tabs */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
               {[
@@ -270,8 +270,8 @@ const StudentAcademicContent = () => {
                   onClick={() => setSelectedType(tab.key)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                     selectedType === tab.key
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-slate-50 text-slate-600 border border-slate-200/80 hover:bg-slate-100'
+                      ? 'bg-primary text-white shadow-xs'
+                      : 'bg-background text-sub border border-border hover:bg-background'
                   }`}
                 >
                   {tab.label}
@@ -281,30 +281,30 @@ const StudentAcademicContent = () => {
 
             {/* Search */}
             <div className="relative w-full sm:w-64">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" />
               <input
                 type="text"
                 placeholder="Search subject, title..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-border bg-[var(--background)]/50 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary transition-all"
               />
             </div>
           </div>
 
           {/* Content List */}
           {loadingClassWork ? (
-            <div className="flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-slate-200/80">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-2" />
-              <p className="text-xs font-semibold text-slate-500">Loading academic content...</p>
+            <div className="flex flex-col items-center justify-center p-16 bg-surface rounded-2xl border border-border">
+              <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+              <p className="text-xs font-semibold text-muted-text">Loading academic content...</p>
             </div>
           ) : filteredContent.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-slate-200/80 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+            <div className="flex flex-col items-center justify-center p-16 bg-surface rounded-2xl border border-border text-center">
+              <div className="w-14 h-14 rounded-2xl bg-[var(--primary-light)] text-primary flex items-center justify-center mb-3">
                 <BookOpen size={26} />
               </div>
-              <h3 className="text-base font-bold text-slate-800">No content available</h3>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm">
+              <h3 className="text-base font-bold text-main">No content available</h3>
+              <p className="text-xs text-muted-text mt-1 max-w-sm">
                 {searchQuery
                   ? 'No materials matched your search criteria.'
                   : 'Your faculty have not uploaded any study material for this section yet.'}
@@ -317,7 +317,7 @@ const StudentAcademicContent = () => {
                 return (
                   <div
                     key={item.id}
-                    className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
+                    className="bg-surface rounded-2xl border border-border p-4 shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2">
@@ -327,26 +327,26 @@ const StudentAcademicContent = () => {
                           {typeLabels[item.type] || item.type}
                         </span>
                         {item.due_date && (
-                          <span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
+                          <span className="text-[10px] font-semibold text-muted-text flex items-center gap-1">
                             <Calendar size={12} />
                             Due: {new Date(item.due_date).toLocaleDateString()}
                           </span>
                         )}
                       </div>
 
-                      <h3 className="text-sm font-bold text-slate-900 leading-snug">{item.title}</h3>
+                      <h3 className="text-sm font-bold text-main leading-snug">{item.title}</h3>
                       {item.subject_name && (
-                        <p className="text-xs font-semibold text-blue-600 mt-0.5">{item.subject_name}</p>
+                        <p className="text-xs font-semibold text-primary mt-0.5">{item.subject_name}</p>
                       )}
                       {item.description && (
-                        <p className="text-xs text-slate-500 mt-2 line-clamp-3 leading-relaxed whitespace-pre-wrap">
+                        <p className="text-xs text-muted-text mt-2 line-clamp-3 leading-relaxed whitespace-pre-wrap">
                           {item.description}
                         </p>
                       )}
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-[10px] font-medium text-slate-400">
+                    <div className="mt-4 pt-3 border-t border-border flex items-center justify-between">
+                      <span className="text-[10px] font-medium text-muted-text">
                         Posted: {new Date(item.created_at).toLocaleDateString()}
                       </span>
                       {item.file_url ? (
@@ -354,13 +354,13 @@ const StudentAcademicContent = () => {
                           href={item.file_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold transition-all"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--primary-light)] text-primary hover:bg-[var(--primary-light)] text-xs font-bold transition-all"
                         >
                           <Download size={13} />
                           Attachment
                         </a>
                       ) : (
-                        <span className="text-[11px] font-medium text-slate-400">No file attached</span>
+                        <span className="text-[11px] font-medium text-muted-text">No file attached</span>
                       )}
                     </div>
                   </div>
@@ -377,14 +377,14 @@ const StudentAcademicContent = () => {
       {activeTab === 'examinations' && (
         <div className="space-y-4">
           {/* Top Filter Bar: Examination Notification */}
-          <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
-            <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">
+          <div className="bg-surface p-3 sm:p-4 rounded-2xl border border-border shadow-2xs">
+            <label className="block text-[10px] font-black uppercase tracking-wider text-muted-text mb-1.5">
               Examination Notification
             </label>
             <select
               value={selectedNotificationFilter}
               onChange={(e) => setSelectedNotificationFilter(e.target.value)}
-              className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer shadow-xs"
+              className="w-full px-3.5 py-2.5 text-xs font-bold rounded-xl border border-border bg-surface text-main focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary transition-all cursor-pointer shadow-xs"
             >
               <option value="all">All Notifications</option>
               {notificationOptions.map((opt) => (
@@ -396,35 +396,35 @@ const StudentAcademicContent = () => {
           </div>
 
           {/* Formula & Assessment Header Bar with Mobile View Switcher */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-surface p-3 sm:p-3.5 rounded-2xl border border-border shadow-2xs">
             <div className="flex items-center gap-2 flex-wrap min-w-0">
-              <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
-              <span className="text-xs font-black text-slate-800 tracking-tight">
+              <span className="w-2 h-2 rounded-full bg-primary shrink-0"></span>
+              <span className="text-xs font-black text-main tracking-tight">
                 Consolidated Internal Assessment
               </span>
-              <span className="text-[11px] font-semibold text-slate-500">
+              <span className="text-[11px] font-semibold text-muted-text">
                 (Semester 3-1 • Regular)
               </span>
               {matrixData?.formula && (
-                <span className="text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200/80 px-2 py-0.5 rounded-md">
-                  <span className="text-slate-400 font-semibold mr-1">Formula:</span>
-                  <span className="text-slate-800 font-extrabold">{matrixData.formula}</span>
+                <span className="text-[10px] font-bold text-sub bg-background border border-border px-2 py-0.5 rounded-md">
+                  <span className="text-muted-text font-semibold mr-1">Formula:</span>
+                  <span className="text-main font-extrabold">{matrixData.formula}</span>
                 </span>
               )}
             </div>
 
             {/* View Layout Toggle: Cards vs Table */}
-            <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-              <span className="text-[11px] font-semibold text-slate-400 sm:hidden">
+            <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-border">
+              <span className="text-[11px] font-semibold text-muted-text sm:hidden">
                 {filteredMatrixRows.length} {filteredMatrixRows.length === 1 ? 'Subject' : 'Subjects'}
               </span>
-              <div className="inline-flex items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/70">
+              <div className="inline-flex items-center bg-[var(--background)]/90 p-0.5 rounded-xl border border-border">
                 <button
                   onClick={() => setViewLayout('cards')}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     viewLayout === 'cards'
-                      ? 'bg-white text-blue-600 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-surface text-primary shadow-xs'
+                      : 'text-sub hover:text-main'
                   }`}
                   title="Card View (Optimized for Mobile)"
                 >
@@ -435,8 +435,8 @@ const StudentAcademicContent = () => {
                   onClick={() => setViewLayout('table')}
                   className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     viewLayout === 'table'
-                      ? 'bg-white text-blue-600 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      ? 'bg-surface text-primary shadow-xs'
+                      : 'text-sub hover:text-main'
                   }`}
                   title="Table View (Full Matrix)"
                 >
@@ -449,19 +449,19 @@ const StudentAcademicContent = () => {
 
           {/* Loading State */}
           {loadingMarks ? (
-            <div className="flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-slate-200/80 shadow-2xs">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-2" />
-              <p className="text-xs font-semibold text-slate-500">
+            <div className="flex flex-col items-center justify-center p-16 bg-surface rounded-2xl border border-border shadow-2xs">
+              <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
+              <p className="text-xs font-semibold text-muted-text">
                 Fetching marks directly from Examination Portal...
               </p>
             </div>
           ) : filteredMatrixRows.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-slate-200/80 text-center shadow-2xs">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+            <div className="flex flex-col items-center justify-center p-16 bg-surface rounded-2xl border border-border text-center shadow-2xs">
+              <div className="w-14 h-14 rounded-2xl bg-[var(--primary-light)] text-primary flex items-center justify-center mb-3">
                 <GraduationCap size={28} />
               </div>
-              <h3 className="text-base font-bold text-slate-800">No Assessment Records Found</h3>
-              <p className="text-xs text-slate-400 mt-1 max-w-md">
+              <h3 className="text-base font-bold text-main">No Assessment Records Found</h3>
+              <p className="text-xs text-muted-text mt-1 max-w-md">
                 {marksSearchQuery || statusFilter !== 'all'
                   ? 'No subjects match your selected search or status criteria.'
                   : 'Consolidated examination marks will appear here once entered and forwarded in EMS.'}
@@ -470,39 +470,39 @@ const StudentAcademicContent = () => {
           ) : (
             <div className="space-y-3">
               {/* Mobile Student Details Card (Shown on mobile devices so table/cards don't need a bulky side-column) */}
-              <div className="md:hidden bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2.5">
+              <div className="md:hidden bg-surface p-3.5 rounded-2xl border border-border shadow-2xs space-y-2.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-slate-400">
+                    <span className="text-xs font-bold text-muted-text">
                       #{matrixData?.student?.sNo || 2}
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-blue-50 text-blue-700 border border-blue-200/90 shadow-2xs">
+                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] shadow-2xs">
                       {matrixData?.student?.rollNumber || studentInfo?.rollNumber || '112233'}
                     </span>
-                    <span className="text-[11px] font-semibold text-slate-400">
+                    <span className="text-[11px] font-semibold text-muted-text">
                       Batch {matrixData?.student?.batch || '2000'}
                     </span>
                   </div>
                   <div className="shrink-0">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-blue-50 text-slate-800 border border-blue-200/90 shadow-2xs">
-                      <span className="text-[10px] uppercase font-bold text-blue-600">Total</span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-[var(--primary-light)] text-main border border-[var(--primary-light)] shadow-2xs">
+                      <span className="text-[10px] uppercase font-bold text-primary">Total</span>
                       <span>{matrixData?.student?.totalDisplay?.replace(/^Total\s*/i, '') || '20 / 60'}</span>
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 flex-wrap">
-                  <div className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-border flex-wrap">
+                  <div className="text-xs sm:text-sm font-black text-main tracking-tight">
                     {matrixData?.student?.campus || studentInfo?.name || 'Draksharamam Campus'}
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                       {matrixData?.student?.course || 'CSE'}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                       {matrixData?.student?.yearSem || 'Yr 3 / Sem 1'}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-background text-sub border border-border">
                       {matrixData?.student?.section || 'Sec A'}
                     </span>
                   </div>
@@ -519,45 +519,45 @@ const StudentAcademicContent = () => {
                     return (
                       <div
                         key={row.subjectCode}
-                        className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md transition-all overflow-hidden flex flex-col justify-between"
+                        className="bg-surface rounded-2xl border border-border shadow-2xs hover:shadow-md transition-all overflow-hidden flex flex-col justify-between"
                       >
                         {/* Card Header: Subject Code & Name + Final Internal Badge */}
-                        <div className="p-3.5 sm:p-4 bg-slate-50/60 border-b border-slate-100 flex items-start justify-between gap-3">
+                        <div className="p-3.5 sm:p-4 bg-[var(--background)]/60 border-b border-border flex items-start justify-between gap-3">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="px-2 py-0.5 rounded-md text-xs font-black bg-blue-50 text-blue-700 border border-blue-200/80">
+                              <span className="px-2 py-0.5 rounded-md text-xs font-black bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                                 {row.subjectCode}
                               </span>
                               {row.credits > 0 && (
-                                <span className="text-[10px] font-bold text-slate-400">
+                                <span className="text-[10px] font-bold text-muted-text">
                                   {row.credits} Credits
                                 </span>
                               )}
                             </div>
-                            <h4 className="text-xs sm:text-sm font-black text-slate-900 mt-1 truncate">
+                            <h4 className="text-xs sm:text-sm font-black text-main mt-1 truncate">
                               {row.subjectName || row.subjectCode}
                             </h4>
                           </div>
 
                           {/* Final Internal Badge */}
                           <div className="shrink-0 text-right">
-                            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                            <div className="text-[9px] font-bold text-muted-text uppercase tracking-wider mb-0.5">
                               Final Internal (/30)
                             </div>
                             {isFinalPending ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-amber-50 text-amber-700 border border-amber-300 shadow-2xs">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse"></span>
                                 Pending
                               </span>
                             ) : isFinalPassed ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-[var(--success-light)] text-success border border-[var(--success-light)] shadow-2xs">
                                 <span>{row.finalInternal?.display || `${row.finalInternal?.value} / 30`}</span>
-                                <span className="text-[9px] uppercase font-bold text-emerald-700 bg-emerald-100/70 px-1 py-0.5 rounded">Pass</span>
+                                <span className="text-[9px] uppercase font-bold text-success bg-[var(--success-light)] px-1 py-0.5 rounded">Pass</span>
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-rose-50 text-rose-700 border border-rose-300 shadow-2xs">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] shadow-2xs">
                                 <span>{row.finalInternal?.display || `${row.finalInternal?.value} / 30`}</span>
-                                <span className="text-[9px] uppercase font-bold text-rose-700 bg-rose-100/70 px-1 py-0.5 rounded">Backlog</span>
+                                <span className="text-[9px] uppercase font-bold text-danger bg-[var(--danger-light)] px-1 py-0.5 rounded">Backlog</span>
                               </span>
                             )}
                           </div>
@@ -565,7 +565,7 @@ const StudentAcademicContent = () => {
 
                         {/* Card Body: Exam Scores Grid */}
                         <div className="p-3.5 sm:p-4">
-                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                          <div className="text-[10px] font-black uppercase tracking-wider text-muted-text mb-2">
                             Assessments
                           </div>
                           <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
@@ -577,13 +577,13 @@ const StudentAcademicContent = () => {
                               return (
                                 <div
                                   key={col.id}
-                                  className="p-2 sm:p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 flex flex-col justify-between"
+                                  className="p-2 sm:p-2.5 rounded-xl border border-border bg-[var(--background)]/50 flex flex-col justify-between"
                                 >
                                   <div>
-                                    <div className="text-[11px] font-black text-slate-800 truncate uppercase tracking-tight">
+                                    <div className="text-[11px] font-black text-main truncate uppercase tracking-tight">
                                       {col.name}
                                     </div>
-                                    <div className="text-[10px] text-slate-400 font-semibold capitalize">
+                                    <div className="text-[10px] text-muted-text font-semibold capitalize">
                                       {col.type || 'regular'}
                                     </div>
                                   </div>
@@ -593,14 +593,14 @@ const StudentAcademicContent = () => {
                                       <span
                                         className={`inline-flex items-center justify-center px-2 py-1 rounded-lg text-xs font-black w-full shadow-2xs ${
                                           isPassed
-                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
-                                            : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                            ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
+                                            : 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
                                         }`}
                                       >
                                         {score.display}
                                       </span>
                                     ) : (
-                                      <span className="inline-flex items-center justify-center px-2 py-1 rounded-lg text-[11px] font-semibold bg-white text-slate-400 border border-dashed border-slate-200 w-full">
+                                      <span className="inline-flex items-center justify-center px-2 py-1 rounded-lg text-[11px] font-semibold bg-surface text-muted-text border border-dashed border-border w-full">
                                         Not Entered
                                       </span>
                                     )}
@@ -616,98 +616,98 @@ const StudentAcademicContent = () => {
                 </div>
               ) : (
                 /* View Layout 2: Responsive Table (Full Desktop Matrix + Mobile Optimized) */
-                <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+                <div className="bg-surface rounded-2xl border border-border shadow-2xs overflow-hidden">
                   {/* Mobile swipe hint */}
-                  <div className="md:hidden flex items-center justify-between px-3.5 py-2 bg-slate-50/90 border-b border-slate-200/70 text-[11px] font-semibold text-slate-500">
+                  <div className="md:hidden flex items-center justify-between px-3.5 py-2 bg-[var(--background)]/90 border-b border-border text-[11px] font-semibold text-muted-text">
                     <span className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
                       Swipe table horizontally to view all exams
                     </span>
-                    <span className="font-bold text-blue-600">Scroll &rarr;</span>
+                    <span className="font-bold text-primary">Scroll &rarr;</span>
                   </div>
 
                   <div className="overflow-x-auto touch-pan-x">
                     <table className="w-full text-left border-collapse min-w-[420px] md:min-w-[840px]">
                       <thead>
-                        <tr className="bg-slate-50/90 border-b border-slate-200/80">
+                        <tr className="bg-[var(--background)]/90 border-b border-border">
                           {/* 1. Student Details Column (Visible only on desktop md:screens) */}
-                          <th className="hidden md:table-cell py-3 px-4 text-xs font-black text-slate-800 whitespace-nowrap w-[260px] border-r border-slate-200/80">
+                          <th className="hidden md:table-cell py-3 px-4 text-xs font-black text-main whitespace-nowrap w-[260px] border-r border-border">
                             Student Details
                           </th>
 
                           {/* 2. Subject Code & Name (Sticky on mobile horizontal scroll) */}
-                          <th className="py-3 px-3 sm:px-4 text-xs font-black text-slate-800 whitespace-nowrap sticky left-0 md:static z-20 md:z-auto bg-slate-50 border-r border-slate-200/80 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.06)] md:shadow-none min-w-[130px] sm:min-w-[170px] md:w-[200px]">
+                          <th className="py-3 px-3 sm:px-4 text-xs font-black text-main whitespace-nowrap sticky left-0 md:static z-20 md:z-auto bg-background border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.06)] md:shadow-none min-w-[130px] sm:min-w-[170px] md:w-[200px]">
                             Subject Code &amp; Name
                           </th>
 
                           {/* 3. Dynamic Exam Columns from EMS */}
                           {(visibleColumns || []).map((col) => (
-                            <th key={col.id} className="py-3 px-3 sm:px-4 text-center whitespace-nowrap border-r border-slate-200/80 min-w-[85px] sm:min-w-[110px]">
-                              <div className="text-xs font-black text-slate-800 uppercase tracking-tight">
+                            <th key={col.id} className="py-3 px-3 sm:px-4 text-center whitespace-nowrap border-r border-border min-w-[85px] sm:min-w-[110px]">
+                              <div className="text-xs font-black text-main uppercase tracking-tight">
                                 {col.name}
                               </div>
-                              <div className="text-[10px] font-semibold text-slate-400 lowercase mt-0.5">
+                              <div className="text-[10px] font-semibold text-muted-text lowercase mt-0.5">
                                 {col.type || 'regular'}
                               </div>
                             </th>
                           ))}
 
                           {/* 4. Final Internal Column */}
-                          <th className="py-3 px-3 sm:px-4 text-center whitespace-nowrap bg-blue-50/20 min-w-[95px] sm:min-w-[130px]">
-                            <div className="text-xs font-black text-slate-800">
+                          <th className="py-3 px-3 sm:px-4 text-center whitespace-nowrap bg-[var(--primary-light)] min-w-[95px] sm:min-w-[130px]">
+                            <div className="text-xs font-black text-main">
                               Final Internal (/30)
                             </div>
-                            <div className="text-[10px] font-semibold text-slate-400 mt-0.5">
+                            <div className="text-[10px] font-semibold text-muted-text mt-0.5">
                               {matrixData?.formula || '80% Best + 20% Other • Min 16'}
                             </div>
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 text-xs">
+                      <tbody className="divide-y divide-border text-xs">
                         {filteredMatrixRows.map((row, idx) => (
-                          <tr key={row.subjectCode} className="group hover:bg-blue-50/20 transition-colors">
+                          <tr key={row.subjectCode} className="group hover:bg-[var(--primary-light)] transition-colors">
                             {/* Student Details Cell (Rendered once on the first row with rowSpan matching Image 2, hidden on mobile) */}
                             {idx === 0 && (
                               <td
                                 rowSpan={filteredMatrixRows.length}
-                                className="hidden md:table-cell py-4 px-4 align-top whitespace-nowrap bg-slate-50/30 border-r border-slate-200/80"
+                                className="hidden md:table-cell py-4 px-4 align-top whitespace-nowrap bg-[var(--background)]/30 border-r border-border"
                               >
                                 <div className="flex flex-col gap-2 min-w-[220px]">
                                   {/* Index, Roll Number Badge, Batch */}
                                   <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-slate-400">
+                                    <span className="text-xs font-bold text-muted-text">
                                       {matrixData?.student?.sNo || 2}
                                     </span>
-                                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-blue-50 text-blue-700 border border-blue-200/90 shadow-2xs">
+                                    <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] shadow-2xs">
                                       {matrixData?.student?.rollNumber || studentInfo?.rollNumber || '112233'}
                                     </span>
-                                    <span className="text-[11px] font-semibold text-slate-400">
+                                    <span className="text-[11px] font-semibold text-muted-text">
                                       {matrixData?.student?.batch || '2000'}
                                     </span>
                                   </div>
 
                                   {/* Campus Name */}
-                                  <div className="text-xs sm:text-sm font-black text-slate-900 tracking-tight">
+                                  <div className="text-xs sm:text-sm font-black text-main tracking-tight">
                                     {matrixData?.student?.campus || studentInfo?.name || 'Draksharamam Campus'}
                                   </div>
 
                                   {/* Program, Year/Sem, Section Badges */}
                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200">
+                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                                       {matrixData?.student?.course || 'CSE'}
                                     </span>
-                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                                       {matrixData?.student?.yearSem || 'Yr 3 / Sem 1'}
                                     </span>
-                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200">
+                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-background text-sub border border-border">
                                       {matrixData?.student?.section || 'Sec A'}
                                     </span>
                                   </div>
 
                                   {/* Total Score Badge */}
                                   <div className="mt-1">
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-blue-50 text-slate-800 border border-blue-200/90 shadow-2xs">
-                                      <span className="text-[10px] uppercase font-bold text-blue-600">Total</span>
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-[var(--primary-light)] text-main border border-[var(--primary-light)] shadow-2xs">
+                                      <span className="text-[10px] uppercase font-bold text-primary">Total</span>
                                       <span>{matrixData?.student?.totalDisplay || '20 / 60'}</span>
                                     </span>
                                   </div>
@@ -716,12 +716,12 @@ const StudentAcademicContent = () => {
                             )}
 
                             {/* Subject Code & Name (Sticky on mobile horizontal scroll) */}
-                            <td className="py-3 px-3 sm:px-4 whitespace-nowrap sticky left-0 md:static z-10 md:z-auto bg-white group-hover:bg-slate-50 md:group-hover:bg-transparent border-r border-slate-200/80 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.06)] md:shadow-none min-w-[130px] sm:min-w-[170px]">
+                            <td className="py-3 px-3 sm:px-4 whitespace-nowrap sticky left-0 md:static z-10 md:z-auto bg-surface group-hover:bg-background md:group-hover:bg-transparent border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.06)] md:shadow-none min-w-[130px] sm:min-w-[170px]">
                               <div className="flex flex-col">
-                                <span className="font-black text-slate-900 text-xs sm:text-sm tracking-tight">
+                                <span className="font-black text-main text-xs sm:text-sm tracking-tight">
                                   {row.subjectCode}
                                 </span>
-                                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-tight truncate max-w-[120px] sm:max-w-[160px] md:max-w-[190px]">
+                                <span className="text-[11px] font-semibold text-muted-text uppercase tracking-tight truncate max-w-[120px] sm:max-w-[160px] md:max-w-[190px]">
                                   {row.subjectName || row.subjectCode}
                                 </span>
                               </div>
@@ -734,19 +734,19 @@ const StudentAcademicContent = () => {
                               const isPassed = score?.passed === true;
 
                               return (
-                                <td key={col.id} className="py-3 px-2 sm:px-4 text-center whitespace-nowrap border-r border-slate-100">
+                                <td key={col.id} className="py-3 px-2 sm:px-4 text-center whitespace-nowrap border-r border-border">
                                   {isEntered ? (
                                     <span
                                       className={`inline-flex items-center justify-center px-2.5 sm:px-4 py-1.5 rounded-lg text-xs font-black min-w-[65px] sm:min-w-[76px] transition-all shadow-2xs ${
                                         isPassed
-                                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
-                                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                                          ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
+                                          : 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
                                       }`}
                                     >
                                       {score.display}
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center justify-center px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold bg-white text-slate-400 border border-blue-200/80 min-w-[65px] sm:min-w-[76px]">
+                                    <span className="inline-flex items-center justify-center px-2 sm:px-3.5 py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold bg-surface text-muted-text border border-[var(--primary-light)] min-w-[65px] sm:min-w-[76px]">
                                       Not Entered
                                     </span>
                                   )}
@@ -755,18 +755,18 @@ const StudentAcademicContent = () => {
                             })}
 
                             {/* Final Internal Score (Pills matching Image 2) */}
-                            <td className="py-3 px-2 sm:px-4 text-center whitespace-nowrap bg-blue-50/10">
+                            <td className="py-3 px-2 sm:px-4 text-center whitespace-nowrap bg-[var(--primary-light)]">
                               {row.finalInternal?.status === 'pending' ? (
-                                <span className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-50/80 text-amber-700 border border-amber-300 min-w-[75px] sm:min-w-[88px] shadow-2xs">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                <span className="inline-flex items-center justify-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] min-w-[75px] sm:min-w-[88px] shadow-2xs">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse"></span>
                                   Pending
                                 </span>
                               ) : row.finalInternal?.passed ? (
-                                <span className="inline-flex items-center justify-center px-2.5 sm:px-4 py-1.5 rounded-lg text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-300 min-w-[65px] sm:min-w-[76px] shadow-2xs">
+                                <span className="inline-flex items-center justify-center px-2.5 sm:px-4 py-1.5 rounded-lg text-xs font-black bg-[var(--success-light)] text-success border border-[var(--success-light)] min-w-[65px] sm:min-w-[76px] shadow-2xs">
                                   {row.finalInternal?.display || `${row.finalInternal?.value} / 30`}
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center justify-center px-2.5 sm:px-4 py-1.5 rounded-lg text-xs font-black bg-rose-50 text-rose-700 border border-rose-200 min-w-[65px] sm:min-w-[76px] shadow-2xs">
+                                <span className="inline-flex items-center justify-center px-2.5 sm:px-4 py-1.5 rounded-lg text-xs font-black bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] min-w-[65px] sm:min-w-[76px] shadow-2xs">
                                   {row.finalInternal?.display || `${row.finalInternal?.value} / 30`}
                                 </span>
                               )}

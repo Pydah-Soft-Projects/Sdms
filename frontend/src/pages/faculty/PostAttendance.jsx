@@ -112,26 +112,26 @@ export default function PostAttendance() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-slate-800 mb-2">Post Hourly Attendance</h1>
-      <p className="text-slate-600 mb-6">Select date, period, and mark attendance for the class.</p>
+      <h1 className="text-2xl font-semibold text-main mb-2">Post Hourly Attendance</h1>
+      <p className="text-sub mb-6">Select date, period, and mark attendance for the class.</p>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+      <div className="bg-surface rounded-xl border border-border p-4 mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Date</label>
+            <label className="block text-sm font-medium text-sub mb-1">Date</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              className="w-full rounded-lg border border-border-strong px-3 py-2"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">College</label>
+            <label className="block text-sm font-medium text-sub mb-1">College</label>
             <select
               value={collegeId}
               onChange={(e) => setCollegeId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              className="w-full rounded-lg border border-border-strong px-3 py-2"
             >
               <option value="">Select</option>
               {colleges.map((c) => (
@@ -140,11 +140,11 @@ export default function PostAttendance() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Period</label>
+            <label className="block text-sm font-medium text-sub mb-1">Period</label>
             <select
               value={periodSlotId}
               onChange={(e) => setPeriodSlotId(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+              className="w-full rounded-lg border border-border-strong px-3 py-2"
             >
               <option value="">Select</option>
               {periodSlots.map((p) => (
@@ -157,7 +157,7 @@ export default function PostAttendance() {
               type="button"
               onClick={loadStudents}
               disabled={loading}
-              className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 flex items-center gap-2"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
               Load Students
@@ -166,8 +166,8 @@ export default function PostAttendance() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Batch</label>
-            <select value={batch} onChange={(e) => setBatch(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+            <label className="block text-sm font-medium text-sub mb-1">Batch</label>
+            <select value={batch} onChange={(e) => setBatch(e.target.value)} className="w-full rounded-lg border border-border-strong px-3 py-2">
               <option value="">All</option>
               {(filters.batches || []).map((b) => (
                 <option key={b} value={b.id || b}>{b.name || b}</option>
@@ -175,8 +175,8 @@ export default function PostAttendance() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Course</label>
-            <select value={course} onChange={(e) => setCourse(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+            <label className="block text-sm font-medium text-sub mb-1">Course</label>
+            <select value={course} onChange={(e) => setCourse(e.target.value)} className="w-full rounded-lg border border-border-strong px-3 py-2">
               <option value="">Select</option>
               {(filters.courses || []).map((c) => (
                 <option key={c} value={c.id || c}>{c.name || c}</option>
@@ -184,8 +184,8 @@ export default function PostAttendance() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Branch</label>
-            <select value={branch} onChange={(e) => setBranch(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+            <label className="block text-sm font-medium text-sub mb-1">Branch</label>
+            <select value={branch} onChange={(e) => setBranch(e.target.value)} className="w-full rounded-lg border border-border-strong px-3 py-2">
               <option value="">Select</option>
               {(filters.branches || []).map((b) => (
                 <option key={b} value={b.id || b}>{b.name || b}</option>
@@ -196,14 +196,14 @@ export default function PostAttendance() {
       </div>
 
       {students.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-            <span className="font-medium text-slate-700">{students.length} students</span>
+        <div className="bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+            <span className="font-medium text-sub">{students.length} students</span>
             <button
               type="button"
               onClick={submit}
               disabled={submitting}
-              className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 flex items-center gap-2"
             >
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CalendarCheck className="w-4 h-4" />}
               Save Attendance
@@ -211,33 +211,33 @@ export default function PostAttendance() {
           </div>
           <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
             <table className="min-w-full">
-              <thead className="bg-slate-50 sticky top-0">
+              <thead className="bg-background sticky top-0">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">#</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Name</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Admission No</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-muted-text uppercase">#</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-muted-text uppercase">Name</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-muted-text uppercase">Admission No</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-muted-text uppercase">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-border">
                 {students.map((s, i) => (
-                  <tr key={s.student_id} className="hover:bg-slate-50">
-                    <td className="px-4 py-2 text-slate-600">{i + 1}</td>
-                    <td className="px-4 py-2 font-medium text-slate-800">{s.student_name}</td>
-                    <td className="px-4 py-2 text-slate-600">{s.admission_number}</td>
+                  <tr key={s.student_id} className="hover:bg-background">
+                    <td className="px-4 py-2 text-sub">{i + 1}</td>
+                    <td className="px-4 py-2 font-medium text-main">{s.student_name}</td>
+                    <td className="px-4 py-2 text-sub">{s.admission_number}</td>
                     <td className="px-4 py-2">
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => setStatus(s.student_id, 'present')}
-                          className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${(entries[s.student_id] || 'present') === 'present' ? 'bg-green-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+                          className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${(entries[s.student_id] || 'present') === 'present' ? 'bg-success text-white' : 'bg-background text-sub'}`}
                         >
                           <Check className="w-4 h-4" /> Present
                         </button>
                         <button
                           type="button"
                           onClick={() => setStatus(s.student_id, 'absent')}
-                          className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${(entries[s.student_id] || 'present') === 'absent' ? 'bg-red-600 text-white' : 'bg-slate-100 text-slate-600'}`}
+                          className={`px-3 py-1 rounded-lg text-sm flex items-center gap-1 ${(entries[s.student_id] || 'present') === 'absent' ? 'bg-danger text-white' : 'bg-background text-sub'}`}
                         >
                           <X className="w-4 h-4" /> Absent
                         </button>
@@ -252,7 +252,7 @@ export default function PostAttendance() {
       )}
 
       {!loading && students.length === 0 && (course || branch) && (
-        <p className="text-slate-500 text-center py-8">Click &quot;Load Students&quot; after selecting course/branch.</p>
+        <p className="text-muted-text text-center py-8">Click &quot;Load Students&quot; after selecting course/branch.</p>
       )}
     </div>
   );

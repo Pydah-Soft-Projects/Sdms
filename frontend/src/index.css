@@ -5,6 +5,70 @@
 @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Caveat:wght@700&display=swap");
 
+:root {
+  /* Centralized Theme Tokens (Runtime Theme Engine) */
+  --primary: #1E3A8A;
+  --primary-hover: #172554;
+  --primary-light: #EFF6FF;
+  --primary-rgb: 30, 58, 138;
+
+  --secondary: #2563EB;
+  --secondary-rgb: 37, 99, 235;
+
+  --accent: #0284C7;
+  --accent-rgb: 2, 132, 199;
+
+  /* Primary Shade Scale */
+  --primary-50: #F2F3F8;
+  --primary-100: #E2E7F3;
+  --primary-200: #C0CCEC;
+  --primary-300: #8AA2E5;
+  --primary-400: #587BDA;
+  --primary-500: #1E3B8A;
+  --primary-600: #274BB0;
+  --primary-700: #1D3986;
+  --primary-800: #14275C;
+  --primary-900: #0E1A39;
+
+  /* Backgrounds & Surfaces */
+  --background: #F8FAFC;
+  --background-rgb: 248, 250, 252;
+  --surface: #FFFFFF;
+  --surface-rgb: 255, 255, 255;
+
+  --sidebar: #0F172A;
+  --sidebar-text: #F8FAFC;
+  --sidebar-muted: #94A3B8;
+
+  --navbar: #FFFFFF;
+  --navbar-border: #E2E8F0;
+
+  /* Typography */
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+
+  /* Borders */
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
+
+  /* Semantics */
+  --success: #16A34A;
+  --warning: #D97706;
+  --danger: #DC2626;
+  --info: #2563EB;
+
+  --success-light: rgba(22, 163, 74, 0.1);
+  --warning-light: rgba(217, 119, 6, 0.1);
+  --danger-light: rgba(220, 38, 38, 0.1);
+  --info-light: rgba(37, 99, 235, 0.1);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

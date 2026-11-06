@@ -227,11 +227,11 @@ function SmsReport() {
   if (!hasAccess && user) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] p-4 text-center">
-        <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-3">
-          <Lock className="text-red-500" size={28} />
+        <div className="w-14 h-14 bg-[var(--danger-light)] rounded-full flex items-center justify-center mb-3">
+          <Lock className="text-danger" size={28} />
         </div>
-        <h2 className="text-lg font-bold text-gray-900 mb-1">Access Denied</h2>
-        <p className="text-gray-600 text-xs max-w-sm">
+        <h2 className="text-lg font-bold text-main mb-1">Access Denied</h2>
+        <p className="text-sub text-xs max-w-sm">
           You do not have permission to view SMS Reports.
         </p>
       </div>
@@ -243,19 +243,19 @@ function SmsReport() {
       {/* Compact Page header */}
       <header className="shrink-0 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <div className="rounded-lg bg-blue-100 p-1.5 text-blue-600">
+          <div className="rounded-lg bg-[var(--primary-light)] p-1.5 text-primary">
             <MessageSquare size={20} />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900 leading-tight">SMS Reports</h1>
-            <p className="text-xs text-gray-500 leading-tight">Track sent messages and account SMS credits</p>
+            <h1 className="text-lg font-bold text-main leading-tight">SMS Reports</h1>
+            <p className="text-xs text-muted-text leading-tight">Track sent messages and account SMS credits</p>
           </div>
         </div>
         <button
           type="button"
           onClick={() => setRefreshKey((k) => k + 1)}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold disabled:opacity-50 transition-all shadow-2xs"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border-strong text-sub hover:bg-background text-xs font-semibold disabled:opacity-50 transition-all shadow-2xs"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           Refresh
@@ -264,83 +264,83 @@ function SmsReport() {
 
       {/* Compact Summary Cards */}
       <section className="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <div className="bg-white rounded-xl border border-blue-100 shadow-2xs p-3">
-          <div className="flex items-center gap-1.5 text-blue-600 mb-1">
+        <div className="bg-surface rounded-xl border border-[var(--primary-light)] shadow-2xs p-3">
+          <div className="flex items-center gap-1.5 text-primary mb-1">
             <Wallet size={15} />
             <span className="text-[10px] font-bold uppercase tracking-wider">Account Credits</span>
           </div>
-          <p className="text-xl font-black text-gray-900">{formatCredits()}</p>
+          <p className="text-xl font-black text-main">{formatCredits()}</p>
         </div>
-        <div className="bg-white rounded-xl border border-green-100 shadow-2xs p-3">
-          <div className="flex items-center gap-1.5 text-green-600 mb-1">
+        <div className="bg-surface rounded-xl border border-[var(--success-light)] shadow-2xs p-3">
+          <div className="flex items-center gap-1.5 text-success mb-1">
             <CheckCircle2 size={15} />
             <span className="text-[10px] font-bold uppercase tracking-wider">Sent</span>
           </div>
-          <p className="text-xl font-black text-gray-900">{summary.sent}</p>
+          <p className="text-xl font-black text-main">{summary.sent}</p>
         </div>
-        <div className="bg-white rounded-xl border border-red-100 shadow-2xs p-3">
-          <div className="flex items-center gap-1.5 text-red-600 mb-1">
+        <div className="bg-surface rounded-xl border border-[var(--danger-light)] shadow-2xs p-3">
+          <div className="flex items-center gap-1.5 text-danger mb-1">
             <XCircle size={15} />
             <span className="text-[10px] font-bold uppercase tracking-wider">Failed</span>
           </div>
-          <p className="text-xl font-black text-gray-900">{summary.failed}</p>
+          <p className="text-xl font-black text-main">{summary.failed}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 shadow-2xs p-3">
-          <div className="flex items-center gap-1.5 text-gray-600 mb-1">
+        <div className="bg-surface rounded-xl border border-border shadow-2xs p-3">
+          <div className="flex items-center gap-1.5 text-sub mb-1">
             <MessageSquare size={15} />
             <span className="text-[10px] font-bold uppercase tracking-wider">Total Logged</span>
           </div>
-          <p className="text-xl font-black text-gray-900">{summary.total}</p>
+          <p className="text-xl font-black text-main">{summary.total}</p>
         </div>
       </section>
 
       {/* Main Table Container with Header Controls */}
-      <section className="flex-1 min-h-0 bg-white border border-gray-200 rounded-xl shadow-2xs overflow-hidden flex flex-col">
+      <section className="flex-1 min-h-0 bg-surface border border-border rounded-xl shadow-2xs overflow-hidden flex flex-col">
         {/* Top Control Bar with Categories & Sub-filters */}
-        <div className="px-3.5 py-2.5 bg-gray-50/80 border-b border-gray-200 flex flex-col gap-2 shrink-0">
+        <div className="px-3.5 py-2.5 bg-[var(--background)]/80 border-b border-border flex flex-col gap-2 shrink-0">
           {/* Row 1: Activity Title & Compact Filters (Date From, Date To, Status) */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Recent SMS Activity</h2>
+              <h2 className="text-xs font-bold text-main uppercase tracking-wider">Recent SMS Activity</h2>
             </div>
 
             {/* Compact Filters Toolbar */}
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              <div className="flex items-center gap-1.5 bg-white border border-gray-300 rounded-lg px-2.5 py-1 shadow-2xs">
-                <Search size={13} className="text-gray-400 shrink-0" />
+              <div className="flex items-center gap-1.5 bg-surface border border-border-strong rounded-lg px-2.5 py-1 shadow-2xs">
+                <Search size={13} className="text-muted-text shrink-0" />
                 <input
                   type="text"
                   placeholder="Search student, mobile..."
                   value={filters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="border-none p-0 text-xs focus:ring-0 text-gray-700 bg-transparent font-medium w-36 placeholder:text-gray-400"
+                  className="border-none p-0 text-xs focus:ring-0 text-sub bg-transparent font-medium w-36 placeholder:text-muted-text"
                 />
               </div>
 
-              <div className="flex items-center gap-1 bg-white border border-gray-300 rounded-lg px-2 py-1 shadow-2xs">
-                <span className="text-gray-500 font-semibold text-[11px]">From:</span>
+              <div className="flex items-center gap-1 bg-surface border border-border-strong rounded-lg px-2 py-1 shadow-2xs">
+                <span className="text-muted-text font-semibold text-[11px]">From:</span>
                 <input
                   type="date"
                   value={filters.date_from}
                   onChange={(e) => handleFilterChange('date_from', e.target.value)}
-                  className="border-none p-0 text-xs focus:ring-0 text-gray-700 bg-transparent font-medium"
+                  className="border-none p-0 text-xs focus:ring-0 text-sub bg-transparent font-medium"
                 />
               </div>
 
-              <div className="flex items-center gap-1 bg-white border border-gray-300 rounded-lg px-2 py-1 shadow-2xs">
-                <span className="text-gray-500 font-semibold text-[11px]">To:</span>
+              <div className="flex items-center gap-1 bg-surface border border-border-strong rounded-lg px-2 py-1 shadow-2xs">
+                <span className="text-muted-text font-semibold text-[11px]">To:</span>
                 <input
                   type="date"
                   value={filters.date_to}
                   onChange={(e) => handleFilterChange('date_to', e.target.value)}
-                  className="border-none p-0 text-xs focus:ring-0 text-gray-700 bg-transparent font-medium"
+                  className="border-none p-0 text-xs focus:ring-0 text-sub bg-transparent font-medium"
                 />
               </div>
 
               <select
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="bg-white border border-gray-300 rounded-lg px-2 py-1 text-xs text-gray-700 font-medium focus:ring-1 focus:ring-blue-500 shadow-2xs"
+                className="bg-surface border border-border-strong rounded-lg px-2 py-1 text-xs text-sub font-medium focus:ring-1 focus:ring-primary shadow-2xs"
               >
                 <option value="">All Statuses</option>
                 <option value="Sent">Sent</option>
@@ -351,7 +351,7 @@ function SmsReport() {
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold transition-all shadow-2xs"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)] text-xs font-semibold transition-all shadow-2xs"
                   title="Clear all filters"
                 >
                   <XCircle size={13} />
@@ -363,14 +363,14 @@ function SmsReport() {
 
           {/* Row 2: Category Pills Row with Individual Sent Counts */}
           <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full no-scrollbar">
-            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider shrink-0 mr-1">Category:</span>
+            <span className="text-[11px] font-bold text-muted-text uppercase tracking-wider shrink-0 mr-1">Category:</span>
             <button
               type="button"
               onClick={() => handleFilterChange('category', '')}
               className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
                 !filters.category
-                  ? 'bg-blue-600 text-white shadow-2xs'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                  ? 'bg-primary text-white shadow-2xs'
+                  : 'bg-surface text-sub border border-border-strong hover:bg-background'
               }`}
             >
               All ({totalAllSentCount})
@@ -385,8 +385,8 @@ function SmsReport() {
                   onClick={() => handleFilterChange('category', catName)}
                   className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
                     isSelected
-                      ? 'bg-blue-600 text-white shadow-2xs'
-                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-100'
+                      ? 'bg-primary text-white shadow-2xs'
+                      : 'bg-surface text-sub border border-border-strong hover:bg-background'
                   }`}
                 >
                   {catName} ({count})
@@ -397,15 +397,15 @@ function SmsReport() {
 
           {/* Row 3: Sub-filters Row for Templates (Visible when General category is selected or a template filter is active) */}
           {(filters.category === 'General' || selectedTemplateId) && templates.length > 0 && (
-            <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full pt-1.5 border-t border-gray-200/60 no-scrollbar">
-              <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider shrink-0 mr-1">Templates:</span>
+            <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full pt-1.5 border-t border-border no-scrollbar">
+              <span className="text-[11px] font-bold text-primary uppercase tracking-wider shrink-0 mr-1">Templates:</span>
               <button
                 type="button"
                 onClick={() => handleTemplateSelect('')}
                 className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all shrink-0 ${
                   !selectedTemplateId
-                    ? 'bg-blue-700 text-white shadow-2xs'
-                    : 'bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100'
+                    ? 'bg-primary text-white shadow-2xs'
+                    : 'bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] hover:bg-[var(--primary-light)]'
                 }`}
               >
                 All Templates ({totalTemplateSentCount})
@@ -417,8 +417,8 @@ function SmsReport() {
                   onClick={() => handleTemplateSelect(tpl.template_id)}
                   className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all shrink-0 ${
                     selectedTemplateId === tpl.template_id
-                      ? 'bg-blue-700 text-white shadow-2xs'
-                      : 'bg-blue-50 text-blue-800 border border-blue-200 hover:bg-blue-100'
+                      ? 'bg-primary text-white shadow-2xs'
+                      : 'bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] hover:bg-[var(--primary-light)]'
                   }`}
                   title={tpl.content}
                 >
@@ -433,12 +433,12 @@ function SmsReport() {
         {/* SMS Logs Table */}
         <div className="flex-1 overflow-y-auto overflow-x-auto">
           {logsLoading ? (
-            <div className="flex justify-center py-12"><Loader2 className="animate-spin text-blue-500" /></div>
+            <div className="flex justify-center py-12"><Loader2 className="animate-spin text-primary" /></div>
           ) : logs.length === 0 ? (
-            <p className="text-center py-12 text-xs text-gray-500">No SMS logs found for the selected filters.</p>
+            <p className="text-center py-12 text-xs text-muted-text">No SMS logs found for the selected filters.</p>
           ) : (
             <table className="w-full text-xs table-fixed min-w-[950px]">
-              <thead className="bg-gray-50 sticky top-0 text-gray-600 font-semibold border-b z-10 shadow-2xs">
+              <thead className="bg-background sticky top-0 text-sub font-semibold border-b z-10 shadow-2xs">
                 <tr>
                   <th className="w-[72px] px-3 py-2.5 text-left whitespace-nowrap">Status</th>
                   <th className="w-[105px] px-3 py-2.5 text-left whitespace-nowrap">Date</th>
@@ -451,19 +451,19 @@ function SmsReport() {
                   <th className="px-3 py-2.5 text-left">Message</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 font-medium">
+              <tbody className="divide-y divide-border font-medium">
                 {logs.map((log) => (
                   <tr
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
-                    className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
+                    className="hover:bg-[var(--primary-light)] transition-colors cursor-pointer group"
                     title="Click to view message details"
                   >
                     <td className="px-3 py-2 whitespace-nowrap">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         log.status === 'Sent' || log.status === 'Delivered'
-                          ? 'bg-green-50 text-green-700 border border-green-200'
-                          : 'bg-red-50 text-red-700 border border-red-200'
+                          ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
+                          : 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
                       }`}>
                         {log.status}
                       </span>
@@ -473,9 +473,9 @@ function SmsReport() {
                         const { date, time } = formatDateTime(log.sent_at);
                         return (
                           <div className="leading-tight">
-                            <div className="font-semibold text-gray-800 text-[11px]">{date}</div>
+                            <div className="font-semibold text-main text-[11px]">{date}</div>
                             {time && (
-                              <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                              <div className="text-[10px] text-muted-text font-mono mt-0.5">
                                 {time}
                               </div>
                             )}
@@ -485,60 +485,60 @@ function SmsReport() {
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       {log.raised_by && log.raised_by !== 'System Generated' && log.raised_by !== 'System' ? (
-                        <div className="font-semibold text-gray-900 leading-tight truncate" title={log.raised_by}>
+                        <div className="font-semibold text-main leading-tight truncate" title={log.raised_by}>
                           {log.raised_by}
                         </div>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-background text-sub border border-border">
                           System Generated
                         </span>
                       )}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap font-semibold text-gray-800 truncate" title={getCategoryDisplayName(log)}>
+                    <td className="px-3 py-2 whitespace-nowrap font-semibold text-main truncate" title={getCategoryDisplayName(log)}>
                       {getCategoryDisplayName(log)}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap font-semibold text-blue-700 truncate" title={getTemplateName(log)}>
+                    <td className="px-3 py-2 whitespace-nowrap font-semibold text-primary truncate" title={getTemplateName(log)}>
                       {getTemplateName(log)}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap font-mono text-gray-700">
+                    <td className="px-3 py-2 whitespace-nowrap font-mono text-sub">
                       {log.mobile_number}
                     </td>
                     <td className="px-3 py-2">
-                      <div className="font-semibold text-gray-900 leading-tight truncate" title={log.student_name || ''}>
+                      <div className="font-semibold text-main leading-tight truncate" title={log.student_name || ''}>
                         {log.student_name || (log.admission_number ? log.admission_number : '-')}
                       </div>
                       {log.student_name && log.admission_number && (
-                        <div className="text-[11px] text-gray-400 font-mono leading-tight mt-0.5 truncate">
+                        <div className="text-[11px] text-muted-text font-mono leading-tight mt-0.5 truncate">
                           {log.admission_number}
                         </div>
                       )}
                       {/* Student branch & current year & sem details below the student name */}
                       {(log.branch || log.current_year || log.current_semester) && (
                         <div
-                          className="text-[11px] text-gray-600 font-medium leading-tight mt-0.5 truncate flex items-center gap-1"
+                          className="text-[11px] text-sub font-medium leading-tight mt-0.5 truncate flex items-center gap-1"
                           title={`${log.branch || ''}${log.current_year ? ` • Year ${log.current_year}` : ''}${log.current_semester ? ` • Sem ${log.current_semester}` : ''}`}
                         >
-                          {log.branch && <span className="text-gray-700 font-semibold">{log.branch}</span>}
+                          {log.branch && <span className="text-sub font-semibold">{log.branch}</span>}
                           {log.branch && (log.current_year || log.current_semester) && (
-                            <span className="text-gray-300">•</span>
+                            <span className="text-muted-text">•</span>
                           )}
                           {log.current_year && <span>Yr {log.current_year}</span>}
-                          {log.current_year && log.current_semester && <span className="text-gray-300">•</span>}
+                          {log.current_year && log.current_semester && <span className="text-muted-text">•</span>}
                           {log.current_semester && <span>Sem {log.current_semester}</span>}
                         </div>
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <div className="font-semibold text-gray-900 leading-tight truncate" title={log.course || '-'}>
+                      <div className="font-semibold text-main leading-tight truncate" title={log.course || '-'}>
                         {log.course || '-'}
                       </div>
                       {log.college && (
-                        <div className="text-[11px] text-gray-400 leading-tight mt-0.5 truncate" title={log.college}>
+                        <div className="text-[11px] text-muted-text leading-tight mt-0.5 truncate" title={log.college}>
                           {log.college}
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-2 truncate text-gray-600 group-hover:text-blue-600 transition-colors" title={log.message}>
+                    <td className="px-3 py-2 truncate text-sub group-hover:text-primary transition-colors" title={log.message}>
                       {log.message}
                     </td>
                   </tr>
@@ -550,14 +550,14 @@ function SmsReport() {
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <div className="flex justify-between items-center px-3.5 py-2 border-t border-gray-100 bg-gray-50/50 shrink-0">
-            <span className="text-xs text-gray-500">Page {pagination.page} of {pagination.totalPages} ({pagination.total} records)</span>
+          <div className="flex justify-between items-center px-3.5 py-2 border-t border-border bg-[var(--background)]/50 shrink-0">
+            <span className="text-xs text-muted-text">Page {pagination.page} of {pagination.totalPages} ({pagination.total} records)</span>
             <div className="flex gap-1.5">
               <button
                 type="button"
                 disabled={pagination.page <= 1}
                 onClick={() => setPagination((p) => ({ ...p, page: p.page - 1 }))}
-                className="p-1 border border-gray-300 rounded-md hover:bg-white disabled:opacity-40"
+                className="p-1 border border-border-strong rounded-md hover:bg-surface disabled:opacity-40"
               >
                 <ChevronLeft size={15} />
               </button>
@@ -565,7 +565,7 @@ function SmsReport() {
                 type="button"
                 disabled={pagination.page >= pagination.totalPages}
                 onClick={() => setPagination((p) => ({ ...p, page: p.page + 1 }))}
-                className="p-1 border border-gray-300 rounded-md hover:bg-white disabled:opacity-40"
+                className="p-1 border border-border-strong rounded-md hover:bg-surface disabled:opacity-40"
               >
                 <ChevronRight size={15} />
               </button>
@@ -581,17 +581,17 @@ function SmsReport() {
           onClick={() => setSelectedLog(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-lg w-full overflow-hidden"
+            className="bg-surface rounded-2xl shadow-xl border border-border max-w-lg w-full overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50/70">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-[var(--background)]/70">
               <div className="flex items-center gap-2">
-                <div className="rounded-lg bg-blue-100 p-1.5 text-blue-600">
+                <div className="rounded-lg bg-[var(--primary-light)] p-1.5 text-primary">
                   <MessageSquare size={18} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-gray-900">SMS Log Details</h3>
-                  <p className="text-[11px] text-gray-500">
+                  <h3 className="text-sm font-bold text-main">SMS Log Details</h3>
+                  <p className="text-[11px] text-muted-text">
                     {selectedLog.sent_at ? new Date(selectedLog.sent_at).toLocaleString('en-IN') : '-'}
                   </p>
                 </div>
@@ -599,7 +599,7 @@ function SmsReport() {
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all"
+                className="p-1 rounded-lg text-muted-text hover:text-sub hover:bg-background transition-all"
               >
                 <X size={18} />
               </button>
@@ -608,75 +608,75 @@ function SmsReport() {
             <div className="p-5 space-y-4 text-xs">
               {/* Status, Raised By & Category */}
               <div className="grid grid-cols-3 gap-2.5">
-                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
-                  <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Delivery Status</span>
+                <div className="p-2.5 rounded-xl bg-background border border-border">
+                  <span className="text-[10px] uppercase font-bold text-muted-text block mb-1">Delivery Status</span>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     selectedLog.status === 'Sent' || selectedLog.status === 'Delivered'
-                      ? 'bg-green-50 text-green-700 border border-green-200'
-                      : 'bg-red-50 text-red-700 border border-red-200'
+                      ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
+                      : 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
                   }`}>
                     {selectedLog.status}
                   </span>
                 </div>
-                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
-                  <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Raised By</span>
-                  <p className="font-semibold text-gray-800 text-[11px] truncate" title={selectedLog.raised_by || selectedLog.sent_by || 'System Generated'}>
+                <div className="p-2.5 rounded-xl bg-background border border-border">
+                  <span className="text-[10px] uppercase font-bold text-muted-text block mb-1">Raised By</span>
+                  <p className="font-semibold text-main text-[11px] truncate" title={selectedLog.raised_by || selectedLog.sent_by || 'System Generated'}>
                     {selectedLog.raised_by && selectedLog.raised_by !== 'System Generated' && selectedLog.raised_by !== 'System'
                       ? selectedLog.raised_by
                       : 'System Generated'}
                   </p>
                 </div>
-                <div className="p-2.5 rounded-xl bg-gray-50 border border-gray-100">
-                  <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Category / Template</span>
-                  <p className="font-semibold text-gray-800 text-[11px] truncate" title={getCategoryDisplayName(selectedLog)}>
+                <div className="p-2.5 rounded-xl bg-background border border-border">
+                  <span className="text-[10px] uppercase font-bold text-muted-text block mb-1">Category / Template</span>
+                  <p className="font-semibold text-main text-[11px] truncate" title={getCategoryDisplayName(selectedLog)}>
                     {getCategoryDisplayName(selectedLog)}
                     {getTemplateName(selectedLog) !== '-' && (
-                      <span className="text-blue-600 font-medium ml-1">({getTemplateName(selectedLog)})</span>
+                      <span className="text-primary font-medium ml-1">({getTemplateName(selectedLog)})</span>
                     )}
                   </p>
                 </div>
               </div>
 
               {/* Student & Academic Info */}
-              <div className="p-3 rounded-xl bg-blue-50/50 border border-blue-100 space-y-2">
+              <div className="p-3 rounded-xl bg-[var(--primary-light)] border border-[var(--primary-light)] space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-blue-600 block">Student</span>
-                    <p className="font-bold text-gray-900 text-sm">
+                    <span className="text-[10px] uppercase font-bold text-primary block">Student</span>
+                    <p className="font-bold text-main text-sm">
                       {selectedLog.student_name || 'Unlinked Student'}
                     </p>
                     {selectedLog.admission_number && (
-                      <p className="text-[11px] font-mono text-gray-500">Adm: {selectedLog.admission_number}</p>
+                      <p className="text-[11px] font-mono text-muted-text">Adm: {selectedLog.admission_number}</p>
                     )}
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] uppercase font-bold text-blue-600 block">Mobile</span>
-                    <p className="font-mono font-semibold text-gray-900 text-sm">{selectedLog.mobile_number}</p>
+                    <span className="text-[10px] uppercase font-bold text-primary block">Mobile</span>
+                    <p className="font-mono font-semibold text-main text-sm">{selectedLog.mobile_number}</p>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-blue-100/80 grid grid-cols-4 gap-2 text-center">
-                  <div className="bg-white rounded-lg p-1.5 border border-blue-100/60">
-                    <span className="text-[10px] text-gray-400 font-semibold block">Course</span>
-                    <span className="font-bold text-gray-800 text-[11px] truncate block" title={selectedLog.course || ''}>
+                <div className="pt-2 border-t border-[var(--primary-light)] grid grid-cols-4 gap-2 text-center">
+                  <div className="bg-surface rounded-lg p-1.5 border border-[var(--primary-light)]">
+                    <span className="text-[10px] text-muted-text font-semibold block">Course</span>
+                    <span className="font-bold text-main text-[11px] truncate block" title={selectedLog.course || ''}>
                       {selectedLog.course || '-'}
                     </span>
                   </div>
-                  <div className="bg-white rounded-lg p-1.5 border border-blue-100/60">
-                    <span className="text-[10px] text-gray-400 font-semibold block">Branch</span>
-                    <span className="font-bold text-gray-800 text-[11px] truncate block" title={selectedLog.branch || ''}>
+                  <div className="bg-surface rounded-lg p-1.5 border border-[var(--primary-light)]">
+                    <span className="text-[10px] text-muted-text font-semibold block">Branch</span>
+                    <span className="font-bold text-main text-[11px] truncate block" title={selectedLog.branch || ''}>
                       {selectedLog.branch || '-'}
                     </span>
                   </div>
-                  <div className="bg-white rounded-lg p-1.5 border border-blue-100/60">
-                    <span className="text-[10px] text-gray-400 font-semibold block">Year</span>
-                    <span className="font-bold text-gray-800 text-[11px]">
+                  <div className="bg-surface rounded-lg p-1.5 border border-[var(--primary-light)]">
+                    <span className="text-[10px] text-muted-text font-semibold block">Year</span>
+                    <span className="font-bold text-main text-[11px]">
                       {selectedLog.current_year ? `Year ${selectedLog.current_year}` : '-'}
                     </span>
                   </div>
-                  <div className="bg-white rounded-lg p-1.5 border border-blue-100/60">
-                    <span className="text-[10px] text-gray-400 font-semibold block">Semester</span>
-                    <span className="font-bold text-gray-800 text-[11px]">
+                  <div className="bg-surface rounded-lg p-1.5 border border-[var(--primary-light)]">
+                    <span className="text-[10px] text-muted-text font-semibold block">Semester</span>
+                    <span className="font-bold text-main text-[11px]">
                       {selectedLog.current_semester ? `Sem ${selectedLog.current_semester}` : '-'}
                     </span>
                   </div>
@@ -685,27 +685,27 @@ function SmsReport() {
 
               {/* Message Content */}
               <div>
-                <span className="text-[10px] uppercase font-bold text-gray-400 block mb-1">Message Content</span>
-                <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-800 font-mono text-xs leading-relaxed whitespace-pre-wrap select-all">
+                <span className="text-[10px] uppercase font-bold text-muted-text block mb-1">Message Content</span>
+                <div className="p-3 bg-background rounded-xl border border-border text-main font-mono text-xs leading-relaxed whitespace-pre-wrap select-all">
                   {selectedLog.message}
                 </div>
               </div>
 
               {selectedLog.error_details && (
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-red-500 block mb-1">Error Details</span>
-                  <div className="p-2.5 bg-red-50 rounded-xl border border-red-200 text-red-700 font-mono text-[11px]">
+                  <span className="text-[10px] uppercase font-bold text-danger block mb-1">Error Details</span>
+                  <div className="p-2.5 bg-[var(--danger-light)] rounded-xl border border-[var(--danger-light)] text-danger font-mono text-[11px]">
                     {selectedLog.error_details}
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+            <div className="px-5 py-3 bg-background border-t border-border flex justify-end">
               <button
                 type="button"
                 onClick={() => setSelectedLog(null)}
-                className="px-3.5 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-100 transition-all shadow-2xs"
+                className="px-3.5 py-1.5 bg-surface border border-border-strong rounded-lg text-xs font-semibold text-sub hover:bg-background transition-all shadow-2xs"
               >
                 Close
               </button>

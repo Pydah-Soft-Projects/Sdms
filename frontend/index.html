@@ -11,18 +11,29 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="format-detection" content="telephone=no" />
   <meta name="theme-color" content="#ffffff" />
-  <title>Pydah Student Database Management System</title>
+  <title>CAMPO SD Student Database Management System</title>
   <script>
     window.process = window.process || { env: { NODE_ENV: 'production' } };
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Centralized Theme Runtime Loader -->
+  <script>
+    var isLocalThemeEnvironment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    var themeServer = isLocalThemeEnvironment ? 'http://localhost:7000' : 'https://ui-theme.pydah.edu.in';
+    var themeLoaderScript = document.createElement('script');
+    themeLoaderScript.src = themeServer + '/themes/theme-loader.js';
+    themeLoaderScript.setAttribute('data-theme-server', themeServer);
+    themeLoaderScript.setAttribute('data-poll-interval', isLocalThemeEnvironment ? '10' : '30');
+    document.head.appendChild(themeLoaderScript);
+  </script>
   <style>
     body {
       margin: 0;
       padding: 0;
-      background-color: #F8FAFC;
+      background-color: #FAFAF5;
+      color: #0F172A;
       overflow: auto;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
@@ -155,7 +166,7 @@
     <div id="app-loader">
       <div class="loader-content">
         <div class="logo-container">
-          <img src="/logo.png" alt="Pydah Group" class="loader-logo" />
+          <img src="/logo.png" alt="CAMPO SD" class="loader-logo" />
         </div>
         <div class="spinner-container">
           <div class="loader-spinner"></div>

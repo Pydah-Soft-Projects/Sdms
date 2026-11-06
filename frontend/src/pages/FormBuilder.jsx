@@ -225,38 +225,38 @@ const FormBuilder = () => {
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <button onClick={() => navigate('/forms')} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+        <button onClick={() => navigate('/forms')} className="p-2 hover:bg-background rounded-lg transition-colors">
           <ArrowLeft size={24} />
         </button>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-main">
             {formId ? 'Edit Student Form' : 'Create New Form'}
           </h1>
-          <p className="text-gray-600 mt-1">Customize the student registration form fields</p>
+          <p className="text-sub mt-1">Customize the student registration form fields</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Form Details */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Form Details</h2>
+        <div className="bg-surface rounded-xl shadow-sm border border-border p-6">
+          <h2 className="text-xl font-semibold text-main mb-4">Form Details</h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Form Name *</label>
+              <label className="block text-sm font-medium text-sub mb-2">Form Name *</label>
               <input 
                 type="text" 
                 value={formData.formName} 
                 onChange={(e) => setFormData({ ...formData, formName: e.target.value })} 
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" 
+                className="w-full px-4 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                 placeholder="Enter form name" 
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+              <label className="block text-sm font-medium text-sub mb-2">Description</label>
               <textarea 
                 value={formData.formDescription} 
                 onChange={(e) => setFormData({ ...formData, formDescription: e.target.value })} 
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none" 
+                className="w-full px-4 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
                 rows="3" 
                 placeholder="Enter form description" 
               />
@@ -265,18 +265,18 @@ const FormBuilder = () => {
         </div>
 
         {/* Add Fields */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Fields</h2>
+        <div className="bg-surface rounded-xl shadow-sm border border-border p-6">
+          <h2 className="text-xl font-semibold text-main mb-4">Add Fields</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {AVAILABLE_FIELD_TYPES.map((fieldType) => (
               <button
                 key={fieldType.key}
                 type="button"
                 onClick={() => addField(fieldType.key)}
-                className="flex flex-col items-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors"
+                className="flex flex-col items-center gap-2 p-4 border-2 border-dashed border-border-strong rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-colors"
               >
                 <span className="text-2xl">{fieldType.icon}</span>
-                <span className="text-sm font-medium text-gray-700">{fieldType.label}</span>
+                <span className="text-sm font-medium text-sub">{fieldType.label}</span>
               </button>
             ))}
           </div>
@@ -284,10 +284,10 @@ const FormBuilder = () => {
 
         {/* Form Fields */}
         {formData.formFields.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-surface rounded-xl shadow-sm border border-border p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Form Fields ({formData.formFields.length})</h2>
-              <div className="text-sm text-gray-500 bg-blue-50 px-3 py-2 rounded-lg">
+              <h2 className="text-xl font-semibold text-main">Form Fields ({formData.formFields.length})</h2>
+              <div className="text-sm text-muted-text bg-[var(--primary-light)] px-3 py-2 rounded-lg">
                 💡 Drag fields to reorder • Toggle visibility for student form • Change field types anytime
               </div>
             </div>
@@ -296,7 +296,7 @@ const FormBuilder = () => {
                 <div 
                   key={field.id} 
                   className={`border rounded-lg p-4 transition-all duration-200 ${
-                    field.isEnabled ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50'
+                    field.isEnabled ? 'border-border bg-surface' : 'border-border bg-background'
                   } ${draggedIndex === index ? 'opacity-50 scale-95' : ''}`}
                   draggable
                   onDragStart={(e) => handleDragStart(e, index)}
@@ -306,25 +306,25 @@ const FormBuilder = () => {
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="cursor-move p-1 hover:bg-gray-100 rounded">
-                        <GripVertical size={16} className="text-gray-400" />
+                      <div className="cursor-move p-1 hover:bg-background rounded">
+                        <GripVertical size={16} className="text-muted-text" />
                       </div>
                       <span className="text-lg">
                         {AVAILABLE_FIELD_TYPES.find(ft => ft.key === field.type)?.icon || '📝'}
                       </span>
-                      <span className="font-medium text-gray-700">
+                      <span className="font-medium text-sub">
                         {field.label || `Field ${index + 1}`}
                       </span>
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                      <span className="text-xs bg-background text-sub px-2 py-1 rounded">
                         {field.type}
                       </span>
                       {field.required && (
-                        <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
+                        <span className="text-xs bg-[var(--danger-light)] text-danger px-2 py-1 rounded">
                           Required
                         </span>
                       )}
                       {!field.isEnabled && (
-                        <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-1 rounded">
+                        <span className="text-xs bg-[var(--warning-light)] text-warning px-2 py-1 rounded">
                           Hidden
                         </span>
                       )}
@@ -335,8 +335,8 @@ const FormBuilder = () => {
                         onClick={() => toggleFieldEnabled(index)}
                         className={`p-2 rounded-lg transition-colors ${
                           field.isEnabled 
-                            ? 'text-green-600 hover:bg-green-50' 
-                            : 'text-gray-400 hover:bg-gray-100'
+                            ? 'text-success hover:bg-[var(--success-light)]'
+                            : 'text-muted-text hover:bg-background'
                         }`}
                         title={field.isEnabled ? 'Hide from student form' : 'Show in student form'}
                       >
@@ -345,7 +345,7 @@ const FormBuilder = () => {
                       <button
                         type="button"
                         onClick={() => removeField(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-danger hover:bg-[var(--danger-light)] rounded-lg transition-colors"
                         title="Delete field permanently"
                       >
                         <Trash2 size={16} />
@@ -355,21 +355,21 @@ const FormBuilder = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Label *</label>
+                      <label className="block text-sm font-medium text-sub mb-1">Label *</label>
                       <input
                         type="text"
                         value={field.label}
                         onChange={(e) => updateField(index, 'label', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm"
+                        className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm"
                         placeholder="Field label"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Field Type</label>
+                      <label className="block text-sm font-medium text-sub mb-1">Field Type</label>
                       <select
                         value={field.type}
                         onChange={(e) => changeFieldType(index, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm"
+                        className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm"
                       >
                         {AVAILABLE_FIELD_TYPES.map((type) => (
                           <option key={type.key} value={type.key}>
@@ -379,12 +379,12 @@ const FormBuilder = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Placeholder</label>
+                      <label className="block text-sm font-medium text-sub mb-1">Placeholder</label>
                       <input
                         type="text"
                         value={field.placeholder}
                         onChange={(e) => updateField(index, 'placeholder', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm"
+                        className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm"
                         placeholder="Placeholder text"
                       />
                     </div>
@@ -396,9 +396,9 @@ const FormBuilder = () => {
                         type="checkbox"
                         checked={field.required}
                         onChange={(e) => updateField(index, 'required', e.target.checked)}
-                        className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="w-4 h-4 text-primary-600 border-border-strong rounded focus:ring-primary-500"
                       />
-                      <span className="text-sm font-medium text-gray-700">Required field</span>
+                      <span className="text-sm font-medium text-sub">Required field</span>
                     </label>
                   </div>
 
@@ -406,7 +406,7 @@ const FormBuilder = () => {
                   {(field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') && (
                     <div className="mt-4">
                       <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-gray-700">Options</label>
+                        <label className="text-sm font-medium text-sub">Options</label>
                         <button
                           type="button"
                           onClick={() => addOption(index)}
@@ -423,13 +423,13 @@ const FormBuilder = () => {
                               type="text"
                               value={option}
                               onChange={(e) => updateOption(index, optionIndex, e.target.value)}
-                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm"
+                              className="flex-1 px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm"
                               placeholder="Option text"
                             />
                             <button
                               type="button"
                               onClick={() => removeOption(index, optionIndex)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-2 text-danger hover:bg-[var(--danger-light)] rounded-lg transition-colors"
                             >
                               <Trash2 size={14} />
                             </button>
@@ -449,8 +449,8 @@ const FormBuilder = () => {
           <button
   type="submit"
   disabled={saving}
-  className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white px-8 py-3 rounded-xl font-semibold
-             hover:from-pink-600 hover:via-purple-700 hover:to-indigo-700 focus:ring-4 focus:ring-purple-300/50 
+  className="flex items-center gap-2 bg-gradient-to-r from-primary via-secondary to-accent text-white px-8 py-3 rounded-xl font-semibold
+             hover:from-accent hover:via-secondary hover:to-primary focus:ring-4 focus:ring-[var(--primary-light)]
              transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed
              shadow-md hover:shadow-xl transform hover:scale-105 active:scale-95"
 >
@@ -461,7 +461,7 @@ const FormBuilder = () => {
           <button
             type="button"
             onClick={() => navigate('/forms')}
-            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 border border-border-strong text-sub rounded-lg hover:bg-background transition-colors"
           >
             Cancel
           </button>

@@ -321,8 +321,8 @@ const StudentTimetable = () => {
             holidays,
             workingDays,
             status: numericPct >= 75 ? 'Compliant' : 'Shortage Alert',
-            color: numericPct >= 75 ? 'text-blue-900' : 'text-rose-600',
-            badgeBg: numericPct >= 75 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+            color: numericPct >= 75 ? 'text-primary' : 'text-danger',
+            badgeBg: numericPct >= 75 ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--danger-light)] text-danger'
         };
     }, [attendanceData]);
 
@@ -418,7 +418,7 @@ const StudentTimetable = () => {
     if (loading) {
         return (
             <div className="space-y-6 max-w-[1920px] mx-auto px-3 sm:px-4 md:px-6 pb-8 animate-pulse">
-                <div className="bg-white rounded-2xl sm:rounded-[2.5rem] p-6 border border-slate-200 space-y-3">
+                <div className="bg-surface rounded-2xl sm:rounded-[2.5rem] p-6 border border-border space-y-3">
                     <SkeletonBox height="h-8" width="w-64" className="rounded-xl" />
                     <SkeletonBox height="h-4" width="w-48" />
                 </div>
@@ -456,39 +456,39 @@ const StudentTimetable = () => {
             badgeText = 'THEORY';
         }
 
-        let badgeStyle = 'bg-blue-50 text-blue-800 border-blue-200/80';
-        let barColor = 'bg-blue-600';
-        let periodBadgeStyle = 'bg-blue-100 text-blue-900 border-blue-300';
-        let timeColor = 'text-blue-700';
+        let badgeStyle = 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
+        let barColor = 'bg-primary';
+        let periodBadgeStyle = 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
+        let timeColor = 'text-primary';
 
         if (postedSlotLog) {
             if (postedSlotLog.status === 'present') {
                 badgeText = `${badgeText} • PRESENT`;
-                badgeStyle = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+                badgeStyle = 'bg-[var(--success-light)] text-success border-[var(--success-light)]';
             } else if (postedSlotLog.status === 'absent') {
                 badgeText = `${badgeText} • ABSENT`;
-                badgeStyle = 'bg-rose-100 text-rose-800 border-rose-300';
+                badgeStyle = 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)]';
             }
         } else if (isLab) {
-            badgeStyle = 'bg-purple-50 text-purple-800 border-purple-200/80';
-            barColor = 'bg-purple-600';
-            periodBadgeStyle = 'bg-purple-100 text-purple-900 border-purple-300';
-            timeColor = 'text-purple-700';
+            badgeStyle = 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]';
+            barColor = 'bg-secondary';
+            periodBadgeStyle = 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]';
+            timeColor = 'text-secondary';
         } else if (isBreak) {
-            badgeStyle = 'bg-amber-50 text-amber-800 border-amber-200/80';
-            barColor = 'bg-amber-500';
-            periodBadgeStyle = 'bg-amber-100 text-amber-900 border-amber-300';
-            timeColor = 'text-amber-800';
+            badgeStyle = 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]';
+            barColor = 'bg-warning';
+            periodBadgeStyle = 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]';
+            timeColor = 'text-warning';
         } else if (isOther) {
-            badgeStyle = 'bg-teal-50 text-teal-800 border-teal-200/80';
-            barColor = 'bg-teal-600';
-            periodBadgeStyle = 'bg-teal-100 text-teal-900 border-teal-300';
-            timeColor = 'text-teal-700';
+            badgeStyle = 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
+            barColor = 'bg-primary';
+            periodBadgeStyle = 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
+            timeColor = 'text-primary';
         } else if (!entry) {
-            badgeStyle = 'bg-slate-100 text-slate-500 border-slate-200';
-            barColor = 'bg-slate-300';
-            periodBadgeStyle = 'bg-slate-100 text-slate-600 border-slate-200';
-            timeColor = 'text-slate-500';
+            badgeStyle = 'bg-background text-muted-text border-border';
+            barColor = 'bg-background';
+            periodBadgeStyle = 'bg-background text-sub border-border';
+            timeColor = 'text-muted-text';
         }
 
         const titleText = entry
@@ -504,8 +504,8 @@ const StudentTimetable = () => {
                 return (
                     <div className={`w-full flex items-center justify-between py-2.5 px-3 rounded-xl border shadow-2xs transition-all ${
                         isCurrent
-                            ? 'bg-amber-100/90 border-amber-400 ring-2 ring-amber-500 shadow-md text-amber-950 font-bold'
-                            : 'bg-amber-50/70 border-amber-200/60 text-amber-900'
+                            ? 'bg-[var(--warning-light)] border-warning ring-2 ring-warning shadow-md text-warning font-bold'
+                            : 'bg-[var(--warning-light)] border-[var(--warning-light)] text-warning'
                     }`}>
                         <div className="flex items-center gap-2 text-xs font-bold">
                             <span className="text-sm">{sName.includes('LUNCH') || slotType === 'lunch' ? '🍱' : '☕'}</span>
@@ -513,16 +513,16 @@ const StudentTimetable = () => {
                                 {sName.includes('LUNCH') || slotType === 'lunch' ? 'Lunch Break' : 'Short Break'}
                             </span>
                             {isCurrent && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-amber-600 text-white shadow-2xs animate-pulse leading-none">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-warning text-white shadow-2xs animate-pulse leading-none">
                                     <span className="relative flex h-1.5 w-1.5">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-surface opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-surface"></span>
                                     </span>
                                     NOW
                                 </span>
                             )}
                         </div>
-                        <span className={`text-[10px] font-bold whitespace-nowrap ${isCurrent ? 'text-amber-950 font-black' : 'text-amber-700/90'}`}>
+                        <span className={`text-[10px] font-bold whitespace-nowrap ${isCurrent ? 'text-warning font-black' : 'text-warning'}`}>
                             {formatTimeTo12h(slot?.start_time)} {slot?.end_time ? `– ${formatTimeTo12h(slot?.end_time)}` : ''}
                         </span>
                     </div>
@@ -533,27 +533,27 @@ const StudentTimetable = () => {
                 return (
                     <div className={`w-full flex items-center justify-between py-2 px-3 rounded-xl border shadow-2xs transition-all ${
                         isCurrent
-                            ? 'border-blue-400 ring-2 ring-blue-500 bg-blue-50/80 text-blue-900 shadow-md'
-                            : 'border-dashed border-slate-200 bg-slate-50/40 text-slate-500'
+                            ? 'border-primary ring-2 ring-primary bg-[var(--primary-light)] text-primary shadow-md'
+                            : 'border-dashed border-border bg-[var(--background)]/40 text-muted-text'
                     }`}>
                         <div className="flex items-center gap-2 min-w-0">
-                            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 ${isCurrent ? 'bg-blue-600 text-white' : 'bg-slate-200/70 text-slate-600'}`}>
+                            <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded shrink-0 ${isCurrent ? 'bg-primary text-white' : 'bg-[var(--background)]/70 text-sub'}`}>
                                 {slot?.slot_name || `P${sOrder || ''}`}
                             </span>
                             {isCurrent && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-2xs animate-pulse leading-none">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider bg-primary text-white shadow-2xs animate-pulse leading-none">
                                     <span className="relative flex h-1.5 w-1.5">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-surface opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-surface"></span>
                                     </span>
                                     NOW
                                 </span>
                             )}
-                            <span className={`text-[10px] font-medium truncate ${isCurrent ? 'text-blue-950 font-bold' : 'text-slate-400'}`}>
+                            <span className={`text-[10px] font-medium truncate ${isCurrent ? 'text-primary font-bold' : 'text-muted-text'}`}>
                                 Free Period / Leisure Hour
                             </span>
                         </div>
-                        <span className={`text-[10px] font-semibold shrink-0 whitespace-nowrap ${isCurrent ? 'text-blue-950 font-bold' : 'text-slate-400'}`}>
+                        <span className={`text-[10px] font-semibold shrink-0 whitespace-nowrap ${isCurrent ? 'text-primary font-bold' : 'text-muted-text'}`}>
                             {formatTimeTo12h(slot?.start_time)} {slot?.end_time ? `– ${formatTimeTo12h(slot?.end_time)}` : ''}
                         </span>
                     </div>
@@ -567,31 +567,31 @@ const StudentTimetable = () => {
                     onClick={() => onClick && onClick(entry, slot, day)}
                     className={`w-full rounded-xl border p-2.5 transition-all cursor-pointer group space-y-1.5 relative overflow-hidden ${
                         isCurrent
-                            ? 'bg-gradient-to-r from-blue-50/90 via-white to-indigo-50/40 border-blue-500 ring-2 ring-blue-600 shadow-md shadow-blue-500/10'
-                            : 'bg-white border-slate-200/90 shadow-2xs hover:border-blue-300'
+                            ? 'bg-gradient-to-r from-[var(--primary-light)] via-surface to-[var(--primary-light)] border-primary ring-2 ring-primary shadow-md shadow-primary/10'
+                            : 'bg-surface border-border shadow-2xs hover:border-[var(--primary-light)]'
                     }`}
                     title="Click to view teacher & subject attendance details"
                 >
                     {isCurrent && (
-                        <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-blue-600 to-indigo-600" />
+                        <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-primary to-primary" />
                     )}
 
                     {/* Header Row: Period Badge + Times on left, Type Badge + Code on right */}
                     <div className={`flex items-center justify-between gap-1.5 ${isCurrent ? 'pl-1' : ''}`}>
                         <div className="flex items-center gap-1.5 min-w-0">
-                            <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md shrink-0 ${isCurrent ? 'bg-blue-600 text-white shadow-xs' : periodBadgeStyle}`}>
+                            <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md shrink-0 ${isCurrent ? 'bg-primary text-white shadow-xs' : periodBadgeStyle}`}>
                                 {slot?.slot_name || `P${sOrder || ''}`}
                             </span>
                             {isCurrent && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-emerald-600 text-white shadow-xs animate-pulse leading-none shrink-0">
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider bg-success text-white shadow-xs animate-pulse leading-none shrink-0">
                                     <span className="relative flex h-1.5 w-1.5">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-surface opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-surface"></span>
                                     </span>
                                     NOW
                                 </span>
                             )}
-                            <span className={`text-[10px] whitespace-nowrap ${isCurrent ? 'font-bold text-blue-900' : 'font-semibold text-slate-500'}`}>
+                            <span className={`text-[10px] whitespace-nowrap ${isCurrent ? 'font-bold text-primary' : 'font-semibold text-muted-text'}`}>
                                 {formatTimeTo12h(slot?.start_time)} – {formatTimeTo12h(slot?.end_time)}
                             </span>
                         </div>
@@ -600,7 +600,7 @@ const StudentTimetable = () => {
                                 {badgeText}
                             </span>
                             {hasRealCode && (
-                                <span className="text-[9px] font-bold text-slate-400 font-mono">
+                                <span className="text-[9px] font-bold text-muted-text font-mono">
                                     {entry.subject_code}
                                 </span>
                             )}
@@ -608,14 +608,14 @@ const StudentTimetable = () => {
                     </div>
 
                     {/* Subject Title (small text, full width) */}
-                    <h4 className={`text-xs leading-snug transition-colors line-clamp-2 ${isCurrent ? 'font-black text-blue-950 group-hover:text-blue-600 pl-1' : 'font-extrabold text-blue-950 group-hover:text-blue-600'}`}>
+                    <h4 className={`text-xs leading-snug transition-colors line-clamp-2 ${isCurrent ? 'font-black text-primary group-hover:text-primary pl-1' : 'font-extrabold text-primary group-hover:text-primary'}`}>
                         {titleText}
                     </h4>
 
                     {/* Faculty Row */}
                     {facultyName && (
-                        <div className={`flex items-center gap-1 text-[10px] font-semibold text-slate-600 pt-1 border-t border-slate-100 truncate ${isCurrent ? 'pl-1' : ''}`}>
-                            <UserCheck size={12} className="text-blue-600 shrink-0" />
+                        <div className={`flex items-center gap-1 text-[10px] font-semibold text-sub pt-1 border-t border-border truncate ${isCurrent ? 'pl-1' : ''}`}>
+                            <UserCheck size={12} className="text-primary shrink-0" />
                             <span className="truncate">{facultyName}</span>
                         </div>
                     )}
@@ -629,20 +629,20 @@ const StudentTimetable = () => {
                 return (
                     <div className={`h-full w-full rounded-xl border flex flex-col items-center justify-center min-h-[105px] p-1.5 text-center transition-all ${
                         isCurrent
-                            ? 'border-amber-400 ring-2 ring-amber-500 bg-amber-100/80 shadow-md'
-                            : 'border-amber-200/80 bg-amber-50/50'
+                            ? 'border-warning ring-2 ring-warning bg-[var(--warning-light)] shadow-md'
+                            : 'border-[var(--warning-light)] bg-[var(--warning-light)]'
                     }`}>
                         <div className="flex items-center gap-1">
-                            <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
+                            <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                                 BREAK
                             </span>
                             {isCurrent && (
-                                <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-600 text-white animate-pulse">
+                                <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-warning text-white animate-pulse">
                                     NOW
                                 </span>
                             )}
                         </div>
-                        <span className="text-[9px] sm:text-[10px] font-bold text-amber-800 mt-1 leading-none">
+                        <span className="text-[9px] sm:text-[10px] font-bold text-warning mt-1 leading-none">
                             {sName.includes('LUNCH') || slotType === 'lunch' ? 'Lunch Break' : 'Break'}
                         </span>
                     </div>
@@ -652,15 +652,15 @@ const StudentTimetable = () => {
             return (
                 <div className={`h-full w-full rounded-xl border flex flex-col items-center justify-center min-h-[105px] p-1.5 text-center transition-all ${
                     isCurrent
-                        ? 'border-blue-400 ring-2 ring-blue-500 bg-blue-50/60 shadow-md'
-                        : 'border-slate-200/70 border-dashed bg-slate-50/30'
+                        ? 'border-primary ring-2 ring-primary bg-[var(--primary-light)] shadow-md'
+                        : 'border-border border-dashed bg-[var(--background)]/30'
                 }`}>
                     <div className="flex items-center gap-1">
-                        <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border text-slate-400 border-slate-200 bg-white">
+                        <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded border text-muted-text border-border bg-surface">
                             FREE SLOT
                         </span>
                         {isCurrent && (
-                            <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-blue-600 text-white animate-pulse">
+                            <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-primary text-white animate-pulse">
                                 NOW
                             </span>
                         )}
@@ -674,14 +674,14 @@ const StudentTimetable = () => {
                 onClick={() => onClick && entry && onClick(entry, slot, day)}
                 className={`h-full w-full rounded-xl flex flex-col justify-between border transition-all duration-200 group relative overflow-hidden cursor-pointer p-1.5 sm:p-2 min-h-[105px] ${
                     isCurrent
-                        ? 'bg-blue-50/40 border-blue-500 ring-2 ring-blue-600 shadow-lg scale-[1.01] z-10'
+                        ? 'bg-[var(--primary-light)] border-primary ring-2 ring-primary shadow-lg scale-[1.01] z-10'
                         : isToday
-                            ? 'bg-white border-blue-200 ring-1 ring-blue-400/40 shadow-2xs hover:border-blue-500 hover:shadow-md'
-                            : 'bg-white border-slate-200/90 hover:border-blue-500 hover:shadow-md'
+                            ? 'bg-surface border-[var(--primary-light)] ring-1 ring-[var(--primary-light)] shadow-2xs hover:border-primary hover:shadow-md'
+                            : 'bg-surface border-border hover:border-primary hover:shadow-md'
                 }`}
                 title={`${titleText} | Faculty: ${facultyName || 'Department Faculty'} (${codeOrLabel}) - Click for details`}
             >
-                <div className={`absolute top-0 left-0 w-1 sm:w-1.5 h-full ${isCurrent ? 'bg-gradient-to-b from-blue-600 to-indigo-600' : barColor}`} />
+                <div className={`absolute top-0 left-0 w-1 sm:w-1.5 h-full ${isCurrent ? 'bg-gradient-to-b from-primary to-primary' : barColor}`} />
 
                 <div className="pl-1 sm:pl-1.5 space-y-0.5">
                     {/* Top Row: Type Badge + NOW badge + Subject Code Badge */}
@@ -691,27 +691,27 @@ const StudentTimetable = () => {
                                 {badgeText}
                             </span>
                             {isCurrent && (
-                                <span className="inline-flex items-center gap-1 px-1 py-0.5 rounded text-[8px] font-black uppercase bg-emerald-600 text-white shadow-2xs animate-pulse leading-none shrink-0">
-                                    <span className="relative flex h-1 w-1 rounded-full bg-white"></span>
+                                <span className="inline-flex items-center gap-1 px-1 py-0.5 rounded text-[8px] font-black uppercase bg-success text-white shadow-2xs animate-pulse leading-none shrink-0">
+                                    <span className="relative flex h-1 w-1 rounded-full bg-surface"></span>
                                     NOW
                                 </span>
                             )}
                         </div>
-                        <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 bg-slate-100 border border-slate-200/60 px-1 py-0.5 rounded truncate max-w-[60px] sm:max-w-[75px] leading-none" title={codeOrLabel}>
+                        <span className="text-[8px] sm:text-[9px] font-bold text-muted-text bg-background border border-border px-1 py-0.5 rounded truncate max-w-[60px] sm:max-w-[75px] leading-none" title={codeOrLabel}>
                             {codeOrLabel}
                         </span>
                     </div>
 
                     {/* Subject Title */}
-                    <h4 className={`text-[10px] sm:text-xs leading-tight line-clamp-2 tracking-tight group-hover:text-blue-700 transition-colors ${isCurrent ? 'font-black text-blue-950' : 'font-extrabold text-blue-950'}`} title={titleText}>
+                    <h4 className={`text-[10px] sm:text-xs leading-tight line-clamp-2 tracking-tight group-hover:text-primary transition-colors ${isCurrent ? 'font-black text-primary' : 'font-extrabold text-primary'}`} title={titleText}>
                         {titleText}
                     </h4>
                 </div>
 
                 {/* Bottom Row: Faculty Name spanning full width */}
                 {facultyName && (
-                    <div className="mt-1 pt-0.5 border-t border-slate-100 flex items-center gap-0.5 text-[9px] sm:text-[10px] font-extrabold text-blue-900 pl-1 sm:pl-1.5 min-w-0" title={facultyName}>
-                        <UserCheck className="w-3 h-3 text-blue-600 shrink-0" />
+                    <div className="mt-1 pt-0.5 border-t border-border flex items-center gap-0.5 text-[9px] sm:text-[10px] font-extrabold text-primary pl-1 sm:pl-1.5 min-w-0" title={facultyName}>
+                        <UserCheck className="w-3 h-3 text-primary shrink-0" />
                         <span className="truncate">{facultyName}</span>
                     </div>
                 )}
@@ -725,15 +725,15 @@ const StudentTimetable = () => {
             {/* ── Top Portal Header ── */}
             <header className="flex items-center justify-between gap-2.5 sm:gap-4 w-full shrink-0">
                 <div className="min-w-0 flex-1">
-                    <h1 className="text-base sm:text-2xl font-black !text-blue-900 heading-font leading-tight whitespace-nowrap truncate">
+                    <h1 className="text-base sm:text-2xl font-black !text-primary heading-font leading-tight whitespace-nowrap truncate">
                         Academic Timetable &amp; Schedule
                     </h1>
-                    <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 font-semibold mt-0.5 flex items-center gap-1.5 sm:gap-2 truncate">
-                        <BookOpen size={13} className="text-blue-600 shrink-0" />
+                    <p className="text-[10px] sm:text-xs md:text-sm text-muted-text font-semibold mt-0.5 flex items-center gap-1.5 sm:gap-2 truncate">
+                        <BookOpen size={13} className="text-primary shrink-0" />
                         <span>{user?.branch || 'Engineering'}</span>
-                        <span className="text-slate-300">•</span>
+                        <span className="text-muted-text">•</span>
                         <span>Year {selectedYear}</span>
-                        <span className="text-slate-300">•</span>
+                        <span className="text-muted-text">•</span>
                         <span>Sem {selectedSem}</span>
                     </p>
                 </div>
@@ -741,14 +741,14 @@ const StudentTimetable = () => {
                 <div className="flex items-center gap-2 sm:gap-3 ml-auto shrink-0">
                     {/* Attendance Pill - Only visible on Desktop/Tablet */}
                     {!isMobileScreen && (
-                        <div className="flex bg-white border border-slate-200 px-3.5 sm:px-4 py-2 rounded-xl shadow-xs items-center gap-2.5 sm:gap-3 shrink-0">
-                            <div className="p-1.5 sm:p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0">
+                        <div className="flex bg-surface border border-border px-3.5 sm:px-4 py-2 rounded-xl shadow-xs items-center gap-2.5 sm:gap-3 shrink-0">
+                            <div className="p-1.5 sm:p-2 bg-[var(--primary-light)] text-primary rounded-lg shrink-0">
                                 <Award size={18} />
                             </div>
                             <div>
-                                <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider leading-none mb-1">Academic Attendance</p>
+                                <p className="text-[9px] font-extrabold text-muted-text uppercase tracking-wider leading-none mb-1">Academic Attendance</p>
                                 <div className="flex items-center gap-1.5 sm:gap-2">
-                                    <span className="text-sm sm:text-base font-extrabold text-blue-900 leading-none">{academicAttendanceSummary.percentage}%</span>
+                                    <span className="text-sm sm:text-base font-extrabold text-primary leading-none">{academicAttendanceSummary.percentage}%</span>
                                     <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${academicAttendanceSummary.badgeBg}`}>
                                         {academicAttendanceSummary.status}
                                     </span>
@@ -761,7 +761,7 @@ const StudentTimetable = () => {
                     <button
                         onClick={() => fetchTimetableAndSlots(true)}
                         disabled={refreshing}
-                        className="flex p-2 sm:p-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-xs items-center justify-center shrink-0"
+                        className="flex p-2 sm:p-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 shadow-xs items-center justify-center shrink-0"
                         title="Refresh"
                     >
                         <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
@@ -772,14 +772,14 @@ const StudentTimetable = () => {
             {/* ── View Navigation Tabs ── */}
             {isMobileScreen ? (
                 /* Mobile Tabs: Compact, sleek segmented switch */
-                <div className="bg-slate-100 p-1 rounded-xl w-full border border-slate-200/70 shadow-2xs">
+                <div className="bg-background p-1 rounded-xl w-full border border-border shadow-2xs">
                     <div className="grid grid-cols-3 gap-1 w-full">
                         <button
                             onClick={() => setActiveTab('grid')}
                             className={`flex items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg text-center transition-all duration-150 ${
                                 activeTab === 'grid'
-                                    ? 'bg-blue-600 text-white font-extrabold shadow-xs'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
+                                    ? 'bg-primary text-white font-extrabold shadow-xs'
+                                    : 'text-sub hover:text-main hover:bg-[var(--surface)]/60 font-semibold'
                             }`}
                         >
                             <Calendar size={12} className="shrink-0" />
@@ -789,8 +789,8 @@ const StudentTimetable = () => {
                             onClick={() => setActiveTab('periodwise')}
                             className={`flex items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg text-center transition-all duration-150 ${
                                 activeTab === 'periodwise'
-                                    ? 'bg-blue-600 text-white font-extrabold shadow-xs'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
+                                    ? 'bg-primary text-white font-extrabold shadow-xs'
+                                    : 'text-sub hover:text-main hover:bg-[var(--surface)]/60 font-semibold'
                             }`}
                         >
                             <Clock size={12} className="shrink-0" />
@@ -800,8 +800,8 @@ const StudentTimetable = () => {
                             onClick={() => setActiveTab('academic')}
                             className={`flex items-center justify-center gap-1.5 py-1.5 px-1 rounded-lg text-center transition-all duration-150 ${
                                 activeTab === 'academic'
-                                    ? 'bg-blue-600 text-white font-extrabold shadow-xs'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold'
+                                    ? 'bg-primary text-white font-extrabold shadow-xs'
+                                    : 'text-sub hover:text-main hover:bg-[var(--surface)]/60 font-semibold'
                             }`}
                         >
                             <TrendingUp size={12} className="shrink-0" />
@@ -811,13 +811,13 @@ const StudentTimetable = () => {
                 </div>
             ) : (
                 /* Desktop Tabs: Untouched inline layout */
-                <div className="bg-gray-100/90 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl w-fit shrink-0 shadow-xs">
+                <div className="bg-[var(--background)]/90 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl w-fit shrink-0 shadow-xs">
                     <div className="inline-flex items-center gap-1 sm:gap-1.5">
                         <button
                             onClick={() => setActiveTab('grid')}
                             className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 text-center ${activeTab === 'grid'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-sub hover:text-main hover:bg-[var(--surface)]/50'
                                 }`}
                         >
                             <Calendar size={14} className="shrink-0" />
@@ -826,8 +826,8 @@ const StudentTimetable = () => {
                         <button
                             onClick={() => setActiveTab('periodwise')}
                             className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 text-center ${activeTab === 'periodwise'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-sub hover:text-main hover:bg-[var(--surface)]/50'
                                 }`}
                         >
                             <Clock size={14} className="shrink-0" />
@@ -836,8 +836,8 @@ const StudentTimetable = () => {
                         <button
                             onClick={() => setActiveTab('academic')}
                             className={`flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 text-center ${activeTab === 'academic'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-sub hover:text-main hover:bg-[var(--surface)]/50'
                                 }`}
                         >
                             <TrendingUp size={14} className="shrink-0" />
@@ -849,14 +849,14 @@ const StudentTimetable = () => {
 
             {/* ── TAB 1: SEMESTER TIMETABLE (GRID VIEW) ── */}
             {activeTab === 'grid' && (
-                <div className={isMobileScreen ? "w-full" : "bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden w-full"}>
+                <div className={isMobileScreen ? "w-full" : "bg-surface rounded-2xl border border-border shadow-sm overflow-hidden w-full"}>
                     {!hasAnyClasses || effectiveSlots.length === 0 ? (
                         <div className="flex flex-col items-center justify-center p-12 sm:p-20 text-center">
-                            <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 mb-4 shadow-xs">
+                            <div className="w-16 h-16 rounded-2xl bg-[var(--warning-light)] border border-[var(--warning-light)] flex items-center justify-center text-warning mb-4 shadow-xs">
                                 <Calendar className="w-8 h-8" />
                             </div>
-                            <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-1.5">Timetable Not Configured</h3>
-                            <p className="text-slate-500 max-w-sm text-xs sm:text-sm">
+                            <h3 className="text-lg sm:text-xl font-black text-main mb-1.5">Timetable Not Configured</h3>
+                            <p className="text-muted-text max-w-sm text-xs sm:text-sm">
                                 Timetable for Year {selectedYear} Sem {selectedSem} has not been configured in the Academic Portal yet. Please contact your department HOD.
                             </p>
                         </div>
@@ -864,7 +864,7 @@ const StudentTimetable = () => {
                         /* Mobile Timeline View - Full-width layout */
                         <div className="w-full space-y-2">
                             {/* Day selector: 6 equal columns, strictly NO horizontal scrolling */}
-                            <div className="w-full bg-white p-1 rounded-xl border border-slate-200/80 shadow-2xs">
+                            <div className="w-full bg-surface p-1 rounded-xl border border-border shadow-2xs">
                                 <div className="grid grid-cols-6 gap-1 w-full">
                                     {days.map((day) => (
                                         <button
@@ -872,14 +872,14 @@ const StudentTimetable = () => {
                                             onClick={() => setActiveDay(day)}
                                             className={`py-1.5 px-0.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex flex-col items-center justify-center min-w-0 text-center ${
                                                 activeDay === day
-                                                    ? 'bg-blue-600 text-white shadow-xs'
-                                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                            } ${day === currentDayName ? 'ring-1.5 ring-blue-500' : ''}`}
+                                                    ? 'bg-primary text-white shadow-xs'
+                                                    : 'bg-background text-sub hover:bg-background'
+                                            } ${day === currentDayName ? 'ring-1.5 ring-primary' : ''}`}
                                         >
                                             <span className="truncate">{day === 'THUR' ? 'THU' : day}</span>
                                             {day === currentDayName && (
                                                 <span className={`text-[7px] font-black uppercase leading-none mt-0.5 ${
-                                                    activeDay === day ? 'text-blue-100' : 'text-blue-600'
+                                                    activeDay === day ? 'text-primary' : 'text-primary'
                                                 }`}>
                                                     TODAY
                                                 </span>
@@ -918,9 +918,9 @@ const StudentTimetable = () => {
                         <div className="w-full overflow-x-auto">
                             <div className="min-w-[950px] w-full">
                                 {/* Table Header Row: Days column + Period Slots */}
-                                <div className="flex border-b border-slate-200 bg-slate-50/80 w-full">
-                                    <div className="w-20 sm:w-24 flex-shrink-0 p-3 flex items-center justify-center border-r border-slate-200 bg-slate-100/70">
-                                        <span className="text-[10px] sm:text-xs font-black text-blue-900 uppercase tracking-wider">DAYS</span>
+                                <div className="flex border-b border-border bg-[var(--background)]/80 w-full">
+                                    <div className="w-20 sm:w-24 flex-shrink-0 p-3 flex items-center justify-center border-r border-border bg-[var(--background)]/70">
+                                        <span className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-wider">DAYS</span>
                                     </div>
                                     <div
                                         className="flex-1 grid min-w-0"
@@ -931,20 +931,20 @@ const StudentTimetable = () => {
                                             return (
                                                 <div
                                                     key={slot.id || `h-slot-${sIdx}`}
-                                                    className={`py-2.5 px-1.5 text-center border-r border-slate-200 last:border-r-0 flex flex-col justify-center min-w-0 transition-colors ${
-                                                        isCurrentSlotTiming ? 'bg-blue-100/70 border-b-2 border-b-blue-600' : 'bg-slate-50/50'
+                                                    className={`py-2.5 px-1.5 text-center border-r border-border last:border-r-0 flex flex-col justify-center min-w-0 transition-colors ${
+                                                        isCurrentSlotTiming ? 'bg-[var(--primary-light)] border-b-2 border-b-primary' : 'bg-[var(--background)]/50'
                                                     }`}
                                                 >
                                                     <div className="flex items-center justify-center gap-1 mb-0.5">
-                                                        <p className={`text-[10px] sm:text-xs uppercase tracking-wider truncate ${isCurrentSlotTiming ? 'font-black text-blue-950' : 'font-black text-blue-900'}`}>{slot.slot_name}</p>
+                                                        <p className={`text-[10px] sm:text-xs uppercase tracking-wider truncate ${isCurrentSlotTiming ? 'font-black text-primary' : 'font-black text-primary'}`}>{slot.slot_name}</p>
                                                         {isCurrentSlotTiming && (
-                                                            <span className="px-1 py-0.2 rounded bg-blue-600 text-white text-[7px] font-black uppercase tracking-wider animate-pulse leading-none">
+                                                            <span className="px-1 py-0.2 rounded bg-primary text-white text-[7px] font-black uppercase tracking-wider animate-pulse leading-none">
                                                                 NOW
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p className={`text-[9px] sm:text-[10px] font-bold flex items-center justify-center gap-1 whitespace-nowrap truncate ${isCurrentSlotTiming ? 'text-blue-900' : 'text-slate-600'}`}>
-                                                        <Clock size={11} className={isCurrentSlotTiming ? "text-blue-700 shrink-0" : "text-blue-600 shrink-0"} />
+                                                    <p className={`text-[9px] sm:text-[10px] font-bold flex items-center justify-center gap-1 whitespace-nowrap truncate ${isCurrentSlotTiming ? 'text-primary' : 'text-sub'}`}>
+                                                        <Clock size={11} className={isCurrentSlotTiming ? "text-primary shrink-0" : "text-primary shrink-0"} />
                                                         <span className="truncate">{formatTimeTo12h(slot.start_time).replace(' AM', '').replace(' PM', '')} - {formatTimeTo12h(slot.end_time)}</span>
                                                     </p>
                                                 </div>
@@ -954,17 +954,17 @@ const StudentTimetable = () => {
                                 </div>
 
                                 {/* Table Body Rows: Each Day as a Row */}
-                                <div className="divide-y divide-slate-200 w-full">
+                                <div className="divide-y divide-border w-full">
                                     {days.map((day) => (
-                                        <div key={day} className={`flex transition-colors w-full ${day === currentDayName ? 'bg-blue-50/30' : 'hover:bg-slate-50/40'}`}>
+                                        <div key={day} className={`flex transition-colors w-full ${day === currentDayName ? 'bg-[var(--primary-light)]' : 'hover:bg-[var(--background)]/40'}`}>
                                             <div className={`w-20 sm:w-24 flex-shrink-0 flex flex-col items-center justify-center border-r font-extrabold text-xs tracking-wider transition-all relative ${
                                                 day === currentDayName 
-                                                    ? 'bg-blue-600 text-white border-r-blue-700 shadow-sm' 
-                                                    : 'text-slate-700 bg-slate-50/50 border-slate-200'
+                                                    ? 'bg-primary text-white border-r-primary shadow-sm'
+                                                    : 'text-sub bg-[var(--background)]/50 border-border'
                                             }`}>
                                                 <span>{day}</span>
                                                 {day === currentDayName && (
-                                                    <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-white text-blue-700 mt-1 shadow-2xs leading-none">
+                                                    <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-surface text-primary mt-1 shadow-2xs leading-none">
                                                         TODAY
                                                     </span>
                                                 )}
@@ -980,7 +980,7 @@ const StudentTimetable = () => {
                                                     return (
                                                         <div
                                                             key={slot.id || `b-slot-${sIdx}`}
-                                                            className={`p-1 min-h-[110px] flex border-r border-slate-200 last:border-r-0 min-w-0 ${isCurrent ? 'bg-blue-100/20' : ''}`}
+                                                            className={`p-1 min-h-[110px] flex border-r border-border last:border-r-0 min-w-0 ${isCurrent ? 'bg-[var(--primary-light)]' : ''}`}
                                                         >
                                                             <TimetableCard
                                                                 entry={entry}
@@ -1005,28 +1005,28 @@ const StudentTimetable = () => {
 
             {/* ── TAB 2: PERIOD-WISE BREAKDOWN ── */}
             {activeTab === 'periodwise' && (
-                <div className={isMobileScreen ? "w-full space-y-2.5" : "bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-6 space-y-4 shadow-xs"}>
+                <div className={isMobileScreen ? "w-full space-y-2.5" : "bg-surface rounded-2xl border border-border p-4 sm:p-6 space-y-4 shadow-xs"}>
                     {!hasAnyClasses || effectiveSlots.length === 0 ? (
                         <div className="flex flex-col items-center justify-center p-12 sm:p-20 text-center">
-                            <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-500 mb-4 shadow-xs">
+                            <div className="w-16 h-16 rounded-2xl bg-[var(--warning-light)] border border-[var(--warning-light)] flex items-center justify-center text-warning mb-4 shadow-xs">
                                 <Calendar className="w-8 h-8" />
                             </div>
-                            <h3 className="text-lg sm:text-xl font-black text-slate-800 mb-1.5">Timetable Not Configured</h3>
-                            <p className="text-slate-500 max-w-sm text-xs sm:text-sm">
+                            <h3 className="text-lg sm:text-xl font-black text-main mb-1.5">Timetable Not Configured</h3>
+                            <p className="text-muted-text max-w-sm text-xs sm:text-sm">
                                 Timetable for Year {selectedYear} Sem {selectedSem} has not been configured in the Academic Portal yet. Please contact your department HOD.
                             </p>
                         </div>
                     ) : (
                         <>
                             <div
-                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-100 w-full"
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-border w-full"
                                 style={!isMobileScreen ? { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } : undefined}
                             >
                                 <div className="text-left shrink-0">
-                                    <h3 className="text-sm sm:text-base font-extrabold text-blue-900 tracking-tight leading-snug text-left">
+                                    <h3 className="text-sm sm:text-base font-extrabold text-primary tracking-tight leading-snug text-left">
                                         Period-wise Timetable Breakdown
                                     </h3>
-                                    <p className="hidden sm:block text-xs text-slate-500 font-medium mt-0.5 text-left">
+                                    <p className="hidden sm:block text-xs text-muted-text font-medium mt-0.5 text-left">
                                         Select a day to view period schedule and posted teacher attendance details.
                                     </p>
                                 </div>
@@ -1039,13 +1039,13 @@ const StudentTimetable = () => {
                                                 key={day}
                                                 onClick={() => setActiveDay(day)}
                                                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1 ${activeDay === day
-                                                    ? 'bg-blue-600 text-white shadow-sm'
-                                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                                                    } ${day === currentDayName ? 'ring-2 ring-blue-500 font-extrabold' : ''}`}
+                                                    ? 'bg-primary text-white shadow-sm'
+                                                    : 'bg-background text-sub hover:bg-background'
+                                                    } ${day === currentDayName ? 'ring-2 ring-primary font-extrabold' : ''}`}
                                             >
                                                 <span>{day}</span>
                                                 {day === currentDayName && (
-                                                    <span className={`text-[8px] font-black px-1 py-0.2 rounded uppercase ${activeDay === day ? 'bg-white text-blue-700' : 'bg-blue-600 text-white'}`}>
+                                                    <span className={`text-[8px] font-black px-1 py-0.2 rounded uppercase ${activeDay === day ? 'bg-surface text-primary' : 'bg-primary text-white'}`}>
                                                         TODAY
                                                     </span>
                                                 )}
@@ -1057,7 +1057,7 @@ const StudentTimetable = () => {
 
                             {/* Mobile Day Selector for Tab 2 - NO horizontal scroll */}
                             {isMobileScreen && (
-                                <div className="w-full bg-white p-1 rounded-xl border border-slate-200/80 shadow-2xs">
+                                <div className="w-full bg-surface p-1 rounded-xl border border-border shadow-2xs">
                                     <div className="grid grid-cols-6 gap-1 w-full">
                                         {days.map((day) => (
                                             <button
@@ -1065,14 +1065,14 @@ const StudentTimetable = () => {
                                                 onClick={() => setActiveDay(day)}
                                                 className={`py-1.5 px-0.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex flex-col items-center justify-center min-w-0 text-center ${
                                                     activeDay === day
-                                                        ? 'bg-blue-600 text-white shadow-xs'
-                                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                                } ${day === currentDayName ? 'ring-1.5 ring-blue-500' : ''}`}
+                                                        ? 'bg-primary text-white shadow-xs'
+                                                        : 'bg-background text-sub hover:bg-background'
+                                                } ${day === currentDayName ? 'ring-1.5 ring-primary' : ''}`}
                                             >
                                                 <span className="truncate">{day === 'THUR' ? 'THU' : day}</span>
                                                 {day === currentDayName && (
                                                     <span className={`text-[7px] font-black uppercase leading-none mt-0.5 ${
-                                                        activeDay === day ? 'text-blue-100' : 'text-blue-600'
+                                                        activeDay === day ? 'text-primary' : 'text-primary'
                                                     }`}>
                                                         TODAY
                                                     </span>
@@ -1125,91 +1125,91 @@ const StudentTimetable = () => {
             {activeTab === 'academic' && (
                 <div className="space-y-5">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-                        <div className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-2">
+                        <div className="bg-surface p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-border shadow-xs flex items-center justify-between gap-2">
                             <div className="min-w-0 flex-1">
-                                <p className="text-[9px] sm:text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-0.5 sm:mb-1 truncate">Total Attendance %</p>
-                                <h3 className="text-base sm:text-xl font-extrabold text-blue-900">{academicAttendanceSummary.percentage}%</h3>
-                                <p className="text-[10px] sm:text-xs font-semibold text-emerald-700 mt-0.5 truncate">Target: 75%</p>
+                                <p className="text-[9px] sm:text-[10px] font-extrabold uppercase text-muted-text tracking-wider mb-0.5 sm:mb-1 truncate">Total Attendance %</p>
+                                <h3 className="text-base sm:text-xl font-extrabold text-primary">{academicAttendanceSummary.percentage}%</h3>
+                                <p className="text-[10px] sm:text-xs font-semibold text-success mt-0.5 truncate">Target: 75%</p>
                             </div>
-                            <div className="p-2 sm:p-3 bg-blue-50 text-blue-600 rounded-lg sm:rounded-xl shrink-0">
+                            <div className="p-2 sm:p-3 bg-[var(--primary-light)] text-primary rounded-lg sm:rounded-xl shrink-0">
                                 <Award className="w-4 h-4 sm:w-5 sm:h-5" />
                             </div>
                         </div>
 
-                        <div className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-2">
+                        <div className="bg-surface p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-border shadow-xs flex items-center justify-between gap-2">
                             <div className="min-w-0 flex-1">
-                                <p className="text-[9px] sm:text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-0.5 sm:mb-1 truncate">Present Days</p>
-                                <h3 className="text-base sm:text-xl font-extrabold text-emerald-700">{academicAttendanceSummary.present} Days</h3>
-                                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate">Attended</p>
+                                <p className="text-[9px] sm:text-[10px] font-extrabold uppercase text-muted-text tracking-wider mb-0.5 sm:mb-1 truncate">Present Days</p>
+                                <h3 className="text-base sm:text-xl font-extrabold text-success">{academicAttendanceSummary.present} Days</h3>
+                                <p className="text-[10px] sm:text-xs font-semibold text-muted-text mt-0.5 truncate">Attended</p>
                             </div>
-                            <div className="p-2 sm:p-3 bg-emerald-50 text-emerald-600 rounded-lg sm:rounded-xl shrink-0">
+                            <div className="p-2 sm:p-3 bg-[var(--success-light)] text-success rounded-lg sm:rounded-xl shrink-0">
                                 <UserCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                             </div>
                         </div>
 
-                        <div className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-2">
+                        <div className="bg-surface p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-border shadow-xs flex items-center justify-between gap-2">
                             <div className="min-w-0 flex-1">
-                                <p className="text-[9px] sm:text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-0.5 sm:mb-1 truncate">Absent Days</p>
-                                <h3 className="text-base sm:text-xl font-extrabold text-rose-600">{academicAttendanceSummary.absent} Days</h3>
-                                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 mt-0.5 truncate">Missed</p>
+                                <p className="text-[9px] sm:text-[10px] font-extrabold uppercase text-muted-text tracking-wider mb-0.5 sm:mb-1 truncate">Absent Days</p>
+                                <h3 className="text-base sm:text-xl font-extrabold text-danger">{academicAttendanceSummary.absent} Days</h3>
+                                <p className="text-[10px] sm:text-xs font-semibold text-muted-text mt-0.5 truncate">Missed</p>
                             </div>
-                            <div className="p-2 sm:p-3 bg-rose-50 text-rose-600 rounded-lg sm:rounded-xl shrink-0">
+                            <div className="p-2 sm:p-3 bg-[var(--danger-light)] text-danger rounded-lg sm:rounded-xl shrink-0">
                                 <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                             </div>
                         </div>
 
-                        <div className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between gap-2">
+                        <div className="bg-surface p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-border shadow-xs flex items-center justify-between gap-2">
                             <div className="min-w-0 flex-1">
-                                <p className="text-[9px] sm:text-[10px] font-extrabold uppercase text-slate-400 tracking-wider mb-0.5 sm:mb-1 truncate">Academic Status</p>
-                                <h3 className="text-xs sm:text-base font-extrabold text-blue-900 truncate">{academicAttendanceSummary.status}</h3>
-                                <p className="text-[10px] sm:text-xs font-semibold text-blue-600 mt-0.5 truncate">Exam Eligible</p>
+                                <p className="text-[9px] sm:text-[10px] font-extrabold uppercase text-muted-text tracking-wider mb-0.5 sm:mb-1 truncate">Academic Status</p>
+                                <h3 className="text-xs sm:text-base font-extrabold text-primary truncate">{academicAttendanceSummary.status}</h3>
+                                <p className="text-[10px] sm:text-xs font-semibold text-primary mt-0.5 truncate">Exam Eligible</p>
                             </div>
-                            <div className="p-2 sm:p-3 bg-purple-50 text-purple-600 rounded-lg sm:rounded-xl shrink-0">
+                            <div className="p-2 sm:p-3 bg-[var(--primary-light)] text-secondary rounded-lg sm:rounded-xl shrink-0">
                                 <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                    <div className="bg-surface p-4 sm:p-6 rounded-2xl border border-border shadow-xs space-y-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h3 className="text-base font-extrabold text-blue-900 tracking-tight">Semester Subjects & Load</h3>
-                                <p className="hidden sm:block text-xs text-slate-500 font-medium">Weekly subject schedule in Year {selectedYear} Sem {selectedSem} timetable.</p>
+                                <h3 className="text-base font-extrabold text-primary tracking-tight">Semester Subjects & Load</h3>
+                                <p className="hidden sm:block text-xs text-muted-text font-medium">Weekly subject schedule in Year {selectedYear} Sem {selectedSem} timetable.</p>
                             </div>
-                            <span className="text-xs font-extrabold text-blue-700 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100 whitespace-nowrap shrink-0">
+                            <span className="text-xs font-extrabold text-primary bg-[var(--primary-light)] px-3 py-1 rounded-lg border border-[var(--primary-light)] whitespace-nowrap shrink-0">
                                 {timetableSubjects.length} Courses
                             </span>
                         </div>
 
                         {timetableSubjects.length === 0 ? (
-                            <p className="text-slate-400 text-xs font-medium text-center py-6">No subjects listed in current timetable configuration.</p>
+                            <p className="text-muted-text text-xs font-medium text-center py-6">No subjects listed in current timetable configuration.</p>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                 {timetableSubjects.map((sub, idx) => (
-                                    <div key={`${sub.code || 'sub'}-${sub.name || ''}-${idx}`} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-blue-300 transition-all space-y-2.5">
+                                    <div key={`${sub.code || 'sub'}-${sub.name || ''}-${idx}`} className="p-4 rounded-xl border border-border bg-[var(--background)]/50 hover:bg-surface hover:border-[var(--primary-light)] transition-all space-y-2.5">
                                         <div className="flex items-start justify-between">
-                                            <span className="text-[9px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                                            <span className="text-[9px] font-extrabold uppercase tracking-wider text-primary bg-[var(--primary-light)] px-2 py-0.5 rounded border border-[var(--primary-light)]">
                                                 {sub.code}
                                             </span>
-                                            <span className="text-xs font-bold text-slate-500">
+                                            <span className="text-xs font-bold text-muted-text">
                                                 {sub.slotsCount} Weekly Hours
                                             </span>
                                         </div>
-                                        <h4 className="font-extrabold text-blue-900 text-xs sm:text-sm">{sub.name}</h4>
+                                        <h4 className="font-extrabold text-primary text-xs sm:text-sm">{sub.name}</h4>
 
                                         {sub.daysStr && (
-                                            <p className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
-                                                <Clock size={11} className="text-blue-600 shrink-0" />
+                                            <p className="text-[10px] font-semibold text-muted-text flex items-center gap-1">
+                                                <Clock size={11} className="text-primary shrink-0" />
                                                 <span>Slots: {sub.daysStr} {sub.slotLabelsStr ? `(${sub.slotLabelsStr})` : ''}</span>
                                             </p>
                                         )}
 
-                                        <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] gap-2">
-                                            <span className="text-slate-600 font-bold flex items-center gap-1 min-w-0 flex-1 truncate" title={sub.faculty}>
-                                                <UserCheck size={13} className="text-blue-600 shrink-0" />
+                                        <div className="pt-2 border-t border-border flex items-center justify-between text-[11px] gap-2">
+                                            <span className="text-sub font-bold flex items-center gap-1 min-w-0 flex-1 truncate" title={sub.faculty}>
+                                                <UserCheck size={13} className="text-primary shrink-0" />
                                                 <span className="truncate">{sub.faculty}</span>
                                             </span>
-                                            <span className="font-extrabold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 shrink-0">
+                                            <span className="font-extrabold text-primary bg-[var(--primary-light)] px-2 py-0.5 rounded border border-[var(--primary-light)] shrink-0">
                                                 {sub.percentage}% Attd
                                             </span>
                                         </div>
@@ -1224,34 +1224,34 @@ const StudentTimetable = () => {
             {/* ── PERIOD DETAILS & ATTENDANCE CALENDAR POPUP MODAL ── */}
             {selectedPeriodModal && (
                 <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-xs animate-fade-in"
+                    className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-[var(--sidebar)]/70 backdrop-blur-xs animate-fade-in"
                     onClick={() => setSelectedPeriodModal(null)}
                 >
                     <div
-                        className="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-100 space-y-4 sm:space-y-5 transform transition-all scale-100 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto no-scrollbar mb-16 sm:mb-0"
+                        className="bg-surface rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-border space-y-4 sm:space-y-5 transform transition-all scale-100 max-h-[85vh] sm:max-h-[90vh] overflow-y-auto no-scrollbar mb-16 sm:mb-0"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Modal Header */}
-                        <div className="flex items-start justify-between pb-3 border-b border-slate-100">
+                        <div className="flex items-start justify-between pb-3 border-b border-border">
                             <div>
                                 <div className="flex items-center gap-2 mb-1">
-                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase bg-blue-50 text-blue-800 border border-blue-200">
+                                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                                         {selectedPeriodModal.day} • {selectedPeriodModal.slot?.slot_name || 'Period'}
                                     </span>
                                     {selectedPeriodModal.slot?.start_time && (
-                                        <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-                                            <Clock size={12} className="text-blue-600" />
+                                        <span className="text-xs font-semibold text-muted-text flex items-center gap-1">
+                                            <Clock size={12} className="text-primary" />
                                             {formatTimeTo12h(selectedPeriodModal.slot.start_time)} - {formatTimeTo12h(selectedPeriodModal.slot.end_time)}
                                         </span>
                                     )}
                                 </div>
-                                <h3 className="text-base sm:text-lg font-extrabold text-blue-950 leading-snug">
+                                <h3 className="text-base sm:text-lg font-extrabold text-primary leading-snug">
                                     {selectedPeriodModal.entry?.subject_name || selectedPeriodModal.entry?.custom_label || selectedPeriodModal.entry?.title || 'Scheduled Period'}
                                 </h3>
                             </div>
                             <button
                                 onClick={() => setSelectedPeriodModal(null)}
-                                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                className="p-2 rounded-xl text-muted-text hover:text-sub hover:bg-background transition-colors"
                             >
                                 <XCircle size={20} />
                             </button>
@@ -1261,29 +1261,29 @@ const StudentTimetable = () => {
                         {isCalendarView ? (
                             <div className="space-y-4 animate-fade-in">
                                 {/* Subject & Month Header */}
-                                <div className="bg-blue-50/70 p-3.5 rounded-2xl border border-blue-100 flex items-center justify-between gap-2">
+                                <div className="bg-[var(--primary-light)] p-3.5 rounded-2xl border border-[var(--primary-light)] flex items-center justify-between gap-2">
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-[10px] font-extrabold uppercase text-blue-600 tracking-wider truncate">
+                                        <p className="text-[10px] font-extrabold uppercase text-primary tracking-wider truncate">
                                             {selectedPeriodModal.entry?.subject_code || 'Subject Attendance Log'}
                                         </p>
-                                        <h4 className="text-xs sm:text-sm font-extrabold text-blue-950 truncate">
+                                        <h4 className="text-xs sm:text-sm font-extrabold text-primary truncate">
                                             Daily Attendance Calendar
                                         </h4>
                                     </div>
-                                    <div className="flex items-center gap-1 bg-white px-2 py-1 rounded-xl border border-blue-200/80 shadow-2xs shrink-0">
+                                    <div className="flex items-center gap-1 bg-surface px-2 py-1 rounded-xl border border-[var(--primary-light)] shadow-2xs shrink-0">
                                         <button
                                             onClick={() => setCalendarMonthDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
-                                            className="p-1 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                                            className="p-1 text-sub hover:text-primary hover:bg-[var(--primary-light)] rounded-lg transition-colors"
                                             title="Previous Month"
                                         >
                                             <ChevronLeft size={16} />
                                         </button>
-                                        <span className="text-xs font-extrabold text-blue-900 px-1 whitespace-nowrap">
+                                        <span className="text-xs font-extrabold text-primary px-1 whitespace-nowrap">
                                             {calendarMonthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                                         </span>
                                         <button
                                             onClick={() => setCalendarMonthDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
-                                            className="p-1 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                                            className="p-1 text-sub hover:text-primary hover:bg-[var(--primary-light)] rounded-lg transition-colors"
                                             title="Next Month"
                                         >
                                             <ChevronRight size={16} />
@@ -1292,27 +1292,27 @@ const StudentTimetable = () => {
                                 </div>
 
                                 {/* Attendance Status Legend */}
-                                <div className="flex items-center justify-around bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 text-[10px] sm:text-[11px] font-bold">
+                                <div className="flex items-center justify-around bg-background p-2.5 rounded-xl border border-border text-[10px] sm:text-[11px] font-bold">
                                     <div className="flex items-center gap-1.5">
-                                        <span className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center justify-center font-black text-[10px]">P</span>
-                                        <span className="text-slate-700">Present</span>
+                                        <span className="w-5 h-5 rounded-md bg-[var(--success-light)] text-success border border-[var(--success-light)] flex items-center justify-center font-black text-[10px]">P</span>
+                                        <span className="text-sub">Present</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
-                                        <span className="w-5 h-5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 flex items-center justify-center font-black text-[10px]">A</span>
-                                        <span className="text-slate-700">Absent</span>
+                                        <span className="w-5 h-5 rounded-md bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] flex items-center justify-center font-black text-[10px]">A</span>
+                                        <span className="text-sub">Absent</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
-                                        <span className="w-5 h-5 rounded-md bg-slate-100 text-slate-500 border border-slate-200 flex items-center justify-center font-black text-[10px]">N</span>
-                                        <span className="text-slate-500">Null (No Record)</span>
+                                        <span className="w-5 h-5 rounded-md bg-background text-muted-text border border-border flex items-center justify-center font-black text-[10px]">N</span>
+                                        <span className="text-muted-text">Null (No Record)</span>
                                     </div>
                                 </div>
 
                                 {/* Calendar Grid */}
-                                <div className="border border-slate-200 rounded-2xl p-3 bg-white space-y-2">
+                                <div className="border border-border rounded-2xl p-3 bg-surface space-y-2">
                                     {/* Days of Week Header */}
-                                    <div className="grid grid-cols-7 gap-1 text-center border-b border-slate-100 pb-2">
+                                    <div className="grid grid-cols-7 gap-1 text-center border-b border-border pb-2">
                                         {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => (
-                                            <span key={d} className="text-[9px] font-black text-slate-400 uppercase tracking-wider">{d}</span>
+                                            <span key={d} className="text-[9px] font-black text-muted-text uppercase tracking-wider">{d}</span>
                                         ))}
                                     </div>
 
@@ -1346,21 +1346,21 @@ const StudentTimetable = () => {
                                                     return dateMatches && (codeMatches || nameMatches);
                                                 });
 
-                                                let statusBadge = { code: 'N', bg: 'bg-slate-100 text-slate-500 border-slate-200' };
+                                                let statusBadge = { code: 'N', bg: 'bg-background text-muted-text border-border' };
                                                 if (matchedLog) {
                                                     if (matchedLog.status === 'present') {
-                                                        statusBadge = { code: 'P', bg: 'bg-emerald-100 text-emerald-800 border-emerald-300 font-black' };
+                                                        statusBadge = { code: 'P', bg: 'bg-[var(--success-light)] text-success border-[var(--success-light)] font-black' };
                                                     } else if (matchedLog.status === 'absent') {
-                                                        statusBadge = { code: 'A', bg: 'bg-rose-100 text-rose-800 border-rose-300 font-black' };
+                                                        statusBadge = { code: 'A', bg: 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)] font-black' };
                                                     }
                                                 }
 
                                                 cells.push(
                                                     <div
                                                         key={`day-${dayNum}`}
-                                                        className="h-9 sm:h-10 rounded-xl border border-slate-100 flex flex-col items-center justify-center p-0.5 relative group hover:border-blue-300 transition-all bg-slate-50/40"
+                                                        className="h-9 sm:h-10 rounded-xl border border-border flex flex-col items-center justify-center p-0.5 relative group hover:border-[var(--primary-light)] transition-all bg-[var(--background)]/40"
                                                     >
-                                                        <span className="text-[10px] font-bold text-slate-700 leading-none">{dayNum}</span>
+                                                        <span className="text-[10px] font-bold text-sub leading-none">{dayNum}</span>
                                                         <span className={`text-[8px] px-1 py-0.2 rounded mt-0.5 border leading-none ${statusBadge.bg}`}>
                                                             {statusBadge.code}
                                                         </span>
@@ -1375,7 +1375,7 @@ const StudentTimetable = () => {
                                 {/* Back Button */}
                                 <button
                                     onClick={() => setIsCalendarView(false)}
-                                    className="w-full py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors shadow-xs text-xs"
+                                    className="w-full py-2.5 bg-background text-sub rounded-xl font-bold hover:bg-background transition-colors shadow-xs text-xs"
                                 >
                                     ← Back to Period Details
                                 </button>
@@ -1395,42 +1395,42 @@ const StudentTimetable = () => {
                                     return (
                                         <>
                                             {/* Faculty / Teacher Card */}
-                                            <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-100/80 flex items-center gap-3.5">
-                                                <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
+                                            <div className="p-4 rounded-2xl bg-[var(--primary-light)] border border-[var(--primary-light)] flex items-center gap-3.5">
+                                                <div className="w-11 h-11 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-base shrink-0 shadow-xs">
                                                     <UserCheck size={22} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-extrabold uppercase text-blue-600 tracking-wider">Assigned Faculty / Teacher</p>
-                                                    <h4 className="text-sm font-extrabold text-blue-950 mt-0.5">
+                                                    <p className="text-[10px] font-extrabold uppercase text-primary tracking-wider">Assigned Faculty / Teacher</p>
+                                                    <h4 className="text-sm font-extrabold text-primary mt-0.5">
                                                         {stats.faculty}
                                                     </h4>
                                                 </div>
                                             </div>
 
                                             {/* Subject Attendance Info */}
-                                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                                            <div className="p-4 rounded-2xl bg-background border border-border space-y-2">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-xs font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
-                                                        <Award size={15} className="text-blue-600" />
+                                                    <span className="text-xs font-extrabold text-sub uppercase tracking-wider flex items-center gap-1.5">
+                                                        <Award size={15} className="text-primary" />
                                                         Subject Attendance Status
                                                     </span>
-                                                    <span className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${stats.status === 'Compliant' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                                                    <span className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${stats.status === 'Compliant' ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--danger-light)] text-danger'}`}>
                                                         {stats.status}
                                                     </span>
                                                 </div>
 
                                                 <div className="flex items-baseline justify-between pt-1">
                                                     <div>
-                                                        <span className="text-2xl font-extrabold text-blue-950">{stats.percentage}%</span>
-                                                        <span className="text-xs text-slate-500 font-medium ml-2">
+                                                        <span className="text-2xl font-extrabold text-primary">{stats.percentage}%</span>
+                                                        <span className="text-xs text-muted-text font-medium ml-2">
                                                             {stats.total > 0 ? `${stats.present} / ${stats.total} Classes Attended` : 'Semester Performance'}
                                                         </span>
                                                     </div>
                                                 </div>
 
-                                                <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden mt-1">
+                                                <div className="w-full bg-background h-2 rounded-full overflow-hidden mt-1">
                                                     <div
-                                                        className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                                                        className="bg-primary h-full rounded-full transition-all duration-500"
                                                         style={{ width: `${Math.min(100, Math.max(0, Number(stats.percentage)))}%` }}
                                                     />
                                                 </div>
@@ -1449,24 +1449,24 @@ const StudentTimetable = () => {
                                                 if (!postedLog) return null;
 
                                                 return (
-                                                    <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-1.5">
+                                                    <div className="p-3.5 rounded-2xl bg-[var(--warning-light)] border border-[var(--warning-light)] space-y-1.5">
                                                         <div className="flex items-center justify-between">
-                                                            <span className="text-[10px] font-extrabold uppercase text-amber-900 tracking-wider flex items-center gap-1">
-                                                                <UserCheck size={12} className="text-amber-700" />
+                                                            <span className="text-[10px] font-extrabold uppercase text-warning tracking-wider flex items-center gap-1">
+                                                                <UserCheck size={12} className="text-warning" />
                                                                 Teacher Posted Period Record
                                                             </span>
-                                                            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${postedLog.status === 'present' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                                                            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${postedLog.status === 'present' ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--danger-light)] text-danger'}`}>
                                                                 {postedLog.status.toUpperCase()}
                                                             </span>
                                                         </div>
-                                                        <p className="text-xs font-extrabold text-blue-950">
+                                                        <p className="text-xs font-extrabold text-primary">
                                                             Faculty: {postedLog.faculty_name || stats.faculty}
                                                         </p>
-                                                        <p className="text-[11px] font-semibold text-slate-600">
+                                                        <p className="text-[11px] font-semibold text-sub">
                                                             Date: {postedLog.attendance_date} ({postedLog.start_time || ''} - {postedLog.end_time || ''})
                                                         </p>
                                                         {postedLog.remarks && (
-                                                            <p className="text-[11px] italic text-slate-500">Remarks: {postedLog.remarks}</p>
+                                                            <p className="text-[11px] italic text-muted-text">Remarks: {postedLog.remarks}</p>
                                                         )}
                                                     </div>
                                                 );
@@ -1477,13 +1477,13 @@ const StudentTimetable = () => {
 
                                 {/* Additional Period Details */}
                                 <div className="grid grid-cols-2 gap-3 text-xs">
-                                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                        <p className="text-[9px] font-extrabold uppercase text-slate-400 tracking-wider">Subject Code</p>
-                                        <p className="font-extrabold text-blue-950 mt-0.5">{selectedPeriodModal.entry?.subject_code || 'N/A'}</p>
+                                    <div className="p-3 rounded-xl bg-background border border-border">
+                                        <p className="text-[9px] font-extrabold uppercase text-muted-text tracking-wider">Subject Code</p>
+                                        <p className="font-extrabold text-primary mt-0.5">{selectedPeriodModal.entry?.subject_code || 'N/A'}</p>
                                     </div>
-                                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                        <p className="text-[9px] font-extrabold uppercase text-slate-400 tracking-wider">Classroom / Venue</p>
-                                        <p className="font-extrabold text-blue-950 mt-0.5">{selectedPeriodModal.entry?.room_no || selectedPeriodModal.entry?.location || 'Dept Classroom'}</p>
+                                    <div className="p-3 rounded-xl bg-background border border-border">
+                                        <p className="text-[9px] font-extrabold uppercase text-muted-text tracking-wider">Classroom / Venue</p>
+                                        <p className="font-extrabold text-primary mt-0.5">{selectedPeriodModal.entry?.room_no || selectedPeriodModal.entry?.location || 'Dept Classroom'}</p>
                                     </div>
                                 </div>
 
@@ -1491,14 +1491,14 @@ const StudentTimetable = () => {
                                 <div className="flex gap-2.5 pt-1">
                                     <button
                                         onClick={() => setIsCalendarView(true)}
-                                        className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors shadow-xs flex items-center justify-center gap-2 text-xs"
+                                        className="flex-1 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-hover transition-colors shadow-xs flex items-center justify-center gap-2 text-xs"
                                     >
                                         <Calendar size={15} />
                                         View Details
                                     </button>
                                     <button
                                         onClick={() => setSelectedPeriodModal(null)}
-                                        className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors text-xs"
+                                        className="px-4 py-3 bg-background text-sub rounded-xl font-bold hover:bg-background transition-colors text-xs"
                                     >
                                         Close
                                     </button>

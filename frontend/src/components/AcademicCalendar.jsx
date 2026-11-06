@@ -141,7 +141,7 @@ const matchesAcademicYearLabel = (candidateLabel, selectedLabel) => {
 };
 
 const selectClass =
-  'w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:cursor-not-allowed';
+  'w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] disabled:bg-background disabled:cursor-not-allowed';
 
 const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }) => {
   const [activeSubTab, setActiveSubTab] = useState('configure');
@@ -770,21 +770,21 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900">Academic Calendar</h2>
-        <p className="text-sm text-gray-600">
+        <h2 className="text-lg font-semibold text-main">Academic Calendar</h2>
+        <p className="text-sm text-sub">
           Configure semester start and end dates. Attendance marking uses these dates.
         </p>
       </div>
 
       {/* Sub-tabs */}
-      <div className="flex gap-1 rounded-lg border border-gray-200 bg-gray-50 p-1">
+      <div className="flex gap-1 rounded-lg border border-border bg-background p-1">
         <button
           type="button"
           onClick={() => setActiveSubTab('configure')}
           className={`inline-flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${
             activeSubTab === 'configure'
-              ? 'bg-white text-blue-700 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-surface text-primary shadow-sm'
+              : 'text-sub hover:text-main'
           }`}
         >
           <Settings2 size={16} />
@@ -795,14 +795,14 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
           onClick={() => setActiveSubTab('report')}
           className={`inline-flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all ${
             activeSubTab === 'report'
-              ? 'bg-white text-emerald-700 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-surface text-success shadow-sm'
+              : 'text-sub hover:text-main'
           }`}
         >
           <FileSpreadsheet size={16} />
           Academic Year Wise Report
           {reportSummary.pending > 0 && reportFilters.academicYear && (
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+            <span className="rounded-full bg-[var(--warning-light)] px-2 py-0.5 text-[10px] font-bold text-warning">
               {reportSummary.pending} pending
             </span>
           )}
@@ -812,16 +812,16 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
       {/* Configure tab */}
       {activeSubTab === 'configure' && (
         <div className="space-y-4">
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+          <div className="rounded-lg border border-border bg-surface p-4 shadow-sm">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-text">
               Selection Filters
             </p>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {/* Batch dropdown */}
               <div>
-                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <Calendar size={14} className="text-gray-400" />
+                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-sub">
+                  <Calendar size={14} className="text-muted-text" />
                   Batch
                 </label>
                 <select
@@ -840,8 +840,8 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
 
               {/* College dropdown */}
               <div>
-                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <Landmark size={14} className="text-gray-400" />
+                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-sub">
+                  <Landmark size={14} className="text-muted-text" />
                   College
                 </label>
                 <select
@@ -863,8 +863,8 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
 
               {/* Course dropdown */}
               <div>
-                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <GraduationCap size={14} className="text-gray-400" />
+                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-sub">
+                  <GraduationCap size={14} className="text-muted-text" />
                   Program / Course
                 </label>
                 <select
@@ -887,9 +887,9 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
 
             {/* Branch: All or individual pills */}
             {selectedCourseId && (
-              <div className="mt-4 border-t border-gray-100 pt-4">
-                <label className="mb-2 flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <GitBranch size={14} className="text-gray-400" />
+              <div className="mt-4 border-t border-border pt-4">
+                <label className="mb-2 flex items-center gap-1.5 text-sm font-medium text-sub">
+                  <GitBranch size={14} className="text-muted-text" />
                   Branch
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -902,8 +902,8 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                         onClick={() => setSelectedBranch(option.value)}
                         className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
                           isSelected
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'border border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                            ? 'bg-primary text-white shadow-sm'
+                            : 'border border-border bg-surface text-sub hover:border-[var(--primary-light)] hover:bg-[var(--primary-light)]'
                         }`}
                       >
                         {option.label}
@@ -911,7 +911,7 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                     );
                   })}
                 </div>
-                <p className="mt-1.5 text-xs text-gray-500">
+                <p className="mt-1.5 text-xs text-muted-text">
                   Choose &quot;All Branches&quot; to apply dates for the entire program, or pick a specific branch.
                 </p>
               </div>
@@ -919,20 +919,20 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
           </div>
 
           {!canShowSemesterGrid ? (
-            <div className="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 py-12 text-center">
-              <Calendar size={40} className="mx-auto mb-3 text-gray-300" />
-              <p className="text-sm text-gray-500">
+            <div className="rounded-lg border-2 border-dashed border-border bg-background py-12 text-center">
+              <Calendar size={40} className="mx-auto mb-3 text-muted-text" />
+              <p className="text-sm text-muted-text">
                 Select batch, college, and program to configure semester dates
               </p>
             </div>
           ) : (
-            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <div className="rounded-lg border border-border bg-surface p-4 shadow-sm">
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900">
+                  <h3 className="text-sm font-semibold text-main">
                     Semester Dates — Batch {selectedBatch} · {branchLabel}
                   </h3>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-text">
                     All years as Year-Sem (1-1, 1-2, 2-1, …). Set start and end dates for each.
                   </p>
                 </div>
@@ -941,7 +941,7 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                   type="button"
                   onClick={saveAllDirty}
                   disabled={bulkSaving}
-                  className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-50"
                 >
                   {bulkSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                   Save All
@@ -949,27 +949,27 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                 )}
               </div>
 
-              <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <div className="overflow-x-auto rounded-lg border border-border">
                 <table className="w-full min-w-[640px] text-sm">
-                  <thead className="border-b border-gray-200 bg-gray-50">
+                  <thead className="border-b border-border bg-background">
                     <tr>
-                      <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">Year-Sem</th>
-                      <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">Session</th>
-                      <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">Start Date</th>
-                      <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">End Date</th>
-                      <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">Status</th>
-                      <th className="px-3 py-2 text-right text-[11px] font-semibold uppercase text-gray-600">Action</th>
+                      <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">Year-Sem</th>
+                      <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">Session</th>
+                      <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">Start Date</th>
+                      <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">End Date</th>
+                      <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">Status</th>
+                      <th className="px-3 py-2 text-right text-[11px] font-semibold uppercase text-sub">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-border">
                     {flatSemesterRows.map((row) => (
                       <tr
                         key={row.key}
-                        className={row.existing ? 'bg-emerald-50/30' : 'bg-white hover:bg-gray-50'}
+                        className={row.existing ? 'bg-[var(--success-light)]' : 'bg-surface hover:bg-background'}
                       >
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-1.5">
-                            <span className="inline-flex min-w-[40px] items-center justify-center rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-800">
+                            <span className="inline-flex min-w-[40px] items-center justify-center rounded-md bg-[var(--primary-light)] px-2 py-0.5 text-xs font-bold text-primary">
                               {row.label}
                             </span>
                             {row.isOptionalYear && (
@@ -979,14 +979,14 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                                     ? `Optional year for: ${row.optionalBranches.join(', ')}`
                                     : 'Optional year'
                                 }
-                                className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-700"
+                                className="inline-flex items-center rounded-full bg-[var(--primary-light)] px-2 py-0.5 text-[10px] font-semibold text-secondary"
                               >
                                 Optional Year
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="whitespace-nowrap px-3 py-2 text-xs text-gray-500">
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-muted-text">
                           {row.academicYearLabel}
                         </td>
                         <td className="px-3 py-2">
@@ -994,7 +994,7 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                             type="date"
                             value={row.startDate}
                             onChange={(e) => updateDraft(row.key, 'startDate', e.target.value)}
-                            className="w-full min-w-[130px] rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
+                            className="w-full min-w-[130px] rounded-md border border-border-strong px-2 py-1.5 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-[var(--primary-light)]"
                           />
                         </td>
                         <td className="px-3 py-2">
@@ -1003,17 +1003,17 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                             value={row.endDate}
                             min={row.startDate || undefined}
                             onChange={(e) => updateDraft(row.key, 'endDate', e.target.value)}
-                            className="w-full min-w-[130px] rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
+                            className="w-full min-w-[130px] rounded-md border border-border-strong px-2 py-1.5 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-[var(--primary-light)]"
                           />
                         </td>
                         <td className="px-3 py-2">
                           {row.existing ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-success">
                               <Check size={12} />
                               Saved
                             </span>
                           ) : (
-                            <span className="text-[11px] text-gray-400">Not set</span>
+                            <span className="text-[11px] text-muted-text">Not set</span>
                           )}
                         </td>
                         <td className="px-3 py-2 text-right">
@@ -1022,7 +1022,7 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                             type="button"
                             onClick={() => saveSemesterRow(row)}
                             disabled={savingKey === row.key || !row.startDate || !row.endDate}
-                            className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                            className="inline-flex items-center gap-1 rounded-md border border-[var(--primary-light)] bg-[var(--primary-light)] px-2.5 py-1 text-xs font-medium text-primary hover:bg-[var(--primary-light)] disabled:opacity-50"
                           >
                             {savingKey === row.key ? (
                               <Loader2 size={12} className="animate-spin" />
@@ -1046,16 +1046,16 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
       {/* Academic Year Wise Report tab */}
       {activeSubTab === 'report' && (
         <div className="space-y-4">
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-lg border border-border bg-surface p-4 shadow-sm">
             <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-text">
                 Report Filters
               </p>
               <button
                 type="button"
                 onClick={handleDownloadReportExcel}
                 disabled={downloadingReport || !reportFilters.academicYear || filteredReportRows.length === 0}
-                className="inline-flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-md border border-[var(--success-light)] bg-[var(--success-light)] px-3 py-2 text-sm font-medium text-success hover:bg-[var(--success-light)] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {downloadingReport ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                 Download Excel
@@ -1063,8 +1063,8 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <Calendar size={14} className="text-gray-400" />
+                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-sub">
+                  <Calendar size={14} className="text-muted-text" />
                   Academic Year
                 </label>
                 <select
@@ -1081,8 +1081,8 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <Calendar size={14} className="text-gray-400" />
+                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-sub">
+                  <Calendar size={14} className="text-muted-text" />
                   Batch
                 </label>
                 <select
@@ -1100,8 +1100,8 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <Landmark size={14} className="text-gray-400" />
+                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-sub">
+                  <Landmark size={14} className="text-muted-text" />
                   College
                 </label>
                 <select
@@ -1119,8 +1119,8 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-gray-700">
-                  <GraduationCap size={14} className="text-gray-400" />
+                <label className="mb-1.5 flex items-center gap-1.5 text-sm font-medium text-sub">
+                  <GraduationCap size={14} className="text-muted-text" />
                   Program / Course
                 </label>
                 <select
@@ -1141,32 +1141,32 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
           </div>
 
           {!reportFilters.academicYear ? (
-            <div className="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 py-12 text-center">
-              <FileSpreadsheet size={40} className="mx-auto mb-3 text-gray-300" />
-              <p className="text-sm text-gray-500">Select an academic year to view the report</p>
+            <div className="rounded-lg border-2 border-dashed border-border bg-background py-12 text-center">
+              <FileSpreadsheet size={40} className="mx-auto mb-3 text-muted-text" />
+              <p className="text-sm text-muted-text">Select an academic year to view the report</p>
             </div>
           ) : (
             <>
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-                  <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Total</p>
-                  <p className="mt-1 text-2xl font-bold text-gray-900">{reportSummary.total}</p>
+                <div className="rounded-lg border border-border bg-surface p-4 shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-text">Total</p>
+                  <p className="mt-1 text-2xl font-bold text-main">{reportSummary.total}</p>
                 </div>
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 shadow-sm">
-                  <p className="text-xs font-medium uppercase tracking-wide text-emerald-700">Configured</p>
-                  <p className="mt-1 text-2xl font-bold text-emerald-800">{reportSummary.configured}</p>
+                <div className="rounded-lg border border-[var(--success-light)] bg-[var(--success-light)] p-4 shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-wide text-success">Configured</p>
+                  <p className="mt-1 text-2xl font-bold text-success">{reportSummary.configured}</p>
                 </div>
-                <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-4 shadow-sm">
-                  <p className="text-xs font-medium uppercase tracking-wide text-amber-700">Pending</p>
-                  <p className="mt-1 text-2xl font-bold text-amber-800">{reportSummary.pending}</p>
+                <div className="rounded-lg border border-[var(--warning-light)] bg-[var(--warning-light)] p-4 shadow-sm">
+                  <p className="text-xs font-medium uppercase tracking-wide text-warning">Pending</p>
+                  <p className="mt-1 text-2xl font-bold text-warning">{reportSummary.pending}</p>
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+              <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
                 {filteredReportRows.length === 0 ? (
                   <div className="py-12 text-center">
-                    <AlertCircle size={40} className="mx-auto mb-3 text-gray-300" />
-                    <p className="text-sm text-gray-500">No records match the selected filters</p>
+                    <AlertCircle size={40} className="mx-auto mb-3 text-muted-text" />
+                    <p className="text-sm text-muted-text">No records match the selected filters</p>
                     <button
                       type="button"
                       onClick={() => setReportFilters((prev) => ({
@@ -1175,37 +1175,37 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                         collegeId: '',
                         courseId: ''
                       }))}
-                      className="mt-3 text-sm font-medium text-blue-600 hover:text-blue-700"
+                      className="mt-3 text-sm font-medium text-primary hover:text-primary"
                     >
                       Clear filters
                     </button>
                   </div>
                 ) : (
                   <>
-                    <div className="border-b border-gray-200 bg-gray-50 px-4 py-3">
-                      <p className="text-sm font-medium text-gray-900">
+                    <div className="border-b border-border bg-background px-4 py-3">
+                      <p className="text-sm font-medium text-main">
                         {filteredReportRows.length} record{filteredReportRows.length !== 1 ? 's' : ''} for {reportFilters.academicYear}
                         {filteredReportRows.length !== academicYearReportRows.length && (
-                          <span className="text-gray-500"> of {academicYearReportRows.length}</span>
+                          <span className="text-muted-text"> of {academicYearReportRows.length}</span>
                         )}
                       </p>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full min-w-[900px] text-sm">
-                        <thead className="border-b border-gray-200 bg-gray-50">
+                        <thead className="border-b border-border bg-background">
                           <tr>
-                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">Academic Year</th>
-                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">Batch</th>
-                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">College</th>
-                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">Program</th>
-                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">Year-Sem</th>
-                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">Start Date</th>
-                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">End Date</th>
-                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-gray-600">Status</th>
-                            <th className="px-3 py-2 text-right text-[11px] font-semibold uppercase text-gray-600">Action</th>
+                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">Academic Year</th>
+                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">Batch</th>
+                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">College</th>
+                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">Program</th>
+                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">Year-Sem</th>
+                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">Start Date</th>
+                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">End Date</th>
+                            <th className="px-3 py-2 text-left text-[11px] font-semibold uppercase text-sub">Status</th>
+                            <th className="px-3 py-2 text-right text-[11px] font-semibold uppercase text-sub">Action</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-border">
                           {filteredReportRows.map((row) => {
                             const isEditing = editingReportRowKey === row.key;
                             const draft = reportRowDrafts[row.key];
@@ -1218,21 +1218,21 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                               key={row.key}
                               className={
                                 isEditing
-                                  ? 'bg-blue-50/60'
+                                  ? 'bg-[var(--primary-light)]'
                                   : row.status === 'Pending'
-                                    ? 'bg-amber-50/40 hover:bg-amber-50/70'
-                                    : 'hover:bg-gray-50'
+                                    ? 'bg-[var(--warning-light)] hover:bg-[var(--warning-light)]'
+                                    : 'hover:bg-background'
                               }
                             >
-                              <td className="whitespace-nowrap px-3 py-2 text-xs font-medium text-gray-900">
+                              <td className="whitespace-nowrap px-3 py-2 text-xs font-medium text-main">
                                 {row.academicYearLabel}
                               </td>
-                              <td className="px-3 py-2 text-xs font-medium text-gray-900">{row.batch}</td>
-                              <td className="px-3 py-2 text-xs text-gray-700">{row.collegeName || '-'}</td>
-                              <td className="px-3 py-2 text-xs text-gray-700">{row.courseName}</td>
+                              <td className="px-3 py-2 text-xs font-medium text-main">{row.batch}</td>
+                              <td className="px-3 py-2 text-xs text-sub">{row.collegeName || '-'}</td>
+                              <td className="px-3 py-2 text-xs text-sub">{row.courseName}</td>
                               <td className="px-3 py-2">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="inline-flex rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-bold text-indigo-800">
+                                  <span className="inline-flex rounded-md bg-[var(--primary-light)] px-2 py-0.5 text-xs font-bold text-primary">
                                     {row.yearSemLabel}
                                   </span>
                                   {row.isOptionalYear && (
@@ -1242,7 +1242,7 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                                           ? `Optional year for: ${row.optionalBranches.join(', ')}`
                                           : 'Optional year'
                                       }
-                                      className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-semibold text-purple-700"
+                                      className="inline-flex items-center rounded-full bg-[var(--primary-light)] px-2 py-0.5 text-[10px] font-semibold text-secondary"
                                     >
                                       Optional
                                     </span>
@@ -1255,10 +1255,10 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                                     type="date"
                                     value={draft?.startDate || ''}
                                     onChange={(e) => updateReportDraft(row.key, 'startDate', e.target.value)}
-                                    className="w-full min-w-[130px] rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
+                                    className="w-full min-w-[130px] rounded-md border border-border-strong px-2 py-1.5 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-[var(--primary-light)]"
                                   />
                                 ) : (
-                                  <span className="whitespace-nowrap text-xs text-gray-600">
+                                  <span className="whitespace-nowrap text-xs text-sub">
                                     {row.startDate ? formatDate(row.startDate) : '-'}
                                   </span>
                                 )}
@@ -1270,22 +1270,22 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                                     value={draft?.endDate || ''}
                                     min={draft?.startDate || undefined}
                                     onChange={(e) => updateReportDraft(row.key, 'endDate', e.target.value)}
-                                    className="w-full min-w-[130px] rounded-md border border-gray-300 px-2 py-1.5 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
+                                    className="w-full min-w-[130px] rounded-md border border-border-strong px-2 py-1.5 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-[var(--primary-light)]"
                                   />
                                 ) : (
-                                  <span className="whitespace-nowrap text-xs text-gray-600">
+                                  <span className="whitespace-nowrap text-xs text-sub">
                                     {row.endDate ? formatDate(row.endDate) : '-'}
                                   </span>
                                 )}
                               </td>
                               <td className="px-3 py-2">
                                 {displayStatus === 'Configured' ? (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--success-light)] px-2 py-0.5 text-[11px] font-medium text-success">
                                     <Check size={12} />
                                     Configured
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-[var(--warning-light)] px-2 py-0.5 text-[11px] font-medium text-warning">
                                     <AlertCircle size={12} />
                                     Pending
                                   </span>
@@ -1298,7 +1298,7 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                                       type="button"
                                       onClick={() => cancelEditReportRow(row.key)}
                                       disabled={savingKey === row.key}
-                                      className="text-xs font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                                      className="text-xs font-medium text-muted-text hover:text-sub disabled:opacity-50"
                                     >
                                       Cancel
                                     </button>
@@ -1310,7 +1310,7 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                                         !draft?.startDate ||
                                         !draft?.endDate
                                       }
-                                      className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                                      className="inline-flex items-center gap-1 rounded-md border border-[var(--primary-light)] bg-[var(--primary-light)] px-2.5 py-1 text-xs font-medium text-primary hover:bg-[var(--primary-light)] disabled:opacity-50"
                                     >
                                       {savingKey === row.key ? (
                                         <Loader2 size={12} className="animate-spin" />
@@ -1325,7 +1325,7 @@ const AcademicCalendar = ({ colleges, courses, academicYears, readOnly = false }
                                   <button
                                     type="button"
                                     onClick={() => startEditReportRow(row)}
-                                    className="text-xs font-medium text-blue-600 hover:text-blue-800"
+                                    className="text-xs font-medium text-primary hover:text-primary"
                                   >
                                     {row.status === 'Configured' ? 'Edit' : 'Configure'}
                                   </button>

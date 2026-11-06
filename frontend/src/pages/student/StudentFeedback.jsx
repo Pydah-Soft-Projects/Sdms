@@ -187,8 +187,8 @@ const QuestionField = ({ question, value, onChange }) => {
                                 aria-pressed={isSelected}
                                 className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold border transition-all duration-150 flex items-center justify-center gap-1.5 sm:gap-2 select-none ${
                                     isSelected
-                                        ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100 ring-2 ring-indigo-500/20'
-                                        : 'bg-white border-slate-200 text-slate-700 hover:border-indigo-300 hover:bg-slate-50'
+                                        ? 'bg-primary border-primary text-white shadow-md shadow-primary ring-2 ring-[var(--primary-light)]'
+                                        : 'bg-surface border-border text-sub hover:border-[var(--primary-light)] hover:bg-background'
                                 }`}
                             >
                                 {isSelected && <RiCheckboxCircleFill size={15} className="text-white shrink-0" />}
@@ -268,23 +268,23 @@ const QuestionField = ({ question, value, onChange }) => {
                                 aria-label={`Rate ${star} out of ${maxValue}`}
                             >
                                 {isFilled ? (
-                                    <RiStarFill size={32} className="text-amber-400 drop-shadow-xs sm:w-9 sm:h-9" />
+                                    <RiStarFill size={32} className="text-warning drop-shadow-xs sm:w-9 sm:h-9" />
                                 ) : (
-                                    <RiStarLine size={32} className="text-slate-300 hover:text-amber-200 sm:w-9 sm:h-9" />
+                                    <RiStarLine size={32} className="text-muted-text hover:text-warning sm:w-9 sm:h-9" />
                                 )}
                             </button>
                         );
                     })}
                     {value ? (
-                        <div className="ml-2 sm:ml-3 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200/80 text-amber-800 text-xs font-bold">
+                        <div className="ml-2 sm:ml-3 px-2.5 py-1 rounded-lg bg-[var(--warning-light)] border border-[var(--warning-light)] text-warning text-xs font-bold">
                             {value} / {maxValue}
                         </div>
                     ) : null}
                 </div>
 
                 {activeScore > 0 && (
-                    <p className="text-xs font-medium text-slate-600 flex items-center gap-1.5 transition-all">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    <p className="text-xs font-medium text-sub flex items-center gap-1.5 transition-all">
+                        <span className="w-1.5 h-1.5 rounded-full bg-warning" />
                         {RATING_DESCRIPTIONS[activeScore] || `Score ${activeScore} of ${maxValue}`}
                     </p>
                 )}
@@ -305,7 +305,7 @@ const QuestionField = ({ question, value, onChange }) => {
             <input
                 type="text"
                 aria-label={questionText}
-                className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all text-slate-800 text-xs sm:text-sm placeholder:text-slate-400"
+                className="w-full p-3 sm:p-3.5 border border-border rounded-xl focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary outline-hidden transition-all text-main text-xs sm:text-sm placeholder:text-muted-text"
                 placeholder="Enter your response..."
                 value={value || ''}
                 onChange={(e) => onChange(e.target.value)}
@@ -332,7 +332,7 @@ const QuestionField = ({ question, value, onChange }) => {
             <textarea
                 rows={3}
                 aria-label={questionText}
-                className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all resize-y text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 leading-relaxed"
+                className="w-full p-3 sm:p-3.5 border border-border rounded-xl focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary outline-hidden transition-all resize-y text-main text-xs sm:text-sm placeholder:text-muted-text leading-relaxed"
                 placeholder="Enter your response..."
                 value={typeof value === 'string' ? value : ''}
                 onChange={(e) => onChange(e.target.value)}
@@ -342,14 +342,16 @@ const QuestionField = ({ question, value, onChange }) => {
 
     if (/\b(remarks?|suggestions?|comments?)\b/i.test(questionText)) {
         return (
-            <textarea
-                rows={3}
-                aria-label={questionText}
-                className="w-full p-3 sm:p-3.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-hidden transition-all resize-y text-slate-800 text-xs sm:text-sm placeholder:text-slate-400 leading-relaxed"
-                placeholder="Enter your response..."
-                value={typeof value === 'string' ? value : ''}
-                onChange={(e) => onChange(e.target.value)}
-            />
+            <div className="space-y-1.5">
+                <textarea
+                    rows={3}
+                    aria-label={questionText}
+                    className="w-full p-3 sm:p-3.5 border border-border rounded-xl focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary outline-hidden transition-all resize-y text-main text-xs sm:text-sm placeholder:text-muted-text leading-relaxed"
+                    placeholder="Enter your feedback or suggestions here..."
+                    value={typeof value === 'string' ? value : ''}
+                    onChange={(e) => onChange(e.target.value)}
+                />
+            </div>
         );
     }
 
@@ -635,7 +637,7 @@ const StudentFeedback = () => {
     if (loading) {
         return (
             <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6 px-0 sm:px-4 py-1 sm:py-6">
-                <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-4 sm:p-6 space-y-4">
+                <div className="bg-surface rounded-xl sm:rounded-2xl border border-border p-4 sm:p-6 space-y-4">
                     <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div className="space-y-2">
                             <SkeletonBox height="h-8" width="w-72" className="rounded-xl" />
@@ -651,7 +653,7 @@ const StudentFeedback = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                        <div key={i} className="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/80 space-y-3.5">
+                        <div key={i} className="bg-surface p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-border space-y-3.5">
                             <div className="flex justify-between items-center">
                                 <SkeletonBox height="h-6" width="w-24" className="rounded-md" />
                                 <SkeletonBox height="h-6" width="w-16" className="rounded-full" />
@@ -670,17 +672,17 @@ const StudentFeedback = () => {
     if (error) {
         return (
             <div className="max-w-2xl mx-auto my-8 sm:my-12 px-2 sm:px-6">
-                <div className="bg-white border border-rose-200 rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-xs">
-                    <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto">
+                <div className="bg-surface border border-[var(--danger-light)] rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-xs">
+                    <div className="w-12 h-12 bg-[var(--danger-light)] text-danger rounded-full flex items-center justify-center mx-auto">
                         <RiAlertLine size={24} />
                     </div>
                     <div>
-                        <h3 className="font-bold text-slate-800 text-base sm:text-lg">Unable to Load Feedback</h3>
-                        <p className="text-slate-500 text-xs sm:text-sm mt-1">{error}</p>
+                        <h3 className="font-bold text-main text-base sm:text-lg">Unable to Load Feedback</h3>
+                        <p className="text-muted-text text-xs sm:text-sm mt-1">{error}</p>
                     </div>
                     <button
                         onClick={fetchPublications}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold text-xs hover:bg-indigo-700 transition-colors shadow-xs"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl font-semibold text-xs hover:bg-primary-hover transition-colors shadow-xs"
                     >
                         <RiRefreshLine size={16} /> Try Again
                     </button>
@@ -705,12 +707,12 @@ const StudentFeedback = () => {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.03, duration: 0.25 }}
-                className={`bg-white rounded-xl sm:rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden relative ${
+                className={`bg-surface rounded-xl sm:rounded-2xl border transition-all duration-200 flex flex-col justify-between overflow-hidden relative ${
                     submitted
-                        ? 'border-slate-200/70 opacity-80 hover:opacity-100 hover:border-slate-300'
+                        ? 'border-border opacity-80 hover:opacity-100 hover:border-border-strong'
                         : scheduled
-                        ? 'border-blue-200/80 hover:border-blue-300 hover:shadow-md'
-                        : 'border-slate-200/90 hover:border-indigo-300 hover:shadow-md'
+                        ? 'border-[var(--primary-light)] hover:border-[var(--primary-light)] hover:shadow-md'
+                        : 'border-border hover:border-[var(--primary-light)] hover:shadow-md'
                 }`}
             >
                 {/* Card Body */}
@@ -719,12 +721,12 @@ const StudentFeedback = () => {
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 flex-wrap">
                             {subject.subjectCode && (
-                                <span className="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-100/80 text-indigo-700 font-bold text-[10px] sm:text-[11px] tracking-wide">
+                                <span className="px-2 py-0.5 rounded-md bg-[var(--primary-light)] border border-[var(--primary-light)] text-primary font-bold text-[10px] sm:text-[11px] tracking-wide">
                                     {subject.subjectCode}
                                 </span>
                             )}
                             {subject.sectionName && (
-                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] sm:text-[11px]">
+                                <span className="px-2 py-0.5 rounded-md bg-background text-sub font-bold text-[10px] sm:text-[11px]">
                                     Sec {subject.sectionName}
                                 </span>
                             )}
@@ -732,18 +734,18 @@ const StudentFeedback = () => {
 
                         {/* Status Badge */}
                         {submitted ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-[var(--success-light)] text-success border border-[var(--success-light)]">
                                 <RiCheckboxCircleFill size={13} />
                                 Submitted
                             </span>
                         ) : scheduled ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200/80">
-                                <RiTimeLine size={13} className="text-blue-600" />
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
+                                <RiTimeLine size={13} className="text-primary" />
                                 Scheduled
                             </span>
                         ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
+                                <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
                                 Pending
                             </span>
                         )}
@@ -752,7 +754,7 @@ const StudentFeedback = () => {
                     {/* Course Title */}
                     <div>
                         <h3
-                            className="text-sm sm:text-base font-bold text-slate-900 leading-snug line-clamp-2"
+                            className="text-sm sm:text-base font-bold text-main leading-snug line-clamp-2"
                             title={subject.subjectName}
                         >
                             {formattedSubject}
@@ -760,23 +762,23 @@ const StudentFeedback = () => {
                     </div>
 
                     {/* Faculty Details Cardlet */}
-                    <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50/90 border border-slate-100 flex items-center gap-2.5 sm:gap-3">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+                    <div className="p-2.5 sm:p-3 rounded-xl bg-[var(--background)]/90 border border-border flex items-center gap-2.5 sm:gap-3">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary to-secondary text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
                             {initials}
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-slate-400">Faculty Instructor</p>
-                            <p className="text-xs font-bold text-slate-800 truncate" title={subject.facultyName}>
+                            <p className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-text">Faculty Instructor</p>
+                            <p className="text-xs font-bold text-main truncate" title={subject.facultyName}>
                                 {formattedFaculty}
                             </p>
                         </div>
                     </div>
 
                     {/* Due Date specifically matching this publication */}
-                    <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-500 font-medium">
-                        <RiTimeLine size={13} className="text-slate-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-text font-medium">
+                        <RiTimeLine size={13} className="text-muted-text shrink-0" />
                         {scheduled ? (
-                            <span className="text-blue-700 font-semibold">
+                            <span className="text-primary font-semibold">
                                 Opens {formatDateTimeFull(pub.startDate)}
                             </span>
                         ) : (
@@ -791,7 +793,7 @@ const StudentFeedback = () => {
                         <button
                             type="button"
                             disabled
-                            className="w-full py-2.5 px-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-default"
+                            className="w-full py-2.5 px-4 bg-[var(--success-light)] border border-[var(--success-light)] text-success rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-default"
                         >
                             <RiCheckboxCircleFill size={15} />
                             Evaluation Completed
@@ -800,17 +802,17 @@ const StudentFeedback = () => {
                         <button
                             type="button"
                             disabled
-                            className="w-full py-2.5 px-4 bg-slate-100 border border-slate-200 text-slate-500 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed shadow-2xs"
+                            className="w-full py-2.5 px-4 bg-background border border-border text-muted-text rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed shadow-2xs"
                             title={`This feedback session unlocks on ${formatDateTimeFull(pub.startDate)}`}
                         >
-                            <RiLockLine size={14} className="text-slate-400" />
+                            <RiLockLine size={14} className="text-muted-text" />
                             <span>Opens in {countdownStr || 'Scheduled Time'}</span>
                         </button>
                     ) : (
                         <button
                             type="button"
                             onClick={() => handleOpenForm(pub, subject)}
-                            className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm flex items-center justify-center gap-2 group cursor-pointer"
+                            className="w-full py-2.5 px-4 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold transition-all shadow-xs hover:shadow-sm flex items-center justify-center gap-2 group cursor-pointer"
                         >
                             <span>Give Feedback</span>
                             <RiArrowRightLine size={15} className="group-hover:translate-x-0.5 transition-transform" />
@@ -822,17 +824,17 @@ const StudentFeedback = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto space-y-3.5 sm:space-y-6 px-0 sm:px-4 py-1 sm:py-6 text-slate-800">
+        <div className="max-w-7xl mx-auto space-y-3.5 sm:space-y-6 px-0 sm:px-4 py-1 sm:py-6 text-main">
             {/* ── Top Header & Context Card ─────────────────────────────────── */}
-            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-3.5 sm:p-6 shadow-xs">
+            <div className="bg-surface rounded-xl sm:rounded-2xl border border-border p-3.5 sm:p-6 shadow-xs">
                 {/* Desktop/Tablet Header */}
-                <div className="hidden sm:flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-6 pb-5 border-b border-slate-100">
+                <div className="hidden sm:flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-6 pb-5 border-b border-border">
                     <div>
                         <div className="flex items-center gap-2.5 mb-1.5">
-                            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <div className="p-2 bg-[var(--primary-light)] text-primary rounded-xl">
                                 <RiGraduationCapLine size={24} />
                             </div>
-                            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-main tracking-tight">
                                 Academic Feedback
                             </h1>
                             {(() => {
@@ -840,8 +842,8 @@ const StudentFeedback = () => {
                                 const activeCount = publications.length - scheduledCount;
                                 if (scheduledCount > 0) {
                                     return (
-                                        <span className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
-                                            <RiTimeLine size={13} className="text-blue-600" />
+                                        <span className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
+                                            <RiTimeLine size={13} className="text-primary" />
                                             {activeCount > 0 ? `${activeCount} Active` : ''}
                                             {activeCount > 0 && scheduledCount > 0 ? ' • ' : ''}
                                             {scheduledCount} Scheduled
@@ -849,30 +851,30 @@ const StudentFeedback = () => {
                                     );
                                 }
                                 return (
-                                    <span className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    <span className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--success-light)] text-success border border-[var(--success-light)]">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                                         {publications.length > 1 ? `${publications.length} Active Sessions` : 'Active Session'}
                                     </span>
                                 );
                             })()}
                         </div>
-                        <p className="text-sm text-slate-500 max-w-2xl">
+                        <p className="text-sm text-muted-text max-w-2xl">
                             Evaluate teaching performance and syllabus progress for your assigned faculty.
-                            Your feedback is <span className="font-semibold text-slate-700">100% anonymous</span> and directly helps enhance academic quality.
+                            Your feedback is <span className="font-semibold text-sub">100% anonymous</span> and directly helps enhance academic quality.
                         </p>
                     </div>
 
                     {/* Student Info Pill */}
                     {studentInfo && (
-                        <div className="flex flex-wrap items-center gap-2 bg-slate-50 border border-slate-200/80 rounded-xl p-2.5 sm:px-4 text-xs font-medium text-slate-600">
-                            <span className="font-bold text-slate-800">{studentInfo.branch || 'Branch'}</span>
-                            <span className="text-slate-300">•</span>
+                        <div className="flex flex-wrap items-center gap-2 bg-background border border-border rounded-xl p-2.5 sm:px-4 text-xs font-medium text-sub">
+                            <span className="font-bold text-main">{studentInfo.branch || 'Branch'}</span>
+                            <span className="text-muted-text">•</span>
                             <span>Sem {studentInfo.semester || '1'}</span>
-                            <span className="text-slate-300">•</span>
-                            <span className="bg-white px-2 py-0.5 rounded-md border border-slate-200 font-semibold text-slate-700">
+                            <span className="text-muted-text">•</span>
+                            <span className="bg-surface px-2 py-0.5 rounded-md border border-border font-semibold text-sub">
                                 Sec {studentInfo.section || 'A'}
                             </span>
-                            <span className="text-slate-300">•</span>
+                            <span className="text-muted-text">•</span>
                             <span>Batch {studentInfo.batch || '2023'}</span>
                         </div>
                     )}
@@ -880,41 +882,41 @@ const StudentFeedback = () => {
 
                 {/* ── Progress and Stats Bar (Scoped to Active Notification) ── */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                    <div className="flex items-center justify-between sm:justify-start gap-4 p-3 bg-slate-50/70 rounded-xl border border-slate-100">
+                    <div className="flex items-center justify-between sm:justify-start gap-4 p-3 bg-[var(--background)]/70 rounded-xl border border-border">
                         <div className="text-left">
-                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-muted-text">
                                 {publications.length > 1 && viewMode === 'single' ? 'Session Courses' : 'Total Courses'}
                             </p>
-                            <p className="text-lg sm:text-xl font-extrabold text-slate-800">{totalCount}</p>
+                            <p className="text-lg sm:text-xl font-extrabold text-main">{totalCount}</p>
                         </div>
-                        <div className="h-7 w-px bg-slate-200 hidden sm:block mx-auto" />
+                        <div className="h-7 w-px bg-background hidden sm:block mx-auto" />
                         <div className="text-left">
-                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-600">Pending</p>
-                            <p className="text-lg sm:text-xl font-extrabold text-amber-700">{pendingCount}</p>
+                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-warning">Pending</p>
+                            <p className="text-lg sm:text-xl font-extrabold text-warning">{pendingCount}</p>
                         </div>
-                        <div className="h-7 w-px bg-slate-200 hidden sm:block mx-auto" />
+                        <div className="h-7 w-px bg-background hidden sm:block mx-auto" />
                         <div className="text-left">
-                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-emerald-600">Completed</p>
-                            <p className="text-lg sm:text-xl font-extrabold text-emerald-700">{completedCount}</p>
+                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-success">Completed</p>
+                            <p className="text-lg sm:text-xl font-extrabold text-success">{completedCount}</p>
                         </div>
                     </div>
 
-                    <div className="sm:col-span-2 p-3 bg-slate-50/70 rounded-xl border border-slate-100 flex flex-col justify-center">
+                    <div className="sm:col-span-2 p-3 bg-[var(--background)]/70 rounded-xl border border-border flex flex-col justify-center">
                         <div className="flex justify-between items-center text-xs font-semibold mb-1.5">
-                            <span className="text-slate-600 flex items-center gap-1.5 text-[11px] sm:text-xs">
-                                <RiShieldCheckLine className="text-indigo-600" size={14} />
+                            <span className="text-sub flex items-center gap-1.5 text-[11px] sm:text-xs">
+                                <RiShieldCheckLine className="text-primary" size={14} />
                                 {publications.length > 1 && viewMode === 'single' && activePub
                                     ? `${activePub.title} Progress`
                                     : 'Submission Progress'}
                             </span>
-                            <span className="text-indigo-600 font-bold text-[11px] sm:text-xs">{completionPercentage}% Completed</span>
+                            <span className="text-primary font-bold text-[11px] sm:text-xs">{completionPercentage}% Completed</span>
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2 sm:h-2.5 overflow-hidden">
+                        <div className="w-full bg-background rounded-full h-2 sm:h-2.5 overflow-hidden">
                             <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${completionPercentage}%` }}
                                 transition={{ duration: 0.6, ease: 'easeOut' }}
-                                className="bg-indigo-600 h-2 sm:h-2.5 rounded-full"
+                                className="bg-primary h-2 sm:h-2.5 rounded-full"
                             />
                         </div>
                     </div>
@@ -923,36 +925,36 @@ const StudentFeedback = () => {
 
             {/* ── NOTIFICATION SESSIONS SWITCHER (NOTIFICATION-WISE SEPARATION) ── */}
             {publications.length > 1 && (
-                <div className="bg-white rounded-xl sm:rounded-2xl border border-indigo-100 p-3.5 sm:p-5 shadow-xs space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div className="bg-surface rounded-xl sm:rounded-2xl border border-[var(--primary-light)] p-3.5 sm:p-5 shadow-xs space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
                         <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+                            <div className="p-1.5 bg-[var(--primary-light)] text-primary rounded-lg">
                                 <RiNotification3Line size={18} />
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h2 className="text-sm sm:text-base font-extrabold text-slate-900">
+                                    <h2 className="text-sm sm:text-base font-extrabold text-main">
                                         Feedback Notifications
                                     </h2>
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                                         {publications.length} Active Sessions
                                     </span>
                                 </div>
-                                <p className="text-[11px] text-slate-500">
+                                <p className="text-[11px] text-muted-text">
                                     Feedback sessions are organized notification-wise. Select a notification below to complete its evaluations:
                                 </p>
                             </div>
                         </div>
 
                         {/* View Mode Toggle */}
-                        <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200/60 self-start sm:self-auto text-xs">
+                        <div className="flex bg-background p-0.5 rounded-lg border border-border self-start sm:self-auto text-xs">
                             <button
                                 type="button"
                                 onClick={() => setViewMode('single')}
                                 className={`px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all cursor-pointer ${
                                     viewMode === 'single'
-                                        ? 'bg-white text-indigo-700 shadow-2xs font-bold'
-                                        : 'text-slate-600 hover:text-slate-900'
+                                        ? 'bg-surface text-primary shadow-2xs font-bold'
+                                        : 'text-sub hover:text-main'
                                 }`}
                             >
                                 By Notification
@@ -962,8 +964,8 @@ const StudentFeedback = () => {
                                 onClick={() => setViewMode('grouped')}
                                 className={`px-2.5 py-1 rounded-md font-semibold text-[11px] transition-all cursor-pointer ${
                                     viewMode === 'grouped'
-                                        ? 'bg-white text-indigo-700 shadow-2xs font-bold'
-                                        : 'text-slate-600 hover:text-slate-900'
+                                        ? 'bg-surface text-primary shadow-2xs font-bold'
+                                        : 'text-sub hover:text-main'
                                 }`}
                             >
                                 All Grouped
@@ -992,41 +994,41 @@ const StudentFeedback = () => {
                                     className={`p-3 rounded-xl border text-left transition-all duration-150 flex flex-col justify-between relative group cursor-pointer ${
                                         isSelected && viewMode === 'single'
                                             ? scheduled
-                                                ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20 shadow-xs'
-                                                : 'border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20 shadow-xs'
-                                            : 'border-slate-200 bg-slate-50/60 hover:bg-white hover:border-slate-300'
+                                                ? 'border-primary bg-[var(--primary-light)] ring-2 ring-[var(--primary-light)] shadow-xs'
+                                                : 'border-primary bg-[var(--primary-light)] ring-2 ring-[var(--primary-light)] shadow-xs'
+                                            : 'border-border bg-[var(--background)]/60 hover:bg-surface hover:border-border-strong'
                                     }`}
                                 >
                                     <div className="space-y-1.5 w-full">
                                         <div className="flex items-center justify-between gap-1">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                            <span className="text-[10px] font-bold text-muted-text uppercase tracking-wider">
                                                 Notification #{idx + 1}
                                             </span>
                                             {scheduled ? (
-                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/80">
-                                                    <RiTimeLine size={11} className="text-blue-600 animate-spin" style={{ animationDuration: '6s' }} />
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary bg-[var(--primary-light)] px-2 py-0.5 rounded-full border border-[var(--primary-light)]">
+                                                    <RiTimeLine size={11} className="text-primary animate-spin" style={{ animationDuration: '6s' }} />
                                                     {countdownStr ? `Starts in ${countdownStr}` : 'Scheduled'}
                                                 </span>
                                             ) : isAllDone ? (
-                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/80">
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-success bg-[var(--success-light)] px-2 py-0.5 rounded-full border border-[var(--success-light)]">
                                                     <RiCheckboxCircleFill size={11} /> All Completed
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/80">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-warning bg-[var(--warning-light)] px-2 py-0.5 rounded-full border border-[var(--warning-light)]">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
                                                     {stats.pending} Pending
                                                 </span>
                                             )}
                                         </div>
 
-                                        <h3 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                                        <h3 className="text-xs sm:text-sm font-bold text-main line-clamp-1 group-hover:text-primary transition-colors">
                                             {pub.title}
                                         </h3>
 
-                                        <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500">
-                                            <RiTimeLine size={12} className="text-slate-400 shrink-0" />
+                                        <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-muted-text">
+                                            <RiTimeLine size={12} className="text-muted-text shrink-0" />
                                             {scheduled ? (
-                                                <span className="text-blue-700 font-semibold">
+                                                <span className="text-primary font-semibold">
                                                     Opens: {formatDateTimeFull(pub.startDate)}
                                                 </span>
                                             ) : (
@@ -1035,18 +1037,18 @@ const StudentFeedback = () => {
                                         </div>
                                     </div>
 
-                                    <div className="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[10px] sm:text-[11px] w-full">
+                                    <div className="mt-2.5 pt-2 border-t border-border flex items-center justify-between text-[10px] sm:text-[11px] w-full">
                                         {scheduled ? (
-                                            <span className="text-blue-600 font-semibold flex items-center gap-1">
+                                            <span className="text-primary font-semibold flex items-center gap-1">
                                                 <RiTimerLine size={12} />
                                                 Live Countdown Active
                                             </span>
                                         ) : (
-                                            <span className="text-slate-500 font-medium">
+                                            <span className="text-muted-text font-medium">
                                                 {stats.completed}/{stats.total} Courses Evaluated
                                             </span>
                                         )}
-                                        <span className={`font-bold ${isSelected && viewMode === 'single' ? (scheduled ? 'text-blue-600' : 'text-indigo-600') : 'text-slate-700'}`}>
+                                        <span className={`font-bold ${isSelected && viewMode === 'single' ? (scheduled ? 'text-primary' : 'text-primary') : 'text-sub'}`}>
                                             {scheduled ? 'Scheduled' : `${stats.rate}%`}
                                         </span>
                                     </div>
@@ -1062,21 +1064,21 @@ const StudentFeedback = () => {
                 isPubScheduled(activePub) ? (() => {
                     const countdown = getCountdownParts(activePub.startDate, currentTime);
                     return (
-                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-950 via-slate-900 to-navy-950 text-white p-5 sm:p-6 shadow-lg border border-indigo-500/30">
+                        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-[var(--sidebar)] to-navy-950 text-white p-5 sm:p-6 shadow-lg border border-primary">
                             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
                                 <div className="space-y-2 max-w-xl">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400/20 text-amber-300 border border-amber-400/40">
-                                            <RiTimerLine size={14} className="animate-pulse text-amber-300" />
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[var(--warning-light)] text-warning border border-warning">
+                                            <RiTimerLine size={14} className="animate-pulse text-warning" />
                                             Scheduled Feedback Session
                                         </span>
                                         {activePub.semester && (
-                                            <span className="px-2.5 py-0.5 rounded-md bg-white/10 text-white/90 text-xs font-semibold">
+                                            <span className="px-2.5 py-0.5 rounded-md bg-[var(--surface)]/10 text-white/90 text-xs font-semibold">
                                                 Semester {activePub.semester}
                                             </span>
                                         )}
                                         {activePub.academicYear && (
-                                            <span className="px-2.5 py-0.5 rounded-md bg-white/10 text-slate-300 text-xs">
+                                            <span className="px-2.5 py-0.5 rounded-md bg-[var(--surface)]/10 text-muted-text text-xs">
                                                 {activePub.academicYear}
                                             </span>
                                         )}
@@ -1084,53 +1086,53 @@ const StudentFeedback = () => {
                                     <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                                         {activePub.title}
                                     </h2>
-                                    <p className="text-xs sm:text-sm text-indigo-200/90 leading-relaxed">
+                                    <p className="text-xs sm:text-sm text-primary leading-relaxed">
                                         This feedback evaluation session has been scheduled in advance. You can preview all assigned faculty and subjects below. Feedback forms will unlock automatically when the countdown timer finishes.
                                     </p>
-                                    <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-indigo-200">
+                                    <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-primary">
                                         <span className="flex items-center gap-1.5 font-medium">
-                                            <RiCalendarLine size={14} className="text-indigo-400 shrink-0" />
+                                            <RiCalendarLine size={14} className="text-primary shrink-0" />
                                             <span>Starts: <strong className="text-white font-bold">{formatDateTimeFull(activePub.startDate)}</strong></span>
                                         </span>
-                                        <span className="text-slate-500">•</span>
+                                        <span className="text-muted-text">•</span>
                                         <span className="flex items-center gap-1.5 font-medium">
-                                            <RiTimeLine size={14} className="text-indigo-400 shrink-0" />
-                                            <span>Closes: <strong className="text-amber-300 font-bold">{formatDateTimeFull(activePub.endDate)}</strong></span>
+                                            <RiTimeLine size={14} className="text-primary shrink-0" />
+                                            <span>Closes: <strong className="text-warning font-bold">{formatDateTimeFull(activePub.endDate)}</strong></span>
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Live Countdown Boxes */}
                                 {countdown ? (
-                                    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 text-center shrink-0 w-full sm:w-auto shadow-inner">
-                                        <div className="text-[11px] font-extrabold text-amber-300 uppercase tracking-widest mb-3 flex items-center justify-center gap-1.5">
+                                    <div className="bg-[var(--surface)]/10 backdrop-blur-md border border-surface rounded-2xl p-4 sm:p-5 text-center shrink-0 w-full sm:w-auto shadow-inner">
+                                        <div className="text-[11px] font-extrabold text-warning uppercase tracking-widest mb-3 flex items-center justify-center gap-1.5">
                                             <RiTimerLine size={14} className="animate-spin" style={{ animationDuration: '8s' }} />
                                             Submissions Open In
                                         </div>
                                         <div className="grid grid-cols-4 gap-2 sm:gap-3 text-center">
-                                            <div className="bg-slate-950/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-white/10">
+                                            <div className="bg-[var(--sidebar)]/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-surface">
                                                 <span className="block text-2xl sm:text-3xl font-black text-white tabular-nums">
                                                     {String(countdown.days).padStart(2, '0')}
                                                 </span>
-                                                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Days</span>
+                                                <span className="text-[9px] font-bold text-muted-text uppercase tracking-wider">Days</span>
                                             </div>
-                                            <div className="bg-slate-950/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-white/10">
+                                            <div className="bg-[var(--sidebar)]/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-surface">
                                                 <span className="block text-2xl sm:text-3xl font-black text-white tabular-nums">
                                                     {String(countdown.hours).padStart(2, '0')}
                                                 </span>
-                                                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Hours</span>
+                                                <span className="text-[9px] font-bold text-muted-text uppercase tracking-wider">Hours</span>
                                             </div>
-                                            <div className="bg-slate-950/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-white/10">
+                                            <div className="bg-[var(--sidebar)]/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-surface">
                                                 <span className="block text-2xl sm:text-3xl font-black text-white tabular-nums">
                                                     {String(countdown.minutes).padStart(2, '0')}
                                                 </span>
-                                                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Mins</span>
+                                                <span className="text-[9px] font-bold text-muted-text uppercase tracking-wider">Mins</span>
                                             </div>
-                                            <div className="bg-slate-950/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-white/10">
-                                                <span className="block text-2xl sm:text-3xl font-black text-amber-400 tabular-nums animate-pulse">
+                                            <div className="bg-[var(--sidebar)]/60 rounded-xl p-2.5 min-w-[55px] sm:min-w-[64px] border border-surface">
+                                                <span className="block text-2xl sm:text-3xl font-black text-warning tabular-nums animate-pulse">
                                                     {String(countdown.seconds).padStart(2, '0')}
                                                 </span>
-                                                <span className="text-[9px] font-bold text-amber-300 uppercase tracking-wider">Secs</span>
+                                                <span className="text-[9px] font-bold text-warning uppercase tracking-wider">Secs</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1139,25 +1141,25 @@ const StudentFeedback = () => {
                         </div>
                     );
                 })() : (
-                    <div className="flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-slate-50 to-indigo-50/40 border border-slate-200/80 rounded-xl px-4 py-2.5 text-xs text-slate-600 shadow-2xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-[var(--background)] to-[var(--primary-light)] border border-border rounded-xl px-4 py-2.5 text-xs text-sub shadow-2xs">
                         <div className="flex items-center gap-2">
-                            <RiNotification3Line className="text-indigo-600 shrink-0" size={16} />
-                            <span className="font-semibold text-slate-700">
-                                Active Session: <strong className="text-slate-900 font-bold">{activePub.title}</strong>
+                            <RiNotification3Line className="text-primary shrink-0" size={16} />
+                            <span className="font-semibold text-sub">
+                                Active Session: <strong className="text-main font-bold">{activePub.title}</strong>
                             </span>
                             {activePub.semester && (
-                                <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-semibold text-slate-600">
+                                <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-surface border border-border text-[10px] font-semibold text-sub">
                                     Sem {activePub.semester}
                                 </span>
                             )}
                         </div>
                         <div className="flex items-center gap-2 text-[11px]">
-                            <span className="text-slate-400">Validity:</span>
-                            <span className="font-semibold text-slate-800">
+                            <span className="text-muted-text">Validity:</span>
+                            <span className="font-semibold text-main">
                                 {formatDate(activePub.startDate)} – {formatDate(activePub.endDate)}
                             </span>
-                            <span className="text-slate-300">•</span>
-                            <span className="text-amber-700 font-bold">
+                            <span className="text-muted-text">•</span>
+                            <span className="text-warning font-bold">
                                 Closes {formatDate(activePub.endDate)}
                             </span>
                         </div>
@@ -1168,14 +1170,14 @@ const StudentFeedback = () => {
             {/* ── Search and Filter Controls (Active Notification) ── */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
                 {/* Tabs */}
-                <div className="flex bg-slate-100/90 p-1 rounded-xl border border-slate-200/60 w-full sm:w-auto">
+                <div className="flex bg-[var(--background)]/90 p-1 rounded-xl border border-border w-full sm:w-auto">
                     <button
                         type="button"
                         onClick={() => setActiveTab('all')}
                         className={`flex-1 sm:flex-initial text-center px-3 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                             activeTab === 'all'
-                                ? 'bg-white text-slate-900 shadow-xs'
-                                : 'text-slate-600 hover:text-slate-900'
+                                ? 'bg-surface text-main shadow-xs'
+                                : 'text-sub hover:text-main'
                         }`}
                     >
                         All ({totalCount})
@@ -1185,11 +1187,11 @@ const StudentFeedback = () => {
                         onClick={() => setActiveTab('pending')}
                         className={`flex-1 sm:flex-initial text-center px-2.5 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                             activeTab === 'pending'
-                                ? 'bg-white text-amber-700 shadow-xs'
-                                : 'text-slate-600 hover:text-slate-900'
+                                ? 'bg-surface text-warning shadow-xs'
+                                : 'text-sub hover:text-main'
                         }`}
                     >
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-warning shrink-0" />
                         Pending ({pendingCount})
                     </button>
                     <button
@@ -1197,30 +1199,30 @@ const StudentFeedback = () => {
                         onClick={() => setActiveTab('completed')}
                         className={`flex-1 sm:flex-initial text-center px-2.5 sm:px-4 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                             activeTab === 'completed'
-                                ? 'bg-white text-emerald-700 shadow-xs'
-                                : 'text-slate-600 hover:text-slate-900'
+                                ? 'bg-surface text-success shadow-xs'
+                                : 'text-sub hover:text-main'
                         }`}
                     >
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
                         Completed ({completedCount})
                     </button>
                 </div>
 
                 {/* Search Bar */}
                 <div className="relative w-full sm:w-72">
-                    <RiSearchLine className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                    <RiSearchLine className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-text" size={15} />
                     <input
                         type="text"
                         placeholder="Search subject or faculty..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-xs"
+                        className="w-full pl-9 pr-8 py-2 bg-surface border border-border rounded-xl text-xs font-medium text-main placeholder:text-muted-text focus:outline-hidden focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary transition-all shadow-xs"
                     />
                     {searchQuery && (
                         <button
                             type="button"
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-text hover:text-sub p-1 cursor-pointer"
                         >
                             <RiCloseLine size={14} />
                         </button>
@@ -1230,14 +1232,14 @@ const StudentFeedback = () => {
 
             {/* ── Empty State ── */}
             {viewMode === 'single' && filteredCards.length === 0 && (
-                <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/80 p-8 sm:p-12 text-center max-w-md mx-auto my-4 sm:my-6 shadow-xs">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <div className="bg-surface rounded-xl sm:rounded-2xl border border-border p-8 sm:p-12 text-center max-w-md mx-auto my-4 sm:my-6 shadow-xs">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[var(--primary-light)] text-primary rounded-2xl flex items-center justify-center mx-auto mb-3">
                         <RiMessage2Line size={24} className="sm:w-7 sm:h-7" />
                     </div>
-                    <h3 className="font-bold text-slate-800 text-sm sm:text-base">
+                    <h3 className="font-bold text-main text-sm sm:text-base">
                         {searchQuery ? 'No matching courses found' : 'No Feedback Available'}
                     </h3>
-                    <p className="text-slate-500 text-xs mt-1">
+                    <p className="text-muted-text text-xs mt-1">
                         {searchQuery
                             ? `No subject or faculty matches "${searchQuery}". Clear your search to see all.`
                             : activeTab === 'pending'
@@ -1248,7 +1250,7 @@ const StudentFeedback = () => {
                         <button
                             type="button"
                             onClick={() => setSearchQuery('')}
-                            className="mt-3.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                            className="mt-3.5 px-4 py-2 bg-background hover:bg-background text-sub rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                         >
                             Clear Search
                         </button>
@@ -1278,33 +1280,33 @@ const StudentFeedback = () => {
                         return (
                             <div
                                 key={pub.id}
-                                className="bg-white rounded-xl sm:rounded-2xl border border-slate-200/90 p-4 sm:p-6 space-y-4 shadow-xs"
+                                className="bg-surface rounded-xl sm:rounded-2xl border border-border p-4 sm:p-6 space-y-4 shadow-xs"
                             >
                                 {/* Notification Group Header */}
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <span className="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-700 font-bold text-[10px] tracking-wide uppercase">
+                                            <span className="px-2.5 py-0.5 rounded-md bg-[var(--primary-light)] text-primary font-bold text-[10px] tracking-wide uppercase">
                                                 Notification #{pIdx + 1}
                                             </span>
                                             {isPubScheduled(pub) && (
-                                                <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold text-[10px] flex items-center gap-1">
+                                                <span className="px-2 py-0.5 rounded-full bg-[var(--primary-light)] text-primary font-bold text-[10px] flex items-center gap-1">
                                                     <RiTimerLine size={12} /> Scheduled
                                                 </span>
                                             )}
-                                            <h2 className="text-base sm:text-lg font-extrabold text-slate-900">
+                                            <h2 className="text-base sm:text-lg font-extrabold text-main">
                                                 {pub.title}
                                             </h2>
                                         </div>
-                                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
+                                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-text mt-1">
                                             <span className="flex items-center gap-1 font-medium">
-                                                <RiCalendarLine size={13} className="text-slate-400" />
+                                                <RiCalendarLine size={13} className="text-muted-text" />
                                                 {isPubScheduled(pub)
                                                     ? `Opens: ${formatDateTimeFull(pub.startDate)}`
                                                     : `Active: ${formatDate(pub.startDate)} to ${formatDate(pub.endDate)}`}
                                             </span>
-                                            <span className="text-slate-300">•</span>
-                                            <span className="font-semibold text-amber-700">
+                                            <span className="text-muted-text">•</span>
+                                            <span className="font-semibold text-warning">
                                                 Closes: {formatDateTimeFull(pub.endDate)}
                                             </span>
                                         </div>
@@ -1314,17 +1316,17 @@ const StudentFeedback = () => {
                                         const cd = getCountdownParts(pub.startDate, currentTime);
                                         const cdStr = cd ? formatCountdownString(cd) : '';
                                         return (
-                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold shadow-2xs">
-                                                <RiTimeLine size={13} className="text-blue-600 animate-spin" style={{ animationDuration: '6s' }} />
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] text-xs font-bold shadow-2xs">
+                                                <RiTimeLine size={13} className="text-primary animate-spin" style={{ animationDuration: '6s' }} />
                                                 Opens in {cdStr || 'due time'}
                                             </span>
                                         );
                                     })() : (
                                         <div className="flex items-center gap-3">
-                                            <span className="text-xs text-slate-600 font-semibold">
+                                            <span className="text-xs text-sub font-semibold">
                                                 {stats.completed}/{stats.total} Completed
                                             </span>
-                                            <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold">
+                                            <span className="px-2.5 py-0.5 rounded-full bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] text-xs font-bold">
                                                 {stats.rate}%
                                             </span>
                                         </div>
@@ -1333,7 +1335,7 @@ const StudentFeedback = () => {
 
                                 {/* Cards Grid for this publication */}
                                 {pubSubjects.length === 0 ? (
-                                    <div className="py-6 text-center text-xs text-slate-400">
+                                    <div className="py-6 text-center text-xs text-muted-text">
                                         No courses match your filter for this notification.
                                     </div>
                                 ) : (
@@ -1361,7 +1363,7 @@ const StudentFeedback = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-slate-900/50 backdrop-blur-xs"
+                            className="absolute inset-0 bg-[var(--sidebar)]/50 backdrop-blur-xs"
                             onClick={handleCloseModal}
                         />
 
@@ -1371,36 +1373,36 @@ const StudentFeedback = () => {
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.96, opacity: 0, y: 20 }}
                             transition={{ type: 'spring', damping: 25, stiffness: 320 }}
-                            className="relative bg-white w-full sm:max-w-2xl max-h-[92vh] rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200/80"
+                            className="relative bg-surface w-full sm:max-w-2xl max-h-[92vh] rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-border"
                         >
                             {/* Modal Header */}
-                            <div className="p-4 sm:p-6 border-b border-slate-100 flex justify-between items-start gap-4 bg-slate-50/60">
+                            <div className="p-4 sm:p-6 border-b border-border flex justify-between items-start gap-4 bg-[var(--background)]/60">
                                 <div className="min-w-0 space-y-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="px-2 py-0.5 rounded-md bg-indigo-100/70 text-indigo-700 font-bold text-[10px] uppercase tracking-wider">
+                                        <span className="px-2 py-0.5 rounded-md bg-[var(--primary-light)] text-primary font-bold text-[10px] uppercase tracking-wider">
                                             {modalPub.title || 'Course Evaluation'}
                                         </span>
                                     </div>
-                                    <h2 className="text-base sm:text-xl font-extrabold text-slate-900 leading-snug truncate">
+                                    <h2 className="text-base sm:text-xl font-extrabold text-main leading-snug truncate">
                                         {toTitleCase(modalSubject.subjectName)}
                                     </h2>
-                                    <div className="flex items-center gap-2 text-xs text-slate-500">
-                                        <RiUser3Line size={13} className="text-slate-400" />
-                                        <span>Instructor: <strong className="font-semibold text-slate-700">{toTitleCase(modalSubject.facultyName)}</strong></span>
+                                    <div className="flex items-center gap-2 text-xs text-muted-text">
+                                        <RiUser3Line size={13} className="text-muted-text" />
+                                        <span>Instructor: <strong className="font-semibold text-sub">{toTitleCase(modalSubject.facultyName)}</strong></span>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={handleCloseModal}
-                                    className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 hover:bg-white rounded-xl transition-colors shrink-0 cursor-pointer"
+                                    className="p-1.5 sm:p-2 text-muted-text hover:text-sub hover:bg-surface rounded-xl transition-colors shrink-0 cursor-pointer"
                                 >
                                     <RiCloseLine size={20} />
                                 </button>
                             </div>
 
                             {/* Anonymity Notice Banner */}
-                            <div className="bg-indigo-50/60 border-b border-indigo-100/60 px-4 sm:px-6 py-2 sm:py-2.5 flex items-center gap-2 text-[11px] sm:text-xs text-indigo-900">
-                                <RiShieldCheckLine size={15} className="text-indigo-600 shrink-0" />
+                            <div className="bg-[var(--primary-light)] border-b border-[var(--primary-light)] px-4 sm:px-6 py-2 sm:py-2.5 flex items-center gap-2 text-[11px] sm:text-xs text-primary">
+                                <RiShieldCheckLine size={15} className="text-primary shrink-0" />
                                 <span>
                                     <strong>Confidential:</strong> Your identity is never stored with this submission. Faculty only see anonymous responses.
                                 </span>
@@ -1422,15 +1424,15 @@ const StudentFeedback = () => {
                                         {formQuestions.map((q, idx) => (
                                             <div
                                                 key={q.id || idx}
-                                                className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2.5 sm:space-y-3 hover:border-slate-300 transition-colors"
+                                                className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-surface border border-border shadow-2xs space-y-2.5 sm:space-y-3 hover:border-border-strong transition-colors"
                                             >
                                                 <div className="flex items-start justify-between gap-3">
-                                                    <label className="text-xs sm:text-sm font-bold text-slate-800 leading-snug">
-                                                        <span className="text-indigo-600 font-extrabold mr-1.5">
+                                                    <label className="text-xs sm:text-sm font-bold text-main leading-snug">
+                                                        <span className="text-primary font-extrabold mr-1.5">
                                                             {idx + 1}.
                                                         </span>
                                                         {q.questionText}
-                                                        {q.isRequired && <span className="text-rose-500 ml-1 font-bold">*</span>}
+                                                        {q.isRequired && <span className="text-danger ml-1 font-bold">*</span>}
                                                     </label>
                                                 </div>
 
@@ -1448,11 +1450,11 @@ const StudentFeedback = () => {
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="p-3.5 sm:p-5 border-t border-slate-100 flex flex-col-reverse sm:flex-row justify-end items-center gap-2 sm:gap-2.5 bg-slate-50/60">
+                            <div className="p-3.5 sm:p-5 border-t border-border flex flex-col-reverse sm:flex-row justify-end items-center gap-2 sm:gap-2.5 bg-[var(--background)]/60">
                                 <button
                                     type="button"
                                     onClick={handleCloseModal}
-                                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs text-slate-500 hover:text-slate-800 hover:bg-white transition-colors cursor-pointer"
+                                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs text-muted-text hover:text-main hover:bg-surface transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>
@@ -1460,11 +1462,11 @@ const StudentFeedback = () => {
                                     type="submit"
                                     form="feedback-form"
                                     disabled={submitting || formLoading}
-                                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xs hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                                    className="w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-primary hover:bg-primary-hover transition-all shadow-xs hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     {submitting ? (
                                         <>
-                                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            <div className="w-3.5 h-3.5 border-2 border-surface border-t-surface rounded-full animate-spin" />
                                             <span>Submitting...</span>
                                         </>
                                     ) : (

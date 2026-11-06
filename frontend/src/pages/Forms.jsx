@@ -214,7 +214,7 @@ const Forms = () => {
                   {form.is_active ? <EyeOff size={16} /> : <Eye size={16} />}
                   <span className="hidden sm:inline ml-1">{form.is_active ? 'Hide' : 'Show'}</span>
                 </button>
-                <button onClick={() => handleDelete(form.form_id, form.form_name)} className="px-3 py-2.5 sm:py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 active:bg-red-200 transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center" title="Delete Form">
+                <button onClick={() => handleDelete(form.form_id, form.form_name)} className="px-3 py-2.5 sm:py-2 bg-[var(--danger-light)] text-danger rounded-lg hover:bg-[var(--danger-light)] active:bg-[var(--danger-light)] transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center" title="Delete Form">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -237,7 +237,7 @@ const Forms = () => {
             <p className="text-sm text-text-secondary mb-4 text-center body-font">
               Scan this QR code to access the form
             </p>
-            <div className="text-xs text-text-secondary text-center bg-gray-50 rounded-lg p-2 mb-4 font-mono break-all">
+            <div className="text-xs text-text-secondary text-center bg-background rounded-lg p-2 mb-4 font-mono break-all">
               {getFrontendUrl()}/form/{selectedForm.form_id}
             </div>
             <div className="text-xs text-text-secondary text-center mb-4">
@@ -265,7 +265,7 @@ const Forms = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <button onClick={downloadQRCode} className="flex-1 flex items-center justify-center gap-2 bg-purple-600 text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-purple-700 active:bg-purple-800 transition-colors touch-manipulation min-h-[44px] font-medium">
+              <button onClick={downloadQRCode} className="flex-1 flex items-center justify-center gap-2 bg-secondary text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-secondary active:bg-secondary transition-colors touch-manipulation min-h-[44px] font-medium">
                 <Download size={18} />
                 Download
               </button>
@@ -276,7 +276,7 @@ const Forms = () => {
                   window.open(testUrl, '_blank');
                   toast.success('Testing QR code URL in new tab');
                 }}
-                className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-green-700 active:bg-green-800 transition-colors touch-manipulation min-h-[44px] font-medium"
+                className="flex-1 flex items-center justify-center gap-2 bg-success text-white px-4 py-2.5 sm:py-2 rounded-lg hover:bg-success active:bg-success transition-colors touch-manipulation min-h-[44px] font-medium"
               >
                 Test URL
               </button>

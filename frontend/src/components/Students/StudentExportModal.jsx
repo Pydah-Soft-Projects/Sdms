@@ -98,32 +98,32 @@ const StudentExportModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+      <div className="bg-surface rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-[var(--background)]/50">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Export Students to CSV</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-lg font-bold text-main">Export Students to CSV</h2>
+            <p className="text-sm text-muted-text">
               Select the fields to include, matching the student details view.
               {totalCount > 0 ? ` ${totalCount.toLocaleString()} student${totalCount === 1 ? '' : 's'} match current filters.` : ''}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
+            className="p-2 hover:bg-background rounded-full transition-colors text-muted-text hover:text-sub"
             aria-label="Close export dialog"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="px-6 py-3 border-b border-gray-100 flex items-center justify-between gap-3">
-          <p className="text-sm text-gray-600">
+        <div className="px-6 py-3 border-b border-border flex items-center justify-between gap-3">
+          <p className="text-sm text-sub">
             {selectedKeys.length} of {availableFields.length} fields selected
           </p>
           <button
             type="button"
             onClick={toggleAll}
-            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary"
           >
             {allSelected ? <Square size={16} /> : <CheckSquare size={16} />}
             {allSelected ? 'Deselect All' : 'Select All'}
@@ -133,7 +133,7 @@ const StudentExportModal = ({
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {Object.entries(groupedFields).map(([group, fields]) => (
             <div key={group}>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">{group}</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-text mb-2">{group}</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {fields.map((field) => {
                   const isSelected = selectedKeys.includes(field.key);
@@ -142,8 +142,8 @@ const StudentExportModal = ({
                       key={field.key}
                       className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border transition-colors ${
                         isSelected
-                          ? 'bg-blue-50 border-blue-300 text-blue-800'
-                          : 'bg-white border-gray-200 text-gray-700 hover:border-blue-200 hover:bg-blue-50/50'
+                          ? 'bg-[var(--primary-light)] border-[var(--primary-light)] text-primary'
+                          : 'bg-surface border-border text-sub hover:border-[var(--primary-light)] hover:bg-[var(--primary-light)]'
                       }`}
                     >
                       <input
@@ -154,7 +154,7 @@ const StudentExportModal = ({
                       />
                       <div
                         className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${
-                          isSelected ? 'bg-blue-500' : 'border-2 border-gray-300'
+                          isSelected ? 'bg-primary' : 'border-2 border-border-strong'
                         }`}
                       >
                         {isSelected && (
@@ -172,16 +172,16 @@ const StudentExportModal = ({
           ))}
 
           {availableFields.length === 0 && (
-            <p className="text-sm text-gray-500 text-center py-8">No exportable fields available for your account.</p>
+            <p className="text-sm text-muted-text text-center py-8">No exportable fields available for your account.</p>
           )}
         </div>
 
-        <div className="p-6 border-t border-gray-100 bg-gray-50 flex items-center justify-end gap-3">
+        <div className="p-6 border-t border-border bg-background flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={downloading}
-            className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-white transition-colors font-medium disabled:opacity-50"
+            className="px-4 py-2.5 border border-border-strong text-sub rounded-lg hover:bg-surface transition-colors font-medium disabled:opacity-50"
           >
             Cancel
           </button>
@@ -189,7 +189,7 @@ const StudentExportModal = ({
             type="button"
             onClick={handleDownload}
             disabled={downloading || selectedFields.length === 0}
-            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
+            className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
           >
             <Download size={18} />
             {downloading ? 'Preparing CSV...' : 'Download CSV'}

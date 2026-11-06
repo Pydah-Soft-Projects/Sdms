@@ -38,7 +38,7 @@ const ParentIdCard = () => {
   if (!studentData) {
     return (
       <div className="w-full min-h-full flex items-center justify-center px-4">
-        <p className="text-center text-gray-500">Unable to load student ID card.</p>
+        <p className="text-center text-muted-text">Unable to load student ID card.</p>
       </div>
     );
   }
@@ -55,13 +55,13 @@ const ParentIdCard = () => {
 
   return (
     <div className="w-full min-h-full flex flex-col sm:max-w-lg sm:mx-auto">
-      <div className="w-full px-3 py-3 sm:px-0 sm:mb-6 bg-white border-b border-gray-100 sm:bg-transparent sm:border-0">
-        <h1 className="text-lg sm:text-xl font-black text-gray-900">Digital ID Card</h1>
-        <p className="text-xs sm:text-sm text-gray-500 mt-1">Official student identification card (view only)</p>
+      <div className="w-full px-3 py-3 sm:px-0 sm:mb-6 bg-surface border-b border-border sm:bg-transparent sm:border-0">
+        <h1 className="text-lg sm:text-xl font-black text-main">Digital ID Card</h1>
+        <p className="text-xs sm:text-sm text-muted-text mt-1">Official student identification card (view only)</p>
       </div>
       <div className="flex-1 w-full flex flex-col items-center gap-6 px-2 sm:px-0 pb-6">
         <div className="w-full">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2 text-center">Front Side</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-text mb-2 text-center">Front Side</p>
           <div className="id-card-preview-scaler-box">
             <div className="id-card-preview-scaler">
               <DigitalStudentCard
@@ -73,7 +73,7 @@ const ParentIdCard = () => {
         </div>
 
         <div className="w-full">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-2 text-center">Back Side</p>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-text mb-2 text-center">Back Side</p>
           <div className="id-card-preview-scaler-box">
             <div className="id-card-preview-scaler">
               <DigitalIdCardBack

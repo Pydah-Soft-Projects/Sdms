@@ -432,19 +432,19 @@ const AddServiceWizard = () => {
 
     let headerCells = "";
     for (let c = 1; c <= validCols; c++) {
-      headerCells += `<th style="border: 1px solid #94a3b8; padding: 6px 10px; background-color: #f1f5f9; font-weight: bold; text-align: left;">Header ${c}</th>`;
+      headerCells += `<th style="border: 1px solid var(--text-muted); padding: 6px 10px; background-color: var(--background); font-weight: bold; text-align: left;">Header ${c}</th>`;
     }
 
     let bodyRows = "";
     for (let r = 1; r < validRows; r++) {
       let cells = "";
       for (let c = 1; c <= validCols; c++) {
-        cells += `<td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left;">Data</td>`;
+        cells += `<td style="border: 1px solid var(--border-strong); padding: 6px 10px; text-align: left;">Data</td>`;
       }
       bodyRows += `<tr>${cells}</tr>`;
     }
 
-    const tableHtml = `<div><br></div><table class="word-canvas-table" style="width: 100%; border-collapse: collapse; margin: 12px 0; border: 1px solid #94a3b8;"><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table><div><br></div>`;
+    const tableHtml = `<div><br></div><table class="word-canvas-table" style="width: 100%; border-collapse: collapse; margin: 12px 0; border: 1px solid var(--text-muted);"><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table><div><br></div>`;
 
     const ed = contentEditableRef.current;
     if (ed) {
@@ -653,11 +653,11 @@ const AddServiceWizard = () => {
 
     // Tables
     html = html
-      .replace(/\[th\]([\s\S]*?)\[\/th\]/gi, (m, inner) => `<th style="border: 1px solid #94a3b8; padding: 6px 10px; background-color: #f1f5f9; font-weight: bold; text-align: left;">${inner}</th>`)
-      .replace(/\[td\]([\s\S]*?)\[\/td\]/gi, (m, inner) => `<td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left;">${inner}</td>`)
+      .replace(/\[th\]([\s\S]*?)\[\/th\]/gi, (m, inner) => `<th style="border: 1px solid var(--text-muted); padding: 6px 10px; background-color: var(--background); font-weight: bold; text-align: left;">${inner}</th>`)
+      .replace(/\[td\]([\s\S]*?)\[\/td\]/gi, (m, inner) => `<td style="border: 1px solid var(--border-strong); padding: 6px 10px; text-align: left;">${inner}</td>`)
       .replace(/\[tr\]([\s\S]*?)\[\/tr\]/gi, (m, inner) => `<tr>${inner}</tr>`)
       .replace(/\[table\]([\s\S]*?)\[\/table\]/gi, (m, inner) => {
-        return `<table class="word-canvas-table" style="width: 100%; border-collapse: collapse; margin: 12px 0; border: 1px solid #94a3b8;">${inner.trim()}</table>`;
+        return `<table class="word-canvas-table" style="width: 100%; border-collapse: collapse; margin: 12px 0; border: 1px solid var(--text-muted);">${inner.trim()}</table>`;
       });
 
     html = html.replace(/<div style="text-align:[^"]*">\s*<\/div>/gi, "<div><br></div>");
@@ -1459,7 +1459,7 @@ const AddServiceWizard = () => {
           font_italic: false,
           font_underline: false,
           font_strikethrough: false,
-          font_color: "#0f172a",
+          font_color: "var(--text-primary)",
           font_highlight: "transparent",
         }));
         setActiveFontFamily("Calibri");
@@ -1697,7 +1697,7 @@ const AddServiceWizard = () => {
     font_italic: false,
     font_underline: false,
     font_strikethrough: false,
-    font_color: "#0f172a",
+    font_color: "var(--text-primary)",
     font_highlight: "transparent",
     line_spacing: 1.6,
     top_spacing: 15,
@@ -1736,7 +1736,7 @@ const AddServiceWizard = () => {
         templateData.font_strikethrough ||
         templateData.font_size !== 12 ||
         templateData.font_family !== "Calibri" ||
-        templateData.font_color !== "#0f172a" ||
+        templateData.font_color !== "var(--text-primary)" ||
         (templateData.font_highlight && templateData.font_highlight !== "transparent")
       ) {
         setTemplateData((prev) => ({
@@ -1747,7 +1747,7 @@ const AddServiceWizard = () => {
           font_italic: false,
           font_underline: false,
           font_strikethrough: false,
-          font_color: "#0f172a",
+          font_color: "var(--text-primary)",
           font_highlight: "transparent",
         }));
       }
@@ -1888,7 +1888,7 @@ const AddServiceWizard = () => {
           font_italic: !!template.font_italic,
           font_underline: !!template.font_underline,
           font_strikethrough: !!template.font_strikethrough,
-          font_color: template.font_color || "#0f172a",
+          font_color: template.font_color || "var(--text-primary)",
           font_highlight: template.font_highlight || "transparent",
           line_spacing: template.line_spacing || 1.6,
           input_field_size: template.input_field_size || 10,
@@ -2051,18 +2051,18 @@ const AddServiceWizard = () => {
               <div
                 className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition ${
                   currentStep >= step.num
-                    ? "bg-blue-600 border-blue-600 text-white"
-                    : "bg-white border-gray-300 text-gray-400"
+                    ? "bg-primary border-primary text-white"
+                    : "bg-surface border-border-strong text-muted-text"
                 }`}
               >
                 {currentStep > step.num ? <Check size={20} /> : index + 1}
               </div>
-              <span className="text-xs mt-1 text-gray-600">{step.label}</span>
+              <span className="text-xs mt-1 text-sub">{step.label}</span>
             </div>
             {index < steps.length - 1 && (
               <div
                 className={`w-16 h-1 transition mb-6 ${
-                  currentStep > step.num ? "bg-blue-600" : "bg-gray-300"
+                  currentStep > step.num ? "bg-primary" : "bg-background"
                 }`}
               />
             )}
@@ -2077,8 +2077,8 @@ const AddServiceWizard = () => {
       return (
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading service details...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-sub">Loading service details...</p>
           </div>
         </div>
       );
@@ -2087,20 +2087,20 @@ const AddServiceWizard = () => {
     return (
       <div className="space-y-6">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center justify-center gap-2">
-            <FileText size={28} className="text-blue-600" />
+          <h2 className="text-2xl font-bold text-main flex items-center justify-center gap-2">
+            <FileText size={28} className="text-primary" />
             Service Details
           </h2>
-          <p className="text-gray-500 mt-2">
+          <p className="text-muted-text mt-2">
             Enter basic information about the service
           </p>
         </div>
 
-        <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-200 space-y-5 w-full">
+        <div className="bg-surface p-6 sm:p-8 rounded-2xl shadow-sm border border-border space-y-5 w-full">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Service Name <span className="text-red-500">*</span>
+              <label className="block text-sm font-semibold text-sub mb-2">
+                Service Name <span className="text-danger">*</span>
               </label>
               <input
                 type="text"
@@ -2110,24 +2110,24 @@ const AddServiceWizard = () => {
                   const lettersOnly = e.target.value.replace(/[^a-zA-Z\s]/g, "");
                   setServiceData({ ...serviceData, name: lettersOnly });
                 }}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                className="w-full px-4 py-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
                 placeholder="e.g., Transfer Certificate (Letters only)"
               />
-              <p className="text-[11px] text-gray-500 mt-1">
+              <p className="text-[11px] text-muted-text mt-1">
                 Letters only restriction: only alphabetic characters and spaces are allowed.
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Select College <span className="text-red-500">*</span>
+              <label className="block text-sm font-semibold text-sub mb-2">
+                Select College <span className="text-danger">*</span>
               </label>
               <select
                 value={serviceData.college_id || ""}
                 onChange={(e) =>
                   setServiceData({ ...serviceData, college_id: e.target.value })
                 }
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition bg-white"
+                className="w-full px-4 py-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition bg-surface"
               >
                 <option value="">-- Choose a college --</option>
                 {colleges.map((college) => {
@@ -2139,7 +2139,7 @@ const AddServiceWizard = () => {
                   );
                 })}
               </select>
-              <p className="text-xs text-gray-500 mt-1.5">
+              <p className="text-xs text-muted-text mt-1.5">
                 The certificate will use this college's dynamic header letterhead
               </p>
             </div>
@@ -2147,8 +2147,8 @@ const AddServiceWizard = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Price (₹) <span className="text-red-500">*</span>
+              <label className="block text-sm font-semibold text-sub mb-2">
+                Price (₹) <span className="text-danger">*</span>
               </label>
               <input
                 type="number"
@@ -2156,13 +2156,13 @@ const AddServiceWizard = () => {
                 onChange={(e) =>
                   setServiceData({ ...serviceData, price: e.target.value })
                 }
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                className="w-full px-4 py-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
                 placeholder="e.g., 100"
               />
             </div>
 
             <div className="pt-2 sm:pt-6">
-              <label className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100 transition">
+              <label className="flex items-center gap-3 p-3 bg-background border border-border rounded-xl cursor-pointer hover:bg-background transition">
                 <input
                   type="checkbox"
                   id="is_active"
@@ -2170,13 +2170,13 @@ const AddServiceWizard = () => {
                   onChange={(e) =>
                     setServiceData({ ...serviceData, is_active: e.target.checked })
                   }
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
+                  className="w-5 h-5 text-primary rounded focus:ring-primary cursor-pointer"
                 />
                 <div>
-                  <span className="text-sm font-semibold text-gray-800 block">
+                  <span className="text-sm font-semibold text-main block">
                     Active Service
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-muted-text">
                     Immediately available to students in the portal
                   </span>
                 </div>
@@ -2185,7 +2185,7 @@ const AddServiceWizard = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-sub mb-2">
               Description
             </label>
             <textarea
@@ -2193,7 +2193,7 @@ const AddServiceWizard = () => {
               onChange={(e) =>
                 setServiceData({ ...serviceData, description: e.target.value })
               }
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="w-full px-4 py-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
               rows="3"
               placeholder="Brief description of the service"
             />
@@ -2203,14 +2203,14 @@ const AddServiceWizard = () => {
         <div className="flex justify-between">
           <button
             onClick={() => navigate("/services/config")}
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2"
+            className="px-6 py-2 border border-border-strong rounded-lg hover:bg-background flex items-center gap-2"
           >
             <ArrowLeft size={18} /> Cancel
           </button>
           <button
             onClick={handleStep1Submit}
             disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
+            className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover flex items-center gap-2 disabled:opacity-50"
           >
             Next: Certificate Content <ArrowRight size={18} />
           </button>
@@ -2302,7 +2302,7 @@ const renderStep2 = () => {
           ]
             .filter(Boolean)
             .join(" ") || "none";
-      const activeColor = isContentEmpty ? "#0f172a" : templateData.font_color || "#0f172a";
+      const activeColor = isContentEmpty ? "var(--text-primary)" : templateData.font_color || "var(--text-primary)";
       const activeBgColor = isContentEmpty
         ? "transparent"
         : templateData.font_highlight && templateData.font_highlight !== "transparent"
@@ -2355,8 +2355,8 @@ const renderStep2 = () => {
         },
         suggestions: {
           list: {
-            backgroundColor: "#ffffff",
-            border: "1px solid #c7d2fe",
+            backgroundColor: "var(--surface)",
+            border: "1px solid var(--primary-light)",
             borderRadius: "0.5rem",
             boxShadow:
               "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
@@ -2367,11 +2367,11 @@ const renderStep2 = () => {
           },
           item: {
             padding: "7px 12px",
-            borderBottom: "1px solid #f1f5f9",
+            borderBottom: "1px solid var(--background)",
             fontSize: "12px",
-            color: "#1e3a8a",
+            color: "var(--primary)",
             "&focused": {
-              backgroundColor: "#dbeafe",
+              backgroundColor: "var(--primary-light)",
               fontWeight: 600,
             },
           },
@@ -2422,7 +2422,7 @@ const renderStep2 = () => {
             fontWeight: "normal",
             fontStyle: "normal",
             textDecoration: "none",
-            color: "#0f172a",
+            color: "var(--text-primary)",
           }}
         >
           {lines.map((line, idx) => {
@@ -2434,7 +2434,7 @@ const renderStep2 = () => {
               return (
                 <div
                   key={idx}
-                  className="my-1 border-b-2 border-blue-950 w-full"
+                  className="my-1 border-b-2 border-primary w-full"
                 />
               );
             }
@@ -2549,11 +2549,11 @@ const renderStep2 = () => {
       if (!content) return "";
 
       let formattedContent = content
-        .replace(/\[th\]([\s\S]*?)\[\/th\]/gi, (m, inner) => `<th style="border: 1px solid #94a3b8; padding: 6px 10px; background-color: #f1f5f9; font-weight: bold; text-align: left;">${inner}</th>`)
-        .replace(/\[td\]([\s\S]*?)\[\/td\]/gi, (m, inner) => `<td style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left;">${inner}</td>`)
+        .replace(/\[th\]([\s\S]*?)\[\/th\]/gi, (m, inner) => `<th style="border: 1px solid var(--text-muted); padding: 6px 10px; background-color: var(--background); font-weight: bold; text-align: left;">${inner}</th>`)
+        .replace(/\[td\]([\s\S]*?)\[\/td\]/gi, (m, inner) => `<td style="border: 1px solid var(--border-strong); padding: 6px 10px; text-align: left;">${inner}</td>`)
         .replace(/\[tr\]([\s\S]*?)\[\/tr\]/gi, (m, inner) => `<tr>${inner}</tr>`)
         .replace(/\[table\]([\s\S]*?)\[\/table\]/gi, (m, inner) => {
-          return `<table class="word-canvas-table" style="width: 100%; border-collapse: collapse; margin: 12px 0; border: 1px solid #94a3b8;">${inner.trim()}</table>`;
+          return `<table class="word-canvas-table" style="width: 100%; border-collapse: collapse; margin: 12px 0; border: 1px solid var(--text-muted);">${inner.trim()}</table>`;
         });
 
       const rawLines = formattedContent
@@ -2599,7 +2599,7 @@ const renderStep2 = () => {
               return (
                 <div
                   key={idx}
-                  className="my-2 border-b-2 border-slate-700 w-full"
+                  className="my-2 border-b-2 border-border-strong w-full"
                 />
               );
             }
@@ -2649,9 +2649,9 @@ const renderStep2 = () => {
                 minWidth: 80,
               };
               if (cleanKey === "principal_signature") {
-                return `<span class="inline-block border-b-2 border-slate-700 text-center font-semibold text-slate-800 mx-1 px-2" style="min-width: 140px;">[Principal Signature]</span>`;
+                return `<span class="inline-block border-b-2 border-border-strong text-center font-semibold text-main mx-1 px-2" style="min-width: 140px;">[Principal Signature]</span>`;
               }
-              return `<span class="inline-block border-b-2 border-blue-600 font-bold text-blue-900 mx-0.5 px-1 bg-blue-50/70 text-center underline underline-offset-4 decoration-blue-600 decoration-2" style="min-width: ${spec.minWidth}px;" title="Variable: @${cleanKey} (${spec.fixedChars} chars)">@${cleanKey}</span>`;
+              return `<span class="inline-block border-b-2 border-primary font-bold text-primary mx-0.5 px-1 bg-[var(--primary-light)] text-center underline underline-offset-4 decoration-primary decoration-2" style="min-width: ${spec.minWidth}px;" title="Variable: @${cleanKey} (${spec.fixedChars} chars)">@${cleanKey}</span>`;
             };
 
             // 1. Handle react-mentions syntax: @[@display](id) or @[display](id)
@@ -2684,7 +2684,7 @@ const renderStep2 = () => {
                 const width = isMulti
                   ? Math.min(Math.max(inputSize * 8, 80), 130)
                   : Math.min(Math.max(inputSize * 5, 45), 75);
-                return `<span class="inline-block border-b border-gray-900 align-baseline mx-1" style="min-width:${width}px;height:1em;" title="Input Field">&nbsp;</span>`;
+                return `<span class="inline-block border-b border-border-strong align-baseline mx-1" style="min-width:${width}px;height:1em;" title="Input Field">&nbsp;</span>`;
               },
             );
             processed = processed.replace(
@@ -2697,7 +2697,7 @@ const renderStep2 = () => {
                 const width = isMulti
                   ? Math.min(Math.max(inputSize * 8, 80), 130)
                   : Math.min(Math.max(inputSize * 5, 45), 75);
-                return `<span class="inline-block border-b border-gray-900 align-baseline mx-1" style="min-width:${width}px;height:1em;" title="Input Field">&nbsp;</span>`;
+                return `<span class="inline-block border-b border-border-strong align-baseline mx-1" style="min-width:${width}px;height:1em;" title="Input Field">&nbsp;</span>`;
               },
             );
 
@@ -2767,7 +2767,7 @@ const renderStep2 = () => {
 
     return (
       <div
-        className="fixed top-0 right-0 bottom-0 left-0 lg:left-64 flex flex-col bg-[#eef1f5] overflow-hidden z-50 select-none font-sans"
+        className="fixed top-0 right-0 bottom-0 left-0 lg:left-64 flex flex-col bg-[var(--primary-light)] overflow-hidden z-50 select-none font-sans"
         onClick={() => {
           if (showVariableDropdown) setShowVariableDropdown(false);
           if (showFontColorDropdown) setShowFontColorDropdown(false);
@@ -2778,29 +2778,29 @@ const renderStep2 = () => {
         {/* ============================================================== */}
         {/* 1. MICROSOFT WORD APP TITLE BAR                                */}
         {/* ============================================================== */}
-        <div className="bg-[#185abd] text-white px-3 py-1.5 flex items-center justify-between shadow-md flex-shrink-0">
+        <div className="bg-[var(--primary)] text-white px-3 py-1.5 flex items-center justify-between shadow-md flex-shrink-0">
           {/* Left: Word Icon, File Name & Quick Access */}
           <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 bg-white rounded flex items-center justify-center shadow-xs">
-              <span className="text-[#185abd] font-black text-sm tracking-tighter">W</span>
+            <div className="w-6 h-6 bg-surface rounded flex items-center justify-center shadow-xs">
+              <span className="text-[var(--primary)] font-black text-sm tracking-tighter">W</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-xs tracking-wide text-white">
                 {serviceData.name ? `${serviceData.name} - Certificate` : "Document1"}
               </span>
-              <span className="text-blue-200 text-[11px]">- Microsoft Word</span>
-              <span className="ml-1 px-1.5 py-0.5 bg-blue-700/60 rounded text-[10px] text-blue-100 flex items-center gap-1 font-medium">
-                <CheckCircle size={10} className="text-emerald-300" /> AutoSaved
+              <span className="text-primary text-[11px]">- Microsoft Word</span>
+              <span className="ml-1 px-1.5 py-0.5 bg-[var(--primary-light)] rounded text-[10px] text-primary flex items-center gap-1 font-medium">
+                <CheckCircle size={10} className="text-success" /> AutoSaved
               </span>
             </div>
 
             {/* Quick Access Toolbar */}
-            <div className="flex items-center gap-0.5 ml-2 border-l border-blue-400/40 pl-2">
+            <div className="flex items-center gap-0.5 ml-2 border-l border-primary pl-2">
               <button
                 type="button"
                 onClick={handleUndo}
                 title="Undo (Ctrl+Z)"
-                className="p-1 hover:bg-blue-600/60 rounded text-blue-100 hover:text-white transition"
+                className="p-1 hover:bg-[var(--primary-light)] rounded text-primary hover:text-white transition"
               >
                 <RotateCcw size={13} />
               </button>
@@ -2808,7 +2808,7 @@ const renderStep2 = () => {
                 type="button"
                 onClick={handleRedo}
                 title="Redo (Ctrl+Y)"
-                className="p-1 hover:bg-blue-600/60 rounded text-blue-100 hover:text-white transition"
+                className="p-1 hover:bg-[var(--primary-light)] rounded text-primary hover:text-white transition"
               >
                 <RotateCw size={13} />
               </button>
@@ -2816,14 +2816,14 @@ const renderStep2 = () => {
           </div>
 
           {/* Center: View Mode Switcher Pills */}
-          <div className="flex items-center bg-blue-800/60 p-0.5 rounded-lg border border-blue-400/30 text-xs">
+          <div className="flex items-center bg-[var(--primary-light)] p-0.5 rounded-lg border border-primary text-xs">
             <button
               type="button"
               onClick={() => setViewMode("word-canvas")}
               className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
                 viewMode === "word-canvas"
-                  ? "bg-white text-[#185abd] shadow-xs"
-                  : "text-blue-100 hover:text-white hover:bg-blue-700/50"
+                  ? "bg-surface text-[var(--primary)] shadow-xs"
+                  : "text-primary hover:text-white hover:bg-[var(--primary-light)]"
               }`}
               title="Full Microsoft Word Document Canvas (WYSIWYG on Paper)"
             >
@@ -2834,8 +2834,8 @@ const renderStep2 = () => {
               onClick={() => setViewMode("split")}
               className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
                 viewMode === "split"
-                  ? "bg-white text-[#185abd] shadow-xs"
-                  : "text-blue-100 hover:text-white hover:bg-blue-700/50"
+                  ? "bg-surface text-[var(--primary)] shadow-xs"
+                  : "text-primary hover:text-white hover:bg-[var(--primary-light)]"
               }`}
               title="Side-by-Side: Word Editor on Left, Live Result on Right"
             >
@@ -2846,8 +2846,8 @@ const renderStep2 = () => {
               onClick={() => setViewMode("preview")}
               className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
                 viewMode === "preview"
-                  ? "bg-white text-[#185abd] shadow-xs"
-                  : "text-blue-100 hover:text-white hover:bg-blue-700/50"
+                  ? "bg-surface text-[var(--primary)] shadow-xs"
+                  : "text-primary hover:text-white hover:bg-[var(--primary-light)]"
               }`}
               title="Full Print Layout Preview"
             >
@@ -2860,14 +2860,14 @@ const renderStep2 = () => {
             <button
               type="button"
               onClick={() => setCurrentStep(1)}
-              className="px-3 py-1 bg-blue-700/70 hover:bg-blue-700 text-white rounded-md text-xs font-medium flex items-center gap-1.5 transition border border-blue-400/40"
+              className="px-3 py-1 bg-[var(--primary-light)] hover:bg-primary-hover text-white rounded-md text-xs font-medium flex items-center gap-1.5 transition border border-primary"
             >
               <ArrowLeft size={13} /> Back
             </button>
             <button
               type="button"
               onClick={handleStep2Submit}
-              className="px-3.5 py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded-md text-xs font-bold flex items-center gap-1.5 transition shadow-xs"
+              className="px-3.5 py-1 bg-success hover:bg-success text-white rounded-md text-xs font-bold flex items-center gap-1.5 transition shadow-xs"
             >
               Save & Preview <Check size={14} />
             </button>
@@ -2877,7 +2877,7 @@ const renderStep2 = () => {
         {/* ============================================================== */}
         {/* 2. MICROSOFT WORD RIBBON MENU TABS                             */}
         {/* ============================================================== */}
-        <div className="bg-[#f3f2f1] border-b border-[#d2d0ce] px-3 flex items-center justify-between text-xs flex-shrink-0 select-none">
+        <div className="bg-[var(--background)] border-b border-[var(--border)] px-3 flex items-center justify-between text-xs flex-shrink-0 select-none">
           <div className="flex items-center gap-0.5">
             {[
               { id: "home", label: "Home" },
@@ -2891,8 +2891,8 @@ const renderStep2 = () => {
                 onClick={() => setActiveRibbonTab(tab.id)}
                 className={`px-4 py-1.5 font-medium transition text-xs border-t-2 ${
                   activeRibbonTab === tab.id
-                    ? "bg-white text-[#185abd] font-bold border-t-[#185abd] border-x border-x-[#d2d0ce] -mb-px shadow-2xs"
-                    : "border-t-transparent text-slate-700 hover:bg-[#edebe9] hover:text-slate-900"
+                    ? "bg-surface text-[var(--primary)] font-bold border-t-[var(--primary)] border-x border-x-[var(--border)] -mb-px shadow-2xs"
+                    : "border-t-transparent text-sub hover:bg-[var(--warning-light)] hover:text-main"
                 }`}
               >
                 {tab.label}
@@ -2901,14 +2901,14 @@ const renderStep2 = () => {
           </div>
 
           {/* Target Section Switcher: Certificate Body vs College Header */}
-          <div className="flex items-center bg-slate-200/80 p-0.5 rounded-lg border border-slate-300">
+          <div className="flex items-center bg-[var(--background)]/80 p-0.5 rounded-lg border border-border-strong">
             <button
               type="button"
               onClick={() => setEditingSection("body")}
               className={`px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1.5 transition ${
                 editingSection === "body"
-                  ? "bg-white text-blue-700 shadow-xs"
-                  : "text-slate-700 hover:text-slate-900"
+                  ? "bg-surface text-primary shadow-xs"
+                  : "text-sub hover:text-main"
               }`}
             >
               <FileText size={12} /> Certificate Body
@@ -2918,8 +2918,8 @@ const renderStep2 = () => {
               onClick={() => setEditingSection("header")}
               className={`px-2.5 py-1 rounded text-xs font-bold flex items-center gap-1.5 transition ${
                 editingSection === "header"
-                  ? "bg-blue-600 text-white shadow-xs"
-                  : "text-slate-700 hover:text-slate-900"
+                  ? "bg-primary text-white shadow-xs"
+                  : "text-sub hover:text-main"
               }`}
             >
               <Building2 size={12} /> Dynamic College Header
@@ -2930,21 +2930,21 @@ const renderStep2 = () => {
         {/* ============================================================== */}
         {/* 3. MICROSOFT WORD RIBBON TOOLBAR                               */}
         {/* ============================================================== */}
-        <div className="bg-white border-b border-[#d2d0ce] px-3 py-1.5 flex items-stretch text-xs flex-shrink-0 shadow-2xs min-h-[76px] w-full relative z-30">
+        <div className="bg-surface border-b border-[var(--border)] px-3 py-1.5 flex items-stretch text-xs flex-shrink-0 shadow-2xs min-h-[76px] w-full relative z-30">
           {/* TAB 1: HOME */}
           {activeRibbonTab === "home" && (
             <div className="flex items-stretch gap-2.5 w-full relative">
               {/* Group 1: Clipboard */}
-              <div className="flex flex-col justify-between pr-2.5 border-r border-slate-200 flex-shrink-0">
+              <div className="flex flex-col justify-between pr-2.5 border-r border-border flex-shrink-0">
                 <div className="flex items-center gap-1.5 h-12">
                   <button
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={handlePaste}
-                    className="flex flex-col items-center justify-center px-2 py-1 h-full rounded hover:bg-slate-100 text-slate-700 hover:text-blue-700 transition group"
+                    className="flex flex-col items-center justify-center px-2 py-1 h-full rounded hover:bg-background text-sub hover:text-primary transition group"
                     title="Paste from clipboard (Ctrl+V)"
                   >
-                    <Clipboard size={18} className="text-[#185abd] group-hover:scale-110 transition" />
+                    <Clipboard size={18} className="text-[var(--primary)] group-hover:scale-110 transition" />
                     <span className="text-[10px] font-semibold mt-0.5">Paste</span>
                   </button>
                   <div className="flex flex-col gap-1 justify-center">
@@ -2952,31 +2952,31 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={handleCut}
-                      className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition"
+                      className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium text-sub hover:bg-background hover:text-primary transition"
                       title="Cut selected text (Ctrl+X)"
                     >
-                      <Scissors size={12} className="text-slate-500" />
+                      <Scissors size={12} className="text-muted-text" />
                       <span>Cut</span>
                     </button>
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={handleCopy}
-                      className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition"
+                      className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium text-sub hover:bg-background hover:text-primary transition"
                       title="Copy selected text (Ctrl+C)"
                     >
-                      <Copy size={12} className="text-slate-500" />
+                      <Copy size={12} className="text-muted-text" />
                       <span>Copy</span>
                     </button>
                   </div>
                 </div>
-                <div className="text-[9px] text-slate-400 font-semibold tracking-wider text-center uppercase select-none mt-0.5">
+                <div className="text-[9px] text-muted-text font-semibold tracking-wider text-center uppercase select-none mt-0.5">
                   Clipboard
                 </div>
               </div>
 
               {/* Group 2: Font & Typography */}
-              <div className="flex flex-col justify-between px-2.5 border-r border-slate-200 flex-shrink-0">
+              <div className="flex flex-col justify-between px-2.5 border-r border-border flex-shrink-0">
                 <div className="flex flex-col gap-1">
                   {/* Row 1: Font Family, Font Size, Grow/Shrink, Change Case, Clear Formatting */}
                   <div className="flex items-center gap-1">
@@ -2986,7 +2986,7 @@ const renderStep2 = () => {
                         const newFamily = e.target.value;
                         applyFormatToSelection("font", newFamily);
                       }}
-                      className="h-6 px-1.5 text-xs bg-slate-50 border border-slate-300 rounded font-medium text-slate-800 outline-none hover:border-blue-400 focus:border-blue-500 cursor-pointer w-28 truncate"
+                      className="h-6 px-1.5 text-xs bg-background border border-border-strong rounded font-medium text-main outline-none hover:border-primary focus:border-primary cursor-pointer w-28 truncate"
                       title="Font Family"
                     >
                       <option value="Calibri">Calibri</option>
@@ -2998,7 +2998,7 @@ const renderStep2 = () => {
                       <option value="Verdana, sans-serif">Verdana</option>
                     </select>
 
-                    <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1.5 focus-within:border-blue-500" title="Font Size">
+                    <div className="flex items-center border border-border-strong rounded bg-background h-6 px-1.5 focus-within:border-primary" title="Font Size">
                       <input
                         type="number"
                         min="8"
@@ -3008,9 +3008,9 @@ const renderStep2 = () => {
                           const newSize = parseInt(e.target.value) || 12;
                           applyFormatToSelection("size", newSize);
                         }}
-                        className="w-7 text-center text-xs font-bold text-slate-800 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="w-7 text-center text-xs font-bold text-main bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
-                      <span className="text-[10px] text-slate-500 font-medium select-none ml-0.5">px</span>
+                      <span className="text-[10px] text-muted-text font-medium select-none ml-0.5">px</span>
                     </div>
 
                     <button
@@ -3029,7 +3029,7 @@ const renderStep2 = () => {
                           setActiveFontSize(newSize);
                         }
                       }}
-                      className="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold text-xs"
+                      className="w-6 h-6 flex items-center justify-center bg-background hover:bg-background border border-border-strong rounded text-sub font-bold text-xs"
                       title="Increase Font Size (A+)"
                     >
                       A⁺
@@ -3051,7 +3051,7 @@ const renderStep2 = () => {
                           setActiveFontSize(newSize);
                         }
                       }}
-                      className="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold text-[10px]"
+                      className="w-6 h-6 flex items-center justify-center bg-background hover:bg-background border border-border-strong rounded text-sub font-bold text-[10px]"
                       title="Decrease Font Size (A-)"
                     >
                       A⁻
@@ -3067,22 +3067,22 @@ const renderStep2 = () => {
                           setShowFontColorDropdown(false);
                           setShowHighlightDropdown(false);
                         }}
-                        className="h-6 px-1.5 flex items-center gap-0.5 bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 font-bold text-xs"
+                        className="h-6 px-1.5 flex items-center gap-0.5 bg-background hover:bg-background border border-border-strong rounded text-sub font-bold text-xs"
                         title="Change Case (UPPERCASE, lowercase, Capitalize)"
                       >
                         <span>Aa</span>
-                        <ChevronDown size={10} className="text-slate-500" />
+                        <ChevronDown size={10} className="text-muted-text" />
                       </button>
                       {showCaseDropdown && (
                         <div
-                          className="absolute left-0 top-7 w-44 bg-white border border-slate-300 rounded-md shadow-2xl py-1 z-[9999] text-xs"
+                          className="absolute left-0 top-7 w-44 bg-surface border border-border-strong rounded-md shadow-2xl py-1 z-[9999] text-xs"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => toggleCase("sentence")}
-                            className="w-full text-left px-3 py-1.5 hover:bg-blue-50 text-slate-700 transition"
+                            className="w-full text-left px-3 py-1.5 hover:bg-[var(--primary-light)] text-sub transition"
                           >
                             Sentence case
                           </button>
@@ -3090,7 +3090,7 @@ const renderStep2 = () => {
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => toggleCase("lower")}
-                            className="w-full text-left px-3 py-1.5 hover:bg-blue-50 text-slate-700 transition"
+                            className="w-full text-left px-3 py-1.5 hover:bg-[var(--primary-light)] text-sub transition"
                           >
                             lowercase
                           </button>
@@ -3098,7 +3098,7 @@ const renderStep2 = () => {
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => toggleCase("upper")}
-                            className="w-full text-left px-3 py-1.5 hover:bg-blue-50 text-slate-700 font-bold transition"
+                            className="w-full text-left px-3 py-1.5 hover:bg-[var(--primary-light)] text-sub font-bold transition"
                           >
                             UPPERCASE
                           </button>
@@ -3106,7 +3106,7 @@ const renderStep2 = () => {
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => toggleCase("title")}
-                            className="w-full text-left px-3 py-1.5 hover:bg-blue-50 text-slate-700 transition"
+                            className="w-full text-left px-3 py-1.5 hover:bg-[var(--primary-light)] text-sub transition"
                           >
                             Capitalize Each Word
                           </button>
@@ -3118,7 +3118,7 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={clearFormatting}
-                      className="w-6 h-6 flex items-center justify-center bg-slate-50 hover:bg-red-50 hover:border-red-300 hover:text-red-600 border border-slate-300 rounded text-slate-600"
+                      className="w-6 h-6 flex items-center justify-center bg-background hover:bg-[var(--danger-light)] hover:border-[var(--danger-light)] hover:text-danger border border-border-strong rounded text-sub"
                       title="Clear All Formatting"
                     >
                       <Eraser size={13} />
@@ -3133,8 +3133,8 @@ const renderStep2 = () => {
                       onClick={() => applyFormatToSelection("bold")}
                       className={`w-6 h-6 flex items-center justify-center rounded text-xs transition ${
                         (activeBold ?? templateData.font_bold)
-                          ? "bg-blue-100 text-blue-700 font-extrabold ring-1 ring-blue-400"
-                          : "hover:bg-slate-200 text-slate-800 font-bold"
+                          ? "bg-[var(--primary-light)] text-primary font-extrabold ring-1 ring-primary"
+                          : "hover:bg-background text-main font-bold"
                       }`}
                       title="Bold (Ctrl+B)"
                     >
@@ -3147,8 +3147,8 @@ const renderStep2 = () => {
                       onClick={() => applyFormatToSelection("italic")}
                       className={`w-6 h-6 flex items-center justify-center rounded text-xs transition ${
                         (activeItalic ?? templateData.font_italic)
-                          ? "bg-blue-100 text-blue-700 ring-1 ring-blue-400 italic"
-                          : "hover:bg-slate-200 text-slate-800 italic"
+                          ? "bg-[var(--primary-light)] text-primary ring-1 ring-primary italic"
+                          : "hover:bg-background text-main italic"
                       }`}
                       title="Italic (Ctrl+I)"
                     >
@@ -3161,8 +3161,8 @@ const renderStep2 = () => {
                       onClick={() => applyFormatToSelection("underline")}
                       className={`w-6 h-6 flex items-center justify-center rounded text-xs transition ${
                         (activeUnderline ?? templateData.font_underline)
-                          ? "bg-blue-100 text-blue-700 ring-1 ring-blue-400 underline"
-                          : "hover:bg-slate-200 text-slate-800 underline"
+                          ? "bg-[var(--primary-light)] text-primary ring-1 ring-primary underline"
+                          : "hover:bg-background text-main underline"
                       }`}
                       title="Underline (Ctrl+U)"
                     >
@@ -3175,8 +3175,8 @@ const renderStep2 = () => {
                       onClick={() => applyFormatToSelection("strike")}
                       className={`w-6 h-6 flex items-center justify-center rounded text-xs transition ${
                         (activeStrike ?? templateData.font_strikethrough)
-                          ? "bg-blue-100 text-blue-700 ring-1 ring-blue-400"
-                          : "hover:bg-slate-200 text-slate-800"
+                          ? "bg-[var(--primary-light)] text-primary ring-1 ring-primary"
+                          : "hover:bg-background text-main"
                       }`}
                       title="Strikethrough"
                     >
@@ -3187,7 +3187,7 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => applyFormatToSelection("sub")}
-                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-800 text-xs transition"
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-background text-main text-xs transition"
                       title="Subscript (X₂)"
                     >
                       <Subscript size={13} />
@@ -3197,13 +3197,13 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => applyFormatToSelection("sup")}
-                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-800 text-xs transition"
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-background text-main text-xs transition"
                       title="Superscript (X²)"
                     >
                       <Superscript size={13} />
                     </button>
 
-                    <div className="h-4 w-px bg-slate-300 mx-0.5" />
+                    <div className="h-4 w-px bg-background mx-0.5" />
 
                     {/* Text Highlight Color Dropdown */}
                     <div className="relative">
@@ -3216,42 +3216,42 @@ const renderStep2 = () => {
                           setShowFontColorDropdown(false);
                           setShowCaseDropdown(false);
                         }}
-                        className={`h-6 px-1 flex items-center gap-0.5 rounded text-slate-800 text-xs transition ${
+                        className={`h-6 px-1 flex items-center gap-0.5 rounded text-main text-xs transition ${
                           templateData.font_highlight && templateData.font_highlight !== "transparent"
-                            ? "bg-amber-100 ring-1 ring-amber-400"
-                            : "hover:bg-slate-200"
+                            ? "bg-[var(--warning-light)] ring-1 ring-warning"
+                            : "hover:bg-background"
                         }`}
                         title="Text Highlight Color"
                       >
-                        <Highlighter size={13} className="text-amber-500" />
+                        <Highlighter size={13} className="text-warning" />
                         <div
                           className="w-2.5 h-1 rounded-xs -mt-1"
                           style={{
                             backgroundColor:
                               templateData.font_highlight && templateData.font_highlight !== "transparent"
                                 ? templateData.font_highlight
-                                : "#facc15",
+                                : "var(--warning)",
                           }}
                         />
-                        <ChevronDown size={9} className="text-slate-500" />
+                        <ChevronDown size={9} className="text-muted-text" />
                       </button>
 
                       {showHighlightDropdown && (
                         <div
-                          className="absolute left-0 top-7 w-44 bg-white border border-slate-300 rounded-md shadow-xl p-2 z-[9999]"
+                          className="absolute left-0 top-7 w-44 bg-surface border border-border-strong rounded-md shadow-xl p-2 z-[9999]"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <div className="text-[10px] font-bold text-slate-500 mb-1.5 uppercase">Highlight Color</div>
+                          <div className="text-[10px] font-bold text-muted-text mb-1.5 uppercase">Highlight Color</div>
                           <div className="grid grid-cols-4 gap-1.5 mb-2">
                             {[
-                              { name: "Yellow", color: "#fef08a" },
-                              { name: "Green", color: "#bbf7d0" },
-                              { name: "Cyan", color: "#a5f3fc" },
-                              { name: "Pink", color: "#fbcfe8" },
-                              { name: "Orange", color: "#fed7aa" },
-                              { name: "Gray", color: "#e2e8f0" },
-                              { name: "Lavender", color: "#e9d5ff" },
-                              { name: "Blue", color: "#bfdbfe" },
+                              { name: "Yellow", color: "var(--warning)" },
+                              { name: "Green", color: "var(--success-light)" },
+                              { name: "Cyan", color: "var(--info)" },
+                              { name: "Pink", color: "var(--primary-light)" },
+                              { name: "Orange", color: "var(--warning-light)" },
+                              { name: "Gray", color: "var(--border)" },
+                              { name: "Lavender", color: "var(--primary-light)" },
+                              { name: "Blue", color: "var(--primary-light)" },
                             ].map((swatch) => (
                               <button
                                 key={swatch.color}
@@ -3261,7 +3261,7 @@ const renderStep2 = () => {
                                   applyFormatToSelection("highlight", swatch.color);
                                   setShowHighlightDropdown(false);
                                 }}
-                                className="w-8 h-6 rounded border border-slate-300 hover:scale-105 transition"
+                                className="w-8 h-6 rounded border border-border-strong hover:scale-105 transition"
                                 style={{ backgroundColor: swatch.color }}
                                 title={swatch.name}
                               />
@@ -3274,7 +3274,7 @@ const renderStep2 = () => {
                               applyFormatToSelection("highlight", "transparent");
                               setShowHighlightDropdown(false);
                             }}
-                            className="w-full text-center py-1 text-[11px] text-slate-600 hover:bg-slate-100 rounded border border-slate-200"
+                            className="w-full text-center py-1 text-[11px] text-sub hover:bg-background rounded border border-border"
                           >
                             No Color
                           </button>
@@ -3293,42 +3293,42 @@ const renderStep2 = () => {
                           setShowHighlightDropdown(false);
                           setShowCaseDropdown(false);
                         }}
-                        className="h-6 px-1 flex items-center gap-0.5 rounded hover:bg-slate-200 text-slate-800 text-xs transition"
+                        className="h-6 px-1 flex items-center gap-0.5 rounded hover:bg-background text-main text-xs transition"
                         title="Font Color"
                       >
-                        <Palette size={13} className="text-red-600" />
+                        <Palette size={13} className="text-danger" />
                         <div
                           className="w-2.5 h-1 rounded-xs -mt-1"
                           style={{
-                            backgroundColor: templateData.font_color || "#dc2626",
+                            backgroundColor: templateData.font_color || "var(--danger)",
                           }}
                         />
-                        <ChevronDown size={9} className="text-slate-500" />
+                        <ChevronDown size={9} className="text-muted-text" />
                       </button>
 
                       {showFontColorDropdown && (
                         <div
-                          className="absolute left-0 top-7 w-44 bg-white border border-slate-300 rounded-md shadow-xl p-2 z-[9999]"
+                          className="absolute left-0 top-7 w-44 bg-surface border border-border-strong rounded-md shadow-xl p-2 z-[9999]"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <div className="text-[10px] font-bold text-slate-500 mb-1.5 uppercase">Theme Colors</div>
+                          <div className="text-[10px] font-bold text-muted-text mb-1.5 uppercase">Theme Colors</div>
                           <div className="grid grid-cols-5 gap-1.5 mb-2">
                             {[
                               { name: "Black", color: "#000000" },
-                              { name: "Dark Slate", color: "#1e293b" },
-                              { name: "Red", color: "#dc2626" },
-                              { name: "Dark Red", color: "#991b1b" },
-                              { name: "Orange", color: "#ea580c" },
-                              { name: "Amber", color: "#d97706" },
-                              { name: "Green", color: "#16a34a" },
-                              { name: "Emerald", color: "#059669" },
-                              { name: "Blue", color: "#2563eb" },
-                              { name: "Navy", color: "#1e3a8a" },
-                              { name: "Purple", color: "#9333ea" },
-                              { name: "Indigo", color: "#4f46e5" },
-                              { name: "Gray", color: "#64748b" },
-                              { name: "Brown", color: "#78350f" },
-                              { name: "Teal", color: "#0d9488" },
+                              { name: "Dark Slate", color: "var(--text-primary)" },
+                              { name: "Red", color: "var(--danger)" },
+                              { name: "Dark Red", color: "var(--danger)" },
+                              { name: "Orange", color: "var(--warning)" },
+                              { name: "Amber", color: "var(--warning)" },
+                              { name: "Green", color: "var(--success)" },
+                              { name: "Emerald", color: "var(--success)" },
+                              { name: "Blue", color: "var(--primary)" },
+                              { name: "Navy", color: "var(--primary)" },
+                              { name: "Purple", color: "var(--secondary)" },
+                              { name: "Indigo", color: "var(--primary)" },
+                              { name: "Gray", color: "var(--text-secondary)" },
+                              { name: "Brown", color: "var(--warning)" },
+                              { name: "Teal", color: "var(--info)" },
                             ].map((swatch) => (
                               <button
                                 key={swatch.color}
@@ -3338,7 +3338,7 @@ const renderStep2 = () => {
                                   applyFormatToSelection("color", swatch.color);
                                   setShowFontColorDropdown(false);
                                 }}
-                                className="w-6 h-6 rounded-full border border-slate-300 hover:scale-110 transition shadow-2xs"
+                                className="w-6 h-6 rounded-full border border-border-strong hover:scale-110 transition shadow-2xs"
                                 style={{ backgroundColor: swatch.color }}
                                 title={swatch.name}
                               />
@@ -3350,13 +3350,13 @@ const renderStep2 = () => {
                   </div>
                 </div>
 
-                <div className="text-[9px] text-slate-400 font-semibold tracking-wider text-center uppercase select-none mt-0.5">
+                <div className="text-[9px] text-muted-text font-semibold tracking-wider text-center uppercase select-none mt-0.5">
                   Font & Typography
                 </div>
               </div>
 
               {/* Group 3: Paragraph & Alignment */}
-              <div className="flex flex-col justify-between px-2.5 border-r border-slate-200 flex-shrink-0">
+              <div className="flex flex-col justify-between px-2.5 border-r border-border flex-shrink-0">
                 <div className="flex flex-col gap-1">
                   {/* Row 1: Bullets, Numbering, Decrease Indent, Increase Indent, Line Spacing, Divider */}
                   <div className="flex items-center gap-1">
@@ -3364,7 +3364,7 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => applyListFormat("bullet")}
-                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-700 transition"
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-background text-sub transition"
                       title="Bullets (•)"
                     >
                       <List size={13} />
@@ -3374,7 +3374,7 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => applyListFormat("number")}
-                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-700 transition"
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-background text-sub transition"
                       title="Numbering (1. 2. 3.)"
                     >
                       <ListOrdered size={13} />
@@ -3384,7 +3384,7 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => applyIndent("decrease")}
-                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-700 transition"
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-background text-sub transition"
                       title="Decrease Indent"
                     >
                       <Outdent size={13} />
@@ -3394,16 +3394,16 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => applyIndent("increase")}
-                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-200 text-slate-700 transition"
+                      className="w-6 h-6 flex items-center justify-center rounded hover:bg-background text-sub transition"
                       title="Increase Indent"
                     >
                       <Indent size={13} />
                     </button>
 
-                    <div className="h-4 w-px bg-slate-300 mx-0.5" />
+                    <div className="h-4 w-px bg-background mx-0.5" />
 
-                    <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1" title="Line Spacing">
-                      <span className="text-[9px] text-slate-500 mr-0.5">↕</span>
+                    <div className="flex items-center border border-border-strong rounded bg-background h-6 px-1" title="Line Spacing">
+                      <span className="text-[9px] text-muted-text mr-0.5">↕</span>
                       <select
                         value={templateData.line_spacing || 1.5}
                         onChange={(e) =>
@@ -3412,7 +3412,7 @@ const renderStep2 = () => {
                             line_spacing: parseFloat(e.target.value) || 1.5,
                           })
                         }
-                        className="text-xs font-semibold text-slate-800 bg-transparent outline-none cursor-pointer"
+                        className="text-xs font-semibold text-main bg-transparent outline-none cursor-pointer"
                       >
                         <option value="1.0">1.0</option>
                         <option value="1.15">1.15</option>
@@ -3426,7 +3426,7 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => insertTextAtCursor("\n----------------------------------------\n")}
-                      className="h-6 px-1.5 flex items-center gap-1 bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-slate-700 text-xs"
+                      className="h-6 px-1.5 flex items-center gap-1 bg-background hover:bg-background border border-border-strong rounded text-sub text-xs"
                       title="Insert Horizontal Divider Line"
                     >
                       <Minus size={13} />
@@ -3437,10 +3437,10 @@ const renderStep2 = () => {
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => insertTable(3, 3)}
-                      className="h-6 px-1.5 flex items-center gap-1 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded text-blue-900 text-xs transition"
+                      className="h-6 px-1.5 flex items-center gap-1 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] border border-[var(--primary-light)] rounded text-primary text-xs transition"
                       title="Insert Table (3 × 3)"
                     >
-                      <Table size={13} className="text-blue-600" />
+                      <Table size={13} className="text-primary" />
                       <span className="text-[10px] font-semibold">Table</span>
                     </button>
 
@@ -3450,19 +3450,19 @@ const renderStep2 = () => {
                       onClick={() => deleteTable()}
                       className={`h-6 px-1.5 flex items-center gap-1 rounded text-xs transition ${
                         isInsideTable
-                          ? "bg-rose-100 hover:bg-rose-200 border border-rose-400 text-rose-800 font-bold shadow-xs"
-                          : "bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700"
+                          ? "bg-[var(--danger-light)] hover:bg-[var(--danger-light)] border border-danger text-danger font-bold shadow-xs"
+                          : "bg-[var(--danger-light)] hover:bg-[var(--danger-light)] border border-[var(--danger-light)] text-danger"
                       }`}
                       title="Delete Table (Remove table from canvas)"
                     >
-                      <Trash2 size={13} className="text-rose-600" />
+                      <Trash2 size={13} className="text-danger" />
                       <span className="text-[10px] font-semibold">Delete Table</span>
                     </button>
                   </div>
 
                   {/* Row 2: Document Alignment + Line Alignment */}
                   <div className="flex items-center gap-1.5">
-                    <div className="flex items-center bg-slate-100 border border-slate-300 rounded p-0.5" title="Document Alignment (All Text)">
+                    <div className="flex items-center bg-background border border-border-strong rounded p-0.5" title="Document Alignment (All Text)">
                       <button
                         type="button"
                         onMouseDown={(e) => e.preventDefault()}
@@ -3474,8 +3474,8 @@ const renderStep2 = () => {
                         }
                         className={`p-1 rounded transition ${
                           templateData.middle_alignment === "left"
-                            ? "bg-blue-600 text-white shadow-2xs"
-                            : "text-slate-700 hover:bg-white"
+                            ? "bg-primary text-white shadow-2xs"
+                            : "text-sub hover:bg-surface"
                         }`}
                         title="Align Left (All Text)"
                       >
@@ -3492,8 +3492,8 @@ const renderStep2 = () => {
                         }
                         className={`p-1 rounded transition ${
                           templateData.middle_alignment === "center"
-                            ? "bg-blue-600 text-white shadow-2xs"
-                            : "text-slate-700 hover:bg-white"
+                            ? "bg-primary text-white shadow-2xs"
+                            : "text-sub hover:bg-surface"
                         }`}
                         title="Center (All Text)"
                       >
@@ -3510,8 +3510,8 @@ const renderStep2 = () => {
                         }
                         className={`p-1 rounded transition ${
                           templateData.middle_alignment === "right"
-                            ? "bg-blue-600 text-white shadow-2xs"
-                            : "text-slate-700 hover:bg-white"
+                            ? "bg-primary text-white shadow-2xs"
+                            : "text-sub hover:bg-surface"
                         }`}
                         title="Align Right (All Text)"
                       >
@@ -3528,8 +3528,8 @@ const renderStep2 = () => {
                         }
                         className={`p-1 rounded transition ${
                           templateData.middle_alignment === "justify"
-                            ? "bg-blue-600 text-white shadow-2xs"
-                            : "text-slate-700 hover:bg-white"
+                            ? "bg-primary text-white shadow-2xs"
+                            : "text-sub hover:bg-surface"
                         }`}
                         title="Justify (All Text)"
                       >
@@ -3537,16 +3537,16 @@ const renderStep2 = () => {
                       </button>
                     </div>
 
-                    <div className="flex items-center bg-blue-50/70 border border-blue-200 rounded p-0.5" title="Align Specific Selected Line">
-                      <span className="text-[9px] font-bold text-blue-900 px-1 select-none">Line:</span>
+                    <div className="flex items-center bg-[var(--primary-light)] border border-[var(--primary-light)] rounded p-0.5" title="Align Specific Selected Line">
+                      <span className="text-[9px] font-bold text-primary px-1 select-none">Line:</span>
                       <button
                         type="button"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => applyLineAlignment("left")}
                         className={`p-1 rounded transition ${
                           currentAlign === "left"
-                            ? "bg-blue-600 text-white shadow-2xs"
-                            : "text-slate-700 hover:bg-white hover:text-blue-600"
+                            ? "bg-primary text-white shadow-2xs"
+                            : "text-sub hover:bg-surface hover:text-primary"
                         }`}
                         title="Format Current Line Left"
                       >
@@ -3558,8 +3558,8 @@ const renderStep2 = () => {
                         onClick={() => applyLineAlignment("center")}
                         className={`p-1 rounded transition ${
                           currentAlign === "center"
-                            ? "bg-blue-600 text-white shadow-2xs"
-                            : "text-slate-700 hover:bg-white hover:text-blue-600"
+                            ? "bg-primary text-white shadow-2xs"
+                            : "text-sub hover:bg-surface hover:text-primary"
                         }`}
                         title="Format Current Line Center"
                       >
@@ -3571,8 +3571,8 @@ const renderStep2 = () => {
                         onClick={() => applyLineAlignment("right")}
                         className={`p-1 rounded transition ${
                           currentAlign === "right"
-                            ? "bg-blue-600 text-white shadow-2xs"
-                            : "text-slate-700 hover:bg-white hover:text-blue-600"
+                            ? "bg-primary text-white shadow-2xs"
+                            : "text-sub hover:bg-surface hover:text-primary"
                         }`}
                         title="Format Current Line Right"
                       >
@@ -3584,8 +3584,8 @@ const renderStep2 = () => {
                         onClick={() => applyLineAlignment("justify")}
                         className={`p-1 rounded transition ${
                           currentAlign === "justify"
-                            ? "bg-blue-600 text-white shadow-2xs"
-                            : "text-slate-700 hover:bg-white hover:text-blue-600"
+                            ? "bg-primary text-white shadow-2xs"
+                            : "text-sub hover:bg-surface hover:text-primary"
                         }`}
                         title="Format Current Line Justify"
                       >
@@ -3595,17 +3595,17 @@ const renderStep2 = () => {
                   </div>
                 </div>
 
-                <div className="text-[9px] text-slate-400 font-semibold tracking-wider text-center uppercase select-none mt-0.5">
+                <div className="text-[9px] text-muted-text font-semibold tracking-wider text-center uppercase select-none mt-0.5">
                   Paragraph & Alignment
                 </div>
               </div>
 
               {/* Group: Sheet Size & Page Setup */}
-              <div className="flex flex-col justify-between px-2.5 border-r border-slate-200 flex-shrink-0">
+              <div className="flex flex-col justify-between px-2.5 border-r border-border flex-shrink-0">
                 <div className="flex flex-col gap-1">
                   {/* Row 1: Sheet Size dropdown */}
                   <div className="flex items-center gap-1.5 h-[26px]">
-                    <span className="text-[10px] font-bold text-slate-600">Sheet:</span>
+                    <span className="text-[10px] font-bold text-sub">Sheet:</span>
                     <select
                       value={activeSheetKey}
                       onChange={(e) => {
@@ -3616,7 +3616,7 @@ const renderStep2 = () => {
                         }));
                         toast.success(`Sheet size changed to ${newSize}`);
                       }}
-                      className="px-2 py-0.5 text-xs font-bold bg-white border border-slate-300 rounded shadow-2xs hover:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-slate-800 cursor-pointer"
+                      className="px-2 py-0.5 text-xs font-bold bg-surface border border-border-strong rounded shadow-2xs hover:border-primary focus:ring-1 focus:ring-primary outline-none text-main cursor-pointer"
                     >
                       <option value="A4">A4 (210 × 297 mm)</option>
                       <option value="A5">A5 (148 × 210 mm)</option>
@@ -3638,15 +3638,15 @@ const renderStep2 = () => {
                         }}
                         className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition ${
                           activeSheetKey === sz
-                            ? "bg-blue-600 text-white shadow-2xs"
-                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                            ? "bg-primary text-white shadow-2xs"
+                            : "bg-background text-sub hover:bg-background"
                         }`}
                         title={`Switch to ${sz}`}
                       >
                         {sz}
                       </button>
                     ))}
-                    <div className="h-3 w-px bg-slate-300 mx-0.5" />
+                    <div className="h-3 w-px bg-background mx-0.5" />
                     <button
                       type="button"
                       onClick={() =>
@@ -3657,8 +3657,8 @@ const renderStep2 = () => {
                       }
                       className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition ${
                         isLandscape
-                          ? "bg-indigo-600 text-white"
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                          ? "bg-primary text-white"
+                          : "bg-background text-sub hover:bg-background"
                       }`}
                       title={isLandscape ? "Landscape Orientation" : "Portrait Orientation"}
                     >
@@ -3667,7 +3667,7 @@ const renderStep2 = () => {
                   </div>
                 </div>
 
-                <div className="text-[9px] text-slate-400 font-semibold tracking-wider text-center uppercase select-none mt-0.5">
+                <div className="text-[9px] text-muted-text font-semibold tracking-wider text-center uppercase select-none mt-0.5">
                   Page Setup
                 </div>
               </div>
@@ -3685,7 +3685,7 @@ const renderStep2 = () => {
                             `\n[center][b][size:16]${(selectedCollege?.name || "COLLEGE NAME").toUpperCase()}[/size][/b][/center]`
                           )
                         }
-                        className="h-6 px-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 rounded font-semibold text-[11px] whitespace-nowrap"
+                        className="h-6 px-2 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] border border-[var(--primary-light)] text-primary rounded font-semibold text-[11px] whitespace-nowrap"
                       >
                         + College Title
                       </button>
@@ -3697,7 +3697,7 @@ const renderStep2 = () => {
                             "\n[center][size:10](Approved by AICTE, Affiliated to Andhra University, NAAC 'A+' Grade)[/size][/center]"
                           )
                         }
-                        className="h-6 px-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 rounded font-semibold text-[11px] whitespace-nowrap"
+                        className="h-6 px-2 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] border border-[var(--primary-light)] text-primary rounded font-semibold text-[11px] whitespace-nowrap"
                       >
                         + Affiliation
                       </button>
@@ -3709,7 +3709,7 @@ const renderStep2 = () => {
                             `\n[center][size:9]${selectedCollege?.address || "Kakinada - 533001"} | Phone: ${selectedCollege?.contact || "+91 884 237 9999"}[/size][/center]`
                           )
                         }
-                        className="h-6 px-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 rounded font-semibold text-[11px] whitespace-nowrap"
+                        className="h-6 px-2 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] border border-[var(--primary-light)] text-primary rounded font-semibold text-[11px] whitespace-nowrap"
                       >
                         + Address
                       </button>
@@ -3719,7 +3719,7 @@ const renderStep2 = () => {
                         type="button"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => headerImageInputRef.current?.click()}
-                        className="h-6 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold text-[11px] flex items-center gap-1 shadow-2xs whitespace-nowrap"
+                        className="h-6 px-2 bg-primary hover:bg-primary-hover text-white rounded font-bold text-[11px] flex items-center gap-1 shadow-2xs whitespace-nowrap"
                         title="Upload or Change College Header Logo"
                       >
                         <Image size={12} /> {templateData.header_image_url ? "Change Logo" : "+ Header Logo"}
@@ -3728,12 +3728,12 @@ const renderStep2 = () => {
                         type="button"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => insertTextAtCursor("\n----------------------------------------\n")}
-                        className="h-6 px-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded font-bold text-[11px] whitespace-nowrap"
+                        className="h-6 px-2 bg-background hover:bg-background border border-border-strong text-main rounded font-bold text-[11px] whitespace-nowrap"
                       >
                         + Divider Line
                       </button>
-                      <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1.5">
-                        <span className="text-[10px] text-slate-500 mr-1 whitespace-nowrap">Height:</span>
+                      <div className="flex items-center border border-border-strong rounded bg-background h-6 px-1.5">
+                        <span className="text-[10px] text-muted-text mr-1 whitespace-nowrap">Height:</span>
                         <input
                           type="number"
                           min="50"
@@ -3747,7 +3747,7 @@ const renderStep2 = () => {
                           }
                           className="w-7 text-center text-xs font-bold outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
-                        <span className="text-[9px] text-slate-400 select-none">px</span>
+                        <span className="text-[9px] text-muted-text select-none">px</span>
                       </div>
                     </div>
                   </div>
@@ -3765,7 +3765,7 @@ const renderStep2 = () => {
                             setShowHighlightDropdown(false);
                             setShowCaseDropdown(false);
                           }}
-                          className="h-6 px-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold text-xs flex items-center gap-1 shadow-xs transition whitespace-nowrap"
+                          className="h-6 px-2.5 bg-primary hover:bg-primary-hover text-white rounded font-semibold text-xs flex items-center gap-1 shadow-xs transition whitespace-nowrap"
                         >
                           <span>➕ Insert Variable</span>
                           <ChevronDown size={11} />
@@ -3773,7 +3773,7 @@ const renderStep2 = () => {
 
                         {showVariableDropdown && (
                           <div
-                            className="absolute left-0 top-8 w-72 bg-white rounded-lg shadow-xl border border-blue-200 z-[9999] p-2 space-y-2"
+                            className="absolute left-0 top-8 w-72 bg-surface rounded-lg shadow-xl border border-[var(--primary-light)] z-[9999] p-2 space-y-2"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="relative">
@@ -3782,7 +3782,7 @@ const renderStep2 = () => {
                                 value={variableSearchQuery}
                                 onChange={(e) => setVariableSearchQuery(e.target.value)}
                                 placeholder="Search student variables..."
-                                className="w-full px-2.5 py-1 text-xs border border-slate-300 rounded outline-none focus:border-blue-500"
+                                className="w-full px-2.5 py-1 text-xs border border-border-strong rounded outline-none focus:border-primary"
                                 autoFocus
                               />
                             </div>
@@ -3790,7 +3790,7 @@ const renderStep2 = () => {
                             <div className="max-h-56 overflow-y-auto space-y-2 text-xs">
                               {studentVars.length > 0 && (
                                 <div>
-                                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                  <div className="text-[10px] font-bold text-muted-text uppercase tracking-wider mb-1">
                                     🎓 Student Identity
                                   </div>
                                   <div className="grid grid-cols-2 gap-1">
@@ -3803,7 +3803,7 @@ const renderStep2 = () => {
                                           insertTextAtCursor(`@${v.name} `);
                                           setShowVariableDropdown(false);
                                         }}
-                                        className="text-left px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-900 font-medium truncate"
+                                        className="text-left px-2 py-1 rounded bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary font-medium truncate"
                                         title={v.label}
                                       >
                                         @{v.name}
@@ -3815,7 +3815,7 @@ const renderStep2 = () => {
 
                               {academicVars.length > 0 && (
                                 <div>
-                                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                  <div className="text-[10px] font-bold text-muted-text uppercase tracking-wider mb-1">
                                     📚 Academic Details
                                   </div>
                                   <div className="grid grid-cols-2 gap-1">
@@ -3828,7 +3828,7 @@ const renderStep2 = () => {
                                           insertTextAtCursor(`@${v.name} `);
                                           setShowVariableDropdown(false);
                                         }}
-                                        className="text-left px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-medium truncate"
+                                        className="text-left px-2 py-1 rounded bg-[var(--success-light)] hover:bg-[var(--success-light)] text-success font-medium truncate"
                                         title={v.label}
                                       >
                                         @{v.name}
@@ -3840,7 +3840,7 @@ const renderStep2 = () => {
 
                               {personalVars.length > 0 && (
                                 <div>
-                                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                  <div className="text-[10px] font-bold text-muted-text uppercase tracking-wider mb-1">
                                     👤 Personal Info
                                   </div>
                                   <div className="grid grid-cols-2 gap-1">
@@ -3853,7 +3853,7 @@ const renderStep2 = () => {
                                           insertTextAtCursor(`@${v.name} `);
                                           setShowVariableDropdown(false);
                                         }}
-                                        className="text-left px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-900 font-medium truncate"
+                                        className="text-left px-2 py-1 rounded bg-[var(--warning-light)] hover:bg-[var(--warning-light)] text-warning font-medium truncate"
                                         title={v.label}
                                       >
                                         @{v.name}
@@ -3865,7 +3865,7 @@ const renderStep2 = () => {
 
                               {institutionalVars.length > 0 && (
                                 <div>
-                                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                  <div className="text-[10px] font-bold text-muted-text uppercase tracking-wider mb-1">
                                     🏛️ Institutional / Signatures
                                   </div>
                                   <div className="grid grid-cols-1 gap-1">
@@ -3878,7 +3878,7 @@ const renderStep2 = () => {
                                           insertTextAtCursor(`@${v.name} `);
                                           setShowVariableDropdown(false);
                                         }}
-                                        className="text-left px-2 py-1 rounded bg-purple-50 hover:bg-purple-100 text-purple-900 font-medium truncate"
+                                        className="text-left px-2 py-1 rounded bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-secondary font-medium truncate"
                                         title={v.label}
                                       >
                                         @{v.name} ({v.label})
@@ -3896,14 +3896,14 @@ const renderStep2 = () => {
                         type="button"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => insertTextAtCursor(" ___ ")}
-                        className="h-6 px-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded font-semibold text-xs text-slate-800 flex items-center gap-1 transition whitespace-nowrap"
+                        className="h-6 px-2.5 bg-background hover:bg-background border border-border-strong rounded font-semibold text-xs text-main flex items-center gap-1 transition whitespace-nowrap"
                         title="Insert fillable underline blank (___)"
                       >
                         <span>Insert Blank (___)</span>
                       </button>
 
-                      <div className="flex items-center border border-slate-300 rounded bg-slate-50 h-6 px-1.5" title="Blank Field Size">
-                        <span className="text-[10px] text-slate-500 mr-1 whitespace-nowrap">Blank Size:</span>
+                      <div className="flex items-center border border-border-strong rounded bg-background h-6 px-1.5" title="Blank Field Size">
+                        <span className="text-[10px] text-muted-text mr-1 whitespace-nowrap">Blank Size:</span>
                         <input
                           type="number"
                           min="4"
@@ -3918,9 +3918,9 @@ const renderStep2 = () => {
                               ),
                             })
                           }
-                          className="w-7 text-center text-xs font-bold text-slate-800 bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          className="w-7 text-center text-xs font-bold text-main bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
-                        <span className="text-[9px] text-slate-400 select-none">ch</span>
+                        <span className="text-[9px] text-muted-text select-none">ch</span>
                       </div>
                     </div>
 
@@ -3943,7 +3943,7 @@ const renderStep2 = () => {
                           onClick={() => {
                             insertTextAtCursor(`${chip.var} `);
                           }}
-                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 transition whitespace-nowrap"
+                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] transition whitespace-nowrap"
                           title={`Insert ${chip.var}`}
                         >
                           +{chip.label}
@@ -3953,7 +3953,7 @@ const renderStep2 = () => {
                   </div>
                 )}
 
-                <div className="text-[9px] text-slate-400 font-semibold tracking-wider uppercase select-none mt-0.5">
+                <div className="text-[9px] text-muted-text font-semibold tracking-wider uppercase select-none mt-0.5">
                   {editingSection === "header"
                     ? "Dynamic Header Tools"
                     : "Variables & Fillable Blanks"}
@@ -3964,7 +3964,7 @@ const renderStep2 = () => {
 
           {/* TAB 2: INSERT */}
           {activeRibbonTab === "insert" && (
-            <div className="flex items-center gap-3 divide-x divide-slate-200 w-full">
+            <div className="flex items-center gap-3 divide-x divide-border w-full">
               {/* Tables Group: MS Word Grid & Custom Dimensions */}
               <div className="flex flex-col gap-1 pr-3 flex-shrink-0">
                 <div className="relative">
@@ -3979,33 +3979,33 @@ const renderStep2 = () => {
                       setShowHighlightDropdown(false);
                       setShowCaseDropdown(false);
                     }}
-                    className="flex flex-col items-center justify-center px-3 py-1 rounded hover:bg-blue-50 text-slate-700 hover:text-blue-700 transition border border-slate-200 bg-white shadow-2xs"
+                    className="flex flex-col items-center justify-center px-3 py-1 rounded hover:bg-[var(--primary-light)] text-sub hover:text-primary transition border border-border bg-surface shadow-2xs"
                     title="Insert Table (Rows × Columns)"
                   >
-                    <div className="flex items-center gap-1.5 text-blue-700 font-bold">
+                    <div className="flex items-center gap-1.5 text-primary font-bold">
                       <Table size={15} />
                       <span className="text-xs">Table</span>
                       <ChevronDown size={11} />
                     </div>
-                    <span className="text-[9px] text-slate-400 mt-0.5">MS Word Grid</span>
+                    <span className="text-[9px] text-muted-text mt-0.5">MS Word Grid</span>
                   </button>
 
                   {showTableDropdown && (
                     <div
-                      className="absolute left-0 top-12 w-64 bg-white rounded-lg shadow-xl border border-slate-300 z-[9999] p-3 space-y-3"
+                      className="absolute left-0 top-12 w-64 bg-surface rounded-lg shadow-xl border border-border-strong z-[9999] p-3 space-y-3"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="flex items-center justify-between border-b pb-1.5">
-                        <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                          <Table size={14} className="text-blue-600" /> Insert Table
+                        <span className="text-xs font-bold text-main flex items-center gap-1.5">
+                          <Table size={14} className="text-primary" /> Insert Table
                         </span>
-                        <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                        <span className="text-[11px] font-semibold text-primary bg-[var(--primary-light)] px-2 py-0.5 rounded border border-[var(--primary-light)]">
                           {hoverRows} × {hoverCols} Table
                         </span>
                       </div>
 
                       {/* Interactive MS Word Table Grid */}
-                      <div className="flex flex-col gap-1 items-center bg-slate-50 p-2 rounded border border-slate-200">
+                      <div className="flex flex-col gap-1 items-center bg-background p-2 rounded border border-border">
                         {[1, 2, 3, 4, 5, 6].map((r) => (
                           <div key={r} className="flex gap-1">
                             {[1, 2, 3, 4, 5, 6].map((c) => {
@@ -4020,8 +4020,8 @@ const renderStep2 = () => {
                                   onClick={() => insertTable(r, c)}
                                   className={`w-6 h-6 border rounded-xs cursor-pointer transition-all ${
                                     isSelected
-                                      ? "bg-blue-500 border-blue-600 shadow-2xs scale-105"
-                                      : "bg-white border-slate-300 hover:border-slate-400"
+                                      ? "bg-primary border-primary shadow-2xs scale-105"
+                                      : "bg-surface border-border-strong hover:border-border-strong"
                                   }`}
                                 />
                               );
@@ -4032,7 +4032,7 @@ const renderStep2 = () => {
 
                       {/* Quick Presets */}
                       <div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        <div className="text-[10px] font-bold text-muted-text uppercase tracking-wider mb-1">
                           Quick Presets
                         </div>
                         <div className="grid grid-cols-4 gap-1">
@@ -4046,7 +4046,7 @@ const renderStep2 = () => {
                               key={`${p.r}x${p.c}`}
                               type="button"
                               onClick={() => insertTable(p.r, p.c)}
-                              className="px-1.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 border border-slate-200 rounded text-slate-700 text-center transition"
+                              className="px-1.5 py-1 text-[11px] font-semibold bg-background hover:bg-[var(--primary-light)] hover:text-primary hover:border-[var(--primary-light)] border border-border rounded text-sub text-center transition"
                             >
                               {p.r} × {p.c}
                             </button>
@@ -4057,31 +4057,31 @@ const renderStep2 = () => {
                       {/* Custom Table Dimension Inputs */}
                       <div className="border-t pt-2 space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-600 font-medium">Columns:</span>
+                          <span className="text-sub font-medium">Columns:</span>
                           <input
                             type="number"
                             min="1"
                             max="10"
                             value={tableCols}
                             onChange={(e) => setTableCols(parseInt(e.target.value) || 1)}
-                            className="w-14 px-1.5 py-0.5 border border-slate-300 rounded text-center text-xs font-semibold outline-none focus:border-blue-500"
+                            className="w-14 px-1.5 py-0.5 border border-border-strong rounded text-center text-xs font-semibold outline-none focus:border-primary"
                           />
                         </div>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-600 font-medium">Rows:</span>
+                          <span className="text-sub font-medium">Rows:</span>
                           <input
                             type="number"
                             min="1"
                             max="20"
                             value={tableRows}
                             onChange={(e) => setTableRows(parseInt(e.target.value) || 1)}
-                            className="w-14 px-1.5 py-0.5 border border-slate-300 rounded text-center text-xs font-semibold outline-none focus:border-blue-500"
+                            className="w-14 px-1.5 py-0.5 border border-border-strong rounded text-center text-xs font-semibold outline-none focus:border-primary"
                           />
                         </div>
                         <button
                           type="button"
                           onClick={() => insertTable(tableRows, tableCols)}
-                          className="w-full py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded text-xs shadow-xs transition"
+                          className="w-full py-1.5 bg-primary hover:bg-primary-hover text-white font-bold rounded text-xs shadow-xs transition"
                         >
                           Insert Custom Table
                         </button>
@@ -4091,17 +4091,17 @@ const renderStep2 = () => {
                             deleteTable();
                             setShowTableDropdown(false);
                           }}
-                          className="w-full py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-300 text-rose-700 font-bold rounded text-xs shadow-xs transition flex items-center justify-center gap-1.5"
+                          className="w-full py-1.5 bg-[var(--danger-light)] hover:bg-[var(--danger-light)] border border-[var(--danger-light)] text-danger font-bold rounded text-xs shadow-xs transition flex items-center justify-center gap-1.5"
                           title="Delete Table"
                         >
-                          <Trash2 size={13} className="text-rose-600" />
+                          <Trash2 size={13} className="text-danger" />
                           Delete Table
                         </button>
                       </div>
                     </div>
                   )}
                 </div>
-                <div className="text-[9px] text-slate-400 font-semibold tracking-wider text-center uppercase select-none mt-0.5">
+                <div className="text-[9px] text-muted-text font-semibold tracking-wider text-center uppercase select-none mt-0.5">
                   Tables
                 </div>
               </div>
@@ -4125,7 +4125,7 @@ const renderStep2 = () => {
                       key={chip.var}
                       type="button"
                       onClick={() => insertTextAtCursor(`${chip.var} `)}
-                      className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded border border-blue-200 text-[11px] font-semibold transition"
+                      className="px-2 py-0.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary rounded border border-[var(--primary-light)] text-[11px] font-semibold transition"
                     >
                       +{chip.label}
                     </button>
@@ -4133,12 +4133,12 @@ const renderStep2 = () => {
                   <button
                     type="button"
                     onClick={() => insertTextAtCursor(" ___ ")}
-                    className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded border border-slate-300 text-[11px] font-bold"
+                    className="px-2 py-0.5 bg-background hover:bg-background text-main rounded border border-border-strong text-[11px] font-bold"
                   >
                     + Blank Line (___)
                   </button>
                 </div>
-                <div className="text-[9px] text-slate-400 font-medium tracking-wide uppercase">
+                <div className="text-[9px] text-muted-text font-medium tracking-wide uppercase">
                   Quick Variable Chips (Click to Insert at Cursor)
                 </div>
               </div>
@@ -4147,20 +4147,20 @@ const renderStep2 = () => {
               <div className="flex flex-col gap-1 pl-3">
                 <div className="flex items-center gap-3 text-xs">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-slate-500 font-semibold">Header Design:</span>
-                    <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 font-bold">
+                    <span className="text-[10px] text-muted-text font-semibold">Header Design:</span>
+                    <span className="text-[10px] text-primary bg-[var(--primary-light)] px-2 py-0.5 rounded border border-[var(--primary-light)] font-bold">
                       Dynamic Vector Letterhead
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setEditingSection("header")}
-                    className="text-[10px] font-bold text-blue-600 underline hover:text-blue-800"
+                    className="text-[10px] font-bold text-primary underline hover:text-primary"
                   >
                     Edit College Header
                   </button>
                 </div>
-                <div className="text-[9px] text-slate-400 font-medium tracking-wide uppercase">
+                <div className="text-[9px] text-muted-text font-medium tracking-wide uppercase">
                   College Institutional Letterhead (Photo-Free)
                 </div>
               </div>
@@ -4169,11 +4169,11 @@ const renderStep2 = () => {
 
           {/* TAB 3: LAYOUT */}
           {activeRibbonTab === "layout" && (
-            <div className="flex items-center gap-3 divide-x divide-slate-200 w-full">
+            <div className="flex items-center gap-3 divide-x divide-border w-full">
               {/* Margins */}
               <div className="flex flex-col gap-1 pr-3">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-slate-600">Margins:</span>
+                  <span className="text-[10px] font-bold text-sub">Margins:</span>
                   <button
                     type="button"
                     onClick={() =>
@@ -4185,7 +4185,7 @@ const renderStep2 = () => {
                         padding_bottom: 40,
                       })
                     }
-                    className="px-2 py-0.5 bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-[11px] font-medium"
+                    className="px-2 py-0.5 bg-background hover:bg-background border border-border-strong rounded text-[11px] font-medium"
                   >
                     Normal (40px)
                   </button>
@@ -4200,7 +4200,7 @@ const renderStep2 = () => {
                         padding_bottom: 20,
                       })
                     }
-                    className="px-2 py-0.5 bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-[11px] font-medium"
+                    className="px-2 py-0.5 bg-background hover:bg-background border border-border-strong rounded text-[11px] font-medium"
                   >
                     Narrow (20px)
                   </button>
@@ -4215,13 +4215,13 @@ const renderStep2 = () => {
                         padding_bottom: 60,
                       })
                     }
-                    className="px-2 py-0.5 bg-slate-50 hover:bg-slate-200 border border-slate-300 rounded text-[11px] font-medium"
+                    className="px-2 py-0.5 bg-background hover:bg-background border border-border-strong rounded text-[11px] font-medium"
                   >
                     Wide (60px)
                   </button>
 
-                  <div className="flex items-center gap-1 ml-2 bg-slate-50 border border-slate-300 rounded px-1.5 py-0.5">
-                    <span className="text-[10px] text-slate-500">L:</span>
+                  <div className="flex items-center gap-1 ml-2 bg-background border border-border-strong rounded px-1.5 py-0.5">
+                    <span className="text-[10px] text-muted-text">L:</span>
                     <input
                       type="number"
                       value={templateData.padding_left || 40}
@@ -4233,7 +4233,7 @@ const renderStep2 = () => {
                       }
                       className="w-5 text-center text-xs font-bold outline-none"
                     />
-                    <span className="text-[10px] text-slate-500">R:</span>
+                    <span className="text-[10px] text-muted-text">R:</span>
                     <input
                       type="number"
                       value={templateData.padding_right || 40}
@@ -4245,7 +4245,7 @@ const renderStep2 = () => {
                       }
                       className="w-5 text-center text-xs font-bold outline-none"
                     />
-                    <span className="text-[10px] text-slate-500">T:</span>
+                    <span className="text-[10px] text-muted-text">T:</span>
                     <input
                       type="number"
                       value={templateData.padding_top || 40}
@@ -4257,7 +4257,7 @@ const renderStep2 = () => {
                       }
                       className="w-5 text-center text-xs font-bold outline-none"
                     />
-                    <span className="text-[10px] text-slate-500">B:</span>
+                    <span className="text-[10px] text-muted-text">B:</span>
                     <input
                       type="number"
                       value={templateData.padding_bottom || 40}
@@ -4271,7 +4271,7 @@ const renderStep2 = () => {
                     />
                   </div>
                 </div>
-                <div className="text-[9px] text-slate-400 font-medium tracking-wide uppercase">
+                <div className="text-[9px] text-muted-text font-medium tracking-wide uppercase">
                   Page Margins (Left, Right, Top, Bottom in px)
                 </div>
               </div>
@@ -4279,8 +4279,8 @@ const renderStep2 = () => {
               {/* Header height */}
               <div className="flex flex-col gap-1 pl-3">
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 border border-slate-300 rounded bg-slate-50 px-1.5 py-0.5">
-                    <span className="text-[10px] text-slate-600 font-semibold">Header H:</span>
+                  <div className="flex items-center gap-1 border border-border-strong rounded bg-background px-1.5 py-0.5">
+                    <span className="text-[10px] text-sub font-semibold">Header H:</span>
                     <input
                       type="number"
                       value={templateData.header_height || 80}
@@ -4292,11 +4292,11 @@ const renderStep2 = () => {
                       }
                       className="w-7 text-center text-xs font-bold outline-none"
                     />
-                    <span className="text-[9px] text-slate-400">px</span>
+                    <span className="text-[9px] text-muted-text">px</span>
                   </div>
 
-                  <div className="flex items-center gap-1.5 border border-slate-300 rounded bg-slate-50 px-2 py-0.5">
-                    <span className="text-[10px] text-slate-600 font-bold">Sheet:</span>
+                  <div className="flex items-center gap-1.5 border border-border-strong rounded bg-background px-2 py-0.5">
+                    <span className="text-[10px] text-sub font-bold">Sheet:</span>
                     <select
                       value={activeSheetKey}
                       onChange={(e) => {
@@ -4307,7 +4307,7 @@ const renderStep2 = () => {
                         }));
                         toast.success(`Sheet size: ${newSize}`);
                       }}
-                      className="px-2 py-0.5 text-xs font-bold bg-white border border-slate-300 rounded hover:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none text-slate-800 cursor-pointer"
+                      className="px-2 py-0.5 text-xs font-bold bg-surface border border-border-strong rounded hover:border-primary focus:ring-1 focus:ring-primary outline-none text-main cursor-pointer"
                     >
                       <option value="A4">A4 (210 × 297 mm)</option>
                       <option value="A5">A5 (148 × 210 mm)</option>
@@ -4316,7 +4316,7 @@ const renderStep2 = () => {
                       <option value="Legal">Legal (8.5 × 14 in)</option>
                     </select>
 
-                    <div className="h-4 w-px bg-slate-300 mx-0.5" />
+                    <div className="h-4 w-px bg-background mx-0.5" />
 
                     <button
                       type="button"
@@ -4328,8 +4328,8 @@ const renderStep2 = () => {
                       }
                       className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
                         !isLandscape
-                          ? "bg-blue-600 text-white"
-                          : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-100"
+                          ? "bg-primary text-white"
+                          : "bg-surface border border-border-strong text-sub hover:bg-background"
                       }`}
                     >
                       Portrait
@@ -4344,15 +4344,15 @@ const renderStep2 = () => {
                       }
                       className={`px-2 py-0.5 rounded text-[10px] font-bold transition ${
                         isLandscape
-                          ? "bg-blue-600 text-white"
-                          : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-100"
+                          ? "bg-primary text-white"
+                          : "bg-surface border border-border-strong text-sub hover:bg-background"
                       }`}
                     >
                       Landscape
                     </button>
                   </div>
                 </div>
-                <div className="text-[9px] text-slate-400 font-medium tracking-wide uppercase">
+                <div className="text-[9px] text-muted-text font-medium tracking-wide uppercase">
                   Header Height & Sheet Configuration
                 </div>
               </div>
@@ -4362,14 +4362,14 @@ const renderStep2 = () => {
           {/* TAB 4: VIEW */}
           {activeRibbonTab === "view" && (
             <div className="flex items-center gap-4 w-full">
-              <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-300 rounded p-1">
+              <div className="flex items-center gap-1.5 bg-background border border-border-strong rounded p-1">
                 <button
                   type="button"
                   onClick={() => setViewMode("word-canvas")}
                   className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 ${
                     viewMode === "word-canvas"
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : "text-slate-700 hover:bg-white"
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-sub hover:bg-surface"
                   }`}
                 >
                   <FileText size={13} /> Word Canvas
@@ -4379,8 +4379,8 @@ const renderStep2 = () => {
                   onClick={() => setViewMode("split")}
                   className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 ${
                     viewMode === "split"
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : "text-slate-700 hover:bg-white"
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-sub hover:bg-surface"
                   }`}
                 >
                   <Columns size={13} /> Split View
@@ -4390,8 +4390,8 @@ const renderStep2 = () => {
                   onClick={() => setViewMode("preview")}
                   className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 ${
                     viewMode === "preview"
-                      ? "bg-blue-600 text-white shadow-xs"
-                      : "text-slate-700 hover:bg-white"
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-sub hover:bg-surface"
                   }`}
                 >
                   <Eye size={13} /> Print Preview
@@ -4399,19 +4399,19 @@ const renderStep2 = () => {
               </div>
 
               {/* Show Ruler Toggle */}
-              <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-sub">
                 <input
                   type="checkbox"
                   checked={showRuler}
                   onChange={(e) => setShowRuler(e.target.checked)}
-                  className="rounded text-blue-600"
+                  className="rounded text-primary"
                 />
                 Show Word Ruler
               </label>
 
               {/* Zoom Buttons */}
-              <div className="flex items-center gap-1 border border-slate-300 rounded bg-slate-50 px-2 py-1">
-                <span className="text-[10px] text-slate-500 font-semibold">Zoom:</span>
+              <div className="flex items-center gap-1 border border-border-strong rounded bg-background px-2 py-1">
+                <span className="text-[10px] text-muted-text font-semibold">Zoom:</span>
                 {[75, 90, 100, 110, 125].map((z) => (
                   <button
                     key={z}
@@ -4419,8 +4419,8 @@ const renderStep2 = () => {
                     onClick={() => setZoomLevel(z)}
                     className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                       zoomLevel === z
-                        ? "bg-blue-600 text-white"
-                        : "text-slate-700 hover:bg-slate-200"
+                        ? "bg-primary text-white"
+                        : "text-sub hover:bg-background"
                     }`}
                   >
                     {z}%
@@ -4435,16 +4435,16 @@ const renderStep2 = () => {
         {/* 4. MICROSOFT WORD HORIZONTAL RULER                             */}
         {/* ============================================================== */}
         {showRuler && (
-          <div className="bg-[#f0eee9] border-b border-[#d8d5d0] h-5 flex items-center justify-center overflow-hidden flex-shrink-0 select-none">
-            <div style={{ width: `${(canvasSheetWidth * zoomLevel) / 100}px` }} className="max-w-full flex items-center justify-between px-2 text-[9px] text-slate-500 font-mono relative">
+          <div className="bg-[var(--warning-light)] border-b border-[var(--border)] h-5 flex items-center justify-center overflow-hidden flex-shrink-0 select-none">
+            <div style={{ width: `${(canvasSheetWidth * zoomLevel) / 100}px` }} className="max-w-full flex items-center justify-between px-2 text-[9px] text-muted-text font-mono relative">
               {/* Shaded Left Margin indicator */}
               <div
-                className="absolute left-0 top-0 bottom-0 bg-[#e0deda] border-r border-slate-400"
+                className="absolute left-0 top-0 bottom-0 bg-[var(--border)] border-r border-border-strong"
                 style={{ width: `${Math.min(templateData.padding_left || 40, 120)}px` }}
               />
               {/* Shaded Right Margin indicator */}
               <div
-                className="absolute right-0 top-0 bottom-0 bg-[#e0deda] border-l border-slate-400"
+                className="absolute right-0 top-0 bottom-0 bg-[var(--border)] border-l border-border-strong"
                 style={{ width: `${Math.min(templateData.padding_right || 40, 120)}px` }}
               />
 
@@ -4452,8 +4452,8 @@ const renderStep2 = () => {
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map(
                 (num) => (
                   <div key={num} className="flex flex-col items-center z-10">
-                    <span className="text-[8px] text-slate-600 font-bold">{num}</span>
-                    <span className="w-px h-1.5 bg-slate-400"></span>
+                    <span className="text-[8px] text-sub font-bold">{num}</span>
+                    <span className="w-px h-1.5 bg-background"></span>
                   </div>
                 ),
               )}
@@ -4464,63 +4464,63 @@ const renderStep2 = () => {
         {/* ============================================================== */}
         {/* 5. WORKSPACE: MICROSOFT WORD CANVAS (A4 PAPER SHEET)           */}
         {/* ============================================================== */}
-        <div className="flex-1 overflow-auto bg-[#eaedf1] p-6 flex justify-center items-start">
+        <div className="flex-1 overflow-auto bg-[var(--primary-light)] p-6 flex justify-center items-start">
           {/* ------------------------------------------------------------ */}
           {/* MODE A: WORD CANVAS (DIRECT WYSIWYG EDITING ON PAPER)         */}
           {/* ------------------------------------------------------------ */}
           {viewMode === "word-canvas" && (
             <div className="flex flex-col items-center gap-3">
               {/* Quick Floating Variable Insertion Pill Bar */}
-              <div className="bg-white/90 backdrop-blur-md border border-slate-300 rounded-full px-4 py-1.5 shadow-sm flex items-center gap-2 text-xs flex-wrap justify-center max-w-3xl">
-                <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
-                  <Sparkles size={12} className="text-amber-500" /> Insert:
+              <div className="bg-[var(--surface)]/90 backdrop-blur-md border border-border-strong rounded-full px-4 py-1.5 shadow-sm flex items-center gap-2 text-xs flex-wrap justify-center max-w-3xl">
+                <span className="text-[11px] font-bold text-sub flex items-center gap-1">
+                  <Sparkles size={12} className="text-warning" /> Insert:
                 </span>
                 <button
                   type="button"
                   onClick={() => insertTextAtCursor("@student_name ")}
-                  className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-full border border-blue-200 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary rounded-full border border-[var(--primary-light)] text-[10px] font-bold transition"
                 >
                   + @student_name
                 </button>
                 <button
                   type="button"
                   onClick={() => insertTextAtCursor("@father_name ")}
-                  className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-full border border-blue-200 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary rounded-full border border-[var(--primary-light)] text-[10px] font-bold transition"
                 >
                   + @father_name
                 </button>
                 <button
                   type="button"
                   onClick={() => insertTextAtCursor("@admission_number ")}
-                  className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-full border border-blue-200 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary rounded-full border border-[var(--primary-light)] text-[10px] font-bold transition"
                 >
                   + @admission_number
                 </button>
                 <button
                   type="button"
                   onClick={() => insertTextAtCursor("@course ")}
-                  className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-full border border-blue-200 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary rounded-full border border-[var(--primary-light)] text-[10px] font-bold transition"
                 >
                   + @course
                 </button>
                 <button
                   type="button"
                   onClick={() => insertTextAtCursor("@branch ")}
-                  className="px-2 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-full border border-blue-200 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary rounded-full border border-[var(--primary-light)] text-[10px] font-bold transition"
                 >
                   + @branch
                 </button>
                 <button
                   type="button"
                   onClick={() => insertTextAtCursor("@principal_signature ")}
-                  className="px-2 py-0.5 bg-purple-50 hover:bg-purple-100 text-purple-800 rounded-full border border-purple-200 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-secondary rounded-full border border-[var(--primary-light)] text-[10px] font-bold transition"
                 >
                   + @principal_signature
                 </button>
                 <button
                   type="button"
                   onClick={() => insertTextAtCursor(" ___ ")}
-                  className="px-2 py-0.5 bg-amber-50 hover:bg-amber-100 text-amber-900 rounded-full border border-amber-200 text-[10px] font-bold transition"
+                  className="px-2 py-0.5 bg-[var(--warning-light)] hover:bg-[var(--warning-light)] text-warning rounded-full border border-[var(--warning-light)] text-[10px] font-bold transition"
                 >
                   + Blank Line (___)
                 </button>
@@ -4528,7 +4528,7 @@ const renderStep2 = () => {
 
               {/* The Realistic Word Paper Sheet */}
               <div
-                className="bg-white border border-slate-300 transition-all flex flex-col relative"
+                className="bg-surface border border-border-strong transition-all flex flex-col relative"
                 style={{
                   width: `${(canvasSheetWidth * zoomLevel) / 100}px`,
                   minHeight: `${(canvasSheetHeight * zoomLevel) / 100}px`,
@@ -4544,8 +4544,8 @@ const renderStep2 = () => {
                 <div
                   className={`w-full flex-shrink-0 flex flex-col justify-center mb-3 relative transition-all ${
                     editingSection === "header"
-                      ? "p-3 bg-blue-50/40 border-2 border-dashed border-blue-500 rounded-lg shadow-sm"
-                      : "pb-2 border-b border-slate-200 cursor-pointer hover:bg-slate-50/80 rounded group"
+                      ? "p-3 bg-[var(--primary-light)] border-2 border-dashed border-primary rounded-lg shadow-sm"
+                      : "pb-2 border-b border-border cursor-pointer hover:bg-[var(--background)]/80 rounded group"
                   }`}
                   style={{
                     minHeight: `${templateData.header_height || 80}px`,
@@ -4554,7 +4554,7 @@ const renderStep2 = () => {
                     fontWeight: "normal",
                     fontStyle: "normal",
                     textDecoration: "none",
-                    color: "#0f172a",
+                    color: "var(--text-primary)",
                   }}
                   onClick={() => {
                     if (editingSection !== "header") setEditingSection("header");
@@ -4562,14 +4562,14 @@ const renderStep2 = () => {
                 >
                   {editingSection === "header" ? (
                     <div className="w-full space-y-2" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-between pb-1 border-b border-blue-200">
-                        <span className="text-[11px] font-bold text-blue-900 flex items-center gap-1.5">
-                          <Building2 size={13} className="text-blue-600" /> Dynamic College Header (Direct Word Edit)
+                      <div className="flex items-center justify-between pb-1 border-b border-[var(--primary-light)]">
+                        <span className="text-[11px] font-bold text-primary flex items-center gap-1.5">
+                          <Building2 size={13} className="text-primary" /> Dynamic College Header (Direct Word Edit)
                         </span>
                         <button
                           type="button"
                           onClick={() => setEditingSection("body")}
-                          className="px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold transition flex items-center gap-1"
+                          className="px-2 py-0.5 bg-primary hover:bg-primary-hover text-white rounded text-[10px] font-bold transition flex items-center gap-1"
                         >
                           <Check size={11} /> Done Editing Header
                         </button>
@@ -4603,7 +4603,7 @@ const renderStep2 = () => {
                             end: e.target.selectionEnd,
                           });
                         }}
-                        className="w-full p-2 font-mono text-xs border border-blue-300 rounded-md focus:ring-1 focus:ring-blue-500 outline-none bg-white leading-relaxed"
+                        className="w-full p-2 font-mono text-xs border border-[var(--primary-light)] rounded-md focus:ring-1 focus:ring-primary outline-none bg-surface leading-relaxed"
                         placeholder="Type college header lines with formatting tags: [b]...[/b], [size:16]...[/size], [center]...[/center], --- for divider"
                       />
 
@@ -4616,7 +4616,7 @@ const renderStep2 = () => {
                               `\n[center][b][size:16]${(selectedCollege?.name || "COLLEGE NAME").toUpperCase()}[/size][/b][/center]`
                             )
                           }
-                          className="px-2 py-0.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded font-semibold"
+                          className="px-2 py-0.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary rounded font-semibold"
                         >
                           + College Title
                         </button>
@@ -4627,7 +4627,7 @@ const renderStep2 = () => {
                               "\n[center][size:10](Approved by AICTE, Affiliated to Andhra University, NAAC 'A+' Grade)[/size][/center]"
                             )
                           }
-                          className="px-2 py-0.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded font-semibold"
+                          className="px-2 py-0.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary rounded font-semibold"
                         >
                           + Affiliation / NAAC
                         </button>
@@ -4638,14 +4638,14 @@ const renderStep2 = () => {
                               `\n[center][size:9]${selectedCollege?.address || "Kakinada - 533001, Andhra Pradesh"} | Phone: ${selectedCollege?.contact || "+91 884 237 9999"}[/size][/center]`
                             )
                           }
-                          className="px-2 py-0.5 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded font-semibold"
+                          className="px-2 py-0.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary rounded font-semibold"
                         >
                           + Address & Contact
                         </button>
                         <button
                           type="button"
                           onClick={() => insertTextAtCursor("\n----------------------------------------\n")}
-                          className="px-2 py-0.5 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded font-bold"
+                          className="px-2 py-0.5 bg-background hover:bg-background text-main rounded font-bold"
                         >
                           + Divider Line (---)
                         </button>
@@ -4657,16 +4657,16 @@ const renderStep2 = () => {
                               `[center][b][size:16]${(selectedCollege?.name || "").toUpperCase()}[/size][/b][/center]\n[center][size:10](Approved by AICTE, Affiliated to Andhra University, Accredited by NAAC 'A+' Grade)[/size][/center]\n[center][size:9]${selectedCollege?.address || "Kakinada - 533001, Andhra Pradesh"} | Phone: ${selectedCollege?.contact || "+91 884 237 9999"} | Website: ${selectedCollege?.website || "www.pydah.edu.in"}[/size][/center]\n----------------------------------------`;
                             setTemplateData({ ...templateData, top_content: def });
                           }}
-                          className="px-2 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded font-semibold ml-auto"
+                          className="px-2 py-0.5 bg-[var(--warning-light)] hover:bg-[var(--warning-light)] text-warning rounded font-semibold ml-auto"
                         >
                           Reset to College Default
                         </button>
                       </div>
 
                       {/* Header Image Bar */}
-                      <div className="flex items-center gap-2 pt-2 border-t border-blue-200 flex-wrap text-xs">
-                        <span className="text-[11px] font-bold text-blue-900 flex items-center gap-1">
-                          <Image size={13} className="text-blue-600" /> Header Image / Logo:
+                      <div className="flex items-center gap-2 pt-2 border-t border-[var(--primary-light)] flex-wrap text-xs">
+                        <span className="text-[11px] font-bold text-primary flex items-center gap-1">
+                          <Image size={13} className="text-primary" /> Header Image / Logo:
                         </span>
 
                         <input
@@ -4680,7 +4680,7 @@ const renderStep2 = () => {
                         <button
                           type="button"
                           onClick={() => headerImageInputRef.current?.click()}
-                          className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[11px] font-bold flex items-center gap-1 shadow-2xs"
+                          className="px-2.5 py-1 bg-primary hover:bg-primary-hover text-white rounded text-[11px] font-bold flex items-center gap-1 shadow-2xs"
                         >
                           {templateData.header_image_url ? "Change Image" : "📷 Upload Image"}
                         </button>
@@ -4688,15 +4688,15 @@ const renderStep2 = () => {
                         <button
                           type="button"
                           onClick={handleUseCollegeLogo}
-                          className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded text-[11px] font-semibold"
+                          className="px-2.5 py-1 bg-background hover:bg-background border border-border-strong text-main rounded text-[11px] font-semibold"
                         >
                           Use College Logo
                         </button>
 
                         {templateData.header_image_url && (
                           <div className="flex items-center gap-2 ml-auto">
-                            <div className="flex items-center gap-1 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-[11px]">
-                              <span className="text-slate-500 font-medium">Position:</span>
+                            <div className="flex items-center gap-1 bg-surface border border-border-strong rounded px-1.5 py-0.5 text-[11px]">
+                              <span className="text-muted-text font-medium">Position:</span>
                               {["left", "center", "right"].map((pos) => (
                                 <button
                                   key={pos}
@@ -4709,8 +4709,8 @@ const renderStep2 = () => {
                                   }
                                   className={`px-1.5 py-0.5 rounded capitalize text-[10px] font-bold ${
                                     (templateData.header_image_position || "left") === pos
-                                      ? "bg-blue-600 text-white"
-                                      : "text-slate-700 hover:bg-slate-100"
+                                      ? "bg-primary text-white"
+                                      : "text-sub hover:bg-background"
                                   }`}
                                 >
                                   {pos}
@@ -4718,8 +4718,8 @@ const renderStep2 = () => {
                               ))}
                             </div>
 
-                            <div className="flex items-center gap-1 bg-white border border-slate-300 rounded px-1.5 py-0.5 text-[11px]">
-                              <span className="text-slate-500 font-medium">Height:</span>
+                            <div className="flex items-center gap-1 bg-surface border border-border-strong rounded px-1.5 py-0.5 text-[11px]">
+                              <span className="text-muted-text font-medium">Height:</span>
                               <input
                                 type="number"
                                 min="30"
@@ -4733,13 +4733,13 @@ const renderStep2 = () => {
                                 }
                                 className="w-8 text-center font-bold outline-none"
                               />
-                              <span className="text-slate-400">px</span>
+                              <span className="text-muted-text">px</span>
                             </div>
 
                             <button
                               type="button"
                               onClick={handleRemoveHeaderImage}
-                              className="px-2 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded text-[10px] font-bold flex items-center gap-0.5"
+                              className="px-2 py-1 bg-[var(--danger-light)] hover:bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] rounded text-[10px] font-bold flex items-center gap-0.5"
                               title="Remove header image"
                             >
                               <Trash2 size={11} /> Remove Image
@@ -4751,7 +4751,7 @@ const renderStep2 = () => {
                   ) : (
                     <div className="relative group w-full">
                       {renderHeaderLines(templateData.top_content)}
-                      <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
+                      <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm flex items-center gap-1">
                         <span>Click to Edit Header</span>
                         <span>✏️</span>
                       </div>
@@ -4762,7 +4762,7 @@ const renderStep2 = () => {
                 {/* Direct Word Paper Editor (The Editable Document Body - Pure WYSIWYG) */}
                 <div
                   className={`flex-1 flex flex-col relative transition-all ${
-                    editingSection === "body" ? "ring-1 ring-blue-100 rounded-md p-1" : ""
+                    editingSection === "body" ? "ring-1 ring-[var(--primary-light)] rounded-md p-1" : ""
                   }`}
                   style={{
                     paddingTop: `${templateData.middle_section_padding || 20}px`,
@@ -4774,8 +4774,8 @@ const renderStep2 = () => {
                 >
                   <div className="relative w-full min-h-[520px]">
                     {isInsideTable && (
-                      <div className="absolute -top-7 right-2 z-20 flex items-center gap-2 bg-white border border-rose-300 shadow-md px-2.5 py-1 rounded-full text-xs text-rose-700 font-semibold">
-                        <Table size={13} className="text-blue-600" />
+                      <div className="absolute -top-7 right-2 z-20 flex items-center gap-2 bg-surface border border-[var(--danger-light)] shadow-md px-2.5 py-1 rounded-full text-xs text-danger font-semibold">
+                        <Table size={13} className="text-primary" />
                         <span>Table Selected</span>
                         <button
                           type="button"
@@ -4787,7 +4787,7 @@ const renderStep2 = () => {
                             e.stopPropagation();
                             deleteTable();
                           }}
-                          className="px-2 py-0.5 bg-rose-600 hover:bg-rose-700 text-white rounded text-[11px] font-bold flex items-center gap-1 transition shadow-2xs cursor-pointer"
+                          className="px-2 py-0.5 bg-danger hover:bg-danger text-white rounded text-[11px] font-bold flex items-center gap-1 transition shadow-2xs cursor-pointer"
                           title="Delete this table"
                         >
                           <Trash2 size={11} />
@@ -4796,10 +4796,10 @@ const renderStep2 = () => {
                       </div>
                     )}
                     {(!templateData.middle_content || templateData.middle_content.trim() === "") && (
-                      <div className="absolute inset-0 pointer-events-none text-slate-400 select-none p-1 leading-relaxed">
-                        <p className="font-semibold text-slate-500 mb-2">Type certificate text here directly on this Word page.</p>
-                        <p className="text-xs text-slate-400 font-medium">Tips:</p>
-                        <ul className="text-xs text-slate-400 list-disc list-inside mt-1 space-y-1">
+                      <div className="absolute inset-0 pointer-events-none text-muted-text select-none p-1 leading-relaxed">
+                        <p className="font-semibold text-muted-text mb-2">Type certificate text here directly on this Word page.</p>
+                        <p className="text-xs text-muted-text font-medium">Tips:</p>
+                        <ul className="text-xs text-muted-text list-disc list-inside mt-1 space-y-1">
                           <li>Type @ to autocomplete student variables (e.g. @student_name, @father_name, @admission_number, @principal_signature)</li>
                           <li>Type ___ (three underscores) to create fillable blanks</li>
                           <li>Click any Line Alignment button in the toolbar to align that specific line</li>
@@ -4852,7 +4852,7 @@ const renderStep2 = () => {
                             font_italic: false,
                             font_underline: false,
                             font_strikethrough: false,
-                            font_color: "#0f172a",
+                            font_color: "var(--text-primary)",
                             font_highlight: "transparent",
                           }));
                         } else {
@@ -4930,12 +4930,12 @@ const renderStep2 = () => {
                           }
                         }
                       }}
-                      className="w-full min-h-[520px] outline-none text-slate-800 leading-relaxed font-sans word-editor-canvas"
+                      className="w-full min-h-[520px] outline-none text-main leading-relaxed font-sans word-editor-canvas"
                       style={{
                         fontFamily: templateData.font_family || "Calibri, 'Segoe UI', Arial, sans-serif",
                         fontSize: `${templateData.font_size || 12}px`,
                         lineHeight: templateData.line_spacing || 1.6,
-                        color: templateData.font_color || "#0f172a",
+                        color: templateData.font_color || "var(--text-primary)",
                         whiteSpace: "pre-wrap",
                         wordBreak: "break-word",
                       }}
@@ -4953,12 +4953,12 @@ const renderStep2 = () => {
             <div className="w-full max-w-7xl flex gap-6 items-start">
               {/* Left Column: Word Document Editor Sheet */}
               <div className="w-1/2 flex flex-col items-center">
-                <div className="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5 self-start">
-                  <FileText size={14} className="text-[#185abd]" />
+                <div className="text-xs font-bold text-sub mb-2 flex items-center gap-1.5 self-start">
+                  <FileText size={14} className="text-[var(--primary)]" />
                   <span>Word Document Editor (Type & Edit)</span>
                 </div>
                 <div
-                  className="w-full bg-white border border-slate-300 rounded shadow-lg p-6 flex flex-col"
+                  className="w-full bg-surface border border-border-strong rounded shadow-lg p-6 flex flex-col"
                   style={{
                     minHeight: "750px",
                     paddingLeft: `${templateData.padding_left || 40}px`,
@@ -4968,7 +4968,7 @@ const renderStep2 = () => {
                   }}
                 >
                   {/* Dynamic Header */}
-                  <div className="w-full pb-2 mb-3 border-b border-dashed border-slate-200">
+                  <div className="w-full pb-2 mb-3 border-b border-dashed border-border">
                     {renderHeaderLines(templateData.top_content)}
                   </div>
 
@@ -4989,7 +4989,7 @@ const renderStep2 = () => {
                             font_italic: false,
                             font_underline: false,
                             font_strikethrough: false,
-                            font_color: "#0f172a",
+                            font_color: "var(--text-primary)",
                             font_highlight: "transparent",
                           }));
                         } else {
@@ -5021,7 +5021,7 @@ const renderStep2 = () => {
                               font_italic: false,
                               font_underline: false,
                               font_strikethrough: false,
-                              font_color: "#0f172a",
+                              font_color: "var(--text-primary)",
                               font_highlight: "transparent",
                             }));
                           }
@@ -5076,7 +5076,7 @@ const renderStep2 = () => {
                       <Mention
                         trigger="@"
                         data={mentionData}
-                        style={{ backgroundColor: "#dbeafe" }}
+                        style={{ backgroundColor: "var(--primary-light)" }}
                       />
                     </MentionsInput>
                   </div>
@@ -5085,12 +5085,12 @@ const renderStep2 = () => {
 
               {/* Right Column: Live Rendered Certificate Sheet */}
               <div className="w-1/2 flex flex-col items-center">
-                <div className="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5 self-start">
-                  <Eye size={14} className="text-emerald-600" />
+                <div className="text-xs font-bold text-sub mb-2 flex items-center gap-1.5 self-start">
+                  <Eye size={14} className="text-success" />
                   <span>Real-Time Certificate Output (Variables Replaced)</span>
                 </div>
                 <div
-                  className="w-full bg-white border border-slate-300 rounded shadow-lg overflow-hidden flex flex-col"
+                  className="w-full bg-surface border border-border-strong rounded shadow-lg overflow-hidden flex flex-col"
                   style={{
                     minHeight: "750px",
                     paddingLeft: `${templateData.padding_left || 40}px`,
@@ -5106,7 +5106,7 @@ const renderStep2 = () => {
 
                   {/* Formatted Certificate Content */}
                   <div
-                    className="flex-1 text-slate-800"
+                    className="flex-1 text-main"
                     style={{
                       paddingTop: `${templateData.middle_section_padding || 20}px`,
                       paddingBottom: `${templateData.middle_section_padding || 20}px`,
@@ -5123,7 +5123,7 @@ const renderStep2 = () => {
                       ]
                         .filter(Boolean)
                         .join(" ") || "none",
-                      color: templateData.font_color || "#0f172a",
+                      color: templateData.font_color || "var(--text-primary)",
                     }}
                   >
                     {templateData.middle_content ? (
@@ -5134,7 +5134,7 @@ const renderStep2 = () => {
                         )}
                       </div>
                     ) : (
-                      <div className="h-64 flex flex-col items-center justify-center text-slate-400">
+                      <div className="h-64 flex flex-col items-center justify-center text-muted-text">
                         <FileText size={40} className="mb-2 opacity-40" />
                         <p className="text-sm font-semibold">Start typing in the editor on the left</p>
                         <p className="text-xs mt-1">Variables and fillable lines will render here live</p>
@@ -5152,7 +5152,7 @@ const renderStep2 = () => {
           {viewMode === "preview" && (
             <div className="flex flex-col items-center gap-3">
               <div
-                className="bg-white border border-slate-300 shadow-2xl flex flex-col"
+                className="bg-surface border border-border-strong shadow-2xl flex flex-col"
                 style={{
                   width: `${(canvasSheetWidth * zoomLevel) / 100}px`,
                   minHeight: `${(canvasSheetHeight * zoomLevel) / 100}px`,
@@ -5169,7 +5169,7 @@ const renderStep2 = () => {
 
                 {/* Content */}
                 <div
-                  className="flex-1 text-slate-800"
+                  className="flex-1 text-main"
                   style={{
                     paddingTop: `${templateData.middle_section_padding || 20}px`,
                     paddingBottom: `${templateData.middle_section_padding || 20}px`,
@@ -5186,7 +5186,7 @@ const renderStep2 = () => {
                     ]
                       .filter(Boolean)
                       .join(" ") || "none",
-                    color: templateData.font_color || "#0f172a",
+                    color: templateData.font_color || "var(--text-primary)",
                   }}
                 >
                   {processContentForPreview(
@@ -5202,26 +5202,26 @@ const renderStep2 = () => {
         {/* ============================================================== */}
         {/* 6. MICROSOFT WORD STATUS BAR (BOTTOM)                          */}
         {/* ============================================================== */}
-        <div className="bg-[#185abd] text-white px-4 py-1 flex items-center justify-between text-[11px] flex-shrink-0 select-none shadow-md">
+        <div className="bg-[var(--primary)] text-white px-4 py-1 flex items-center justify-between text-[11px] flex-shrink-0 select-none shadow-md">
           {/* Left Stats */}
           <div className="flex items-center gap-3">
             <span className="font-semibold">Page 1 of 1</span>
-            <span className="text-blue-300">|</span>
-            <span className="bg-blue-800/80 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
+            <span className="text-primary">|</span>
+            <span className="bg-[var(--primary-light)] px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide">
               {activeSheet.label} • {isLandscape ? "Landscape" : "Portrait"} ({activeSheet.mm})
             </span>
-            <span className="text-blue-300">|</span>
+            <span className="text-primary">|</span>
             <span>{wordCount} words</span>
-            <span className="text-blue-300">|</span>
+            <span className="text-primary">|</span>
             <span>{charCount} characters</span>
-            <span className="text-blue-300">|</span>
-            <span className="truncate max-w-xs text-blue-100">
+            <span className="text-primary">|</span>
+            <span className="truncate max-w-xs text-primary">
               College: {selectedCollege?.name || "None"}
             </span>
           </div>
 
           {/* Center Brand */}
-          <div className="hidden md:flex items-center gap-1.5 text-blue-200 text-[10px]">
+          <div className="hidden md:flex items-center gap-1.5 text-primary text-[10px]">
             <span>Microsoft Word Replica</span>
             <span>•</span>
             <span>Dynamic College Header & Body Engine</span>
@@ -5233,7 +5233,7 @@ const renderStep2 = () => {
               <button
                 type="button"
                 onClick={() => setViewMode("word-canvas")}
-                className={`p-0.5 rounded ${viewMode === "word-canvas" ? "bg-white/20 text-white" : "text-blue-200 hover:text-white"}`}
+                className={`p-0.5 rounded ${viewMode === "word-canvas" ? "bg-[var(--surface)]/20 text-white" : "text-primary hover:text-white"}`}
                 title="Word Canvas"
               >
                 <FileText size={12} />
@@ -5241,7 +5241,7 @@ const renderStep2 = () => {
               <button
                 type="button"
                 onClick={() => setViewMode("split")}
-                className={`p-0.5 rounded ${viewMode === "split" ? "bg-white/20 text-white" : "text-blue-200 hover:text-white"}`}
+                className={`p-0.5 rounded ${viewMode === "split" ? "bg-[var(--surface)]/20 text-white" : "text-primary hover:text-white"}`}
                 title="Split View"
               >
                 <Columns size={12} />
@@ -5249,18 +5249,18 @@ const renderStep2 = () => {
               <button
                 type="button"
                 onClick={() => setViewMode("preview")}
-                className={`p-0.5 rounded ${viewMode === "preview" ? "bg-white/20 text-white" : "text-blue-200 hover:text-white"}`}
+                className={`p-0.5 rounded ${viewMode === "preview" ? "bg-[var(--surface)]/20 text-white" : "text-primary hover:text-white"}`}
                 title="Print Preview"
               >
                 <Eye size={12} />
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5 border-l border-blue-400/40 pl-3">
+            <div className="flex items-center gap-1.5 border-l border-primary pl-3">
               <button
                 type="button"
                 onClick={() => setZoomLevel((z) => Math.max(z - 10, 60))}
-                className="hover:bg-blue-700/60 p-0.5 rounded text-white"
+                className="hover:bg-[var(--primary-light)] p-0.5 rounded text-white"
                 title="Zoom Out"
               >
                 <ZoomOut size={12} />
@@ -5272,12 +5272,12 @@ const renderStep2 = () => {
                 step="5"
                 value={zoomLevel}
                 onChange={(e) => setZoomLevel(parseInt(e.target.value))}
-                className="w-16 h-1 bg-blue-700 rounded-lg appearance-none cursor-pointer accent-white"
+                className="w-16 h-1 bg-primary rounded-lg appearance-none cursor-pointer accent-surface"
               />
               <button
                 type="button"
                 onClick={() => setZoomLevel((z) => Math.min(z + 10, 140))}
-                className="hover:bg-blue-700/60 p-0.5 rounded text-white"
+                className="hover:bg-[var(--primary-light)] p-0.5 rounded text-white"
                 title="Zoom In"
               >
                 <ZoomIn size={12} />
@@ -5295,14 +5295,14 @@ const renderStep2 = () => {
     const renderStep3 = () => (
     <div className="space-y-8 max-w-6xl mx-auto py-6">
       <div className="text-center mb-8">
-        <h2 className="text-4xl font-bold text-gray-900 flex items-center justify-center gap-4 mb-3">
-          <Eye size={40} className="text-green-600" />
+        <h2 className="text-4xl font-bold text-main flex items-center justify-center gap-4 mb-3">
+          <Eye size={40} className="text-success" />
           Final Review
         </h2>
-        <p className="text-gray-600 text-lg">
+        <p className="text-sub text-lg">
           Review your certificate configuration before publishing
         </p>
-        <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-full text-sm text-blue-700 font-medium">
+        <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-full text-sm text-primary font-medium">
           <Check size={16} />
           All settings configured successfully
         </div>
@@ -5310,59 +5310,59 @@ const renderStep2 = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-gradient-to-br from-white to-blue-50 p-6 rounded-2xl shadow-lg border-2 border-blue-100">
-            <h3 className="text-xl font-bold mb-4 border-b-2 border-blue-200 pb-3 text-blue-900">
+          <div className="bg-gradient-to-br from-surface to-[var(--primary-light)] p-6 rounded-2xl shadow-lg border-2 border-[var(--primary-light)]">
+            <h3 className="text-xl font-bold mb-4 border-b-2 border-[var(--primary-light)] pb-3 text-primary">
               📋 Service Details
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase">
+                <label className="text-xs font-bold text-muted-text uppercase">
                   Service Name
                 </label>
-                <p className="font-semibold text-gray-900">
+                <p className="font-semibold text-main">
                   {serviceData.name}
                 </p>
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase">
+                <label className="text-xs font-bold text-muted-text uppercase">
                   College
                 </label>
-                <p className="font-semibold text-gray-900 border-l-2 border-blue-500 pl-2">
+                <p className="font-semibold text-main border-l-2 border-primary pl-2">
                   {colleges.find((c) => c.id == serviceData.college_id)?.name}
                 </p>
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase">
+                <label className="text-xs font-bold text-muted-text uppercase">
                   Price
                 </label>
-                <p className="text-xl font-bold text-blue-600">
+                <p className="text-xl font-bold text-primary">
                   ₹{serviceData.price}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-white to-green-50 p-6 rounded-2xl shadow-lg border-2 border-green-100">
-            <h3 className="text-xl font-bold mb-4 border-b-2 border-green-200 pb-3 text-green-900">
+          <div className="bg-gradient-to-br from-surface to-[var(--success-light)] p-6 rounded-2xl shadow-lg border-2 border-[var(--success-light)]">
+            <h3 className="text-xl font-bold mb-4 border-b-2 border-[var(--success-light)] pb-3 text-success">
               ⚙️ Layout Settings
             </h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <label className="text-gray-400 block">Font Size</label>
+                <label className="text-muted-text block">Font Size</label>
                 <span className="font-medium">{templateData.font_size}px</span>
               </div>
               <div>
-                <label className="text-gray-400 block">Spacing</label>
+                <label className="text-muted-text block">Spacing</label>
                 <span className="font-medium">{templateData.line_spacing}</span>
               </div>
               <div>
-                <label className="text-gray-400 block">Orientation</label>
+                <label className="text-muted-text block">Orientation</label>
                 <span className="font-medium capitalize">
                   {templateData.page_orientation}
                 </span>
               </div>
               <div>
-                <label className="text-gray-400 block">Sheet Size</label>
+                <label className="text-muted-text block">Sheet Size</label>
                 <span className="font-medium uppercase">
                   {templateData.page_size || "A4"}
                 </span>
@@ -5372,30 +5372,30 @@ const renderStep2 = () => {
         </div>
 
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white p-4 rounded-2xl shadow-2xl border-2 border-gray-300 aspect-[1/1.414] overflow-hidden flex flex-col">
-            <div className="px-4 py-3 border-b-2 border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50 flex justify-between items-center rounded-t-xl">
-              <span className="text-base font-bold text-gray-800 flex items-center gap-2">
+          <div className="bg-surface p-4 rounded-2xl shadow-2xl border-2 border-border-strong aspect-[1/1.414] overflow-hidden flex flex-col">
+            <div className="px-4 py-3 border-b-2 border-border bg-gradient-to-r from-[var(--primary-light)] to-[var(--primary-light)] flex justify-between items-center rounded-t-xl">
+              <span className="text-base font-bold text-main flex items-center gap-2">
                 <Eye size={20} />
                 Certificate Preview
               </span>
               <button
                 onClick={generatePreview}
-                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-bold uppercase transition-all hover:shadow-md flex items-center gap-1"
+                className="px-3 py-1.5 bg-primary text-white rounded-lg hover:bg-primary-hover text-xs font-bold uppercase transition-all hover:shadow-md flex items-center gap-1"
               >
                 <ArrowRight size={14} />
                 Refresh
               </button>
             </div>
-            <div className="flex-1 bg-gray-200 rounded-b-xl overflow-hidden">
+            <div className="flex-1 bg-background rounded-b-xl overflow-hidden">
               {finalPreviewJson ? (
                 <iframe
                   src={finalPreviewJson}
-                  className="w-full h-full bg-white"
+                  className="w-full h-full bg-surface"
                   title="Final Step Preview"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center text-gray-500 flex-col gap-3">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
+                <div className="flex h-full items-center justify-center text-muted-text flex-col gap-3">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary"></div>
                   <p className="font-semibold">Generating Preview...</p>
                 </div>
               )}
@@ -5404,17 +5404,17 @@ const renderStep2 = () => {
         </div>
       </div>
 
-      <div className="flex justify-between items-center bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-2xl border-2 border-blue-200 shadow-lg mt-8">
+      <div className="flex justify-between items-center bg-gradient-to-r from-[var(--primary-light)] to-[var(--success-light)] p-6 rounded-2xl border-2 border-[var(--primary-light)] shadow-lg mt-8">
         <button
           onClick={() => setCurrentStep(2)}
-          className="px-6 py-3 border-2 border-gray-300 rounded-xl hover:bg-white hover:shadow-md flex items-center gap-2 font-semibold transition-all"
+          className="px-6 py-3 border-2 border-border-strong rounded-xl hover:bg-surface hover:shadow-md flex items-center gap-2 font-semibold transition-all"
         >
           <ArrowLeft size={20} /> Back to Edit
         </button>
         <button
           onClick={handleFinalSubmit}
           disabled={loading}
-          className="px-12 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 flex items-center gap-3 text-lg font-bold shadow-lg shadow-blue-200 disabled:opacity-50 transition-all hover:scale-[1.02]"
+          className="px-12 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover flex items-center gap-3 text-lg font-bold shadow-lg shadow-primary disabled:opacity-50 transition-all hover:scale-[1.02]"
         >
           <Check size={24} /> Confirm & Publish Service
         </button>
@@ -5435,15 +5435,15 @@ const renderStep2 = () => {
         <div className="flex items-center gap-4 mb-6">
           <button
             onClick={() => navigate("/services/config")}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 hover:bg-background rounded-lg transition"
           >
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-main">
               {isEditing ? "Edit Service" : "Add New Service"}
             </h1>
-            <p className="text-gray-500">Step {currentStep} of 3</p>
+            <p className="text-muted-text">Step {currentStep} of 3</p>
           </div>
         </div>
       )}

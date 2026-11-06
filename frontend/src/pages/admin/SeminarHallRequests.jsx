@@ -103,13 +103,13 @@ const Dialog = ({ open, onClose, title, description, titleId, children }) => {
                 if (event.target === event.currentTarget) onClose();
             }}
         >
-            <section className="my-auto max-h-[95vh] w-full max-w-5xl overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl" role="dialog" aria-modal="true" aria-labelledby={titleId}>
-                <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+            <section className="my-auto max-h-[95vh] w-full max-w-5xl overflow-hidden rounded-lg border border-border bg-surface shadow-xl" role="dialog" aria-modal="true" aria-labelledby={titleId}>
+                <header className="flex items-center justify-between border-b border-border px-5 py-4">
                     <div>
-                        <h2 id={titleId} className="text-lg font-bold text-slate-900">{title}</h2>
-                        {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+                        <h2 id={titleId} className="text-lg font-bold text-main">{title}</h2>
+                        {description && <p className="mt-1 text-sm text-muted-text">{description}</p>}
                     </div>
-                    <button type="button" onClick={onClose} className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800" aria-label={`Close ${title}`}>
+                    <button type="button" onClick={onClose} className="rounded-md p-2 text-muted-text hover:bg-background hover:text-main" aria-label={`Close ${title}`}>
                         <X size={20} />
                     </button>
                 </header>
@@ -149,34 +149,34 @@ const MultiSelectField = ({ label, options, selected, onChange, placeholder, dis
 
     return (
         <div ref={containerRef} className="relative min-w-0">
-            <label className="mb-1.5 block text-sm font-medium text-slate-700">{label}</label>
+            <label className="mb-1.5 block text-sm font-medium text-sub">{label}</label>
             <button
                 type="button"
                 aria-haspopup="listbox"
                 aria-expanded={open}
                 disabled={disabled}
                 onClick={() => setOpen(current => !current)}
-                className="flex min-h-10 w-full items-center justify-between gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-700 outline-none hover:border-teal-700 focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15 disabled:cursor-not-allowed disabled:bg-slate-100"
+                className="flex min-h-10 w-full items-center justify-between gap-2 rounded-md border border-border-strong bg-surface px-3 py-2 text-left text-sm text-sub outline-none hover:border-primary focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)] disabled:cursor-not-allowed disabled:bg-background"
             >
                 <span className="truncate">{selectedLabels.length ? selectedLabels.join(', ') : placeholder}</span>
-                <ChevronDown size={16} className="shrink-0 text-slate-500" />
+                <ChevronDown size={16} className="shrink-0 text-muted-text" />
             </button>
             {open && !disabled && (
-                <div role="listbox" aria-multiselectable="true" className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+                <div role="listbox" aria-multiselectable="true" className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-border bg-surface py-1 shadow-lg">
                     {options.length ? options.map(option => {
                         const value = String(option.value);
                         const checked = selected.includes(value);
                         return (
-                            <label key={value} className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                                <input type="checkbox" checked={checked} onChange={() => toggleOption(value)} className="h-4 w-4 accent-teal-800" />
+                            <label key={value} className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm text-sub hover:bg-background">
+                                <input type="checkbox" checked={checked} onChange={() => toggleOption(value)} className="h-4 w-4 accent-primary" />
                                 <span className="min-w-0 truncate">{option.label}</span>
                             </label>
                         );
-                    }) : <p className="px-3 py-3 text-sm text-slate-500">No options available</p>}
+                    }) : <p className="px-3 py-3 text-sm text-muted-text">No options available</p>}
                 </div>
             )}
             {selectedLabels.length > 0 && (
-                <div className="mt-1 text-xs text-slate-500">{selectedLabels.length} selected</div>
+                <div className="mt-1 text-xs text-muted-text">{selectedLabels.length} selected</div>
             )}
         </div>
     );
@@ -578,7 +578,7 @@ const SeminarHallRequests = () => {
     const renderRequests = rows => (
         <div className="w-full overflow-x-auto">
             <table className="min-w-[980px] w-full text-left text-sm">
-                <thead className="bg-[#e8f1ee] text-xs uppercase tracking-wide text-[#46655e]">
+                <thead className="bg-[var(--success-light)] text-xs uppercase tracking-wide text-[var(--info)]">
                     <tr>
                         <th className="px-4 py-3 font-semibold">Event / Organizer</th>
                         <th className="px-4 py-3 font-semibold">Hall</th>
@@ -589,7 +589,7 @@ const SeminarHallRequests = () => {
                         <th className="px-4 py-3 font-semibold">Actions</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                     {rows.map(request => {
                         const requestYears = getRequestYears(request);
                         return (
@@ -605,33 +605,33 @@ const SeminarHallRequests = () => {
                                     showRequestOnCalendar(request);
                                 }
                             }}
-                            className="cursor-pointer align-top transition-colors hover:bg-[#f4f8f6] focus:bg-[#f4f8f6] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-700"
+                            className="cursor-pointer align-top transition-colors hover:bg-[var(--success-light)] focus:bg-[var(--success-light)] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-success"
                         >
                             <td className="px-4 py-4">
-                                <p className="font-semibold text-slate-900">{request.event_name}</p>
-                                <p className="mt-1 text-xs text-slate-500">{request.organizer}</p>
-                                <p className="mt-1 text-xs font-medium text-teal-800">
+                                <p className="font-semibold text-main">{request.event_name}</p>
+                                <p className="mt-1 text-xs text-muted-text">{request.organizer}</p>
+                                <p className="mt-1 text-xs font-medium text-primary">
                                     {request.request_type === 'college'
                                         ? `College request${requestYears.length ? ` · Year${requestYears.length === 1 ? '' : 's'} ${requestYears.join(', ')}` : ' · All years'}`
                                         : 'Club request'}
                                 </p>
                             </td>
-                            <td className="px-4 py-4 text-slate-700">{request.hall_name}</td>
-                            <td className="px-4 py-4 whitespace-nowrap text-slate-700">
+                            <td className="px-4 py-4 text-sub">{request.hall_name}</td>
+                            <td className="px-4 py-4 whitespace-nowrap text-sub">
                                 <p>{formatDate(request.event_date)}</p>
-                                <p className="mt-1 text-xs text-slate-500">{formatTime(request.start_time)} - {formatTime(request.end_time)}</p>
+                                <p className="mt-1 text-xs text-muted-text">{formatTime(request.start_time)} - {formatTime(request.end_time)}</p>
                             </td>
-                            <td className="px-4 py-4 text-slate-700">{request.expected_attendees || 'Not specified'}</td>
-                            <td className="max-w-xs px-4 py-4 text-slate-600">
+                            <td className="px-4 py-4 text-sub">{request.expected_attendees || 'Not specified'}</td>
+                            <td className="max-w-xs px-4 py-4 text-sub">
                                 <p className="line-clamp-3">{request.purpose}</p>
-                                {request.admin_remarks && <p className="mt-2 text-xs text-slate-500">Admin: {request.admin_remarks}</p>}
+                                {request.admin_remarks && <p className="mt-2 text-xs text-muted-text">Admin: {request.admin_remarks}</p>}
                             </td>
                             <td className="px-4 py-4">
                                 <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${request.status === 'approved'
-                                    ? 'bg-emerald-50 text-emerald-800'
+                                    ? 'bg-[var(--success-light)] text-success'
                                     : request.status === 'rejected'
-                                        ? 'bg-rose-50 text-rose-800'
-                                        : 'bg-amber-50 text-amber-800'}`}>
+                                        ? 'bg-[var(--danger-light)] text-danger'
+                                        : 'bg-[var(--warning-light)] text-warning'}`}>
                                     {request.status}
                                 </span>
                             </td>
@@ -645,7 +645,7 @@ const SeminarHallRequests = () => {
                                                 event.stopPropagation();
                                                 reviewRequest(request.id, 'approved');
                                             }}
-                                            className="inline-flex items-center gap-1 rounded-md bg-emerald-700 px-2.5 py-2 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50"
+                                            className="inline-flex items-center gap-1 rounded-md bg-success px-2.5 py-2 text-xs font-semibold text-white hover:bg-success disabled:opacity-50"
                                         >
                                             <Check size={14} /> Approve
                                         </button>
@@ -656,18 +656,18 @@ const SeminarHallRequests = () => {
                                                 event.stopPropagation();
                                                 reviewRequest(request.id, 'rejected');
                                             }}
-                                            className="inline-flex items-center gap-1 rounded-md border border-rose-200 px-2.5 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+                                            className="inline-flex items-center gap-1 rounded-md border border-[var(--danger-light)] px-2.5 py-2 text-xs font-semibold text-danger hover:bg-[var(--danger-light)] disabled:opacity-50"
                                         >
                                             <XCircle size={14} /> Reject
                                         </button>
                                     </div>
-                                ) : <span className="text-xs text-slate-400">Reviewed</span>}
+                                ) : <span className="text-xs text-muted-text">Reviewed</span>}
                             </td>
                         </tr>
                     ); })}
                     {rows.length === 0 && (
                         <tr>
-                            <td colSpan={7} className="px-4 py-12 text-center text-sm text-slate-500">
+                            <td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-text">
                                 No requests match these filters.
                             </td>
                         </tr>
@@ -678,15 +678,15 @@ const SeminarHallRequests = () => {
     );
 
     return (
-        <main className="body-font min-h-screen w-full space-y-6 bg-[#f3f7f5] px-4 py-6 text-slate-800 sm:px-6 lg:px-8">
-            <header className="flex flex-col gap-4 border-b border-[#d8e5e0] pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <main className="body-font min-h-screen w-full space-y-6 bg-[var(--success-light)] px-4 py-6 text-main sm:px-6 lg:px-8">
+            <header className="flex flex-col gap-4 border-b border-[var(--success-light)] pb-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#17675c] text-white shadow-sm">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[var(--info)] text-white shadow-sm">
                         <Building2 size={21} />
                     </span>
                     <div>
-                        <h1 className="text-xl font-bold text-slate-900">Seminar Hall Requests</h1>
-                        <p className="text-sm text-slate-500">Manage halls and review campus bookings</p>
+                        <h1 className="text-xl font-bold text-main">Seminar Hall Requests</h1>
+                        <p className="text-sm text-muted-text">Manage halls and review campus bookings</p>
                     </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -699,7 +699,7 @@ const SeminarHallRequests = () => {
                         }}
                         aria-expanded={showRequestForm}
                         aria-haspopup="dialog"
-                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-emerald-800 px-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-900"
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-success px-3 text-sm font-semibold text-white shadow-sm hover:bg-success"
                     >
                         <CalendarClock size={15} /> Create Request
                     </button>
@@ -713,7 +713,7 @@ const SeminarHallRequests = () => {
                         }}
                         aria-expanded={showHallForm}
                         aria-haspopup="dialog"
-                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-sky-700 bg-white px-3 text-sm font-semibold text-sky-800 hover:bg-sky-50"
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-info bg-surface px-3 text-sm font-semibold text-info hover:bg-[var(--primary-light)]"
                     >
                         <Plus size={15} /> Seminar Halls Management
                     </button>
@@ -722,7 +722,7 @@ const SeminarHallRequests = () => {
                         type="button"
                         onClick={() => { loadRequests(); loadHalls(); }}
                         disabled={loading}
-                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 hover:bg-amber-50 disabled:opacity-50"
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-sm font-semibold text-sub hover:bg-[var(--warning-light)] disabled:opacity-50"
                     >
                         <RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> Refresh
                     </button>
@@ -740,65 +740,65 @@ const SeminarHallRequests = () => {
                 <section className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
                     <form onSubmit={submitHall} className="max-w-2xl space-y-5">
                         <div>
-                            <h3 className="text-lg font-bold text-slate-900">{editingHallId ? 'Edit Seminar Hall' : 'Add Seminar Hall'}</h3>
+                            <h3 className="text-lg font-bold text-main">{editingHallId ? 'Edit Seminar Hall' : 'Add Seminar Hall'}</h3>
                         </div>
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <label className="space-y-1.5 text-sm font-medium text-slate-700 sm:col-span-2">
-                                Hall name <span className="text-rose-600">*</span>
-                                <input required value={hallForm.hallName} onChange={event => setHallForm({ ...hallForm, hallName: event.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
+                            <label className="space-y-1.5 text-sm font-medium text-sub sm:col-span-2">
+                                Hall name <span className="text-danger">*</span>
+                                <input required value={hallForm.hallName} onChange={event => setHallForm({ ...hallForm, hallName: event.target.value })} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
                             </label>
-                            <label className="space-y-1.5 text-sm font-medium text-slate-700">
-                                Seating capacity <span className="text-rose-600">*</span>
-                                <input required type="number" min="1" step="1" value={hallForm.capacity} onChange={event => setHallForm({ ...hallForm, capacity: event.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
+                            <label className="space-y-1.5 text-sm font-medium text-sub">
+                                Seating capacity <span className="text-danger">*</span>
+                                <input required type="number" min="1" step="1" value={hallForm.capacity} onChange={event => setHallForm({ ...hallForm, capacity: event.target.value })} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
                             </label>
-                            <label className="space-y-1.5 text-sm font-medium text-slate-700">
+                            <label className="space-y-1.5 text-sm font-medium text-sub">
                                 Location
-                                <input value={hallForm.location} onChange={event => setHallForm({ ...hallForm, location: event.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
+                                <input value={hallForm.location} onChange={event => setHallForm({ ...hallForm, location: event.target.value })} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
                             </label>
-                            <label className="space-y-1.5 text-sm font-medium text-slate-700">
-                                Opens at <span className="text-rose-600">*</span>
-                                <input required type="time" value={hallForm.openTime} max={hallForm.closeTime || undefined} onChange={event => setHallForm({ ...hallForm, openTime: event.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
+                            <label className="space-y-1.5 text-sm font-medium text-sub">
+                                Opens at <span className="text-danger">*</span>
+                                <input required type="time" value={hallForm.openTime} max={hallForm.closeTime || undefined} onChange={event => setHallForm({ ...hallForm, openTime: event.target.value })} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
                             </label>
-                            <label className="space-y-1.5 text-sm font-medium text-slate-700">
-                                Closes at <span className="text-rose-600">*</span>
-                                <input required type="time" value={hallForm.closeTime} min={hallForm.openTime || undefined} onChange={event => setHallForm({ ...hallForm, closeTime: event.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
+                            <label className="space-y-1.5 text-sm font-medium text-sub">
+                                Closes at <span className="text-danger">*</span>
+                                <input required type="time" value={hallForm.closeTime} min={hallForm.openTime || undefined} onChange={event => setHallForm({ ...hallForm, closeTime: event.target.value })} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
                             </label>
-                            <label className="space-y-1.5 text-sm font-medium text-slate-700 sm:col-span-2">
+                            <label className="space-y-1.5 text-sm font-medium text-sub sm:col-span-2">
                                 Description / facilities
-                                <textarea rows="3" value={hallForm.description} onChange={event => setHallForm({ ...hallForm, description: event.target.value })} className="w-full resize-y rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
+                                <textarea rows="3" value={hallForm.description} onChange={event => setHallForm({ ...hallForm, description: event.target.value })} className="w-full resize-y rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
                             </label>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            <button type="submit" disabled={savingHall} className="inline-flex min-h-10 items-center gap-2 rounded-md bg-teal-800 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-900 disabled:opacity-50">
+                            <button type="submit" disabled={savingHall} className="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-hover disabled:opacity-50">
                                 {editingHallId ? <Pencil size={16} /> : <Plus size={16} />}
                                 {savingHall ? 'Saving...' : editingHallId ? 'Save Changes' : 'Create Hall'}
                             </button>
                             {editingHallId && (
-                                <button type="button" onClick={cancelHallEdit} className="min-h-10 rounded-md border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                                <button type="button" onClick={cancelHallEdit} className="min-h-10 rounded-md border border-border-strong px-4 py-2 text-sm font-semibold text-sub hover:bg-background">
                                     Cancel Edit
                                 </button>
                             )}
                         </div>
                     </form>
                     <section>
-                        <h3 className="mb-3 text-lg font-bold text-slate-900">Existing Halls <span className="text-sm font-medium text-slate-500">{halls.length}</span></h3>
-                        <div className="divide-y divide-slate-200 border-y border-slate-200">
+                        <h3 className="mb-3 text-lg font-bold text-main">Existing Halls <span className="text-sm font-medium text-muted-text">{halls.length}</span></h3>
+                        <div className="divide-y divide-border border-y border-border">
                             {halls.map(hall => (
                                 <article key={hall.id} className="flex items-start justify-between gap-4 py-4">
                                     <div className="flex min-w-0 items-start gap-3">
-                                        <Building2 size={18} className="mt-0.5 shrink-0 text-teal-800" />
+                                        <Building2 size={18} className="mt-0.5 shrink-0 text-primary" />
                                         <div className="min-w-0">
-                                            <h3 className="font-semibold text-slate-900">{hall.hall_name}</h3>
-                                            <p className="mt-1 text-sm text-slate-500">{hall.location || 'Location not specified'}{hall.description ? ` · ${hall.description}` : ''}</p>
-                                            <p className="mt-1 text-xs font-medium text-teal-800">Open {formatTime(hall.open_time)} - {formatTime(hall.close_time)}</p>
+                                            <h3 className="font-semibold text-main">{hall.hall_name}</h3>
+                                            <p className="mt-1 text-sm text-muted-text">{hall.location || 'Location not specified'}{hall.description ? ` · ${hall.description}` : ''}</p>
+                                            <p className="mt-1 text-xs font-medium text-primary">Open {formatTime(hall.open_time)} - {formatTime(hall.close_time)}</p>
                                         </div>
                                     </div>
                                     <div className="flex shrink-0 items-center gap-1">
-                                        <span className="mr-2 text-sm text-slate-700">{hall.capacity} seats</span>
+                                        <span className="mr-2 text-sm text-sub">{hall.capacity} seats</span>
                                         <button
                                             type="button"
                                             onClick={() => editHall(hall)}
-                                            className="rounded-md p-2 text-slate-500 hover:bg-teal-50 hover:text-teal-800"
+                                            className="rounded-md p-2 text-muted-text hover:bg-[var(--primary-light)] hover:text-primary"
                                             aria-label={`Edit ${hall.hall_name}`}
                                             title="Edit hall"
                                         >
@@ -807,7 +807,7 @@ const SeminarHallRequests = () => {
                                         <button
                                             type="button"
                                             onClick={() => deleteHall(hall)}
-                                            className="rounded-md p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-700"
+                                            className="rounded-md p-2 text-muted-text hover:bg-[var(--danger-light)] hover:text-danger"
                                             aria-label={`Delete ${hall.hall_name}`}
                                             title="Delete hall"
                                         >
@@ -816,7 +816,7 @@ const SeminarHallRequests = () => {
                                     </div>
                                 </article>
                             ))}
-                            {halls.length === 0 && <p className="py-8 text-sm text-slate-500">No seminar halls have been created.</p>}
+                            {halls.length === 0 && <p className="py-8 text-sm text-muted-text">No seminar halls have been created.</p>}
                         </div>
                     </section>
                 </section>
@@ -834,8 +834,8 @@ const SeminarHallRequests = () => {
                 <form onSubmit={submitRequest} className="max-w-4xl space-y-5">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="space-y-2 sm:col-span-2">
-                            <span className="block text-sm font-medium text-slate-700">Request audience</span>
-                            <div className="inline-flex rounded-md border border-slate-300 bg-white p-1" role="group" aria-label="Request audience type">
+                            <span className="block text-sm font-medium text-sub">Request audience</span>
+                            <div className="inline-flex rounded-md border border-border-strong bg-surface p-1" role="group" aria-label="Request audience type">
                                 {[
                                     { value: 'club', label: 'Club' },
                                     { value: 'college', label: 'College / Branch' }
@@ -845,7 +845,7 @@ const SeminarHallRequests = () => {
                                         type="button"
                                         onClick={() => changeRequestType(option.value)}
                                         aria-pressed={form.requestType === option.value}
-                                        className={`rounded px-3 py-2 text-sm font-semibold ${form.requestType === option.value ? 'bg-teal-800 text-white' : 'text-slate-600 hover:bg-slate-50'}`}
+                                        className={`rounded px-3 py-2 text-sm font-semibold ${form.requestType === option.value ? 'bg-primary text-white' : 'text-sub hover:bg-background'}`}
                                     >
                                         {option.label}
                                     </button>
@@ -920,21 +920,21 @@ const SeminarHallRequests = () => {
                                 />
                             </div>
                         )}
-                        <label className="space-y-1.5 text-sm font-medium text-slate-700">
-                            Event name <span className="text-rose-600">*</span>
-                            <input required value={form.eventName} onChange={event => setForm({ ...form, eventName: event.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
+                        <label className="space-y-1.5 text-sm font-medium text-sub">
+                            Event name <span className="text-danger">*</span>
+                            <input required value={form.eventName} onChange={event => setForm({ ...form, eventName: event.target.value })} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
                         </label>
-                        <label className="space-y-1.5 text-sm font-medium text-slate-700">
-                            Organizer / department <span className="text-rose-600">*</span>
-                            <input required value={form.organizer} onChange={event => setForm({ ...form, organizer: event.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
+                        <label className="space-y-1.5 text-sm font-medium text-sub">
+                            Organizer / department <span className="text-danger">*</span>
+                            <input required value={form.organizer} onChange={event => setForm({ ...form, organizer: event.target.value })} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
                         </label>
-                        <label className="space-y-1.5 text-sm font-medium text-slate-700">
-                            Seminar hall <span className="text-rose-600">*</span>
+                        <label className="space-y-1.5 text-sm font-medium text-sub">
+                            Seminar hall <span className="text-danger">*</span>
                             <select required value={form.hallName} onChange={event => {
                                 const hallName = event.target.value;
                                 setForm(current => ({ ...current, hallName }));
                                 if (form.eventDate) notifyDateAvailability(form.eventDate, hallName);
-                            }} className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15">
+                            }} className="w-full rounded-md border border-border-strong bg-surface px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]">
                                 <option value="">Select a seminar hall</option>
                                 {halls.map(hall => (
                                     <option key={hall.id} value={hall.hall_name}>
@@ -942,62 +942,62 @@ const SeminarHallRequests = () => {
                                     </option>
                                 ))}
                             </select>
-                            {halls.length === 0 && <span className="block text-xs text-slate-500">Create a seminar hall before submitting a booking request.</span>}
+                            {halls.length === 0 && <span className="block text-xs text-muted-text">Create a seminar hall before submitting a booking request.</span>}
                             {selectedHall && (
-                                <span className="block rounded-md bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-600">
-                                    <strong className="font-semibold text-slate-800">{selectedHall.capacity} seats</strong>
+                                <span className="block rounded-md bg-background px-3 py-2 text-xs leading-relaxed text-sub">
+                                    <strong className="font-semibold text-main">{selectedHall.capacity} seats</strong>
                                     {selectedHall.location && ` · ${selectedHall.location}`}
                                     {selectedHall.description && ` · ${selectedHall.description}`}
                                     {` · Open ${formatTime(selectedHall.open_time)}-${formatTime(selectedHall.close_time)}`}
                                 </span>
                             )}
                         </label>
-                        <label className="space-y-1.5 text-sm font-medium text-slate-700">
-                            Event date <span className="text-rose-600">*</span>
+                        <label className="space-y-1.5 text-sm font-medium text-sub">
+                            Event date <span className="text-danger">*</span>
                             <input required type="date" min={new Date().toISOString().slice(0, 10)} value={form.eventDate} onChange={event => {
                                 const eventDate = event.target.value;
                                 setForm(current => ({ ...current, eventDate }));
                                 notifyDateAvailability(eventDate, form.hallName);
-                            }} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
+                            }} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
                             {form.eventDate && (
-                                <div role="status" aria-live="polite" className={`space-y-3 rounded-md border p-3 text-xs font-normal ${selectedDateRequests.length ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}>
+                                <div role="status" aria-live="polite" className={`space-y-3 rounded-md border p-3 text-xs font-normal ${selectedDateRequests.length ? 'border-[var(--warning-light)] bg-[var(--warning-light)] text-warning' : 'border-[var(--success-light)] bg-[var(--success-light)] text-success'}`}>
                                     <p className="font-medium">{dateAlert || 'Select a hall to check its availability.'}</p>
                                     {form.hallName ? (
                                         <>
                                             <p className="font-semibold">Availability for {selectedHall.hall_name} ({formatTime(selectedHall.open_time)}-{formatTime(selectedHall.close_time)})</p>
                                             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                                <section className="rounded-md border border-emerald-200 bg-white p-3" aria-labelledby="available-periods-heading">
-                                                    <h3 id="available-periods-heading" className="mb-2 font-semibold text-emerald-800">Available</h3>
+                                                <section className="rounded-md border border-[var(--success-light)] bg-surface p-3" aria-labelledby="available-periods-heading">
+                                                    <h3 id="available-periods-heading" className="mb-2 font-semibold text-success">Available</h3>
                                                     {availabilityPeriods.filter(period => !period.occupied).length > 0 ? (
-                                                        <ul className="space-y-1 text-emerald-800">
+                                                        <ul className="space-y-1 text-success">
                                                             {availabilityPeriods.filter(period => !period.occupied).map(period => (
                                                                 <li key={period.start}>{formatMinutes(period.start)}-{formatMinutes(period.end)}</li>
                                                             ))}
                                                         </ul>
-                                                    ) : <p className="text-slate-500">No available periods.</p>}
+                                                    ) : <p className="text-muted-text">No available periods.</p>}
                                                 </section>
-                                                <section className="rounded-md border border-rose-200 bg-white p-3" aria-labelledby="unavailable-periods-heading">
-                                                    <h3 id="unavailable-periods-heading" className="mb-2 font-semibold text-rose-800">Not Available</h3>
+                                                <section className="rounded-md border border-[var(--danger-light)] bg-surface p-3" aria-labelledby="unavailable-periods-heading">
+                                                    <h3 id="unavailable-periods-heading" className="mb-2 font-semibold text-danger">Not Available</h3>
                                                     {availabilityPeriods.filter(period => period.occupied).length > 0 ? (
-                                                        <ul className="space-y-2 text-rose-800">
+                                                        <ul className="space-y-2 text-danger">
                                                             {availabilityPeriods.filter(period => period.occupied).map(period => (
                                                                 <li key={period.start}>
                                                                     <p>{formatMinutes(period.start)}-{formatMinutes(period.end)}</p>
                                                                     {period.events.map(request => (
-                                                                        <p key={request.id} className="text-xs text-slate-600">
+                                                                        <p key={request.id} className="text-xs text-sub">
                                                                             {request.event_title || request.event_name} · {request.status}
                                                                         </p>
                                                                     ))}
                                                                 </li>
                                                             ))}
                                                         </ul>
-                                                    ) : <p className="text-slate-500">No busy periods.</p>}
+                                                    ) : <p className="text-muted-text">No busy periods.</p>}
                                                 </section>
                                             </div>
                                         </>
                                     ) : (
                                         selectedDateRequests.length > 0 && (
-                                            <ul className="space-y-1 border-t border-amber-200 pt-2">
+                                            <ul className="space-y-1 border-t border-[var(--warning-light)] pt-2">
                                                 {selectedDateRequests.map(request => (
                                                     <li key={request.id}>
                                                         {request.event_title || request.event_name} · {request.hall_name} · {formatTime(request.start_time)}-{formatTime(request.end_time)}
@@ -1009,34 +1009,34 @@ const SeminarHallRequests = () => {
                                 </div>
                             )}
                         </label>
-                        <label className="space-y-1.5 text-sm font-medium text-slate-700">
-                            Start time <span className="text-rose-600">*</span>
-                            <input required type="time" value={form.startTime} onChange={event => setForm({ ...form, startTime: event.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
-                            {form.startTime && <span className="block text-xs font-normal text-slate-500">Selected: {formatTime(form.startTime)}</span>}
+                        <label className="space-y-1.5 text-sm font-medium text-sub">
+                            Start time <span className="text-danger">*</span>
+                            <input required type="time" value={form.startTime} onChange={event => setForm({ ...form, startTime: event.target.value })} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
+                            {form.startTime && <span className="block text-xs font-normal text-muted-text">Selected: {formatTime(form.startTime)}</span>}
                         </label>
-                        <label className="space-y-1.5 text-sm font-medium text-slate-700">
-                            End time <span className="text-rose-600">*</span>
-                            <input required type="time" min={form.startTime || undefined} value={form.endTime} onChange={event => setForm({ ...form, endTime: event.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
-                            {form.endTime && <span className="block text-xs font-normal text-slate-500">Selected: {formatTime(form.endTime)}</span>}
-                            {hasInvalidRequestedTimeRange && <span role="alert" className="block text-xs font-medium text-rose-700">{`End time (${formatTime(form.endTime)}) must be later than start time (${formatTime(form.startTime)}). Use 24-hour time for afternoon hours, e.g. 3:00 PM is 15:00.`}</span>}
-                            {isOutsideHallHours && <span role="alert" className="block text-xs font-medium text-rose-700">Choose a time within this hall's opening hours ({formatTime(selectedHall.open_time)}-{formatTime(selectedHall.close_time)}).</span>}
+                        <label className="space-y-1.5 text-sm font-medium text-sub">
+                            End time <span className="text-danger">*</span>
+                            <input required type="time" min={form.startTime || undefined} value={form.endTime} onChange={event => setForm({ ...form, endTime: event.target.value })} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
+                            {form.endTime && <span className="block text-xs font-normal text-muted-text">Selected: {formatTime(form.endTime)}</span>}
+                            {hasInvalidRequestedTimeRange && <span role="alert" className="block text-xs font-medium text-danger">{`End time (${formatTime(form.endTime)}) must be later than start time (${formatTime(form.startTime)}). Use 24-hour time for afternoon hours, e.g. 3:00 PM is 15:00.`}</span>}
+                            {isOutsideHallHours && <span role="alert" className="block text-xs font-medium text-danger">Choose a time within this hall's opening hours ({formatTime(selectedHall.open_time)}-{formatTime(selectedHall.close_time)}).</span>}
                             {conflictingBookings.map(request => (
-                                <span key={request.id} role="alert" className="block text-xs font-medium text-rose-700">
+                                <span key={request.id} role="alert" className="block text-xs font-medium text-danger">
                                     Conflicts with {request.event_title || request.event_name} ({formatTime(request.start_time)}-{formatTime(request.end_time)}).
                                 </span>
                             ))}
                         </label>
-                        <label className="space-y-1.5 text-sm font-medium text-slate-700 sm:col-span-2">
-                            Estimated attendee count {estimatingCount && <span className="font-normal text-slate-500">Updating estimate...</span>}
-                            <input type="number" min="0" value={form.expectedAttendees} onChange={event => setForm({ ...form, expectedAttendees: event.target.value })} className="w-full rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15 sm:max-w-xs" />
-                            <span className="block text-xs font-normal text-slate-500">Estimated from the selected audience; you can edit this count.</span>
+                        <label className="space-y-1.5 text-sm font-medium text-sub sm:col-span-2">
+                            Estimated attendee count {estimatingCount && <span className="font-normal text-muted-text">Updating estimate...</span>}
+                            <input type="number" min="0" value={form.expectedAttendees} onChange={event => setForm({ ...form, expectedAttendees: event.target.value })} className="w-full rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)] sm:max-w-xs" />
+                            <span className="block text-xs font-normal text-muted-text">Estimated from the selected audience; you can edit this count.</span>
                         </label>
-                        <label className="space-y-1.5 text-sm font-medium text-slate-700 sm:col-span-2">
-                            Purpose / event details <span className="text-rose-600">*</span>
-                            <textarea required rows="4" value={form.purpose} onChange={event => setForm({ ...form, purpose: event.target.value })} className="w-full resize-y rounded-md border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-700 focus:ring-2 focus:ring-teal-700/15" />
+                        <label className="space-y-1.5 text-sm font-medium text-sub sm:col-span-2">
+                            Purpose / event details <span className="text-danger">*</span>
+                            <textarea required rows="4" value={form.purpose} onChange={event => setForm({ ...form, purpose: event.target.value })} className="w-full resize-y rounded-md border border-border-strong px-3 py-2.5 font-normal outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)]" />
                         </label>
                     </div>
-                    <button type="submit" disabled={saving || hasInvalidRequestedTimeRange || isOutsideHallHours || conflictingBookings.length > 0} className="inline-flex min-h-10 items-center gap-2 rounded-md bg-teal-800 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-900 disabled:cursor-not-allowed disabled:opacity-50">
+                    <button type="submit" disabled={saving || hasInvalidRequestedTimeRange || isOutsideHallHours || conflictingBookings.length > 0} className="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50">
                         <CalendarClock size={16} /> {saving ? 'Submitting...' : 'Submit Request'}
                     </button>
                 </form>
@@ -1045,30 +1045,30 @@ const SeminarHallRequests = () => {
 
             <section className="space-y-4" aria-labelledby="approvals-heading">
                 <div className="flex items-center gap-2">
-                    <CheckCircle size={18} className="text-emerald-800" />
-                    <h2 id="approvals-heading" className="text-lg font-bold text-slate-900">Approvals &amp; Rejections</h2>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{requests.length}</span>
+                    <CheckCircle size={18} className="text-success" />
+                    <h2 id="approvals-heading" className="text-lg font-bold text-main">Approvals &amp; Rejections</h2>
+                    <span className="rounded-full bg-background px-2 py-0.5 text-xs font-semibold text-sub">{requests.length}</span>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="inline-flex w-fit max-w-full overflow-x-auto rounded-md border border-slate-200 bg-white p-0.5 shadow-sm" role="group" aria-label="Filter requests by status">
+                    <div className="inline-flex w-fit max-w-full overflow-x-auto rounded-md border border-border bg-surface p-0.5 shadow-sm" role="group" aria-label="Filter requests by status">
                         {['all', 'pending', 'approved', 'rejected'].map(status => (
                             <button
                                 key={status}
                                 type="button"
                                 onClick={() => setStatusFilter(status)}
                                 aria-pressed={statusFilter === status}
-                                className={`shrink-0 rounded px-3 py-2 text-sm font-semibold capitalize ${statusFilter === status ? 'bg-[#17675c] text-white shadow-sm' : 'text-slate-600 hover:bg-amber-50'}`}
+                                className={`shrink-0 rounded px-3 py-2 text-sm font-semibold capitalize ${statusFilter === status ? 'bg-[var(--info)] text-white shadow-sm' : 'text-sub hover:bg-[var(--warning-light)]'}`}
                             >
                                 {status}
                             </button>
                         ))}
                     </div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                    <label className="flex items-center gap-2 text-sm font-medium text-sub">
                         Hall
                         <select
                             value={hallFilter}
                             onChange={event => setHallFilter(event.target.value)}
-                            className="min-h-10 max-w-full rounded-md border border-slate-300 bg-white px-3 text-sm font-normal outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15"
+                            className="min-h-10 max-w-full rounded-md border border-border-strong bg-surface px-3 text-sm font-normal outline-none focus:border-success focus:ring-2 focus:ring-[var(--success-light)]"
                         >
                             <option value="all">All halls</option>
                             {halls.map(hall => <option key={hall.id} value={hall.hall_name}>{hall.hall_name}</option>)}
@@ -1076,33 +1076,33 @@ const SeminarHallRequests = () => {
                     </label>
                 </div>
                 {loading
-                    ? <div className="flex items-center gap-2 py-8 text-sm text-slate-500"><RefreshCw size={16} className="animate-spin" /> Loading requests...</div>
+                    ? <div className="flex items-center gap-2 py-8 text-sm text-muted-text"><RefreshCw size={16} className="animate-spin" /> Loading requests...</div>
                     : renderRequests(filteredRequests)}
             </section>
 
-            <section ref={calendarRef} className="scroll-mt-6 space-y-4 border-t border-[#d8e5e0] pt-6" aria-labelledby="occupancy-calendar-heading">
+            <section ref={calendarRef} className="scroll-mt-6 space-y-4 border-t border-[var(--success-light)] pt-6" aria-labelledby="occupancy-calendar-heading">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h2 id="occupancy-calendar-heading" className="text-lg font-bold text-slate-900">Seminar Hall Occupancy</h2>
-                        <p className="text-sm text-slate-500">All seminar hall requests are marked by status.</p>
+                        <h2 id="occupancy-calendar-heading" className="text-lg font-bold text-main">Seminar Hall Occupancy</h2>
+                        <p className="text-sm text-muted-text">All seminar hall requests are marked by status.</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
                             aria-label="Previous month"
                             onClick={() => setCalendarMonth(month => new Date(month.getFullYear(), month.getMonth() - 1, 1))}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:border-amber-400 hover:bg-amber-50"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border-strong bg-surface text-sub hover:border-warning hover:bg-[var(--warning-light)]"
                         >
                             <ChevronLeft size={17} />
                         </button>
-                        <p className="min-w-32 text-center text-sm font-semibold text-slate-800">
+                        <p className="min-w-32 text-center text-sm font-semibold text-main">
                             {calendarMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                         </p>
                         <button
                             type="button"
                             aria-label="Next month"
                             onClick={() => setCalendarMonth(month => new Date(month.getFullYear(), month.getMonth() + 1, 1))}
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:border-amber-400 hover:bg-amber-50"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border-strong bg-surface text-sub hover:border-warning hover:bg-[var(--warning-light)]"
                         >
                             <ChevronRight size={17} />
                         </button>
@@ -1111,19 +1111,19 @@ const SeminarHallRequests = () => {
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(16rem,0.8fr)]">
                     <div>
-                        <div className="grid grid-cols-7 border-l border-t border-slate-200">
+                        <div className="grid grid-cols-7 border-l border-t border-border">
                             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                                <div key={day} className="border-b border-r border-slate-200 bg-slate-50 py-2 text-center text-xs font-semibold text-slate-500">{day}</div>
+                                <div key={day} className="border-b border-r border-border bg-background py-2 text-center text-xs font-semibold text-muted-text">{day}</div>
                             ))}
                             {calendarDays.map(day => {
                                 const dayKey = getDateKey(day);
                                 const dayRequests = requestsByDate[dayKey] || [];
                                 const hasBookings = dayRequests.length > 0;
                                 const markerColor = dayRequests.some(request => request.status === 'pending')
-                                    ? 'bg-amber-600'
+                                    ? 'bg-warning'
                                     : dayRequests.some(request => request.status === 'approved')
-                                        ? 'bg-emerald-700'
-                                        : 'bg-rose-600';
+                                        ? 'bg-success'
+                                        : 'bg-danger';
                                 const inCurrentMonth = day.getMonth() === calendarMonth.getMonth();
                                 const isSelected = dayKey === selectedCalendarDate;
                                 return (
@@ -1136,66 +1136,66 @@ const SeminarHallRequests = () => {
                                         }}
                                         aria-label={`${formatDate(dayKey)}${hasBookings ? `, ${dayRequests.length} seminar hall request${dayRequests.length === 1 ? '' : 's'}` : ''}`}
                                         aria-pressed={isSelected}
-                                        className={`flex aspect-square min-h-10 flex-col items-center justify-center gap-1 border-b border-r border-slate-200 text-sm ${isSelected
-                                            ? 'bg-[#17675c] font-bold text-white'
+                                        className={`flex aspect-square min-h-10 flex-col items-center justify-center gap-1 border-b border-r border-border text-sm ${isSelected
+                                            ? 'bg-[var(--info)] font-bold text-white'
                                             : !inCurrentMonth
-                                                ? 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                                                ? 'bg-background text-muted-text hover:bg-background'
                                                 : hasBookings
-                                                    ? 'bg-amber-50 font-semibold text-slate-800 hover:bg-amber-100'
-                                                    : 'bg-white text-slate-800 hover:bg-emerald-50'}`}
+                                                    ? 'bg-[var(--warning-light)] font-semibold text-main hover:bg-[var(--warning-light)]'
+                                                    : 'bg-surface text-main hover:bg-[var(--success-light)]'}`}
                                     >
                                         <span>{day.getDate()}</span>
-                                        <span className={`h-1.5 w-1.5 rounded-full ${hasBookings ? (isSelected ? 'bg-white' : markerColor) : 'bg-transparent'}`} />
+                                        <span className={`h-1.5 w-1.5 rounded-full ${hasBookings ? (isSelected ? 'bg-surface' : markerColor) : 'bg-transparent'}`} />
                                     </button>
                                 );
                             })}
                         </div>
-                        <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-                            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-emerald-700" /> Approved</span>
-                            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-amber-600" /> Pending</span>
-                            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-rose-600" /> Rejected</span>
+                        <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-text">
+                            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-success" /> Approved</span>
+                            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-warning" /> Pending</span>
+                            <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-danger" /> Rejected</span>
                         </p>
                     </div>
 
-                    <aside className="min-h-48 border-l-2 border-emerald-700 pl-4">
-                        <h3 className="font-semibold text-slate-900">{formatDate(selectedCalendarDate)}</h3>
+                    <aside className="min-h-48 border-l-2 border-success pl-4">
+                        <h3 className="font-semibold text-main">{formatDate(selectedCalendarDate)}</h3>
                         <div className="mt-3 space-y-3">
                             {selectedDateBookings.map(request => (
-                                <article key={request.id} className="space-y-2 rounded-lg border border-slate-200 border-l-4 border-l-emerald-600 bg-white p-4 shadow-sm">
+                                <article key={request.id} className="space-y-2 rounded-lg border border-border border-l-4 border-l-success bg-surface p-4 shadow-sm">
                                     <header className="flex items-start justify-between gap-3">
-                                        <h3 className="font-semibold text-slate-900">{request.event_name}</h3>
+                                        <h3 className="font-semibold text-main">{request.event_name}</h3>
                                         <span className={`rounded-full px-2 py-1 text-xs font-semibold capitalize ${request.status === 'approved'
-                                            ? 'bg-emerald-50 text-emerald-800'
+                                            ? 'bg-[var(--success-light)] text-success'
                                             : request.status === 'pending'
-                                                ? 'bg-amber-50 text-amber-800'
-                                                : 'bg-rose-50 text-rose-800'}`}>{request.status}</span>
+                                                ? 'bg-[var(--warning-light)] text-warning'
+                                                : 'bg-[var(--danger-light)] text-danger'}`}>{request.status}</span>
                                     </header>
                                     <dl className="grid grid-cols-[7rem_minmax(0,1fr)] gap-x-2 gap-y-1 text-sm">
-                                        <dt className="text-slate-500">Audience</dt>
-                                        <dd className="text-slate-800">
+                                        <dt className="text-muted-text">Audience</dt>
+                                        <dd className="text-main">
                                             {request.request_type === 'college' ? 'College / Branch' : 'Club'}
                                             {request.audience_details && ` · ${request.audience_details}`}
                                         </dd>
-                                        <dt className="text-slate-500">Organizer</dt>
-                                        <dd className="text-slate-800">{request.organizer || 'Not specified'}</dd>
-                                        <dt className="text-slate-500">Seminar hall</dt>
-                                        <dd className="text-slate-800">{request.hall_name}</dd>
-                                        <dt className="text-slate-500">Time</dt>
-                                        <dd className="text-slate-800">{formatTime(request.start_time)} - {formatTime(request.end_time)}</dd>
-                                        <dt className="text-slate-500">Attendees</dt>
-                                        <dd className="text-slate-800">{request.expected_attendees ?? 'Not specified'}</dd>
-                                        <dt className="text-slate-500">Requested by</dt>
-                                        <dd className="text-slate-800">{request.requested_by_name || 'Unknown'}</dd>
-                                        <dt className="text-slate-500">Approved by</dt>
-                                        <dd className="text-slate-800">{request.reviewed_by_name || 'Not recorded'}</dd>
+                                        <dt className="text-muted-text">Organizer</dt>
+                                        <dd className="text-main">{request.organizer || 'Not specified'}</dd>
+                                        <dt className="text-muted-text">Seminar hall</dt>
+                                        <dd className="text-main">{request.hall_name}</dd>
+                                        <dt className="text-muted-text">Time</dt>
+                                        <dd className="text-main">{formatTime(request.start_time)} - {formatTime(request.end_time)}</dd>
+                                        <dt className="text-muted-text">Attendees</dt>
+                                        <dd className="text-main">{request.expected_attendees ?? 'Not specified'}</dd>
+                                        <dt className="text-muted-text">Requested by</dt>
+                                        <dd className="text-main">{request.requested_by_name || 'Unknown'}</dd>
+                                        <dt className="text-muted-text">Approved by</dt>
+                                        <dd className="text-main">{request.reviewed_by_name || 'Not recorded'}</dd>
                                     </dl>
-                                    {request.purpose && <p className="text-sm text-slate-700"><span className="font-medium">Purpose:</span> {request.purpose}</p>}
-                                    {request.equipment_needed && <p className="text-sm text-slate-700"><span className="font-medium">Equipment:</span> {request.equipment_needed}</p>}
-                                    {request.admin_remarks && <p className="text-sm text-slate-700"><span className="font-medium">Admin remarks:</span> {request.admin_remarks}</p>}
+                                    {request.purpose && <p className="text-sm text-sub"><span className="font-medium">Purpose:</span> {request.purpose}</p>}
+                                    {request.equipment_needed && <p className="text-sm text-sub"><span className="font-medium">Equipment:</span> {request.equipment_needed}</p>}
+                                    {request.admin_remarks && <p className="text-sm text-sub"><span className="font-medium">Admin remarks:</span> {request.admin_remarks}</p>}
                                 </article>
                             ))}
                             {selectedDateBookings.length === 0 && (
-                                <p className="text-sm text-slate-500">No seminar hall requests on this date.</p>
+                                <p className="text-sm text-muted-text">No seminar hall requests on this date.</p>
                             )}
                         </div>
                     </aside>

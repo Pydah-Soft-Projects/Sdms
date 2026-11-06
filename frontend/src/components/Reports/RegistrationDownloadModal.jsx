@@ -150,14 +150,14 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-surface rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-[var(--background)]/50">
                     <div>
-                        <h2 className="text-lg font-bold text-gray-900">Download Registration Report</h2>
-                        <p className="text-sm text-gray-500">Download enables only after abstract data has loaded completely</p>
+                        <h2 className="text-lg font-bold text-main">Download Registration Report</h2>
+                        <p className="text-sm text-muted-text">Download enables only after abstract data has loaded completely</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600">
+                    <button onClick={onClose} className="p-2 hover:bg-background rounded-full transition-colors text-muted-text hover:text-sub">
                         <X size={20} />
                     </button>
                 </div>
@@ -165,16 +165,16 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                 {/* content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {/* Filters Grid */}
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <div className="bg-background rounded-xl p-4 border border-border">
+                        <h3 className="text-sm font-semibold text-sub mb-3 flex items-center gap-2">
                             <Search size={16} /> Filter Selection
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
                             {/* College */}
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-500 uppercase">College</label>
+                                <label className="text-xs font-medium text-muted-text uppercase">College</label>
                                 <select
-                                    className="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-border-strong rounded-lg focus:ring-primary focus:border-primary"
                                     value={localFilters.college || ''}
                                     onChange={(e) => handleFilterChange('college', e.target.value)}
                                 >
@@ -184,9 +184,9 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                             </div>
                             {/* Batch */}
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-500 uppercase">Batch</label>
+                                <label className="text-xs font-medium text-muted-text uppercase">Batch</label>
                                 <select
-                                    className="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-border-strong rounded-lg focus:ring-primary focus:border-primary"
                                     value={localFilters.batch || ''}
                                     onChange={(e) => handleFilterChange('batch', e.target.value)}
                                 >
@@ -196,9 +196,9 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                             </div>
                             {/* Program */}
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-500 uppercase">Program</label>
+                                <label className="text-xs font-medium text-muted-text uppercase">Program</label>
                                 <select
-                                    className="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-border-strong rounded-lg focus:ring-primary focus:border-primary"
                                     value={localFilters.course || ''}
                                     onChange={(e) => handleFilterChange('course', e.target.value)}
                                 >
@@ -208,9 +208,9 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                             </div>
                             {/* Branch */}
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-500 uppercase">Branch</label>
+                                <label className="text-xs font-medium text-muted-text uppercase">Branch</label>
                                 <select
-                                    className="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-border-strong rounded-lg focus:ring-primary focus:border-primary"
                                     value={localFilters.branch || ''}
                                     onChange={(e) => handleFilterChange('branch', e.target.value)}
                                 >
@@ -220,9 +220,9 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                             </div>
                             {/* Year */}
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-500 uppercase">Year</label>
+                                <label className="text-xs font-medium text-muted-text uppercase">Year</label>
                                 <select
-                                    className="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-border-strong rounded-lg focus:ring-primary focus:border-primary"
                                     value={localFilters.year || ''}
                                     onChange={(e) => handleFilterChange('year', e.target.value)}
                                 >
@@ -232,9 +232,9 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                             </div>
                             {/* Semester */}
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-500 uppercase">Semester</label>
+                                <label className="text-xs font-medium text-muted-text uppercase">Semester</label>
                                 <select
-                                    className="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-border-strong rounded-lg focus:ring-primary focus:border-primary"
                                     value={localFilters.semester || ''}
                                     onChange={(e) => handleFilterChange('semester', e.target.value)}
                                 >
@@ -244,9 +244,9 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                             </div>
                             {/* Scholarship Status */}
                             <div className="space-y-1">
-                                <label className="text-xs font-medium text-gray-500 uppercase">Scholarship</label>
+                                <label className="text-xs font-medium text-muted-text uppercase">Scholarship</label>
                                 <select
-                                    className="w-full text-sm border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                    className="w-full text-sm border-border-strong rounded-lg focus:ring-primary focus:border-primary"
                                     value={localFilters.scholarshipStatus || ''}
                                     onChange={(e) => handleFilterChange('scholarshipStatus', e.target.value)}
                                 >
@@ -261,7 +261,7 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                             <button
                                 onClick={handlePreview}
                                 disabled={loading}
-                                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors border border-blue-200 disabled:opacity-60"
+                                className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary bg-[var(--primary-light)] hover:bg-[var(--primary-light)] px-4 py-2 rounded-lg transition-colors border border-[var(--primary-light)] disabled:opacity-60"
                             >
                                 {loading ? <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" /> : <Search size={16} />}
                                 {loading ? 'Loading abstract...' : 'Generate Preview (Abstract)'}
@@ -271,22 +271,22 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
 
                     {/* Preview Table */}
                     {loading ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-                            <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mb-3" />
-                            <p className="text-gray-600 font-medium">Loading abstract data...</p>
-                            <p className="text-gray-400 text-sm mt-1">Download unlocks once all branch data is ready</p>
+                        <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border rounded-xl bg-[var(--background)]/50">
+                            <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mb-3" />
+                            <p className="text-sub font-medium">Loading abstract data...</p>
+                            <p className="text-muted-text text-sm mt-1">Download unlocks once all branch data is ready</p>
                         </div>
                     ) : previewData.length > 0 ? (
-                        <div className="border border-gray-200 rounded-xl overflow-hidden">
-                            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
-                                <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">Preview (First 5 records)</h3>
+                        <div className="border border-border rounded-xl overflow-hidden">
+                            <div className="bg-background px-4 py-2 border-b border-border flex justify-between items-center">
+                                <h3 className="text-xs font-bold text-sub uppercase tracking-wider">Preview (First 5 records)</h3>
                                 <div className="flex items-center gap-4">
-                                    <span className="text-xs text-gray-500">{previewData.length} records shown</span>
+                                    <span className="text-xs text-muted-text">{previewData.length} records shown</span>
                                 </div>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm text-left">
-                                    <thead className="bg-gray-50 text-gray-500 font-semibold border-b border-gray-200">
+                                    <thead className="bg-background text-muted-text font-semibold border-b border-border">
                                         <tr>
                                             <th className="px-4 py-3 whitespace-nowrap">Batch</th>
                                             <th className="px-4 py-3 whitespace-nowrap">College</th>
@@ -304,7 +304,7 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                                             <th className="px-4 py-3 whitespace-nowrap text-center text-xs">Scholarship</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100">
+                                    <tbody className="divide-y divide-border">
                                         {previewData.map((row, idx) => {
                                             const total = parseInt(row.total || 0);
                                             const completed = parseInt(row.overall_completed || 0);
@@ -314,22 +314,22 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                                             if (idx >= 5) return null;
 
                                             return (
-                                                <tr key={`${row.batch}-${row.college}-${row.course}-${row.branch}-${row.current_year}-${row.current_semester}-${idx}`} className="hover:bg-gray-50 transition-colors">
-                                                    <td className="px-4 py-3 text-gray-900">{row.batch || '-'}</td>
-                                                    <td className="px-4 py-3 text-gray-700">{row.college || '-'}</td>
-                                                    <td className="px-4 py-3 text-gray-900 font-medium">{row.course || '-'}</td>
-                                                    <td className="px-4 py-3 text-gray-700">{row.branch || '-'}</td>
-                                                    <td className="px-4 py-3 text-center text-gray-600">{row.current_year}</td>
-                                                    <td className="px-4 py-3 text-center text-gray-600">{row.current_semester}</td>
+                                                <tr key={`${row.batch}-${row.college}-${row.course}-${row.branch}-${row.current_year}-${row.current_semester}-${idx}`} className="hover:bg-background transition-colors">
+                                                    <td className="px-4 py-3 text-main">{row.batch || '-'}</td>
+                                                    <td className="px-4 py-3 text-sub">{row.college || '-'}</td>
+                                                    <td className="px-4 py-3 text-main font-medium">{row.course || '-'}</td>
+                                                    <td className="px-4 py-3 text-sub">{row.branch || '-'}</td>
+                                                    <td className="px-4 py-3 text-center text-sub">{row.current_year}</td>
+                                                    <td className="px-4 py-3 text-center text-sub">{row.current_semester}</td>
                                                     <td className="px-4 py-3 text-center font-semibold">{total}</td>
-                                                    <td className="px-4 py-3 text-center text-green-600 font-medium">{completed}</td>
-                                                    <td className="px-4 py-3 text-center text-red-500 font-medium">{pending}</td>
+                                                    <td className="px-4 py-3 text-center text-success font-medium">{completed}</td>
+                                                    <td className="px-4 py-3 text-center text-danger font-medium">{pending}</td>
 
-                                                    <td className="px-4 py-3 text-center text-xs text-gray-500">{row.verification_completed}/{total - row.verification_completed}</td>
-                                                    <td className="px-4 py-3 text-center text-xs text-gray-500">{row.certificates_verified}/{total - row.certificates_verified}</td>
-                                                    <td className="px-4 py-3 text-center text-xs text-gray-500">{row.fee_cleared}/{total - row.fee_cleared}</td>
-                                                    <td className="px-4 py-3 text-center text-xs text-gray-500">{row.promotion_completed}/{total - row.promotion_completed}</td>
-                                                    <td className="px-4 py-3 text-center text-xs text-gray-500">{row.scholarship_assigned}/{row.scholarship_pending ?? (total - row.scholarship_assigned)}</td>
+                                                    <td className="px-4 py-3 text-center text-xs text-muted-text">{row.verification_completed}/{total - row.verification_completed}</td>
+                                                    <td className="px-4 py-3 text-center text-xs text-muted-text">{row.certificates_verified}/{total - row.certificates_verified}</td>
+                                                    <td className="px-4 py-3 text-center text-xs text-muted-text">{row.fee_cleared}/{total - row.fee_cleared}</td>
+                                                    <td className="px-4 py-3 text-center text-xs text-muted-text">{row.promotion_completed}/{total - row.promotion_completed}</td>
+                                                    <td className="px-4 py-3 text-center text-xs text-muted-text">{row.scholarship_assigned}/{row.scholarship_pending ?? (total - row.scholarship_assigned)}</td>
                                                 </tr>
                                             )
                                         })}
@@ -338,14 +338,14 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                             </div>
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-                            <div className="bg-white p-3 rounded-full border border-gray-100 shadow-sm mb-3">
-                                <Search className="text-gray-400" size={24} />
+                        <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border rounded-xl bg-[var(--background)]/50">
+                            <div className="bg-surface p-3 rounded-full border border-border shadow-sm mb-3">
+                                <Search className="text-muted-text" size={24} />
                             </div>
-                            <p className="text-gray-500 font-medium">
+                            <p className="text-muted-text font-medium">
                                 {previewReady ? 'No summary data found matching current filters' : 'No preview data generated'}
                             </p>
-                            <p className="text-gray-400 text-sm mt-1">
+                            <p className="text-muted-text text-sm mt-1">
                                 {previewReady
                                     ? 'Adjust filters and generate preview again'
                                     : 'Select filters and click "Generate Preview" to load abstract data'}
@@ -355,9 +355,9 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-6 border-t border-gray-100 bg-gray-50 flex items-center justify-between gap-4">
-                    <div className="text-xs text-gray-500 flex items-center gap-2">
-                        <AlertCircle size={14} className="text-blue-500" />
+                <div className="p-6 border-t border-border bg-background flex items-center justify-between gap-4">
+                    <div className="text-xs text-muted-text flex items-center gap-2">
+                        <AlertCircle size={14} className="text-primary" />
                         <span>
                             {loading
                                 ? 'Waiting for abstract data to load completely...'
@@ -368,10 +368,10 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                         <button
                             onClick={() => handleDownload('excel')}
                             disabled={!canDownload}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-success text-white rounded-lg hover:bg-success disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
                         >
                             {downloading && downloadFormat === 'excel' ? (
-                                <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <span className="h-4 w-4 border-2 border-surface border-t-transparent rounded-full animate-spin" />
                             ) : (
                                 <FileSpreadsheet size={18} />
                             )}
@@ -380,10 +380,10 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                         <button
                             onClick={() => handleDownload('pdf')}
                             disabled={!canDownload}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-danger text-white rounded-lg hover:bg-danger disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm font-medium"
                         >
                             {downloading && downloadFormat === 'pdf' ? (
-                                <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <span className="h-4 w-4 border-2 border-surface border-t-transparent rounded-full animate-spin" />
                             ) : (
                                 <FileText size={18} />
                             )}

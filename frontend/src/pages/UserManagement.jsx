@@ -74,29 +74,29 @@ const StudentViewDialogSubPagesSection = ({
   const editProfileRequestsEnabled = permissions.edit_profile_requests === true;
 
   return (
-    <div className="mt-5 pt-5 border-t border-slate-200">
-      <p className="text-[11px] font-bold text-slate-400 uppercase mb-3 px-1">
+    <div className="mt-5 pt-5 border-t border-border">
+      <p className="text-[11px] font-bold text-muted-text uppercase mb-3 px-1">
         Student Features & Dialog Sub-Pages
       </p>
       <div className={`${SUBPAGE_GRID_CLASS} mb-2 px-1`}>
-        <span className="text-[11px] font-bold text-slate-400 uppercase">Page / Feature</span>
-        <span className="text-[11px] font-bold text-blue-500 uppercase text-center">Read</span>
-        <span className="text-[11px] font-bold text-emerald-500 uppercase text-center">Write</span>
+        <span className="text-[11px] font-bold text-muted-text uppercase">Page / Feature</span>
+        <span className="text-[11px] font-bold text-primary uppercase text-center">Read</span>
+        <span className="text-[11px] font-bold text-success uppercase text-center">Write</span>
       </div>
 
       <div className="space-y-2">
-        <div className={`${SUBPAGE_GRID_CLASS} rounded-lg px-3 py-2.5 bg-slate-50 border border-slate-200`}>
+        <div className={`${SUBPAGE_GRID_CLASS} rounded-lg px-3 py-2.5 bg-background border border-border`}>
           <div className="min-w-0 pr-2">
-            <span className="text-xs font-medium text-slate-700">Profile Requests</span>
-            <p className="text-[10px] text-slate-500 leading-snug">Student profile update requests page & approvals</p>
+            <span className="text-xs font-medium text-sub">Profile Requests</span>
+            <p className="text-[10px] text-muted-text leading-snug">Student profile update requests page & approvals</p>
           </div>
           <button
             type="button"
             disabled={disabled}
             onClick={onToggleViewProfileRequests}
-            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${viewProfileRequestsEnabled ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'} ${disabled ? 'cursor-default' : ''}`}
+            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${viewProfileRequestsEnabled ? 'bg-[var(--primary-light)] border-[var(--primary-light)] text-primary' : 'bg-surface border-border text-muted-text hover:bg-background'} ${disabled ? 'cursor-default' : ''}`}
           >
-            <span className={`w-4 h-4 rounded flex items-center justify-center ${viewProfileRequestsEnabled ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+            <span className={`w-4 h-4 rounded flex items-center justify-center ${viewProfileRequestsEnabled ? 'bg-primary text-white' : 'bg-background text-muted-text'}`}>
               {viewProfileRequestsEnabled ? <Check size={10} /> : <X size={10} />}
             </span>
             {viewProfileRequestsEnabled ? 'On' : 'Off'}
@@ -105,46 +105,46 @@ const StudentViewDialogSubPagesSection = ({
             type="button"
             disabled={disabled}
             onClick={onToggleEditProfileRequests}
-            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${editProfileRequestsEnabled ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'} ${disabled ? 'cursor-default' : ''}`}
+            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${editProfileRequestsEnabled ? 'bg-[var(--success-light)] border-[var(--success-light)] text-success' : 'bg-surface border-border text-muted-text hover:bg-background'} ${disabled ? 'cursor-default' : ''}`}
           >
-            <span className={`w-4 h-4 rounded flex items-center justify-center ${editProfileRequestsEnabled ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+            <span className={`w-4 h-4 rounded flex items-center justify-center ${editProfileRequestsEnabled ? 'bg-success text-white' : 'bg-background text-muted-text'}`}>
               {editProfileRequestsEnabled ? <Check size={10} /> : <X size={10} />}
             </span>
             {editProfileRequestsEnabled ? 'On' : 'Off'}
           </button>
         </div>
 
-        <div className={`${SUBPAGE_GRID_CLASS} rounded-lg px-3 py-2.5 bg-slate-50 border border-slate-200`}>
+        <div className={`${SUBPAGE_GRID_CLASS} rounded-lg px-3 py-2.5 bg-background border border-border`}>
           <div className="min-w-0 pr-2">
-            <span className="text-xs font-medium text-slate-700">SMS Logs</span>
-            <p className="text-[10px] text-slate-500 leading-snug">SMS tracking tab inside student view dialog</p>
+            <span className="text-xs font-medium text-sub">SMS Logs</span>
+            <p className="text-[10px] text-muted-text leading-snug">SMS tracking tab inside student view dialog</p>
           </div>
           <button
             type="button"
             disabled={disabled}
             onClick={onToggleViewSms}
-            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${viewSmsEnabled ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'} ${disabled ? 'cursor-default' : ''}`}
+            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${viewSmsEnabled ? 'bg-[var(--primary-light)] border-[var(--primary-light)] text-primary' : 'bg-surface border-border text-muted-text hover:bg-background'} ${disabled ? 'cursor-default' : ''}`}
           >
-            <span className={`w-4 h-4 rounded flex items-center justify-center ${viewSmsEnabled ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+            <span className={`w-4 h-4 rounded flex items-center justify-center ${viewSmsEnabled ? 'bg-primary text-white' : 'bg-background text-muted-text'}`}>
               {viewSmsEnabled ? <Check size={10} /> : <X size={10} />}
             </span>
             {viewSmsEnabled ? 'On' : 'Off'}
           </button>
-          <span className="text-[10px] text-slate-400 text-center">—</span>
+          <span className="text-[10px] text-muted-text text-center">—</span>
         </div>
 
-        <div className={`${SUBPAGE_GRID_CLASS} rounded-lg px-3 py-2.5 bg-slate-50 border border-slate-200`}>
+        <div className={`${SUBPAGE_GRID_CLASS} rounded-lg px-3 py-2.5 bg-background border border-border`}>
           <div className="min-w-0 pr-2">
-            <span className="text-xs font-medium text-slate-700">Merit Status</span>
-            <p className="text-[10px] text-slate-500 leading-snug">Per-year merit status tab inside student view dialog</p>
+            <span className="text-xs font-medium text-sub">Merit Status</span>
+            <p className="text-[10px] text-muted-text leading-snug">Per-year merit status tab inside student view dialog</p>
           </div>
           <button
             type="button"
             disabled={disabled}
             onClick={onToggleViewMerit}
-            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${viewMeritEnabled ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'} ${disabled ? 'cursor-default' : ''}`}
+            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${viewMeritEnabled ? 'bg-[var(--primary-light)] border-[var(--primary-light)] text-primary' : 'bg-surface border-border text-muted-text hover:bg-background'} ${disabled ? 'cursor-default' : ''}`}
           >
-            <span className={`w-4 h-4 rounded flex items-center justify-center ${viewMeritEnabled ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+            <span className={`w-4 h-4 rounded flex items-center justify-center ${viewMeritEnabled ? 'bg-primary text-white' : 'bg-background text-muted-text'}`}>
               {viewMeritEnabled ? <Check size={10} /> : <X size={10} />}
             </span>
             {viewMeritEnabled ? 'On' : 'Off'}
@@ -153,27 +153,27 @@ const StudentViewDialogSubPagesSection = ({
             type="button"
             disabled={disabled}
             onClick={onToggleEditMerit}
-            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${editMeritEnabled ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'} ${disabled ? 'cursor-default' : ''}`}
+            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${editMeritEnabled ? 'bg-[var(--success-light)] border-[var(--success-light)] text-success' : 'bg-surface border-border text-muted-text hover:bg-background'} ${disabled ? 'cursor-default' : ''}`}
           >
-            <span className={`w-4 h-4 rounded flex items-center justify-center ${editMeritEnabled ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+            <span className={`w-4 h-4 rounded flex items-center justify-center ${editMeritEnabled ? 'bg-success text-white' : 'bg-background text-muted-text'}`}>
               {editMeritEnabled ? <Check size={10} /> : <X size={10} />}
             </span>
             {editMeritEnabled ? 'On' : 'Off'}
           </button>
         </div>
 
-        <div className={`${SUBPAGE_GRID_CLASS} rounded-lg px-3 py-2.5 bg-slate-50 border border-slate-200`}>
+        <div className={`${SUBPAGE_GRID_CLASS} rounded-lg px-3 py-2.5 bg-background border border-border`}>
           <div className="min-w-0 pr-2">
-            <span className="text-xs font-medium text-slate-700">Scholarship Info</span>
-            <p className="text-[10px] text-slate-500 leading-snug">Scholarship & RTF tracking tab inside student view dialog</p>
+            <span className="text-xs font-medium text-sub">Scholarship Info</span>
+            <p className="text-[10px] text-muted-text leading-snug">Scholarship & RTF tracking tab inside student view dialog</p>
           </div>
           <button
             type="button"
             disabled={disabled}
             onClick={onToggleViewScholarship}
-            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${viewScholarshipEnabled ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'} ${disabled ? 'cursor-default' : ''}`}
+            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${viewScholarshipEnabled ? 'bg-[var(--primary-light)] border-[var(--primary-light)] text-primary' : 'bg-surface border-border text-muted-text hover:bg-background'} ${disabled ? 'cursor-default' : ''}`}
           >
-            <span className={`w-4 h-4 rounded flex items-center justify-center ${viewScholarshipEnabled ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+            <span className={`w-4 h-4 rounded flex items-center justify-center ${viewScholarshipEnabled ? 'bg-primary text-white' : 'bg-background text-muted-text'}`}>
               {viewScholarshipEnabled ? <Check size={10} /> : <X size={10} />}
             </span>
             {viewScholarshipEnabled ? 'On' : 'Off'}
@@ -182,9 +182,9 @@ const StudentViewDialogSubPagesSection = ({
             type="button"
             disabled={disabled}
             onClick={onToggleEditScholarship}
-            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${editScholarshipEnabled ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'} ${disabled ? 'cursor-default' : ''}`}
+            className={`w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded-md border text-[11px] font-semibold transition-all ${editScholarshipEnabled ? 'bg-[var(--success-light)] border-[var(--success-light)] text-success' : 'bg-surface border-border text-muted-text hover:bg-background'} ${disabled ? 'cursor-default' : ''}`}
           >
-            <span className={`w-4 h-4 rounded flex items-center justify-center ${editScholarshipEnabled ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+            <span className={`w-4 h-4 rounded flex items-center justify-center ${editScholarshipEnabled ? 'bg-success text-white' : 'bg-background text-muted-text'}`}>
               {editScholarshipEnabled ? <Check size={10} /> : <X size={10} />}
             </span>
             {editScholarshipEnabled ? 'On' : 'Off'}
@@ -196,22 +196,22 @@ const StudentViewDialogSubPagesSection = ({
 };
 
 const ROLE_AVATAR_COLORS = {
-  college_principal: 'from-indigo-400 to-indigo-600',
-  college_ao: 'from-sky-400 to-sky-600',
-  college_attender: 'from-slate-400 to-slate-600',
-  branch_hod: 'from-amber-400 to-amber-600',
-  office_assistant: 'from-purple-400 to-purple-600',
-  cashier: 'from-green-400 to-green-600',
-  faculty: 'from-teal-400 to-teal-600',
-  super_admin: 'from-rose-400 to-rose-600',
-  course_principal: 'from-blue-500 to-indigo-700',
-  course_hod: 'from-cyan-500 to-blue-700',
-  branch_clerk: 'from-emerald-400 to-emerald-600',
-  branch_counselor: 'from-orange-400 to-orange-600',
-  branch_faculty: 'from-pink-400 to-pink-600',
-  support_staff: 'from-slate-500 to-slate-700',
+  college_principal: 'from-primary to-primary',
+  college_ao: 'from-info to-info',
+  college_attender: 'from-[var(--text-muted)] to-[var(--text-muted)]',
+  branch_hod: 'from-warning to-warning',
+  office_assistant: 'from-secondary to-secondary',
+  cashier: 'from-success to-success',
+  faculty: 'from-primary to-primary',
+  super_admin: 'from-danger to-danger',
+  course_principal: 'from-primary to-primary',
+  course_hod: 'from-info to-primary',
+  branch_clerk: 'from-success to-success',
+  branch_counselor: 'from-warning to-warning',
+  branch_faculty: 'from-accent to-accent',
+  support_staff: 'from-[var(--text-muted)] to-[var(--text-muted)]',
   // Map any other custom roles to a default gradient
-  default: 'from-slate-400 to-slate-600'
+  default: 'from-[var(--text-muted)] to-[var(--text-muted)]'
 };
 
 const ROLE_DESCRIPTIONS = {
@@ -379,25 +379,25 @@ const HodYearAccessSelector = ({ availableYears, selectedYears = [], allYears, o
     : 'px-2 py-1 rounded-lg text-[10px] font-semibold border transition-colors';
 
   const chipActive = isModal
-    ? 'bg-amber-500 text-white border-amber-500 shadow-sm shadow-amber-500/20'
-    : 'bg-amber-500 text-white border-amber-500';
+    ? 'bg-warning text-white border-warning shadow-sm shadow-warning/20'
+    : 'bg-warning text-white border-warning';
 
   const chipIdle = isModal
-    ? 'bg-white text-slate-600 border-slate-200 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700'
-    : 'bg-white text-slate-600 border-slate-200 hover:border-amber-300 hover:bg-amber-50';
+    ? 'bg-surface text-sub border-border hover:border-[var(--warning-light)] hover:bg-[var(--warning-light)] hover:text-warning'
+    : 'bg-surface text-sub border-border hover:border-[var(--warning-light)] hover:bg-[var(--warning-light)]';
 
   return (
     <div>
       <div className={`flex items-center justify-between ${isModal ? 'mb-2' : 'mb-1'}`}>
-        <label className={`flex items-center gap-1.5 font-semibold text-slate-600 ${isModal ? 'text-xs' : 'text-[11px]'}`}>
-          <Calendar size={isModal ? 14 : 12} className="text-amber-500" />
-          Year Access <span className="text-red-500">*</span>
+        <label className={`flex items-center gap-1.5 font-semibold text-sub ${isModal ? 'text-xs' : 'text-[11px]'}`}>
+          <Calendar size={isModal ? 14 : 12} className="text-warning" />
+          Year Access <span className="text-danger">*</span>
         </label>
-        <span className={`text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded ${isModal ? 'text-[10px]' : 'text-[9px]'}`}>
+        <span className={`text-muted-text bg-background px-1.5 py-0.5 rounded ${isModal ? 'text-[10px]' : 'text-[9px]'}`}>
           {allSelected ? 'All years' : `${selected.length} selected`}
         </span>
       </div>
-      <div className={isModal ? 'p-3 rounded-xl border-2 border-dashed border-slate-300 bg-white' : ''}>
+      <div className={isModal ? 'p-3 rounded-xl border-2 border-dashed border-border-strong bg-surface' : ''}>
         <div className={`flex flex-wrap ${isModal ? 'gap-2' : 'gap-1.5'}`}>
           <button
             type="button"
@@ -420,7 +420,7 @@ const HodYearAccessSelector = ({ availableYears, selectedYears = [], allYears, o
             );
           })}
         </div>
-        <p className={isModal ? 'text-[10px] text-slate-500 mt-2.5' : 'text-[9px] text-slate-400 mt-1'}>
+        <p className={isModal ? 'text-[10px] text-muted-text mt-2.5' : 'text-[9px] text-muted-text mt-1'}>
           {allSelected
             ? 'This HOD can access students in all years of the selected course/branch.'
             : selected.length
@@ -451,11 +451,11 @@ const RoleSelectModal = ({ isOpen, onClose, roles, selectedRole, onSelect }) => 
 
   const modalContent = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white w-full max-w-2xl rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
-        <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-4 sm:px-6 py-3 sm:py-4">
+      <div className="bg-surface w-full max-w-2xl rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
+        <div className="bg-gradient-to-r from-secondary to-secondary px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--surface)]/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
                 <ShieldCheck size={20} className="text-white" />
               </div>
               <div className="min-w-0 flex-1">
@@ -466,29 +466,29 @@ const RoleSelectModal = ({ isOpen, onClose, roles, selectedRole, onSelect }) => 
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 active:bg-white/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
+              className="p-2 rounded-lg bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
             >
               <X size={20} />
             </button>
           </div>
         </div>
 
-        <div className="p-4 border-b border-slate-100">
+        <div className="p-4 border-b border-border">
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search roles..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-secondary"
             />
           </div>
         </div>
 
         <div className="p-3 sm:p-4 max-h-[50vh] overflow-y-auto">
           {filteredRoles.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 text-sm">No roles found</div>
+            <div className="py-12 text-center text-muted-text text-sm">No roles found</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {filteredRoles.map((role) => {
@@ -502,16 +502,16 @@ const RoleSelectModal = ({ isOpen, onClose, roles, selectedRole, onSelect }) => 
                     onClick={() => onSelect(roleValue)}
                     className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all border-2 ${
                       isSelected
-                        ? `${ROLE_COLORS[roleValue] || 'bg-slate-100 text-slate-700 border-slate-200'} border-current`
-                        : 'bg-white border-slate-200 hover:border-violet-300 hover:bg-violet-50/40'
+                        ? `${ROLE_COLORS[roleValue] || 'bg-background text-sub border-border'} border-current`
+                        : 'bg-surface border-border hover:border-[var(--primary-light)] hover:bg-[var(--primary-light)]'
                     }`}
                   >
-                    <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${ROLE_AVATAR_COLORS[roleValue] || 'from-slate-400 to-slate-600'} flex items-center justify-center shadow-sm flex-shrink-0`}>
+                    <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${ROLE_AVATAR_COLORS[roleValue] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center shadow-sm flex-shrink-0`}>
                       <ShieldCheck size={16} className="text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm text-slate-800 truncate">{roleLabel}</h4>
-                      <p className="text-[11px] text-slate-500 line-clamp-2">
+                      <h4 className="font-bold text-sm text-main truncate">{roleLabel}</h4>
+                      <p className="text-[11px] text-muted-text line-clamp-2">
                         {role.description ?? ROLE_DESCRIPTIONS[roleValue] ?? ''}
                       </p>
                     </div>
@@ -553,12 +553,12 @@ const SelectionModal = ({
   const [searchTerm, setSearchTerm] = useState('');
 
   const colors = {
-    blue: { bg: 'bg-blue-600', light: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200', gradient: 'from-blue-600 to-indigo-600' },
-    green: { bg: 'bg-emerald-600', light: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200', gradient: 'from-emerald-600 to-teal-600' },
-    orange: { bg: 'bg-orange-600', light: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200', gradient: 'from-orange-600 to-amber-600' },
-    purple: { bg: 'bg-purple-600', light: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200', gradient: 'from-purple-600 to-indigo-600' },
-    rose: { bg: 'bg-rose-600', light: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-200', gradient: 'from-rose-600 to-pink-600' },
-    indigo: { bg: 'bg-indigo-600', light: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-200', gradient: 'from-indigo-600 to-violet-600' }
+    blue: { bg: 'bg-primary', light: 'bg-[var(--primary-light)]', text: 'text-primary', border: 'border-[var(--primary-light)]', gradient: 'from-primary to-primary' },
+    green: { bg: 'bg-success', light: 'bg-[var(--success-light)]', text: 'text-success', border: 'border-[var(--success-light)]', gradient: 'from-success to-primary' },
+    orange: { bg: 'bg-warning', light: 'bg-[var(--warning-light)]', text: 'text-warning', border: 'border-[var(--warning-light)]', gradient: 'from-warning to-warning' },
+    purple: { bg: 'bg-secondary', light: 'bg-[var(--primary-light)]', text: 'text-secondary', border: 'border-[var(--primary-light)]', gradient: 'from-secondary to-primary' },
+    rose: { bg: 'bg-danger', light: 'bg-[var(--danger-light)]', text: 'text-danger', border: 'border-[var(--danger-light)]', gradient: 'from-danger to-accent' },
+    indigo: { bg: 'bg-primary', light: 'bg-[var(--primary-light)]', text: 'text-primary', border: 'border-[var(--primary-light)]', gradient: 'from-primary to-secondary' }
   };
   const c = colors[colorScheme] || colors.blue;
 
@@ -598,11 +598,11 @@ const SelectionModal = ({
 
   const modalContent = (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white w-full max-w-2xl rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
+      <div className="bg-surface w-full max-w-2xl rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
         <div className={`bg-gradient-to-r ${c.gradient} px-4 sm:px-6 py-3 sm:py-4`}>
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[var(--surface)]/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
                 <Icon size={20} className="text-white" />
               </div>
               <div className="min-w-0 flex-1">
@@ -615,23 +615,23 @@ const SelectionModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 active:bg-white/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
+              className="p-2 rounded-lg bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
             >
               <X size={20} />
             </button>
           </div>
         </div>
 
-        <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-slate-50 border-b border-slate-200">
+        <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-background border-b border-border">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <div className="flex-1 relative">
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" />
               <input
                 type="text"
                 placeholder={searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-slate-200 bg-white text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all touch-manipulation min-h-[44px]"
+                className="w-full pl-10 pr-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-border bg-surface text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-border-strong transition-all touch-manipulation min-h-[44px]"
               />
             </div>
             <div className="flex gap-2 sm:gap-3">
@@ -645,7 +645,7 @@ const SelectionModal = ({
               <button
                 type="button"
                 onClick={clearAll}
-                className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300 transition-all touch-manipulation min-h-[44px]"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm font-semibold bg-background text-sub hover:bg-background active:bg-background transition-all touch-manipulation min-h-[44px]"
               >
                 Clear
               </button>
@@ -657,18 +657,18 @@ const SelectionModal = ({
               onClick={handleAllOptionChange}
               className={`flex items-center gap-3 mt-3 p-4 rounded-xl cursor-pointer transition-all border-2 ${allSelected
                 ? `${c.light} ${c.border} ${c.text}`
-                : 'bg-white border-slate-200 hover:border-slate-300'
+                : 'bg-surface border-border hover:border-border-strong'
                 }`}
             >
-              <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${allSelected ? `${c.bg} border-transparent` : 'border-slate-300'
+              <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${allSelected ? `${c.bg} border-transparent` : 'border-border-strong'
                 }`}>
                 {allSelected && <Check size={14} className="text-white" />}
               </div>
               <div className="flex-1">
                 <span className="font-semibold">{allOption}</span>
-                <p className="text-xs text-slate-500 mt-0.5">Grant access to all items automatically</p>
+                <p className="text-xs text-muted-text mt-0.5">Grant access to all items automatically</p>
               </div>
-              <Sparkles size={18} className={allSelected ? c.text : 'text-slate-400'} />
+              <Sparkles size={18} className={allSelected ? c.text : 'text-muted-text'} />
             </div>
           )}
         </div>
@@ -677,14 +677,14 @@ const SelectionModal = ({
           {loading ? (
             <div className="flex flex-col items-center justify-center py-12">
               <RefreshCw size={32} className={`${c.text} animate-spin mb-3`} />
-              <p className="text-slate-500">Loading options...</p>
+              <p className="text-muted-text">Loading options...</p>
             </div>
           ) : filteredOptions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
               <div className={`w-16 h-16 ${c.light} rounded-2xl flex items-center justify-center mb-4`}>
                 <Icon size={28} className={c.text} />
               </div>
-              <p className="text-slate-500 font-medium">{emptyMessage}</p>
+              <p className="text-muted-text font-medium">{emptyMessage}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -696,19 +696,19 @@ const SelectionModal = ({
                     onClick={(e) => !allSelected && handleToggle(option.id, e)}
                     className={`flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all border-2 ${isSelected
                       ? `${c.light} ${c.border}`
-                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      : 'bg-surface border-border hover:border-border-strong hover:bg-background'
                       } ${allSelected ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected ? `${c.bg} border-transparent` : 'border-slate-300'
+                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected ? `${c.bg} border-transparent` : 'border-border-strong'
                       }`}>
                       {isSelected && <Check size={14} className="text-white" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <span className={`font-medium block truncate ${isSelected ? c.text : 'text-slate-700'}`}>
+                      <span className={`font-medium block truncate ${isSelected ? c.text : 'text-sub'}`}>
                         {option[displayKey] || option.name}
                       </span>
                       {option.code && (
-                        <span className="text-xs text-slate-500">{option.code}</span>
+                        <span className="text-xs text-muted-text">{option.code}</span>
                       )}
                     </div>
                     {isSelected && <Check size={16} className={c.text} />}
@@ -719,8 +719,8 @@ const SelectionModal = ({
           )}
         </div>
 
-        <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <p className="text-sm text-slate-500 text-center sm:text-left">
+        <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 bg-background border-t border-border flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <p className="text-sm text-muted-text text-center sm:text-left">
             <span className="font-semibold">{selectedIds.length}</span> items selected
           </p>
           <button
@@ -1352,11 +1352,11 @@ const UserManagement = () => {
 
   if (!hasUserManagementAccess) {
     return (
-      <div className="w-full h-[calc(100vh-4rem)] flex items-center justify-center bg-slate-50">
-        <div className="bg-white border border-blue-200 text-blue-700 rounded-xl p-8 shadow-sm max-w-md text-center">
-          <XCircle size={48} className="mx-auto mb-4 text-blue-400" />
-          <h1 className="text-xl font-bold mb-2 text-slate-800">Access Restricted</h1>
-          <p className="text-sm text-slate-600">You do not have permission to manage users.</p>
+      <div className="w-full h-[calc(100vh-4rem)] flex items-center justify-center bg-background">
+        <div className="bg-surface border border-[var(--primary-light)] text-primary rounded-xl p-8 shadow-sm max-w-md text-center">
+          <XCircle size={48} className="mx-auto mb-4 text-primary" />
+          <h1 className="text-xl font-bold mb-2 text-main">Access Restricted</h1>
+          <p className="text-sm text-sub">You do not have permission to manage users.</p>
         </div>
       </div>
     );
@@ -2046,42 +2046,42 @@ const UserManagement = () => {
   }, [editForm?.role, editHodAvailableYears]);
 
   return (
-    <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50/30">
+    <div className="w-full min-h-[calc(100vh-4rem)] flex flex-col bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[var(--primary-light)]">
       {/* Header */}
-      <div className="flex-shrink-0 bg-white border-b border-slate-200 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 shadow-sm">
+      <div className="flex-shrink-0 bg-surface border-b border-border px-3 sm:px-4 lg:px-6 py-3 sm:py-4 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25 flex-shrink-0">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gradient-to-br from-primary to-primary rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-primary/25 flex-shrink-0">
               <ShieldCheck size={20} className="sm:hidden text-white" />
               <ShieldCheck size={22} className="hidden sm:block text-white" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-lg font-bold text-slate-800">User Management</h1>
-              <p className="text-[10px] sm:text-xs text-slate-500">Create and manage users with role-based access</p>
+              <h1 className="text-base sm:text-lg font-bold text-main">User Management</h1>
+              <p className="text-[10px] sm:text-xs text-muted-text">Create and manage users with role-based access</p>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="text-center px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-lg sm:rounded-xl border border-blue-100">
-              <div className="text-sm sm:text-base font-bold text-blue-600">{filteredUsers.length}</div>
-              <div className="text-[10px] font-medium text-blue-500 uppercase tracking-wide">Total</div>
+            <div className="text-center px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-br from-[var(--primary-light)] to-[var(--primary-light)] rounded-lg sm:rounded-xl border border-[var(--primary-light)]">
+              <div className="text-sm sm:text-base font-bold text-primary">{filteredUsers.length}</div>
+              <div className="text-[10px] font-medium text-primary uppercase tracking-wide">Total</div>
             </div>
-            <div className="text-center px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-lg sm:rounded-xl border border-emerald-100">
-              <div className="text-sm sm:text-base font-bold text-emerald-600">{filteredUsers.filter(u => u.isActive).length}</div>
-              <div className="text-[10px] font-medium text-emerald-500 uppercase tracking-wide">Active</div>
+            <div className="text-center px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-br from-[var(--success-light)] to-[var(--success-light)] rounded-lg sm:rounded-xl border border-[var(--success-light)]">
+              <div className="text-sm sm:text-base font-bold text-success">{filteredUsers.filter(u => u.isActive).length}</div>
+              <div className="text-[10px] font-medium text-success uppercase tracking-wide">Active</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex-shrink-0 bg-white border-b border-slate-200 px-3 sm:px-4 lg:px-6 py-2 sm:py-3">
+      <div className="flex-shrink-0 bg-surface border-b border-border px-3 sm:px-4 lg:px-6 py-2 sm:py-3">
         <div className="flex gap-2">
           {canManageUsers && (
             <button
               onClick={() => setActiveTab('create')}
               className={`flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold text-xs transition-all touch-manipulation min-h-[40px] flex-1 sm:flex-none ${activeTab === 'create'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300'
+                ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/25'
+                : 'bg-background text-sub hover:bg-background active:bg-background'
                 }`}
             >
               <UserPlus size={14} />
@@ -2092,8 +2092,8 @@ const UserManagement = () => {
           <button
             onClick={() => setActiveTab('users')}
             className={`flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold text-xs transition-all touch-manipulation min-h-[40px] flex-1 sm:flex-none ${activeTab === 'users'
-              ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300'
+              ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/25'
+              : 'bg-background text-sub hover:bg-background active:bg-background'
               }`}
           >
             <UsersIcon size={16} />
@@ -2104,8 +2104,8 @@ const UserManagement = () => {
             <button
               onClick={() => setActiveTab('roles')}
               className={`flex items-center justify-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl font-semibold text-xs transition-all touch-manipulation min-h-[40px] flex-1 sm:flex-none ${activeTab === 'roles'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 active:bg-slate-300'
+                ? 'bg-gradient-to-r from-primary to-primary text-white shadow-lg shadow-primary/25'
+                : 'bg-background text-sub hover:bg-background active:bg-background'
                 }`}
             >
               <Settings size={16} />
@@ -2123,31 +2123,31 @@ const UserManagement = () => {
           <form onSubmit={handleCreateUser} className="h-full flex flex-col">
             {/* Step Headers */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-3 flex-shrink-0">
-              <div className="flex items-center gap-2 bg-white rounded-lg p-2.5 border border-slate-200 shadow-sm">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div className="flex items-center gap-2 bg-surface rounded-lg p-2.5 border border-border shadow-sm">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
                   1
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 text-sm">User Information</h3>
-                  <p className="text-[10px] text-slate-500">Details & credentials</p>
+                  <h3 className="font-bold text-main text-sm">User Information</h3>
+                  <p className="text-[10px] text-muted-text">Details & credentials</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 bg-white rounded-lg p-2.5 border border-slate-200 shadow-sm">
-                <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div className="flex items-center gap-2 bg-surface rounded-lg p-2.5 border border-border shadow-sm">
+                <div className="w-8 h-8 bg-gradient-to-br from-secondary to-secondary rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
                   2
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 text-sm">Role Selection</h3>
-                  <p className="text-[10px] text-slate-500">Choose role</p>
+                  <h3 className="font-bold text-main text-sm">Role Selection</h3>
+                  <p className="text-[10px] text-muted-text">Choose role</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 bg-white rounded-lg p-2.5 border border-slate-200 shadow-sm">
-                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
+              <div className="flex items-center gap-2 bg-surface rounded-lg p-2.5 border border-border shadow-sm">
+                <div className="w-8 h-8 bg-gradient-to-br from-success to-primary rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
                   3
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-800 text-sm">Access Scope</h3>
-                  <p className="text-[10px] text-slate-500">Set permissions</p>
+                  <h3 className="font-bold text-main text-sm">Access Scope</h3>
+                  <p className="text-[10px] text-muted-text">Set permissions</p>
                 </div>
               </div>
             </div>
@@ -2155,8 +2155,8 @@ const UserManagement = () => {
             {/* All 3 Sections Side by Side */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-3 flex-1 min-h-0">
               {/* Section 1: User Information */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden flex flex-col">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-2 flex-shrink-0 flex justify-between items-center">
+              <div className="bg-surface rounded-xl border border-border shadow-lg overflow-hidden flex flex-col">
+                <div className="bg-gradient-to-r from-primary to-primary px-3 py-2 flex-shrink-0 flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <User size={16} className="text-white" />
                     <h2 className="text-sm font-bold text-white">User Information</h2>
@@ -2164,7 +2164,7 @@ const UserManagement = () => {
                   <button
                     type="button"
                     onClick={() => setShowHrmsSearch(!showHrmsSearch)}
-                    className="flex items-center gap-1.5 px-2 py-1 bg-white/20 hover:bg-white/30 text-white rounded text-xs transition-colors border border-white/20"
+                    className="flex items-center gap-1.5 px-2 py-1 bg-[var(--surface)]/20 hover:bg-[var(--surface)]/30 text-white rounded text-xs transition-colors border border-surface"
                   >
                     <Search size={12} />
                     Import from HRMS
@@ -2172,8 +2172,8 @@ const UserManagement = () => {
                 </div>
                 <div className="p-3 space-y-2.5 flex-1 overflow-y-auto max-h-[500px]">
                   {showHrmsSearch && (
-                    <div className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-inner">
-                      <label className="text-xs font-bold text-slate-700 block mb-1">Search HRMS Employee</label>
+                    <div className="mb-4 bg-background p-3 rounded-lg border border-border shadow-inner">
+                      <label className="text-xs font-bold text-sub block mb-1">Search HRMS Employee</label>
                       <div className="flex gap-2 relative">
                         <input
                           type="text"
@@ -2201,7 +2201,7 @@ const UserManagement = () => {
                             }
                           }}
                           placeholder="Search by Emp No, Name or Email..."
-                          className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="flex-1 px-3 py-2 text-sm rounded-lg border border-border-strong focus:ring-2 focus:ring-primary focus:border-primary"
                         />
                         <button
                           type="button"
@@ -2224,18 +2224,18 @@ const UserManagement = () => {
                             }
                           }}
                           disabled={searchingHrms}
-                          className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
+                          className="px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-primary"
                         >
                           {searchingHrms ? <RefreshCw size={16} className="animate-spin" /> : <Search size={16} />}
                         </button>
                       </div>
 
                       {hrmsSearchResults.length > 0 && (
-                        <div className="mt-2 max-h-40 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                        <div className="mt-2 max-h-40 overflow-y-auto border border-border rounded-lg divide-y divide-border">
                           {hrmsSearchResults.map(emp => (
                             <div
                               key={emp._id}
-                              className="p-2 bg-white hover:bg-blue-50 cursor-pointer flex justify-between items-center group"
+                              className="p-2 bg-surface hover:bg-[var(--primary-light)] cursor-pointer flex justify-between items-center group"
                               onClick={() => {
                                 const fallbackEmail = (emp.email && !emp.email.includes('@hrms'))
                                   ? emp.email
@@ -2257,14 +2257,14 @@ const UserManagement = () => {
                             >
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <div className="text-sm font-bold text-slate-800">{emp.name}</div>
-                                  <span className={`text-[8px] font-bold uppercase px-1 rounded ${emp.type === 'Employee' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
+                                  <div className="text-sm font-bold text-main">{emp.name}</div>
+                                  <span className={`text-[8px] font-bold uppercase px-1 rounded ${emp.type === 'Employee' ? 'bg-[var(--primary-light)] text-primary' : 'bg-[var(--primary-light)] text-secondary'}`}>
                                     {emp.type}
                                   </span>
                                 </div>
-                                <div className="text-[10px] text-slate-500">{emp.emp_no} • {emp.email || 'No email in HRMS'}</div>
+                                <div className="text-[10px] text-muted-text">{emp.emp_no} • {emp.email || 'No email in HRMS'}</div>
                               </div>
-                              <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="w-6 h-6 rounded-full bg-[var(--primary-light)] text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Check size={12} />
                               </div>
                             </div>
@@ -2275,16 +2275,16 @@ const UserManagement = () => {
                   )}
 
                   {form.hrms_id && (
-                    <div className="mb-3 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-2">
-                      <ShieldCheck size={16} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <div className="mb-3 px-3 py-2 bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg flex items-start gap-2">
+                      <ShieldCheck size={16} className="text-success flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-emerald-800">Linked to HRMS</p>
-                        <p className="text-[10px] text-emerald-600 leading-tight">This mapped user will use their HRMS credentials to login.</p>
+                        <p className="text-xs font-bold text-success">Linked to HRMS</p>
+                        <p className="text-[10px] text-success leading-tight">This mapped user will use their HRMS credentials to login.</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setForm(prev => ({ ...prev, hrms_id: '' }))}
-                        className="p-1 hover:bg-emerald-200 rounded text-emerald-700"
+                        className="p-1 hover:bg-[var(--success-light)] rounded text-success"
                         title="Unlink"
                       >
                         <X size={12} />
@@ -2293,28 +2293,28 @@ const UserManagement = () => {
                   )}
 
                   <div>
-                    <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 mb-1">
-                      <User size={12} className="text-blue-500" />
-                      Full Name <span className="text-red-500">*</span>
+                    <label className="flex items-center gap-1.5 text-[11px] font-semibold text-sub mb-1">
+                      <User size={12} className="text-primary" />
+                      Full Name <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
                       value={form.name}
                       readOnly={!!form.hrms_id}
                       onChange={(e) => handleFormChange('name', e.target.value)}
-                      className={`w-full px-2.5 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all touch-manipulation min-h-[36px] ${form.hrms_id ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
+                      className={`w-full px-2.5 py-2 rounded-lg border border-border text-xs focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary transition-all touch-manipulation min-h-[36px] ${form.hrms_id ? 'bg-background text-muted-text cursor-not-allowed' : ''}`}
                       placeholder="Enter full name"
                       required
                     />
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600">
-                        <Mail size={12} className="text-blue-500" />
-                        Email Address <span className="text-red-500">*</span>
+                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-sub">
+                        <Mail size={12} className="text-primary" />
+                        Email Address <span className="text-danger">*</span>
                       </label>
                       {form.hrms_id && (
-                        <span className="text-[9px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-medium">
+                        <span className="text-[9px] text-primary bg-[var(--primary-light)] px-1.5 py-0.5 rounded font-medium">
                           Editable
                         </span>
                       )}
@@ -2323,53 +2323,53 @@ const UserManagement = () => {
                       type="email"
                       value={form.email}
                       onChange={(e) => handleFormChange('email', e.target.value)}
-                      className="w-full px-2.5 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[36px]"
+                      className="w-full px-2.5 py-2 rounded-lg border border-border text-xs focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary transition-all min-h-[36px]"
                       placeholder="email@example.com"
                       required
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
-                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 mb-1">
-                        <AtSign size={12} className="text-blue-500" />
-                        Username <span className="text-red-500">*</span>
+                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-sub mb-1">
+                        <AtSign size={12} className="text-primary" />
+                        Username <span className="text-danger">*</span>
                       </label>
                       <input
                         type="text"
                         value={form.username}
                         readOnly={!!form.hrms_id}
                         onChange={(e) => handleFormChange('username', e.target.value)}
-                        className={`w-full px-2.5 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[36px] ${form.hrms_id ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2.5 py-2 rounded-lg border border-border text-xs focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary transition-all min-h-[36px] ${form.hrms_id ? 'bg-background text-muted-text cursor-not-allowed' : ''}`}
                         placeholder="username"
                         required
                       />
                     </div>
                     <div>
-                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 mb-1">
-                        <Phone size={12} className="text-blue-500" />
+                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-sub mb-1">
+                        <Phone size={12} className="text-primary" />
                         Phone
                       </label>
                       <input
                         type="tel"
                         value={form.phone}
                         onChange={(e) => handleFormChange('phone', e.target.value)}
-                        className="w-full px-2.5 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[36px]"
+                        className="w-full px-2.5 py-2 rounded-lg border border-border text-xs focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary transition-all min-h-[36px]"
                         placeholder="+91..."
                       />
                     </div>
                   </div>
                   {!form.hrms_id && (
                     <div>
-                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600 mb-1">
-                        <Lock size={12} className="text-blue-500" />
-                        Password <span className="text-red-500">*</span>
+                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-sub mb-1">
+                        <Lock size={12} className="text-primary" />
+                        Password <span className="text-danger">*</span>
                       </label>
                       <div className="relative">
                         <input
                           type={showPassword ? 'text' : 'password'}
                           value={form.password}
                           onChange={(e) => handleFormChange('password', e.target.value)}
-                          className="w-full px-2.5 py-2 pr-8 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all min-h-[36px]"
+                          className="w-full px-2.5 py-2 pr-8 rounded-lg border border-border text-xs focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] focus:border-primary transition-all min-h-[36px]"
                           placeholder="Enter password (min 6 chars)"
                           required
                           minLength={6}
@@ -2377,7 +2377,7 @@ const UserManagement = () => {
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 active:text-slate-700 touch-manipulation p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-text hover:text-sub active:text-sub touch-manipulation p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
                           aria-label={showPassword ? 'Hide password' : 'Show password'}
                         >
                           {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -2389,8 +2389,8 @@ const UserManagement = () => {
               </div>
 
               {/* Section 2: Role Selection */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden flex flex-col">
-                <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-3 py-2 flex-shrink-0">
+              <div className="bg-surface rounded-xl border border-border shadow-lg overflow-hidden flex flex-col">
+                <div className="bg-gradient-to-r from-secondary to-secondary px-3 py-2 flex-shrink-0">
                   <div className="flex items-center gap-2">
                     <ShieldCheck size={16} className="text-white" />
                     <h2 className="text-sm font-bold text-white">Role Selection</h2>
@@ -2421,16 +2421,16 @@ const UserManagement = () => {
                           }
                         }}
                         className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all border-2 ${isSelected
-                          ? `${ROLE_COLORS[roleValue] || 'bg-slate-100 text-slate-700 border-slate-200'} border-current`
-                          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                          ? `${ROLE_COLORS[roleValue] || 'bg-background text-sub border-border'} border-current`
+                          : 'bg-surface border-border hover:border-border-strong hover:bg-background'
                           }`}
                       >
-                        <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${ROLE_AVATAR_COLORS[roleValue] || 'from-slate-400 to-slate-600'} flex items-center justify-center shadow-sm flex-shrink-0`}>
+                        <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${ROLE_AVATAR_COLORS[roleValue] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center shadow-sm flex-shrink-0`}>
                           <ShieldCheck size={14} className="text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-xs text-slate-800">{roleLabel}</h4>
-                          <p className="text-[10px] text-slate-500 line-clamp-1">
+                          <h4 className="font-bold text-xs text-main">{roleLabel}</h4>
+                          <p className="text-[10px] text-muted-text line-clamp-1">
                             {role.description ?? ROLE_DESCRIPTIONS[roleValue] ?? ''}
                           </p>
                         </div>
@@ -2442,15 +2442,15 @@ const UserManagement = () => {
                       </div>
                     );
                   })}
-                  <p className="text-[10px] text-slate-500 mt-2 border-t border-slate-100 pt-2">
-                    Module access for this role is set in <button type="button" onClick={() => setActiveTab('roles')} className="text-violet-600 font-medium hover:underline">Role Configuration</button>. New users get that access automatically.
+                  <p className="text-[10px] text-muted-text mt-2 border-t border-border pt-2">
+                    Module access for this role is set in <button type="button" onClick={() => setActiveTab('roles')} className="text-secondary font-medium hover:underline">Role Configuration</button>. New users get that access automatically.
                   </p>
                 </div>
               </div>
 
               {/* Section 3: Access Scope */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden flex flex-col">
-                <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-2 flex-shrink-0">
+              <div className="bg-surface rounded-xl border border-border shadow-lg overflow-hidden flex flex-col">
+                <div className="bg-gradient-to-r from-success to-primary px-3 py-2 flex-shrink-0">
                   <div className="flex items-center gap-2">
                     <Layers size={16} className="text-white" />
                     <h2 className="text-sm font-bold text-white">Access Scope</h2>
@@ -2470,29 +2470,29 @@ const UserManagement = () => {
                   {/* Colleges Selection */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600">
-                        <Building2 size={12} className="text-blue-500" />
-                        Colleges <span className="text-red-500">*</span>
+                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-sub">
+                        <Building2 size={12} className="text-primary" />
+                        Colleges <span className="text-danger">*</span>
                       </label>
-                      <span className="text-[9px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                      <span className="text-[9px] text-muted-text bg-background px-1.5 py-0.5 rounded">
                         {form.collegeIds.length} selected
                       </span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setShowCollegeModal(true)}
-                      className="w-full flex items-center gap-2 p-2 rounded-lg border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all group text-left"
+                      className="w-full flex items-center gap-2 p-2 rounded-lg border-2 border-dashed border-border-strong hover:border-primary hover:bg-[var(--primary-light)] transition-all group text-left"
                     >
-                      <div className="w-6 h-6 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 flex-shrink-0">
-                        <Building2 size={14} className="text-blue-500" />
+                      <div className="w-6 h-6 bg-[var(--primary-light)] rounded-lg flex items-center justify-center group-hover:bg-[var(--primary-light)] flex-shrink-0">
+                        <Building2 size={14} className="text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         {form.collegeIds.length > 0 ? (
-                          <p className="font-medium text-slate-700 text-xs truncate">
+                          <p className="font-medium text-sub text-xs truncate">
                             {getSelectedNames(colleges, form.collegeIds).join(', ')}
                           </p>
                         ) : (
-                          <p className="text-slate-400 text-xs">Click to select colleges</p>
+                          <p className="text-muted-text text-xs">Click to select colleges</p>
                         )}
                       </div>
                     </button>
@@ -2502,9 +2502,9 @@ const UserManagement = () => {
                   {form.collegeIds.length > 0 && (
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600">
-                          <GraduationCap size={12} className="text-emerald-500" />
-                          Courses {form.role === 'branch_hod' && <span className="text-red-500">*</span>}
+                        <label className="flex items-center gap-1.5 text-[11px] font-semibold text-sub">
+                          <GraduationCap size={12} className="text-success" />
+                          Courses {form.role === 'branch_hod' && <span className="text-danger">*</span>}
                         </label>
                         {form.role !== 'branch_hod' ? (
                           <label className="flex items-center gap-1.5 text-[9px] cursor-pointer">
@@ -2519,12 +2519,12 @@ const UserManagement = () => {
                                   handleFormChange('branchIds', []);
                                 }
                               }}
-                              className="w-3 h-3 rounded text-emerald-500"
+                              className="w-3 h-3 rounded text-success"
                             />
-                            <span className="font-medium text-emerald-600">All</span>
+                            <span className="font-medium text-success">All</span>
                           </label>
                         ) : (
-                          <span className="text-[9px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[9px] text-muted-text bg-background px-1.5 py-0.5 rounded">
                             {form.courseIds.length} selected
                           </span>
                         )}
@@ -2533,25 +2533,25 @@ const UserManagement = () => {
                         <button
                           type="button"
                           onClick={() => setShowCourseModal(true)}
-                          className="w-full flex items-center gap-2 p-2 rounded-lg border-2 border-dashed border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/50 transition-all group text-left"
+                          className="w-full flex items-center gap-2 p-2 rounded-lg border-2 border-dashed border-border-strong hover:border-success hover:bg-[var(--success-light)] transition-all group text-left"
                         >
-                          <div className="w-6 h-6 bg-emerald-50 rounded-lg flex items-center justify-center group-hover:bg-emerald-100 flex-shrink-0">
-                            <GraduationCap size={14} className="text-emerald-500" />
+                          <div className="w-6 h-6 bg-[var(--success-light)] rounded-lg flex items-center justify-center group-hover:bg-[var(--success-light)] flex-shrink-0">
+                            <GraduationCap size={14} className="text-success" />
                           </div>
                           <div className="flex-1 min-w-0">
                             {form.courseIds.length > 0 ? (
-                              <p className="font-medium text-slate-700 text-xs truncate">
+                              <p className="font-medium text-sub text-xs truncate">
                                 {getSelectedNames(courses, form.courseIds).join(', ')}
                               </p>
                             ) : (
-                              <p className="text-slate-400 text-xs">Click to select courses</p>
+                              <p className="text-muted-text text-xs">Click to select courses</p>
                             )}
                           </div>
                         </button>
                       ) : (
-                        <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2">
-                          <CheckCircle2 size={12} className="text-emerald-500" />
-                          <span className="text-xs font-medium text-emerald-700">All courses selected</span>
+                        <div className="p-2 bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg flex items-center gap-2">
+                          <CheckCircle2 size={12} className="text-success" />
+                          <span className="text-xs font-medium text-success">All courses selected</span>
                         </div>
                       )}
                     </div>
@@ -2561,9 +2561,9 @@ const UserManagement = () => {
                   {(form.courseIds.length > 0 && !form.allCourses) && (
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-600">
-                          <BookOpen size={12} className="text-orange-500" />
-                          Branches {needsBranchSelection && <span className="text-red-500">*</span>}
+                        <label className="flex items-center gap-1.5 text-[11px] font-semibold text-sub">
+                          <BookOpen size={12} className="text-warning" />
+                          Branches {needsBranchSelection && <span className="text-danger">*</span>}
                         </label>
                         {form.role !== 'branch_hod' ? (
                           <label className="flex items-center gap-1.5 text-[10px] cursor-pointer">
@@ -2574,12 +2574,12 @@ const UserManagement = () => {
                                 handleFormChange('allBranches', e.target.checked);
                                 if (e.target.checked) handleFormChange('branchIds', []);
                               }}
-                              className="w-3 h-3 rounded text-orange-500"
+                              className="w-3 h-3 rounded text-warning"
                             />
-                            <span className="font-medium text-orange-600">All</span>
+                            <span className="font-medium text-warning">All</span>
                           </label>
                         ) : (
-                          <span className="text-[9px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[9px] text-muted-text bg-background px-1.5 py-0.5 rounded">
                             {form.branchIds.length} selected
                           </span>
                         )}
@@ -2588,25 +2588,25 @@ const UserManagement = () => {
                         <button
                           type="button"
                           onClick={() => setShowBranchModal(true)}
-                          className="w-full flex items-center gap-2 p-2.5 rounded-lg border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50/50 transition-all group text-left"
+                          className="w-full flex items-center gap-2 p-2.5 rounded-lg border-2 border-dashed border-border-strong hover:border-warning hover:bg-[var(--warning-light)] transition-all group text-left"
                         >
-                          <div className="w-7 h-7 bg-orange-50 rounded-lg flex items-center justify-center group-hover:bg-orange-100 flex-shrink-0">
-                            <BookOpen size={14} className="text-orange-500" />
+                          <div className="w-7 h-7 bg-[var(--warning-light)] rounded-lg flex items-center justify-center group-hover:bg-[var(--warning-light)] flex-shrink-0">
+                            <BookOpen size={14} className="text-warning" />
                           </div>
                           <div className="flex-1 min-w-0">
                             {form.branchIds.length > 0 ? (
-                              <p className="font-medium text-slate-700 text-xs truncate">
+                              <p className="font-medium text-sub text-xs truncate">
                                 {getSelectedNames(branches, form.branchIds, 'displayName').join(', ')}
                               </p>
                             ) : (
-                              <p className="text-slate-400 text-xs">Click to select branches</p>
+                              <p className="text-muted-text text-xs">Click to select branches</p>
                             )}
                           </div>
                         </button>
                       ) : (
-                        <div className="p-2.5 bg-orange-50 border border-orange-200 rounded-lg flex items-center gap-2">
-                          <CheckCircle2 size={14} className="text-orange-500" />
-                          <span className="text-xs font-medium text-orange-700">All branches selected</span>
+                        <div className="p-2.5 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-lg flex items-center gap-2">
+                          <CheckCircle2 size={14} className="text-warning" />
+                          <span className="text-xs font-medium text-warning">All branches selected</span>
                         </div>
                       )}
                     </div>
@@ -2624,32 +2624,32 @@ const UserManagement = () => {
 
                   {form.collegeIds.length === 0 && (
                     <div className="text-center py-3">
-                      <Layers size={20} className="text-slate-300 mx-auto mb-1.5" />
-                      <p className="text-[10px] text-slate-400">Select a college to configure access</p>
+                      <Layers size={20} className="text-muted-text mx-auto mb-1.5" />
+                      <p className="text-[10px] text-muted-text">Select a college to configure access</p>
                     </div>
                   )}
                     </>
                   )}
 
                   {/* Module Access / Permissions Shortcut */}
-                  <div className="pt-2.5 border-t border-slate-100 bg-slate-50/50 p-2.5 rounded-lg">
+                  <div className="pt-2.5 border-t border-border bg-[var(--background)]/50 p-2.5 rounded-lg">
                     <div className="flex items-center justify-between mb-1">
-                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-700">
-                        <ShieldCheck size={13} className="text-violet-600" />
+                      <label className="flex items-center gap-1.5 text-[11px] font-semibold text-sub">
+                        <ShieldCheck size={13} className="text-secondary" />
                         Role Module Permissions
                       </label>
                       <button
                         type="button"
                         onClick={() => setActiveTab('roles')}
-                        className="text-[10px] text-violet-600 hover:text-violet-700 font-semibold hover:underline flex items-center gap-1"
+                        className="text-[10px] text-secondary hover:text-secondary font-semibold hover:underline flex items-center gap-1"
                       >
                         <Settings size={10} />
                         Configure in Roles
                       </button>
                     </div>
-                    <p className="text-[10px] text-slate-500 leading-tight">
+                    <p className="text-[10px] text-muted-text leading-tight">
                       This user automatically inherits permissions configured for{' '}
-                      <span className="font-semibold text-slate-700">
+                      <span className="font-semibold text-sub">
                         {ROLE_LABELS[form.role] || form.role || 'selected role'}
                       </span>
                       . You can fine-tune individual permissions in the All Users tab after creation.
@@ -2663,19 +2663,19 @@ const UserManagement = () => {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-3 mt-3 sm:mt-4 flex-shrink-0">
               <div className="text-xs">
                 {!form.name ? (
-                  <span className="text-amber-600 font-medium text-[11px]">⚠️ Full name required</span>
+                  <span className="text-warning font-medium text-[11px]">⚠️ Full name required</span>
                 ) : !form.email ? (
-                  <span className="text-amber-600 font-medium text-[11px]">⚠️ Email address required</span>
+                  <span className="text-warning font-medium text-[11px]">⚠️ Email address required</span>
                 ) : !form.username ? (
-                  <span className="text-amber-600 font-medium text-[11px]">⚠️ Username required</span>
+                  <span className="text-warning font-medium text-[11px]">⚠️ Username required</span>
                 ) : !form.role ? (
-                  <span className="text-amber-600 font-medium text-[11px]">⚠️ Select a role</span>
+                  <span className="text-warning font-medium text-[11px]">⚠️ Select a role</span>
                 ) : (!form.password && !form.hrms_id) ? (
-                  <span className="text-amber-600 font-medium text-[11px]">⚠️ Enter password (min 6 chars) or link HRMS</span>
+                  <span className="text-warning font-medium text-[11px]">⚠️ Enter password (min 6 chars) or link HRMS</span>
                 ) : (form.role !== 'super_admin' && !['course_principal', 'course_hod', 'branch_clerk', 'branch_counselor', 'branch_faculty', 'support_staff', 'faculty'].includes(form.role) && form.collegeIds.length === 0) ? (
-                  <span className="text-amber-600 font-medium text-[11px]">⚠️ Select at least one college</span>
+                  <span className="text-warning font-medium text-[11px]">⚠️ Select at least one college</span>
                 ) : (
-                  <span className="text-emerald-600 font-medium text-[11px] flex items-center gap-1">
+                  <span className="text-success font-medium text-[11px] flex items-center gap-1">
                     <CheckCircle2 size={13} /> Ready to create user
                   </span>
                 )}
@@ -2685,7 +2685,7 @@ const UserManagement = () => {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-4 sm:px-5 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 active:bg-slate-100 transition-all touch-manipulation min-h-[44px] flex items-center justify-center gap-2"
+                  className="px-4 sm:px-5 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-sub bg-surface border border-border hover:bg-background active:bg-background transition-all touch-manipulation min-h-[44px] flex items-center justify-center gap-2"
                 >
                   <RefreshCw size={16} />
                   Reset
@@ -2694,8 +2694,8 @@ const UserManagement = () => {
                   type="submit"
                   disabled={creatingUser || !form.name || !form.email || !form.username || !form.role || (!form.password && !form.hrms_id) || (form.role !== 'super_admin' && !['course_principal', 'course_hod', 'branch_clerk', 'branch_counselor', 'branch_faculty', 'support_staff', 'faculty'].includes(form.role) && form.collegeIds.length === 0)}
                   className={`px-4 sm:px-6 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all touch-manipulation min-h-[44px] ${creatingUser || !form.name || !form.email || !form.username || !form.role || (!form.password && !form.hrms_id) || (form.role !== 'super_admin' && !['course_principal', 'course_hod', 'branch_clerk', 'branch_counselor', 'branch_faculty', 'support_staff', 'faculty'].includes(form.role) && form.collegeIds.length === 0)
-                    ? 'bg-slate-300 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 active:from-blue-700 active:to-indigo-700'
+                    ? 'bg-background cursor-not-allowed'
+                    : 'bg-gradient-to-r from-primary to-primary hover:shadow-lg hover:shadow-primary/25 active:from-primary active:to-primary'
                     }`}
                 >
                   {creatingUser ? (
@@ -2717,8 +2717,8 @@ const UserManagement = () => {
 
         {/* Role Configuration */}
         {activeTab === 'roles' && (
-          <div className="w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden flex flex-col">
-            <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="w-full bg-surface rounded-2xl shadow-xl shadow-border/50 border border-border overflow-hidden flex flex-col">
+            <div className="bg-gradient-to-r from-secondary to-secondary px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                   <Settings size={18} />
@@ -2736,7 +2736,7 @@ const UserManagement = () => {
                   setNewRoleDescription('');
                   setShowAddRoleModal(true);
                 }}
-                className="px-4 py-2 rounded-lg bg-white/20 hover:bg-white/30 text-white text-sm font-semibold flex items-center gap-2 flex-shrink-0"
+                className="px-4 py-2 rounded-lg bg-[var(--surface)]/20 hover:bg-[var(--surface)]/30 text-white text-sm font-semibold flex items-center gap-2 flex-shrink-0"
               >
                 <UserPlus size={16} />
                 Add new role
@@ -2744,7 +2744,7 @@ const UserManagement = () => {
             </div>
             <div className="p-3 sm:p-4 lg:p-6">
               {loadingRoleConfigs ? (
-                <div className="py-12 flex flex-col items-center gap-3 text-slate-400">
+                <div className="py-12 flex flex-col items-center gap-3 text-muted-text">
                   <RefreshCw className="animate-spin" size={32} />
                   <p className="text-sm font-medium">Loading role configurations...</p>
                 </div>
@@ -2802,42 +2802,42 @@ const UserManagement = () => {
                           key={roleKey}
                           className={`rounded-xl border transition-all overflow-hidden flex flex-col justify-between ${
                             isSuperAdminRole
-                              ? 'border-rose-200 bg-gradient-to-b from-rose-50/40 via-white to-white shadow-sm ring-1 ring-rose-100 hover:shadow-md hover:border-rose-300'
-                              : 'border-slate-200 bg-white hover:border-violet-200 hover:shadow-md'
+                              ? 'border-[var(--danger-light)] bg-gradient-to-b from-[var(--danger-light)] via-surface to-surface shadow-sm ring-1 ring-[var(--danger-light)] hover:shadow-md hover:border-[var(--danger-light)]'
+                              : 'border-border bg-surface hover:border-[var(--primary-light)] hover:shadow-md'
                           }`}
                         >
                           <div className="p-3 sm:p-4 bg-transparent flex flex-col justify-between h-full">
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex items-center gap-2.5 min-w-0">
-                                <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${ROLE_AVATAR_COLORS[roleKey] || 'from-slate-400 to-slate-600'} flex items-center justify-center shadow-sm flex-shrink-0`}>
+                                <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${ROLE_AVATAR_COLORS[roleKey] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center shadow-sm flex-shrink-0`}>
                                   <ShieldCheck size={16} className="text-white" />
                                 </div>
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                    <h3 className="font-bold text-slate-800 text-sm truncate">{label}</h3>
+                                    <h3 className="font-bold text-main text-sm truncate">{label}</h3>
                                     {isSuperAdminRole && (
-                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 tracking-wider">
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] tracking-wider">
                                         <Lock size={9} />
                                         SYSTEM
                                       </span>
                                     )}
                                     {config.is_custom && !isSuperAdminRole && (
-                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)]">
                                         CUSTOM
                                       </span>
                                     )}
                                   </div>
-                                  <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">{description}</p>
+                                  <p className="text-xs text-muted-text line-clamp-2 mt-0.5">{description}</p>
                                 </div>
                               </div>
                             </div>
-                            <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                            <div className="mt-4 pt-3 border-t border-border flex flex-wrap items-center justify-between gap-2">
                               {isSuperAdminRole ? (
-                                <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-                                  <CheckCircle2 size={12} className="text-emerald-500" /> All permissions enabled (Full Access)
+                                <span className="text-[11px] font-semibold text-success flex items-center gap-1">
+                                  <CheckCircle2 size={12} className="text-success" /> All permissions enabled (Full Access)
                                 </span>
                               ) : (
-                                <span className="text-[11px] font-medium text-slate-500">{permCount} permission(s) configured</span>
+                                <span className="text-[11px] font-medium text-muted-text">{permCount} permission(s) configured</span>
                               )}
                               {isSuperAdminRole ? (
                                 <div className="flex items-center gap-2">
@@ -2856,10 +2856,10 @@ const UserManagement = () => {
                                       setRoleConfigSelectedModule(Object.values(BACKEND_MODULES)[0] || null);
                                       setShowRoleConfigModal(true);
                                     }}
-                                    className="px-3 py-1.5 text-xs font-semibold bg-white border border-rose-200 text-rose-700 hover:bg-rose-50 hover:border-rose-300 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
+                                    className="px-3 py-1.5 text-xs font-semibold bg-surface border border-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)] hover:border-[var(--danger-light)] rounded-lg transition-colors flex items-center gap-1.5 shadow-sm"
                                     title="View all enabled permissions for Super Admin"
                                   >
-                                    <Eye size={13} className="text-rose-500" />
+                                    <Eye size={13} className="text-danger" />
                                     View permissions
                                   </button>
                                 </div>
@@ -2885,14 +2885,14 @@ const UserManagement = () => {
                                       setRoleConfigSelectedModule(Object.values(BACKEND_MODULES)[0] || null);
                                       setShowRoleConfigModal(true);
                                     }}
-                                    className="px-3 py-1.5 text-xs font-semibold bg-slate-50 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-100 hover:border-slate-300 transition-colors"
+                                    className="px-3 py-1.5 text-xs font-semibold bg-background border border-border text-sub rounded-lg hover:bg-background hover:border-border-strong transition-colors"
                                   >
                                     Edit name & configure
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => handleOpenDeleteRoleModal(config)}
-                                    className="px-2.5 py-1.5 text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 hover:border-rose-300 rounded-lg transition-colors flex items-center gap-1"
+                                    className="px-2.5 py-1.5 text-xs font-semibold bg-[var(--danger-light)] border border-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)] hover:border-[var(--danger-light)] rounded-lg transition-colors flex items-center gap-1"
                                     title="Delete role"
                                   >
                                     <Trash2 size={13} />
@@ -2914,8 +2914,8 @@ const UserManagement = () => {
 
         {/* Users List */}
         {activeTab === 'users' && (
-          <div className="w-full bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="w-full bg-surface rounded-2xl shadow-xl shadow-border/50 border border-border overflow-hidden">
+            <div className="bg-gradient-to-r from-primary to-primary px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                 <UsersIcon size={18} />
                 All Users
@@ -2924,7 +2924,7 @@ const UserManagement = () => {
                 <select
                   value={userRoleFilter}
                   onChange={(e) => setUserRoleFilter(e.target.value)}
-                  className="min-w-[140px] sm:w-44 pl-3 pr-8 py-2.5 rounded-lg sm:rounded-xl bg-white/20 text-white text-sm focus:outline-none focus:bg-white/30 border border-white/20 touch-manipulation min-h-[44px] [&>option]:text-slate-800"
+                  className="min-w-[140px] sm:w-44 pl-3 pr-8 py-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white text-sm focus:outline-none focus:bg-[var(--surface)]/30 border border-surface touch-manipulation min-h-[44px] [&>option]:text-main"
                 >
                   <option value="">All roles ({users.length})</option>
                   {roleListForFilter.map((r) => (
@@ -2940,22 +2940,22 @@ const UserManagement = () => {
                     placeholder="Search users..."
                     value={userSearchTerm}
                     onChange={(e) => setUserSearchTerm(e.target.value)}
-                    className="w-full sm:w-56 pl-10 pr-4 py-2.5 rounded-lg sm:rounded-xl bg-white/20 text-white placeholder-white/60 text-sm focus:outline-none focus:bg-white/30 transition-all touch-manipulation min-h-[44px]"
+                    className="w-full sm:w-56 pl-10 pr-4 py-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white placeholder-white/60 text-sm focus:outline-none focus:bg-[var(--surface)]/30 transition-all touch-manipulation min-h-[44px]"
                   />
                 </div>
-                <button onClick={loadUsers} className="p-2.5 rounded-lg sm:rounded-xl bg-white/20 text-white hover:bg-white/30 active:bg-white/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0">
+                <button onClick={loadUsers} className="p-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0">
                   <RefreshCw size={18} />
                 </button>
               </div>
             </div>
 
             {loadingUsers ? (
-              <div className="py-20 flex flex-col items-center gap-3 text-slate-400">
+              <div className="py-20 flex flex-col items-center gap-3 text-muted-text">
                 <RefreshCw className="animate-spin" size={32} />
                 <p className="text-sm font-medium">Loading users...</p>
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="py-20 flex flex-col items-center gap-3 text-slate-400">
+              <div className="py-20 flex flex-col items-center gap-3 text-muted-text">
                 <UsersIcon size={48} className="opacity-30" />
                 <p className="text-sm font-medium">No users found</p>
               </div>
@@ -2963,20 +2963,20 @@ const UserManagement = () => {
               <>
                 {/* Desktop Table View */}
                 {/* Desktop Table View */}
-                <div className="hidden lg:block overflow-x-auto border rounded-xl border-slate-200 max-h-[calc(100vh-320px)] overflow-y-auto custom-scrollbar pb-20">
+                <div className="hidden lg:block overflow-x-auto border rounded-xl border-border max-h-[calc(100vh-320px)] overflow-y-auto custom-scrollbar pb-20">
                   <table className="w-full min-w-[1000px]">
                     <thead className="sticky top-0 z-10 shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
-                      <tr className="bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 border-b-2 border-slate-200">
-                        <th className="px-3 py-3 text-left text-[11px] font-bold text-slate-600 uppercase tracking-widest border-r border-slate-200/80 first:rounded-tl-xl">
+                      <tr className="bg-gradient-to-r from-[var(--background)] via-[var(--background)] to-[var(--background)] border-b-2 border-border">
+                        <th className="px-3 py-3 text-left text-[11px] font-bold text-sub uppercase tracking-widest border-r border-border first:rounded-tl-xl">
                           User
                         </th>
-                        <th className="px-3 py-3 text-left text-[11px] font-bold text-slate-600 uppercase tracking-widest border-r border-slate-200/80">
+                        <th className="px-3 py-3 text-left text-[11px] font-bold text-sub uppercase tracking-widest border-r border-border">
                           <div className="flex flex-col gap-1.5">
                             <span>Role</span>
                             <select
                               value={userRoleFilter}
                               onChange={(e) => setUserRoleFilter(e.target.value)}
-                              className="w-full min-w-[130px] max-w-[160px] px-2 py-1.5 rounded-lg border border-slate-200 bg-white text-[11px] font-medium text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500/30 focus:outline-none focus:border-blue-400 transition-shadow"
+                              className="w-full min-w-[130px] max-w-[160px] px-2 py-1.5 rounded-lg border border-border bg-surface text-[11px] font-medium text-sub shadow-sm focus:ring-2 focus:ring-[var(--primary-light)] focus:outline-none focus:border-primary transition-shadow"
                             >
                               <option value="">All roles ({users.length})</option>
                               {roleListForFilter.map((r) => (
@@ -2987,57 +2987,57 @@ const UserManagement = () => {
                             </select>
                           </div>
                         </th>
-                        <th className="px-3 py-3 text-left text-[11px] font-bold text-slate-600 uppercase tracking-widest border-r border-slate-200/80">
+                        <th className="px-3 py-3 text-left text-[11px] font-bold text-sub uppercase tracking-widest border-r border-border">
                           Scope
                         </th>
-                        <th className="px-3 py-3 text-left text-[11px] font-bold text-slate-600 uppercase tracking-widest border-r border-slate-200/80">
+                        <th className="px-3 py-3 text-left text-[11px] font-bold text-sub uppercase tracking-widest border-r border-border">
                           Module Access
                         </th>
-                        <th className="px-3 py-3 text-left text-[11px] font-bold text-slate-600 uppercase tracking-widest border-r border-slate-200/80">
+                        <th className="px-3 py-3 text-left text-[11px] font-bold text-sub uppercase tracking-widest border-r border-border">
                           Status
                         </th>
-                        <th className="px-3 py-3 text-left text-[11px] font-bold text-slate-600 uppercase tracking-widest rounded-tr-xl">
+                        <th className="px-3 py-3 text-left text-[11px] font-bold text-sub uppercase tracking-widest rounded-tr-xl">
                           Actions
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-border">
                       {filteredUsers.map((userData) => {
                         const permStatus = countPermissions(userData);
                         const hasModuleAccess = hasPermissions(userData);
                         return (
-                          <tr key={userData.id} className="hover:bg-slate-50/50 transition-colors">
+                          <tr key={userData.id} className="hover:bg-[var(--background)]/50 transition-colors">
                             <td className="px-2 py-1.5">
                               <div className="flex items-center gap-2">
-                                <div className={`w-8 h-8 rounded-lg flex-shrink-0 bg-gradient-to-br ${ROLE_AVATAR_COLORS[userData.role] || 'from-slate-400 to-slate-600'} flex items-center justify-center text-white font-bold text-[13px] shadow-sm`}>
+                                <div className={`w-8 h-8 rounded-lg flex-shrink-0 bg-gradient-to-br ${ROLE_AVATAR_COLORS[userData.role] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center text-white font-bold text-[13px] shadow-sm`}>
                                   {userData.name?.charAt(0)?.toUpperCase()}
                                 </div>
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-1.5">
-                                    <div className="font-semibold text-slate-800 text-xs truncate max-w-[150px]">{userData.name}</div>
+                                    <div className="font-semibold text-main text-xs truncate max-w-[150px]">{userData.name}</div>
                                     {userData.hrms_id ? (
-                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase tracking-tighter" title="Linked to HRMS">
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-[var(--success-light)] text-success border border-[var(--success-light)] uppercase tracking-tighter" title="Linked to HRMS">
                                         Linked
                                       </span>
                                     ) : (
-                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-50 text-slate-400 border border-slate-100 uppercase tracking-tighter" title="Not linked to HRMS">
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-background text-muted-text border border-border uppercase tracking-tighter" title="Not linked to HRMS">
                                         Pending
                                       </span>
                                     )}
                                   </div>
-                                  <div className="text-[10px] text-slate-500 truncate max-w-[150px]">{userData.email}</div>
+                                  <div className="text-[10px] text-muted-text truncate max-w-[150px]">{userData.email}</div>
                                 </div>
                               </div>
                             </td>
-                            <td className="px-2 py-1.5 border-r border-slate-100/50">
+                            <td className="px-2 py-1.5 border-r border-border">
                               <div className="flex flex-wrap items-center gap-1">
-                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${ROLE_COLORS[userData.role] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border ${ROLE_COLORS[userData.role] || 'bg-background text-sub border-border'}`}>
                                   <ShieldCheck size={10} />
                                   {getRoleDisplay(userData)}
                                 </span>
                                 {(userData.isClubAdmin || (userData.clubRoles && userData.clubRoles.length > 0)) && (
                                   <span
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200 shadow-sm"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)] shadow-sm"
                                     title={userData.clubRoles?.map(r => `${r.clubName}: ${r.roleName}`).join('\n') || 'Club Admin'}
                                   >
                                     🏆 Club Tag {userData.clubRoles?.length > 0 ? `(${userData.clubRoles[0].roleName})` : ''}
@@ -3048,45 +3048,45 @@ const UserManagement = () => {
                             <td className="px-2 py-1.5">
                               <div className="space-y-0.5 text-[10px]">
                                 {userData.role === 'super_admin' ? (
-                                  <span className="inline-block px-1.5 py-0.5 bg-rose-50 text-rose-700 rounded text-[9px] font-semibold border border-rose-200">
+                                  <span className="inline-block px-1.5 py-0.5 bg-[var(--danger-light)] text-danger rounded text-[9px] font-semibold border border-[var(--danger-light)]">
                                     All Colleges & Branches
                                   </span>
                                 ) : (
                                   <>
                                     {userData.collegeNames?.length > 0 && (
-                                      <div className="flex items-center gap-1 text-slate-600">
-                                        <Building2 size={11} className="text-blue-500 flex-shrink-0" />
+                                      <div className="flex items-center gap-1 text-sub">
+                                        <Building2 size={11} className="text-primary flex-shrink-0" />
                                         <span className="truncate max-w-[120px]">
                                           {userData.collegeNames.map(c => c.name).join(', ')}
                                         </span>
                                       </div>
                                     )}
                                     {userData.allCourses ? (
-                                      <span className="inline-block px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded text-[9px] font-medium">
+                                      <span className="inline-block px-1.5 py-0.5 bg-[var(--success-light)] text-success rounded text-[9px] font-medium">
                                         All Courses
                                       </span>
                                     ) : userData.courseNames?.length > 0 && (
-                                      <div className="flex items-center gap-1 text-slate-600">
-                                        <GraduationCap size={11} className="text-emerald-500 flex-shrink-0" />
+                                      <div className="flex items-center gap-1 text-sub">
+                                        <GraduationCap size={11} className="text-success flex-shrink-0" />
                                         <span className="truncate max-w-[120px]">
                                           {userData.courseNames.map(c => c.name).join(', ')}
                                         </span>
                                       </div>
                                     )}
                                     {userData.allBranches ? (
-                                      <span className="inline-block px-1.5 py-0.5 bg-sky-50 text-sky-700 rounded text-[9px] font-medium">
+                                      <span className="inline-block px-1.5 py-0.5 bg-[var(--primary-light)] text-info rounded text-[9px] font-medium">
                                         All Branches
                                       </span>
                                     ) : userData.branchNames?.length > 0 && (
-                                      <div className="flex items-center gap-1 text-slate-600">
-                                        <Layers size={11} className="text-sky-500 flex-shrink-0" />
+                                      <div className="flex items-center gap-1 text-sub">
+                                        <Layers size={11} className="text-info flex-shrink-0" />
                                         <span className="truncate max-w-[120px]">
                                           {userData.branchNames.map(branch => branch.name).join(', ')}
                                         </span>
                                       </div>
                                     )}
                                     {userData.role === 'branch_hod' && (
-                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-[9px] font-medium">
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[var(--warning-light)] text-warning rounded text-[9px] font-medium">
                                         <Calendar size={10} className="flex-shrink-0" />
                                         {formatHodYearsDisplay(userData)}
                                       </span>
@@ -3105,8 +3105,8 @@ const UserManagement = () => {
                                     setShowModuleAccessModal(true);
                                   }}
                                   className={`w-full max-w-[150px] inline-flex items-center justify-between gap-1.5 px-2 py-1 rounded-md border text-[10px] font-semibold transition-all ${hasModuleAccess
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                                    : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                                    ? 'bg-[var(--success-light)] text-success border-[var(--success-light)] hover:bg-[var(--success-light)]'
+                                    : 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)] hover:bg-[var(--warning-light)]'
                                     }`}
                                 >
                                   <span className="flex items-center gap-1">
@@ -3117,14 +3117,14 @@ const UserManagement = () => {
                                     )}
                                     <span>{hasModuleAccess ? 'Configured' : 'Configure'}</span>
                                   </span>
-                                  <span className="text-[9px] bg-white/70 px-1 py-0.5 rounded text-slate-500">
+                                  <span className="text-[9px] bg-[var(--surface)]/70 px-1 py-0.5 rounded text-muted-text">
                                     {permStatus.granted}/{permStatus.total}
                                   </span>
                                 </button>
                               ) : (
                                 <div className={`w-full max-w-[150px] inline-flex items-center justify-between gap-1.5 px-2 py-1 rounded-md border text-[10px] font-semibold ${hasModuleAccess
-                                  ? 'bg-emerald-50/50 text-emerald-700/70 border-emerald-100'
-                                  : 'bg-slate-50 text-slate-400 border-slate-100'
+                                  ? 'bg-[var(--success-light)] text-success border-[var(--success-light)]'
+                                  : 'bg-background text-muted-text border-border'
                                   }`}>
                                   <span className="flex items-center gap-1">
                                     {hasModuleAccess ? (
@@ -3134,7 +3134,7 @@ const UserManagement = () => {
                                     )}
                                     <span>{hasModuleAccess ? 'Configured' : 'Read Only'}</span>
                                   </span>
-                                  <span className="text-[9px] bg-white/50 px-1 py-0.5 rounded text-slate-400">
+                                  <span className="text-[9px] bg-[var(--surface)]/50 px-1 py-0.5 rounded text-muted-text">
                                     {permStatus.granted}/{permStatus.total}
                                   </span>
                                 </div>
@@ -3142,12 +3142,12 @@ const UserManagement = () => {
                             </td>
                             <td className="px-2 py-1.5">
                               {userData.isActive ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-md text-[10px] font-semibold">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--success-light)] text-success rounded-md text-[10px] font-semibold">
                                   <CheckCircle2 size={11} />
                                   Active
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[10px] font-semibold">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-background text-muted-text rounded-md text-[10px] font-semibold">
                                   <XCircle size={11} />
                                   Inactive
                                 </span>
@@ -3160,7 +3160,7 @@ const UserManagement = () => {
                                     {(userData.role !== 'super_admin' || user?.role === 'super_admin') && (
                                       <button
                                         onClick={() => openEditModal(userData)}
-                                        className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors"
+                                        className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-md bg-[var(--primary-light)] text-primary hover:bg-[var(--primary-light)] border border-[var(--primary-light)] transition-colors"
                                         title="Edit User"
                                       >
                                         <Edit size={11} />
@@ -3169,7 +3169,7 @@ const UserManagement = () => {
                                     )}
                                     <button
                                       onClick={() => openResetPasswordModal(userData)}
-                                      className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-md bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200 transition-colors"
+                                      className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-md bg-[var(--warning-light)] text-warning hover:bg-[var(--warning-light)] border border-[var(--warning-light)] transition-colors"
                                       title="Reset Password"
                                     >
                                       <KeyRound size={11} />
@@ -3177,23 +3177,23 @@ const UserManagement = () => {
                                     </button>
                                     {userData.role === 'super_admin' && (user?.role !== 'super_admin' || String(user?.id) === String(userData?.id)) ? (
                                       <span
-                                        className="p-1.5 rounded-md bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed"
+                                        className="p-1.5 rounded-md bg-background text-muted-text border border-border cursor-not-allowed"
                                         title={user?.role === 'super_admin' ? "You cannot deactivate your own account" : "Super Admin cannot be deactivated"}
                                       >
-                                        <ToggleRight size={14} className="text-slate-300" />
+                                        <ToggleRight size={14} className="text-muted-text" />
                                       </span>
                                     ) : userData.isActive ? (
                                       <button
                                         onClick={() => handleDeactivateUser(userData.id, userData.role)}
-                                        className="p-1.5 rounded-md bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200 transition-colors"
+                                        className="p-1.5 rounded-md bg-background text-sub hover:bg-background border border-border transition-colors"
                                         title="Deactivate User"
                                       >
-                                        <ToggleRight size={14} className="text-emerald-500" />
+                                        <ToggleRight size={14} className="text-success" />
                                       </button>
                                     ) : (
                                       <button
                                         onClick={() => handleActivateUser(userData.id)}
-                                        className="p-1.5 rounded-md bg-slate-50 text-slate-400 hover:bg-slate-100 border border-slate-200 transition-colors"
+                                        className="p-1.5 rounded-md bg-background text-muted-text hover:bg-background border border-border transition-colors"
                                         title="Activate User"
                                       >
                                         <ToggleLeft size={14} />
@@ -3201,7 +3201,7 @@ const UserManagement = () => {
                                     )}
                                     {userData.role === 'super_admin' && (user?.role !== 'super_admin' || String(user?.id) === String(userData?.id)) ? (
                                       <span
-                                        className="p-1.5 rounded-md bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed"
+                                        className="p-1.5 rounded-md bg-background text-muted-text border border-border cursor-not-allowed"
                                         title={user?.role === 'super_admin' ? "You cannot delete your own account" : "Super Admin cannot be deleted"}
                                       >
                                         <Trash2 size={11} />
@@ -3209,7 +3209,7 @@ const UserManagement = () => {
                                     ) : (
                                       <button
                                         onClick={() => openDeleteModal(userData)}
-                                        className="p-1.5 rounded-md bg-red-50 text-red-400 hover:text-red-600 hover:bg-red-100 border border-red-100 transition-colors"
+                                        className="p-1.5 rounded-md bg-[var(--danger-light)] text-danger hover:text-danger hover:bg-[var(--danger-light)] border border-[var(--danger-light)] transition-colors"
                                         title="Delete User"
                                       >
                                         <Trash2 size={11} />
@@ -3232,35 +3232,35 @@ const UserManagement = () => {
                     const permStatus = countPermissions(userData);
                     const hasModuleAccess = hasPermissions(userData);
                     return (
-                      <div key={userData.id} className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                      <div key={userData.id} className="bg-surface border border-border rounded-lg shadow-sm overflow-hidden">
                         <div className="p-4 space-y-3">
                           {/* User Info Header */}
-                          <div className="flex items-start gap-3 pb-3 border-b border-slate-100">
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${ROLE_AVATAR_COLORS[userData.role] || 'from-slate-400 to-slate-600'} flex items-center justify-center text-white font-bold text-base shadow-sm flex-shrink-0`}>
+                          <div className="flex items-start gap-3 pb-3 border-b border-border">
+                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${ROLE_AVATAR_COLORS[userData.role] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center text-white font-bold text-base shadow-sm flex-shrink-0`}>
                               {userData.name?.charAt(0)?.toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <div className="font-semibold text-slate-800 text-base">{userData.name}</div>
+                                <div className="font-semibold text-main text-base">{userData.name}</div>
                                 {userData.hrms_id ? (
-                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase tracking-tighter">
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-[var(--success-light)] text-success border border-[var(--success-light)] uppercase tracking-tighter">
                                     Linked
                                   </span>
                                 ) : (
-                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-slate-50 text-slate-400 border border-slate-100 uppercase tracking-tighter">
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-background text-muted-text border border-border uppercase tracking-tighter">
                                     Pending
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-slate-500 truncate">{userData.email}</div>
+                              <div className="text-xs text-muted-text truncate">{userData.email}</div>
                               <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border ${ROLE_COLORS[userData.role] || 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border ${ROLE_COLORS[userData.role] || 'bg-background text-sub border-border'}`}>
                                   <ShieldCheck size={12} />
                                   {getRoleDisplay(userData)}
                                 </span>
                                 {(userData.isClubAdmin || (userData.clubRoles && userData.clubRoles.length > 0)) && (
                                   <span
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200 shadow-sm"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)] shadow-sm"
                                     title={userData.clubRoles?.map(r => `${r.clubName}: ${r.roleName}`).join('\n') || 'Club Admin'}
                                   >
                                     🏆 Club Tag {userData.clubRoles?.length > 0 ? `(${userData.clubRoles[0].roleName})` : ''}
@@ -3272,42 +3272,42 @@ const UserManagement = () => {
 
                           {/* Scope */}
                           <div className="space-y-2">
-                            <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Scope</h4>
+                            <h4 className="text-xs font-semibold text-sub uppercase tracking-wide">Scope</h4>
                             <div className="space-y-1.5 text-xs">
                               {userData.role === 'super_admin' ? (
-                                <span className="inline-block px-2 py-0.5 bg-rose-50 text-rose-700 rounded-md text-[11px] font-semibold border border-rose-200">
+                                <span className="inline-block px-2 py-0.5 bg-[var(--danger-light)] text-danger rounded-md text-[11px] font-semibold border border-[var(--danger-light)]">
                                   All Colleges & Branches
                                 </span>
                               ) : (
                                 <>
                                   {userData.collegeNames?.length > 0 && (
-                                    <div className="flex items-start gap-1.5 text-slate-600">
-                                      <Building2 size={13} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                                    <div className="flex items-start gap-1.5 text-sub">
+                                      <Building2 size={13} className="text-primary flex-shrink-0 mt-0.5" />
                                       <span className="flex-1">{userData.collegeNames.map(c => c.name).join(', ')}</span>
                                     </div>
                                   )}
                                   {userData.allCourses ? (
-                                    <span className="inline-block px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md text-[11px] font-medium">
+                                    <span className="inline-block px-2 py-0.5 bg-[var(--success-light)] text-success rounded-md text-[11px] font-medium">
                                       All Courses
                                     </span>
                                   ) : userData.courseNames?.length > 0 && (
-                                    <div className="flex items-start gap-1.5 text-slate-600">
-                                      <GraduationCap size={13} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                                    <div className="flex items-start gap-1.5 text-sub">
+                                      <GraduationCap size={13} className="text-success flex-shrink-0 mt-0.5" />
                                       <span className="flex-1">{userData.courseNames.map(c => c.name).join(', ')}</span>
                                     </div>
                                   )}
                                   {userData.allBranches ? (
-                                    <span className="inline-block px-2 py-0.5 bg-sky-50 text-sky-700 rounded-md text-[11px] font-medium">
+                                    <span className="inline-block px-2 py-0.5 bg-[var(--primary-light)] text-info rounded-md text-[11px] font-medium">
                                       All Branches
                                     </span>
                                   ) : userData.branchNames?.length > 0 && (
-                                    <div className="flex items-start gap-1.5 text-slate-600">
-                                      <Layers size={13} className="text-sky-500 flex-shrink-0 mt-0.5" />
+                                    <div className="flex items-start gap-1.5 text-sub">
+                                      <Layers size={13} className="text-info flex-shrink-0 mt-0.5" />
                                       <span className="flex-1">{userData.branchNames.map(branch => branch.name).join(', ')}</span>
                                     </div>
                                   )}
                                   {userData.role === 'branch_hod' && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-md text-[11px] font-medium">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--warning-light)] text-warning rounded-md text-[11px] font-medium">
                                       <Calendar size={12} className="flex-shrink-0" />
                                       {formatHodYearsDisplay(userData)}
                                     </span>
@@ -3318,9 +3318,9 @@ const UserManagement = () => {
                           </div>
 
                           {/* Module Access & Status */}
-                          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border">
                             <div>
-                              <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Module Access</h4>
+                              <h4 className="text-xs font-semibold text-sub uppercase tracking-wide mb-1">Module Access</h4>
                               {canManageUsers ? (
                                 <button
                                   type="button"
@@ -3330,8 +3330,8 @@ const UserManagement = () => {
                                     setShowModuleAccessModal(true);
                                   }}
                                   className={`w-full inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${hasModuleAccess
-                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
-                                    : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                                    ? 'bg-[var(--success-light)] text-success border-[var(--success-light)] hover:bg-[var(--success-light)]'
+                                    : 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)] hover:bg-[var(--warning-light)]'
                                     }`}
                                 >
                                   <span className="flex items-center gap-1.5">
@@ -3342,14 +3342,14 @@ const UserManagement = () => {
                                     )}
                                     <span>{hasModuleAccess ? 'Configured' : 'Configure'}</span>
                                   </span>
-                                  <span className="text-[10px] bg-white/70 px-1.5 py-0.5 rounded-md text-slate-500">
+                                  <span className="text-[10px] bg-[var(--surface)]/70 px-1.5 py-0.5 rounded-md text-muted-text">
                                     {permStatus.granted}/{permStatus.total}
                                   </span>
                                 </button>
                               ) : (
                                 <div className={`w-full inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg border text-xs font-semibold ${hasModuleAccess
-                                  ? 'bg-emerald-50/50 text-emerald-700/70 border-emerald-100'
-                                  : 'bg-slate-50 text-slate-400 border-slate-100'
+                                  ? 'bg-[var(--success-light)] text-success border-[var(--success-light)]'
+                                  : 'bg-background text-muted-text border-border'
                                   }`}>
                                   <span className="flex items-center gap-1.5">
                                     {hasModuleAccess ? (
@@ -3359,21 +3359,21 @@ const UserManagement = () => {
                                     )}
                                     <span>{hasModuleAccess ? 'Configured' : 'Read Only'}</span>
                                   </span>
-                                  <span className="text-[10px] bg-white/50 px-1.5 py-0.5 rounded-md text-slate-400">
+                                  <span className="text-[10px] bg-[var(--surface)]/50 px-1.5 py-0.5 rounded-md text-muted-text">
                                     {permStatus.granted}/{permStatus.total}
                                   </span>
                                 </div>
                               )}
                             </div>
                             <div>
-                              <h4 className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1">Status</h4>
+                              <h4 className="text-xs font-semibold text-sub uppercase tracking-wide mb-1">Status</h4>
                               {userData.isActive ? (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--success-light)] text-success rounded-lg text-xs font-semibold">
                                   <CheckCircle2 size={12} />
                                   Active
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-500 rounded-lg text-xs font-semibold">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-background text-muted-text rounded-lg text-xs font-semibold">
                                   <XCircle size={12} />
                                   Inactive
                                 </span>
@@ -3382,13 +3382,13 @@ const UserManagement = () => {
                           </div>
 
                           {/* Actions */}
-                          <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+                          <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
                             {canManageUsers && (
                               <>
                                 {(userData.role !== 'super_admin' || user?.role === 'super_admin') && (
                                   <button
                                     onClick={() => openEditModal(userData)}
-                                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200 border border-blue-200 transition-colors touch-manipulation min-h-[44px]"
+                                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-[var(--primary-light)] text-primary hover:bg-[var(--primary-light)] active:bg-[var(--primary-light)] border border-[var(--primary-light)] transition-colors touch-manipulation min-h-[44px]"
                                     title="Edit User"
                                   >
                                     <Edit size={13} />
@@ -3397,7 +3397,7 @@ const UserManagement = () => {
                                 )}
                                 <button
                                   onClick={() => openResetPasswordModal(userData)}
-                                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 active:bg-amber-200 border border-amber-200 transition-colors touch-manipulation min-h-[44px]"
+                                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-[var(--warning-light)] text-warning hover:bg-[var(--warning-light)] active:bg-[var(--warning-light)] border border-[var(--warning-light)] transition-colors touch-manipulation min-h-[44px]"
                                   title="Reset Password"
                                 >
                                   <KeyRound size={13} />
@@ -3405,23 +3405,23 @@ const UserManagement = () => {
                                 </button>
                                 {userData.role === 'super_admin' && (user?.role !== 'super_admin' || String(user?.id) === String(userData?.id)) ? (
                                   <span
-                                    className="p-2 rounded-lg bg-slate-50 text-slate-300 border border-slate-200 cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                    className="p-2 rounded-lg bg-background text-muted-text border border-border cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
                                     title={user?.role === 'super_admin' ? "You cannot deactivate your own account" : "Super Admin cannot be deactivated"}
                                   >
-                                    <ToggleRight size={18} className="text-slate-300" />
+                                    <ToggleRight size={18} className="text-muted-text" />
                                   </span>
                                 ) : userData.isActive ? (
                                   <button
                                     onClick={() => handleDeactivateUser(userData.id, userData.role)}
-                                    className="p-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 active:bg-slate-200 border border-slate-200 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                    className="p-2 rounded-lg bg-background text-sub hover:bg-background active:bg-background border border-border transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
                                     title="Deactivate User"
                                   >
-                                    <ToggleRight size={18} className="text-emerald-500" />
+                                    <ToggleRight size={18} className="text-success" />
                                   </button>
                                 ) : (
                                   <button
                                     onClick={() => handleActivateUser(userData.id)}
-                                    className="p-2 rounded-lg bg-slate-50 text-slate-400 hover:bg-slate-100 active:bg-slate-200 border border-slate-200 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                    className="p-2 rounded-lg bg-background text-muted-text hover:bg-background active:bg-background border border-border transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
                                     title="Activate User"
                                   >
                                     <ToggleLeft size={18} />
@@ -3429,7 +3429,7 @@ const UserManagement = () => {
                                 )}
                                 {userData.role === 'super_admin' && (user?.role !== 'super_admin' || String(user?.id) === String(userData?.id)) ? (
                                   <span
-                                    className="p-2 rounded-lg bg-slate-50 text-slate-300 border border-slate-200 cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                    className="p-2 rounded-lg bg-background text-muted-text border border-border cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
                                     title={user?.role === 'super_admin' ? "You cannot delete your own account" : "Super Admin cannot be deleted"}
                                   >
                                     <Trash2 size={14} />
@@ -3437,7 +3437,7 @@ const UserManagement = () => {
                                 ) : (
                                   <button
                                     onClick={() => openDeleteModal(userData)}
-                                    className="p-2 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 active:bg-rose-200 border border-rose-200 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                    className="p-2 rounded-lg bg-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)] active:bg-[var(--danger-light)] border border-[var(--danger-light)] transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
                                     title="Delete User Permanently"
                                   >
                                     <Trash2 size={14} />
@@ -3521,19 +3521,19 @@ const UserManagement = () => {
       {/* Add new role modal */}
       {showAddRoleModal && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-violet-600 to-purple-600 px-4 py-3 flex items-center justify-between">
+          <div className="bg-surface w-full max-w-md rounded-xl shadow-2xl overflow-hidden">
+            <div className="bg-gradient-to-r from-secondary to-secondary px-4 py-3 flex items-center justify-between">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
                 <UserPlus size={20} />
                 Add new role
               </h2>
-              <button type="button" onClick={() => setShowAddRoleModal(false)} className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30">
+              <button type="button" onClick={() => setShowAddRoleModal(false)} className="p-2 rounded-lg bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30">
                 <X size={20} />
               </button>
             </div>
             <div className="p-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Role name <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-semibold text-sub mb-1">Role name <span className="text-danger">*</span></label>
                 <input
                   type="text"
                   value={newRoleLabel}
@@ -3543,34 +3543,34 @@ const UserManagement = () => {
                     setNewRoleLabel(e.target.value);
                     if (!newRoleKey || newRoleKey === oldSlug) setNewRoleKey(newSlug);
                   }}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-[var(--primary-light)] focus:border-secondary"
                   placeholder="e.g. Department Manager"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Role key (optional)</label>
+                <label className="block text-xs font-semibold text-sub mb-1">Role key (optional)</label>
                 <input
                   type="text"
                   value={newRoleKey}
                   onChange={(e) => setNewRoleKey(e.target.value.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, ''))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 font-mono text-xs"
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-[var(--primary-light)] focus:border-secondary font-mono text-xs"
                   placeholder="e.g. department_manager"
                 />
-                <p className="text-[10px] text-slate-500 mt-1">Used internally; auto-filled from name if empty.</p>
+                <p className="text-[10px] text-muted-text mt-1">Used internally; auto-filled from name if empty.</p>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Description (optional)</label>
+                <label className="block text-xs font-semibold text-sub mb-1">Description (optional)</label>
                 <input
                   type="text"
                   value={newRoleDescription}
                   onChange={(e) => setNewRoleDescription(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                  className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-[var(--primary-light)] focus:border-secondary"
                   placeholder="Brief description of this role"
                 />
               </div>
             </div>
-            <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-              <button type="button" onClick={() => setShowAddRoleModal(false)} className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50">
+            <div className="px-4 py-3 bg-background border-t border-border flex justify-end gap-2">
+              <button type="button" onClick={() => setShowAddRoleModal(false)} className="px-4 py-2 rounded-lg text-sm font-semibold text-sub bg-surface border border-border hover:bg-background">
                 Cancel
               </button>
               <button
@@ -3605,7 +3605,7 @@ const UserManagement = () => {
                     setCreatingRole(false);
                   }
                 }}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-secondary hover:bg-secondary disabled:opacity-50 flex items-center gap-2"
               >
                 {creatingRole ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                 Create role
@@ -3619,11 +3619,11 @@ const UserManagement = () => {
       {/* Delete role confirm modal */}
       {deleteRoleModal && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden my-auto border border-slate-200">
+          <div className="bg-surface w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden my-auto border border-border">
             {/* Modal Header */}
-            <div className="px-5 py-4 bg-gradient-to-r from-red-600 to-rose-600 text-white flex items-center justify-between">
+            <div className="px-5 py-4 bg-gradient-to-r from-danger to-danger text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white">
+                <div className="w-9 h-9 rounded-xl bg-[var(--surface)]/20 flex items-center justify-center text-white">
                   <Trash2 size={20} />
                 </div>
                 <div>
@@ -3634,7 +3634,7 @@ const UserManagement = () => {
               <button
                 type="button"
                 onClick={() => setDeleteRoleModal(null)}
-                className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-colors"
+                className="p-1.5 rounded-lg bg-[var(--surface)]/20 hover:bg-[var(--surface)]/30 text-white transition-colors"
               >
                 <X size={18} />
               </button>
@@ -3643,31 +3643,31 @@ const UserManagement = () => {
             {/* Modal Content */}
             <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
               <div>
-                <p className="text-sm font-semibold text-slate-800">
-                  Are you sure you want to delete the role <span className="text-red-600 font-bold">"{deleteRoleModal.label}"</span>?
+                <p className="text-sm font-semibold text-main">
+                  Are you sure you want to delete the role <span className="text-danger font-bold">"{deleteRoleModal.label}"</span>?
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-muted-text mt-1">
                   Deleting this role will remove its configuration from the system.
                 </p>
               </div>
 
               {/* Persons Participating Info Section */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+              <div className="bg-background border border-border rounded-xl p-3.5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
-                    <UsersIcon size={14} className="text-violet-600" />
+                  <h4 className="text-xs font-bold text-sub uppercase tracking-wide flex items-center gap-1.5">
+                    <UsersIcon size={14} className="text-secondary" />
                     Assigned Persons / Participants
                   </h4>
                   {deleteRoleModal.loading ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
-                      <RefreshCw size={12} className="animate-spin text-violet-600" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-text">
+                      <RefreshCw size={12} className="animate-spin text-secondary" />
                       Loading...
                     </span>
                   ) : (
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                       deleteRoleModal.users?.length > 0
-                        ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                        : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                        ? 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
+                        : 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
                     }`}>
                       {deleteRoleModal.users?.length || 0} Person(s)
                     </span>
@@ -3675,41 +3675,41 @@ const UserManagement = () => {
                 </div>
 
                 {deleteRoleModal.loading ? (
-                  <div className="py-6 flex flex-col items-center justify-center gap-2 text-slate-400">
-                    <RefreshCw size={24} className="animate-spin text-violet-500" />
+                  <div className="py-6 flex flex-col items-center justify-center gap-2 text-muted-text">
+                    <RefreshCw size={24} className="animate-spin text-secondary" />
                     <p className="text-xs font-medium">Checking assigned persons for this role...</p>
                   </div>
                 ) : deleteRoleModal.users?.length > 0 ? (
                   <div className="space-y-2">
-                    <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-start gap-2">
-                      <AlertTriangle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                    <div className="p-2.5 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-lg text-warning text-xs flex items-start gap-2">
+                      <AlertTriangle size={15} className="text-warning shrink-0 mt-0.5" />
                       <div>
                         <p className="font-semibold">Attention required:</p>
-                        <p className="text-[11px] text-amber-700 mt-0.5">
+                        <p className="text-[11px] text-warning mt-0.5">
                           {deleteRoleModal.users.length} person(s) currently participate in this role. If you proceed with deletion, these users will be unassigned from this role.
                         </p>
                       </div>
                     </div>
 
-                    <div className="max-h-48 overflow-y-auto space-y-1.5 divide-y divide-slate-100 border border-slate-200 rounded-lg bg-white p-2">
+                    <div className="max-h-48 overflow-y-auto space-y-1.5 divide-y divide-border border border-border rounded-lg bg-surface p-2">
                       {deleteRoleModal.users.map((person) => (
                         <div key={person.id} className="pt-1.5 first:pt-0 flex items-center justify-between gap-2 text-xs">
                           <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
+                            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-secondary to-primary flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
                               {person.name?.charAt(0)?.toUpperCase() || 'U'}
                             </div>
                             <div className="min-w-0">
-                              <p className="font-semibold text-slate-800 truncate">{person.name}</p>
-                              <p className="text-[10px] text-slate-500 truncate">@{person.username} • {person.email}</p>
+                              <p className="font-semibold text-main truncate">{person.name}</p>
+                              <p className="text-[10px] text-muted-text truncate">@{person.username} • {person.email}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
                             {person.is_active ? (
-                              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-[var(--success-light)] text-success border border-[var(--success-light)]">
                                 Active
                               </span>
                             ) : (
-                              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-500">
+                              <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-background text-muted-text">
                                 Inactive
                               </span>
                             )}
@@ -3719,8 +3719,8 @@ const UserManagement = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 text-xs flex items-center gap-2">
-                    <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                  <div className="p-3 bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg text-success text-xs flex items-center gap-2">
+                    <CheckCircle2 size={16} className="text-success shrink-0" />
                     <span>No persons are currently assigned to this role. Safe to delete.</span>
                   </div>
                 )}
@@ -3732,8 +3732,8 @@ const UserManagement = () => {
               const hasUsers = (deleteRoleModal.users?.length || 0) > 0;
               const isButtonDisabled = deletingRole || deleteRoleModal.loading || hasUsers;
               return (
-                <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-                  <span className="text-[11px] font-semibold text-slate-500">
+                <div className="px-5 py-3.5 bg-background border-t border-border flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-[11px] font-semibold text-muted-text">
                     {deleteRoleModal.loading
                       ? 'Checking assigned persons...'
                       : hasUsers
@@ -3745,7 +3745,7 @@ const UserManagement = () => {
                     <button
                       type="button"
                       onClick={() => setDeleteRoleModal(null)}
-                      className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-colors"
+                      className="px-4 py-2.5 rounded-xl text-xs font-semibold text-sub bg-surface border border-border hover:bg-background transition-colors"
                     >
                       Cancel
                     </button>
@@ -3773,17 +3773,17 @@ const UserManagement = () => {
                       }}
                       className={`text-xs font-bold px-5 py-2.5 rounded-xl transition-all flex items-center gap-2 ${
                         deleteRoleModal.loading
-                          ? 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60'
+                          ? 'bg-background text-muted-text cursor-not-allowed opacity-60'
                           : hasUsers
-                          ? 'bg-red-100 text-red-400 border border-red-200 cursor-not-allowed opacity-70 select-none'
-                          : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg shadow-emerald-500/30 ring-2 ring-emerald-500/40 active:scale-95 cursor-pointer'
+                          ? 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] cursor-not-allowed opacity-70 select-none'
+                          : 'bg-gradient-to-r from-success to-primary hover:from-success hover:to-primary text-white shadow-lg shadow-success/30 ring-2 ring-[var(--success-light)] active:scale-95 cursor-pointer'
                       }`}
                       title={hasUsers ? 'Cannot delete while persons are assigned to this role' : 'Confirm Delete Role'}
                     >
                       {deletingRole ? (
                         <RefreshCw size={15} className="animate-spin" />
                       ) : hasUsers ? (
-                        <AlertTriangle size={15} className="text-red-400" />
+                        <AlertTriangle size={15} className="text-danger" />
                       ) : (
                         <Trash2 size={15} />
                       )}
@@ -3807,8 +3807,8 @@ const UserManagement = () => {
       {/* Role Configuration Modal */}
       {showRoleConfigModal && roleConfigModalRole && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-5xl rounded-lg sm:rounded-2xl shadow-2xl my-auto overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex-shrink-0 bg-gradient-to-r from-violet-600 to-purple-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+          <div className="bg-surface w-full max-w-5xl rounded-lg sm:rounded-2xl shadow-2xl my-auto overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex-shrink-0 bg-gradient-to-r from-secondary to-secondary px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 {roleConfigModalRole.is_system ? (
                   <ShieldCheck size={20} className="text-white flex-shrink-0" />
@@ -3826,71 +3826,71 @@ const UserManagement = () => {
                   </p>
                 </div>
               </div>
-              <button type="button" onClick={() => { setShowRoleConfigModal(false); setRoleConfigModalRole(null); setFieldPermissionsContext('user'); }} className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30">
+              <button type="button" onClick={() => { setShowRoleConfigModal(false); setRoleConfigModalRole(null); setFieldPermissionsContext('user'); }} className="p-2 rounded-lg bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30">
                 <X size={20} />
               </button>
             </div>
             {roleConfigModalRole.is_system && (
-              <div className="flex-shrink-0 bg-rose-50 border-b border-rose-200 px-4 sm:px-6 py-2.5 flex items-center gap-2.5">
-                <div className="w-6 h-6 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center flex-shrink-0">
+              <div className="flex-shrink-0 bg-[var(--danger-light)] border-b border-[var(--danger-light)] px-4 sm:px-6 py-2.5 flex items-center gap-2.5">
+                <div className="w-6 h-6 rounded-full bg-[var(--danger-light)] text-danger flex items-center justify-center flex-shrink-0">
                   <Lock size={12} />
                 </div>
-                <div className="text-xs text-rose-900">
+                <div className="text-xs text-danger">
                   <span className="font-bold">System Protected Role:</span> Super Admin possesses root-level unrestricted permissions across every single module and operation. These permissions cannot be edited or revoked.
                 </div>
               </div>
             )}
             {/* Role name and description (read-only for system role, editable otherwise) */}
             {roleConfigModalRole.is_system ? (
-              <div className="flex-shrink-0 bg-slate-50 border-b border-slate-200 px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex-shrink-0 bg-background border-b border-border px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-slate-800">{roleConfigModalRole.label || 'Super Admin'}</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 flex items-center gap-1">
+                    <span className="text-sm font-bold text-main">{roleConfigModalRole.label || 'Super Admin'}</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] flex items-center gap-1">
                       <Lock size={10} />
                       System Built-in
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">{roleConfigModalRole.description || 'Full system access with complete administrative privileges across all modules and settings'}</p>
+                  <p className="text-xs text-muted-text mt-0.5">{roleConfigModalRole.description || 'Full system access with complete administrative privileges across all modules and settings'}</p>
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-auto flex-shrink-0">
-                  <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md font-semibold flex items-center gap-1">
-                    <CheckCircle2 size={13} className="text-emerald-600" />
+                  <span className="text-xs text-success bg-[var(--success-light)] border border-[var(--success-light)] px-2.5 py-1 rounded-md font-semibold flex items-center gap-1">
+                    <CheckCircle2 size={13} className="text-success" />
                     All Permissions Active
                   </span>
                 </div>
               </div>
             ) : (
-              <div className="flex-shrink-0 bg-slate-50 border-b border-slate-200 px-4 sm:px-6 py-3 space-y-3">
+              <div className="flex-shrink-0 bg-background border-b border-border px-4 sm:px-6 py-3 space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Role name</label>
+                  <label className="block text-xs font-semibold text-sub mb-1">Role name</label>
                   <input
                     type="text"
                     value={roleConfigModalRole.label || ''}
                     onChange={(e) => setRoleConfigModalRole(prev => prev ? { ...prev, label: e.target.value } : null)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                    className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-[var(--primary-light)] focus:border-secondary"
                     placeholder="e.g. College Principal"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Description (optional)</label>
+                  <label className="block text-xs font-semibold text-sub mb-1">Description (optional)</label>
                   <input
                     type="text"
                     value={roleConfigModalRole.description ?? ''}
                     onChange={(e) => setRoleConfigModalRole(prev => prev ? { ...prev, description: e.target.value } : null)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+                    className="w-full px-3 py-2 rounded-lg border border-border text-sm focus:ring-2 focus:ring-[var(--primary-light)] focus:border-secondary"
                     placeholder="Brief description of this role"
                   />
                 </div>
                 {roleConfigModalRole.is_custom && (
-                  <p className="text-[10px] text-slate-500">Role key: <code className="bg-slate-200 px-1 rounded">{roleConfigModalRole.role_key}</code> (cannot be changed)</p>
+                  <p className="text-[10px] text-muted-text">Role key: <code className="bg-background px-1 rounded">{roleConfigModalRole.role_key}</code> (cannot be changed)</p>
                 )}
               </div>
             )}
             <div className="flex-1 flex flex-col sm:flex-row min-h-[360px] max-h-[70vh] overflow-hidden">
-              <div className="w-full sm:w-64 border-b sm:border-b-0 sm:border-r border-slate-200 bg-slate-50/80 overflow-y-auto">
-                <div className="px-3 py-2 border-b border-slate-200">
-                  <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Modules</p>
+              <div className="w-full sm:w-64 border-b sm:border-b-0 sm:border-r border-border bg-[var(--background)]/80 overflow-y-auto">
+                <div className="px-3 py-2 border-b border-border">
+                  <p className="text-xs font-semibold text-sub uppercase tracking-wide">Modules</p>
                 </div>
                 <div className="p-2 space-y-1">
                   {USER_MANAGEMENT_MODULE_KEYS.map((key) => {
@@ -3908,10 +3908,10 @@ const UserManagement = () => {
                         key={moduleKey}
                         type="button"
                         onClick={() => setRoleConfigSelectedModule(moduleKey)}
-                        className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs text-left transition-all ${isActive ? 'bg-white text-violet-700 border border-violet-200 shadow-sm' : 'bg-transparent text-slate-700 hover:bg-white'}`}
+                        className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs text-left transition-all ${isActive ? 'bg-surface text-secondary border border-[var(--primary-light)] shadow-sm' : 'bg-transparent text-sub hover:bg-surface'}`}
                       >
                         <span className="truncate font-medium">{moduleLabel}</span>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${isAllEnabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${isAllEnabled ? 'bg-[var(--success-light)] text-success' : 'bg-background text-muted-text'}`}>
                           {enabledCount}/{totalCount}
                         </span>
                       </button>
@@ -3919,12 +3919,12 @@ const UserManagement = () => {
                   })}
                 </div>
               </div>
-              <div className="flex-1 bg-white overflow-y-auto p-4">
+              <div className="flex-1 bg-surface overflow-y-auto p-4">
                 {(() => {
                   const effectiveModuleKey = roleConfigSelectedModule || Object.values(BACKEND_MODULES)[0];
                   const modulePerms = getUserManagementModulePermissions(effectiveModuleKey);
                   const moduleLabel = getUserManagementModuleLabel(effectiveModuleKey);
-                  if (!modulePerms) return <p className="text-sm text-slate-500">Select a module</p>;
+                  if (!modulePerms) return <p className="text-sm text-muted-text">Select a module</p>;
                   const permsForRole = roleConfigModalPermissions[effectiveModuleKey] || {};
                   const isReadOnly = Boolean(roleConfigModalRole?.is_system || roleConfigModalRole?.is_readonly || roleConfigModalRole?.role_key === 'super_admin');
                   const toggleOne = (permKey) => {
@@ -3946,16 +3946,16 @@ const UserManagement = () => {
                   return (
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-slate-800">{moduleLabel}</h3>
+                        <h3 className="font-bold text-main">{moduleLabel}</h3>
                         {isReadOnly ? (
-                          <span className="px-2.5 py-1 text-[11px] font-semibold bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 flex items-center gap-1">
-                            <CheckCircle2 size={12} className="text-emerald-600" />
+                          <span className="px-2.5 py-1 text-[11px] font-semibold bg-[var(--success-light)] text-success rounded-lg border border-[var(--success-light)] flex items-center gap-1">
+                            <CheckCircle2 size={12} className="text-success" />
                             Full Unrestricted Access
                           </span>
                         ) : (
                           <div className="flex gap-2">
-                            <button type="button" onClick={() => toggleAll(true)} className="px-3 py-1.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 border border-emerald-200">Grant All</button>
-                            <button type="button" onClick={() => toggleAll(false)} className="px-3 py-1.5 text-[11px] font-semibold bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 border border-slate-200">Revoke All</button>
+                            <button type="button" onClick={() => toggleAll(true)} className="px-3 py-1.5 text-[11px] font-semibold bg-[var(--success-light)] text-success rounded-lg hover:bg-[var(--success-light)] border border-[var(--success-light)]">Grant All</button>
+                            <button type="button" onClick={() => toggleAll(false)} className="px-3 py-1.5 text-[11px] font-semibold bg-background text-sub rounded-lg hover:bg-background border border-border">Revoke All</button>
                           </div>
                         )}
                       </div>
@@ -3979,9 +3979,9 @@ const UserManagement = () => {
                             return (
                               <div className="space-y-1.5">
                                 <div className="grid grid-cols-[1fr,100px,100px] gap-2 mb-2 px-2">
-                                  <span className="text-[11px] font-bold text-slate-400 uppercase">Section</span>
-                                  <span className="text-[11px] font-bold text-blue-500 uppercase text-center">Read</span>
-                                  <span className="text-[11px] font-bold text-emerald-500 uppercase text-center">Write</span>
+                                  <span className="text-[11px] font-bold text-muted-text uppercase">Section</span>
+                                  <span className="text-[11px] font-bold text-primary uppercase text-center">Read</span>
+                                  <span className="text-[11px] font-bold text-success uppercase text-center">Write</span>
                                 </div>
                                 {settingsSections.map(section => {
                                   const viewKey = `view_${section.key}`;
@@ -3989,8 +3989,8 @@ const UserManagement = () => {
                                   const viewEnabled = permsForRole[viewKey] === true;
                                   const editEnabled = permsForRole[editKey] === true;
                                   return (
-                                    <div key={section.key} className="grid grid-cols-[1fr,100px,100px] gap-2 items-center rounded-lg px-3 py-2 bg-slate-50 border border-slate-200">
-                                      <span className="text-xs font-medium text-slate-700">{section.label}</span>
+                                    <div key={section.key} className="grid grid-cols-[1fr,100px,100px] gap-2 items-center rounded-lg px-3 py-2 bg-background border border-border">
+                                      <span className="text-xs font-medium text-sub">{section.label}</span>
                                       {/* Read */}
                                       <button
                                         type="button"
@@ -4000,9 +4000,9 @@ const UserManagement = () => {
                                           toggleOne(viewKey);
                                           if (viewEnabled && editEnabled) toggleOne(editKey);
                                         }}
-                                        className={`flex items-center justify-center gap-1 px-2 py-1 rounded-md border text-[11px] font-semibold transition-all ${viewEnabled ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'} ${isReadOnly ? 'cursor-default' : ''}`}
+                                        className={`flex items-center justify-center gap-1 px-2 py-1 rounded-md border text-[11px] font-semibold transition-all ${viewEnabled ? 'bg-[var(--primary-light)] border-[var(--primary-light)] text-primary' : 'bg-surface border-border text-muted-text hover:bg-background'} ${isReadOnly ? 'cursor-default' : ''}`}
                                       >
-                                        <span className={`w-4 h-4 rounded flex items-center justify-center ${viewEnabled ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                        <span className={`w-4 h-4 rounded flex items-center justify-center ${viewEnabled ? 'bg-primary text-white' : 'bg-background text-muted-text'}`}>
                                           {viewEnabled ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
                                         </span>
                                         {viewEnabled ? 'On' : 'Off'}
@@ -4016,9 +4016,9 @@ const UserManagement = () => {
                                           toggleOne(editKey);
                                           if (!editEnabled && !viewEnabled) toggleOne(viewKey);
                                         }}
-                                        className={`flex items-center justify-center gap-1 px-2 py-1 rounded-md border text-[11px] font-semibold transition-all ${editEnabled ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'} ${isReadOnly ? 'cursor-default' : ''}`}
+                                        className={`flex items-center justify-center gap-1 px-2 py-1 rounded-md border text-[11px] font-semibold transition-all ${editEnabled ? 'bg-[var(--success-light)] border-[var(--success-light)] text-success' : 'bg-surface border-border text-muted-text hover:bg-background'} ${isReadOnly ? 'cursor-default' : ''}`}
                                       >
-                                        <span className={`w-4 h-4 rounded flex items-center justify-center ${editEnabled ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                        <span className={`w-4 h-4 rounded flex items-center justify-center ${editEnabled ? 'bg-success text-white' : 'bg-background text-muted-text'}`}>
                                           {editEnabled ? <CheckCircle2 size={10} /> : <XCircle size={10} />}
                                         </span>
                                         {editEnabled ? 'On' : 'Off'}
@@ -4046,10 +4046,10 @@ const UserManagement = () => {
                                 type="button"
                                 disabled={isReadOnly}
                                 onClick={() => toggleOne(permKey)}
-                                className={`w-full min-w-0 flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border text-xs text-left transition-all ${enabled ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'} ${isReadOnly ? 'cursor-default' : ''}`}
+                                className={`w-full min-w-0 flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border text-xs text-left transition-all ${enabled ? 'bg-[var(--success-light)] border-[var(--success-light)] text-success' : 'bg-surface border-border text-sub hover:bg-background'} ${isReadOnly ? 'cursor-default' : ''}`}
                               >
                                 <span className="font-medium truncate">{label}</span>
-                                <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${enabled ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{enabled ? 'Allowed' : 'Disabled'}</span>
+                                <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${enabled ? 'bg-[var(--success-light)] text-success' : 'bg-background text-muted-text'}`}>{enabled ? 'Allowed' : 'Disabled'}</span>
                               </button>
                               {isStudentMgmtView && enabled && !isReadOnly && (
                                 <button
@@ -4059,7 +4059,7 @@ const UserManagement = () => {
                                     setShowFieldPermissionsModal(true);
                                     loadStudentFields('roleConfig');
                                   }}
-                                  className="shrink-0 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                                  className="shrink-0 px-4 py-2 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2 whitespace-nowrap"
                                 >
                                   <Settings size={14} />
                                   Configure Fields
@@ -4153,18 +4153,18 @@ const UserManagement = () => {
                 })()}
               </div>
             </div>
-            <div className="flex-shrink-0 bg-slate-50 border-t border-slate-200 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-end gap-3">
+            <div className="flex-shrink-0 bg-background border-t border-border px-4 sm:px-6 py-3 flex flex-wrap items-center justify-end gap-3">
               {roleConfigModalRole.is_system ? (
                 <button
                   type="button"
                   onClick={() => { setShowRoleConfigModal(false); setRoleConfigModalRole(null); setFieldPermissionsContext('user'); }}
-                  className="px-5 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 transition-colors shadow-sm"
+                  className="px-5 py-2 rounded-lg text-sm font-semibold text-sub bg-surface border border-border hover:bg-background transition-colors shadow-sm"
                 >
                   Close
                 </button>
               ) : (
                 <>
-                  <button type="button" onClick={() => { setShowRoleConfigModal(false); setRoleConfigModalRole(null); setFieldPermissionsContext('user'); }} className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50">Cancel</button>
+                  <button type="button" onClick={() => { setShowRoleConfigModal(false); setRoleConfigModalRole(null); setFieldPermissionsContext('user'); }} className="px-4 py-2 rounded-lg text-sm font-semibold text-sub bg-surface border border-border hover:bg-background">Cancel</button>
                   <button
                     type="button"
                     disabled={savingRoleConfig}
@@ -4192,7 +4192,7 @@ const UserManagement = () => {
                         setSavingRoleConfig(false);
                       }
                     }}
-                    className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 disabled:opacity-50 flex items-center gap-2"
+                    className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-secondary hover:bg-secondary disabled:opacity-50 flex items-center gap-2"
                   >
                     {savingRoleConfig ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
                     Save & apply to existing users
@@ -4209,11 +4209,11 @@ const UserManagement = () => {
       {
         showModuleAccessModal && moduleAccessUser && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-            <div className="bg-white w-full max-w-5xl rounded-lg sm:rounded-2xl shadow-2xl my-auto overflow-hidden flex flex-col">
+            <div className="bg-surface w-full max-w-5xl rounded-lg sm:rounded-2xl shadow-2xl my-auto overflow-hidden flex flex-col">
               {/* Header */}
-              <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+              <div className="flex-shrink-0 bg-gradient-to-r from-primary to-primary px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 sm:w-11 sm:h-11 bg-white/15 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-9 h-9 sm:w-11 sm:h-11 bg-[var(--surface)]/15 rounded-xl flex items-center justify-center flex-shrink-0">
                     <Settings size={20} className="text-white" />
                   </div>
                   <div className="min-w-0">
@@ -4231,7 +4231,7 @@ const UserManagement = () => {
                     setModuleAccessUser(null);
                     setSelectedModuleKey(null);
                   }}
-                  className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 active:bg-white/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
+                  className="p-2 rounded-lg bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
                 >
                   <X size={20} />
                 </button>
@@ -4240,9 +4240,9 @@ const UserManagement = () => {
               {/* Body: Left sidebar (modules), Right content (permissions) */}
               <div className="flex-1 flex flex-col sm:flex-row min-h-[360px] max-h-[70vh]">
                 {/* Left: Module list */}
-                <div className="w-full sm:w-64 border-b sm:border-b-0 sm:border-r border-slate-200 bg-slate-50/80 overflow-y-auto">
-                  <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-slate-200">
-                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                <div className="w-full sm:w-64 border-b sm:border-b-0 sm:border-r border-border bg-[var(--background)]/80 overflow-y-auto">
+                  <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-border">
+                    <p className="text-xs font-semibold text-sub uppercase tracking-wide">
                       Pages / Modules
                     </p>
                   </div>
@@ -4264,12 +4264,12 @@ const UserManagement = () => {
                           type="button"
                           onClick={() => setSelectedModuleKey(moduleKey)}
                           className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm text-left transition-all ${isActive
-                            ? 'bg-white text-blue-700 border border-blue-200 shadow-sm'
-                            : 'bg-transparent text-slate-700 hover:bg-white'
+                            ? 'bg-surface text-primary border border-[var(--primary-light)] shadow-sm'
+                            : 'bg-transparent text-sub hover:bg-surface'
                             }`}
                         >
                           <span className="truncate font-medium">{moduleLabel}</span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-background text-muted-text">
                             {enabledCount}/{totalCount}
                           </span>
                         </button>
@@ -4279,7 +4279,7 @@ const UserManagement = () => {
                 </div>
 
                 {/* Right: Permissions for selected module */}
-                <div className="flex-1 bg-white overflow-y-auto">
+                <div className="flex-1 bg-surface overflow-y-auto">
                   {(() => {
                     const effectiveModuleKey =
                       selectedModuleKey || Object.values(BACKEND_MODULES)[0];
@@ -4288,7 +4288,7 @@ const UserManagement = () => {
                     if (!modulePerms) {
                       return (
                         <div className="h-full flex items-center justify-center p-6">
-                          <p className="text-sm text-slate-500">
+                          <p className="text-sm text-muted-text">
                             Select a module from the left to configure access.
                           </p>
                         </div>
@@ -4452,12 +4452,12 @@ const UserManagement = () => {
 
                     return (
                       <div className="h-full flex flex-col">
-                        <div className="px-4 sm:px-5 py-3 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
+                        <div className="px-4 sm:px-5 py-3 border-b border-border bg-[var(--background)]/70 flex items-center justify-between">
                           <div>
-                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            <p className="text-xs font-semibold text-muted-text uppercase tracking-wide">
                               Access Controls
                             </p>
-                            <h3 className="text-sm sm:text-base font-bold text-slate-800">
+                            <h3 className="text-sm sm:text-base font-bold text-main">
                               {moduleLabel}
                             </h3>
                           </div>
@@ -4467,20 +4467,20 @@ const UserManagement = () => {
                                 <button
                                   type="button"
                                   onClick={() => toggleAllForModule(true)}
-                                  className="px-3 py-1.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 border border-emerald-200 transition-colors"
+                                  className="px-3 py-1.5 text-[11px] font-semibold bg-[var(--success-light)] text-success rounded-lg hover:bg-[var(--success-light)] border border-[var(--success-light)] transition-colors"
                                 >
                                   Grant All
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => toggleAllForModule(false)}
-                                  className="px-3 py-1.5 text-[11px] font-semibold bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 border border-slate-200 transition-colors"
+                                  className="px-3 py-1.5 text-[11px] font-semibold bg-background text-sub rounded-lg hover:bg-background border border-border transition-colors"
                                 >
                                   Revoke All
                                 </button>
                               </>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]">
                                 <Lock size={12} />
                                 System Role • Full Access
                               </span>
@@ -4490,14 +4490,14 @@ const UserManagement = () => {
 
                         <div className="flex-1 p-4 sm:p-5 space-y-3 overflow-y-auto">
                           {moduleAccessUser?.role === 'super_admin' ? (
-                            <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 flex items-center gap-2">
-                              <ShieldCheck size={16} className="text-rose-600 flex-shrink-0" />
+                            <div className="text-xs text-danger bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-lg px-3 py-2 flex items-center gap-2">
+                              <ShieldCheck size={16} className="text-danger flex-shrink-0" />
                               <span>
                                 <strong className="font-semibold">Super Admin Account:</strong> All permissions are permanently granted across every module and cannot be modified.
                               </span>
                             </div>
                           ) : (
-                            <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+                            <div className="text-xs text-muted-text bg-background border border-border rounded-lg px-3 py-2">
                               <p>
                                 Turn individual permissions on or off for this page. Granting all
                                 permissions will give full control for{' '}
@@ -4526,9 +4526,9 @@ const UserManagement = () => {
                                 return (
                                   <div className="space-y-1.5">
                                     <div className="grid grid-cols-[1fr,100px,100px] gap-2 mb-2 px-2">
-                                      <span className="text-[11px] font-bold text-slate-400 uppercase">Section</span>
-                                      <span className="text-[11px] font-bold text-blue-500 uppercase text-center">Read</span>
-                                      <span className="text-[11px] font-bold text-emerald-500 uppercase text-center">Write</span>
+                                      <span className="text-[11px] font-bold text-muted-text uppercase">Section</span>
+                                      <span className="text-[11px] font-bold text-primary uppercase text-center">Read</span>
+                                      <span className="text-[11px] font-bold text-success uppercase text-center">Write</span>
                                     </div>
                                     {settingsSections.map(section => {
                                       const viewKey = `view_${section.key}`;
@@ -4536,8 +4536,8 @@ const UserManagement = () => {
                                       const viewEnabled = permsForUser[viewKey] === true;
                                       const editEnabled = permsForUser[editKey] === true;
                                       return (
-                                        <div key={section.key} className="grid grid-cols-[1fr,100px,100px] gap-2 items-center rounded-lg px-3 py-2 bg-slate-50 border border-slate-200">
-                                          <span className="text-xs font-medium text-slate-700">{section.label}</span>
+                                        <div key={section.key} className="grid grid-cols-[1fr,100px,100px] gap-2 items-center rounded-lg px-3 py-2 bg-background border border-border">
+                                          <span className="text-xs font-medium text-sub">{section.label}</span>
                                           {/* Read */}
                                           <button
                                             type="button"
@@ -4545,9 +4545,9 @@ const UserManagement = () => {
                                               toggleSinglePermission(viewKey);
                                               if (viewEnabled && editEnabled) toggleSinglePermission(editKey);
                                             }}
-                                            className={`flex items-center justify-center gap-1 px-2 py-1 rounded-md border text-[11px] font-semibold transition-all ${viewEnabled ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'}`}
+                                            className={`flex items-center justify-center gap-1 px-2 py-1 rounded-md border text-[11px] font-semibold transition-all ${viewEnabled ? 'bg-[var(--primary-light)] border-[var(--primary-light)] text-primary' : 'bg-surface border-border text-muted-text hover:bg-background'}`}
                                           >
-                                            <span className={`w-4 h-4 rounded flex items-center justify-center ${viewEnabled ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                            <span className={`w-4 h-4 rounded flex items-center justify-center ${viewEnabled ? 'bg-primary text-white' : 'bg-background text-muted-text'}`}>
                                               {viewEnabled ? <Check size={10} /> : <X size={10} />}
                                             </span>
                                             {viewEnabled ? 'On' : 'Off'}
@@ -4559,9 +4559,9 @@ const UserManagement = () => {
                                               toggleSinglePermission(editKey);
                                               if (!editEnabled && !viewEnabled) toggleSinglePermission(viewKey);
                                             }}
-                                            className={`flex items-center justify-center gap-1 px-2 py-1 rounded-md border text-[11px] font-semibold transition-all ${editEnabled ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'}`}
+                                            className={`flex items-center justify-center gap-1 px-2 py-1 rounded-md border text-[11px] font-semibold transition-all ${editEnabled ? 'bg-[var(--success-light)] border-[var(--success-light)] text-success' : 'bg-surface border-border text-muted-text hover:bg-background'}`}
                                           >
-                                            <span className={`w-4 h-4 rounded flex items-center justify-center ${editEnabled ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                            <span className={`w-4 h-4 rounded flex items-center justify-center ${editEnabled ? 'bg-success text-white' : 'bg-background text-muted-text'}`}>
                                               {editEnabled ? <Check size={10} /> : <X size={10} />}
                                             </span>
                                             {editEnabled ? 'On' : 'Off'}
@@ -4587,15 +4587,15 @@ const UserManagement = () => {
                                       type="button"
                                       onClick={() => toggleSinglePermission(permKey)}
                                       className={`w-full min-w-0 flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg border text-xs text-left transition-all ${enabled
-                                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm'
-                                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                                        ? 'bg-[var(--success-light)] border-[var(--success-light)] text-success shadow-sm'
+                                        : 'bg-surface border-border text-sub hover:bg-background'
                                         }`}
                                     >
                                       <span className="flex items-center gap-2 min-w-0">
                                         <span
                                           className={`shrink-0 w-5 h-5 rounded-md flex items-center justify-center border ${enabled
-                                            ? 'bg-emerald-500 border-emerald-500 text-white'
-                                            : 'bg-slate-50 border-slate-300 text-slate-400'
+                                            ? 'bg-success border-success text-white'
+                                            : 'bg-background border-border-strong text-muted-text'
                                             }`}
                                         >
                                           {enabled ? (
@@ -4608,8 +4608,8 @@ const UserManagement = () => {
                                       </span>
                                       <span
                                         className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded-full ${enabled
-                                          ? 'bg-emerald-100 text-emerald-700'
-                                          : 'bg-slate-100 text-slate-500'
+                                          ? 'bg-[var(--success-light)] text-success'
+                                          : 'bg-background text-muted-text'
                                           }`}
                                       >
                                         {enabled ? 'Allowed' : 'Disabled'}
@@ -4624,7 +4624,7 @@ const UserManagement = () => {
                                           setShowFieldPermissionsModal(true);
                                           loadStudentFields('user');
                                         }}
-                                        className="shrink-0 px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                                        className="shrink-0 px-4 py-2 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2 whitespace-nowrap"
                                       >
                                         <Settings size={14} />
                                         Configure Fields
@@ -4693,7 +4693,7 @@ const UserManagement = () => {
                           )}
 
                           {allEnabled && (
-                            <div className="flex items-center gap-2 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                            <div className="flex items-center gap-2 text-[11px] text-success bg-[var(--success-light)] border border-[var(--success-light)] rounded-lg px-3 py-2">
                               <Sparkles size={14} />
                               <span>
                                 All permissions are granted for this module. The user has full
@@ -4709,7 +4709,7 @@ const UserManagement = () => {
               </div>
 
               {/* Footer with Save Logic */}
-              <div className="flex-shrink-0 bg-slate-50 border-t border-slate-200 px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-end gap-3">
+              <div className="flex-shrink-0 bg-background border-t border-border px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => {
@@ -4717,7 +4717,7 @@ const UserManagement = () => {
                     setModuleAccessUser(null);
                     setSelectedModuleKey(null);
                   }}
-                  className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-semibold text-sub bg-surface border border-border hover:bg-background transition-colors"
                   disabled={loadingUsers}
                 >
                   {moduleAccessUser?.role === 'super_admin' ? 'Close' : 'Cancel'}
@@ -4757,7 +4757,7 @@ const UserManagement = () => {
                         setLoadingUsers(false);
                       }
                     }}
-                    className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-semibold text-white bg-primary hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
                     disabled={loadingUsers}
                   >
                     {loadingUsers ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
@@ -4775,13 +4775,13 @@ const UserManagement = () => {
       {
         editingUser && editForm && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-            <div className="bg-white w-full max-w-7xl rounded-lg sm:rounded-2xl shadow-2xl h-[92vh] max-h-[92vh] my-auto overflow-hidden flex flex-col">
-              <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+            <div className="bg-surface w-full max-w-7xl rounded-lg sm:rounded-2xl shadow-2xl h-[92vh] max-h-[92vh] my-auto overflow-hidden flex flex-col">
+              <div className="flex-shrink-0 bg-gradient-to-r from-primary to-primary px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                 <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 min-w-0 flex-1">
                   <Edit size={18} className="sm:w-5 sm:h-5 flex-shrink-0" />
                   <span className="truncate">Edit User - {editForm.name}</span>
                 </h2>
-                <button onClick={closeEditModal} className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 active:bg-white/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0 ml-2">
+                <button onClick={closeEditModal} className="p-2 rounded-lg bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0 ml-2">
                   <X size={20} />
                 </button>
               </div>
@@ -4791,17 +4791,17 @@ const UserManagement = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                     {/* User Info */}
                     <div className="flex flex-col space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center justify-between pb-3 border-b border-border">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                          <User size={16} className="text-blue-500" />
+                        <div className="w-8 h-8 rounded-lg bg-[var(--primary-light)] flex items-center justify-center">
+                          <User size={16} className="text-primary" />
                         </div>
-                        <h3 className="text-sm font-bold text-slate-800">User Details</h3>
+                        <h3 className="text-sm font-bold text-main">User Details</h3>
                       </div>
                       <button
                         type="button"
                         onClick={() => setShowHrmsSearch(!showHrmsSearch)}
-                        className="flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors"
+                        className="flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-md bg-[var(--primary-light)] text-primary hover:bg-[var(--primary-light)] border border-[var(--primary-light)] transition-colors"
                       >
                         <Search size={12} />
                         Link HRMS Profile
@@ -4809,8 +4809,8 @@ const UserManagement = () => {
                     </div>
 
                     {showHrmsSearch && (
-                      <div className="mb-4 bg-slate-50 p-3 rounded-lg border border-slate-200 shadow-inner">
-                        <label className="text-xs font-bold text-slate-700 block mb-1">Search HRMS Employee</label>
+                      <div className="mb-4 bg-background p-3 rounded-lg border border-border shadow-inner">
+                        <label className="text-xs font-bold text-sub block mb-1">Search HRMS Employee</label>
                         <div className="flex gap-2 relative">
                           <input
                             type="text"
@@ -4838,7 +4838,7 @@ const UserManagement = () => {
                               }
                             }}
                             placeholder="Search by Emp No, Name or Email..."
-                            className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="flex-1 px-3 py-2 text-sm rounded-lg border border-border-strong focus:ring-2 focus:ring-primary focus:border-primary"
                           />
                           <button
                             type="button"
@@ -4861,18 +4861,18 @@ const UserManagement = () => {
                               }
                             }}
                             disabled={searchingHrms}
-                            className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
+                            className="px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:bg-primary"
                           >
                             {searchingHrms ? <RefreshCw size={16} className="animate-spin" /> : <Search size={16} />}
                           </button>
                         </div>
 
                         {hrmsSearchResults.length > 0 && (
-                          <div className="mt-2 max-h-40 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                          <div className="mt-2 max-h-40 overflow-y-auto border border-border rounded-lg divide-y divide-border">
                             {hrmsSearchResults.map(emp => (
                               <div
                                 key={emp._id}
-                                className="p-2 bg-white hover:bg-blue-50 cursor-pointer flex justify-between items-center group"
+                                className="p-2 bg-surface hover:bg-[var(--primary-light)] cursor-pointer flex justify-between items-center group"
                                 onClick={() => {
                                   const fallbackEmail = (emp.email && !emp.email.includes('@hrms'))
                                     ? emp.email
@@ -4893,14 +4893,14 @@ const UserManagement = () => {
                               >
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <div className="text-sm font-bold text-slate-800">{emp.name}</div>
-                                    <span className={`text-[8px] font-bold uppercase px-1 rounded ${emp.type === 'Employee' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
+                                    <div className="text-sm font-bold text-main">{emp.name}</div>
+                                    <span className={`text-[8px] font-bold uppercase px-1 rounded ${emp.type === 'Employee' ? 'bg-[var(--primary-light)] text-primary' : 'bg-[var(--primary-light)] text-secondary'}`}>
                                       {emp.type}
                                     </span>
                                   </div>
-                                  <div className="text-[10px] text-slate-500">{emp.emp_no} • {emp.email}</div>
+                                  <div className="text-[10px] text-muted-text">{emp.emp_no} • {emp.email}</div>
                                 </div>
-                                <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="w-6 h-6 rounded-full bg-[var(--primary-light)] text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Check size={12} />
                                 </div>
                               </div>
@@ -4911,19 +4911,19 @@ const UserManagement = () => {
                     )}
 
                     {editForm.hrms_id && (
-                      <div className="mb-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-3">
-                        <ShieldCheck size={20} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <div className="mb-3 px-4 py-3 bg-[var(--success-light)] border border-[var(--success-light)] rounded-xl flex items-start gap-3">
+                        <ShieldCheck size={20} className="text-success flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
-                          <p className="text-sm font-bold text-emerald-800">Linked to HRMS</p>
-                          <p className="text-xs text-emerald-600 leading-tight mt-1">
+                          <p className="text-sm font-bold text-success">Linked to HRMS</p>
+                          <p className="text-xs text-success leading-tight mt-1">
                             This user is mapped to HRMS profile ID: <strong>{editForm.hrms_id.substring(0, 8)}...</strong>
                           </p>
-                          <p className="text-xs text-emerald-600 leading-tight mt-1">They can login with their local credentials AND their HRMS credentials.</p>
+                          <p className="text-xs text-success leading-tight mt-1">They can login with their local credentials AND their HRMS credentials.</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setEditForm(prev => ({ ...prev, hrms_id: '' }))}
-                          className="p-1.5 hover:bg-emerald-200 rounded-lg text-emerald-700 transition-colors"
+                          className="p-1.5 hover:bg-[var(--success-light)] rounded-lg text-success transition-colors"
                           title="Unlink"
                         >
                           <X size={16} />
@@ -4932,92 +4932,92 @@ const UserManagement = () => {
                     )}
 
                     <div>
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Name</label>
+                      <label className="text-xs font-semibold text-muted-text uppercase tracking-wide mb-1.5 block">Name</label>
                       <input
                         type="text"
                         value={editForm.name}
                         readOnly={!!editForm.hrms_id}
                         onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                        className={`w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition-all ${editForm.hrms_id ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-4 py-3 rounded-xl border border-border text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)] transition-all ${editForm.hrms_id ? 'bg-background text-muted-text cursor-not-allowed' : ''}`}
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Username</label>
-                      <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-600">
-                        <AtSign size={14} className="text-slate-400" />
+                      <label className="text-xs font-semibold text-muted-text uppercase tracking-wide mb-1.5 block">Username</label>
+                      <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-border bg-background text-sm text-sub">
+                        <AtSign size={14} className="text-muted-text" />
                         <span>{editForm.username || 'N/A'}</span>
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Role</label>
+                      <label className="text-xs font-semibold text-muted-text uppercase tracking-wide mb-1.5 block">Role</label>
                       <button
                         type="button"
                         onClick={() => setShowEditRoleModal(true)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-violet-300 hover:border-violet-500 hover:bg-violet-50/70 transition-all group text-left bg-violet-50/20"
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-[var(--primary-light)] hover:border-secondary hover:bg-[var(--primary-light)] transition-all group text-left bg-[var(--primary-light)]"
                       >
-                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${ROLE_AVATAR_COLORS[editForm.role] || 'from-slate-400 to-slate-600'} flex items-center justify-center shadow-sm flex-shrink-0`}>
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${ROLE_AVATAR_COLORS[editForm.role] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center shadow-sm flex-shrink-0`}>
                           <ShieldCheck size={16} className="text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
                           {editForm.role ? (
                             <>
-                              <p className="font-semibold text-violet-950 text-sm truncate">
+                              <p className="font-semibold text-secondary text-sm truncate">
                                 {ROLE_LABELS[editForm.role] || availableRolesForCreate.find((r) => (r.value ?? r.role_key) === editForm.role)?.label || editForm.role}
                               </p>
-                              <p className="text-[11px] text-slate-400 truncate">
+                              <p className="text-[11px] text-muted-text truncate">
                                 {ROLE_DESCRIPTIONS[editForm.role] || 'Click to change role'}
                               </p>
                             </>
                           ) : (
-                            <p className="text-slate-400 text-sm">Click to select a role</p>
+                            <p className="text-muted-text text-sm">Click to select a role</p>
                           )}
                         </div>
-                        <Edit size={14} className="text-violet-400 group-hover:text-violet-600" />
+                        <Edit size={14} className="text-secondary group-hover:text-secondary" />
                       </button>
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide block">Email</label>
+                        <label className="text-xs font-semibold text-muted-text uppercase tracking-wide block">Email</label>
                         {editForm.hrms_id && (
-                          <span className="text-[10px] text-blue-600 font-medium">Editable</span>
+                          <span className="text-[10px] text-primary font-medium">Editable</span>
                         )}
                       </div>
                       <input
                         type="email"
                         value={editForm.email}
                         onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-border text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)] transition-all"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5 block">Phone</label>
+                      <label className="text-xs font-semibold text-muted-text uppercase tracking-wide mb-1.5 block">Phone</label>
                       <input
                         type="tel"
                         value={editForm.phone}
                         onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-50 transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-border text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-[var(--primary-light)] transition-all"
                       />
                     </div>
-                    <label className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                    <label className="flex items-center gap-3 p-4 bg-background rounded-xl border border-border cursor-pointer hover:bg-background transition-colors">
                       <input
                         type="checkbox"
                         checked={editForm.isActive}
                         onChange={(e) => setEditForm(prev => ({ ...prev, isActive: e.target.checked }))}
-                        className="w-5 h-5 rounded text-blue-600"
+                        className="w-5 h-5 rounded text-primary"
                       />
-                      <span className="font-medium text-slate-700">Active User</span>
+                      <span className="font-medium text-sub">Active User</span>
                     </label>
                   </div>
 
                   {/* Access Scope Edit */}
                   <div className="flex flex-col space-y-4">
-                    <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                        <Layers size={16} className="text-emerald-500" />
+                    <div className="flex items-center gap-2 pb-3 border-b border-border">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--success-light)] flex items-center justify-center">
+                        <Layers size={16} className="text-success" />
                       </div>
-                      <h3 className="text-sm font-bold text-slate-800">Access Scope</h3>
+                      <h3 className="text-sm font-bold text-main">Access Scope</h3>
                     </div>
 
                     {editForm.role === 'super_admin' ? (
@@ -5033,32 +5033,32 @@ const UserManagement = () => {
                     {/* Colleges Selection */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                          <Building2 size={14} className="text-blue-500" />
-                          Colleges <span className="text-red-500">*</span>
+                        <label className="flex items-center gap-1.5 text-xs font-semibold text-sub">
+                          <Building2 size={14} className="text-primary" />
+                          Colleges <span className="text-danger">*</span>
                         </label>
-                        <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] text-muted-text bg-background px-1.5 py-0.5 rounded">
                           {editForm.collegeIds.length} selected
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={() => setShowEditCollegeModal(true)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-slate-300 hover:border-blue-400 hover:bg-blue-50/50 transition-all group text-left"
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-border-strong hover:border-primary hover:bg-[var(--primary-light)] transition-all group text-left"
                       >
-                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100">
-                          <Building2 size={16} className="text-blue-500" />
+                        <div className="w-8 h-8 bg-[var(--primary-light)] rounded-lg flex items-center justify-center group-hover:bg-[var(--primary-light)]">
+                          <Building2 size={16} className="text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
                           {editForm.collegeIds.length > 0 ? (
-                            <p className="font-medium text-slate-700 text-sm truncate">
+                            <p className="font-medium text-sub text-sm truncate">
                               {getSelectedNames(colleges, editForm.collegeIds).join(', ')}
                             </p>
                           ) : (
-                            <p className="text-slate-400 text-sm">Click to select colleges</p>
+                            <p className="text-muted-text text-sm">Click to select colleges</p>
                           )}
                         </div>
-                        <Edit size={14} className="text-slate-400 group-hover:text-blue-500" />
+                        <Edit size={14} className="text-muted-text group-hover:text-primary" />
                       </button>
                     </div>
 
@@ -5066,9 +5066,9 @@ const UserManagement = () => {
                     {editForm.collegeIds.length > 0 && (
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                            <GraduationCap size={14} className="text-emerald-500" />
-                            Courses <span className="text-red-500">*</span>
+                          <label className="flex items-center gap-1.5 text-xs font-semibold text-sub">
+                            <GraduationCap size={14} className="text-success" />
+                            Courses <span className="text-danger">*</span>
                           </label>
                           {editForm.role !== 'branch_hod' && (
                             <label className="flex items-center gap-1.5 text-[10px] cursor-pointer">
@@ -5076,13 +5076,13 @@ const UserManagement = () => {
                                 type="checkbox"
                                 checked={editForm.allCourses}
                                 onChange={(e) => handleEditAllCoursesChange(e.target.checked)}
-                                className="w-3 h-3 rounded text-emerald-500"
+                                className="w-3 h-3 rounded text-success"
                               />
-                              <span className="font-medium text-emerald-600">All</span>
+                              <span className="font-medium text-success">All</span>
                             </label>
                           )}
                           {editForm.role === 'branch_hod' && (
-                            <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] text-muted-text bg-background px-1.5 py-0.5 rounded">
                               {editForm.courseIds.length} selected
                             </span>
                           )}
@@ -5091,26 +5091,26 @@ const UserManagement = () => {
                           <button
                             type="button"
                             onClick={() => setShowEditCourseModal(true)}
-                            className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/50 transition-all group text-left"
+                            className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-border-strong hover:border-success hover:bg-[var(--success-light)] transition-all group text-left"
                           >
-                            <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center group-hover:bg-emerald-100">
-                              <GraduationCap size={16} className="text-emerald-500" />
+                            <div className="w-8 h-8 bg-[var(--success-light)] rounded-lg flex items-center justify-center group-hover:bg-[var(--success-light)]">
+                              <GraduationCap size={16} className="text-success" />
                             </div>
                             <div className="flex-1 min-w-0">
                               {editForm.courseIds.length > 0 ? (
-                                <p className="font-medium text-slate-700 text-sm truncate">
+                                <p className="font-medium text-sub text-sm truncate">
                                   {getSelectedNames(editCourses, editForm.courseIds).join(', ')}
                                 </p>
                               ) : (
-                                <p className="text-slate-400 text-sm">Click to select courses</p>
+                                <p className="text-muted-text text-sm">Click to select courses</p>
                               )}
                             </div>
-                            <Edit size={14} className="text-slate-400 group-hover:text-emerald-500" />
+                            <Edit size={14} className="text-muted-text group-hover:text-success" />
                           </button>
                         ) : (
-                          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
-                            <CheckCircle2 size={16} className="text-emerald-500" />
-                            <span className="text-sm font-medium text-emerald-700">All courses selected</span>
+                          <div className="p-3 bg-[var(--success-light)] border border-[var(--success-light)] rounded-xl flex items-center gap-2">
+                            <CheckCircle2 size={16} className="text-success" />
+                            <span className="text-sm font-medium text-success">All courses selected</span>
                           </div>
                         )}
                       </div>
@@ -5120,9 +5120,9 @@ const UserManagement = () => {
                     {(editForm.courseIds.length > 0 && (!editForm.allCourses || editForm.role === 'branch_hod')) && (
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                            <BookOpen size={14} className="text-orange-500" />
-                            Branches {editForm.role === 'branch_hod' && <span className="text-red-500">*</span>}
+                          <label className="flex items-center gap-1.5 text-xs font-semibold text-sub">
+                            <BookOpen size={14} className="text-warning" />
+                            Branches {editForm.role === 'branch_hod' && <span className="text-danger">*</span>}
                           </label>
                           {editForm.role !== 'branch_hod' ? (
                             <label className="flex items-center gap-1.5 text-[10px] cursor-pointer">
@@ -5130,12 +5130,12 @@ const UserManagement = () => {
                                 type="checkbox"
                                 checked={editForm.allBranches}
                                 onChange={(e) => handleEditAllBranchesChange(e.target.checked)}
-                                className="w-3 h-3 rounded text-orange-500"
+                                className="w-3 h-3 rounded text-warning"
                               />
-                              <span className="font-medium text-orange-600">All</span>
+                              <span className="font-medium text-warning">All</span>
                             </label>
                           ) : (
-                            <span className="text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] text-muted-text bg-background px-1.5 py-0.5 rounded">
                               {editForm.branchIds.length} selected
                             </span>
                           )}
@@ -5144,26 +5144,26 @@ const UserManagement = () => {
                           <button
                             type="button"
                             onClick={() => setShowEditBranchModal(true)}
-                            className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-slate-300 hover:border-orange-400 hover:bg-orange-50/50 transition-all group text-left"
+                            className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-border-strong hover:border-warning hover:bg-[var(--warning-light)] transition-all group text-left"
                           >
-                            <div className="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center group-hover:bg-orange-100">
-                              <BookOpen size={16} className="text-orange-500" />
+                            <div className="w-8 h-8 bg-[var(--warning-light)] rounded-lg flex items-center justify-center group-hover:bg-[var(--warning-light)]">
+                              <BookOpen size={16} className="text-warning" />
                             </div>
                             <div className="flex-1 min-w-0">
                               {editForm.branchIds.length > 0 ? (
-                                <p className="font-medium text-slate-700 text-sm truncate">
+                                <p className="font-medium text-sub text-sm truncate">
                                   {getSelectedNames(editBranches, editForm.branchIds, 'displayName').join(', ')}
                                 </p>
                               ) : (
-                                <p className="text-slate-400 text-sm">Click to select branches</p>
+                                <p className="text-muted-text text-sm">Click to select branches</p>
                               )}
                             </div>
-                            <Edit size={14} className="text-slate-400 group-hover:text-orange-500" />
+                            <Edit size={14} className="text-muted-text group-hover:text-warning" />
                           </button>
                         ) : (
-                          <div className="p-3 bg-orange-50 border border-orange-200 rounded-xl flex items-center gap-2">
-                            <CheckCircle2 size={16} className="text-orange-500" />
-                            <span className="text-sm font-medium text-orange-700">All branches selected</span>
+                          <div className="p-3 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl flex items-center gap-2">
+                            <CheckCircle2 size={16} className="text-warning" />
+                            <span className="text-sm font-medium text-warning">All branches selected</span>
                           </div>
                         )}
                       </div>
@@ -5181,8 +5181,8 @@ const UserManagement = () => {
 
                     {editForm.collegeIds.length === 0 && (
                       <div className="text-center py-6">
-                        <Layers size={32} className="text-slate-300 mx-auto mb-2" />
-                        <p className="text-xs text-slate-400">Select a college to configure access</p>
+                        <Layers size={32} className="text-muted-text mx-auto mb-2" />
+                        <p className="text-xs text-muted-text">Select a college to configure access</p>
                       </div>
                     )}
                       </>
@@ -5191,19 +5191,19 @@ const UserManagement = () => {
 
                   {/* Permissions */}
                   <div className="flex flex-col space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-slate-100 flex-shrink-0">
+                    <div className="flex items-center justify-between pb-3 border-b border-border flex-shrink-0">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-                          <Settings size={16} className="text-amber-500" />
+                        <div className="w-8 h-8 rounded-lg bg-[var(--warning-light)] flex items-center justify-center">
+                          <Settings size={16} className="text-warning" />
                         </div>
-                        <h3 className="text-sm font-bold text-slate-800">Module Permissions</h3>
+                        <h3 className="text-sm font-bold text-main">Module Permissions</h3>
                       </div>
                       <div className="flex items-center gap-1.5 sm:gap-2">
                         <button
                           type="button"
                           onClick={resetToRoleDefaultPermissions}
                           title="Reset permissions to the default access configured for this role"
-                          className="px-2.5 py-1.5 text-xs font-semibold bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200 rounded-lg transition-colors flex items-center gap-1"
+                          className="px-2.5 py-1.5 text-xs font-semibold bg-[var(--primary-light)] text-secondary hover:bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-lg transition-colors flex items-center gap-1"
                         >
                           <RefreshCw size={12} />
                           <span>Reset to Role Defaults</span>
@@ -5211,14 +5211,14 @@ const UserManagement = () => {
                         <button
                           type="button"
                           onClick={grantAllPermissions}
-                          className="px-2.5 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors"
+                          className="px-2.5 py-1.5 text-xs font-semibold bg-[var(--success-light)] text-success rounded-lg hover:bg-[var(--success-light)] transition-colors"
                         >
                           Grant All
                         </button>
                         <button
                           type="button"
                           onClick={revokeAllPermissions}
-                          className="px-2.5 py-1.5 text-xs font-semibold bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                          className="px-2.5 py-1.5 text-xs font-semibold bg-background text-sub rounded-lg hover:bg-background transition-colors"
                         >
                           Revoke All
                         </button>
@@ -5239,25 +5239,25 @@ const UserManagement = () => {
                           <div
                             key={moduleKey}
                             className={`rounded-xl border-2 transition-all overflow-hidden ${hasAny
-                              ? 'bg-emerald-50/30 border-emerald-200'
-                              : 'bg-white border-slate-200'
+                              ? 'bg-[var(--success-light)] border-[var(--success-light)]'
+                              : 'bg-surface border-border'
                               }`}
                           >
                             {/* Module Header */}
-                            <div className="flex items-center justify-between p-3 bg-slate-50/50">
+                            <div className="flex items-center justify-between p-3 bg-[var(--background)]/50">
                               <div className="flex items-center gap-2">
-                                <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${hasAny ? 'bg-emerald-100' : 'bg-slate-200'
+                                <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${hasAny ? 'bg-[var(--success-light)]' : 'bg-background'
                                   }`}>
                                   {hasAny ? (
-                                    <CheckCircle2 size={14} className="text-emerald-600" />
+                                    <CheckCircle2 size={14} className="text-success" />
                                   ) : (
-                                    <XCircle size={14} className="text-slate-400" />
+                                    <XCircle size={14} className="text-muted-text" />
                                   )}
                                 </div>
-                                <span className={`text-sm font-bold ${hasAny ? 'text-emerald-700' : 'text-slate-700'}`}>
+                                <span className={`text-sm font-bold ${hasAny ? 'text-success' : 'text-sub'}`}>
                                   {moduleLabel}
                                 </span>
-                                <span className="text-[10px] text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded">
+                                <span className="text-[10px] text-muted-text bg-background px-1.5 py-0.5 rounded">
                                   {enabled}/{total}
                                 </span>
                               </div>
@@ -5265,14 +5265,14 @@ const UserManagement = () => {
                                 <button
                                   type="button"
                                   onClick={() => toggleModuleAllPermissions(moduleKey, true)}
-                                  className="px-2 py-1 text-[10px] font-semibold bg-emerald-100 text-emerald-600 rounded hover:bg-emerald-200 transition-colors"
+                                  className="px-2 py-1 text-[10px] font-semibold bg-[var(--success-light)] text-success rounded hover:bg-[var(--success-light)] transition-colors"
                                 >
                                   All
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => toggleModuleAllPermissions(moduleKey, false)}
-                                  className="px-2 py-1 text-[10px] font-semibold bg-slate-200 text-slate-600 rounded hover:bg-slate-300 transition-colors"
+                                  className="px-2 py-1 text-[10px] font-semibold bg-background text-sub rounded hover:bg-background transition-colors"
                                 >
                                   None
                                 </button>
@@ -5300,9 +5300,9 @@ const UserManagement = () => {
                                   return (
                                     <div className="space-y-1.5">
                                       <div className="grid grid-cols-[1fr,80px,80px] gap-1 mb-1 px-1">
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase">Section</span>
-                                        <span className="text-[10px] font-bold text-blue-400 uppercase text-center">Read</span>
-                                        <span className="text-[10px] font-bold text-emerald-400 uppercase text-center">Write</span>
+                                        <span className="text-[10px] font-bold text-muted-text uppercase">Section</span>
+                                        <span className="text-[10px] font-bold text-primary uppercase text-center">Read</span>
+                                        <span className="text-[10px] font-bold text-success uppercase text-center">Write</span>
                                       </div>
                                       {sections.map(section => {
                                         const viewKey = `view_${section.key}`;
@@ -5310,8 +5310,8 @@ const UserManagement = () => {
                                         const viewEnabled = editForm?.permissions?.[moduleKey]?.[viewKey] || false;
                                         const editEnabled = editForm?.permissions?.[moduleKey]?.[editKey] || false;
                                         return (
-                                          <div key={section.key} className="grid grid-cols-[1fr,80px,80px] gap-1 items-center rounded-lg px-2 py-1.5 bg-slate-50 border border-slate-200">
-                                            <span className="text-xs font-medium text-slate-700 truncate">{section.label}</span>
+                                          <div key={section.key} className="grid grid-cols-[1fr,80px,80px] gap-1 items-center rounded-lg px-2 py-1.5 bg-background border border-border">
+                                            <span className="text-xs font-medium text-sub truncate">{section.label}</span>
                                             {/* Read toggle */}
                                             <label className="flex items-center justify-center gap-1 cursor-pointer">
                                               <input
@@ -5322,9 +5322,9 @@ const UserManagement = () => {
                                                   // If unchecking read, also uncheck write
                                                   if (viewEnabled && editEnabled) toggleEditPermission(moduleKey, editKey);
                                                 }}
-                                                className="w-3.5 h-3.5 rounded text-blue-500"
+                                                className="w-3.5 h-3.5 rounded text-primary"
                                               />
-                                              <span className={`text-[10px] font-semibold ${viewEnabled ? 'text-blue-600' : 'text-slate-400'}`}>
+                                              <span className={`text-[10px] font-semibold ${viewEnabled ? 'text-primary' : 'text-muted-text'}`}>
                                                 {viewEnabled ? 'Yes' : 'No'}
                                               </span>
                                             </label>
@@ -5338,9 +5338,9 @@ const UserManagement = () => {
                                                   // If enabling write, also enable read
                                                   if (!editEnabled && !viewEnabled) toggleEditPermission(moduleKey, viewKey);
                                                 }}
-                                                className="w-3.5 h-3.5 rounded text-emerald-500"
+                                                className="w-3.5 h-3.5 rounded text-success"
                                               />
-                                              <span className={`text-[10px] font-semibold ${editEnabled ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                              <span className={`text-[10px] font-semibold ${editEnabled ? 'text-success' : 'text-muted-text'}`}>
                                                 {editEnabled ? 'Yes' : 'No'}
                                               </span>
                                             </label>
@@ -5359,15 +5359,15 @@ const UserManagement = () => {
                                   <label
                                     key={permKey}
                                     className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all text-xs ${isEnabled
-                                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-300'
-                                      : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                                      ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
+                                      : 'bg-background text-sub border border-border hover:bg-background'
                                       }`}
                                   >
                                     <input
                                       type="checkbox"
                                       checked={isEnabled}
                                       onChange={() => toggleEditPermission(moduleKey, permKey)}
-                                      className="w-3.5 h-3.5 rounded text-emerald-500"
+                                      className="w-3.5 h-3.5 rounded text-success"
                                     />
                                     <span className="font-medium truncate">{permLabel}</span>
                                   </label>
@@ -5383,14 +5383,14 @@ const UserManagement = () => {
                 </div>
               </div>
 
-                <div className="flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200 bg-white flex flex-col sm:flex-row justify-end gap-3">
-                  <button type="button" onClick={closeEditModal} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition-colors touch-manipulation min-h-[44px]">
+                <div className="flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 border-t border-border bg-surface flex flex-col sm:flex-row justify-end gap-3">
+                  <button type="button" onClick={closeEditModal} className="w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-sub bg-background hover:bg-background active:bg-background transition-colors touch-manipulation min-h-[44px]">
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={updatingUser || (editForm.role && editForm.role !== 'super_admin' && !['course_principal', 'course_hod', 'branch_clerk', 'branch_counselor', 'branch_faculty', 'support_staff', 'faculty'].includes(editForm.role) && editForm.collegeIds.length === 0)}
-                    className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 touch-manipulation min-h-[44px] ${updatingUser || (editForm.role && editForm.role !== 'super_admin' && !['course_principal', 'course_hod', 'branch_clerk', 'branch_counselor', 'branch_faculty', 'support_staff', 'faculty'].includes(editForm.role) && editForm.collegeIds.length === 0) ? 'bg-blue-400 cursor-not-allowed' : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:shadow-blue-500/25 active:from-blue-700 active:to-indigo-700'
+                    className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 touch-manipulation min-h-[44px] ${updatingUser || (editForm.role && editForm.role !== 'super_admin' && !['course_principal', 'course_hod', 'branch_clerk', 'branch_counselor', 'branch_faculty', 'support_staff', 'faculty'].includes(editForm.role) && editForm.collegeIds.length === 0) ? 'bg-primary cursor-not-allowed' : 'bg-gradient-to-r from-primary to-primary hover:shadow-lg hover:shadow-primary/25 active:from-primary active:to-primary'
                       }`}
                   >
                     {updatingUser ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
@@ -5466,10 +5466,10 @@ const UserManagement = () => {
       {
         resetPasswordUser && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-            <div className="bg-white w-full max-w-md rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
-              <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+            <div className="bg-surface w-full max-w-md rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
+              <div className="bg-gradient-to-r from-warning to-warning px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[var(--surface)]/20 rounded-xl flex items-center justify-center">
                     <KeyRound size={22} className="text-white" />
                   </div>
                   <div>
@@ -5477,18 +5477,18 @@ const UserManagement = () => {
                     <p className="text-sm text-white/80">{resetPasswordUser.name}</p>
                   </div>
                 </div>
-                <button onClick={closeResetPasswordModal} className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 transition-colors">
+                <button onClick={closeResetPasswordModal} className="p-2 rounded-lg bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 transition-colors">
                   <X size={20} />
                 </button>
               </div>
 
               <div className="p-6">
-                <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                <div className="mb-4 p-4 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl">
                   <div className="flex items-start gap-3">
-                    <AlertCircle size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                    <AlertCircle size={20} className="text-warning flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-semibold text-amber-800">Password Reset Notice</p>
-                      <p className="text-xs text-amber-700 mt-1">
+                      <p className="text-sm font-semibold text-warning">Password Reset Notice</p>
+                      <p className="text-xs text-warning mt-1">
                         A new password will be set for <strong>{resetPasswordUser.username}</strong> and sent to their email: <strong>{resetPasswordUser.email}</strong>
                       </p>
                     </div>
@@ -5497,33 +5497,33 @@ const UserManagement = () => {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-                      <Lock size={16} className="text-amber-500" />
-                      New Password <span className="text-red-500">*</span>
+                    <label className="flex items-center gap-2 text-sm font-semibold text-sub mb-2">
+                      <Lock size={16} className="text-warning" />
+                      New Password <span className="text-danger">*</span>
                     </label>
                     <div className="relative">
                       <input
                         type={showNewPassword ? 'text' : 'password'}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+                        className="w-full px-4 py-3 pr-12 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-[var(--warning-light)] focus:border-warning transition-all"
                         placeholder="Enter new password (min 6 chars)"
                         minLength={6}
                       />
                       <button
                         type="button"
                         onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-text hover:text-sub"
                       >
                         {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1.5">Password must be at least 6 characters</p>
+                    <p className="text-xs text-muted-text mt-1.5">Password must be at least 6 characters</p>
                   </div>
 
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-3">
-                    <Send size={18} className="text-blue-500" />
-                    <p className="text-sm text-blue-700">
+                  <div className="p-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl flex items-center gap-3">
+                    <Send size={18} className="text-primary" />
+                    <p className="text-sm text-primary">
                       New credentials will be sent to user's email automatically
                     </p>
                   </div>
@@ -5533,7 +5533,7 @@ const UserManagement = () => {
                   <button
                     type="button"
                     onClick={closeResetPasswordModal}
-                    className="w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition-colors touch-manipulation min-h-[44px]"
+                    className="w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-sub bg-background hover:bg-background active:bg-background transition-colors touch-manipulation min-h-[44px]"
                   >
                     Cancel
                   </button>
@@ -5541,8 +5541,8 @@ const UserManagement = () => {
                     onClick={handleResetPassword}
                     disabled={resettingPassword || !newPassword || newPassword.length < 6}
                     className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 touch-manipulation min-h-[44px] ${resettingPassword || !newPassword || newPassword.length < 6
-                      ? 'bg-slate-300 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:shadow-lg hover:shadow-amber-500/25 active:from-amber-600 active:to-orange-700'
+                      ? 'bg-background cursor-not-allowed'
+                      : 'bg-gradient-to-r from-warning to-warning hover:shadow-lg hover:shadow-warning/25 active:from-warning active:to-warning'
                       }`}
                   >
                     {resettingPassword ? (
@@ -5570,10 +5570,10 @@ const UserManagement = () => {
       {
         deleteUserModal && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
-            <div className="bg-white w-full max-w-md rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
-              <div className="bg-gradient-to-r from-rose-500 to-red-600 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+            <div className="bg-surface w-full max-w-md rounded-lg sm:rounded-2xl shadow-2xl overflow-hidden my-auto">
+              <div className="bg-gradient-to-r from-danger to-danger px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-[var(--surface)]/20 rounded-xl flex items-center justify-center">
                     <AlertTriangle size={22} className="text-white" />
                   </div>
                   <div>
@@ -5581,41 +5581,41 @@ const UserManagement = () => {
                     <p className="text-sm text-white/80">Permanent action</p>
                   </div>
                 </div>
-                <button onClick={closeDeleteModal} className="p-2 rounded-lg bg-white/20 text-white hover:bg-white/30 active:bg-white/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0">
+                <button onClick={closeDeleteModal} className="p-2 rounded-lg bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0">
                   <X size={20} />
                 </button>
               </div>
 
               <div className="p-6">
-                <div className="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-xl">
+                <div className="mb-4 p-4 bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-xl">
                   <div className="flex items-start gap-3">
-                    <AlertTriangle size={20} className="text-rose-600 flex-shrink-0 mt-0.5" />
+                    <AlertTriangle size={20} className="text-danger flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-semibold text-rose-800">Warning: This action cannot be undone!</p>
-                      <p className="text-xs text-rose-700 mt-1">
+                      <p className="text-sm font-semibold text-danger">Warning: This action cannot be undone!</p>
+                      <p className="text-xs text-danger mt-1">
                         You are about to permanently delete the user account for:
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 rounded-xl p-4 space-y-2">
+                <div className="bg-background rounded-xl p-4 space-y-2">
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${ROLE_AVATAR_COLORS[deleteUserModal.role] || 'from-slate-400 to-slate-600'} flex items-center justify-center text-white font-bold text-lg shadow-sm`}>
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${ROLE_AVATAR_COLORS[deleteUserModal.role] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center text-white font-bold text-lg shadow-sm`}>
                       {deleteUserModal.name?.charAt(0)?.toUpperCase()}
                     </div>
                     <div>
-                      <div className="font-semibold text-slate-800">{deleteUserModal.name}</div>
-                      <div className="text-sm text-slate-500">@{deleteUserModal.username}</div>
+                      <div className="font-semibold text-main">{deleteUserModal.name}</div>
+                      <div className="text-sm text-muted-text">@{deleteUserModal.username}</div>
                     </div>
                   </div>
-                  <div className="text-xs text-slate-600 pt-2 border-t border-slate-200">
+                  <div className="text-xs text-sub pt-2 border-t border-border">
                     <div className="flex items-center gap-2 mb-1">
-                      <Mail size={12} className="text-slate-400" />
+                      <Mail size={12} className="text-muted-text" />
                       {deleteUserModal.email}
                     </div>
                     <div className="flex items-center gap-2">
-                      <ShieldCheck size={12} className="text-slate-400" />
+                      <ShieldCheck size={12} className="text-muted-text" />
                       {getRoleDisplay(deleteUserModal)}
                     </div>
                   </div>
@@ -5625,7 +5625,7 @@ const UserManagement = () => {
                   <button
                     type="button"
                     onClick={closeDeleteModal}
-                    className="w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition-colors touch-manipulation min-h-[44px]"
+                    className="w-full sm:w-auto px-4 sm:px-5 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-sub bg-background hover:bg-background active:bg-background transition-colors touch-manipulation min-h-[44px]"
                   >
                     Cancel
                   </button>
@@ -5633,8 +5633,8 @@ const UserManagement = () => {
                     onClick={handlePermanentDelete}
                     disabled={deletingUser}
                     className={`w-full sm:w-auto px-4 sm:px-6 py-2.5 rounded-lg sm:rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 touch-manipulation min-h-[44px] ${deletingUser
-                      ? 'bg-slate-300 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-rose-500 to-red-600 hover:shadow-lg hover:shadow-rose-500/25 active:from-rose-600 active:to-red-700'
+                      ? 'bg-background cursor-not-allowed'
+                      : 'bg-gradient-to-r from-danger to-danger hover:shadow-lg hover:shadow-danger/25 active:from-danger active:to-danger'
                       }`}
                   >
                     {deletingUser ? (
@@ -5661,32 +5661,32 @@ const UserManagement = () => {
       {
         showFieldPermissionsModal && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+            <div className="bg-surface rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] flex flex-col">
               {/* Header */}
-              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <div className="px-6 py-4 border-b border-border flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                    <Shield className="text-blue-600" size={20} />
+                  <h3 className="text-lg font-bold text-main flex items-center gap-2">
+                    <Shield className="text-primary" size={20} />
                     Configure Field-Level Access
                   </h3>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <p className="text-sm text-muted-text mt-1">
                     Set view/edit permissions for individual student data fields
                   </p>
                 </div>
                 <button
                   onClick={() => { setShowFieldPermissionsModal(false); setFieldPermissionsContext('user'); }}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-background rounded-lg transition-colors"
                 >
-                  <X size={20} className="text-slate-600" />
+                  <X size={20} className="text-sub" />
                 </button>
               </div>
 
               {/* Quick Actions */}
-              <div className="px-6 py-3 bg-blue-50 border-b border-blue-200">
+              <div className="px-6 py-3 bg-[var(--primary-light)] border-b border-[var(--primary-light)]">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={grantAllViewPermissions}
-                    className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1.5"
+                    className="px-3 py-1.5 text-xs font-semibold bg-success text-white rounded-lg hover:bg-success transition-colors flex items-center gap-1.5"
                   >
                     <Eye size={14} />
                     Grant All View
@@ -5696,7 +5696,7 @@ const UserManagement = () => {
                       setFieldPermissions({});
                       toast.success('All permissions revoked!');
                     }}
-                    className="px-3 py-1.5 text-xs font-semibold bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors flex items-center gap-1.5"
+                    className="px-3 py-1.5 text-xs font-semibold bg-background text-white rounded-lg hover:bg-background transition-colors flex items-center gap-1.5"
                   >
                     <X size={14} />
                     Revoke All
@@ -5707,12 +5707,12 @@ const UserManagement = () => {
               {/* Content */}
               <div className="flex-1 overflow-hidden flex">
                 {/* Categories Sidebar */}
-                <div className="w-64 border-r border-slate-200 overflow-y-auto bg-slate-50">
+                <div className="w-64 border-r border-border overflow-y-auto bg-background">
                   <div className="p-3">
                     {loadingFields ? (
                       <div className="text-center py-8">
-                        <RefreshCw className="animate-spin mx-auto text-slate-400" size={24} />
-                        <p className="text-sm text-slate-500 mt-2">Loading fields...</p>
+                        <RefreshCw className="animate-spin mx-auto text-muted-text" size={24} />
+                        <p className="text-sm text-muted-text mt-2">Loading fields...</p>
                       </div>
                     ) : (
                       fieldCategories.map(category => {
@@ -5733,8 +5733,8 @@ const UserManagement = () => {
                             key={category.id}
                             onClick={() => setActiveFieldCategory(category.id)}
                             className={`w-full flex items-center justify-between gap-2 p-3 rounded-lg text-left transition-all mb-2 ${isActive
-                              ? 'bg-blue-600 text-white shadow-sm'
-                              : 'bg-white text-slate-700 hover:bg-white/80'
+                              ? 'bg-primary text-white shadow-sm'
+                              : 'bg-surface text-sub hover:bg-[var(--surface)]/80'
                               }`}
                           >
                             <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -5765,14 +5765,14 @@ const UserManagement = () => {
                       return (
                         <div
                           key={field.key}
-                          className="flex items-center justify-between gap-4 p-3 border border-slate-200 rounded-lg hover:border-slate-300 transition-colors mb-3"
+                          className="flex items-center justify-between gap-4 p-3 border border-border rounded-lg hover:border-border-strong transition-colors mb-3"
                         >
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-medium text-slate-800 truncate">
+                            <h4 className="text-sm font-medium text-main truncate">
                               {field.label}
                             </h4>
-                            <p className="text-xs text-slate-500">
-                              Field: <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">{field.key}</code>
+                            <p className="text-xs text-muted-text">
+                              Field: <code className="text-xs bg-background px-1.5 py-0.5 rounded">{field.key}</code>
                             </p>
                           </div>
 
@@ -5781,8 +5781,8 @@ const UserManagement = () => {
                             <button
                               onClick={() => toggleFieldPermission(field.key, 'view')}
                               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${perms.view
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                                ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
+                                : 'bg-background text-sub border border-border hover:bg-background'
                                 }`}
                             >
                               {perms.view ? <Eye size={14} /> : <EyeOff size={14} />}
@@ -5793,8 +5793,8 @@ const UserManagement = () => {
                             <button
                               onClick={() => toggleFieldPermission(field.key, 'edit')}
                               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${perms.edit
-                                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100'
+                                ? 'bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]'
+                                : 'bg-background text-sub border border-border hover:bg-background'
                                 }`}
                               disabled={!perms.view}
                             >
@@ -5810,20 +5810,20 @@ const UserManagement = () => {
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
-                <p className="text-sm text-slate-600">
+              <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-background">
+                <p className="text-sm text-sub">
                   Configure field permissions, then click Save to apply
                 </p>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => { setShowFieldPermissionsModal(false); setFieldPermissionsContext('user'); }}
-                    className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+                    className="px-4 py-2 text-sm font-semibold text-sub bg-surface border border-border rounded-lg hover:bg-background transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={saveFieldPermissions}
-                    className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 text-sm font-semibold text-white bg-primary rounded-lg hover:bg-primary-hover transition-colors flex items-center gap-2"
                   >
                     <Save size={16} />
                     Save Field Permissions

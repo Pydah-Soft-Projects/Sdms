@@ -36,29 +36,29 @@ const TopHeaderBar = () => {
     const initialLetter = (user?.name || user?.student_name || 'Damerla')?.charAt(0)?.toUpperCase() || 'D';
 
     return (
-        <div className="sticky -top-4 lg:-top-5 xl:-top-6 z-40 bg-[#f8fafc]/95 backdrop-blur-md flex items-center justify-between py-2.5 px-4 lg:px-5 xl:px-6 -mx-4 lg:-mx-5 xl:-mx-6 -mt-4 lg:-mt-5 xl:-mt-6 mb-3 transition-all border-b border-slate-200/60 shadow-2xs min-h-[52px] sm:min-h-[58px]">
+        <div className="sticky -top-4 lg:-top-5 xl:-top-6 z-40 bg-[var(--background)]/95 backdrop-blur-md flex items-center justify-between py-2.5 px-4 lg:px-5 xl:px-6 -mx-4 lg:-mx-5 xl:-mx-6 -mt-4 lg:-mt-5 xl:-mt-6 mb-3 transition-all border-b border-border shadow-2xs min-h-[52px] sm:min-h-[58px]">
             {/* Left: College Logo & Time Wish with Cursive Pydian */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
                 {location.pathname !== '/student/dashboard' && (
                     <button
                         onClick={() => navigate('/student/dashboard')}
-                        className="p-1 -ml-1 text-slate-700 hover:bg-slate-200/80 active:scale-95 rounded-xl transition-all flex items-center justify-center shrink-0 cursor-pointer lg:hidden"
+                        className="p-1 -ml-1 text-sub hover:bg-[var(--background)]/80 active:scale-95 rounded-xl transition-all flex items-center justify-center shrink-0 cursor-pointer lg:hidden"
                         title="Back to Dashboard"
                     >
-                        <ArrowLeft className="w-5 h-5 text-slate-700" />
+                        <ArrowLeft className="w-5 h-5 text-sub" />
                     </button>
                 )}
                 <img
                     src="/logo.png"
-                    alt="Pydah Group"
+                    alt="CAMPO SD"
                     className="h-8 sm:h-9 w-auto object-contain drop-shadow-xs cursor-pointer block"
                     onClick={() => navigate('/student/dashboard')}
                 />
-                <div className="flex items-center border-l border-slate-300/80 pl-2.5 sm:pl-3 h-6 sm:h-7 min-w-0">
-                    <span className="text-xs sm:text-base font-extrabold text-slate-800 tracking-tight flex items-center gap-1.5 truncate leading-none">
+                <div className="flex items-center border-l border-border-strong pl-2.5 sm:pl-3 h-6 sm:h-7 min-w-0">
+                    <span className="text-xs sm:text-base font-extrabold text-main tracking-tight flex items-center gap-1.5 truncate leading-none">
                         <span>{timeGreeting}</span>
                         <span
-                            className="text-[#f97316] font-bold tracking-normal text-sm sm:text-lg ml-0.5 inline-block"
+                            className="text-[var(--warning)] font-bold tracking-normal text-sm sm:text-lg ml-0.5 inline-block"
                             style={{ fontFamily: "'Dancing Script', 'Brush Script MT', 'Caveat', 'Segoe Script', cursive" }}
                         >
                             Pydian
@@ -72,11 +72,11 @@ const TopHeaderBar = () => {
                 {/* Notification Bell */}
                 <button
                     onClick={() => navigate('/student/announcements')}
-                    className="relative flex items-center justify-center p-1.5 sm:p-2 rounded-full text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                    className="relative flex items-center justify-center p-1.5 sm:p-2 rounded-full text-sub hover:bg-background transition-colors cursor-pointer"
                     title="View Announcements & Notifications"
                 >
-                    <Bell className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#1e293b]" />
-                    <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] sm:text-[10px] font-bold text-white bg-red-500 rounded-full shadow-xs border border-white leading-none">
+                    <Bell className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[var(--text-primary)]" />
+                    <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[16px] h-4 px-1 text-[9px] sm:text-[10px] font-bold text-white bg-danger rounded-full shadow-xs border border-surface leading-none">
                         {displayBadgeCount}
                     </span>
                 </button>
@@ -84,7 +84,7 @@ const TopHeaderBar = () => {
                 {/* Profile Placeholder Initial Letter Circle Button */}
                 <button
                     onClick={() => navigate('/student/profile')}
-                    className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 aspect-square rounded-full bg-[#2563eb] text-white flex items-center justify-center shadow-xs border-2 border-blue-200 cursor-pointer hover:bg-blue-700 transition-all font-black text-xs sm:text-sm uppercase leading-none"
+                    className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 aspect-square rounded-full bg-[var(--primary)] text-white flex items-center justify-center shadow-xs border-2 border-[var(--primary-light)] cursor-pointer hover:bg-primary-hover transition-all font-black text-xs sm:text-sm uppercase leading-none"
                     title="View Profile"
                 >
                     {initialLetter}

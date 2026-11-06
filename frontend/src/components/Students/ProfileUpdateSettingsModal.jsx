@@ -68,21 +68,21 @@ const ProfileUpdateSettingsModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-100">
+      <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden border border-border">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-[var(--background)]/50">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+            <div className="p-2 bg-[var(--primary-light)] rounded-lg text-primary">
               <ClipboardList size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Profile Update Request Settings</h2>
-              <p className="text-xs text-gray-500 font-medium mt-0.5">Control which fields students can update during mobile verification</p>
+              <h2 className="text-xl font-bold text-main">Profile Update Request Settings</h2>
+              <p className="text-xs text-muted-text font-medium mt-0.5">Control which fields students can update during mobile verification</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-600"
+            className="p-2 hover:bg-background rounded-full transition-colors text-muted-text hover:text-sub"
           >
             <X size={20} />
           </button>
@@ -92,17 +92,17 @@ const ProfileUpdateSettingsModal = ({ isOpen, onClose }) => {
         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <Loader2 className="animate-spin text-indigo-600" size={40} />
-              <p className="text-sm font-medium text-gray-500">Loading available fields...</p>
+              <Loader2 className="animate-spin text-primary" size={40} />
+              <p className="text-sm font-medium text-muted-text">Loading available fields...</p>
             </div>
           ) : (
             categories.map(category => (
               <div key={category.id} className="space-y-4">
-                <div className="flex items-center gap-2 border-b border-gray-100 pb-2">
+                <div className="flex items-center gap-2 border-b border-border pb-2">
                   <div className={`p-1.5 rounded-md bg-${category.color || 'blue'}-50 text-${category.color || 'blue'}-600`}>
                     <Shield size={16} />
                   </div>
-                  <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">{category.label}</h3>
+                  <h3 className="text-sm font-bold text-main uppercase tracking-wider">{category.label}</h3>
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -114,23 +114,23 @@ const ProfileUpdateSettingsModal = ({ isOpen, onClose }) => {
                         onClick={() => toggleField(field.key)}
                         className={`group relative flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left
                           ${isSelected 
-                            ? 'bg-indigo-50 border-indigo-200 text-indigo-900 shadow-sm' 
-                            : 'bg-white border-gray-100 text-gray-600 hover:border-gray-200 hover:shadow-sm'
+                            ? 'bg-[var(--primary-light)] border-[var(--primary-light)] text-primary shadow-sm'
+                            : 'bg-surface border-border text-sub hover:border-border hover:shadow-sm'
                           }`}
                       >
                         <div className={`flex-shrink-0 w-5 h-5 rounded flex items-center justify-center border transition-colors
-                          ${isSelected ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-300 group-hover:border-gray-400'}`}>
+                          ${isSelected ? 'bg-primary border-primary' : 'bg-surface border-border-strong group-hover:border-border-strong'}`}>
                           {isSelected && <Check size={12} className="text-white" />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate leading-tight">{field.label}</p>
-                          <p className="text-[10px] font-medium text-gray-400 mt-0.5 uppercase tracking-tighter">{field.type} • {field.key}</p>
+                          <p className="text-[10px] font-medium text-muted-text mt-0.5 uppercase tracking-tighter">{field.type} • {field.key}</p>
                         </div>
                         
                         {/* Selected Indicator Pill */}
                         {isSelected && (
                           <div className="absolute top-2 right-2 flex gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
                           </div>
                         )}
                       </button>
@@ -143,23 +143,23 @@ const ProfileUpdateSettingsModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between gap-4">
+        <div className="px-6 py-4 bg-background border-t border-border flex items-center justify-between gap-4">
           <div className="flex-1">
-            <p className="text-xs text-gray-500 font-medium">
-              <span className="font-bold text-indigo-600">{enabledFields.length}</span> fields enabled for student update requests.
+            <p className="text-xs text-muted-text font-medium">
+              <span className="font-bold text-primary">{enabledFields.length}</span> fields enabled for student update requests.
             </p>
           </div>
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition-all text-sm"
+              className="px-4 py-2 rounded-lg border border-border-strong text-sub font-semibold hover:bg-background transition-all text-sm"
               disabled={saving}
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-6 py-2 rounded-lg bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center gap-2 transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="px-6 py-2 rounded-lg bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all flex items-center gap-2 transform active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
               disabled={saving || loading}
             >
               {saving ? (

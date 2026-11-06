@@ -43,7 +43,7 @@ const FacultyLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--text-primary)] flex">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -55,17 +55,17 @@ const FacultyLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-200 ease-in-out lg:transform-none flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-[var(--surface)] border-r border-[var(--border)] transform transition-transform duration-200 ease-in-out lg:transform-none flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
       >
-        <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200">
+        <div className="flex items-center justify-between h-16 px-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
-            <GraduationCap className="w-8 h-8 text-teal-600" />
-            <span className="font-semibold text-slate-800">Faculty Portal</span>
+            <GraduationCap className="w-8 h-8 text-[var(--primary)]" />
+            <span className="font-semibold text-[var(--text-primary)]">Faculty Portal</span>
           </div>
           <button
             type="button"
-            className="lg:hidden p-2 rounded-lg hover:bg-slate-100"
+            className="lg:hidden p-2 rounded-lg hover:bg-[var(--primary)]/5"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close menu"
           >
@@ -81,8 +81,8 @@ const FacultyLayout = () => {
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
-                  ? 'bg-teal-50 text-teal-700'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-[var(--primary)]/10 text-[var(--primary)] font-semibold'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--primary)]/5'
                 }`
               }
             >
@@ -92,14 +92,14 @@ const FacultyLayout = () => {
           ))}
         </nav>
 
-        <div className="p-3 border-t border-slate-200">
-          <div className="px-3 py-2 text-xs text-slate-500 truncate" title={user?.email}>
+        <div className="p-3 border-t border-[var(--border)]">
+          <div className="px-3 py-2 text-xs text-[var(--text-muted)] truncate" title={user?.email}>
             {user?.name || user?.username}
           </div>
           <button
             type="button"
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--primary)]/5"
           >
             <LogOut className="w-5 h-5" />
             Logout
@@ -109,16 +109,16 @@ const FacultyLayout = () => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 lg:px-6">
+        <header className="h-16 bg-[var(--navbar)] border-b border-[var(--border)] flex items-center px-4 lg:px-6">
           <button
             type="button"
-            className="lg:hidden p-2 rounded-lg hover:bg-slate-100 mr-2"
+            className="lg:hidden p-2 rounded-lg hover:bg-[var(--primary)]/5 mr-2"
             onClick={() => setSidebarOpen(true)}
             aria-label="Open menu"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <span className="text-slate-600 text-sm">Pydah Student Portal v2.0 – Faculty</span>
+          <span className="text-[var(--text-secondary)] text-sm">CAMPO Student Portal v2.0 – Faculty</span>
         </header>
 
         <main className="flex-1 p-4 lg:p-6 overflow-auto">

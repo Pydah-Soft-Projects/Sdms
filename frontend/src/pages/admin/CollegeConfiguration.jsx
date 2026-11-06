@@ -221,7 +221,7 @@ const CollegeConfiguration = () => {
           // Divider rule
           if (/^[-=_*]{3,}$/.test(text)) {
             return (
-              <div key={idx} className="my-1.5 border-b-2 border-blue-900 w-full" />
+              <div key={idx} className="my-1.5 border-b-2 border-primary w-full" />
             );
           }
 
@@ -253,7 +253,7 @@ const CollegeConfiguration = () => {
                 textAlign: align,
                 fontSize: `${size}px`,
                 fontWeight: isBold ? 700 : 400,
-                color: isBold ? '#0f2942' : '#334155',
+                color: isBold ? 'var(--primary)' : 'var(--text-primary)',
                 lineHeight: 1.35,
               }}
             >
@@ -269,8 +269,8 @@ const CollegeConfiguration = () => {
     return (
       <div className="p-6 flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading colleges...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-sub">Loading colleges...</p>
         </div>
       </div>
     );
@@ -283,16 +283,16 @@ const CollegeConfiguration = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/services/config')}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 hover:bg-background rounded-lg transition"
           >
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Building2 size={26} className="text-[#185abd]" />
+            <h1 className="text-2xl font-bold text-main flex items-center gap-2">
+              <Building2 size={26} className="text-[var(--primary)]" />
               College Configuration
             </h1>
-            <p className="text-gray-500 text-sm">
+            <p className="text-muted-text text-sm">
               Dynamically design official letterhead headers for certificates (No photo uploads required)
             </p>
           </div>
@@ -300,12 +300,12 @@ const CollegeConfiguration = () => {
       </div>
 
       {/* College Selection */}
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200">
-        <label className="block text-sm font-bold text-gray-800 mb-2">
-          Select College <span className="text-red-500">*</span>
+      <div className="bg-surface p-5 rounded-2xl shadow-sm border border-border">
+        <label className="block text-sm font-bold text-main mb-2">
+          Select College <span className="text-danger">*</span>
         </label>
         <select
-          className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-base bg-white"
+          className="w-full px-4 py-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-primary outline-none text-base bg-surface"
           value={selectedCollege?.id || ''}
           onChange={(e) => handleCollegeSelect(e.target.value)}
         >
@@ -321,23 +321,23 @@ const CollegeConfiguration = () => {
       {selectedCollege && (
         <div className="space-y-6">
           {/* Dynamic College Header Designer Card */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden">
             {/* Card Header with Word Branding */}
-            <div className="bg-[#185abd] text-white px-5 py-3 flex items-center justify-between">
+            <div className="bg-[var(--primary)] text-white px-5 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-6 h-6 bg-white rounded flex items-center justify-center shadow-xs">
-                  <span className="text-[#185abd] font-black text-sm">W</span>
+                <div className="w-6 h-6 bg-surface rounded flex items-center justify-center shadow-xs">
+                  <span className="text-[var(--primary)] font-black text-sm">W</span>
                 </div>
                 <div>
                   <h2 className="text-sm font-bold tracking-wide">
                     Dynamic College Header Designer
                   </h2>
-                  <p className="text-[11px] text-blue-100">
+                  <p className="text-[11px] text-primary">
                     Microsoft Word Replica • Pure vector typography & formatting
                   </p>
                 </div>
               </div>
-              <span className="px-2.5 py-0.5 bg-blue-700/60 rounded-full text-xs text-blue-100 font-medium">
+              <span className="px-2.5 py-0.5 bg-[var(--primary-light)] rounded-full text-xs text-primary font-medium">
                 Photo Upload Free
               </span>
             </div>
@@ -345,8 +345,8 @@ const CollegeConfiguration = () => {
             <div className="p-6 space-y-5">
               {/* Presets Row */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Sparkles size={14} className="text-amber-500" /> Header Style Presets
+                <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-warning" /> Header Style Presets
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   {[
@@ -361,26 +361,26 @@ const CollegeConfiguration = () => {
                       onClick={() => applyPreset(preset.id)}
                       className={`p-2.5 rounded-xl border text-left transition ${
                         activePreset === preset.id
-                          ? 'border-blue-600 bg-blue-50/80 text-blue-900 shadow-xs'
-                          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800'
+                          ? 'border-primary bg-[var(--primary-light)] text-primary shadow-xs'
+                          : 'border-border hover:border-border-strong hover:bg-background text-main'
                       }`}
                     >
                       <div className="text-xs font-bold">{preset.label}</div>
-                      <div className="text-[10px] text-slate-500 mt-0.5">{preset.desc}</div>
+                      <div className="text-[10px] text-muted-text mt-0.5">{preset.desc}</div>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Toolbar Controls */}
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-wrap items-center gap-3 text-xs">
+              <div className="bg-background border border-border rounded-xl p-3 flex flex-wrap items-center gap-3 text-xs">
                 {/* Font Family */}
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-slate-600">Font:</span>
+                  <span className="text-[10px] font-bold text-sub">Font:</span>
                   <select
                     value={fontFamily}
                     onChange={(e) => setFontFamily(e.target.value)}
-                    className="h-7 px-2 border border-slate-300 rounded bg-white text-xs font-semibold outline-none cursor-pointer"
+                    className="h-7 px-2 border border-border-strong rounded bg-surface text-xs font-semibold outline-none cursor-pointer"
                   >
                     <option value="Calibri">Calibri</option>
                     <option value="Arial">Arial</option>
@@ -391,8 +391,8 @@ const CollegeConfiguration = () => {
 
                 {/* Header Height */}
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-slate-600">Height:</span>
-                  <div className="flex items-center border border-slate-300 rounded bg-white h-7 px-2">
+                  <span className="text-[10px] font-bold text-sub">Height:</span>
+                  <div className="flex items-center border border-border-strong rounded bg-surface h-7 px-2">
                     <input
                       type="number"
                       min="50"
@@ -401,7 +401,7 @@ const CollegeConfiguration = () => {
                       onChange={(e) => setHeaderHeight(parseInt(e.target.value) || 85)}
                       className="w-8 text-center text-xs font-bold outline-none"
                     />
-                    <span className="text-[10px] text-slate-400">px</span>
+                    <span className="text-[10px] text-muted-text">px</span>
                   </div>
                 </div>
 
@@ -410,21 +410,21 @@ const CollegeConfiguration = () => {
                   <button
                     type="button"
                     onClick={() => insertTagAtCursor('[center][b][size:16]COLLEGE NAME[/size][/b][/center]')}
-                    className="px-2 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 text-[11px] font-semibold text-slate-700"
+                    className="px-2 py-1 bg-surface border border-border-strong rounded hover:bg-background text-[11px] font-semibold text-sub"
                   >
                     + Main Title
                   </button>
                   <button
                     type="button"
                     onClick={() => insertTagAtCursor("[center][size:10](Affiliated to University, NAAC 'A+' Grade)[/size][/center]")}
-                    className="px-2 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 text-[11px] font-semibold text-slate-700"
+                    className="px-2 py-1 bg-surface border border-border-strong rounded hover:bg-background text-[11px] font-semibold text-sub"
                   >
                     + Affiliation
                   </button>
                   <button
                     type="button"
                     onClick={() => insertTagAtCursor('----------------------------------------')}
-                    className="px-2 py-1 bg-white border border-slate-300 rounded hover:bg-slate-100 text-[11px] font-bold text-blue-700"
+                    className="px-2 py-1 bg-surface border border-border-strong rounded hover:bg-background text-[11px] font-bold text-primary"
                   >
                     + Divider Line (---)
                   </button>
@@ -434,18 +434,18 @@ const CollegeConfiguration = () => {
               {/* Dynamic Header Editor Textarea */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="block text-xs font-bold text-slate-800 uppercase tracking-wide">
+                  <label className="block text-xs font-bold text-main uppercase tracking-wide">
                     Header Lines & Formatting Code
                   </label>
-                  <span className="text-[11px] text-slate-500">
-                    Supports <code className="bg-slate-100 px-1 rounded">[b]...[/b]</code>, <code className="bg-slate-100 px-1 rounded">[size:16]...[/size]</code>, <code className="bg-slate-100 px-1 rounded">[center]...[/center]</code>, and <code className="bg-slate-100 px-1 rounded">---</code>
+                  <span className="text-[11px] text-muted-text">
+                    Supports <code className="bg-background px-1 rounded">[b]...[/b]</code>, <code className="bg-background px-1 rounded">[size:16]...[/size]</code>, <code className="bg-background px-1 rounded">[center]...[/center]</code>, and <code className="bg-background px-1 rounded">---</code>
                   </span>
                 </div>
                 <textarea
                   rows={5}
                   value={headerContent}
                   onChange={(e) => setHeaderContent(e.target.value)}
-                  className="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none leading-relaxed bg-white"
+                  className="w-full p-3 font-mono text-xs border border-border-strong rounded-xl focus:ring-2 focus:ring-primary outline-none leading-relaxed bg-surface"
                   placeholder="Type header text here with formatting tags..."
                 />
               </div>
@@ -453,18 +453,18 @@ const CollegeConfiguration = () => {
               {/* Live A4 Paper Header Preview */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
-                    <Eye size={14} className="text-emerald-600" /> Live Certificate Header Preview
+                  <span className="text-xs font-bold text-main uppercase tracking-wide flex items-center gap-1.5">
+                    <Eye size={14} className="text-success" /> Live Certificate Header Preview
                   </span>
-                  <span className="text-[11px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  <span className="text-[11px] text-success font-semibold bg-[var(--success-light)] px-2 py-0.5 rounded border border-[var(--success-light)]">
                     ✓ Rendered Live
                   </span>
                 </div>
 
                 {/* Simulated A4 Paper Header Top */}
-                <div className="bg-[#eaedf1] p-4 rounded-xl border border-slate-300 flex justify-center">
+                <div className="bg-[var(--primary-light)] p-4 rounded-xl border border-border-strong flex justify-center">
                   <div
-                    className="bg-white border border-slate-300 shadow-md w-full max-w-2xl py-3 rounded-xs transition-all"
+                    className="bg-surface border border-border-strong shadow-md w-full max-w-2xl py-3 rounded-xs transition-all"
                     style={{ minHeight: `${headerHeight}px` }}
                   >
                     {renderHeaderPreview()}
@@ -475,18 +475,18 @@ const CollegeConfiguration = () => {
           </div>
 
           {/* Principal Signature Card */}
-          <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-4">
+          <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-gray-900">Principal Signature</h3>
-                <p className="text-xs text-gray-500">
+                <h3 className="text-base font-bold text-main">Principal Signature</h3>
+                <p className="text-xs text-muted-text">
                   Upload official signature image for certificates
                 </p>
               </div>
             </div>
 
             {signaturePreview ? (
-              <div className="relative flex items-center justify-center p-4 bg-gray-50 rounded-xl border border-slate-200">
+              <div className="relative flex items-center justify-center p-4 bg-background rounded-xl border border-border">
                 <img
                   src={signaturePreview}
                   alt="Principal Signature"
@@ -499,19 +499,19 @@ const CollegeConfiguration = () => {
                     setSignaturePreview(null);
                     setRemoveSignature(true);
                   }}
-                  className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-md"
+                  className="absolute top-2 right-2 p-1.5 bg-danger text-white rounded-full hover:bg-danger shadow-md"
                   title="Remove signature"
                 >
                   <X size={16} />
                 </button>
               </div>
             ) : (
-              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-500 transition bg-gray-50">
-                <Upload className="text-gray-400 mb-1.5" size={26} />
-                <span className="text-xs text-gray-600 font-medium">
+              <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-border-strong rounded-xl cursor-pointer hover:border-primary transition bg-background">
+                <Upload className="text-muted-text mb-1.5" size={26} />
+                <span className="text-xs text-sub font-medium">
                   Click to upload principal signature image
                 </span>
-                <span className="text-[10px] text-gray-400 mt-0.5">
+                <span className="text-[10px] text-muted-text mt-0.5">
                   PNG, JPG, WEBP with transparent or white background
                 </span>
                 <input
@@ -525,11 +525,11 @@ const CollegeConfiguration = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-center bg-surface p-4 rounded-2xl border border-border shadow-sm">
             <button
               type="button"
               onClick={() => navigate('/services/config')}
-              className="px-5 py-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium text-sm text-gray-700"
+              className="px-5 py-2.5 border border-border-strong rounded-xl hover:bg-background font-medium text-sm text-sub"
             >
               Cancel
             </button>
@@ -537,7 +537,7 @@ const CollegeConfiguration = () => {
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 flex items-center gap-2 font-bold text-sm shadow-md shadow-blue-200 disabled:opacity-50"
+              className="px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-hover flex items-center gap-2 font-bold text-sm shadow-md shadow-primary disabled:opacity-50"
             >
               <Save size={16} />
               {saving ? 'Saving...' : 'Save Configuration'}
@@ -547,10 +547,10 @@ const CollegeConfiguration = () => {
       )}
 
       {!selectedCollege && (
-        <div className="bg-white p-12 rounded-2xl border-2 border-dashed border-gray-300 text-center shadow-xs">
-          <Building2 size={48} className="text-blue-500 mx-auto mb-3 opacity-60" />
-          <h3 className="text-lg font-bold text-gray-800">Select a College to Configure</h3>
-          <p className="text-gray-500 text-sm mt-1">
+        <div className="bg-surface p-12 rounded-2xl border-2 border-dashed border-border-strong text-center shadow-xs">
+          <Building2 size={48} className="text-primary mx-auto mb-3 opacity-60" />
+          <h3 className="text-lg font-bold text-main">Select a College to Configure</h3>
+          <p className="text-muted-text text-sm mt-1">
             Choose a college from the dropdown above to design its dynamic certificate letterhead header.
           </p>
         </div>

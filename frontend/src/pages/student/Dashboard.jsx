@@ -725,8 +725,8 @@ const Dashboard = () => {
                 label: 'Attendance',
                 path: '/student/attendance',
                 icon: RiCheckboxCircleLine,
-                iconBg: 'bg-[#ecfdf5]',
-                iconColor: 'text-[#059669]',
+                iconBg: 'bg-[var(--success-light)]',
+                iconColor: 'text-[var(--success)]',
                 enabled: isEnabled('attendance')
             },
             {
@@ -734,8 +734,8 @@ const Dashboard = () => {
                 label: 'Academic',
                 path: '/student/academic-content',
                 icon: BookOpen,
-                iconBg: 'bg-[#eeeffe]',
-                iconColor: 'text-[#5551ff]',
+                iconBg: 'bg-[var(--primary-light)]',
+                iconColor: 'text-[var(--primary)]',
                 enabled: true
             },
             {
@@ -743,8 +743,8 @@ const Dashboard = () => {
                 label: 'Fees',
                 path: '/student/fees',
                 icon: IndianRupee,
-                iconBg: 'bg-[#ffeef2]',
-                iconColor: 'text-[#ff3366]',
+                iconBg: 'bg-[var(--danger-light)]',
+                iconColor: 'text-[var(--danger)]',
                 enabled: isEnabled('fees')
             },
             {
@@ -752,8 +752,8 @@ const Dashboard = () => {
                 label: 'Timetable',
                 path: '/student/timetable',
                 icon: Calendar,
-                iconBg: 'bg-[#eef8ff]',
-                iconColor: 'text-[#2563eb]',
+                iconBg: 'bg-[var(--primary-light)]',
+                iconColor: 'text-[var(--primary)]',
                 enabled: isEnabled('timetable')
             },
             {
@@ -761,8 +761,8 @@ const Dashboard = () => {
                 label: 'Results',
                 path: '/student/internal-marks',
                 icon: FileText,
-                iconBg: 'bg-[#eef9ff]',
-                iconColor: 'text-[#0284c7]',
+                iconBg: 'bg-[var(--primary-light)]',
+                iconColor: 'text-[var(--info)]',
                 enabled: true
             },
             {
@@ -770,8 +770,8 @@ const Dashboard = () => {
                 label: 'Sem Reg.',
                 path: '/student/semester-registration',
                 icon: RiFileList3Line,
-                iconBg: 'bg-[#fff7ed]',
-                iconColor: 'text-[#ea580c]',
+                iconBg: 'bg-[var(--warning-light)]',
+                iconColor: 'text-[var(--warning)]',
                 enabled: isEnabled('semester-registration')
             },
             {
@@ -779,8 +779,8 @@ const Dashboard = () => {
                 label: 'Updates',
                 path: '/student/announcements',
                 icon: Megaphone,
-                iconBg: 'bg-[#fef3c7]',
-                iconColor: 'text-[#d97706]',
+                iconBg: 'bg-[var(--warning-light)]',
+                iconColor: 'text-[var(--warning)]',
                 enabled: isEnabled('announcements')
             },
             {
@@ -788,8 +788,8 @@ const Dashboard = () => {
                 label: 'Events',
                 path: '/student/events',
                 icon: Award,
-                iconBg: 'bg-[#f3e8ff]',
-                iconColor: 'text-[#9333ea]',
+                iconBg: 'bg-[var(--primary-light)]',
+                iconColor: 'text-[var(--secondary)]',
                 enabled: isEnabled('events')
             },
             {
@@ -797,8 +797,8 @@ const Dashboard = () => {
                 label: 'Clubs',
                 path: '/student/clubs',
                 icon: Users,
-                iconBg: 'bg-[#ccfbf1]',
-                iconColor: 'text-[#0d9488]',
+                iconBg: 'bg-[var(--primary-light)]',
+                iconColor: 'text-[var(--info)]',
                 enabled: isEnabled('clubs')
             },
             {
@@ -806,8 +806,8 @@ const Dashboard = () => {
                 label: 'CRT Portal',
                 isCrt: true,
                 icon: RiBookOpenLine,
-                iconBg: 'bg-[#eff6ff]',
-                iconColor: 'text-[#3b82f6]',
+                iconBg: 'bg-[var(--primary-light)]',
+                iconColor: 'text-[var(--primary)]',
                 enabled: true
             },
             {
@@ -815,8 +815,8 @@ const Dashboard = () => {
                 label: 'Services',
                 path: '/student/services',
                 icon: RiServiceLine,
-                iconBg: 'bg-[#fce7f3]',
-                iconColor: 'text-[#db2777]',
+                iconBg: 'bg-[var(--primary-light)]',
+                iconColor: 'text-[var(--accent)]',
                 enabled: isEnabled('services')
             },
             {
@@ -824,8 +824,8 @@ const Dashboard = () => {
                 label: 'Library',
                 path: '/student/library',
                 icon: RiBook2Line,
-                iconBg: 'bg-[#ecfdf5]',
-                iconColor: 'text-[#059669]',
+                iconBg: 'bg-[var(--success-light)]',
+                iconColor: 'text-[var(--success)]',
                 enabled: isEnabled('library')
             },
             {
@@ -833,8 +833,8 @@ const Dashboard = () => {
                 label: 'Maintenance',
                 path: '/student/my-tickets',
                 icon: RiTicketLine,
-                iconBg: 'bg-[#dcfce7]',
-                iconColor: 'text-[#16a34a]',
+                iconBg: 'bg-[var(--success-light)]',
+                iconColor: 'text-[var(--success)]',
                 enabled: true
             },
             {
@@ -842,8 +842,8 @@ const Dashboard = () => {
                 label: 'Internship',
                 path: '/student/internship',
                 icon: RiMapPinLine,
-                iconBg: 'bg-[#e0e7ff]',
-                iconColor: 'text-[#4338ca]',
+                iconBg: 'bg-[var(--primary-light)]',
+                iconColor: 'text-[var(--primary)]',
                 enabled: hasInternship && isEnabled('internship')
             },
             {
@@ -851,8 +851,8 @@ const Dashboard = () => {
                 label: 'Transport',
                 path: '/student/transport',
                 icon: RiBusLine,
-                iconBg: 'bg-[#ffedd5]',
-                iconColor: 'text-[#c2410c]',
+                iconBg: 'bg-[var(--warning-light)]',
+                iconColor: 'text-[var(--warning)]',
                 enabled: isEnabled('transport')
             },
             {
@@ -860,8 +860,8 @@ const Dashboard = () => {
                 label: 'Scholarship',
                 path: '/student/scholarship',
                 icon: RiAwardLine,
-                iconBg: 'bg-[#ffe4e6]',
-                iconColor: 'text-[#e11d48]',
+                iconBg: 'bg-[var(--danger-light)]',
+                iconColor: 'text-[var(--danger)]',
                 enabled: isEnabled('scholarship')
             },
             {
@@ -869,8 +869,8 @@ const Dashboard = () => {
                 label: 'Feedback',
                 path: '/student/feedback',
                 icon: RiQuestionAnswerLine,
-                iconBg: 'bg-[#f1f5f9]',
-                iconColor: 'text-[#475569]',
+                iconBg: 'bg-[var(--background)]',
+                iconColor: 'text-[var(--text-secondary)]',
                 enabled: isEnabled('feedback')
             },
             {
@@ -878,8 +878,8 @@ const Dashboard = () => {
                 label: 'Documents',
                 path: '/student/my-documents',
                 icon: RiFolderLine,
-                iconBg: 'bg-[#fef9c3]',
-                iconColor: 'text-[#ca8a04]',
+                iconBg: 'bg-[var(--warning-light)]',
+                iconColor: 'text-[var(--warning)]',
                 enabled: isEnabled('my-documents')
             }
         ].filter(item => item.enabled);
@@ -939,17 +939,17 @@ const Dashboard = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'completed': return 'bg-green-100 text-green-700';
-            case 'ready_to_collect': return 'bg-purple-100 text-purple-700';
-            case 'pending': return 'bg-yellow-100 text-yellow-700';
-            default: return 'bg-gray-100 text-gray-700';
+            case 'completed': return 'bg-[var(--success-light)] text-success';
+            case 'ready_to_collect': return 'bg-[var(--primary-light)] text-secondary';
+            case 'pending': return 'bg-[var(--warning-light)] text-warning';
+            default: return 'bg-background text-sub';
         }
     };
 
     if (loading) {
         return (
             <div className="space-y-4 sm:space-y-5 lg:space-y-5 w-full animate-pulse relative z-0 pb-8">
-                <div className="rounded-2xl p-4 sm:p-5 lg:p-6 bg-sky-500/10 border border-sky-500/10 min-h-[5.5rem] sm:h-32 lg:h-36 flex items-center">
+                <div className="rounded-2xl p-4 sm:p-5 lg:p-6 bg-[var(--primary-light)] border border-info min-h-[5.5rem] sm:h-32 lg:h-36 flex items-center">
                     <div className="flex items-center gap-3.5 sm:gap-5 w-full">
                         <SkeletonBox height="h-16 w-16 sm:h-20 sm:w-20 lg:h-[4.5rem] lg:w-[4.5rem]" className="rounded-xl lg:rounded-2xl shrink-0" />
                         <div className="flex-1 space-y-2">
@@ -961,7 +961,7 @@ const Dashboard = () => {
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-6">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className={`rounded-xl lg:rounded-2xl p-4 lg:p-5 bg-white shadow-md border border-slate-100 flex flex-col justify-center min-h-[100px] lg:min-h-[7.5rem] ${i === 3 ? 'col-span-2 lg:col-span-1' : ''}`}>
+                        <div key={i} className={`rounded-xl lg:rounded-2xl p-4 lg:p-5 bg-surface shadow-md border border-border flex flex-col justify-center min-h-[100px] lg:min-h-[7.5rem] ${i === 3 ? 'col-span-2 lg:col-span-1' : ''}`}>
                             <SkeletonBox height="h-3" width="w-24" className="mb-4" />
                             <SkeletonBox height="h-10 sm:h-12" width="w-20" />
                         </div>
@@ -970,7 +970,7 @@ const Dashboard = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
                     <div className="lg:col-span-8 flex flex-col gap-4 sm:gap-6">
-                        <div className="bg-white rounded-xl lg:rounded-2xl shadow-md lg:shadow-lg shadow-sky-500/10 border border-sky-100 p-4 sm:p-5 lg:p-5 min-h-[200px]">
+                        <div className="bg-surface rounded-xl lg:rounded-2xl shadow-md lg:shadow-lg shadow-info/10 border border-[var(--primary-light)] p-4 sm:p-5 lg:p-5 min-h-[200px]">
                             <SkeletonBox height="h-4" width="w-40" className="mb-6" />
                             <div className="flex gap-4 overflow-hidden">
                                 <SkeletonBox height="h-28 sm:h-32" width="w-[160px] sm:w-[200px]" className="rounded-[1.8rem] shrink-0" />
@@ -978,7 +978,7 @@ const Dashboard = () => {
                                 <SkeletonBox height="h-28 sm:h-32" width="w-[160px] sm:w-[200px]" className="rounded-[1.8rem] shrink-0 hidden sm:block" />
                             </div>
                         </div>
-                        <div className="bg-white rounded-xl lg:rounded-2xl shadow-md lg:shadow-lg shadow-sky-500/10 border border-sky-100 p-4 sm:p-5 lg:p-5">
+                        <div className="bg-surface rounded-xl lg:rounded-2xl shadow-md lg:shadow-lg shadow-info/10 border border-[var(--primary-light)] p-4 sm:p-5 lg:p-5">
                             <SkeletonBox height="h-4" width="w-48" className="mb-6" />
                             <div className="space-y-3">
                                 <SkeletonCard />
@@ -987,14 +987,14 @@ const Dashboard = () => {
                         </div>
                     </div>
                     <div className="lg:col-span-4 flex flex-col gap-4 sm:gap-6">
-                        <div className="bg-white rounded-xl lg:rounded-2xl shadow-md lg:shadow-lg shadow-sky-500/10 border border-sky-100 p-5 sm:p-6 min-h-[180px]">
+                        <div className="bg-surface rounded-xl lg:rounded-2xl shadow-md lg:shadow-lg shadow-info/10 border border-[var(--primary-light)] p-5 sm:p-6 min-h-[180px]">
                             <SkeletonBox height="h-4" width="w-32" className="mb-4" />
                             <div className="space-y-3">
                                 <SkeletonBox height="h-14" width="w-full" className="rounded-xl" />
                                 <SkeletonBox height="h-14" width="w-full" className="rounded-xl" />
                             </div>
                         </div>
-                        <div className="bg-white rounded-xl lg:rounded-2xl shadow-md lg:shadow-lg shadow-sky-500/10 border border-sky-100 p-5 sm:p-6 min-h-[160px]">
+                        <div className="bg-surface rounded-xl lg:rounded-2xl shadow-md lg:shadow-lg shadow-info/10 border border-[var(--primary-light)] p-5 sm:p-6 min-h-[160px]">
                             <SkeletonBox height="h-4" width="w-36" className="mb-4" />
                             <SkeletonBox height="h-10" width="w-full" className="rounded-xl" />
                         </div>
@@ -1009,9 +1009,9 @@ const Dashboard = () => {
             {/* Announcement Popup */}
             {showAnnouncement && currentAnnouncement && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden animate-scale-in flex flex-col md:flex-row">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden animate-scale-in flex flex-col md:flex-row">
                         {currentAnnouncement.image_url && (
-                            <div className="md:w-7/12 h-48 sm:h-64 md:h-auto relative bg-white shrink-0 flex items-center justify-center">
+                            <div className="md:w-7/12 h-48 sm:h-64 md:h-auto relative bg-surface shrink-0 flex items-center justify-center">
                                 <img
                                     src={currentAnnouncement.image_url}
                                     alt="Announcement"
@@ -1019,9 +1019,9 @@ const Dashboard = () => {
                                 />
                             </div>
                         )}
-                        <div className="p-4 sm:p-6 md:p-8 flex flex-col flex-1 bg-white">
-                            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 leading-tight shrink-0">{currentAnnouncement.title}</h3>
-                            <div className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed" style={{
+                        <div className="p-4 sm:p-6 md:p-8 flex flex-col flex-1 bg-surface">
+                            <h3 className="text-xl sm:text-2xl font-bold text-main mb-3 sm:mb-4 leading-tight shrink-0">{currentAnnouncement.title}</h3>
+                            <div className="text-sub mb-4 sm:mb-6 text-sm sm:text-base leading-relaxed" style={{
                                 display: '-webkit-box',
                                 WebkitLineClamp: 2,
                                 WebkitBoxOrient: 'vertical',
@@ -1036,14 +1036,14 @@ const Dashboard = () => {
                                         closeAnnouncement();
                                         navigate('/student/announcements');
                                     }}
-                                    className="flex-1 py-3 sm:py-3.5 bg-sky-600 text-white rounded-xl font-bold hover:bg-sky-700 cursor-pointer shadow-lg transform active:scale-[0.98] text-sm sm:text-base flex items-center justify-center gap-2"
+                                    className="flex-1 py-3 sm:py-3.5 bg-info text-white rounded-xl font-bold hover:bg-info cursor-pointer shadow-lg transform active:scale-[0.98] text-sm sm:text-base flex items-center justify-center gap-2"
                                 >
                                     <FileText size={18} />
                                     Read More
                                 </button>
                                 <button
                                     onClick={closeAnnouncement}
-                                    className="flex-1 py-3 sm:py-3.5 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors cursor-pointer transform active:scale-[0.98] text-sm sm:text-base"
+                                    className="flex-1 py-3 sm:py-3.5 bg-background text-sub rounded-xl font-bold hover:bg-background transition-colors cursor-pointer transform active:scale-[0.98] text-sm sm:text-base"
                                 >
                                     Close
                                 </button>
@@ -1056,7 +1056,7 @@ const Dashboard = () => {
             {/* Event Details Modal */}
             {showEventModal && selectedEvent && (
                 <div className="fixed inset-0 z-[70] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-in relative border border-gray-100 max-h-[78vh] max-h-[78dvh] flex flex-col my-auto">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-scale-in relative border border-border max-h-[78vh] max-h-[78dvh] flex flex-col my-auto">
                         <button
                             onClick={() => setShowEventModal(false)}
                             className="absolute top-3 right-3 p-1.5 bg-black/20 hover:bg-black/40 text-white rounded-full transition-colors z-20 shadow-md backdrop-blur-md cursor-pointer"
@@ -1065,10 +1065,10 @@ const Dashboard = () => {
                             <X size={18} />
                         </button>
 
-                        <div className="bg-sky-500 px-4 py-3 sm:px-5 sm:py-4 text-white relative overflow-hidden shrink-0">
+                        <div className="bg-info px-4 py-3 sm:px-5 sm:py-4 text-white relative overflow-hidden shrink-0">
                             <div className="relative z-10 space-y-1.5 pr-6">
                                 <div className="flex items-center gap-2">
-                                    <span className="px-2 py-0.5 rounded-full bg-white/20 text-[9px] font-semibold backdrop-blur-sm border border-white/10 uppercase tracking-wide">
+                                    <span className="px-2 py-0.5 rounded-full bg-[var(--surface)]/20 text-[9px] font-semibold backdrop-blur-sm border border-surface uppercase tracking-wide">
                                         {selectedEvent.event_type}
                                     </span>
                                 </div>
@@ -1084,16 +1084,16 @@ const Dashboard = () => {
 
                         <div className="p-3 sm:p-4 space-y-3 overflow-y-auto flex-1 custom-scrollbar">
                             <div className="grid grid-cols-2 gap-2">
-                                <div className="bg-gray-50 p-2 sm:p-2.5 rounded-lg border border-gray-100">
-                                    <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-0.5 font-semibold">Start Time</p>
-                                    <div className="flex items-center gap-1.5 text-gray-900 font-medium text-[11px] sm:text-xs">
+                                <div className="bg-background p-2 sm:p-2.5 rounded-lg border border-border">
+                                    <p className="text-[9px] text-muted-text uppercase tracking-wider mb-0.5 font-semibold">Start Time</p>
+                                    <div className="flex items-center gap-1.5 text-main font-medium text-[11px] sm:text-xs">
                                         <Clock size={14} className="text-accent-dark" />
                                         {selectedEvent.start_time ? formatTime(selectedEvent.start_time) : 'All Day'}
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 p-2 sm:p-2.5 rounded-lg border border-gray-100">
-                                    <p className="text-[9px] text-gray-500 uppercase tracking-wider mb-0.5 font-semibold">End Time</p>
-                                    <div className="flex items-center gap-1.5 text-gray-900 font-medium text-[11px] sm:text-xs">
+                                <div className="bg-background p-2 sm:p-2.5 rounded-lg border border-border">
+                                    <p className="text-[9px] text-muted-text uppercase tracking-wider mb-0.5 font-semibold">End Time</p>
+                                    <div className="flex items-center gap-1.5 text-main font-medium text-[11px] sm:text-xs">
                                         <Clock size={14} className="text-accent-dark" />
                                         {selectedEvent.end_time ? formatTime(selectedEvent.end_time) : 'N/A'}
                                     </div>
@@ -1101,28 +1101,28 @@ const Dashboard = () => {
                             </div>
 
                             <div>
-                                <h4 className="text-[9px] font-bold text-gray-900 mb-1 uppercase tracking-wide">Description</h4>
-                                <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-100 max-h-20 overflow-y-auto custom-scrollbar">
-                                    <p className="text-gray-600 text-[11px] leading-relaxed whitespace-pre-wrap">
+                                <h4 className="text-[9px] font-bold text-main mb-1 uppercase tracking-wide">Description</h4>
+                                <div className="bg-background p-2.5 rounded-lg border border-border max-h-20 overflow-y-auto custom-scrollbar">
+                                    <p className="text-sub text-[11px] leading-relaxed whitespace-pre-wrap">
                                         {cleanEventDescription(selectedEvent.description) || 'No description provided.'}
                                     </p>
                                 </div>
                             </div>
 
                             {Boolean(selectedEvent.requires_registration) && (
-                                <section className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-3 space-y-2.5">
+                                <section className="rounded-xl border border-[var(--primary-light)] bg-[var(--primary-light)] p-3 space-y-2.5">
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
-                                            <h4 className="flex items-center gap-1.5 text-xs font-bold text-slate-900">
-                                                <Ticket size={14} className="text-indigo-600" /> Event Registration
+                                            <h4 className="flex items-center gap-1.5 text-xs font-bold text-main">
+                                                <Ticket size={14} className="text-primary" /> Event Registration
                                             </h4>
-                                            <p className="mt-0.5 text-[10px] text-slate-500">
+                                            <p className="mt-0.5 text-[10px] text-muted-text">
                                                 {selectedEvent.registered_count || 0}
                                                 {selectedEvent.max_seats ? ` of ${selectedEvent.max_seats} seats filled` : ' registered'}
                                             </p>
                                         </div>
                                         {selectedEvent.registration_deadline && (
-                                            <span className="text-right text-[9px] font-semibold text-slate-500">
+                                            <span className="text-right text-[9px] font-semibold text-muted-text">
                                                 Deadline<br />
                                                 {new Date(selectedEvent.registration_deadline).toLocaleString()}
                                             </span>
@@ -1130,15 +1130,15 @@ const Dashboard = () => {
                                     </div>
 
                                     {selectedEvent.my_registration_id ? (
-                                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-[11px] font-semibold text-emerald-700">
+                                        <div className="rounded-lg border border-[var(--success-light)] bg-[var(--success-light)] p-2.5 text-[11px] font-semibold text-success">
                                             You are registered for this event.
                                         </div>
                                     ) : (
                                         <form onSubmit={handleEventRegistration} className="space-y-2.5">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-2">
                                             {parseEventRegistrationFields(selectedEvent.registration_form_fields).map((field, index) => (
-                                                <label key={field.id || index} className="block min-w-0 text-[10px] font-semibold text-slate-700">
-                                                    {field.label}{field.required && <span className="text-rose-500"> *</span>}
+                                                <label key={field.id || index} className="block min-w-0 text-[10px] font-semibold text-sub">
+                                                    {field.label}{field.required && <span className="text-danger"> *</span>}
                                                     {field.type === 'textarea' ? (
                                                         <textarea
                                                             required={Boolean(field.required)}
@@ -1148,7 +1148,7 @@ const Dashboard = () => {
                                                                 [field.id || field.label]: e.target.value
                                                             }))}
                                                             rows={3}
-                                                            className="mt-0.5 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-normal"
+                                                            className="mt-0.5 w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-normal"
                                                         />
                                                     ) : (
                                                         <input
@@ -1158,21 +1158,21 @@ const Dashboard = () => {
                                                                 ...current,
                                                                 [field.id || field.label]: e.target.value
                                                             }))}
-                                                            className="mt-0.5 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-normal"
+                                                            className="mt-0.5 w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-xs font-normal"
                                                         />
                                                     )}
                                                 </label>
                                             ))}
                                             </div>
                                             {selectedEvent.registration_deadline && new Date(selectedEvent.registration_deadline) < new Date() ? (
-                                                <p className="rounded-lg bg-rose-50 p-3 text-xs font-semibold text-rose-700">Registration deadline has passed.</p>
+                                                <p className="rounded-lg bg-[var(--danger-light)] p-3 text-xs font-semibold text-danger">Registration deadline has passed.</p>
                                             ) : selectedEvent.max_seats && Number(selectedEvent.registered_count) >= Number(selectedEvent.max_seats) ? (
-                                                <p className="rounded-lg bg-rose-50 p-3 text-xs font-semibold text-rose-700">Registration is full.</p>
+                                                <p className="rounded-lg bg-[var(--danger-light)] p-3 text-xs font-semibold text-danger">Registration is full.</p>
                                             ) : (
                                                 <button
                                                     type="submit"
                                                     disabled={eventRegistrationSubmitting}
-                                                    className="w-full rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white hover:bg-indigo-700 disabled:opacity-50"
+                                                    className="w-full rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white hover:bg-primary-hover disabled:opacity-50"
                                                 >
                                                     {eventRegistrationSubmitting ? 'Please wait…' : 'Register for Event'}
                                                 </button>
@@ -1182,10 +1182,10 @@ const Dashboard = () => {
                                 </section>
                             )}
 
-                            <div className="pt-2 border-t border-gray-100 flex justify-end">
+                            <div className="pt-2 border-t border-border flex justify-end">
                                 <button
                                     onClick={() => setShowEventModal(false)}
-                                    className="px-4 py-1.5 bg-sky-500 text-white rounded-lg font-bold hover:bg-sky-700 transition-colors shadow-md text-[10px] uppercase tracking-wider"
+                                    className="px-4 py-1.5 bg-info text-white rounded-lg font-bold hover:bg-info transition-colors shadow-md text-[10px] uppercase tracking-wider"
                                 >
                                     Close Details
                                 </button>
@@ -1198,33 +1198,33 @@ const Dashboard = () => {
             {/* Birthday Modal */}
             {showBirthday && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-bounce-in relative text-center pb-8 border-4 border-yellow-300">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-bounce-in relative text-center pb-8 border-4 border-[var(--warning-light)]">
                         <button
                             onClick={() => setShowBirthday(false)}
-                            className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-100 transition-colors z-20 text-gray-500"
+                            className="absolute top-2 right-2 p-2 rounded-full hover:bg-background transition-colors z-20 text-muted-text"
                         >
                             <X size={20} />
                         </button>
 
                         {/* Confetti Background/Header */}
-                        <div className="bg-gradient-to-b from-yellow-300 to-yellow-100 h-32 w-full relative flex items-center justify-center overflow-hidden">
-                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#F59E0B 2px, transparent 2px)', backgroundSize: '20px 20px' }}></div>
+                        <div className="bg-gradient-to-b from-warning to-[var(--warning-light)] h-32 w-full relative flex items-center justify-center overflow-hidden">
+                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(var(--warning) 2px, transparent 2px)', backgroundSize: '20px 20px' }}></div>
                             <div className="text-6xl animate-pulse">🎂</div>
                         </div>
 
                         <div className="px-6 -mt-10 relative z-10">
-                            <div className="bg-white rounded-full p-2 w-24 h-24 mx-auto shadow-lg flex items-center justify-center border-4 border-white mb-4">
+                            <div className="bg-surface rounded-full p-2 w-24 h-24 mx-auto shadow-lg flex items-center justify-center border-4 border-surface mb-4">
                                 <span className="text-4xl">🥳</span>
                             </div>
 
-                            <h2 className="text-2xl font-bold text-gray-800 mb-2">Happy Birthday!</h2>
-                            <p className="text-gray-600 mb-6 font-medium">
+                            <h2 className="text-2xl font-bold text-main mb-2">Happy Birthday!</h2>
+                            <p className="text-sub mb-6 font-medium">
                                 {displayData?.student_name?.split(' ')[0]}, wishing you a fantastic day filled with joy and success! 🎈
                             </p>
 
                             <button
                                 onClick={() => setShowBirthday(false)}
-                                className="w-full py-3 bg-amber-500 text-white rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-lg"
+                                className="w-full py-3 bg-warning text-white rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-lg"
                             >
                                 Thank You!
                             </button>
@@ -1241,9 +1241,9 @@ const Dashboard = () => {
             />
 
             {/* Premium Welcome Header (Image 1 Exact Replica) */}
-            <header className={`relative overflow-hidden rounded-[20px] p-3.5 sm:p-4 w-full shadow-md border border-blue-400/20 text-white ${isBirthday ? 'bg-gradient-to-br from-amber-400 to-orange-500' : 'bg-gradient-to-r from-[#0b63e5] via-[#024ebd] to-[#013fae]'}`}>
+            <header className={`relative overflow-hidden rounded-[20px] p-3.5 sm:p-4 w-full shadow-md border border-primary text-white ${isBirthday ? 'bg-gradient-to-br from-warning to-warning' : 'bg-gradient-to-r from-[var(--primary)] via-[var(--primary)] to-[var(--primary)]'}`}>
                 {/* Subtle Background Glow */}
-                <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/10 -mr-12 -mt-12 blur-2xl pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-[var(--surface)]/10 -mr-12 -mt-12 blur-2xl pointer-events-none"></div>
 
                 {/* Gender Avatar Background Image */}
                 <div
@@ -1265,8 +1265,8 @@ const Dashboard = () => {
                     <div className="flex items-center gap-3 min-w-0 pointer-events-auto max-w-[58%] sm:max-w-[58%] md:max-w-[64%]">
                         {/* Profile Photo */}
                         <div className="relative shrink-0">
-                            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full p-0.5 bg-white/20 backdrop-blur-md shadow-md border border-white/30">
-                                <div className="h-full w-full rounded-full overflow-hidden bg-white">
+                            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full p-0.5 bg-[var(--surface)]/20 backdrop-blur-md shadow-md border border-surface">
+                                <div className="h-full w-full rounded-full overflow-hidden bg-surface">
                                     {displayData?.student_photo || user?.student_photo ? (
                                         <img
                                             src={displayData?.student_photo || user?.student_photo}
@@ -1274,7 +1274,7 @@ const Dashboard = () => {
                                             className="h-full w-full object-cover"
                                         />
                                     ) : (
-                                        <div className="h-full w-full flex items-center justify-center bg-blue-50 text-blue-400">
+                                        <div className="h-full w-full flex items-center justify-center bg-[var(--primary-light)] text-primary">
                                             <User className="w-6 h-6" />
                                         </div>
                                     )}
@@ -1288,7 +1288,7 @@ const Dashboard = () => {
                                 <h1 className="text-base sm:text-xl font-bold text-white truncate tracking-tight">
                                     {displayData?.student_name || user?.name || ''}
                                 </h1>
-                                {isBirthday && <Sparkles className="text-amber-200 animate-pulse w-4 h-4 shrink-0" />}
+                                {isBirthday && <Sparkles className="text-warning animate-pulse w-4 h-4 shrink-0" />}
                             </div>
                             <p className="text-[11px] font-normal text-white/80 truncate mb-1.5">
                                 {[displayData?.course || user?.course, displayData?.branch || user?.branch, (displayData?.current_year || user?.current_year) ? `Year ${displayData?.current_year || user?.current_year}` : null].filter(Boolean).join(' • ')}
@@ -1297,8 +1297,8 @@ const Dashboard = () => {
                             {/* Image 1 Badges: Light green & light blue pills side-by-side */}
                             <div className="flex items-center gap-1.5 mt-1">
                                 {/* Desktop View: Original Regular Badge */}
-                                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#dcfce7] text-[#15803d] shrink-0">
-                                    <CheckCircle size={11} className="text-[#15803d]" /> Regular
+                                <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--success-light)] text-[var(--success)] shrink-0">
+                                    <CheckCircle size={11} className="text-[var(--success)]" /> Regular
                                 </span>
 
                                 {/* Mobile View: Replaces Regular with Registration Status & Redirects to Semester Registration */}
@@ -1306,23 +1306,23 @@ const Dashboard = () => {
                                     to="/student/semester-registration"
                                     className={`sm:hidden inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 transition-transform active:scale-95 cursor-pointer ${
                                         isRegistrationCompleted
-                                            ? 'bg-[#dcfce7] text-[#15803d]'
-                                            : 'bg-[#fee2e2] text-[#b91c1c]'
+                                            ? 'bg-[var(--success-light)] text-[var(--success)]'
+                                            : 'bg-[var(--danger-light)] text-[var(--danger)]'
                                     }`}
                                 >
                                     {isRegistrationCompleted ? (
                                         <>
-                                            <CheckCircle size={11} className="text-[#15803d]" /> Registered
+                                            <CheckCircle size={11} className="text-[var(--success)]" /> Registered
                                         </>
                                     ) : (
                                         <>
-                                            <AlertCircle size={11} className="text-[#b91c1c]" /> Not Completed
+                                            <AlertCircle size={11} className="text-[var(--danger)]" /> Not Completed
                                         </>
                                     )}
                                 </Link>
 
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#dbeafe] text-[#1d4ed8] shrink-0">
-                                    <CheckCircle size={11} className="text-[#1d4ed8]" /> Profile {isProfileVerified ? '100%' : '90%'}
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--primary-light)] text-[var(--primary)] shrink-0">
+                                    <CheckCircle size={11} className="text-[var(--primary)]" /> Profile {isProfileVerified ? '100%' : '90%'}
                                 </span>
                             </div>
                         </div>
@@ -1334,7 +1334,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 {/* Today's Status */}
                 {isEnabled('attendance') && (
-                    <div className="rounded-xl p-2 sm:p-2.5 bg-[#edfbf4] border border-[#dcfce7] flex flex-col justify-start gap-0.5 shadow-xs relative overflow-hidden">
+                    <div className="rounded-xl p-2 sm:p-2.5 bg-[var(--success-light)] border border-[var(--success-light)] flex flex-col justify-start gap-0.5 shadow-xs relative overflow-hidden">
                         {(() => {
                             let status = (attendanceStats?.todayStatus || displayData.today_attendance_status || 'not marked').toLowerCase();
                             if (status === 'not marked yet') status = 'not marked';
@@ -1342,33 +1342,33 @@ const Dashboard = () => {
                             if (isSunday && (status === 'present' || status === 'not marked')) status = 'holiday';
 
                             let label = 'Present';
-                            let labelColor = 'text-[#15803d]';
+                            let labelColor = 'text-[var(--success)]';
 
                             if (status === 'absent') {
                                 label = 'Absent';
-                                labelColor = 'text-rose-600';
+                                labelColor = 'text-danger';
                             } else if (status === 'holiday' || status === 'no class work') {
                                 label = 'Holiday';
-                                labelColor = 'text-amber-600';
+                                labelColor = 'text-warning';
                             } else if (status === 'not marked') {
                                 label = 'Active Session';
-                                labelColor = 'text-sky-600';
+                                labelColor = 'text-info';
                             }
 
                             return (
                                 <>
                                     <div>
-                                        <span className="text-[9px] sm:text-[10px] font-bold text-[#15803d] truncate block">Today's Attendance</span>
+                                        <span className="text-[9px] sm:text-[10px] font-bold text-[var(--success)] truncate block">Today's Attendance</span>
                                     </div>
                                     <div className="flex items-end justify-between gap-1 min-w-0">
                                         <div className="min-w-0">
                                             <p className={`text-sm sm:text-base font-extrabold ${labelColor} leading-tight tracking-tight`}>{label}</p>
-                                            <p className="text-[8px] sm:text-[9px] font-medium text-[#16a34a]/75 mt-0.5 truncate flex items-center gap-0.5">
-                                                <ChevronRight size={8} className="text-[#16a34a]/60 shrink-0" />
+                                            <p className="text-[8px] sm:text-[9px] font-medium text-[var(--success)]/75 mt-0.5 truncate flex items-center gap-0.5">
+                                                <ChevronRight size={8} className="text-[var(--success)]/60 shrink-0" />
                                                 {new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
                                             </p>
                                         </div>
-                                        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[#dcfce7] flex items-center justify-center text-[#15803d] shrink-0">
+                                        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[var(--success-light)] flex items-center justify-center text-[var(--success)] shrink-0">
                                             <Calendar size={12} />
                                         </div>
                                     </div>
@@ -1380,21 +1380,21 @@ const Dashboard = () => {
 
                 {/* Overall Progress */}
                 {isEnabled('attendance') && (
-                    <div className="rounded-xl p-2 sm:p-2.5 bg-[#f6f5ff] border border-[#ede9fe] flex flex-col justify-start gap-0.5 shadow-xs relative overflow-hidden">
+                    <div className="rounded-xl p-2 sm:p-2.5 bg-[var(--primary-light)] border border-[var(--primary-light)] flex flex-col justify-start gap-0.5 shadow-xs relative overflow-hidden">
                         <div>
-                            <span className="text-[9px] sm:text-[10px] font-bold text-[#6d28d9] truncate block">Overall Progress</span>
+                            <span className="text-[9px] sm:text-[10px] font-bold text-[var(--secondary)] truncate block">Overall Progress</span>
                         </div>
                         <div className="flex items-end justify-between gap-1 min-w-0">
                             <div className="min-w-0">
-                                <p className="text-sm sm:text-base font-extrabold text-[#6d28d9] leading-tight tracking-tight">
+                                <p className="text-sm sm:text-base font-extrabold text-[var(--secondary)] leading-tight tracking-tight">
                                     {attendanceStats?.percentage || '46.3'}%
                                 </p>
-                                <p className="text-[8px] sm:text-[9px] font-medium text-[#7c3aed]/75 mt-0.5 truncate flex items-center gap-0.5">
-                                    <ChevronRight size={8} className="text-[#7c3aed]/60 shrink-0" />
+                                <p className="text-[8px] sm:text-[9px] font-medium text-[var(--secondary)]/75 mt-0.5 truncate flex items-center gap-0.5">
+                                    <ChevronRight size={8} className="text-[var(--secondary)]/60 shrink-0" />
                                     Average
                                 </p>
                             </div>
-                            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[#ede9fe] flex items-center justify-center text-[#6d28d9] shrink-0">
+                            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-[var(--primary-light)] flex items-center justify-center text-[var(--secondary)] shrink-0">
                                 <BarChart3 size={12} />
                             </div>
                         </div>
@@ -1412,12 +1412,12 @@ const Dashboard = () => {
                                 key={action.key}
                                 type="button"
                                 onClick={() => navigateToCrtApp('/student/dashboard')}
-                                className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95 cursor-pointer"
+                                className="bg-surface rounded-[18px] p-2.5 border border-border flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95 cursor-pointer"
                             >
                                 <div className={`w-11 h-11 rounded-2xl ${action.iconBg} ${action.iconColor} flex items-center justify-center group-hover:scale-105 transition-transform`}>
                                     <Icon size={20} />
                                 </div>
-                                <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight whitespace-nowrap">
+                                <span className="text-[11px] font-bold text-sub mt-1.5 text-center leading-tight whitespace-nowrap">
                                     {action.label}
                                 </span>
                             </button>
@@ -1429,12 +1429,12 @@ const Dashboard = () => {
                             <a
                                 key={action.key}
                                 href={action.href}
-                                className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95 cursor-pointer"
+                                className="bg-surface rounded-[18px] p-2.5 border border-border flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95 cursor-pointer"
                             >
                                 <div className={`w-11 h-11 rounded-2xl ${action.iconBg} ${action.iconColor} flex items-center justify-center group-hover:scale-105 transition-transform`}>
                                     <Icon size={20} />
                                 </div>
-                                <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight whitespace-nowrap">
+                                <span className="text-[11px] font-bold text-sub mt-1.5 text-center leading-tight whitespace-nowrap">
                                     {action.label}
                                 </span>
                             </a>
@@ -1445,12 +1445,12 @@ const Dashboard = () => {
                         <Link
                             key={action.key}
                             to={action.path}
-                            className="bg-white rounded-[18px] p-2.5 border border-slate-100/90 flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95"
+                            className="bg-surface rounded-[18px] p-2.5 border border-border flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95"
                         >
                             <div className={`w-11 h-11 rounded-2xl ${action.iconBg} ${action.iconColor} flex items-center justify-center group-hover:scale-105 transition-transform`}>
                                 <Icon size={20} />
                             </div>
-                            <span className="text-[11px] font-bold text-slate-700 mt-1.5 text-center leading-tight whitespace-nowrap">
+                            <span className="text-[11px] font-bold text-sub mt-1.5 text-center leading-tight whitespace-nowrap">
                                 {action.label}
                             </span>
                         </Link>
@@ -1462,8 +1462,8 @@ const Dashboard = () => {
             {isEnabled('announcements') && (
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-base font-bold text-slate-900">Campus Events</h2>
-                        <Link to="/student/announcements?tab=events" className="text-xs font-bold text-[#2563eb] hover:underline flex items-center gap-1">
+                        <h2 className="text-base font-bold text-main">Campus Events</h2>
+                        <Link to="/student/announcements?tab=events" className="text-xs font-bold text-[var(--primary)] hover:underline flex items-center gap-1">
                             View All <ArrowRight size={14} />
                         </Link>
                     </div>
@@ -1492,11 +1492,11 @@ const Dashboard = () => {
                                                 setShowAnnouncement(true);
                                             }
                                         }}
-                                        className="w-[220px] sm:w-[235px] xl:w-[215px] 2xl:w-[235px] shrink-0 rounded-[22px] bg-white border border-slate-100/90 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group snap-start overflow-hidden"
+                                        className="w-[220px] sm:w-[235px] xl:w-[215px] 2xl:w-[235px] shrink-0 rounded-[22px] bg-surface border border-border shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group snap-start overflow-hidden"
                                     >
                                         <div>
                                             {/* Card Image Banner */}
-                                            <div className="h-28 w-full bg-slate-900 relative overflow-hidden shrink-0">
+                                            <div className="h-28 w-full bg-sidebar relative overflow-hidden shrink-0">
                                                 {isEvent ? (
                                                     <EventPoster event={data} className="group-hover:scale-105 transition-transform duration-300" />
                                                 ) : (
@@ -1512,7 +1512,7 @@ const Dashboard = () => {
                                                     />
                                                 )}
                                                 <span className={`absolute top-2 left-2 rounded-md px-2 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm ${
-                                                    isEvent ? 'bg-purple-600/95' : isPoll ? 'bg-amber-500/95' : 'bg-indigo-600/95'
+                                                    isEvent ? 'bg-[var(--primary-light)]' : isPoll ? 'bg-[var(--warning-light)]' : 'bg-[var(--primary-light)]'
                                                 }`}>
                                                     {isEvent ? 'Event' : isPoll ? 'Poll' : 'Announcement'}
                                                 </span>
@@ -1520,18 +1520,18 @@ const Dashboard = () => {
 
                                             {/* Card Content */}
                                             <div className="p-3">
-                                                <h4 className="text-sm font-bold text-slate-900 line-clamp-2 group-hover:text-[#2563eb] transition-colors leading-snug">
+                                                <h4 className="text-sm font-bold text-main line-clamp-2 group-hover:text-[var(--primary)] transition-colors leading-snug">
                                                     {title}
                                                 </h4>
-                                                <div className="flex items-center gap-1 text-[11px] font-medium text-slate-400 mt-1.5">
-                                                    <Clock size={12} className="text-slate-400 shrink-0" />
+                                                <div className="flex items-center gap-1 text-[11px] font-medium text-muted-text mt-1.5">
+                                                    <Clock size={12} className="text-muted-text shrink-0" />
                                                     <span>{dateStr || 'Recent'}</span>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Card Footer: Action Hint */}
-                                        <div className="px-3 pb-3 pt-1 flex items-center justify-between text-[11px] font-bold text-[#2563eb]">
+                                        <div className="px-3 pb-3 pt-1 flex items-center justify-between text-[11px] font-bold text-[var(--primary)]">
                                             <span>{isPoll ? 'Vote in Poll' : isEvent ? (data.requires_registration ? 'View & Register' : 'View Event') : 'Read Update'}</span>
                                             <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                                         </div>
@@ -1539,8 +1539,8 @@ const Dashboard = () => {
                                 );
                             })
                         ) : (
-                            <div className="w-full p-4 text-center rounded-[22px] bg-white border border-dashed border-slate-200">
-                                <p className="text-xs font-semibold text-slate-400">No campus events</p>
+                            <div className="w-full p-4 text-center rounded-[22px] bg-surface border border-dashed border-border">
+                                <p className="text-xs font-semibold text-muted-text">No campus events</p>
                             </div>
                         )}
                     </div>
@@ -1550,13 +1550,13 @@ const Dashboard = () => {
             {/* Explore Learn Build Banner (Image 1 Style) */}
             <div
                 onClick={() => navigate('/student/clubs')}
-                className="rounded-[22px] p-4 sm:p-5 bg-gradient-to-r from-[#031338] via-[#091b48] to-[#0a2368] text-white shadow-lg relative overflow-hidden cursor-pointer group flex items-center justify-between"
+                className="rounded-[22px] p-4 sm:p-5 bg-gradient-to-r from-[var(--primary)] via-[var(--primary)] to-[var(--primary)] text-white shadow-lg relative overflow-hidden cursor-pointer group flex items-center justify-between"
             >
                 <div className="relative z-10">
                     <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
                         Explore<br />Learn<br />Build
                     </h3>
-                    <p className="text-xs font-normal text-slate-300 mt-1">
+                    <p className="text-xs font-normal text-muted-text mt-1">
                         Join Clubs, Workshops<br />and Maker Space
                     </p>
                 </div>
@@ -1579,14 +1579,14 @@ const Dashboard = () => {
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <h2 className="text-base font-bold text-slate-900">Clubs to Join</h2>
+                            <h2 className="text-base font-bold text-main">Clubs to Join</h2>
                             {clubs.length > 0 && (
-                                <span className="bg-indigo-50 text-indigo-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                                <span className="bg-[var(--primary-light)] text-primary text-[10px] font-black px-2 py-0.5 rounded-full">
                                     {(clubs.filter(c => c.userStatus !== 'approved').length || clubs.length)} Available
                                 </span>
                             )}
                         </div>
-                        <Link to="/student/clubs" className="text-xs font-bold text-[#2563eb] hover:underline flex items-center gap-1">
+                        <Link to="/student/clubs" className="text-xs font-bold text-[var(--primary)] hover:underline flex items-center gap-1">
                             View All <ArrowRight size={14} />
                         </Link>
                     </div>
@@ -1604,11 +1604,11 @@ const Dashboard = () => {
                                 <div
                                     key={club.id}
                                     onClick={() => navigate('/student/clubs', { state: { selectedClubId: club.id } })}
-                                    className="w-[230px] sm:w-[250px] shrink-0 rounded-[22px] bg-white border border-slate-100/90 shadow-xs hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer flex flex-col justify-between group snap-start overflow-hidden"
+                                    className="w-[230px] sm:w-[250px] shrink-0 rounded-[22px] bg-surface border border-border shadow-xs hover:shadow-md hover:border-[var(--primary-light)] transition-all cursor-pointer flex flex-col justify-between group snap-start overflow-hidden"
                                 >
                                     <div>
                                         {/* Card Image Banner */}
-                                        <div className="h-28 w-full bg-slate-900 relative overflow-hidden shrink-0">
+                                        <div className="h-28 w-full bg-sidebar relative overflow-hidden shrink-0">
                                             {club.image_url ? (
                                                 <img
                                                     src={club.image_url}
@@ -1616,18 +1616,18 @@ const Dashboard = () => {
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                                 />
                                             ) : (
-                                                <div className="w-full h-full bg-gradient-to-br from-indigo-900 via-indigo-950 to-slate-900 flex items-center justify-center text-indigo-300">
+                                                <div className="w-full h-full bg-gradient-to-br from-primary via-primary to-[var(--sidebar)] flex items-center justify-center text-primary">
                                                     <Users size={32} />
                                                 </div>
                                             )}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-[var(--sidebar)] via-transparent to-transparent" />
                                             <div className="absolute top-2 right-2">
                                                 {club.userStatus === 'pending' ? (
-                                                    <span className="bg-amber-500/90 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs flex items-center gap-1 shadow-xs animate-pulse">
+                                                    <span className="bg-[var(--warning-light)] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs flex items-center gap-1 shadow-xs animate-pulse">
                                                         <Clock size={10} /> Pending
                                                     </span>
                                                 ) : (
-                                                    <span className="bg-emerald-500/90 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs flex items-center gap-1 shadow-xs">
+                                                    <span className="bg-[var(--success-light)] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-xs flex items-center gap-1 shadow-xs">
                                                         <Sparkles size={10} /> Open to Join
                                                     </span>
                                                 )}
@@ -1636,30 +1636,30 @@ const Dashboard = () => {
 
                                         {/* Card Content */}
                                         <div className="p-3">
-                                            <h4 className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors leading-snug">
+                                            <h4 className="text-sm font-bold text-main line-clamp-1 group-hover:text-primary transition-colors leading-snug">
                                                 {club.name}
                                             </h4>
-                                            <p className="text-[11px] font-medium text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                                            <p className="text-[11px] font-medium text-muted-text line-clamp-2 mt-1 leading-relaxed">
                                                 {club.description || 'Join activities, workshops, and build skills.'}
                                             </p>
                                         </div>
                                     </div>
 
                                     {/* Card Footer: Action Hint */}
-                                    <div className="px-3 pb-3 pt-1 border-t border-slate-50 flex items-center justify-between text-[11px] font-bold text-indigo-600">
+                                    <div className="px-3 pb-3 pt-1 border-t border-border flex items-center justify-between text-[11px] font-bold text-primary">
                                         <span className="font-extrabold">
                                             {club.userStatus === 'pending' ? 'View Status' : 'View & Join'}
                                         </span>
-                                        <div className="w-6 h-6 rounded-full bg-indigo-50 group-hover:bg-indigo-600 group-hover:text-white flex items-center justify-center transition-colors">
+                                        <div className="w-6 h-6 rounded-full bg-[var(--primary-light)] group-hover:bg-primary group-hover:text-white flex items-center justify-center transition-colors">
                                             <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
                                         </div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="w-full p-4 text-center rounded-[22px] bg-white border border-dashed border-slate-200">
-                                <Users size={24} className="mx-auto text-slate-300 mb-1" />
-                                <p className="text-xs font-semibold text-slate-400">No clubs available right now</p>
+                            <div className="w-full p-4 text-center rounded-[22px] bg-surface border border-dashed border-border">
+                                <Users size={24} className="mx-auto text-muted-text mb-1" />
+                                <p className="text-xs font-semibold text-muted-text">No clubs available right now</p>
                             </div>
                         )}
                     </div>
@@ -1668,10 +1668,10 @@ const Dashboard = () => {
 
             {/* SEM Registration Card */}
             {isEnabled('semester-registration') && (
-                <div className={`hidden sm:block rounded-[22px] p-4 sm:p-5 shadow-md border border-white/20 relative overflow-hidden ${isRegistrationCompleted ? 'bg-gradient-to-r from-teal-600 to-emerald-600 text-white' : 'bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white'}`}>
+                <div className={`hidden sm:block rounded-[22px] p-4 sm:p-5 shadow-md border border-surface relative overflow-hidden ${isRegistrationCompleted ? 'bg-gradient-to-r from-primary to-success text-white' : 'bg-gradient-to-r from-secondary via-secondary to-primary text-white'}`}>
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-black uppercase tracking-wider text-white/80">SEM REGISTRATION</span>
-                        <div className="p-1.5 rounded-lg bg-white/20 text-white">
+                        <div className="p-1.5 rounded-lg bg-[var(--surface)]/20 text-white">
                             {isRegistrationCompleted ? <CheckCircle size={16} /> : <AlertCircle size={16} />}
                         </div>
                     </div>
@@ -1686,7 +1686,7 @@ const Dashboard = () => {
                         </div>
                         <Link
                             to="/student/semester-registration"
-                            className="px-4 py-2 bg-white text-purple-700 font-extrabold text-xs rounded-xl shadow-xs hover:bg-purple-50 transition-colors uppercase tracking-wider whitespace-nowrap shrink-0"
+                            className="px-4 py-2 bg-surface text-secondary font-extrabold text-xs rounded-xl shadow-xs hover:bg-[var(--primary-light)] transition-colors uppercase tracking-wider whitespace-nowrap shrink-0"
                         >
                             {isRegistrationCompleted ? 'View Slip' : 'COMPLETE NOW'}
                         </Link>
@@ -1696,13 +1696,13 @@ const Dashboard = () => {
 
             {/* Today's Timetable */}
             {isEnabled('timetable') && (
-                <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100">
+                <div className="bg-surface rounded-2xl p-4 sm:p-5 shadow-sm border border-border">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <Clock size={16} className="text-purple-600" />
+                        <h3 className="text-xs font-bold text-muted-text uppercase tracking-wider flex items-center gap-2">
+                            <Clock size={16} className="text-secondary" />
                             Daily Timeline
                         </h3>
-                        <Link to="/student/timetable" className="text-xs font-bold text-sky-700 hover:text-sky-800 flex items-center gap-1">
+                        <Link to="/student/timetable" className="text-xs font-bold text-info hover:text-info flex items-center gap-1">
                             Full Schedule <ArrowRight size={14} />
                         </Link>
                     </div>
@@ -1747,26 +1747,26 @@ const Dashboard = () => {
                                     const endMins = parseTimeToMinutes(slot.end_time);
                                     const isCurrent = startMins !== null && endMins !== null && nowMins >= startMins && nowMins < endMins;
 
-                                    let cardStyle = 'bg-slate-50/70 border-slate-200/80 text-slate-500';
-                                    let badgeStyle = 'bg-slate-100 text-slate-600 border-slate-200';
+                                    let cardStyle = 'bg-[var(--background)]/70 border-border text-muted-text';
+                                    let badgeStyle = 'bg-background text-sub border-border';
                                     let badgeText = 'FREE';
 
                                     if (isLab) {
-                                        cardStyle = 'bg-purple-50/70 border-purple-200/90 hover:border-purple-300 text-purple-950 shadow-xs';
-                                        badgeStyle = 'bg-purple-100 text-purple-800 border-purple-200';
+                                        cardStyle = 'bg-[var(--primary-light)] border-[var(--primary-light)] hover:border-[var(--primary-light)] text-secondary shadow-xs';
+                                        badgeStyle = 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]';
                                         badgeText = 'LAB';
                                     } else if (isBreak) {
-                                        cardStyle = 'bg-amber-50/70 border-amber-200/90 text-amber-950';
-                                        badgeStyle = 'bg-amber-100 text-amber-800 border-amber-200';
+                                        cardStyle = 'bg-[var(--warning-light)] border-[var(--warning-light)] text-warning';
+                                        badgeStyle = 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]';
                                         badgeText = sName.includes('LUNCH') || slotType === 'lunch' ? 'LUNCH' : 'BREAK';
                                     } else if (entry) {
-                                        cardStyle = 'bg-blue-50/70 border-blue-200/90 hover:border-blue-300 text-blue-950 shadow-xs';
-                                        badgeStyle = 'bg-blue-100 text-blue-800 border-blue-200';
+                                        cardStyle = 'bg-[var(--primary-light)] border-[var(--primary-light)] hover:border-[var(--primary-light)] text-primary shadow-xs';
+                                        badgeStyle = 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]';
                                         badgeText = 'THEORY';
                                     }
 
                                     if (isCurrent) {
-                                        cardStyle = `${cardStyle} ring-2 ring-blue-600 border-blue-500 shadow-md scale-[1.02] z-10`;
+                                        cardStyle = `${cardStyle} ring-2 ring-primary border-primary shadow-md scale-[1.02] z-10`;
                                     }
 
                                     const titleText = entry
@@ -1789,7 +1789,7 @@ const Dashboard = () => {
                                                     <div className="flex items-center gap-1">
                                                         <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider">{sName}</span>
                                                         {isCurrent && (
-                                                            <span className="inline-flex items-center gap-1 px-1 py-0.2 rounded bg-emerald-600 text-white text-[7px] font-black uppercase animate-pulse leading-none">
+                                                            <span className="inline-flex items-center gap-1 px-1 py-0.2 rounded bg-success text-white text-[7px] font-black uppercase animate-pulse leading-none">
                                                                 NOW
                                                             </span>
                                                         )}
@@ -1798,16 +1798,16 @@ const Dashboard = () => {
                                                         {badgeText}
                                                     </span>
                                                 </div>
-                                                <p className="text-[10px] sm:text-[11px] font-semibold text-slate-500 mb-1.5 flex items-center gap-1">
-                                                    <Clock size={10} className="shrink-0 text-slate-400" />
+                                                <p className="text-[10px] sm:text-[11px] font-semibold text-muted-text mb-1.5 flex items-center gap-1">
+                                                    <Clock size={10} className="shrink-0 text-muted-text" />
                                                     <span className="truncate">{startTimeFormatted && endTimeFormatted ? `${startTimeFormatted} - ${endTimeFormatted}` : 'Scheduled'}</span>
                                                 </p>
-                                                <h4 className="text-xs font-bold line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+                                                <h4 className="text-xs font-bold line-clamp-2 leading-snug group-hover:text-primary transition-colors">
                                                     {titleText}
                                                 </h4>
                                             </div>
                                             {subtitle && (
-                                                <p className="text-[10px] font-medium text-slate-400 truncate mt-2 border-t border-slate-200/50 pt-1">
+                                                <p className="text-[10px] font-medium text-muted-text truncate mt-2 border-t border-border pt-1">
                                                     {subtitle}
                                                 </p>
                                             )}
@@ -1817,8 +1817,8 @@ const Dashboard = () => {
                             </div>
                         </div>
                     ) : (
-                        <div className="py-6 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                            <p className="text-xs font-bold text-slate-500">No academic sessions scheduled for today</p>
+                        <div className="py-6 text-center bg-background rounded-xl border border-dashed border-border">
+                            <p className="text-xs font-bold text-muted-text">No academic sessions scheduled for today</p>
                         </div>
                     )}
                 </div>
@@ -1829,16 +1829,16 @@ const Dashboard = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
                     {/* Upcoming Events Section */}
                     {isEnabled('events') && upcomingEvents.length > 0 && (
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex flex-col justify-between">
+                        <div className="bg-surface rounded-2xl shadow-sm border border-border p-4 flex flex-col justify-between">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                                    <Calendar size={16} className="text-fuchsia-600" />
+                                <h3 className="text-xs font-bold text-muted-text uppercase tracking-wider flex items-center gap-2">
+                                    <Calendar size={16} className="text-accent" />
                                     Calender
                                 </h3>
                                 <Link
                                     to="/student/events"
                                     state={{ initialDate: upcomingEvents.length > 0 ? upcomingEvents[0].event_date : new Date() }}
-                                    className="text-xs font-bold text-sky-700 hover:text-sky-800"
+                                    className="text-xs font-bold text-info hover:text-info"
                                 >
                                 </Link>
                             </div>
@@ -1848,15 +1848,15 @@ const Dashboard = () => {
                                     <div
                                         key={event.id}
                                         onClick={() => openEventDetails(event)}
-                                        className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 border border-slate-100 transition-all cursor-pointer"
+                                        className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-background border border-border transition-all cursor-pointer"
                                     >
-                                        <div className="w-9 h-9 bg-sky-50 text-sky-700 rounded-xl flex flex-col items-center justify-center border border-sky-100 shrink-0">
+                                        <div className="w-9 h-9 bg-[var(--primary-light)] text-info rounded-xl flex flex-col items-center justify-center border border-[var(--primary-light)] shrink-0">
                                             <span className="text-[8px] font-bold uppercase">{new Date(event.event_date).toLocaleString('default', { month: 'short' })}</span>
                                             <span className="text-xs font-bold leading-none">{new Date(event.event_date).getDate()}</span>
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <h4 className="text-xs font-bold text-slate-800 truncate">{event.title}</h4>
-                                            <p className="text-[10px] text-slate-400 truncate">{cleanEventDescription(event.description) || event.event_type || 'No details'}</p>
+                                            <h4 className="text-xs font-bold text-main truncate">{event.title}</h4>
+                                            <p className="text-[10px] text-muted-text truncate">{cleanEventDescription(event.description) || event.event_type || 'No details'}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -1866,23 +1866,23 @@ const Dashboard = () => {
 
                     {/* Help Desk */}
                     {isEnabled('my-tickets') && (
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex flex-col justify-between">
+                        <div className="bg-surface rounded-2xl shadow-sm border border-border p-4 flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-2">
-                                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                                        <Users size={16} className="text-sky-600" />
+                                    <h3 className="text-xs font-bold text-muted-text uppercase tracking-wider flex items-center gap-2">
+                                        <Users size={16} className="text-info" />
                                         Help Desk
                                     </h3>
-                                    <Link to="/student/my-tickets" className="text-sky-700 hover:bg-sky-50 p-1 rounded-lg">
+                                    <Link to="/student/my-tickets" className="text-info hover:bg-[var(--primary-light)] p-1 rounded-lg">
                                         <ArrowRight size={14} />
                                     </Link>
                                 </div>
-                                <p className="text-xs font-bold text-slate-700">Need Assistance?</p>
-                                <p className="text-xs text-slate-400 mt-0.5">Submit a ticket for technical or campus support.</p>
+                                <p className="text-xs font-bold text-sub">Need Assistance?</p>
+                                <p className="text-xs text-muted-text mt-0.5">Submit a ticket for technical or campus support.</p>
                             </div>
                             <Link
                                 to="/student/my-tickets"
-                                className="w-full mt-3 py-2 bg-sky-500 text-white text-center font-bold rounded-xl hover:bg-sky-600 transition text-xs uppercase tracking-wider"
+                                className="w-full mt-3 py-2 bg-info text-white text-center font-bold rounded-xl hover:bg-info transition text-xs uppercase tracking-wider"
                             >
                                 Raise Complaint
                             </Link>

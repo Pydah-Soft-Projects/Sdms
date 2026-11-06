@@ -196,10 +196,10 @@ const MONTH_NAMES = [
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const STATUS_META = {
-  submitted: { label: 'Submitted', badgeClass: 'bg-emerald-100 text-emerald-700 border border-emerald-200' },
-  not_marked: { label: 'Not marked', badgeClass: 'bg-rose-100 text-rose-700 border border-rose-200' },
-  pending: { label: 'Pending', badgeClass: 'bg-amber-100 text-amber-700 border border-amber-200' },
-  upcoming: { label: 'Upcoming', badgeClass: 'bg-blue-100 text-blue-700 border border-blue-200' }
+  submitted: { label: 'Submitted', badgeClass: 'bg-[var(--success-light)] text-success border border-[var(--success-light)]' },
+  not_marked: { label: 'Not marked', badgeClass: 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]' },
+  pending: { label: 'Pending', badgeClass: 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]' },
+  upcoming: { label: 'Upcoming', badgeClass: 'bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]' }
 };
 
 const parseMonthKey = (monthKey) => {
@@ -395,8 +395,8 @@ const CourseAcademicStructureFields = ({ value, onChange, idPrefix = 'course' })
   return (
     <>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Total Years <span className="text-red-500">*</span>
+        <label className="block text-sm font-medium text-sub mb-1.5">
+          Total Years <span className="text-danger">*</span>
         </label>
         <input
           type="number"
@@ -404,15 +404,15 @@ const CourseAcademicStructureFields = ({ value, onChange, idPrefix = 'course' })
           max={10}
           value={totalYears}
           onChange={(e) => handleTotalYearsChange(e.target.value)}
-          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+          className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-secondary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
           required
         />
       </div>
 
       {!usePerYearConfig && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Semesters Per Year <span className="text-red-500">*</span>
+          <label className="block text-sm font-medium text-sub mb-1.5">
+            Semesters Per Year <span className="text-danger">*</span>
           </label>
           <input
             type="number"
@@ -420,10 +420,10 @@ const CourseAcademicStructureFields = ({ value, onChange, idPrefix = 'course' })
             max={4}
             value={semestersPerYear}
             onChange={(e) => onChange({ semestersPerYear: e.target.value })}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+            className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-secondary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
             required
           />
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-muted-text">
             Same number of semesters for all years. Promotion advances by semester, then year.
           </p>
         </div>
@@ -435,23 +435,23 @@ const CourseAcademicStructureFields = ({ value, onChange, idPrefix = 'course' })
           id={checkboxId}
           checked={usePerYearConfig}
           onChange={(e) => handlePerYearToggle(e.target.checked)}
-          className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+          className="h-4 w-4 rounded border-border-strong text-secondary focus:ring-secondary"
         />
-        <label htmlFor={checkboxId} className="text-sm text-gray-700 cursor-pointer">
+        <label htmlFor={checkboxId} className="text-sm text-sub cursor-pointer">
           Configure semesters per year (e.g. Year 1: 1 sem → promotes directly to Year 2)
         </label>
       </div>
 
       {usePerYearConfig && yearSemesterConfig.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <div className="mb-3 text-sm font-medium text-gray-700">Semesters per year</div>
+        <div className="rounded-lg border border-border bg-background p-4">
+          <div className="mb-3 text-sm font-medium text-sub">Semesters per year</div>
           <div className="space-y-3">
             {yearSemesterConfig.map((yearConfig, index) => (
               <div
                 key={`year-${yearConfig.year}-${index}`}
-                className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3"
+                className="flex items-center gap-3 rounded-lg border border-border bg-surface p-3"
               >
-                <span className="w-20 text-sm font-medium text-gray-700">
+                <span className="w-20 text-sm font-medium text-sub">
                   Year {yearConfig.year}:
                 </span>
                 <input
@@ -467,13 +467,13 @@ const CourseAcademicStructureFields = ({ value, onChange, idPrefix = 'course' })
                     }
                     onChange({ yearSemesterConfig: config });
                   }}
-                  className="w-24 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                  className="w-24 rounded-md border border-border-strong px-3 py-2 text-sm focus:border-secondary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
                 />
-                <span className="text-sm text-gray-600">semester(s)</span>
+                <span className="text-sm text-sub">semester(s)</span>
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-gray-500">
+          <p className="mt-3 text-xs text-muted-text">
             When a year has only 1 semester, promotion moves the student to the next year (not another semester in the same year).
           </p>
         </div>
@@ -632,7 +632,7 @@ const BranchSectionsEditor = ({ value, onChange }) => {
   );
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-3">
+    <div className="rounded-lg border border-border bg-background p-3 space-y-3">
       <label className="flex items-center gap-2 cursor-pointer select-none">
         <input
           type="checkbox"
@@ -645,15 +645,15 @@ const BranchSectionsEditor = ({ value, onChange }) => {
               sections: enabled && sections.length === 0 ? [defaultSectionRow()] : sections
             });
           }}
-          className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+          className="w-4 h-4 rounded border-border-strong text-warning focus:ring-warning"
         />
-        <span className="text-sm font-medium text-gray-700">Enable Section Breakdown (Optional)</span>
+        <span className="text-sm font-medium text-sub">Enable Section Breakdown (Optional)</span>
       </label>
 
       {value.sectionsEnabled && (
         <>
           <div className="space-y-2">
-            <div className="grid grid-cols-[1fr_90px_72px_32px] gap-2 text-[11px] font-semibold uppercase tracking-wide text-gray-500 px-1">
+            <div className="grid grid-cols-[1fr_90px_72px_32px] gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted-text px-1">
               <span>Section Name</span>
               <span>Strength</span>
               <span>Range</span>
@@ -666,7 +666,7 @@ const BranchSectionsEditor = ({ value, onChange }) => {
                   value={section.name}
                   onChange={(e) => updateSection(index, 'name', e.target.value)}
                   placeholder="e.g. A"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-warning focus:border-transparent outline-none text-sm"
                 />
                 <input
                   type="number"
@@ -674,16 +674,16 @@ const BranchSectionsEditor = ({ value, onChange }) => {
                   value={section.strength}
                   onChange={(e) => updateSection(index, 'strength', e.target.value)}
                   placeholder="80"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm"
+                  className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-warning focus:border-transparent outline-none text-sm"
                 />
-                <span className="text-xs font-medium text-blue-700 text-center">
+                <span className="text-xs font-medium text-primary text-center">
                   {getSectionRangeLabel(sections, index) || '—'}
                 </span>
                 <button
                   type="button"
                   onClick={() => removeSection(index)}
                   disabled={sections.length <= 1}
-                  className="p-1.5 text-gray-400 hover:text-red-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="p-1.5 text-muted-text hover:text-danger disabled:opacity-30 disabled:cursor-not-allowed"
                   title="Remove section"
                 >
                   <Trash2 size={14} />
@@ -693,24 +693,24 @@ const BranchSectionsEditor = ({ value, onChange }) => {
             <button
               type="button"
               onClick={addSection}
-              className="inline-flex items-center gap-1 text-xs font-medium text-orange-600 hover:text-orange-700"
+              className="inline-flex items-center gap-1 text-xs font-medium text-warning hover:text-warning"
             >
               <Plus size={14} />
               Add Section
             </button>
           </div>
 
-          <div className="text-[11px] text-gray-500">
-            Total capacity: <span className="font-semibold text-gray-700">{totalStrength || 0}</span> students
+          <div className="text-[11px] text-muted-text">
+            Total capacity: <span className="font-semibold text-sub">{totalStrength || 0}</span> students
             {totalStrength > 0 && sections.length >= 2 && Number(sections[0].strength) > 0 && (
-              <span className="text-gray-400">
+              <span className="text-muted-text">
                 {' '}(e.g. {getSectionRangeLabel(sections, 0)} in {sections[0].name || 'section 1'},{' '}
                 {getSectionRangeLabel(sections, 1)} in {sections[1].name || 'section 2'})
               </span>
             )}
           </div>
 
-          <p className="text-[11px] text-gray-400 leading-snug">
+          <p className="text-[11px] text-muted-text leading-snug">
             Section names and strength limits are saved with this branch. Assign students to sections
             manually from Students → Section Management (bulk assign or per-row dropdown).
           </p>
@@ -869,32 +869,32 @@ const RtfAmountSection = ({
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
-      <RefreshCcw size={20} className="animate-spin text-pink-500 mr-2" />
-      <span className="text-sm text-gray-500">Loading RTF config...</span>
+      <RefreshCcw size={20} className="animate-spin text-accent mr-2" />
+      <span className="text-sm text-muted-text">Loading RTF config...</span>
     </div>
   );
 
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+      <div className="flex items-center justify-between border-b border-border pb-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <GraduationCap size={20} className="text-pink-600" />
+          <h2 className="text-lg font-semibold text-main flex items-center gap-2">
+            <GraduationCap size={20} className="text-accent" />
             RTF Amount Setup
           </h2>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-text mt-1">
             Define sanctioned scholarship amounts per college, batch, program, branch and caste. Lock to prevent editing.
           </p>
         </div>
-        <button onClick={onRefresh} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100">
+        <button onClick={onRefresh} className="flex items-center gap-2 px-3 py-1.5 text-sm bg-background border border-border text-sub rounded-lg hover:bg-background">
           <RefreshCcw size={14} />
           Refresh
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 bg-background rounded-lg p-1 w-fit">
         {[
           { key: 'configure', label: 'Configure' },
           { key: 'saved',     label: 'Saved' },
@@ -904,12 +904,12 @@ const RtfAmountSection = ({
             key={key}
             onClick={() => setActiveTab(key)}
             className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${
-              activeTab === key ? 'bg-white text-pink-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              activeTab === key ? 'bg-surface text-accent shadow-sm' : 'text-muted-text hover:text-sub'
             }`}
           >
             {label}
             {key === 'saved' && visibleEntries.length > 0 && (
-              <span className="ml-1.5 bg-pink-100 text-pink-700 text-xs px-1.5 py-0.5 rounded-full">{visibleEntries.length}</span>
+              <span className="ml-1.5 bg-[var(--primary-light)] text-accent text-xs px-1.5 py-0.5 rounded-full">{visibleEntries.length}</span>
             )}
           </button>
         ))}
@@ -927,14 +927,14 @@ const RtfAmountSection = ({
               { key: 'branch', label: 'Branch', opts: filterOptions.branches || [], disabled: !newEntry.course, cascade: false }
             ].map(({ key, label, opts, disabled, cascade }) => (
               <div key={key}>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
+                <label className="block text-xs font-medium text-sub mb-1">{label}</label>
                 <select
                   value={newEntry[key] || ''}
                   onChange={(e) => cascade
                     ? onCascadeChange(key, e.target.value, newEntry)
                     : setNewEntry((prev) => ({ ...prev, [key]: e.target.value }))}
                   disabled={disabled}
-                  className="w-full rounded-lg border border-gray-300 px-2 py-2 text-sm focus:ring-2 focus:ring-pink-400 disabled:opacity-50 disabled:bg-gray-50"
+                  className="w-full rounded-lg border border-border-strong px-2 py-2 text-sm focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:bg-background"
                 >
                   <option value="">Select {label}</option>
                   {opts.map((opt) => <option key={opt} value={opt.id || opt}>{opt.name || opt}</option>)}
@@ -944,25 +944,25 @@ const RtfAmountSection = ({
           </div>
 
           {!configReady && (
-            <p className="text-xs text-gray-400">Select college, batch, program and branch to configure amounts.</p>
+            <p className="text-xs text-muted-text">Select college, batch, program and branch to configure amounts.</p>
           )}
 
           {/* Amount table */}
           {configReady && yearCols.length > 0 && (
-            <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="bg-pink-50">
-                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-gray-700 border-b border-gray-200 w-36">Caste</th>
+                  <tr className="bg-[var(--primary-light)]">
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-sub border-b border-border w-36">Caste</th>
                     {yearCols.map((yr) => (
-                      <th key={yr} className="px-3 py-2.5 text-center text-xs font-semibold text-gray-700 border-b border-l border-gray-200 whitespace-nowrap">
+                      <th key={yr} className="px-3 py-2.5 text-center text-xs font-semibold text-sub border-b border-l border-border whitespace-nowrap">
                         {yearLabel(newEntry.batch, yr)}
                       </th>
                     ))}
-                    <th className="px-3 py-2.5 text-center text-xs font-semibold text-gray-700 border-b border-l border-gray-200 w-24">Actions</th>
+                    <th className="px-3 py-2.5 text-center text-xs font-semibold text-sub border-b border-l border-border w-24">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {casteRows.map((caste) => {
                     const existingEntry = entries.find(
                       (e) => e.college === newEntry.college && e.batch === newEntry.batch &&
@@ -971,14 +971,14 @@ const RtfAmountSection = ({
                     );
                     const isLocked = existingEntry?.locked || false;
                     return (
-                      <tr key={caste || '__all__'} className={`hover:bg-gray-50/60 ${isLocked ? 'bg-amber-50/30' : ''}`}>
+                      <tr key={caste || '__all__'} className={`hover:bg-[var(--background)]/60 ${isLocked ? 'bg-[var(--warning-light)]' : ''}`}>
                         <td className="px-3 py-2 text-xs font-medium whitespace-nowrap">
                           {caste
-                            ? <span className="inline-flex px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-semibold text-[11px]">{caste}</span>
-                            : <span className="text-gray-400 italic text-[11px]">All Castes</span>}
+                            ? <span className="inline-flex px-2 py-0.5 rounded bg-[var(--danger-light)] text-danger font-semibold text-[11px]">{caste}</span>
+                            : <span className="text-muted-text italic text-[11px]">All Castes</span>}
                         </td>
                         {yearCols.map((yr) => (
-                          <td key={yr} className="px-2 py-1.5 border-l border-gray-100">
+                          <td key={yr} className="px-2 py-1.5 border-l border-border">
                             <input
                               type="text"
                               inputMode="numeric"
@@ -989,30 +989,30 @@ const RtfAmountSection = ({
                                 : setDraftAmount(caste, yr, e.target.value)}
                               placeholder="₹ Amount"
                               className={`w-full min-w-[90px] px-2 py-1.5 border rounded-lg text-xs text-right tabular-nums ${
-                                isLocked ? 'bg-amber-50 border-amber-200 text-amber-800 cursor-not-allowed' : 'border-gray-200 focus:ring-2 focus:ring-pink-300'
+                                isLocked ? 'bg-[var(--warning-light)] border-[var(--warning-light)] text-warning cursor-not-allowed' : 'border-border focus:ring-2 focus:ring-[var(--primary-light)]'
                               }`}
                             />
                           </td>
                         ))}
-                        <td className="px-2 py-1.5 border-l border-gray-100">
+                        <td className="px-2 py-1.5 border-l border-border">
                           <div className="flex items-center justify-center gap-1">
                             {existingEntry ? (
                               <>
                                 {!readOnly && (
                                 <button onClick={() => toggleLock(existingEntry.id)} disabled={saving}
-                                  className={`p-1.5 rounded border text-xs ${isLocked ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+                                  className={`p-1.5 rounded border text-xs ${isLocked ? 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]' : 'bg-background text-sub border-border hover:bg-background'}`}>
                                   {isLocked ? <Lock size={11} /> : <Unlock size={11} />}
                                 </button>
                                 )}
                                 {!readOnly && (
                                 <button onClick={() => onApply(existingEntry)} disabled={applying === existingEntry.id || saving}
-                                  className="p-1.5 rounded border text-xs bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 disabled:opacity-50">
+                                  className="p-1.5 rounded border text-xs bg-[var(--primary-light)] text-primary border-[var(--primary-light)] hover:bg-[var(--primary-light)] disabled:opacity-50">
                                   {applying === existingEntry.id ? <RefreshCcw size={11} className="animate-spin" /> : <Save size={11} />}
                                 </button>
                                 )}
                                 {!readOnly && (
                                 <button onClick={() => removeEntry(existingEntry.id)} disabled={saving}
-                                  className="p-1.5 rounded border text-xs bg-red-50 text-red-600 border-red-200 hover:bg-red-100">
+                                  className="p-1.5 rounded border text-xs bg-[var(--danger-light)] text-danger border-[var(--danger-light)] hover:bg-[var(--danger-light)]">
                                   <Trash2 size={11} />
                                 </button>
                                 )}
@@ -1021,7 +1021,7 @@ const RtfAmountSection = ({
                               !readOnly && (
                               <button onClick={() => saveDraftForCaste(caste)}
                                 disabled={saving || yearCols.every((yr) => !getDraftAmount(caste, yr))}
-                                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-pink-600 text-white hover:bg-pink-700 disabled:opacity-40">
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-accent text-white hover:bg-accent disabled:opacity-40">
                                 <Plus size={11} /> Save
                               </button>
                               )
@@ -1042,68 +1042,68 @@ const RtfAmountSection = ({
       {activeTab === 'saved' && (
         <div>
           {hiddenEntryCount > 0 && (
-            <p className="mb-3 text-xs text-gray-500">
+            <p className="mb-3 text-xs text-muted-text">
               {hiddenEntryCount} saved configuration{hiddenEntryCount === 1 ? '' : 's'} for removed or inactive colleges, programs, or branches are hidden.
             </p>
           )}
           {visibleEntries.length === 0 ? (
-            <div className="text-center py-16 text-gray-500 text-sm">
+            <div className="text-center py-16 text-muted-text text-sm">
               No configurations saved yet. Use the Configure tab to add amounts.
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="bg-gray-50">
+                  <tr className="bg-background">
                     {['College', 'Batch', 'Program', 'Branch', 'Caste', 'Year Amounts', 'Status', 'Actions'].map((h) => (
-                      <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-gray-700 border-b border-gray-200 whitespace-nowrap">{h}</th>
+                      <th key={h} className="px-3 py-2.5 text-left text-xs font-semibold text-sub border-b border-border whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {visibleEntries.map((entry) => (
-                    <tr key={entry.id} className={`hover:bg-gray-50/60 ${entry.locked ? 'bg-amber-50/30' : ''}`}>
-                      <td className="px-3 py-2 text-xs text-gray-700 whitespace-nowrap">{entry.college}</td>
-                      <td className="px-3 py-2 text-xs font-semibold text-blue-700 whitespace-nowrap">{entry.batch}</td>
-                      <td className="px-3 py-2 text-xs text-purple-700 whitespace-nowrap">{entry.course}</td>
-                      <td className="px-3 py-2 text-xs text-emerald-700 whitespace-nowrap">{entry.branch}</td>
+                    <tr key={entry.id} className={`hover:bg-[var(--background)]/60 ${entry.locked ? 'bg-[var(--warning-light)]' : ''}`}>
+                      <td className="px-3 py-2 text-xs text-sub whitespace-nowrap">{entry.college}</td>
+                      <td className="px-3 py-2 text-xs font-semibold text-primary whitespace-nowrap">{entry.batch}</td>
+                      <td className="px-3 py-2 text-xs text-secondary whitespace-nowrap">{entry.course}</td>
+                      <td className="px-3 py-2 text-xs text-success whitespace-nowrap">{entry.branch}</td>
                       <td className="px-3 py-2 text-xs whitespace-nowrap">
-                        {entry.caste ? <span className="text-rose-700 font-semibold">{entry.caste}</span> : <span className="text-gray-400 italic">All Castes</span>}
+                        {entry.caste ? <span className="text-danger font-semibold">{entry.caste}</span> : <span className="text-muted-text italic">All Castes</span>}
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex flex-wrap gap-1.5">
                           {(entry.years || []).map(({ year, amount }) => (
-                            <span key={year} className="inline-flex items-center gap-1 text-[11px] bg-gray-100 px-1.5 py-0.5 rounded">
-                              <span className="text-gray-500">{yearLabel(entry.batch, year)}:</span>
-                              <span className="font-semibold text-gray-800">{amount ? `₹${Number(amount).toLocaleString('en-IN')}` : '—'}</span>
+                            <span key={year} className="inline-flex items-center gap-1 text-[11px] bg-background px-1.5 py-0.5 rounded">
+                              <span className="text-muted-text">{yearLabel(entry.batch, year)}:</span>
+                              <span className="font-semibold text-main">{amount ? `₹${Number(amount).toLocaleString('en-IN')}` : '—'}</span>
                             </span>
                           ))}
                         </div>
                       </td>
                       <td className="px-3 py-2 text-center whitespace-nowrap">
                         {entry.locked
-                          ? <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full"><Lock size={9} /> Locked</span>
-                          : <span className="inline-flex items-center gap-1 text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full"><Unlock size={9} /> Unlocked</span>}
+                          ? <span className="inline-flex items-center gap-1 text-[11px] font-bold text-warning bg-[var(--warning-light)] px-2 py-0.5 rounded-full"><Lock size={9} /> Locked</span>
+                          : <span className="inline-flex items-center gap-1 text-[11px] text-muted-text bg-background px-2 py-0.5 rounded-full"><Unlock size={9} /> Unlocked</span>}
                       </td>
                       <td className="px-3 py-2">
                         <div className="flex items-center gap-1.5">
                           {!readOnly && (
                           <button onClick={() => toggleLock(entry.id)} disabled={saving}
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs border font-medium ${entry.locked ? 'bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100' : 'bg-gray-50 text-gray-600 border-gray-300 hover:bg-gray-100'}`}>
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs border font-medium ${entry.locked ? 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)] hover:bg-[var(--warning-light)]' : 'bg-background text-sub border-border-strong hover:bg-background'}`}>
                             {entry.locked ? <Unlock size={10} /> : <Lock size={10} />}
                             {entry.locked ? 'Unlock' : 'Lock'}
                           </button>
                           )}
                           {!readOnly && (
                           <button onClick={() => onApply(entry)} disabled={applying === entry.id || saving}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs bg-primary text-white hover:bg-primary-hover disabled:opacity-50">
                             {applying === entry.id ? <RefreshCcw size={10} className="animate-spin" /> : <Save size={10} />}
                             Apply
                           </button>
                           )}
                           {!readOnly && (
                           <button onClick={() => removeEntry(entry.id)} disabled={saving}
-                            className="p-1 rounded text-red-500 hover:bg-red-50 border border-transparent hover:border-red-200">
+                            className="p-1 rounded text-danger hover:bg-[var(--danger-light)] border border-transparent hover:border-[var(--danger-light)]">
                             <Trash2 size={12} />
                           </button>
                           )}
@@ -1121,35 +1121,35 @@ const RtfAmountSection = ({
       {/* ── CASTE SETUP TAB ── */}
       {activeTab === 'caste-setup' && (
         <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <p className="text-sm text-blue-800 font-medium mb-1">Account Type per Caste</p>
-            <p className="text-xs text-blue-600">
+          <div className="bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl p-4">
+            <p className="text-sm text-primary font-medium mb-1">Account Type per Caste</p>
+            <p className="text-xs text-primary">
               <strong>Mother Account</strong> — student receives the scholarship directly. Fee paid to college is entered manually in Paid Transactions.<br />
               <strong>College Account</strong> — college receives the scholarship on behalf of the student. RTF Released amount is automatically copied to Paid Transactions; if an RTF Remitted date is entered, it is optionally copied as the fee paid date.
             </p>
           </div>
 
           {(filterOptions.castes || []).length === 0 ? (
-            <div className="text-center py-12 text-gray-500 text-sm">
+            <div className="text-center py-12 text-muted-text text-sm">
               No castes found. Students must have caste data populated.
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 border-b border-gray-200 w-48">Caste</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 border-b border-gray-200">Account Type</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 border-b border-gray-200">Behaviour</th>
+                  <tr className="bg-background">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub border-b border-border w-48">Caste</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub border-b border-border">Account Type</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub border-b border-border">Behaviour</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {(filterOptions.castes || []).map((caste) => {
                     const current = (config?.casteAccountTypes || {})[caste] || 'mother';
                     return (
-                      <tr key={caste} className="hover:bg-gray-50/60">
+                      <tr key={caste} className="hover:bg-[var(--background)]/60">
                         <td className="px-4 py-3">
-                          <span className="inline-flex px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-semibold text-xs">{caste}</span>
+                          <span className="inline-flex px-2 py-0.5 rounded bg-[var(--danger-light)] text-danger font-semibold text-xs">{caste}</span>
                         </td>
                         <td className="px-4 py-3">
                           <select
@@ -1166,16 +1166,16 @@ const RtfAmountSection = ({
                               };
                               onSave(updated);
                             }}
-                            className={`rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-pink-400 ${readOnly ? 'opacity-60 cursor-not-allowed bg-gray-50' : ''}`}
+                            className={`rounded-lg border border-border-strong px-3 py-1.5 text-sm focus:ring-2 focus:ring-accent ${readOnly ? 'opacity-60 cursor-not-allowed bg-background' : ''}`}
                           >
                             <option value="mother">Mother Account</option>
                             <option value="college">College Account</option>
                           </select>
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-500">
+                        <td className="px-4 py-3 text-xs text-muted-text">
                           {current === 'college'
-                            ? <span className="text-emerald-700 font-medium">RTF Released auto-copied to Paid Transactions (date optional from RTF Remitted date)</span>
-                            : <span className="text-blue-700 font-medium">Paid Transactions entered manually</span>}
+                            ? <span className="text-success font-medium">RTF Released auto-copied to Paid Transactions (date optional from RTF Remitted date)</span>
+                            : <span className="text-primary font-medium">Paid Transactions entered manually</span>}
                         </td>
                       </tr>
                     );
@@ -1423,12 +1423,12 @@ const Settings = () => {
           <label
             key={field.key}
             className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer border transition-colors ${isSelected
-              ? 'bg-teal-50 border-teal-300 text-teal-800'
-              : 'bg-white border-gray-200 text-gray-700 hover:border-teal-200 hover:bg-teal-50/50'
+              ? 'bg-[var(--primary-light)] border-[var(--primary-light)] text-primary'
+              : 'bg-surface border-border text-sub hover:border-[var(--primary-light)] hover:bg-[var(--primary-light)]'
               }`}
           >
             <input type="checkbox" checked={isSelected} onChange={() => onToggle(field.key)} className="sr-only" />
-            <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-teal-500' : 'border-2 border-gray-300'
+            <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-primary' : 'border-2 border-border-strong'
               }`}>
               {isSelected && (
                 <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1441,7 +1441,7 @@ const Settings = () => {
         );
       })}
       {qrAvailableFields.length === 0 && (
-        <p className="col-span-4 text-sm text-gray-400 py-4 text-center">Loading fields...</p>
+        <p className="col-span-4 text-sm text-muted-text py-4 text-center">Loading fields...</p>
       )}
     </div>
   );
@@ -3635,7 +3635,7 @@ const Settings = () => {
 
   if (loading) {
     return (
-      <div className="space-y-4 bg-white p-4">
+      <div className="space-y-4 bg-surface p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <SkeletonBox height="h-7" width="w-32" />
@@ -3668,17 +3668,17 @@ const Settings = () => {
 
   return (
     <>
-      <div className="space-y-4 bg-white p-3 sm:p-4">
+      <div className="space-y-4 bg-surface p-3 sm:p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Settings</h1>
-            <p className="text-xs sm:text-sm text-gray-600">
+            <h1 className="text-lg sm:text-xl font-semibold text-main">Settings</h1>
+            <p className="text-xs sm:text-sm text-sub">
               Manage colleges, programs, branches, and attendance calendar.
             </p>
           </div>
           <button
             onClick={handleRefresh}
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2.5 sm:py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100 touch-manipulation min-h-[44px]"
+            className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-surface px-3 py-2.5 sm:py-2 text-sm font-medium text-sub transition-colors hover:bg-background active:bg-background touch-manipulation min-h-[44px]"
           >
             <RefreshCcw size={16} />
             Refresh
@@ -3691,18 +3691,18 @@ const Settings = () => {
           <button
             onClick={() => setActiveSection('courses')}
             className={`rounded-lg border-2 p-3 sm:p-4 text-left transition-all touch-manipulation min-h-[80px] ${activeSection === 'courses'
-              ? 'border-blue-500 bg-blue-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-blue-300 active:border-blue-400 hover:shadow-sm'
+              ? 'border-primary bg-[var(--primary-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--primary-light)] active:border-primary hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'courses' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+              <div className={`rounded-full p-2 ${activeSection === 'courses' ? 'bg-[var(--primary-light)] text-primary' : 'bg-background text-sub'
                 }`}>
                 <BookOpen size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Colleges & Programs</h2>
-                <p className="text-xs text-gray-500">{canEdit('courses') ? 'Manage colleges, programs & branches' : 'View colleges, programs & branches'}</p>
+                <h2 className="text-sm font-semibold text-main">Colleges & Programs</h2>
+                <p className="text-xs text-muted-text">{canEdit('courses') ? 'Manage colleges, programs & branches' : 'View colleges, programs & branches'}</p>
               </div>
             </div>
           </button>
@@ -3712,18 +3712,18 @@ const Settings = () => {
           <button
             onClick={() => setActiveSection('calendar')}
             className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'calendar'
-              ? 'border-blue-500 bg-blue-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+              ? 'border-primary bg-[var(--primary-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--primary-light)] hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'calendar' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+              <div className={`rounded-full p-2 ${activeSection === 'calendar' ? 'bg-[var(--primary-light)] text-primary' : 'bg-background text-sub'
                 }`}>
                 <CalendarDays size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Attendance Calendar</h2>
-                <p className="text-xs text-gray-500">{canEdit('calendar') ? 'Holidays & attendance calendar' : 'View attendance calendar'}</p>
+                <h2 className="text-sm font-semibold text-main">Attendance Calendar</h2>
+                <p className="text-xs text-muted-text">{canEdit('calendar') ? 'Holidays & attendance calendar' : 'View attendance calendar'}</p>
               </div>
             </div>
           </button>
@@ -3733,18 +3733,18 @@ const Settings = () => {
           <button
             onClick={() => setActiveSection('academic-calendar')}
             className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'academic-calendar'
-              ? 'border-green-500 bg-green-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-green-300 hover:shadow-sm'
+              ? 'border-success bg-[var(--success-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--success-light)] hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'academic-calendar' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+              <div className={`rounded-full p-2 ${activeSection === 'academic-calendar' ? 'bg-[var(--success-light)] text-success' : 'bg-background text-sub'
                 }`}>
                 <Calendar size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Academic Calendar</h2>
-                <p className="text-xs text-gray-500">{canEdit('academic_calendar') ? 'Manage semester dates' : 'View semester dates'}</p>
+                <h2 className="text-sm font-semibold text-main">Academic Calendar</h2>
+                <p className="text-xs text-muted-text">{canEdit('academic_calendar') ? 'Manage semester dates' : 'View semester dates'}</p>
               </div>
             </div>
           </button>
@@ -3754,18 +3754,18 @@ const Settings = () => {
           <button
             onClick={() => setActiveSection('forms')}
             className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'forms'
-              ? 'border-purple-500 bg-purple-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-purple-300 hover:shadow-sm'
+              ? 'border-secondary bg-[var(--primary-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--primary-light)] hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'forms' ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-600'
+              <div className={`rounded-full p-2 ${activeSection === 'forms' ? 'bg-[var(--primary-light)] text-secondary' : 'bg-background text-sub'
                 }`}>
                 <FileText size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Registration Form</h2>
-                <p className="text-xs text-gray-500">{canEdit('forms') ? 'Student registration form fields' : 'View registration form fields'}</p>
+                <h2 className="text-sm font-semibold text-main">Registration Form</h2>
+                <p className="text-xs text-muted-text">{canEdit('forms') ? 'Student registration form fields' : 'View registration form fields'}</p>
               </div>
             </div>
           </button>
@@ -3775,18 +3775,18 @@ const Settings = () => {
           <button
             onClick={() => setActiveSection('quotas')}
             className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'quotas'
-              ? 'border-violet-500 bg-violet-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-violet-300 hover:shadow-sm'
+              ? 'border-secondary bg-[var(--primary-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--primary-light)] hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'quotas' ? 'bg-violet-100 text-violet-600' : 'bg-gray-100 text-gray-600'
+              <div className={`rounded-full p-2 ${activeSection === 'quotas' ? 'bg-[var(--primary-light)] text-secondary' : 'bg-background text-sub'
                 }`}>
                 <Tags size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Student Quotas</h2>
-                <p className="text-xs text-gray-500">{canEdit('quotas') ? 'Quota names & codes' : 'View quota names & codes'}</p>
+                <h2 className="text-sm font-semibold text-main">Student Quotas</h2>
+                <p className="text-xs text-muted-text">{canEdit('quotas') ? 'Quota names & codes' : 'View quota names & codes'}</p>
               </div>
             </div>
           </button>
@@ -3796,18 +3796,18 @@ const Settings = () => {
           <button
             onClick={() => setActiveSection('caste-categories')}
             className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'caste-categories'
-              ? 'border-amber-500 bg-amber-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-amber-300 hover:shadow-sm'
+              ? 'border-warning bg-[var(--warning-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--warning-light)] hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'caste-categories' ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-600'
+              <div className={`rounded-full p-2 ${activeSection === 'caste-categories' ? 'bg-[var(--warning-light)] text-warning' : 'bg-background text-sub'
                 }`}>
                 <Users size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Categories & Castes</h2>
-                <p className="text-xs text-gray-500">{canEdit('caste_categories') ? 'Categories & castes' : 'View categories & castes'}</p>
+                <h2 className="text-sm font-semibold text-main">Categories & Castes</h2>
+                <p className="text-xs text-muted-text">{canEdit('caste_categories') ? 'Categories & castes' : 'View categories & castes'}</p>
               </div>
             </div>
           </button>
@@ -3817,18 +3817,18 @@ const Settings = () => {
           <button
             onClick={() => setActiveSection('notifications')}
             className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'notifications'
-              ? 'border-indigo-500 bg-indigo-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-indigo-300 hover:shadow-sm'
+              ? 'border-primary bg-[var(--primary-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--primary-light)] hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'notifications' ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-600'
+              <div className={`rounded-full p-2 ${activeSection === 'notifications' ? 'bg-[var(--primary-light)] text-primary' : 'bg-background text-sub'
                 }`}>
                 <Bell size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Notifications</h2>
-                <p className="text-xs text-gray-500">{canEdit('notifications') ? 'SMS & Email templates' : 'View SMS & Email templates'}</p>
+                <h2 className="text-sm font-semibold text-main">Notifications</h2>
+                <p className="text-xs text-muted-text">{canEdit('notifications') ? 'SMS & Email templates' : 'View SMS & Email templates'}</p>
               </div>
             </div>
           </button>
@@ -3838,18 +3838,18 @@ const Settings = () => {
           <button
             onClick={() => setActiveSection('college-transfer')}
             className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'college-transfer'
-              ? 'border-orange-500 bg-orange-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-orange-300 hover:shadow-sm'
+              ? 'border-warning bg-[var(--warning-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--warning-light)] hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'college-transfer' ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-600'
+              <div className={`rounded-full p-2 ${activeSection === 'college-transfer' ? 'bg-[var(--warning-light)] text-warning' : 'bg-background text-sub'
                 }`}>
                 <TrendingUp size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">College Transfer</h2>
-                <p className="text-xs text-gray-500">{canEdit('college_transfer') ? 'Manual student transfers' : 'View student transfers'}</p>
+                <h2 className="text-sm font-semibold text-main">College Transfer</h2>
+                <p className="text-xs text-muted-text">{canEdit('college_transfer') ? 'Manual student transfers' : 'View student transfers'}</p>
               </div>
             </div>
           </button>
@@ -3859,18 +3859,18 @@ const Settings = () => {
           <button
             onClick={() => setActiveSection('student-layout')}
             className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'student-layout'
-              ? 'border-blue-500 bg-blue-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+              ? 'border-primary bg-[var(--primary-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--primary-light)] hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'student-layout' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+              <div className={`rounded-full p-2 ${activeSection === 'student-layout' ? 'bg-[var(--primary-light)] text-primary' : 'bg-background text-sub'
                 }`}>
                 <Layout size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Student Portal Layout</h2>
-                <p className="text-xs text-gray-500">{canEdit('student_layout') ? 'Enable/Disable sidebar items' : 'View sidebar items'}</p>
+                <h2 className="text-sm font-semibold text-main">Student Portal Layout</h2>
+                <p className="text-xs text-muted-text">{canEdit('student_layout') ? 'Enable/Disable sidebar items' : 'View sidebar items'}</p>
               </div>
             </div>
           </button>
@@ -3880,18 +3880,18 @@ const Settings = () => {
           <button
             onClick={() => { setActiveSection('qr-config'); fetchQrConfig(); }}
             className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'qr-config'
-              ? 'border-teal-500 bg-teal-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-teal-300 hover:shadow-sm'
+              ? 'border-primary bg-[var(--primary-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--primary-light)] hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'qr-config' ? 'bg-teal-100 text-teal-600' : 'bg-gray-100 text-gray-600'
+              <div className={`rounded-full p-2 ${activeSection === 'qr-config' ? 'bg-[var(--primary-light)] text-primary' : 'bg-background text-sub'
                 }`}>
                 <QrCode size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">QR Code Config</h2>
-                <p className="text-xs text-gray-500">{canEdit('qr_config') ? 'Per-role student field visibility' : 'View per-role student field visibility'}</p>
+                <h2 className="text-sm font-semibold text-main">QR Code Config</h2>
+                <p className="text-xs text-muted-text">{canEdit('qr_config') ? 'Per-role student field visibility' : 'View per-role student field visibility'}</p>
               </div>
             </div>
           </button>
@@ -3901,17 +3901,17 @@ const Settings = () => {
             <button
               onClick={() => setActiveSection('rtf-amount')}
               className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'rtf-amount'
-                ? 'border-pink-500 bg-pink-50 shadow-md'
-                : 'border-gray-200 bg-white hover:border-pink-300 hover:shadow-sm'
+                ? 'border-accent bg-[var(--primary-light)] shadow-md'
+                : 'border-border bg-surface hover:border-[var(--primary-light)] hover:shadow-sm'
                 }`}
             >
               <div className="flex items-center gap-2">
-                <div className={`rounded-full p-2 ${activeSection === 'rtf-amount' ? 'bg-pink-100 text-pink-600' : 'bg-gray-100 text-gray-600'}`}>
+                <div className={`rounded-full p-2 ${activeSection === 'rtf-amount' ? 'bg-[var(--primary-light)] text-accent' : 'bg-background text-sub'}`}>
                   <GraduationCap size={18} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold text-gray-900">RTF Amount Setup</h2>
-                  <p className="text-xs text-gray-500">{canEdit('rtf_amount') ? 'Scholarship sanctioned amounts per batch' : 'View scholarship sanctioned amounts'}</p>
+                  <h2 className="text-sm font-semibold text-main">RTF Amount Setup</h2>
+                  <p className="text-xs text-muted-text">{canEdit('rtf_amount') ? 'Scholarship sanctioned amounts per batch' : 'View scholarship sanctioned amounts'}</p>
                 </div>
               </div>
             </button>
@@ -3921,18 +3921,18 @@ const Settings = () => {
             <button
               onClick={() => setActiveSection('freeze-database')}
               className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'freeze-database'
-                ? 'border-red-500 bg-red-50 shadow-md'
-                : 'border-gray-200 bg-white hover:border-red-300 hover:shadow-sm'
+                ? 'border-danger bg-[var(--danger-light)] shadow-md'
+                : 'border-border bg-surface hover:border-[var(--danger-light)] hover:shadow-sm'
                 }`}
             >
               <div className="flex items-center gap-2">
-                <div className={`rounded-full p-2 ${activeSection === 'freeze-database' ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'
+                <div className={`rounded-full p-2 ${activeSection === 'freeze-database' ? 'bg-[var(--danger-light)] text-danger' : 'bg-background text-sub'
                   }`}>
                   <Lock size={18} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold text-gray-900">Freeze Database</h2>
-                  <p className="text-xs text-gray-500">{canEdit('freeze_database') ? 'Lock records by batch' : 'View locked records by batch'}</p>
+                  <h2 className="text-sm font-semibold text-main">Freeze Database</h2>
+                  <p className="text-xs text-muted-text">{canEdit('freeze_database') ? 'Lock records by batch' : 'View locked records by batch'}</p>
                 </div>
               </div>
             </button>
@@ -3942,17 +3942,17 @@ const Settings = () => {
           <button
             onClick={() => { setActiveSection('campus'); fetchCampuses(); }}
             className={`rounded-lg border-2 p-3 text-left transition-all ${activeSection === 'campus'
-              ? 'border-emerald-500 bg-emerald-50 shadow-md'
-              : 'border-gray-200 bg-white hover:border-emerald-300 hover:shadow-sm'
+              ? 'border-success bg-[var(--success-light)] shadow-md'
+              : 'border-border bg-surface hover:border-[var(--success-light)] hover:shadow-sm'
               }`}
           >
             <div className="flex items-center gap-2">
-              <div className={`rounded-full p-2 ${activeSection === 'campus' ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-600'}`}>
+              <div className={`rounded-full p-2 ${activeSection === 'campus' ? 'bg-[var(--success-light)] text-success' : 'bg-background text-sub'}`}>
                 <MapPin size={18} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-gray-900">Campus Creation</h2>
-                <p className="text-xs text-gray-500">Group colleges under campuses</p>
+                <h2 className="text-sm font-semibold text-main">Campus Creation</h2>
+                <p className="text-xs text-muted-text">Group colleges under campuses</p>
               </div>
             </div>
           </button>
@@ -3964,29 +3964,29 @@ const Settings = () => {
         {activeSection === 'courses' && (
           <>
             {/* Quick Stats Bar */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-3 bg-white p-2 rounded-lg border border-gray-200">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-3 bg-surface p-2 rounded-lg border border-border">
               <div className="flex items-center gap-1.5">
-                <Landmark size={14} className="text-blue-600" />
-                <span className="text-xs text-gray-500">Colleges:</span>
-                <span className="font-semibold text-gray-900 text-sm">{colleges.length}</span>
+                <Landmark size={14} className="text-primary" />
+                <span className="text-xs text-muted-text">Colleges:</span>
+                <span className="font-semibold text-main text-sm">{colleges.length}</span>
               </div>
-              <div className="h-3 w-px bg-gray-300" />
+              <div className="h-3 w-px bg-background" />
               <div className="flex items-center gap-1.5">
-                <GraduationCap size={14} className="text-green-600" />
-                <span className="text-xs text-gray-500">Batches:</span>
-                <span className="font-semibold text-gray-900 text-sm">{academicYears.filter(y => y.isActive).length}</span>
+                <GraduationCap size={14} className="text-success" />
+                <span className="text-xs text-muted-text">Batches:</span>
+                <span className="font-semibold text-main text-sm">{academicYears.filter(y => y.isActive).length}</span>
               </div>
-              <div className="h-3 w-px bg-gray-300" />
+              <div className="h-3 w-px bg-background" />
               <div className="flex items-center gap-1.5">
-                <BookOpen size={14} className="text-purple-600" />
-                <span className="text-xs text-gray-500">Programs:</span>
-                <span className="font-semibold text-gray-900 text-sm">{courseOptionsSummary.courseCount}</span>
+                <BookOpen size={14} className="text-secondary" />
+                <span className="text-xs text-muted-text">Programs:</span>
+                <span className="font-semibold text-main text-sm">{courseOptionsSummary.courseCount}</span>
               </div>
-              <div className="h-3 w-px bg-gray-300" />
+              <div className="h-3 w-px bg-background" />
               <div className="flex items-center gap-1.5">
-                <Layers size={14} className="text-orange-600" />
-                <span className="text-xs text-gray-500">Branches:</span>
-                <span className="font-semibold text-gray-900 text-sm">{courseOptionsSummary.branchCount}</span>
+                <Layers size={14} className="text-warning" />
+                <span className="text-xs text-muted-text">Branches:</span>
+                <span className="font-semibold text-main text-sm">{courseOptionsSummary.branchCount}</span>
               </div>
             </div>
 
@@ -3995,14 +3995,14 @@ const Settings = () => {
               {/* Left Column */}
               <div className="space-y-4 min-w-0">
                 {/* Colleges Card */}
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                  <div className="border-b border-gray-100 px-3 py-2 bg-slate-50">
+                <div className="rounded-xl border border-border bg-surface shadow-sm overflow-hidden">
+                  <div className="border-b border-border px-3 py-2 bg-background">
                     <div className="flex items-center justify-between">
-                      <h3 className="flex items-center gap-1.5 font-bold text-gray-900 text-xs uppercase tracking-wider">
-                        <Landmark size={14} className="text-blue-600" />
+                      <h3 className="flex items-center gap-1.5 font-bold text-main text-xs uppercase tracking-wider">
+                        <Landmark size={14} className="text-primary" />
                         Colleges
                       </h3>
-                      <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700">
+                      <span className="rounded-full bg-[var(--primary-light)] px-1.5 py-0.5 text-[10px] font-bold text-primary">
                         {colleges.length}
                       </span>
                     </div>
@@ -4012,7 +4012,7 @@ const Settings = () => {
                     {canEdit('courses') && (
                     <button
                       onClick={() => setIsAddCollegeModalOpen(true)}
-                      className="mb-2 w-full inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                      className="mb-2 w-full inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-border bg-surface px-3 py-1.5 text-xs font-semibold text-sub hover:border-primary hover:bg-[var(--primary-light)] hover:text-primary transition-colors"
                     >
                       <Plus size={14} />
                       Add College
@@ -4022,7 +4022,7 @@ const Settings = () => {
                     {/* College List */}
                     <div className="space-y-1 max-h-[300px] overflow-y-auto">
                       {colleges.length === 0 && !loading ? (
-                        <p className="py-3 text-center text-[11px] text-gray-400">No colleges</p>
+                        <p className="py-3 text-center text-[11px] text-muted-text">No colleges</p>
                       ) : colleges.length === 0 ? (
                         <SkeletonList count={3} />
                       ) : (
@@ -4031,13 +4031,13 @@ const Settings = () => {
                             key={college.id}
                             onClick={() => handleSelectCollege(college.id)}
                             className={`group flex items-center justify-between rounded-md px-2 py-1.5 cursor-pointer transition-all border ${selectedCollegeId === college.id
-                              ? 'bg-blue-50 border-blue-200'
-                              : 'hover:bg-gray-50 border-transparent'
+                              ? 'bg-[var(--primary-light)] border-[var(--primary-light)]'
+                              : 'hover:bg-background border-transparent'
                               }`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
-                              <div className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${college.isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
-                              <span className={`text-[13px] truncate ${selectedCollegeId === college.id ? 'font-bold text-blue-900' : 'text-gray-700'}`}>
+                              <div className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${college.isActive ? 'bg-success' : 'bg-background'}`} />
+                              <span className={`text-[13px] truncate ${selectedCollegeId === college.id ? 'font-bold text-primary' : 'text-sub'}`}>
                                 {college.name}
                               </span>
                             </div>
@@ -4045,21 +4045,21 @@ const Settings = () => {
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={(e) => { e.stopPropagation(); handleEditCollege(college); }}
-                                className="p-1 text-gray-400 hover:text-blue-500"
+                                className="p-1 text-muted-text hover:text-primary"
                                 title="Edit"
                               >
                                 <Pencil size={14} />
                               </button>
                               <button
                                 onClick={(e) => { e.stopPropagation(); toggleCollegeActive(college); }}
-                                className="p-1 text-gray-400 hover:text-gray-600"
+                                className="p-1 text-muted-text hover:text-sub"
                                 title={college.isActive ? 'Deactivate' : 'Activate'}
                               >
-                                {college.isActive ? <ToggleRight size={14} className="text-green-500" /> : <ToggleLeft size={14} />}
+                                {college.isActive ? <ToggleRight size={14} className="text-success" /> : <ToggleLeft size={14} />}
                               </button>
                               <button
                                 onClick={(e) => { e.stopPropagation(); handleDeleteCollege(college); }}
-                                className="p-1 text-gray-400 hover:text-red-500"
+                                className="p-1 text-muted-text hover:text-danger"
                                 title="Delete"
                               >
                                 <Trash2 size={14} />
@@ -4074,14 +4074,14 @@ const Settings = () => {
                 </div>
 
                 {/* Academic Years Card */}
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                  <div className="border-b border-gray-100 px-3 py-2 bg-slate-50">
+                <div className="rounded-xl border border-border bg-surface shadow-sm overflow-hidden">
+                  <div className="border-b border-border px-3 py-2 bg-background">
                     <div className="flex items-center justify-between">
-                      <h3 className="flex items-center gap-1.5 font-bold text-gray-900 text-xs uppercase tracking-wider">
-                        <GraduationCap size={14} className="text-green-600" />
+                      <h3 className="flex items-center gap-1.5 font-bold text-main text-xs uppercase tracking-wider">
+                        <GraduationCap size={14} className="text-success" />
                         Batches
                       </h3>
-                      <span className="rounded-full bg-green-100 px-1.5 py-0.5 text-[10px] font-bold text-green-700">
+                      <span className="rounded-full bg-[var(--success-light)] px-1.5 py-0.5 text-[10px] font-bold text-success">
                         {academicYears.filter(y => y.isActive).length}
                       </span>
                     </div>
@@ -4094,12 +4094,12 @@ const Settings = () => {
                         value={newAcademicYear.yearLabel}
                         onChange={(e) => setNewAcademicYear((prev) => ({ ...prev, yearLabel: e.target.value }))}
                         placeholder="e.g. 2027"
-                        className="flex-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1.5 text-xs focus:border-green-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-green-500"
+                        className="flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-xs focus:border-success focus:bg-surface focus:outline-none focus:ring-1 focus:ring-success"
                       />
                       <button
                         type="submit"
                         disabled={creatingAcademicYear || !newAcademicYear.yearLabel.trim()}
-                        className="rounded-md bg-green-600 px-2.5 py-1.5 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="rounded-md bg-success px-2.5 py-1.5 text-white hover:bg-success disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         <Plus size={14} />
                       </button>
@@ -4108,7 +4108,7 @@ const Settings = () => {
                     {/* Year Tags */}
                     <div className="flex flex-wrap gap-2">
                       {academicYears.length === 0 && !loading ? (
-                        <p className="py-2 text-sm text-gray-400">No batches yet</p>
+                        <p className="py-2 text-sm text-muted-text">No batches yet</p>
                       ) : academicYears.length === 0 ? (
                         <div className="flex flex-wrap gap-2 w-full">
                           {[1, 2, 3, 4, 5].map((i) => (
@@ -4120,22 +4120,22 @@ const Settings = () => {
                           <div
                             key={year.id}
                             className={`group inline-flex items-center gap-1 rounded-full pl-2 pr-1 py-0.5 text-[11px] font-semibold transition-all ${year.isActive
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-500'
+                              ? 'bg-[var(--success-light)] text-success'
+                              : 'bg-background text-muted-text'
                               }`}
                           >
                             <span>{year.yearLabel}</span>
                             <button
                               onClick={() => toggleAcademicYearActive(year)}
                               disabled={savingAcademicYearId === year.id}
-                              className="p-0.5 rounded hover:bg-white/50 transition-colors"
+                              className="p-0.5 rounded hover:bg-[var(--surface)]/50 transition-colors"
                             >
                               {year.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                             </button>
                             <button
                               onClick={() => handleDeleteAcademicYear(year)}
                               disabled={savingAcademicYearId === year.id}
-                              className="p-0.5 rounded text-red-400 hover:text-red-600 hover:bg-white/50 transition-colors"
+                              className="p-0.5 rounded text-danger hover:text-danger hover:bg-[var(--surface)]/50 transition-colors"
                             >
                               <X size={14} />
                             </button>
@@ -4150,10 +4150,10 @@ const Settings = () => {
               {/* Right Column - Programs & Branches */}
               <div className="space-y-4 min-w-0 overflow-hidden">
                 {!selectedCollege ? (
-                  <div className="flex h-full items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-8">
+                  <div className="flex h-full items-center justify-center rounded-xl border-2 border-dashed border-border bg-background p-8">
                     <div className="text-center">
-                      <Landmark size={32} className="mx-auto mb-3 text-gray-300" />
-                      <p className="text-sm text-gray-500">Select a college to manage its programs</p>
+                      <Landmark size={32} className="mx-auto mb-3 text-muted-text" />
+                      <p className="text-sm text-muted-text">Select a college to manage its programs</p>
                     </div>
                   </div>
                 ) : (
@@ -4161,11 +4161,11 @@ const Settings = () => {
                     {/* Program List & Branches */}
                     <div className="grid gap-3 lg:grid-cols-[320px,1fr] xl:grid-cols-[340px,1fr] 2xl:grid-cols-[360px,1fr] min-w-0 overflow-hidden">
                       {/* Program List */}
-                      <div className="rounded-xl border border-gray-200 bg-gray-50 p-2 min-w-0 overflow-hidden flex flex-col">
-                        <div className="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 flex-shrink-0">Select Program</div>
+                      <div className="rounded-xl border border-border bg-background p-2 min-w-0 overflow-hidden flex flex-col">
+                        <div className="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-wider text-muted-text flex-shrink-0">Select Program</div>
                         <div className="space-y-1.5 flex-1 overflow-y-auto min-h-0 min-w-0">
                           {coursesForSelectedCollege.length === 0 && !loading ? (
-                            <p className="py-4 text-center text-sm text-gray-400">No programs yet</p>
+                            <p className="py-4 text-center text-sm text-muted-text">No programs yet</p>
                           ) : coursesForSelectedCollege.length === 0 ? (
                             <SkeletonList count={3} />
                           ) : (
@@ -4174,17 +4174,17 @@ const Settings = () => {
                                 key={course.id}
                                 onClick={() => handleSelectCourse(course.id)}
                                 className={`group flex items-center justify-between rounded-lg px-3 py-2.5 cursor-pointer transition-all flex-shrink-0 ${selectedCourseId === course.id
-                                  ? 'bg-purple-100 border border-purple-300'
-                                  : 'bg-white hover:bg-purple-50 border border-gray-200'
+                                  ? 'bg-[var(--primary-light)] border border-[var(--primary-light)]'
+                                  : 'bg-surface hover:bg-[var(--primary-light)] border border-border'
                                   }`}
                               >
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                                  <div className={`h-2 w-2 rounded-full flex-shrink-0 ${course.isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
+                                  <div className={`h-2 w-2 rounded-full flex-shrink-0 ${course.isActive ? 'bg-success' : 'bg-background'}`} />
                                   <div className="min-w-0 flex-1">
-                                    <span className={`block text-sm truncate ${selectedCourseId === course.id ? 'font-medium text-purple-900' : 'text-gray-700'}`}>
+                                    <span className={`block text-sm truncate ${selectedCourseId === course.id ? 'font-medium text-secondary' : 'text-sub'}`}>
                                       {course.name}
                                     </span>
-                                    <span className="text-xs text-gray-500 truncate block">
+                                    <span className="text-xs text-muted-text truncate block">
                                       {course.level ? course.level.toUpperCase() : 'UG'} · {formatCourseStructureSummary(course)}
                                     </span>
                                   </div>
@@ -4193,21 +4193,21 @@ const Settings = () => {
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleEditCourse(course); }}
-                                    className="p-1 text-gray-400 hover:text-blue-500"
+                                    className="p-1 text-muted-text hover:text-primary"
                                     title="Edit"
                                   >
                                     <Pencil size={14} />
                                   </button>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); toggleCourseActive(course); }}
-                                    className="p-1 text-gray-400 hover:text-gray-600"
+                                    className="p-1 text-muted-text hover:text-sub"
                                     title={course.isActive ? 'Deactivate' : 'Activate'}
                                   >
-                                    {course.isActive ? <ToggleRight size={14} className="text-green-500" /> : <ToggleLeft size={14} />}
+                                    {course.isActive ? <ToggleRight size={14} className="text-success" /> : <ToggleLeft size={14} />}
                                   </button>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleDeleteCourse(course); }}
-                                    className="p-1 text-gray-400 hover:text-red-500"
+                                    className="p-1 text-muted-text hover:text-danger"
                                     title="Delete"
                                   >
                                     <Trash2 size={14} />
@@ -4220,7 +4220,7 @@ const Settings = () => {
                         </div>
                         {/* Add Course Button Below List */}
                         {selectedCollege ? (
-                          <div className="mt-2 pt-2 border-t border-gray-200 flex-shrink-0">
+                          <div className="mt-2 pt-2 border-t border-border flex-shrink-0">
                             {canEdit('courses') ? (
                             <button
                               type="button"
@@ -4229,45 +4229,45 @@ const Settings = () => {
                                 e.stopPropagation();
                                 setIsAddCourseModalOpen(true);
                               }}
-                              className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:border-purple-400 hover:bg-purple-50 hover:text-purple-700 transition-colors cursor-pointer"
+                              className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-border bg-surface px-3 py-1.5 text-xs font-semibold text-sub hover:border-secondary hover:bg-[var(--primary-light)] hover:text-secondary transition-colors cursor-pointer"
                               style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}
                             >
                               <Plus size={16} />
                               Add New Program
                             </button>
                             ) : (
-                              <p className="text-xs text-gray-400 text-center py-1">View only — no edit access</p>
+                              <p className="text-xs text-muted-text text-center py-1">View only — no edit access</p>
                             )}
                           </div>
                         ) : (
-                          <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-400 text-center flex-shrink-0">
+                          <div className="mt-3 pt-3 border-t border-border text-xs text-muted-text text-center flex-shrink-0">
                             Select a college to add programs
                           </div>
                         )}
                       </div>
 
                       {/* Branches Panel */}
-                      <div className="rounded-xl border border-gray-200 bg-white shadow-sm min-w-0 overflow-hidden flex flex-col">
+                      <div className="rounded-xl border border-border bg-surface shadow-sm min-w-0 overflow-hidden flex flex-col">
                         {selectedCourse ? (
                           <>
-                            <div className="border-b border-gray-100 px-3 py-2 bg-slate-50">
+                            <div className="border-b border-border px-3 py-2 bg-background">
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <h4 className="font-bold text-gray-900 text-[13px]">{selectedCourse.name} - Branches</h4>
-                                  <p className="text-[10px] text-gray-500">{formatCourseStructureSummary(selectedCourse)}</p>
+                                  <h4 className="font-bold text-main text-[13px]">{selectedCourse.name} - Branches</h4>
+                                  <p className="text-[10px] text-muted-text">{formatCourseStructureSummary(selectedCourse)}</p>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <select
                                     value={branchBatchFilter}
                                     onChange={(e) => setBranchBatchFilter(e.target.value)}
-                                    className="rounded-md border border-gray-200 bg-white px-1.5 py-0.5 text-[11px] font-medium focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                                    className="rounded-md border border-border bg-surface px-1.5 py-0.5 text-[11px] font-medium focus:border-warning focus:outline-none focus:ring-1 focus:ring-warning"
                                   >
                                     <option value="">All Batches</option>
                                     {academicYears.filter(y => y.isActive).map((year) => (
                                       <option key={year.id} value={year.id}>{year.yearLabel}</option>
                                     ))}
                                   </select>
-                                  <span className="rounded-full bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-700">
+                                  <span className="rounded-full bg-[var(--warning-light)] px-1.5 py-0.5 text-[10px] font-bold text-warning">
                                     {branchBatchFilter ? branchesForSelectedCourse.length : uniqueBranchCount}
                                   </span>
                                 </div>
@@ -4275,20 +4275,20 @@ const Settings = () => {
                             </div>
 
                             {/* Add Branch Button */}
-                            <div className="border-b border-gray-100 p-4">
+                            <div className="border-b border-border p-4">
                               {canEdit('courses') ? (
                               <button
                                 onClick={() => {
                                   setBranchModalCourseId(selectedCourse.id);
                                   setIsAddBranchModalOpen(true);
                                 }}
-                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:border-orange-400 hover:bg-orange-50 hover:text-orange-700 transition-colors"
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-strong bg-surface px-3 py-2 text-sm font-medium text-sub hover:border-warning hover:bg-[var(--warning-light)] hover:text-warning transition-colors"
                               >
                                 <Plus size={16} />
                                 Add New Branch
                               </button>
                               ) : (
-                                <p className="text-xs text-gray-400 text-center py-1">View only — no edit access</p>
+                                <p className="text-xs text-muted-text text-center py-1">View only — no edit access</p>
                               )}
                             </div>
 
@@ -4299,22 +4299,22 @@ const Settings = () => {
                                   <LoadingAnimation width={24} height={24} showMessage={false} />
                                 </div>
                               ) : branchesForSelectedCourse.length === 0 ? (
-                                <p className="py-8 text-center text-sm text-gray-400">No branches yet</p>
+                                <p className="py-8 text-center text-sm text-muted-text">No branches yet</p>
                               ) : (
                                 <div className="space-y-2">
                                   {branchesForSelectedCourse.map((branch) => (
                                     <div
                                       key={branch.code || branch.id}
-                                      className="group flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2.5 hover:bg-gray-100 transition-colors"
+                                      className="group flex items-center justify-between rounded-lg bg-background px-3 py-2.5 hover:bg-background transition-colors"
                                     >
                                       <div className="flex items-center gap-2 min-w-0">
-                                        <div className={`h-2 w-2 rounded-full flex-shrink-0 ${branch.isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
-                                        <span className="text-sm font-medium text-gray-800 truncate">{branch.name}</span>
+                                        <div className={`h-2 w-2 rounded-full flex-shrink-0 ${branch.isActive ? 'bg-success' : 'bg-background'}`} />
+                                        <span className="text-sm font-medium text-main truncate">{branch.name}</span>
                                         {branch.code && branch.code !== branch.name && (
-                                          <span className="text-xs text-gray-500">({branch.code})</span>
+                                          <span className="text-xs text-muted-text">({branch.code})</span>
                                         )}
                                         {branch.metadata?.sections?.enabled && (
-                                          <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                                          <span className="text-[10px] font-medium text-primary bg-[var(--primary-light)] px-1.5 py-0.5 rounded">
                                             {branch.metadata.sections.items?.length || 0} sections
                                           </span>
                                         )}
@@ -4324,7 +4324,7 @@ const Settings = () => {
                                         {canEdit('courses') && (
                                         <button
                                           onClick={() => openRegStageModal(branch, selectedCourse)}
-                                          className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                                          className="p-1 text-muted-text hover:text-secondary transition-colors"
                                           title="Registration Setup"
                                         >
                                           <Settings2 size={14} />
@@ -4334,7 +4334,7 @@ const Settings = () => {
                                         <button
                                           onClick={() => startEditBranch(selectedCourse.id, branch, selectedCourse)}
                                           disabled={savingBranchId === branch.id}
-                                          className="p-1 text-gray-400 hover:text-blue-500"
+                                          className="p-1 text-muted-text hover:text-primary"
                                           title="Edit"
                                         >
                                           <Pencil size={14} />
@@ -4344,17 +4344,17 @@ const Settings = () => {
                                         <button
                                           onClick={() => toggleBranchActive(selectedCourse.id, branch)}
                                           disabled={savingBranchId === branch.id}
-                                          className="p-1 text-gray-400 hover:text-gray-600"
+                                          className="p-1 text-muted-text hover:text-sub"
                                           title={branch.isActive ? 'Deactivate' : 'Activate'}
                                         >
-                                          {branch.isActive ? <ToggleRight size={14} className="text-green-500" /> : <ToggleLeft size={14} />}
+                                          {branch.isActive ? <ToggleRight size={14} className="text-success" /> : <ToggleLeft size={14} />}
                                         </button>
                                         )}
                                         {canEdit('courses') && (
                                         <button
                                           onClick={() => handleDeleteBranch(selectedCourse.id, branch)}
                                           disabled={savingBranchId === branch.id}
-                                          className="p-1 text-gray-400 hover:text-red-500"
+                                          className="p-1 text-muted-text hover:text-danger"
                                           title="Delete"
                                         >
                                           <Trash2 size={14} />
@@ -4370,8 +4370,8 @@ const Settings = () => {
                         ) : (
                           <div className="flex h-full items-center justify-center p-8">
                             <div className="text-center">
-                              <Layers size={32} className="mx-auto mb-3 text-gray-300" />
-                              <p className="text-sm text-gray-500">Select a program to view branches</p>
+                              <Layers size={32} className="mx-auto mb-3 text-muted-text" />
+                              <p className="text-sm text-muted-text">Select a program to view branches</p>
                             </div>
                           </div>
                         )}
@@ -4385,15 +4385,15 @@ const Settings = () => {
         )}
 
         {activeSection === 'calendar' && (
-          <div className="rounded-lg border border-gray-200 bg-white shadow-sm flex flex-col h-[calc(100vh-280px)] min-h-[600px] max-h-[calc(100vh-200px)] 2xl:max-h-[calc(100vh-180px)]">
-            <div className="border-b border-gray-200 px-4 py-3 flex-shrink-0">
+          <div className="rounded-lg border border-border bg-surface shadow-sm flex flex-col h-[calc(100vh-280px)] min-h-[600px] max-h-[calc(100vh-200px)] 2xl:max-h-[calc(100vh-180px)]">
+            <div className="border-b border-border px-4 py-3 flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-blue-100 p-2.5 text-blue-600">
+                <div className="rounded-full bg-[var(--primary-light)] p-2.5 text-primary">
                   <CalendarDays size={20} />
                 </div>
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Attendance Calendar</h2>
-                  <p className="text-sm text-gray-500 mt-0.5">
+                  <h2 className="text-base font-semibold text-main">Attendance Calendar</h2>
+                  <p className="text-sm text-muted-text mt-0.5">
                     Review public holidays, institute breaks, and mark custom holidays.
                   </p>
                 </div>
@@ -4402,23 +4402,23 @@ const Settings = () => {
 
             <div className="flex flex-col lg:flex-row flex-1 overflow-hidden min-h-0">
               {/* Calendar Grid */}
-              <div className="flex-1 border-b border-gray-200 lg:border-b-0 lg:border-r p-4 overflow-y-auto min-h-0">
+              <div className="flex-1 border-b border-border lg:border-b-0 lg:border-r p-4 overflow-y-auto min-h-0">
                 {calendarViewLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <LoadingAnimation width={32} height={32} message="Loading..." />
                   </div>
                 ) : calendarViewError ? (
-                  <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-                    <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-red-600" />
+                  <div className="flex items-start gap-3 rounded-lg border border-[var(--danger-light)] bg-[var(--danger-light)] p-4">
+                    <AlertTriangle size={18} className="mt-0.5 flex-shrink-0 text-danger" />
                     <div className="flex-1">
-                      <div className="text-sm font-semibold text-red-800 mb-1">
+                      <div className="text-sm font-semibold text-danger mb-1">
                         Calendar data unavailable
                       </div>
-                      <div className="text-sm text-red-700 mb-2">{calendarViewError}</div>
+                      <div className="text-sm text-danger mb-2">{calendarViewError}</div>
                       <button
                         type="button"
                         onClick={handleCalendarModalRetry}
-                        className="inline-flex items-center gap-2 rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+                        className="inline-flex items-center gap-2 rounded-md border border-[var(--danger-light)] bg-surface px-3 py-1.5 text-sm font-medium text-danger transition-colors hover:bg-[var(--danger-light)]"
                       >
                         Retry
                       </button>
@@ -4435,19 +4435,19 @@ const Settings = () => {
                           const prev = new Date(Date.UTC(parts.year, parts.month - 2, 1));
                           handleCalendarMonthChange(`${prev.getUTCFullYear()}-${String(prev.getUTCMonth() + 1).padStart(2, '0')}`);
                         }}
-                        className="rounded-md border border-gray-300 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-50 hover:border-gray-400"
+                        className="rounded-md border border-border-strong bg-surface p-2 text-sub transition-colors hover:bg-background hover:border-border-strong"
                         aria-label="Previous month"
                       >
                         <ChevronLeft size={18} />
                       </button>
                       <div className="text-center">
-                        <div className="text-base font-semibold text-gray-900">
+                        <div className="text-base font-semibold text-main">
                           {(() => {
                             const parts = parseMonthKey(calendarViewMonthKey);
                             return parts ? `${MONTH_NAMES[parts.month - 1]} ${parts.year}` : '';
                           })()}
                         </div>
-                        <div className="text-xs text-gray-500 mt-0.5">Tap a date to view details</div>
+                        <div className="text-xs text-muted-text mt-0.5">Tap a date to view details</div>
                       </div>
                       <button
                         type="button"
@@ -4457,14 +4457,14 @@ const Settings = () => {
                           const next = new Date(Date.UTC(parts.year, parts.month, 1));
                           handleCalendarMonthChange(`${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, '0')}`);
                         }}
-                        className="rounded-md border border-gray-300 bg-white p-2 text-gray-600 transition-colors hover:bg-gray-50 hover:border-gray-400"
+                        className="rounded-md border border-border-strong bg-surface p-2 text-sub transition-colors hover:bg-background hover:border-border-strong"
                         aria-label="Next month"
                       >
                         <ChevronRight size={18} />
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-semibold uppercase text-gray-600 flex-shrink-0">
+                    <div className="grid grid-cols-7 gap-1 mb-2 text-center text-xs font-semibold uppercase text-sub flex-shrink-0">
                       {WEEKDAY_NAMES.map((name) => (
                         <div key={name} className="py-2">{name}</div>
                       ))}
@@ -4504,26 +4504,26 @@ const Settings = () => {
                           const isHoliday = Boolean(publicHoliday || customHoliday || isSunday);
                           const statusInfo = status && STATUS_META[status];
 
-                          let cellBgColor = 'bg-white';
+                          let cellBgColor = 'bg-surface';
                           if (isHoliday) {
-                            cellBgColor = 'bg-amber-50/50';
+                            cellBgColor = 'bg-[var(--warning-light)]';
                           } else {
-                            cellBgColor = 'bg-blue-50/30';
+                            cellBgColor = 'bg-[var(--primary-light)]';
                           }
 
                           const badgeColor = isHoliday
                             ? publicHoliday
-                              ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                              ? 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
                               : customHoliday
-                                ? 'bg-amber-100 text-amber-700 border border-amber-300'
-                                : 'bg-amber-100 text-amber-700 border border-amber-300'
+                                ? 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
+                                : 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
                             : statusInfo
                               ? statusInfo.badgeClass
-                              : 'bg-gray-100 text-gray-500 border border-gray-200';
+                              : 'bg-background text-muted-text border border-border';
 
                           const baseClasses = cell.isCurrentMonth
-                            ? 'cursor-pointer hover:border-blue-500 hover:text-blue-600'
-                            : 'cursor-not-allowed text-gray-300';
+                            ? 'cursor-pointer hover:border-primary hover:text-primary'
+                            : 'cursor-not-allowed text-muted-text';
 
                           return (
                             <button
@@ -4532,11 +4532,11 @@ const Settings = () => {
                               onClick={() => handleCalendarDateSelect(cell.isoDate)}
                               disabled={!cell.isCurrentMonth}
                               className={`flex h-full min-h-[70px] flex-col justify-start items-center rounded-md border-2 py-2 px-1.5 text-xs transition-all ${isSelected
-                                ? 'border-blue-500 bg-blue-100 text-blue-800 shadow-md ring-2 ring-blue-300 ring-offset-1'
-                                : `${cellBgColor} border-gray-200 text-gray-700 ${baseClasses}`
+                                ? 'border-primary bg-[var(--primary-light)] text-primary shadow-md ring-2 ring-[var(--primary-light)] ring-offset-1'
+                                : `${cellBgColor} border-border text-sub ${baseClasses}`
                                 } ${!cell.isCurrentMonth ? 'opacity-40' : ''}`}
                             >
-                              <span className={`font-semibold text-sm mb-1 ${!cell.isCurrentMonth ? 'text-gray-400' : ''}`}>
+                              <span className={`font-semibold text-sm mb-1 ${!cell.isCurrentMonth ? 'text-muted-text' : ''}`}>
                                 {cell.day}
                               </span>
                               {isHoliday && (
@@ -4559,13 +4559,13 @@ const Settings = () => {
               </div>
 
               {/* Sidebar */}
-              <aside className="w-full lg:w-[360px] xl:w-[380px] 2xl:w-[400px] p-4 space-y-4 overflow-y-auto flex-shrink-0 border-l border-gray-200">
+              <aside className="w-full lg:w-[360px] xl:w-[380px] 2xl:w-[400px] p-4 space-y-4 overflow-y-auto flex-shrink-0 border-l border-border">
                 {/* Selected Date Section */}
-                <div className="border-b border-gray-200 pb-4">
+                <div className="border-b border-border pb-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-900">Selected Date</h3>
+                    <h3 className="text-sm font-semibold text-main">Selected Date</h3>
                     {selectedCalendarDate && (
-                      <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+                      <span className="rounded-full bg-background px-3 py-1 text-xs font-medium text-sub">
                         {formatIsoDate(selectedCalendarDate, {
                           weekday: 'short',
                           month: 'short',
@@ -4577,7 +4577,7 @@ const Settings = () => {
                   </div>
 
                   {!selectedCalendarDate ? (
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+                    <div className="rounded-lg border border-border bg-background p-3 text-sm text-sub">
                       Choose a date on the calendar to view holiday details or mark an institute break.
                     </div>
                   ) : (() => {
@@ -4587,8 +4587,8 @@ const Settings = () => {
                     const isSunday = (data.sundays || []).some(d => d.split('T')[0] === selectedCalendarDate);
 
                     return (
-                      <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                        <div className="text-sm font-semibold text-blue-900 mb-1">
+                      <div className="rounded-lg border border-[var(--primary-light)] bg-[var(--primary-light)] p-3">
+                        <div className="text-sm font-semibold text-primary mb-1">
                           {publicHoliday
                             ? publicHoliday.localName || publicHoliday.name
                             : customHoliday
@@ -4597,7 +4597,7 @@ const Settings = () => {
                                 ? 'Sunday'
                                 : 'Instructional Day'}
                         </div>
-                        <div className="text-xs text-blue-700">
+                        <div className="text-xs text-primary">
                           {publicHoliday
                             ? publicHoliday.name
                             : customHoliday?.description
@@ -4619,25 +4619,25 @@ const Settings = () => {
                   );
 
                   return (
-                    <div className="border-b border-gray-200 pb-4 space-y-3">
+                    <div className="border-b border-border pb-4 space-y-3">
                       {holidaysForDate.length > 0 && (
                         <div className="space-y-2">
-                          <div className="text-xs font-semibold text-gray-700">Holidays on this date</div>
+                          <div className="text-xs font-semibold text-sub">Holidays on this date</div>
                           {holidaysForDate.map((holiday) => (
-                            <div key={holiday.id || `${holiday.date}-${holiday.title}`} className="rounded-md border border-purple-100 bg-purple-50 p-3">
+                            <div key={holiday.id || `${holiday.date}-${holiday.title}`} className="rounded-md border border-[var(--primary-light)] bg-[var(--primary-light)] p-3">
                               <div className="flex items-start justify-between gap-2">
                                 <div>
-                                  <div className="text-sm font-semibold text-purple-900">{holiday.title || 'Institute Holiday'}</div>
+                                  <div className="text-sm font-semibold text-secondary">{holiday.title || 'Institute Holiday'}</div>
                                   {holiday.description && (
-                                    <div className="mt-1 text-xs text-purple-700">{holiday.description}</div>
+                                    <div className="mt-1 text-xs text-secondary">{holiday.description}</div>
                                   )}
-                                  <div className="mt-1 text-[11px] text-purple-600">{formatHolidayScope(holiday)}</div>
+                                  <div className="mt-1 text-[11px] text-secondary">{formatHolidayScope(holiday)}</div>
                                 </div>
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveInstituteHoliday(holiday.id)}
                                   disabled={calendarMutationLoading || !holiday.id}
-                                  className="rounded-md border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                                  className="rounded-md border border-[var(--danger-light)] bg-surface px-2 py-1 text-[11px] font-semibold text-danger hover:bg-[var(--danger-light)] disabled:opacity-50"
                                 >
                                   Remove
                                 </button>
@@ -4648,7 +4648,7 @@ const Settings = () => {
                       )}
 
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                        <label className="block text-xs font-medium text-sub mb-1.5">
                           Holiday Title
                         </label>
                         <input
@@ -4656,12 +4656,12 @@ const Settings = () => {
                           value={localHolidayTitle}
                           onChange={(e) => setLocalHolidayTitle(e.target.value)}
                           placeholder="e.g. Founders' Day"
-                          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
+                          className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main placeholder:text-muted-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] transition-colors"
                           disabled={calendarMutationLoading}
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                        <label className="block text-xs font-medium text-sub mb-1.5">
                           Notes (visible to staff)
                         </label>
                         <textarea
@@ -4669,7 +4669,7 @@ const Settings = () => {
                           onChange={(e) => setLocalHolidayDescription(e.target.value)}
                           placeholder="Optional: add a note for this holiday"
                           rows={3}
-                          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors resize-none"
+                          className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main placeholder:text-muted-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] transition-colors resize-none"
                           disabled={calendarMutationLoading}
                         />
                       </div>
@@ -4688,11 +4688,11 @@ const Settings = () => {
                           });
                         }}
                         disabled={calendarMutationLoading}
-                        className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-primary"
                       >
                         {calendarMutationLoading ? (
                           <>
-                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-surface border-t-transparent" />
                             Saving…
                           </>
                         ) : (
@@ -4704,26 +4704,26 @@ const Settings = () => {
                 })()}
 
                 {/* Legend */}
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-                  <div className="text-xs font-semibold text-gray-700 mb-2">
+                <div className="rounded-lg border border-border bg-background p-3">
+                  <div className="text-xs font-semibold text-sub mb-2">
                     Calendar Legend
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 rounded-md bg-orange-100 border-2 border-orange-300 flex-shrink-0" />
-                      <span className="text-gray-700">Public Holiday</span>
+                      <div className="h-4 w-4 rounded-md bg-[var(--warning-light)] border-2 border-[var(--warning-light)] flex-shrink-0" />
+                      <span className="text-sub">Public Holiday</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 rounded-md bg-purple-100 border-2 border-purple-300 flex-shrink-0" />
-                      <span className="text-gray-700">Institute Holiday</span>
+                      <div className="h-4 w-4 rounded-md bg-[var(--primary-light)] border-2 border-[var(--primary-light)] flex-shrink-0" />
+                      <span className="text-sub">Institute Holiday</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 rounded-md bg-amber-100 border-2 border-amber-300 flex-shrink-0" />
-                      <span className="text-gray-700">Sunday</span>
+                      <div className="h-4 w-4 rounded-md bg-[var(--warning-light)] border-2 border-[var(--warning-light)] flex-shrink-0" />
+                      <span className="text-sub">Sunday</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 rounded-md bg-blue-100 border-2 border-blue-300 flex-shrink-0" />
-                      <span className="text-gray-700">Working Day</span>
+                      <div className="h-4 w-4 rounded-md bg-[var(--primary-light)] border-2 border-[var(--primary-light)] flex-shrink-0" />
+                      <span className="text-sub">Working Day</span>
                     </div>
                   </div>
                 </div>
@@ -4734,7 +4734,7 @@ const Settings = () => {
 
         {/* Academic Calendar Section */}
         {activeSection === 'academic-calendar' && canView('academic_calendar') && (
-          <div className="rounded-lg border border-gray-200 bg-white shadow-sm p-6">
+          <div className="rounded-lg border border-border bg-surface shadow-sm p-6">
             <AcademicCalendar
               colleges={colleges}
               courses={courses}
@@ -4746,18 +4746,18 @@ const Settings = () => {
 
         {/* Registration Forms Section */}
         {activeSection === 'forms' && (
-          <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="rounded-lg border border-border bg-surface shadow-sm">
             {formsLoading ? (
               <div className="flex items-center justify-center py-16">
                 <LoadingAnimation width={32} height={32} message="Loading form..." />
               </div>
             ) : registrationForms.length === 0 ? (
               <div className="text-center py-16">
-                <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FileText className="text-purple-600" size={32} />
+                <div className="bg-[var(--primary-light)] w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="text-secondary" size={32} />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Registration Form</h3>
-                <p className="text-gray-600">Contact administrator to set up the registration form.</p>
+                <h3 className="text-lg font-semibold text-main mb-2">No Registration Form</h3>
+                <p className="text-sub">Contact administrator to set up the registration form.</p>
               </div>
             ) : (() => {
               const form = registrationForms[0]; // Only show the first/single form
@@ -4766,27 +4766,27 @@ const Settings = () => {
                 // Inline Form Editor
                 <div className="p-4">
                   {/* Editor Header */}
-                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-border">
                     <div className="flex items-center gap-3">
-                      <div className="bg-purple-100 p-2 rounded-lg">
-                        <Pencil size={20} className="text-purple-600" />
+                      <div className="bg-[var(--primary-light)] p-2 rounded-lg">
+                        <Pencil size={20} className="text-secondary" />
                       </div>
                       <div>
-                        <h2 className="text-lg font-semibold text-gray-900">Edit Registration Form</h2>
-                        <p className="text-sm text-gray-500">Customize form fields and settings</p>
+                        <h2 className="text-lg font-semibold text-main">Edit Registration Form</h2>
+                        <p className="text-sm text-muted-text">Customize form fields and settings</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={cancelEditingForm}
-                        className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                        className="px-4 py-2 border border-border-strong text-sub rounded-lg hover:bg-background transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={saveFormChanges}
                         disabled={savingFormId}
-                        className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary transition-colors disabled:opacity-50"
                       >
                         {savingFormId ? <LoadingAnimation width={16} height={16} showMessage={false} /> : <Settings2 size={16} />}
                         Save Changes
@@ -4797,34 +4797,34 @@ const Settings = () => {
                   {/* Form Details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Form Name *</label>
+                      <label className="block text-sm font-medium text-sub mb-1">Form Name *</label>
                       <input
                         type="text"
                         value={formEditData.formName}
                         onChange={(e) => setFormEditData({ ...formEditData, formName: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                        className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                      <label className="block text-sm font-medium text-sub mb-1">Description</label>
                       <input
                         type="text"
                         value={formEditData.formDescription}
                         onChange={(e) => setFormEditData({ ...formEditData, formDescription: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                        className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none"
                       />
                     </div>
                   </div>
 
                   {/* Add Field Types */}
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Add New Field</label>
+                    <label className="block text-sm font-medium text-sub mb-2">Add New Field</label>
                     <div className="flex flex-wrap gap-2">
                       {FIELD_TYPES.map((type) => (
                         <button
                           key={type.key}
                           onClick={() => addFormField(type.key)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-border rounded-lg hover:bg-[var(--primary-light)] hover:border-[var(--primary-light)] transition-colors"
                         >
                           <span>{type.icon}</span>
                           <span>{type.label}</span>
@@ -4834,8 +4834,8 @@ const Settings = () => {
                   </div>
 
                   {/* Form Fields Editor - Grouped by Content Headers */}
-                  <div className="border-t border-gray-200 pt-4">
-                    <h4 className="text-sm font-semibold text-gray-900 mb-3">Form Fields ({formEditData.formFields.length})</h4>
+                  <div className="border-t border-border pt-4">
+                    <h4 className="text-sm font-semibold text-main mb-3">Form Fields ({formEditData.formFields.length})</h4>
                     {(() => {
                       // Categorize fields
                       // Personal Information: Date of Birth and Aadhar Number only
@@ -4907,8 +4907,8 @@ const Settings = () => {
                       return (
                         <div className="space-y-6 max-h-[600px] overflow-y-auto">
                           {sections.map((section, sectionIndex) => (
-                            <div key={sectionIndex} className="border-b border-gray-200 pb-4 last:border-b-0">
-                              <h5 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <div key={sectionIndex} className="border-b border-border pb-4 last:border-b-0">
+                              <h5 className="text-sm font-semibold text-main mb-3 flex items-center gap-2">
                                 <div className={`w-3 h-3 bg-${section.color} rounded-full`}></div>
                                 {section.title}
                               </h5>
@@ -4927,13 +4927,13 @@ const Settings = () => {
                                       key={field.id != null ? field.id : `section-${sectionIndex}-field-${fieldIndex}`}
                                       className={`rounded-lg border-2 p-3 transition-all ${field.isEnabled !== false
                                         ? isSystemField
-                                          ? 'border-blue-200 bg-blue-50'
-                                          : 'border-gray-200 bg-white'
-                                        : 'border-gray-100 bg-gray-50'
+                                          ? 'border-[var(--primary-light)] bg-[var(--primary-light)]'
+                                          : 'border-border bg-surface'
+                                        : 'border-border bg-background'
                                         }`}
                                     >
                                       {isSystemField && (
-                                        <div className="mb-2 flex items-center gap-1.5 text-xs text-blue-700 font-medium">
+                                        <div className="mb-2 flex items-center gap-1.5 text-xs text-primary font-medium">
                                           <Settings2 size={12} />
                                           System Field (Required for form functionality)
                                         </div>
@@ -4941,22 +4941,22 @@ const Settings = () => {
                                       <div className="flex items-start gap-3">
                                         <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-3">
                                           <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Label *</label>
+                                            <label className="block text-xs text-muted-text mb-1">Label *</label>
                                             <input
                                               type="text"
                                               value={field.label}
                                               onChange={(e) => updateFormField(fieldIndex, 'label', e.target.value)}
                                               placeholder="Field label"
-                                              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 outline-none"
+                                              className="w-full px-2 py-1.5 text-sm border border-border-strong rounded focus:ring-1 focus:ring-secondary outline-none"
                                               disabled={isSystemField}
                                             />
                                           </div>
                                           <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Type</label>
+                                            <label className="block text-xs text-muted-text mb-1">Type</label>
                                             <select
                                               value={field.type}
                                               onChange={(e) => updateFormField(fieldIndex, 'type', e.target.value)}
-                                              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 outline-none"
+                                              className="w-full px-2 py-1.5 text-sm border border-border-strong rounded focus:ring-1 focus:ring-secondary outline-none"
                                               disabled={isSystemField}
                                             >
                                               {FIELD_TYPES.map((t) => (
@@ -4965,13 +4965,13 @@ const Settings = () => {
                                             </select>
                                           </div>
                                           <div>
-                                            <label className="block text-xs text-gray-500 mb-1">Placeholder</label>
+                                            <label className="block text-xs text-muted-text mb-1">Placeholder</label>
                                             <input
                                               type="text"
                                               value={field.placeholder || ''}
                                               onChange={(e) => updateFormField(fieldIndex, 'placeholder', e.target.value)}
                                               placeholder="Placeholder text"
-                                              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 outline-none"
+                                              className="w-full px-2 py-1.5 text-sm border border-border-strong rounded focus:ring-1 focus:ring-secondary outline-none"
                                             />
                                           </div>
                                           <div className="flex items-end gap-2">
@@ -4980,15 +4980,15 @@ const Settings = () => {
                                                 type="checkbox"
                                                 checked={field.required}
                                                 onChange={(e) => updateFormField(fieldIndex, 'required', e.target.checked)}
-                                                className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                                className="rounded border-border-strong text-secondary focus:ring-secondary"
                                               />
                                               Required
                                             </label>
                                             <button
                                               onClick={() => toggleFieldEnabled(fieldIndex)}
                                               className={`p-1.5 rounded transition-colors ${field.isEnabled !== false
-                                                ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'
-                                                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                                                ? 'bg-[var(--success-light)] text-success hover:bg-[var(--success-light)]'
+                                                : 'bg-background text-muted-text hover:bg-background'
                                                 }`}
                                               title={field.isEnabled !== false ? 'Enabled' : 'Disabled'}
                                               disabled={isSystemField}
@@ -5004,8 +5004,8 @@ const Settings = () => {
                                                 removeFormField(fieldIndex);
                                               }}
                                               className={`p-1.5 rounded transition-colors ${isSystemField
-                                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                : 'bg-red-100 text-red-600 hover:bg-red-200'
+                                                ? 'bg-background text-muted-text cursor-not-allowed'
+                                                : 'bg-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)]'
                                                 }`}
                                               title={isSystemField ? 'System field - cannot be removed' : 'Remove field'}
                                               disabled={isSystemField}
@@ -5018,8 +5018,8 @@ const Settings = () => {
 
                                       {/* Options for select/radio/checkbox */}
                                       {(field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') && (
-                                        <div className="mt-3 pl-3 border-l-2 border-purple-200">
-                                          <label className="block text-xs text-gray-500 mb-1">Options</label>
+                                        <div className="mt-3 pl-3 border-l-2 border-[var(--primary-light)]">
+                                          <label className="block text-xs text-muted-text mb-1">Options</label>
                                           <div className="flex flex-wrap gap-2">
                                             {(field.options || []).map((option, optIndex) => (
                                               <div key={`field-${fieldIndex}-opt-${optIndex}`} className="flex items-center gap-1">
@@ -5027,11 +5027,11 @@ const Settings = () => {
                                                   type="text"
                                                   value={option}
                                                   onChange={(e) => updateFieldOption(fieldIndex, optIndex, e.target.value)}
-                                                  className="px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-purple-500 outline-none w-24"
+                                                  className="px-2 py-1 text-xs border border-border-strong rounded focus:ring-1 focus:ring-secondary outline-none w-24"
                                                 />
                                                 <button
                                                   onClick={() => removeFieldOption(fieldIndex, optIndex)}
-                                                  className="p-0.5 text-red-500 hover:bg-red-100 rounded"
+                                                  className="p-0.5 text-danger hover:bg-[var(--danger-light)] rounded"
                                                 >
                                                   <X size={14} />
                                                 </button>
@@ -5039,7 +5039,7 @@ const Settings = () => {
                                             ))}
                                             <button
                                               onClick={() => addFieldOption(fieldIndex)}
-                                              className="px-2 py-1 text-xs border border-dashed border-gray-300 rounded hover:border-purple-400 hover:bg-purple-50 transition-colors"
+                                              className="px-2 py-1 text-xs border border-dashed border-border-strong rounded hover:border-secondary hover:bg-[var(--primary-light)] transition-colors"
                                             >
                                               + Add
                                             </button>
@@ -5058,24 +5058,24 @@ const Settings = () => {
                   </div>
 
                   {/* Certificate Information Section - Configurable */}
-                  <div className="border-t border-gray-200 pt-6 mt-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                      <div className="w-3 h-3 bg-teal-500 rounded-full"></div>
+                  <div className="border-t border-border pt-6 mt-6">
+                    <h2 className="text-lg font-semibold text-main mb-4 flex items-center gap-2">
+                      <div className="w-3 h-3 bg-primary rounded-full"></div>
                       Certificate Information
                     </h2>
-                    <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                      <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                        <FileText size={16} className="text-gray-600" />
+                    <div className="bg-background rounded-lg border border-border p-4">
+                      <h3 className="text-sm font-semibold text-sub mb-4 flex items-center gap-2">
+                        <FileText size={16} className="text-sub" />
                         Default Certification Fields
                       </h3>
 
                       {/* For Diploma Courses */}
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-sm font-medium text-gray-700">For Diploma Courses</h4>
+                          <h4 className="text-sm font-medium text-sub">For Diploma Courses</h4>
                           <button
                             onClick={() => addCertificate('diploma')}
-                            className="flex items-center gap-1 px-2 py-1 text-xs bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-primary text-white rounded hover:bg-primary-hover transition-colors"
                           >
                             <Plus size={14} />
                             Add Certificate
@@ -5083,27 +5083,27 @@ const Settings = () => {
                         </div>
                         <div className="space-y-2">
                           {certificateConfig.diploma.map((cert) => (
-                            <div key={cert.id} className="space-y-2 p-3 bg-white rounded-lg border border-gray-200">
+                            <div key={cert.id} className="space-y-2 p-3 bg-surface rounded-lg border border-border">
                               <div className="flex items-center gap-3">
                                 <input
                                   type="text"
                                   value={cert.name}
                                   onChange={(e) => updateCertificateName('diploma', cert.id, e.target.value)}
                                   placeholder="Certificate name"
-                                  className="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-teal-500 outline-none font-medium"
+                                  className="flex-1 px-2 py-1.5 text-sm border border-border-strong rounded focus:ring-1 focus:ring-primary outline-none font-medium"
                                 />
                                 <label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
                                   <input
                                     type="checkbox"
                                     checked={cert.required}
                                     onChange={(e) => updateCertificateRequired('diploma', cert.id, e.target.checked)}
-                                    className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                                    className="rounded border-border-strong text-primary focus:ring-primary"
                                   />
-                                  <span className="text-xs text-gray-600">Required</span>
+                                  <span className="text-xs text-sub">Required</span>
                                 </label>
                                 <button
                                   onClick={() => removeCertificate('diploma', cert.id)}
-                                  className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  className="p-1.5 text-danger hover:bg-[var(--danger-light)] rounded transition-colors"
                                   title="Remove certificate"
                                 >
                                   <Trash2 size={16} />
@@ -5111,12 +5111,12 @@ const Settings = () => {
                               </div>
 
                               {/* Options management */}
-                              <div className="pl-4 border-l-2 border-teal-50 space-y-2">
+                              <div className="pl-4 border-l-2 border-[var(--primary-light)] space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs font-semibold text-gray-500 uppercase">Dropdown Options</span>
+                                  <span className="text-xs font-semibold text-muted-text uppercase">Dropdown Options</span>
                                   <button
                                     onClick={() => addCertificateOption('diploma', cert.id)}
-                                    className="text-[10px] bg-teal-50 text-teal-600 px-2 py-0.5 rounded hover:bg-teal-100 transition-colors border border-teal-200 flex items-center gap-1"
+                                    className="text-[10px] bg-[var(--primary-light)] text-primary px-2 py-0.5 rounded hover:bg-[var(--primary-light)] transition-colors border border-[var(--primary-light)] flex items-center gap-1"
                                   >
                                     <Plus size={10} /> Add Option
                                   </button>
@@ -5132,19 +5132,19 @@ const Settings = () => {
                                           value={optValue}
                                           onChange={(e) => updateCertificateOption('diploma', cert.id, optIdx, e.target.value)}
                                           placeholder="e.g. Original"
-                                          className="w-24 px-2 py-0.5 text-[11px] border border-gray-200 rounded focus:ring-1 focus:ring-teal-500 outline-none"
+                                          className="w-24 px-2 py-0.5 text-[11px] border border-border rounded focus:ring-1 focus:ring-primary outline-none"
                                         />
                                         <select
                                           value={optType}
                                           onChange={(e) => updateCertificateOptionType('diploma', cert.id, optIdx, e.target.value)}
-                                          className={`text-[10px] px-1 py-0.5 border rounded outline-none ${optType === 'temporary' ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-green-300 bg-green-50 text-green-700'}`}
+                                          className={`text-[10px] px-1 py-0.5 border rounded outline-none ${optType === 'temporary' ? 'border-[var(--warning-light)] bg-[var(--warning-light)] text-warning' : 'border-[var(--success-light)] bg-[var(--success-light)] text-success'}`}
                                         >
                                           <option value="permanent">Permanent</option>
                                           <option value="temporary">Temporary</option>
                                         </select>
                                         <button
                                           onClick={() => removeCertificateOption('diploma', cert.id, optIdx)}
-                                          className="p-0.5 text-gray-400 hover:text-red-500 transition-colors"
+                                          className="p-0.5 text-muted-text hover:text-danger transition-colors"
                                         >
                                           <X size={12} />
                                         </button>
@@ -5152,7 +5152,7 @@ const Settings = () => {
                                     );
                                   })}
                                   {(cert.options || []).length === 0 && (
-                                    <span className="text-[10px] text-gray-400 italic">No options (will use Yes/No)</span>
+                                    <span className="text-[10px] text-muted-text italic">No options (will use Yes/No)</span>
                                   )}
                                 </div>
                               </div>
@@ -5164,10 +5164,10 @@ const Settings = () => {
                       {/* For UG Courses */}
                       <div className="mb-6">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-sm font-medium text-gray-700">For UG Courses</h4>
+                          <h4 className="text-sm font-medium text-sub">For UG Courses</h4>
                           <button
                             onClick={() => addCertificate('ug')}
-                            className="flex items-center gap-1 px-2 py-1 text-xs bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-primary text-white rounded hover:bg-primary-hover transition-colors"
                           >
                             <Plus size={14} />
                             Add Certificate
@@ -5175,27 +5175,27 @@ const Settings = () => {
                         </div>
                         <div className="space-y-2">
                           {certificateConfig.ug.map((cert) => (
-                            <div key={cert.id} className="space-y-2 p-3 bg-white rounded-lg border border-gray-200">
+                            <div key={cert.id} className="space-y-2 p-3 bg-surface rounded-lg border border-border">
                               <div className="flex items-center gap-3">
                                 <input
                                   type="text"
                                   value={cert.name}
                                   onChange={(e) => updateCertificateName('ug', cert.id, e.target.value)}
                                   placeholder="Certificate name"
-                                  className="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-teal-500 outline-none font-medium"
+                                  className="flex-1 px-2 py-1.5 text-sm border border-border-strong rounded focus:ring-1 focus:ring-primary outline-none font-medium"
                                 />
                                 <label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
                                   <input
                                     type="checkbox"
                                     checked={cert.required}
                                     onChange={(e) => updateCertificateRequired('ug', cert.id, e.target.checked)}
-                                    className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                                    className="rounded border-border-strong text-primary focus:ring-primary"
                                   />
-                                  <span className="text-xs text-gray-600">Required</span>
+                                  <span className="text-xs text-sub">Required</span>
                                 </label>
                                 <button
                                   onClick={() => removeCertificate('ug', cert.id)}
-                                  className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  className="p-1.5 text-danger hover:bg-[var(--danger-light)] rounded transition-colors"
                                   title="Remove certificate"
                                 >
                                   <Trash2 size={16} />
@@ -5203,12 +5203,12 @@ const Settings = () => {
                               </div>
 
                               {/* Options management */}
-                              <div className="pl-4 border-l-2 border-teal-50 space-y-2">
+                              <div className="pl-4 border-l-2 border-[var(--primary-light)] space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs font-semibold text-gray-500 uppercase">Dropdown Options</span>
+                                  <span className="text-xs font-semibold text-muted-text uppercase">Dropdown Options</span>
                                   <button
                                     onClick={() => addCertificateOption('ug', cert.id)}
-                                    className="text-[10px] bg-teal-50 text-teal-600 px-2 py-0.5 rounded hover:bg-teal-100 transition-colors border border-teal-200 flex items-center gap-1"
+                                    className="text-[10px] bg-[var(--primary-light)] text-primary px-2 py-0.5 rounded hover:bg-[var(--primary-light)] transition-colors border border-[var(--primary-light)] flex items-center gap-1"
                                   >
                                     <Plus size={10} /> Add Option
                                   </button>
@@ -5224,19 +5224,19 @@ const Settings = () => {
                                           value={optValue}
                                           onChange={(e) => updateCertificateOption('ug', cert.id, optIdx, e.target.value)}
                                           placeholder="e.g. Original"
-                                          className="w-24 px-2 py-0.5 text-[11px] border border-gray-200 rounded focus:ring-1 focus:ring-teal-500 outline-none"
+                                          className="w-24 px-2 py-0.5 text-[11px] border border-border rounded focus:ring-1 focus:ring-primary outline-none"
                                         />
                                         <select
                                           value={optType}
                                           onChange={(e) => updateCertificateOptionType('ug', cert.id, optIdx, e.target.value)}
-                                          className={`text-[10px] px-1 py-0.5 border rounded outline-none ${optType === 'temporary' ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-green-300 bg-green-50 text-green-700'}`}
+                                          className={`text-[10px] px-1 py-0.5 border rounded outline-none ${optType === 'temporary' ? 'border-[var(--warning-light)] bg-[var(--warning-light)] text-warning' : 'border-[var(--success-light)] bg-[var(--success-light)] text-success'}`}
                                         >
                                           <option value="permanent">Permanent</option>
                                           <option value="temporary">Temporary</option>
                                         </select>
                                         <button
                                           onClick={() => removeCertificateOption('ug', cert.id, optIdx)}
-                                          className="p-0.5 text-gray-400 hover:text-red-500 transition-colors"
+                                          className="p-0.5 text-muted-text hover:text-danger transition-colors"
                                         >
                                           <X size={12} />
                                         </button>
@@ -5244,7 +5244,7 @@ const Settings = () => {
                                     );
                                   })}
                                   {(cert.options || []).length === 0 && (
-                                    <span className="text-[10px] text-gray-400 italic">No options (will use Yes/No)</span>
+                                    <span className="text-[10px] text-muted-text italic">No options (will use Yes/No)</span>
                                   )}
                                 </div>
                               </div>
@@ -5256,10 +5256,10 @@ const Settings = () => {
                       {/* For PG Courses */}
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-sm font-medium text-gray-700">For PG Courses</h4>
+                          <h4 className="text-sm font-medium text-sub">For PG Courses</h4>
                           <button
                             onClick={() => addCertificate('pg')}
-                            className="flex items-center gap-1 px-2 py-1 text-xs bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
+                            className="flex items-center gap-1 px-2 py-1 text-xs bg-primary text-white rounded hover:bg-primary-hover transition-colors"
                           >
                             <Plus size={14} />
                             Add Certificate
@@ -5267,27 +5267,27 @@ const Settings = () => {
                         </div>
                         <div className="space-y-2">
                           {certificateConfig.pg.map((cert) => (
-                            <div key={cert.id} className="space-y-2 p-3 bg-white rounded-lg border border-gray-200">
+                            <div key={cert.id} className="space-y-2 p-3 bg-surface rounded-lg border border-border">
                               <div className="flex items-center gap-3">
                                 <input
                                   type="text"
                                   value={cert.name}
                                   onChange={(e) => updateCertificateName('pg', cert.id, e.target.value)}
                                   placeholder="Certificate name"
-                                  className="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-teal-500 outline-none font-medium"
+                                  className="flex-1 px-2 py-1.5 text-sm border border-border-strong rounded focus:ring-1 focus:ring-primary outline-none font-medium"
                                 />
                                 <label className="flex items-center gap-2 text-sm cursor-pointer whitespace-nowrap">
                                   <input
                                     type="checkbox"
                                     checked={cert.required}
                                     onChange={(e) => updateCertificateRequired('pg', cert.id, e.target.checked)}
-                                    className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                                    className="rounded border-border-strong text-primary focus:ring-primary"
                                   />
-                                  <span className="text-xs text-gray-600">Required</span>
+                                  <span className="text-xs text-sub">Required</span>
                                 </label>
                                 <button
                                   onClick={() => removeCertificate('pg', cert.id)}
-                                  className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  className="p-1.5 text-danger hover:bg-[var(--danger-light)] rounded transition-colors"
                                   title="Remove certificate"
                                 >
                                   <Trash2 size={16} />
@@ -5295,12 +5295,12 @@ const Settings = () => {
                               </div>
 
                               {/* Options management */}
-                              <div className="pl-4 border-l-2 border-teal-50 space-y-2">
+                              <div className="pl-4 border-l-2 border-[var(--primary-light)] space-y-2">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs font-semibold text-gray-500 uppercase">Dropdown Options</span>
+                                  <span className="text-xs font-semibold text-muted-text uppercase">Dropdown Options</span>
                                   <button
                                     onClick={() => addCertificateOption('pg', cert.id)}
-                                    className="text-[10px] bg-teal-50 text-teal-600 px-2 py-0.5 rounded hover:bg-teal-100 transition-colors border border-teal-200 flex items-center gap-1"
+                                    className="text-[10px] bg-[var(--primary-light)] text-primary px-2 py-0.5 rounded hover:bg-[var(--primary-light)] transition-colors border border-[var(--primary-light)] flex items-center gap-1"
                                   >
                                     <Plus size={10} /> Add Option
                                   </button>
@@ -5316,19 +5316,19 @@ const Settings = () => {
                                           value={optValue}
                                           onChange={(e) => updateCertificateOption('pg', cert.id, optIdx, e.target.value)}
                                           placeholder="e.g. Original"
-                                          className="w-24 px-2 py-0.5 text-[11px] border border-gray-200 rounded focus:ring-1 focus:ring-teal-500 outline-none"
+                                          className="w-24 px-2 py-0.5 text-[11px] border border-border rounded focus:ring-1 focus:ring-primary outline-none"
                                         />
                                         <select
                                           value={optType}
                                           onChange={(e) => updateCertificateOptionType('pg', cert.id, optIdx, e.target.value)}
-                                          className={`text-[10px] px-1 py-0.5 border rounded outline-none ${optType === 'temporary' ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-green-300 bg-green-50 text-green-700'}`}
+                                          className={`text-[10px] px-1 py-0.5 border rounded outline-none ${optType === 'temporary' ? 'border-[var(--warning-light)] bg-[var(--warning-light)] text-warning' : 'border-[var(--success-light)] bg-[var(--success-light)] text-success'}`}
                                         >
                                           <option value="permanent">Permanent</option>
                                           <option value="temporary">Temporary</option>
                                         </select>
                                         <button
                                           onClick={() => removeCertificateOption('pg', cert.id, optIdx)}
-                                          className="p-0.5 text-gray-400 hover:text-red-500 transition-colors"
+                                          className="p-0.5 text-muted-text hover:text-danger transition-colors"
                                         >
                                           <X size={12} />
                                         </button>
@@ -5336,7 +5336,7 @@ const Settings = () => {
                                     );
                                   })}
                                   {(cert.options || []).length === 0 && (
-                                    <span className="text-[10px] text-gray-400 italic">No options (will use Yes/No)</span>
+                                    <span className="text-[10px] text-muted-text italic">No options (will use Yes/No)</span>
                                   )}
                                 </div>
                               </div>
@@ -5350,7 +5350,7 @@ const Settings = () => {
                       <button
                         onClick={saveCertificateSettings}
                         disabled={savingCertificates}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all font-semibold shadow-sm disabled:opacity-50"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover transition-all font-semibold shadow-sm disabled:opacity-50"
                       >
                         {savingCertificates ? (
                           <>
@@ -5372,22 +5372,22 @@ const Settings = () => {
                 // Form View Mode
                 <div className="p-4">
                   {/* Form Header */}
-                  <div className="flex items-start justify-between mb-3 pb-3 border-b border-gray-200">
+                  <div className="flex items-start justify-between mb-3 pb-3 border-b border-border">
                     <div className="flex items-center gap-2">
-                      <div className="bg-purple-100 p-2 rounded-lg">
-                        <FileText size={20} className="text-purple-600" />
+                      <div className="bg-[var(--primary-light)] p-2 rounded-lg">
+                        <FileText size={20} className="text-secondary" />
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <h2 className="text-base font-bold text-gray-900">{form.form_name}</h2>
+                          <h2 className="text-base font-bold text-main">{form.form_name}</h2>
                           <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold ${form.is_active
-                            ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                            : 'bg-gray-100 text-gray-600 border border-gray-200'
+                            ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
+                            : 'bg-background text-sub border border-border'
                             }`}>
                             {form.is_active ? 'Active' : 'Inactive'}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-muted-text mt-0.5">
                           {form.form_description || 'Student registration form'}
                         </p>
                       </div>
@@ -5396,7 +5396,7 @@ const Settings = () => {
                       {canEdit('forms') && (
                       <button
                         onClick={() => startEditingForm(form)}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary transition-colors"
                       >
                         <Pencil size={16} />
                         Edit Form
@@ -5407,8 +5407,8 @@ const Settings = () => {
                         onClick={() => toggleFormActive(form)}
                         disabled={savingFormId === form.form_id}
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border transition-colors disabled:opacity-50 ${form.is_active
-                          ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                          : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100'
+                          ? 'border-[var(--success-light)] bg-[var(--success-light)] text-success hover:bg-[var(--success-light)]'
+                          : 'border-border bg-background text-sub hover:bg-background'
                           }`}
                       >
                         {form.is_active ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
@@ -5420,21 +5420,21 @@ const Settings = () => {
 
                   {/* Stats */}
                   <div className="grid grid-cols-4 gap-2 mb-4">
-                    <div className="rounded-lg border border-gray-100 bg-gray-50 p-2 text-center">
-                      <p className="text-lg font-bold text-gray-900">{form.form_fields?.length || 0}</p>
-                      <p className="text-[10px] uppercase font-bold text-gray-400">Total Fields</p>
+                    <div className="rounded-lg border border-border bg-background p-2 text-center">
+                      <p className="text-lg font-bold text-main">{form.form_fields?.length || 0}</p>
+                      <p className="text-[10px] uppercase font-bold text-muted-text">Total Fields</p>
                     </div>
-                    <div className="rounded-lg border border-purple-100 bg-purple-50 p-2 text-center">
-                      <p className="text-lg font-bold text-purple-600">{form.form_fields?.filter(f => f.isEnabled !== false).length || 0}</p>
-                      <p className="text-[10px] uppercase font-bold text-gray-400">Active</p>
+                    <div className="rounded-lg border border-[var(--primary-light)] bg-[var(--primary-light)] p-2 text-center">
+                      <p className="text-lg font-bold text-secondary">{form.form_fields?.filter(f => f.isEnabled !== false).length || 0}</p>
+                      <p className="text-[10px] uppercase font-bold text-muted-text">Active</p>
                     </div>
-                    <div className="rounded-lg border border-amber-100 bg-amber-50 p-2 text-center">
-                      <p className="text-lg font-bold text-amber-600">{form.pending_count || 0}</p>
-                      <p className="text-[10px] uppercase font-bold text-gray-400">Pending</p>
+                    <div className="rounded-lg border border-[var(--warning-light)] bg-[var(--warning-light)] p-2 text-center">
+                      <p className="text-lg font-bold text-warning">{form.pending_count || 0}</p>
+                      <p className="text-[10px] uppercase font-bold text-muted-text">Pending</p>
                     </div>
-                    <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-2 text-center">
-                      <p className="text-lg font-bold text-emerald-600">{form.approved_count || 0}</p>
-                      <p className="text-[10px] uppercase font-bold text-gray-400">Approved</p>
+                    <div className="rounded-lg border border-[var(--success-light)] bg-[var(--success-light)] p-2 text-center">
+                      <p className="text-lg font-bold text-success">{form.approved_count || 0}</p>
+                      <p className="text-[10px] uppercase font-bold text-muted-text">Approved</p>
                     </div>
                   </div>
 
@@ -5509,8 +5509,8 @@ const Settings = () => {
                     return (
                       <div className="space-y-4">
                         {sections.map((section, sectionIndex) => (
-                          <div key={sectionIndex} className="border-b border-gray-100 pb-3 last:border-b-0">
-                            <h2 className="text-[13px] font-bold text-gray-900 mb-2 flex items-center gap-1.5 uppercase tracking-wide">
+                          <div key={sectionIndex} className="border-b border-border pb-3 last:border-b-0">
+                            <h2 className="text-[13px] font-bold text-main mb-2 flex items-center gap-1.5 uppercase tracking-wide">
                               <div className={`w-2 h-2 bg-${section.color} rounded-full`}></div>
                               {section.title}
                             </h2>
@@ -5520,9 +5520,9 @@ const Settings = () => {
                                   key={field.id != null ? field.id : `preview-section-${sectionIndex}-field-${index}`}
                                   className="flex items-center gap-1.5 text-[11px]"
                                 >
-                                  <span className="font-semibold text-gray-700">{field.label}</span>
-                                  {field.required && <span className="text-red-500 font-bold">*</span>}
-                                  <span className="text-[10px] text-gray-400 capitalize">({field.type})</span>
+                                  <span className="font-semibold text-sub">{field.label}</span>
+                                  {field.required && <span className="text-danger font-bold">*</span>}
+                                  <span className="text-[10px] text-muted-text capitalize">({field.type})</span>
                                 </div>
                               ))}
                             </div>
@@ -5531,29 +5531,29 @@ const Settings = () => {
                       </div>
                     );
                   })() : (
-                    <p className="text-sm text-gray-500 text-center py-4">No fields configured</p>
+                    <p className="text-sm text-muted-text text-center py-4">No fields configured</p>
                   )}
 
                   {/* Certificate Information Section */}
-                  <div className="border-t border-gray-200 pt-4 mt-4">
-                    <h2 className="text-[13px] font-bold text-gray-900 mb-3 flex items-center gap-1.5 uppercase tracking-wide">
-                      <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                  <div className="border-t border-border pt-4 mt-4">
+                    <h2 className="text-[13px] font-bold text-main mb-3 flex items-center gap-1.5 uppercase tracking-wide">
+                      <div className="w-2 h-2 bg-primary rounded-full"></div>
                       Certificates
                     </h2>
-                    <div className="bg-gray-50 rounded-lg border border-gray-100 p-2.5">
+                    <div className="bg-background rounded-lg border border-border p-2.5">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {['diploma', 'ug', 'pg'].map(type => (
                           <div key={type} className="min-w-0">
-                            <h4 className="text-[11px] font-bold text-gray-400 uppercase border-b border-gray-200 pb-1 mb-1.5">
+                            <h4 className="text-[11px] font-bold text-muted-text uppercase border-b border-border pb-1 mb-1.5">
                               {type === 'ug' ? 'UG' : type === 'pg' ? 'PG' : 'Diploma'}
                             </h4>
                             <ul className="space-y-0.5">
                               {certificateConfig[type]?.map(cert => (
-                                <li key={cert.id} className="flex items-start gap-1.5 text-[11px] text-gray-600">
-                                  <div className={`mt-1 h-1 w-1 rounded-full flex-shrink-0 ${cert.required ? 'bg-teal-500' : 'bg-gray-300'}`}></div>
-                                  <span className={`truncate ${cert.required ? 'font-semibold text-gray-700' : ''}`}>
+                                <li key={cert.id} className="flex items-start gap-1.5 text-[11px] text-sub">
+                                  <div className={`mt-1 h-1 w-1 rounded-full flex-shrink-0 ${cert.required ? 'bg-primary' : 'bg-background'}`}></div>
+                                  <span className={`truncate ${cert.required ? 'font-semibold text-sub' : ''}`}>
                                     {cert.name}
-                                    {cert.required && <span className="text-red-500 ml-0.5">*</span>}
+                                    {cert.required && <span className="text-danger ml-0.5">*</span>}
                                   </span>
                                 </li>
                               ))}
@@ -5573,40 +5573,40 @@ const Settings = () => {
 
         {/* Notifications Section */}
         {activeSection === 'notifications' && (
-          <div className="rounded-lg border border-gray-200 bg-white shadow-sm p-6">
+          <div className="rounded-lg border border-border bg-surface shadow-sm p-6">
             <NotificationSettings readOnly={!canEdit('notifications')} />
           </div>
         )}
 
         {/* Student Quotas Section */}
         {activeSection === 'quotas' && (
-          <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-            <div className="border-b border-gray-100 px-4 py-3 bg-slate-50">
+          <div className="rounded-xl border border-border bg-surface shadow-sm overflow-hidden">
+            <div className="border-b border-border px-4 py-3 bg-background">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                    <Tags size={18} className="text-violet-600" />
+                  <h2 className="text-sm font-semibold text-main flex items-center gap-2">
+                    <Tags size={18} className="text-secondary" />
                     Student Quotas
                   </h2>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-muted-text mt-1">
                     Manage quota names and codes used in student forms and the students table.
                   </p>
                 </div>
-                <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-bold text-violet-700">
+                <span className="rounded-full bg-[var(--primary-light)] px-2.5 py-1 text-[11px] font-bold text-secondary">
                   {studentQuotas.length} total
                 </span>
               </div>
             </div>
 
             {canEdit('quotas') && (
-            <div className="p-4 border-b border-gray-100">
+            <div className="p-4 border-b border-border">
               <form onSubmit={handleCreateQuota} className="grid gap-2 sm:grid-cols-[1fr,140px,auto]">
                 <input
                   type="text"
                   value={newQuota.name}
                   onChange={(e) => setNewQuota((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="Quota name (e.g. Management Quota)"
-                  className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-secondary focus:bg-surface focus:outline-none focus:ring-1 focus:ring-secondary"
                 />
                 <input
                   type="text"
@@ -5614,12 +5614,12 @@ const Settings = () => {
                   onChange={(e) => setNewQuota((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))}
                   placeholder="Code (e.g. MANG)"
                   maxLength={50}
-                  className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm uppercase focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-violet-500"
+                  className="rounded-lg border border-border bg-background px-3 py-2 text-sm uppercase focus:border-secondary focus:bg-surface focus:outline-none focus:ring-1 focus:ring-secondary"
                 />
                 <button
                   type="submit"
                   disabled={creatingQuota || !newQuota.name.trim() || !newQuota.code.trim()}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-secondary px-4 py-2 text-sm font-semibold text-white hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Plus size={16} />
                   Add Quota
@@ -5630,7 +5630,7 @@ const Settings = () => {
 
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                <thead className="bg-background text-left text-[11px] font-bold uppercase tracking-wider text-muted-text">
                   <tr>
                     <th className="px-4 py-3">Quota Name</th>
                     <th className="px-4 py-3">Code</th>
@@ -5638,7 +5638,7 @@ const Settings = () => {
                     {canEdit('quotas') && <th className="px-4 py-3 text-right">Actions</th>}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {quotasLoading ? (
                     <tr>
                       <td colSpan={canEdit('quotas') ? 4 : 3} className="px-4 py-8">
@@ -5647,7 +5647,7 @@ const Settings = () => {
                     </tr>
                   ) : studentQuotas.length === 0 ? (
                     <tr>
-                      <td colSpan={canEdit('quotas') ? 4 : 3} className="px-4 py-8 text-center text-sm text-gray-400">
+                      <td colSpan={canEdit('quotas') ? 4 : 3} className="px-4 py-8 text-center text-sm text-muted-text">
                         No quotas configured yet
                       </td>
                     </tr>
@@ -5657,7 +5657,7 @@ const Settings = () => {
                       const draft = quotaDrafts[quota.id] || { name: quota.name, code: quota.code };
 
                       return (
-                        <tr key={quota.id} className="hover:bg-gray-50/80">
+                        <tr key={quota.id} className="hover:bg-[var(--background)]/80">
                           <td className="px-4 py-3">
                             {isEditing && canEdit('quotas') ? (
                               <input
@@ -5667,10 +5667,10 @@ const Settings = () => {
                                   ...prev,
                                   [quota.id]: { ...draft, name: e.target.value }
                                 }))}
-                                className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                                className="w-full rounded-md border border-border px-2 py-1.5 text-sm focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
                               />
                             ) : (
-                              <span className="font-medium text-gray-900">{quota.name}</span>
+                              <span className="font-medium text-main">{quota.name}</span>
                             )}
                           </td>
                           <td className="px-4 py-3">
@@ -5682,17 +5682,17 @@ const Settings = () => {
                                   ...prev,
                                   [quota.id]: { ...draft, code: e.target.value.toUpperCase() }
                                 }))}
-                                className="w-full rounded-md border border-gray-200 px-2 py-1.5 text-sm uppercase focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                                className="w-full rounded-md border border-border px-2 py-1.5 text-sm uppercase focus:border-secondary focus:outline-none focus:ring-1 focus:ring-secondary"
                               />
                             ) : (
-                              <span className="inline-flex rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-violet-700">
+                              <span className="inline-flex rounded-full bg-[var(--primary-light)] px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-secondary">
                                 {quota.code}
                               </span>
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${quota.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${quota.isActive ? 'bg-green-500' : 'bg-gray-400'}`} />
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${quota.isActive ? 'bg-[var(--success-light)] text-success' : 'bg-background text-muted-text'}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${quota.isActive ? 'bg-success' : 'bg-background'}`} />
                               {quota.isActive ? 'Active' : 'Inactive'}
                             </span>
                           </td>
@@ -5704,13 +5704,13 @@ const Settings = () => {
                                   <button
                                     onClick={() => saveQuotaEdits(quota.id)}
                                     disabled={savingQuotaId === quota.id}
-                                    className="rounded-md bg-violet-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+                                    className="rounded-md bg-secondary px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-secondary disabled:opacity-50"
                                   >
                                     Save
                                   </button>
                                   <button
                                     onClick={cancelEditingQuota}
-                                    className="rounded-md border border-gray-200 px-2.5 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                                    className="rounded-md border border-border px-2.5 py-1.5 text-xs font-semibold text-sub hover:bg-background"
                                   >
                                     Cancel
                                   </button>
@@ -5719,7 +5719,7 @@ const Settings = () => {
                                 <>
                                   <button
                                     onClick={() => startEditingQuota(quota)}
-                                    className="p-1.5 text-gray-400 hover:text-violet-600"
+                                    className="p-1.5 text-muted-text hover:text-secondary"
                                     title="Edit quota"
                                   >
                                     <Pencil size={15} />
@@ -5727,15 +5727,15 @@ const Settings = () => {
                                   <button
                                     onClick={() => toggleQuotaActive(quota)}
                                     disabled={savingQuotaId === quota.id}
-                                    className="p-1.5 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                                    className="p-1.5 text-muted-text hover:text-sub disabled:opacity-50"
                                     title={quota.isActive ? 'Deactivate quota' : 'Activate quota'}
                                   >
-                                    {quota.isActive ? <ToggleRight size={15} className="text-green-500" /> : <ToggleLeft size={15} />}
+                                    {quota.isActive ? <ToggleRight size={15} className="text-success" /> : <ToggleLeft size={15} />}
                                   </button>
                                   <button
                                     onClick={() => handleDeleteQuota(quota)}
                                     disabled={savingQuotaId === quota.id}
-                                    className="p-1.5 text-gray-400 hover:text-red-500 disabled:opacity-50"
+                                    className="p-1.5 text-muted-text hover:text-danger disabled:opacity-50"
                                     title="Delete quota"
                                   >
                                     <Trash2 size={15} />
@@ -5762,28 +5762,28 @@ const Settings = () => {
 
         {/* College Transfer Section */}
         {activeSection === 'college-transfer' && (
-          <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-4 min-h-[500px]">
+          <div className="rounded-xl border border-border bg-surface shadow-sm p-4 min-h-[500px]">
             <CollegeTransfer readOnly={!canEdit('college_transfer')} />
           </div>
         )}
 
         {activeSection === 'student-layout' && (
-          <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6 min-h-[500px]">
+          <div className="rounded-xl border border-border bg-surface shadow-sm p-6 min-h-[500px]">
             <StudentPortalLayoutSettings readOnly={!canEdit('student_layout')} />
           </div>
         )}
 
         {/* QR Code Config Section */}
         {activeSection === 'qr-config' && (
-          <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6 min-h-[500px]">
+          <div className="rounded-xl border border-border bg-surface shadow-sm p-6 min-h-[500px]">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <QrCode size={20} className="text-teal-600" />
+                <h2 className="text-lg font-semibold text-main flex items-center gap-2">
+                  <QrCode size={20} className="text-primary" />
                   QR Code Configuration
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-text mt-1">
                   Define <strong>Public Fields</strong> (visible to anyone who scans) and <strong>Private Fields</strong> per role (requires staff login).
                 </p>
               </div>
@@ -5791,7 +5791,7 @@ const Settings = () => {
               <button
                 onClick={saveQrConfig}
                 disabled={qrConfigSaving || qrConfigLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 disabled:opacity-50 text-sm font-medium"
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover disabled:opacity-50 text-sm font-medium"
               >
                 <Save size={16} />
                 {qrConfigSaving ? 'Saving...' : 'Save Config'}
@@ -5801,33 +5801,33 @@ const Settings = () => {
 
             {qrConfigLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : (
               <div className="space-y-4">
 
                 {/* ── PUBLIC FIELDS PANEL ── */}
-                <div className="border-2 border-teal-200 rounded-xl overflow-hidden bg-teal-50/30">
-                  <div className="flex items-center justify-between px-4 py-3 bg-teal-50 border-b border-teal-200">
+                <div className="border-2 border-[var(--primary-light)] rounded-xl overflow-hidden bg-[var(--primary-light)]">
+                  <div className="flex items-center justify-between px-4 py-3 bg-[var(--primary-light)] border-b border-[var(--primary-light)]">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
                         <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-teal-900">Public View Fields</h3>
-                        <p className="text-[11px] text-teal-600">Shown to <strong>anyone</strong> who scans, without login</p>
+                        <h3 className="text-sm font-bold text-primary">Public View Fields</h3>
+                        <p className="text-[11px] text-primary">Shown to <strong>anyone</strong> who scans, without login</p>
                       </div>
-                      <span className="text-xs text-teal-700 bg-teal-200 px-2 py-0.5 rounded-full font-semibold">
+                      <span className="text-xs text-primary bg-[var(--primary-light)] px-2 py-0.5 rounded-full font-semibold">
                         {qrPublicFields.length} selected
                       </span>
                     </div>
                     {canEdit('qr_config') && (
                     <button
                       onClick={toggleAllQrPublicFields}
-                      className="text-xs text-teal-700 hover:text-teal-900 font-semibold flex items-center gap-1"
+                      className="text-xs text-primary hover:text-primary font-semibold flex items-center gap-1"
                     >
                       {qrPublicFields.length === qrAvailableFields.length && qrAvailableFields.length > 0
                         ? <><CheckSquare size={14} /> Deselect All</>
@@ -5840,14 +5840,14 @@ const Settings = () => {
 
                 {/* ── DIVIDER ── */}
                 <div className="flex items-center gap-3 py-1">
-                  <div className="flex-1 border-t border-dashed border-gray-300" />
-                  <span className="text-xs text-gray-400 font-semibold uppercase tracking-wide px-2 flex items-center gap-1">
+                  <div className="flex-1 border-t border-dashed border-border-strong" />
+                  <span className="text-xs text-muted-text font-semibold uppercase tracking-wide px-2 flex items-center gap-1">
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                     Private Fields — Staff Login Required
                   </span>
-                  <div className="flex-1 border-t border-dashed border-gray-300" />
+                  <div className="flex-1 border-t border-dashed border-border-strong" />
                 </div>
 
                 {/* ── PER-ROLE PRIVATE FIELDS ── */}
@@ -5856,17 +5856,17 @@ const Settings = () => {
                   const allSelected = qrAvailableFields.length > 0 && selectedFields.length === qrAvailableFields.length;
                   const isExpanded = qrActiveRole === role.key;
                   return (
-                    <div key={role.key} className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div key={role.key} className="border border-border rounded-xl overflow-hidden">
                       <button
                         onClick={() => setQrActiveRole(isExpanded ? null : role.key)}
-                        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200 hover:bg-gray-100 transition-colors"
+                        className="w-full flex items-center justify-between px-4 py-3 bg-background border-b border-border hover:bg-background transition-colors"
                       >
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-slate-400"></div>
-                          <h3 className="text-sm font-semibold text-gray-900">{role.label}</h3>
+                          <div className="w-2 h-2 rounded-full bg-background"></div>
+                          <h3 className="text-sm font-semibold text-main">{role.label}</h3>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${selectedFields.length > 0
-                            ? 'bg-slate-200 text-slate-700'
-                            : 'bg-gray-100 text-gray-400'
+                            ? 'bg-background text-sub'
+                            : 'bg-background text-muted-text'
                             }`}>
                             {selectedFields.length} private fields
                           </span>
@@ -5875,13 +5875,13 @@ const Settings = () => {
                           {isExpanded && canEdit('qr_config') && (
                             <button
                               onClick={(e) => { e.stopPropagation(); toggleAllQrFields(role.key); }}
-                              className="text-xs text-slate-600 hover:text-slate-800 font-medium flex items-center gap-1"
+                              className="text-xs text-sub hover:text-main font-medium flex items-center gap-1"
                             >
                               {allSelected ? <><CheckSquare size={14} /> Deselect All</> : <><Square size={14} /> Select All</>}
                             </button>
                           )}
                           <svg
-                            className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                            className={`w-4 h-4 text-muted-text transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                             fill="none" viewBox="0 0 24 24" stroke="currentColor"
                           >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -5899,7 +5899,7 @@ const Settings = () => {
 
         {/* RTF Amount Setup Section */}
         {activeSection === 'rtf-amount' && (
-          <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6 min-h-[500px]">
+          <div className="rounded-xl border border-border bg-surface shadow-sm p-6 min-h-[500px]">
             <RtfAmountSection
               config={rtfConfig}
               loading={rtfLoading}
@@ -5921,15 +5921,15 @@ const Settings = () => {
 
         {/* Freeze Database Section */}
         {activeSection === 'freeze-database' && (
-          <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6 min-h-[500px]">
+          <div className="rounded-xl border border-border bg-surface shadow-sm p-6 min-h-[500px]">
             {/* Header */}
-            <div className="flex md:flex-row flex-col items-start md:items-center justify-between mb-6 gap-4 border-b border-gray-200 pb-4">
+            <div className="flex md:flex-row flex-col items-start md:items-center justify-between mb-6 gap-4 border-b border-border pb-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Lock size={20} className="text-red-600" />
+                <h2 className="text-lg font-semibold text-main flex items-center gap-2">
+                  <Lock size={20} className="text-danger" />
                   Freeze Database by Batch
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-text mt-1">
                   Locking a batch prevents any further edits to the student profiles of that specific batch.
                 </p>
               </div>
@@ -5939,7 +5939,7 @@ const Settings = () => {
                   fetchAllBatches();
                   fetchFrozenBatches();
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-background border border-border text-sub rounded-lg hover:bg-background transition-colors"
                 disabled={batchesLoading || frozenBatchesLoading}
               >
                 <RefreshCcw size={14} className={batchesLoading || frozenBatchesLoading ? 'animate-spin' : ''} />
@@ -5949,12 +5949,12 @@ const Settings = () => {
 
             {batchesLoading || frozenBatchesLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-danger"></div>
               </div>
             ) : allBatches.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                <GraduationCap size={48} className="mb-4 text-gray-300" />
-                <h3 className="text-base font-semibold text-gray-900">No Batches Found</h3>
+              <div className="flex flex-col items-center justify-center py-12 text-muted-text">
+                <GraduationCap size={48} className="mb-4 text-muted-text" />
+                <h3 className="text-base font-semibold text-main">No Batches Found</h3>
                 <p className="text-sm">There are no batches configured in the database yet.</p>
               </div>
             ) : (
@@ -5966,23 +5966,23 @@ const Settings = () => {
                   const freezeText = isFullyFrozen ? 'Fully Frozen' : isFrozen ? 'Partially Frozen' : 'Active';
                   const isSaving = savingFrozenBatch === batchValue;
                   return (
-                    <div key={batchValue} className={`border rounded-xl p-4 flex flex-col justify-between transition-all ${isFrozen ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200 hover:border-gray-300'}`}>
+                    <div key={batchValue} className={`border rounded-xl p-4 flex flex-col justify-between transition-all ${isFrozen ? 'bg-[var(--danger-light)] border-[var(--danger-light)]' : 'bg-surface border-border hover:border-border-strong'}`}>
                       <div className="flex items-start justify-between mb-4">
-                        <div className="font-bold text-lg text-gray-900">{batchValue} Batch</div>
-                        <div className={`text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1 ${isFrozen ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                        <div className="font-bold text-lg text-main">{batchValue} Batch</div>
+                        <div className={`text-xs px-2 py-1 rounded-full font-bold flex items-center gap-1 ${isFrozen ? 'bg-[var(--danger-light)] text-danger' : 'bg-[var(--success-light)] text-success'}`}>
                           {isFrozen ? <Lock size={12} /> : <Unlock size={12} />}
                           {freezeText}
                         </div>
                       </div>
 
-                      <div className="flex gap-2 mt-2 pt-4 border-t border-gray-100/50">
+                      <div className="flex gap-2 mt-2 pt-4 border-t border-border">
                         {canEdit('freeze_database') ? (
                         <button
                           onClick={() => openFreezeConfigModal(batchValue)}
                           disabled={isSaving}
                           className={`flex-1 py-1.5 px-3 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors disabled:opacity-50 ${isFrozen
-                            ? 'bg-red-50 text-red-700 border border-red-300 hover:bg-red-100'
-                            : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'}`}
+                            ? 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] hover:bg-[var(--danger-light)]'
+                            : 'bg-surface text-sub border border-border-strong hover:bg-background'}`}
                         >
                           {isSaving ? (
                             <RefreshCcw size={14} className="animate-spin" />
@@ -5994,7 +5994,7 @@ const Settings = () => {
                           )}
                         </button>
                         ) : (
-                          <span className="flex-1 text-center text-xs text-gray-400 py-1.5">View only</span>
+                          <span className="flex-1 text-center text-xs text-muted-text py-1.5">View only</span>
                         )}
                       </div>
                     </div>
@@ -6006,20 +6006,20 @@ const Settings = () => {
             {/* Freeze Batch Configuration Modal */}
             {freezeConfigModal.isOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 text-left">
-                <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
-                  <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <div className="bg-surface rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-border">
                     <div>
-                      <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                        <Lock size={20} className="text-red-600" />
+                      <h3 className="text-xl font-bold text-main flex items-center gap-2">
+                        <Lock size={20} className="text-danger" />
                         Configure Freeze Settings for {freezeConfigModal.batch} Batch
                       </h3>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-muted-text mt-1">
                         Select specific fields to freeze, or freeze the entire batch to disable all edits.
                       </p>
                     </div>
                     <button
                       onClick={() => setFreezeConfigModal({ isOpen: false, batch: null, selectedFields: [] })}
-                      className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+                      className="p-2 text-muted-text hover:text-sub rounded-full hover:bg-background transition-colors"
                     >
                       <X size={20} />
                     </button>
@@ -6027,7 +6027,7 @@ const Settings = () => {
 
                   <div className="flex-1 overflow-y-auto p-6 space-y-6">
                     {/* Freeze All Option */}
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-lg p-4">
                       <label className="flex items-start gap-3 cursor-pointer">
                         <input
                           type="checkbox"
@@ -6036,11 +6036,11 @@ const Settings = () => {
                             if (e.target.checked) setFreezeConfigModal(prev => ({ ...prev, selectedFields: ["ALL"] }));
                             else setFreezeConfigModal(prev => ({ ...prev, selectedFields: [] }));
                           }}
-                          className="mt-1 w-5 h-5 rounded border-red-300 text-red-600 focus:ring-red-500"
+                          className="mt-1 w-5 h-5 rounded border-[var(--danger-light)] text-danger focus:ring-danger"
                         />
                         <div>
-                          <span className="block font-bold text-red-900">Freeze Entire Batch</span>
-                          <span className="block text-sm text-red-700">Checking this will lock all fields for all students in this batch, completely disabling editing.</span>
+                          <span className="block font-bold text-danger">Freeze Entire Batch</span>
+                          <span className="block text-sm text-danger">Checking this will lock all fields for all students in this batch, completely disabling editing.</span>
                         </div>
                       </label>
                     </div>
@@ -6050,7 +6050,7 @@ const Settings = () => {
                       <div className="space-y-6">
                         {FREEZABLE_FIELDS.map((section, idx) => (
                           <div key={idx}>
-                            <h4 className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2 uppercase tracking-wide">
+                            <h4 className="text-sm font-bold text-main mb-3 border-b border-border pb-2 uppercase tracking-wide">
                               {section.group}
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -6059,7 +6059,7 @@ const Settings = () => {
                                 return (
                                   <label
                                     key={field.key}
-                                    className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${isSelected ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-blue-300'}`}
+                                    className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${isSelected ? 'bg-[var(--primary-light)] border-[var(--primary-light)]' : 'bg-surface border-border hover:border-[var(--primary-light)]'}`}
                                   >
                                     <input
                                       type="checkbox"
@@ -6074,9 +6074,9 @@ const Settings = () => {
                                           }
                                         });
                                       }}
-                                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                      className="w-4 h-4 rounded border-border-strong text-primary focus:ring-primary"
                                     />
-                                    <span className={`text-sm ${isSelected ? 'font-medium text-blue-900' : 'text-gray-700'}`}>
+                                    <span className={`text-sm ${isSelected ? 'font-medium text-primary' : 'text-sub'}`}>
                                       {field.label}
                                     </span>
                                   </label>
@@ -6089,10 +6089,10 @@ const Settings = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                  <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-background rounded-b-xl">
                     <button
                       onClick={() => setFreezeConfigModal({ isOpen: false, batch: null, selectedFields: [] })}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="px-4 py-2 text-sm font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background transition-colors"
                     >
                       Cancel
                     </button>
@@ -6100,7 +6100,7 @@ const Settings = () => {
                     <button
                       onClick={saveFreezeConfig}
                       disabled={savingFrozenBatch === freezeConfigModal.batch}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 flex items-center gap-2"
                     >
                       {savingFrozenBatch === freezeConfigModal.batch ? (
                         <>
@@ -6125,91 +6125,91 @@ const Settings = () => {
         {/* Edit College Modal */}
         {editingCollegeId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Pencil size={18} className="text-blue-600" />
+            <div className="bg-surface rounded-xl shadow-xl w-full max-w-md mx-4">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+                <h3 className="text-lg font-semibold text-main flex items-center gap-2">
+                  <Pencil size={18} className="text-primary" />
                   Edit College
                 </h3>
                 <button
                   onClick={() => cancelEditCollege(editingCollegeId)}
-                  className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                  className="p-1 text-muted-text hover:text-sub rounded-lg hover:bg-background"
                 >
                   <X size={20} />
                 </button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">College Name *</label>
+                  <label className="block text-sm font-medium text-sub mb-1">College Name *</label>
                   <input
                     type="text"
                     value={collegeDrafts[editingCollegeId]?.name || ''}
                     onChange={(e) => updateCollegeDraft(editingCollegeId, 'name', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     placeholder="Enter college name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    College Code <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-sub mb-1">
+                    College Code <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     value={collegeDrafts[editingCollegeId]?.code || ''}
                     onChange={(e) => updateCollegeDraft(editingCollegeId, 'code', e.target.value.toUpperCase())}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none uppercase"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none uppercase"
                     placeholder="Enter college code (e.g., PCE)"
                     required
                     maxLength={10}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <label className="block text-sm font-medium text-sub mb-1">Address</label>
                   <textarea
                     value={collegeDrafts[editingCollegeId]?.address || ''}
                     onChange={(e) => updateCollegeDraft(editingCollegeId, 'address', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none"
                     placeholder="College address (used on certificates and reports)"
                     rows={3}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
+                  <label className="block text-sm font-medium text-sub mb-1">Website</label>
                   <input
                     type="text"
                     value={collegeDrafts[editingCollegeId]?.website || ''}
                     onChange={(e) => updateCollegeDraft(editingCollegeId, 'website', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     placeholder="College website (e.g., www.pydahpharmacy.edu.in)"
                   />
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-muted-text">
                     Website displayed on student ID cards and official documents
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                  <label className="block text-sm font-medium text-sub mb-1">Contact Number</label>
                   <input
                     type="text"
                     value={collegeDrafts[editingCollegeId]?.contact || ''}
                     onChange={(e) => updateCollegeDraft(editingCollegeId, 'contact', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                     placeholder="College contact number (e.g., 0884-2315333 or 9876543210)"
                     maxLength={20}
                   />
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-muted-text">
                     Contact number displayed on student ID cards and official documents
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-sub mb-1">
                     Principal Signature
                   </label>
-                  <p className="text-xs text-gray-500 mb-2">
+                  <p className="text-xs text-muted-text mb-2">
                     Upload official principal signature (used for certificates and official documents).
                   </p>
                   {(collegeDrafts[editingCollegeId]?.principalSignaturePreview ||
                     (!collegeDrafts[editingCollegeId]?.removePrincipalSignature && collegeDrafts[editingCollegeId]?.principal_signature_url)) && (
-                    <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                    <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
                       <div className="flex items-center gap-3">
                         <img
                           src={
@@ -6217,9 +6217,9 @@ const Settings = () => {
                             getApiAssetUrl(collegeDrafts[editingCollegeId]?.principal_signature_url)
                           }
                           alt="Principal signature preview"
-                          className="h-16 w-36 rounded border border-gray-200 bg-white object-contain p-1"
+                          className="h-16 w-36 rounded border border-border bg-surface object-contain p-1"
                         />
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-text">
                           {collegeDrafts[editingCollegeId]?.principalSignatureFile
                             ? 'New signature selected. Click Save to apply.'
                             : 'Current saved signature.'}
@@ -6240,15 +6240,15 @@ const Settings = () => {
                             }
                           }));
                         }}
-                        className="p-1.5 text-gray-400 hover:text-red-500 rounded hover:bg-gray-100 transition-colors"
+                        className="p-1.5 text-muted-text hover:text-danger rounded hover:bg-background transition-colors"
                         title="Remove signature"
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
                   )}
-                  <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-3 text-sm text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50">
-                    <Upload size={16} className="text-blue-600" />
+                  <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-strong px-4 py-3 text-sm text-sub transition-colors hover:border-primary hover:bg-[var(--primary-light)]">
+                    <Upload size={16} className="text-primary" />
                     <span>
                       {collegeDrafts[editingCollegeId]?.principalSignaturePreview ||
                       (!collegeDrafts[editingCollegeId]?.removePrincipalSignature && collegeDrafts[editingCollegeId]?.principal_signature_url)
@@ -6283,17 +6283,17 @@ const Settings = () => {
                   </label>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-background rounded-b-xl">
                 <button
                   onClick={() => cancelEditCollege(editingCollegeId)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 text-sm font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => saveCollegeEdits(editingCollegeId)}
                   disabled={savingCollegeId === editingCollegeId}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-hover disabled:opacity-50"
                 >
                   {savingCollegeId === editingCollegeId ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -6305,52 +6305,52 @@ const Settings = () => {
         {/* Edit Course Modal */}
         {editingCourseId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
-              <div className="flex shrink-0 items-center justify-between px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Pencil size={18} className="text-purple-600" />
+            <div className="bg-surface rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+              <div className="flex shrink-0 items-center justify-between px-6 py-4 border-b border-border">
+                <h3 className="text-lg font-semibold text-main flex items-center gap-2">
+                  <Pencil size={18} className="text-secondary" />
                   Edit Program
                 </h3>
                 <button
                   onClick={() => setEditingCourseId(null)}
-                  className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                  className="p-1 text-muted-text hover:text-sub rounded-lg hover:bg-background"
                 >
                   <X size={20} />
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Program Name *</label>
+                  <label className="block text-sm font-medium text-sub mb-1">Program Name *</label>
                   <input
                     type="text"
                     value={courseDrafts[editingCourseId]?.name || ''}
                     onChange={(e) => setCourseDrafts(prev => ({ ...prev, [editingCourseId]: { ...prev[editingCourseId], name: e.target.value } }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none"
                     placeholder="Enter program name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Program Code <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-sub mb-1">
+                    Program Code <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     value={courseDrafts[editingCourseId]?.code || ''}
                     onChange={(e) => setCourseDrafts(prev => ({ ...prev, [editingCourseId]: { ...prev[editingCourseId], code: e.target.value.toUpperCase() } }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none uppercase"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none uppercase"
                     placeholder="Enter program code (e.g., BTECH)"
                     required
                     maxLength={20}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Program Level <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-sub mb-1">
+                    Program Level <span className="text-danger">*</span>
                   </label>
                   <select
                     value={courseDrafts[editingCourseId]?.level || 'ug'}
                     onChange={(e) => setCourseDrafts(prev => ({ ...prev, [editingCourseId]: { ...prev[editingCourseId], level: e.target.value } }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-secondary focus:border-transparent outline-none"
                     required
                   >
                     <option value="diploma">Diploma</option>
@@ -6369,14 +6369,14 @@ const Settings = () => {
                   }
                 />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-sub mb-1">
                     Fee Payment QR
                   </label>
-                  <p className="text-xs text-gray-500 mb-2">
+                  <p className="text-xs text-muted-text mb-2">
                     Upload a QR code image for fee payments for this program.
                   </p>
                   {(courseDrafts[editingCourseId]?.feeQrPreview || courseDrafts[editingCourseId]?.feeQrImageUrl) && (
-                    <div className="mb-3 flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                    <div className="mb-3 flex items-center gap-3 rounded-lg border border-border bg-background p-3">
                       <img
                         key={
                           courseDrafts[editingCourseId]?.feeQrPreview
@@ -6387,17 +6387,17 @@ const Settings = () => {
                             || getApiAssetUrl(courseDrafts[editingCourseId]?.feeQrImageUrl)
                         }
                         alt="Fee payment QR preview"
-                        className="h-24 w-24 rounded-md border border-gray-200 bg-white object-contain"
+                        className="h-24 w-24 rounded-md border border-border bg-surface object-contain"
                       />
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-text">
                         {courseDrafts[editingCourseId]?.feeQrFile
                           ? 'New QR selected. Save to upload.'
                           : 'Current saved QR for this program.'}
                       </div>
                     </div>
                   )}
-                  <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-3 text-sm text-gray-600 transition-colors hover:border-purple-400 hover:bg-purple-50">
-                    <Upload size={16} className="text-purple-600" />
+                  <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-strong px-4 py-3 text-sm text-sub transition-colors hover:border-secondary hover:bg-[var(--primary-light)]">
+                    <Upload size={16} className="text-secondary" />
                     <span>{courseDrafts[editingCourseId]?.feeQrImageUrl || courseDrafts[editingCourseId]?.feeQrFile ? 'Replace QR Image' : 'Upload QR Image'}</span>
                     <input
                       type="file"
@@ -6430,17 +6430,17 @@ const Settings = () => {
                   </label>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <div className="flex shrink-0 items-center justify-end gap-3 px-6 py-4 border-t border-border bg-background rounded-b-xl">
                 <button
                   onClick={() => setEditingCourseId(null)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 text-sm font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => saveCourseEdits(editingCourseId)}
                   disabled={savingCourseId === editingCourseId}
-                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-white bg-secondary rounded-lg hover:bg-secondary disabled:opacity-50"
                 >
                   {savingCourseId === editingCourseId ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -6452,40 +6452,40 @@ const Settings = () => {
         {/* View Batch Students Modal */}
         {viewBatchStudentsModal.isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 text-left">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh]">
-              <div className="flex shrink-0 items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="bg-surface rounded-xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh]">
+              <div className="flex shrink-0 items-center justify-between px-6 py-4 border-b border-border">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <Users size={24} className="text-blue-600" />
+                  <h3 className="text-xl font-bold text-main flex items-center gap-2">
+                    <Users size={24} className="text-primary" />
                     Students in Batch {viewBatchStudentsModal.batch}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-muted-text mt-1">
                     Total {viewBatchStudentsModal.students.length} student(s) mapped to this batch.
                   </p>
                 </div>
                 <button
                   onClick={() => setViewBatchStudentsModal({ isOpen: false, batch: null, students: [], loading: false })}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+                  className="p-2 text-muted-text hover:text-sub rounded-full hover:bg-background transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-0 bg-gray-50/50">
+              <div className="flex-1 overflow-y-auto p-0 bg-[var(--background)]/50">
                 {viewBatchStudentsModal.loading ? (
                   <div className="flex items-center justify-center py-20">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                   </div>
                 ) : viewBatchStudentsModal.students.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-                    <Users size={48} className="mb-4 text-gray-300" />
-                    <p className="text-base font-medium text-gray-900">No students found</p>
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-text">
+                    <Users size={48} className="mb-4 text-muted-text" />
+                    <p className="text-base font-medium text-main">No students found</p>
                     <p className="text-sm">No students are currently mapped to this batch.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto w-full">
                     <table className="w-full text-sm text-left whitespace-nowrap">
-                      <thead className="bg-gray-100 text-gray-600 font-semibold text-xs uppercase sticky top-0 shadow-sm z-10 border-b border-gray-200">
+                      <thead className="bg-background text-sub font-semibold text-xs uppercase sticky top-0 shadow-sm z-10 border-b border-border">
                         <tr>
                           <th className="px-6 py-3 font-semibold tracking-wider">Admission No</th>
                           <th className="px-6 py-3 font-semibold tracking-wider">Name</th>
@@ -6494,7 +6494,7 @@ const Settings = () => {
                           <th className="px-6 py-3 font-semibold tracking-wider">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-100">
+                      <tbody className="bg-surface divide-y divide-border">
                         {viewBatchStudentsModal.students.map((student, idx) => {
                           const studName = student.student_name || student.student_data?.student_name || student.student_data?.['Student Name'] || '-';
                           const studCourse = student.course || student.student_data?.course || student.student_data?.['Program Name'] || student.student_data?.['Course'] || '-';
@@ -6504,18 +6504,18 @@ const Settings = () => {
                           const studStatus = student.student_status || student.student_data?.student_status || student.student_data?.['Student Status'] || 'Regular';
 
                           return (
-                            <tr key={student.admission_number || idx} className="hover:bg-blue-50/30 transition-colors">
-                              <td className="px-6 py-3.5 font-medium text-gray-900">{student.admission_number}</td>
+                            <tr key={student.admission_number || idx} className="hover:bg-[var(--primary-light)] transition-colors">
+                              <td className="px-6 py-3.5 font-medium text-main">{student.admission_number}</td>
                               <td className="px-6 py-3.5">{studName}</td>
                               <td className="px-6 py-3.5">
                                 <div className="flex flex-col">
-                                  <span className="font-medium text-gray-900">{studCourse}</span>
-                                  <span className="text-xs text-gray-500">{studBranch}</span>
+                                  <span className="font-medium text-main">{studCourse}</span>
+                                  <span className="text-xs text-muted-text">{studBranch}</span>
                                 </div>
                               </td>
                               <td className="px-6 py-3.5">Y{studYr} / S{studSem}</td>
                               <td className="px-6 py-3.5">
-                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${studStatus === 'Regular' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'}`}>
+                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${studStatus === 'Regular' ? 'bg-[var(--success-light)] text-success' : 'bg-background text-main'}`}>
                                   {studStatus}
                                 </span>
                               </td>
@@ -6528,15 +6528,15 @@ const Settings = () => {
                 )}
               </div>
 
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-                <p className="text-sm text-gray-500">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-background rounded-b-xl">
+                <p className="text-sm text-muted-text">
                   {!!frozenBatches[viewBatchStudentsModal.batch] ? (
-                    <span className="flex items-center gap-1.5 text-red-600 font-medium whitespace-nowrap">
+                    <span className="flex items-center gap-1.5 text-danger font-medium whitespace-nowrap">
                       <Lock size={16} />
                       This batch is currently frozen.
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1.5 text-green-600 font-medium whitespace-nowrap">
+                    <span className="flex items-center gap-1.5 text-success font-medium whitespace-nowrap">
                       <Unlock size={16} />
                       This batch is currently active.
                     </span>
@@ -6544,7 +6544,7 @@ const Settings = () => {
                 </p>
                 <button
                   onClick={() => setViewBatchStudentsModal({ isOpen: false, batch: null, students: [], loading: false })}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+                  className="px-4 py-2 text-sm font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background transition-colors whitespace-nowrap"
                 >
                   Close
                 </button>
@@ -6556,39 +6556,39 @@ const Settings = () => {
         {/* Edit Branch Modal */}
         {editingBranch && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Pencil size={18} className="text-orange-600" />
+            <div className="bg-surface rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+                <h3 className="text-lg font-semibold text-main flex items-center gap-2">
+                  <Pencil size={18} className="text-warning" />
                   Edit Branch
                 </h3>
                 <button
                   onClick={cancelEditBranch}
-                  className="p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+                  className="p-1 text-muted-text hover:text-sub rounded-lg hover:bg-background"
                 >
                   <X size={20} />
                 </button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Branch Name *</label>
+                  <label className="block text-sm font-medium text-sub mb-1">Branch Name *</label>
                   <input
                     type="text"
                     value={branchDrafts[editingBranch.branchId]?.name || ''}
                     onChange={(e) => updateBranchDraft(editingBranch.branchId, 'name', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-warning focus:border-transparent outline-none"
                     placeholder="Enter branch name"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Branch Code <span className="text-red-500">*</span>
+                  <label className="block text-sm font-medium text-sub mb-1">
+                    Branch Code <span className="text-danger">*</span>
                   </label>
                   <input
                     type="text"
                     value={branchDrafts[editingBranch.branchId]?.code || ''}
                     onChange={(e) => updateBranchDraft(editingBranch.branchId, 'code', e.target.value.toUpperCase())}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none uppercase"
+                    className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-warning focus:border-transparent outline-none uppercase"
                     placeholder="Enter branch code (e.g., CSE)"
                     required
                     maxLength={10}
@@ -6596,45 +6596,45 @@ const Settings = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Total Years</label>
+                    <label className="block text-sm font-medium text-sub mb-1">Total Years</label>
                     <input
                       type="number"
                       min={1}
                       max={10}
                       value={branchDrafts[editingBranch.branchId]?.totalYears || ''}
                       onChange={(e) => updateBranchDraft(editingBranch.branchId, 'totalYears', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-warning focus:border-transparent outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Semesters/Year</label>
+                    <label className="block text-sm font-medium text-sub mb-1">Semesters/Year</label>
                     <input
                       type="number"
                       min={1}
                       max={4}
                       value={branchDrafts[editingBranch.branchId]?.semestersPerYear || ''}
                       onChange={(e) => updateBranchDraft(editingBranch.branchId, 'semestersPerYear', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                      className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-warning focus:border-transparent outline-none"
                     />
                   </div>
                 </div>
 
                 {/* Additional / Optional Year */}
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-3">
+                <div className="rounded-lg border border-border bg-background p-3 space-y-3">
                   <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={branchDrafts[editingBranch.branchId]?.hasAdditionalYear || false}
                       onChange={(e) => updateBranchDraft(editingBranch.branchId, 'hasAdditionalYear', e.target.checked)}
-                      className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                      className="w-4 h-4 rounded border-border-strong text-warning focus:ring-warning"
                     />
-                    <span className="text-sm font-medium text-gray-700">Has Additional (Optional) Year</span>
+                    <span className="text-sm font-medium text-sub">Has Additional (Optional) Year</span>
                   </label>
                   {branchDrafts[editingBranch.branchId]?.hasAdditionalYear && (
                     <div className="grid grid-cols-2 gap-3 pt-1">
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Additional Year No. <span className="text-red-500">*</span>
+                        <label className="block text-xs font-medium text-sub mb-1">
+                          Additional Year No. <span className="text-danger">*</span>
                         </label>
                         <input
                           type="number"
@@ -6643,12 +6643,12 @@ const Settings = () => {
                           value={branchDrafts[editingBranch.branchId]?.additionalYear || ''}
                           onChange={(e) => updateBranchDraft(editingBranch.branchId, 'additionalYear', e.target.value)}
                           placeholder="e.g. 5"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm"
+                          className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-warning focus:border-transparent outline-none text-sm"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Semesters in Addl. Year <span className="text-red-500">*</span>
+                        <label className="block text-xs font-medium text-sub mb-1">
+                          Semesters in Addl. Year <span className="text-danger">*</span>
                         </label>
                         <input
                           type="number"
@@ -6657,12 +6657,12 @@ const Settings = () => {
                           value={branchDrafts[editingBranch.branchId]?.additionalYearSemesters || ''}
                           onChange={(e) => updateBranchDraft(editingBranch.branchId, 'additionalYearSemesters', e.target.value)}
                           placeholder="e.g. 2"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none text-sm"
+                          className="w-full px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-warning focus:border-transparent outline-none text-sm"
                         />
                       </div>
                     </div>
                   )}
-                  <p className="text-[11px] text-gray-400 leading-snug">
+                  <p className="text-[11px] text-muted-text leading-snug">
                     When enabled, course-completed students can be moved into this additional year from the student edit panel.
                   </p>
                 </div>
@@ -6680,10 +6680,10 @@ const Settings = () => {
                   }}
                 />
               </div>
-              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-background rounded-b-xl">
                 <button
                   onClick={cancelEditBranch}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-4 py-2 text-sm font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background"
                 >
                   Cancel
                 </button>
@@ -6693,7 +6693,7 @@ const Settings = () => {
                     if (branch) saveBranchEdit(editingBranch.courseId, branch);
                   }}
                   disabled={savingBranchId === editingBranch.branchId}
-                  className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-white bg-warning rounded-lg hover:bg-warning disabled:opacity-50"
                 >
                   {savingBranchId === editingBranch.branchId ? 'Saving...' : 'Save Changes'}
                 </button>
@@ -6705,40 +6705,40 @@ const Settings = () => {
         {/* View Batch Students Modal */}
         {viewBatchStudentsModal.isOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 text-left">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh]">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="bg-surface rounded-xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh]">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-border">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                    <Users size={24} className="text-blue-600" />
+                  <h3 className="text-xl font-bold text-main flex items-center gap-2">
+                    <Users size={24} className="text-primary" />
                     Students in Batch {viewBatchStudentsModal.batch}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-muted-text mt-1">
                     Total {viewBatchStudentsModal.students.length} student(s) mapped to this batch.
                   </p>
                 </div>
                 <button
                   onClick={() => setViewBatchStudentsModal({ isOpen: false, batch: null, students: [], loading: false })}
-                  className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+                  className="p-2 text-muted-text hover:text-sub rounded-full hover:bg-background transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-0 bg-gray-50/50">
+              <div className="flex-1 overflow-y-auto p-0 bg-[var(--background)]/50">
                 {viewBatchStudentsModal.loading ? (
                   <div className="flex items-center justify-center py-20">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                   </div>
                 ) : viewBatchStudentsModal.students.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-                    <Users size={48} className="mb-4 text-gray-300" />
-                    <p className="text-base font-medium text-gray-900">No students found</p>
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-text">
+                    <Users size={48} className="mb-4 text-muted-text" />
+                    <p className="text-base font-medium text-main">No students found</p>
                     <p className="text-sm">No students are currently mapped to this batch.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto w-full">
                     <table className="w-full text-sm text-left whitespace-nowrap">
-                      <thead className="bg-gray-100 text-gray-600 font-semibold text-xs uppercase sticky top-0 shadow-sm z-10 border-b border-gray-200">
+                      <thead className="bg-background text-sub font-semibold text-xs uppercase sticky top-0 shadow-sm z-10 border-b border-border">
                         <tr>
                           <th className="px-6 py-3 font-semibold tracking-wider">Admission No</th>
                           <th className="px-6 py-3 font-semibold tracking-wider">Name</th>
@@ -6747,7 +6747,7 @@ const Settings = () => {
                           <th className="px-6 py-3 font-semibold tracking-wider">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-100">
+                      <tbody className="bg-surface divide-y divide-border">
                         {viewBatchStudentsModal.students.map((student, idx) => {
                           const studName = student.student_name || student.student_data?.student_name || student.student_data?.['Student Name'] || '-';
                           const studCourse = student.course || student.student_data?.course || student.student_data?.['Program Name'] || student.student_data?.['Course'] || '-';
@@ -6757,18 +6757,18 @@ const Settings = () => {
                           const studStatus = student.student_status || student.student_data?.student_status || student.student_data?.['Student Status'] || 'Regular';
 
                           return (
-                            <tr key={student.admission_number || idx} className="hover:bg-blue-50/30 transition-colors">
-                              <td className="px-6 py-3.5 font-medium text-gray-900">{student.admission_number}</td>
+                            <tr key={student.admission_number || idx} className="hover:bg-[var(--primary-light)] transition-colors">
+                              <td className="px-6 py-3.5 font-medium text-main">{student.admission_number}</td>
                               <td className="px-6 py-3.5">{studName}</td>
                               <td className="px-6 py-3.5">
                                 <div className="flex flex-col">
-                                  <span className="font-medium text-gray-900">{studCourse}</span>
-                                  <span className="text-xs text-gray-500">{studBranch}</span>
+                                  <span className="font-medium text-main">{studCourse}</span>
+                                  <span className="text-xs text-muted-text">{studBranch}</span>
                                 </div>
                               </td>
                               <td className="px-6 py-3.5">Y{studYr} / S{studSem}</td>
                               <td className="px-6 py-3.5">
-                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${studStatus === 'Regular' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'}`}>
+                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${studStatus === 'Regular' ? 'bg-[var(--success-light)] text-success' : 'bg-background text-main'}`}>
                                   {studStatus}
                                 </span>
                               </td>
@@ -6781,15 +6781,15 @@ const Settings = () => {
                 )}
               </div>
 
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-                <p className="text-sm text-gray-500">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-background rounded-b-xl">
+                <p className="text-sm text-muted-text">
                   {!!frozenBatches[viewBatchStudentsModal.batch] ? (
-                    <span className="flex items-center gap-1.5 text-red-600 font-medium whitespace-nowrap">
+                    <span className="flex items-center gap-1.5 text-danger font-medium whitespace-nowrap">
                       <Lock size={16} />
                       This batch is currently frozen.
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1.5 text-green-600 font-medium whitespace-nowrap">
+                    <span className="flex items-center gap-1.5 text-success font-medium whitespace-nowrap">
                       <Unlock size={16} />
                       This batch is currently active.
                     </span>
@@ -6797,7 +6797,7 @@ const Settings = () => {
                 </p>
                 <button
                   onClick={() => setViewBatchStudentsModal({ isOpen: false, batch: null, students: [], loading: false })}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+                  className="px-4 py-2 text-sm font-medium text-sub bg-surface border border-border-strong rounded-lg hover:bg-background transition-colors whitespace-nowrap"
                 >
                   Close
                 </button>
@@ -6808,22 +6808,22 @@ const Settings = () => {
 
         {/* Campus Creation Section */}
         {activeSection === 'campus' && (
-          <div className="rounded-xl border border-gray-200 bg-white shadow-sm p-6 min-h-[500px]">
+          <div className="rounded-xl border border-border bg-surface shadow-sm p-6 min-h-[500px]">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 border-b border-gray-200 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 border-b border-border pb-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <MapPin size={20} className="text-emerald-600" />
+                <h2 className="text-lg font-semibold text-main flex items-center gap-2">
+                  <MapPin size={20} className="text-success" />
                   Campus Creation
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-text mt-1">
                   Create campuses and assign colleges to them. Each college can only belong to one campus.
                 </p>
               </div>
               <button
                 onClick={fetchCampuses}
                 disabled={campusesLoading}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-background border border-border text-sub rounded-lg hover:bg-background transition-colors"
               >
                 <RefreshCcw size={14} className={campusesLoading ? 'animate-spin' : ''} />
                 Refresh
@@ -6833,45 +6833,45 @@ const Settings = () => {
             <div className="grid grid-cols-1 lg:grid-cols-[380px,1fr] gap-6">
               {/* Left — Create Campus Form */}
               <div className="space-y-4">
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                  <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
-                    <Plus size={14} className="text-emerald-600" />
+                <div className="rounded-xl border border-border bg-background p-4">
+                  <h3 className="text-sm font-bold text-main mb-3 flex items-center gap-1.5">
+                    <Plus size={14} className="text-success" />
                     Add New Campus
                   </h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Campus Name <span className="text-red-500">*</span></label>
+                      <label className="block text-xs font-medium text-sub mb-1">Campus Name <span className="text-danger">*</span></label>
                       <input
                         type="text"
                         value={campusForm.name}
                         onChange={(e) => setCampusForm((p) => ({ ...p, name: e.target.value }))}
                         placeholder="e.g. Main Campus"
-                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                        className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm focus:border-success focus:ring-2 focus:ring-[var(--success-light)] outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Campus Code</label>
+                      <label className="block text-xs font-medium text-sub mb-1">Campus Code</label>
                       <input
                         type="text"
                         value={campusForm.code}
                         onChange={(e) => setCampusForm((p) => ({ ...p, code: e.target.value.toUpperCase() }))}
                         placeholder="e.g. MAIN"
                         maxLength={20}
-                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm uppercase focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                        className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm uppercase focus:border-success focus:ring-2 focus:ring-[var(--success-light)] outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                      <label className="block text-xs font-medium text-sub mb-1">Description</label>
                       <input
                         type="text"
                         value={campusForm.description}
                         onChange={(e) => setCampusForm((p) => ({ ...p, description: e.target.value }))}
                         placeholder="Optional short description"
-                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none"
+                        className="w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm focus:border-success focus:ring-2 focus:ring-[var(--success-light)] outline-none"
                       />
                     </div>
                     {campusFormError && (
-                      <p className="text-xs text-red-600 font-medium">{campusFormError}</p>
+                      <p className="text-xs text-danger font-medium">{campusFormError}</p>
                     )}
                     <button
                       disabled={savingCampus || !campusForm.name.trim()}
@@ -6897,7 +6897,7 @@ const Settings = () => {
                           setSavingCampus(false);
                         }
                       }}
-                      className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                      className="w-full rounded-lg bg-success px-4 py-2 text-sm font-semibold text-white hover:bg-success disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                     >
                       {savingCampus ? <RefreshCcw size={14} className="animate-spin" /> : <Plus size={14} />}
                       {savingCampus ? 'Creating...' : 'Create Campus'}
@@ -6911,14 +6911,14 @@ const Settings = () => {
                   const unassigned = colleges.filter((col) => !assignedIds.includes(col.id));
                   if (unassigned.length === 0) return null;
                   return (
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                      <p className="text-xs font-semibold text-amber-800 mb-1.5 flex items-center gap-1">
+                    <div className="rounded-xl border border-[var(--warning-light)] bg-[var(--warning-light)] p-3">
+                      <p className="text-xs font-semibold text-warning mb-1.5 flex items-center gap-1">
                         <AlertTriangle size={12} />
                         {unassigned.length} college{unassigned.length > 1 ? 's' : ''} not assigned to any campus
                       </p>
                       <div className="space-y-0.5">
                         {unassigned.map((col) => (
-                          <p key={col.id} className="text-xs text-amber-700">• {col.name}</p>
+                          <p key={col.id} className="text-xs text-warning">• {col.name}</p>
                         ))}
                       </div>
                     </div>
@@ -6930,35 +6930,35 @@ const Settings = () => {
               <div>
                 {campusesLoading ? (
                   <div className="flex items-center justify-center py-16">
-                    <RefreshCcw size={20} className="animate-spin text-emerald-500 mr-2" />
-                    <span className="text-sm text-gray-500">Loading campuses...</span>
+                    <RefreshCcw size={20} className="animate-spin text-success mr-2" />
+                    <span className="text-sm text-muted-text">Loading campuses...</span>
                   </div>
                 ) : campuses.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                    <MapPin size={48} className="mb-3 text-gray-200" />
-                    <p className="text-sm font-medium text-gray-500">No campuses yet</p>
-                    <p className="text-xs text-gray-400">Create your first campus using the form on the left.</p>
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-text">
+                    <MapPin size={48} className="mb-3 text-muted-text" />
+                    <p className="text-sm font-medium text-muted-text">No campuses yet</p>
+                    <p className="text-xs text-muted-text">Create your first campus using the form on the left.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {campuses.map((campus) => (
-                      <div key={campus.id} className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                      <div key={campus.id} className="rounded-xl border border-border bg-surface shadow-sm overflow-hidden">
                         {/* Campus header */}
-                        <div className="flex items-center justify-between px-4 py-3 bg-emerald-50 border-b border-emerald-100">
+                        <div className="flex items-center justify-between px-4 py-3 bg-[var(--success-light)] border-b border-[var(--success-light)]">
                           {editingCampus?.id === campus.id ? (
                             <div className="flex-1 flex flex-col sm:flex-row gap-2 mr-3">
                               <input
                                 type="text"
                                 value={editCampusDraft.name}
                                 onChange={(e) => setEditCampusDraft((p) => ({ ...p, name: e.target.value }))}
-                                className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-emerald-500 outline-none"
+                                className="flex-1 rounded-md border border-border-strong px-2 py-1 text-sm focus:border-success outline-none"
                                 placeholder="Campus name"
                               />
                               <input
                                 type="text"
                                 value={editCampusDraft.code}
                                 onChange={(e) => setEditCampusDraft((p) => ({ ...p, code: e.target.value.toUpperCase() }))}
-                                className="w-24 rounded-md border border-gray-300 px-2 py-1 text-sm uppercase focus:border-emerald-500 outline-none"
+                                className="w-24 rounded-md border border-border-strong px-2 py-1 text-sm uppercase focus:border-success outline-none"
                                 placeholder="Code"
                                 maxLength={20}
                               />
@@ -6966,19 +6966,19 @@ const Settings = () => {
                                 type="text"
                                 value={editCampusDraft.description}
                                 onChange={(e) => setEditCampusDraft((p) => ({ ...p, description: e.target.value }))}
-                                className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-emerald-500 outline-none"
+                                className="flex-1 rounded-md border border-border-strong px-2 py-1 text-sm focus:border-success outline-none"
                                 placeholder="Description"
                               />
                             </div>
                           ) : (
                             <div className="flex items-center gap-2 min-w-0">
-                              <MapPin size={15} className="text-emerald-600 flex-shrink-0" />
-                              <span className="font-semibold text-gray-900 text-sm truncate">{campus.name}</span>
+                              <MapPin size={15} className="text-success flex-shrink-0" />
+                              <span className="font-semibold text-main text-sm truncate">{campus.name}</span>
                               {campus.code && (
-                                <span className="text-xs font-mono bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">{campus.code}</span>
+                                <span className="text-xs font-mono bg-[var(--success-light)] text-success px-1.5 py-0.5 rounded">{campus.code}</span>
                               )}
                               {campus.description && (
-                                <span className="text-xs text-gray-500 truncate hidden sm:block">{campus.description}</span>
+                                <span className="text-xs text-muted-text truncate hidden sm:block">{campus.description}</span>
                               )}
                             </div>
                           )}
@@ -7004,14 +7004,14 @@ const Settings = () => {
                                       toast.error(err.response?.data?.message || 'Failed to update campus');
                                     }
                                   }}
-                                  className="p-1.5 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                                  className="p-1.5 rounded-md bg-success text-white hover:bg-success transition-colors"
                                   title="Save"
                                 >
                                   <Save size={13} />
                                 </button>
                                 <button
                                   onClick={() => setEditingCampus(null)}
-                                  className="p-1.5 rounded-md bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors"
+                                  className="p-1.5 rounded-md bg-background text-sub hover:bg-background transition-colors"
                                   title="Cancel"
                                 >
                                   <X size={13} />
@@ -7028,7 +7028,7 @@ const Settings = () => {
                                       description: campus.description || '',
                                     });
                                   }}
-                                  className="p-1.5 rounded-md text-gray-400 hover:text-emerald-600 hover:bg-emerald-100 transition-colors"
+                                  className="p-1.5 rounded-md text-muted-text hover:text-success hover:bg-[var(--success-light)] transition-colors"
                                   title="Edit campus"
                                 >
                                   <Pencil size={13} />
@@ -7048,7 +7048,7 @@ const Settings = () => {
                                       setDeletingCampusId(null);
                                     }
                                   }}
-                                  className="p-1.5 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                                  className="p-1.5 rounded-md text-muted-text hover:text-danger hover:bg-[var(--danger-light)] disabled:opacity-50 transition-colors"
                                   title="Delete campus"
                                 >
                                   {deletingCampusId === campus.id ? <RefreshCcw size={13} className="animate-spin" /> : <Trash2 size={13} />}
@@ -7060,18 +7060,18 @@ const Settings = () => {
 
                         {/* College assignment */}
                         <div className="p-3">
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-2">Colleges under this campus</p>
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-text mb-2">Colleges under this campus</p>
                           <div className="space-y-1.5">
                             {/* Already assigned colleges */}
                             {(campus.collegeIds || []).map((colId) => {
                               const col = colleges.find((c) => c.id === colId);
                               if (!col) return null;
                               return (
-                                <div key={colId} className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5">
+                                <div key={colId} className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-1.5">
                                   <div className="flex items-center gap-2 min-w-0">
-                                    <div className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${col.isActive ? 'bg-green-500' : 'bg-gray-300'}`} />
-                                    <span className="text-sm text-gray-800 truncate">{col.name}</span>
-                                    {col.code && <span className="text-[10px] font-mono text-gray-400">{col.code}</span>}
+                                    <div className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${col.isActive ? 'bg-success' : 'bg-background'}`} />
+                                    <span className="text-sm text-main truncate">{col.name}</span>
+                                    {col.code && <span className="text-[10px] font-mono text-muted-text">{col.code}</span>}
                                   </div>
                                   <button
                                     onClick={async () => {
@@ -7084,7 +7084,7 @@ const Settings = () => {
                                         toast.error(err.response?.data?.message || 'Failed to update campus');
                                       }
                                     }}
-                                    className="p-1 text-gray-300 hover:text-red-400 transition-colors flex-shrink-0"
+                                    className="p-1 text-muted-text hover:text-danger transition-colors flex-shrink-0"
                                     title="Remove from campus"
                                   >
                                     <X size={13} />
@@ -7101,7 +7101,7 @@ const Settings = () => {
                               );
                               const addable = available.filter((col) => !(campus.collegeIds || []).includes(col.id));
                               if (addable.length === 0) return (
-                                <p className="text-xs text-gray-400 italic px-1">
+                                <p className="text-xs text-muted-text italic px-1">
                                   {colleges.length === 0 ? 'No colleges available' : 'All available colleges are assigned'}
                                 </p>
                               );
@@ -7125,7 +7125,7 @@ const Settings = () => {
                                       setCampusCollegeAssigning(null);
                                     }
                                   }}
-                                  className="w-full rounded-lg border border-dashed border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs text-emerald-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none cursor-pointer disabled:opacity-50"
+                                  className="w-full rounded-lg border border-dashed border-[var(--success-light)] bg-[var(--success-light)] px-3 py-1.5 text-xs text-success focus:border-success focus:ring-1 focus:ring-success outline-none cursor-pointer disabled:opacity-50"
                                 >
                                   <option value="">+ Add a college to this campus</option>
                                   {addable.map((col) => (
@@ -7181,14 +7181,14 @@ const Settings = () => {
           }}
         >
           <div
-            className="w-full max-w-md rounded-lg bg-white shadow-2xl max-h-[90vh] overflow-y-auto relative"
+            className="w-full max-w-md rounded-lg bg-surface shadow-2xl max-h-[90vh] overflow-y-auto relative"
             onClick={(e) => e.stopPropagation()}
             style={{ zIndex: 10000 }}
           >
-            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Add New College</h3>
-                <p className="text-sm text-gray-500 mt-0.5">
+                <h3 className="text-lg font-semibold text-main">Add New College</h3>
+                <p className="text-sm text-muted-text mt-0.5">
                   Create a new college to organize programs
                 </p>
               </div>
@@ -7197,7 +7197,7 @@ const Settings = () => {
                   setIsAddCollegeModalOpen(false);
                   resetNewCollege();
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-muted-text hover:text-sub transition-colors"
               >
                 <X size={20} />
               </button>
@@ -7206,55 +7206,55 @@ const Settings = () => {
             <form onSubmit={handleCreateCollege} className="p-6 space-y-4">
               {/* College Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  College Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1.5">
+                  College Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   value={newCollege.name}
                   onChange={(e) => setNewCollege((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="College name (e.g., Pydah College of Engineering)"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
                   required
                 />
               </div>
 
               {/* College Code */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  College Code <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1.5">
+                  College Code <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   value={newCollege.code}
                   onChange={(e) => setNewCollege((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))}
                   placeholder="College code (e.g., PCE)"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 uppercase"
+                  className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] uppercase"
                   required
                   maxLength={10}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-muted-text">
                   Unique code for the college (e.g., PCE, PDC)
                 </p>
               </div>
 
               {/* College Address */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-sub mb-1.5">
                   Address
                 </label>
                 <textarea
                   value={newCollege.address}
                   onChange={(e) => setNewCollege((prev) => ({ ...prev, address: e.target.value }))}
                   placeholder="College address (used on certificates and reports)"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+                  className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] resize-none"
                   rows={3}
                 />
               </div>
 
               {/* College Website */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-sub mb-1.5">
                   Website
                 </label>
                 <input
@@ -7262,16 +7262,16 @@ const Settings = () => {
                   value={newCollege.website}
                   onChange={(e) => setNewCollege((prev) => ({ ...prev, website: e.target.value }))}
                   placeholder="College website (e.g., www.pydahpharmacy.edu.in)"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-muted-text">
                   Website displayed on student ID cards and official documents
                 </p>
               </div>
 
               {/* College Contact Number */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-sub mb-1.5">
                   Contact Number
                 </label>
                 <input
@@ -7279,31 +7279,31 @@ const Settings = () => {
                   value={newCollege.contact}
                   onChange={(e) => setNewCollege((prev) => ({ ...prev, contact: e.target.value }))}
                   placeholder="College contact number (e.g., 0884-2315333 or 9876543210)"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
                   maxLength={20}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-muted-text">
                   Contact number displayed on student ID cards and official documents
                 </p>
               </div>
 
               {/* Principal Signature */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-sub mb-1.5">
                   Principal Signature
                 </label>
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-xs text-muted-text mb-2">
                   Upload official principal signature (optional)
                 </p>
                 {newCollege.principalSignaturePreview && (
-                  <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-border bg-background p-3">
                     <div className="flex items-center gap-3">
                       <img
                         src={newCollege.principalSignaturePreview}
                         alt="Signature preview"
-                        className="h-16 w-36 rounded border border-gray-200 bg-white object-contain p-1"
+                        className="h-16 w-36 rounded border border-border bg-surface object-contain p-1"
                       />
-                      <span className="text-xs text-gray-500">Signature ready to upload</span>
+                      <span className="text-xs text-muted-text">Signature ready to upload</span>
                     </div>
                     <button
                       type="button"
@@ -7317,15 +7317,15 @@ const Settings = () => {
                           principalSignaturePreview: null
                         }));
                       }}
-                      className="p-1.5 text-gray-400 hover:text-red-500 rounded hover:bg-gray-100 transition-colors"
+                      className="p-1.5 text-muted-text hover:text-danger rounded hover:bg-background transition-colors"
                       title="Remove signature"
                     >
                       <Trash2 size={16} />
                     </button>
                   </div>
                 )}
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-3 text-sm text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50">
-                  <Upload size={16} className="text-blue-600" />
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-strong px-4 py-3 text-sm text-sub transition-colors hover:border-primary hover:bg-[var(--primary-light)]">
+                  <Upload size={16} className="text-primary" />
                   <span>{newCollege.principalSignatureFile ? 'Change Signature' : 'Upload Signature'}</span>
                   <input
                     type="file"
@@ -7353,14 +7353,14 @@ const Settings = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => {
                     setIsAddCollegeModalOpen(false);
                     resetNewCollege();
                   }}
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                  className="rounded-md border border-border-strong bg-surface px-4 py-2 text-sm font-medium text-sub transition-colors hover:bg-background"
                 >
                   Cancel
                 </button>
@@ -7371,7 +7371,7 @@ const Settings = () => {
                     !newCollege.name.trim() ||
                     !newCollege.code?.trim()
                   }
-                  className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {creatingCollege ? (
                     <>
@@ -7413,16 +7413,16 @@ const Settings = () => {
           }}
         >
           <div
-            className="w-full max-w-lg rounded-lg bg-white shadow-2xl max-h-[90vh] overflow-y-auto relative"
+            className="w-full max-w-lg rounded-lg bg-surface shadow-2xl max-h-[90vh] overflow-y-auto relative"
             onClick={(e) => e.stopPropagation()}
             style={{ zIndex: 10000 }}
           >
-            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Add New Branch</h3>
+                <h3 className="text-lg font-semibold text-main">Add New Branch</h3>
                 {selectedCourse && (
-                  <p className="text-sm text-gray-500 mt-0.5">
-                    for <span className="font-medium text-orange-600">{selectedCourse.name}</span>
+                  <p className="text-sm text-muted-text mt-0.5">
+                    for <span className="font-medium text-warning">{selectedCourse.name}</span>
                   </p>
                 )}
               </div>
@@ -7431,7 +7431,7 @@ const Settings = () => {
                   setIsAddBranchModalOpen(false);
                   resetNewBranch();
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-muted-text hover:text-sub transition-colors"
               >
                 <X size={20} />
               </button>
@@ -7446,34 +7446,34 @@ const Settings = () => {
             >
               {/* Branch Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Branch Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1.5">
+                  Branch Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   value={newBranch.name}
                   onChange={(e) => setNewBranch((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="Branch name (e.g., CSE, ECE)"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-warning focus:outline-none focus:ring-2 focus:ring-[var(--warning-light)]"
                   required
                 />
               </div>
 
               {/* Branch Code */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Branch Code <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1.5">
+                  Branch Code <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   value={newBranch.code}
                   onChange={(e) => setNewBranch((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))}
                   placeholder="Branch code (e.g., CSE)"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 uppercase"
+                  className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-warning focus:outline-none focus:ring-2 focus:ring-[var(--warning-light)] uppercase"
                   required
                   maxLength={10}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-muted-text">
                   Unique code for the branch (e.g., CSE, ECE)
                 </p>
               </div>
@@ -7484,14 +7484,14 @@ const Settings = () => {
               />
 
               {/* Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
                 <button
                   type="button"
                   onClick={() => {
                     setIsAddBranchModalOpen(false);
                     resetNewBranch();
                   }}
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                  className="rounded-md border border-border-strong bg-surface px-4 py-2 text-sm font-medium text-sub transition-colors hover:bg-background"
                 >
                   Cancel
                 </button>
@@ -7502,7 +7502,7 @@ const Settings = () => {
                     !newBranch.name.trim() ||
                     !newBranch.code.trim()
                   }
-                  className="inline-flex items-center gap-2 rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 rounded-md bg-warning px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-warning disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {savingBranchId === `new-${branchModalCourseId}` ? (
                     <>
@@ -7530,27 +7530,27 @@ const Settings = () => {
           onClick={(e) => { if (e.target === e.currentTarget) closeRegStageModal(); }}
         >
           <div
-            className="w-full max-w-2xl rounded-xl bg-white shadow-2xl flex flex-col max-h-[90vh]"
+            className="w-full max-w-2xl rounded-xl bg-surface shadow-2xl flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 flex-shrink-0">
+            <div className="flex items-center justify-between border-b border-border px-6 py-4 flex-shrink-0">
               <div>
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <Settings2 size={15} className="text-purple-700" />
+                  <div className="w-7 h-7 rounded-lg bg-[var(--primary-light)] flex items-center justify-center">
+                    <Settings2 size={15} className="text-secondary" />
                   </div>
-                  <h3 className="text-base font-bold text-gray-900">Registration Setup</h3>
+                  <h3 className="text-base font-bold text-main">Registration Setup</h3>
                 </div>
-                <p className="text-xs text-gray-500 mt-1 ml-9">
-                  Branch: <span className="font-semibold text-purple-700">{regStageModal.branch?.name}</span>
-                  <span className="mx-1.5 text-gray-300">|</span>
-                  <span className="text-gray-500">{regStageModal.totalYears} year{regStageModal.totalYears !== 1 ? 's' : ''}</span>
-                  <span className="mx-1.5 text-gray-300">|</span>
-                  Select stages that are <span className="font-semibold text-gray-700">not required</span> for each year — those students' registration will auto-complete even if the stage is pending.
+                <p className="text-xs text-muted-text mt-1 ml-9">
+                  Branch: <span className="font-semibold text-secondary">{regStageModal.branch?.name}</span>
+                  <span className="mx-1.5 text-muted-text">|</span>
+                  <span className="text-muted-text">{regStageModal.totalYears} year{regStageModal.totalYears !== 1 ? 's' : ''}</span>
+                  <span className="mx-1.5 text-muted-text">|</span>
+                  Select stages that are <span className="font-semibold text-sub">not required</span> for each year — those students' registration will auto-complete even if the stage is pending.
                 </p>
               </div>
-              <button onClick={closeRegStageModal} className="text-gray-400 hover:text-gray-600 ml-4 flex-shrink-0">
+              <button onClick={closeRegStageModal} className="text-muted-text hover:text-sub ml-4 flex-shrink-0">
                 <X size={18} />
               </button>
             </div>
@@ -7567,7 +7567,7 @@ const Settings = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-24 flex-shrink-0" />
                     {REG_STAGE_KEYS.map(({ key, label }) => (
-                      <div key={key} className="flex-1 text-center text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                      <div key={key} className="flex-1 text-center text-[11px] font-semibold text-muted-text uppercase tracking-wide">
                         {label}
                       </div>
                     ))}
@@ -7582,14 +7582,14 @@ const Settings = () => {
                       <div
                         key={yearNum}
                         className={`flex items-center gap-2 rounded-xl border px-4 py-3 transition-colors ${
-                          optCount > 0 ? 'border-purple-200 bg-purple-50/60' : 'border-gray-200 bg-gray-50/50'
+                          optCount > 0 ? 'border-[var(--primary-light)] bg-[var(--primary-light)]' : 'border-border bg-[var(--background)]/50'
                         }`}
                       >
                         {/* Year label */}
                         <div className="w-24 flex-shrink-0">
-                          <span className="text-sm font-bold text-gray-800">Year {yearNum}</span>
+                          <span className="text-sm font-bold text-main">Year {yearNum}</span>
                           {optCount > 0 && (
-                            <div className="text-[10px] text-purple-600 font-medium mt-0.5">{optCount} optional</div>
+                            <div className="text-[10px] text-secondary font-medium mt-0.5">{optCount} optional</div>
                           )}
                         </div>
 
@@ -7604,8 +7604,8 @@ const Settings = () => {
                                 title={isOptional ? `${label} is optional for Year ${yearNum}` : `Mark ${label} as optional for Year ${yearNum}`}
                                 className={`w-8 h-8 rounded-lg flex items-center justify-center border-2 transition-all ${
                                   isOptional
-                                    ? 'bg-purple-600 border-purple-600 shadow-sm'
-                                    : 'bg-white border-gray-300 hover:border-purple-400 hover:bg-purple-50'
+                                    ? 'bg-secondary border-secondary shadow-sm'
+                                    : 'bg-surface border-border-strong hover:border-secondary hover:bg-[var(--primary-light)]'
                                 }`}
                               >
                                 {isOptional ? (
@@ -7613,7 +7613,7 @@ const Settings = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                                   </svg>
                                 ) : (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-background" />
                                 )}
                               </button>
                             </div>
@@ -7624,9 +7624,9 @@ const Settings = () => {
                   })}
 
                   {/* Legend */}
-                  <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 mt-2">
-                    <AlertTriangle size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-800 leading-relaxed">
+                  <div className="flex items-start gap-2 rounded-lg bg-[var(--warning-light)] border border-[var(--warning-light)] px-3 py-2.5 mt-2">
+                    <AlertTriangle size={14} className="text-warning flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-warning leading-relaxed">
                       Checked stages are <span className="font-semibold">optional</span> — students in this branch for the selected year will have their registration counted as complete even if those stages are still pending or not done.
                     </p>
                   </div>
@@ -7635,11 +7635,11 @@ const Settings = () => {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4 flex-shrink-0 bg-gray-50 rounded-b-xl">
+            <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4 flex-shrink-0 bg-background rounded-b-xl">
               <button
                 type="button"
                 onClick={closeRegStageModal}
-                className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="rounded-lg border border-border bg-surface px-4 py-2 text-sm font-medium text-sub hover:bg-background transition-colors"
               >
                 Cancel
               </button>
@@ -7647,7 +7647,7 @@ const Settings = () => {
                 type="button"
                 onClick={saveRegStageConfig}
                 disabled={regStageModal.saving || regStageModal.loading}
-                className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-5 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg bg-secondary px-5 py-2 text-sm font-medium text-white hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {regStageModal.saving ? (
                   <><LoadingAnimation width={14} height={14} showMessage={false} variant="inline" />Saving...</>
@@ -7682,16 +7682,16 @@ const Settings = () => {
           }}
         >
           <div
-            className="w-full max-w-2xl rounded-lg bg-white shadow-2xl max-h-[90vh] flex flex-col relative"
+            className="w-full max-w-2xl rounded-lg bg-surface shadow-2xl max-h-[90vh] flex flex-col relative"
             onClick={(e) => e.stopPropagation()}
             style={{ zIndex: 10000 }}
           >
-            <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4">
+            <div className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Add New Program</h3>
+                <h3 className="text-lg font-semibold text-main">Add New Program</h3>
                 {selectedCollege && (
-                  <p className="text-sm text-gray-500 mt-0.5">
-                    for <span className="font-medium text-purple-600">{selectedCollege.name}</span>
+                  <p className="text-sm text-muted-text mt-0.5">
+                    for <span className="font-medium text-secondary">{selectedCollege.name}</span>
                   </p>
                 )}
               </div>
@@ -7700,7 +7700,7 @@ const Settings = () => {
                   setIsAddCourseModalOpen(false);
                   resetNewCourse();
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-muted-text hover:text-sub transition-colors"
               >
                 <X size={20} />
               </button>
@@ -7710,54 +7710,54 @@ const Settings = () => {
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {/* Program Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Program Name <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1.5">
+                  Program Name <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   value={newCourse.name}
                   onChange={(e) => setNewCourse((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="Course name (e.g., B.Tech, Diploma)"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                  className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-secondary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
                   required
                 />
               </div>
 
               {/* Program Code */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Program Code <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1.5">
+                  Program Code <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   value={newCourse.code}
                   onChange={(e) => setNewCourse((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))}
                   placeholder="Program code (e.g., BTECH, DIP)"
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 uppercase"
+                  className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-secondary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] uppercase"
                   required
                   maxLength={20}
                 />
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-muted-text">
                   Unique code for the program (e.g., BTECH, DIP)
                 </p>
               </div>
 
               {/* Program Level */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Program Level <span className="text-red-500">*</span>
+                <label className="block text-sm font-medium text-sub mb-1.5">
+                  Program Level <span className="text-danger">*</span>
                 </label>
                 <select
                   value={newCourse.level || 'ug'}
                   onChange={(e) => setNewCourse((prev) => ({ ...prev, level: e.target.value }))}
-                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                  className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-secondary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)]"
                   required
                 >
                   <option value="diploma">Diploma</option>
                   <option value="ug">UG (Undergraduate)</option>
                   <option value="pg">PG (Postgraduate)</option>
                 </select>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-muted-text">
                   Select the academic level of this program
                 </p>
               </div>
@@ -7770,14 +7770,14 @@ const Settings = () => {
               </div>
 
               {/* Actions */}
-              <div className="flex shrink-0 items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+              <div className="flex shrink-0 items-center justify-end gap-3 px-6 py-4 border-t border-border bg-background rounded-b-lg">
                 <button
                   type="button"
                   onClick={() => {
                     setIsAddCourseModalOpen(false);
                     resetNewCourse();
                   }}
-                  className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                  className="rounded-md border border-border-strong bg-surface px-4 py-2 text-sm font-medium text-sub transition-colors hover:bg-background"
                 >
                   Cancel
                 </button>
@@ -7792,7 +7792,7 @@ const Settings = () => {
                     (!newCourse.usePerYearConfig && (!newCourse.semestersPerYear || Number(newCourse.semestersPerYear) <= 0)) ||
                     (newCourse.usePerYearConfig && (!newCourse.yearSemesterConfig || newCourse.yearSemesterConfig.length !== Number(newCourse.totalYears)))
                   }
-                  className="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 rounded-md bg-secondary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {creatingCourse ? (
                     <>
@@ -7818,9 +7818,9 @@ const Settings = () => {
 
 const TextField = ({ label, value, onChange, placeholder = '', required = false, className = '' }) => (
   <label className={`flex flex-col gap-1.5 ${className}`}>
-    <span className="text-sm font-medium text-gray-700">
+    <span className="text-sm font-medium text-sub">
       {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
+      {required && <span className="text-danger ml-1">*</span>}
     </span>
     <input
       type="text"
@@ -7828,40 +7828,40 @@ const TextField = ({ label, value, onChange, placeholder = '', required = false,
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       required={required}
-      className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
+      className="rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main placeholder:text-muted-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] transition-colors"
     />
   </label>
 );
 
 const NumberField = ({ label, value, onChange, min, max, className = '' }) => (
   <label className={`flex flex-col gap-1.5 ${className}`}>
-    <span className="text-sm font-medium text-gray-700">{label}</span>
+    <span className="text-sm font-medium text-sub">{label}</span>
     <input
       type="number"
       value={value}
       min={min}
       max={max}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
+      className="rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main placeholder:text-muted-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] transition-colors"
     />
   </label>
 );
 
 const StatCard = ({ icon: Icon, title, value }) => (
-  <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
-    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+  <div className="flex items-center gap-3 rounded-lg border border-border bg-surface p-4 shadow-sm">
+    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--primary-light)] text-primary">
       <Icon size={20} />
     </div>
     <div>
-      <p className="text-sm text-gray-600">{title}</p>
-      <p className="text-xl font-semibold text-gray-900">{value}</p>
+      <p className="text-sm text-sub">{title}</p>
+      <p className="text-xl font-semibold text-main">{value}</p>
     </div>
   </div>
 );
 
 const StatusBadge = ({ isActive }) => (
   <span
-    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${isActive ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-600 border border-gray-200'
+    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${isActive ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]' : 'bg-background text-sub border border-border'
       }`}
   >
     {isActive ? 'Active' : 'Inactive'}
@@ -7886,8 +7886,8 @@ const CollegeCard = ({
   return (
     <div
       className={`rounded-lg border-2 px-4 py-3 transition-all ${isSelected
-        ? 'border-blue-500 bg-blue-50 shadow-sm'
-        : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+        ? 'border-primary bg-[var(--primary-light)] shadow-sm'
+        : 'border-border bg-surface hover:border-[var(--primary-light)] hover:shadow-sm'
         }`}
     >
       {isEditing ? (
@@ -7896,14 +7896,14 @@ const CollegeCard = ({
             type="text"
             value={draft?.name || college.name}
             onChange={(e) => onUpdateDraft('name', e.target.value)}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
+            className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] transition-colors"
             placeholder="College name"
           />
           <input
             type="text"
             value={draft?.code || college.code || ''}
             onChange={(e) => onUpdateDraft('code', e.target.value.toUpperCase())}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors uppercase"
+            className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] transition-colors uppercase"
             placeholder="College code (e.g., PCE)"
             required
             maxLength={10}
@@ -7911,7 +7911,7 @@ const CollegeCard = ({
           <textarea
             value={draft?.address ?? college.address ?? ''}
             onChange={(e) => onUpdateDraft('address', e.target.value)}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors resize-none"
+            className="w-full rounded-md border border-border-strong bg-surface px-3 py-2 text-sm text-main focus:border-primary focus:outline-none focus:ring-2 focus:ring-[var(--primary-light)] transition-colors resize-none"
             placeholder="College address"
             rows={2}
           />
@@ -7919,13 +7919,13 @@ const CollegeCard = ({
             <button
               onClick={onSave}
               disabled={isSaving}
-              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Save
             </button>
             <button
               onClick={onCancel}
-              className="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-sub transition-colors hover:bg-background"
             >
               Cancel
             </button>
@@ -7940,19 +7940,19 @@ const CollegeCard = ({
               className="flex-1 text-left"
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-gray-900">{college.name}</span>
+                <span className="text-sm font-semibold text-main">{college.name}</span>
                 <StatusBadge isActive={college.isActive} />
               </div>
             </button>
           </div>
           {college.address && (
-            <p className="mb-1 text-xs text-gray-500 line-clamp-2">{college.address}</p>
+            <p className="mb-1 text-xs text-muted-text line-clamp-2">{college.address}</p>
           )}
-          <p className="mb-3 text-xs text-gray-500">{coursesCount || 0} courses</p>
+          <p className="mb-3 text-xs text-muted-text">{coursesCount || 0} courses</p>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={onSelect}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-sub transition-colors hover:bg-background"
             >
               <BookOpen size={14} />
               View Courses
@@ -7960,7 +7960,7 @@ const CollegeCard = ({
             <button
               onClick={onEdit}
               disabled={isSaving}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-sub transition-colors hover:bg-background disabled:opacity-50"
             >
               <Pencil size={14} />
               Edit
@@ -7968,16 +7968,16 @@ const CollegeCard = ({
             <button
               onClick={onToggleActive}
               disabled={isSaving}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-sub transition-colors hover:bg-background disabled:opacity-50"
             >
               {college.isActive ? (
                 <>
-                  <ToggleRight size={14} className="text-green-600" />
+                  <ToggleRight size={14} className="text-success" />
                   Active
                 </>
               ) : (
                 <>
-                  <ToggleLeft size={14} className="text-gray-500" />
+                  <ToggleLeft size={14} className="text-muted-text" />
                   Activate
                 </>
               )}
@@ -7985,7 +7985,7 @@ const CollegeCard = ({
             <button
               onClick={onDelete}
               disabled={isSaving}
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-2.5 py-1.5 text-xs font-medium text-danger transition-colors hover:bg-[var(--danger-light)] disabled:opacity-50"
             >
               <Trash2 size={14} />
               Delete
@@ -8007,27 +8007,27 @@ const CourseCard = ({ course, isSelected, onSelect }) => {
       type="button"
       onClick={onSelect}
       className={`w-full rounded-lg border-2 px-4 py-3 text-left transition-all ${isSelected
-        ? 'border-blue-500 bg-blue-50 shadow-sm'
-        : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+        ? 'border-primary bg-[var(--primary-light)] shadow-sm'
+        : 'border-border bg-surface hover:border-[var(--primary-light)] hover:shadow-sm'
         }`}
     >
       <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-gray-900">{course.name}</span>
+        <span className="text-sm font-semibold text-main">{course.name}</span>
         <StatusBadge isActive={course.isActive} />
       </div>
-      <p className="mt-1.5 text-sm text-gray-600">{formatCourseStructureSummary(course)}</p>
-      <p className="mt-1.5 text-xs text-gray-500">{activeBranches} active branches</p>
+      <p className="mt-1.5 text-sm text-sub">{formatCourseStructureSummary(course)}</p>
+      <p className="mt-1.5 text-xs text-muted-text">{activeBranches} active branches</p>
     </button>
   );
 };
 
 const EmptyState = () => (
-  <div className="rounded-lg border border-gray-200 bg-white p-8 text-center">
-    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
-      <Settings2 size={24} className="text-gray-500" />
+  <div className="rounded-lg border border-border bg-surface p-8 text-center">
+    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-background">
+      <Settings2 size={24} className="text-muted-text" />
     </div>
-    <h3 className="text-base font-semibold text-gray-900 mb-2">No courses yet</h3>
-    <p className="text-sm text-gray-600">
+    <h3 className="text-base font-semibold text-main mb-2">No courses yet</h3>
+    <p className="text-sm text-sub">
       Add your first course above to configure its branches and academic stages.
     </p>
   </div>

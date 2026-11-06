@@ -66,10 +66,10 @@ const AnnouncementImage = ({ src, alt }) => {
     if (hasError || !src) return null;
 
     return (
-        <div className="mb-3 h-36 overflow-hidden rounded-lg bg-gray-100 relative">
+        <div className="mb-3 h-36 overflow-hidden rounded-lg bg-background relative">
             {!loaded && (
-                <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
-                    <ImageIcon size={22} className="text-gray-400 opacity-60" />
+                <div className="absolute inset-0 bg-background animate-pulse flex items-center justify-center">
+                    <ImageIcon size={22} className="text-muted-text opacity-60" />
                 </div>
             )}
             <img
@@ -1327,18 +1327,18 @@ const Announcements = () => {
     const AnnouncementSkeleton = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="bg-white rounded-xl border p-4 animate-pulse">
+                <div key={i} className="bg-surface rounded-xl border p-4 animate-pulse">
                     <div className="flex justify-between items-start mb-3">
-                        <div className="h-5 bg-gray-200 rounded w-2/3"></div>
+                        <div className="h-5 bg-background rounded w-2/3"></div>
                         <div className="flex gap-1">
-                            <div className="w-8 h-8 bg-gray-100 rounded"></div>
-                            <div className="w-8 h-8 bg-gray-100 rounded"></div>
+                            <div className="w-8 h-8 bg-background rounded"></div>
+                            <div className="w-8 h-8 bg-background rounded"></div>
                         </div>
                     </div>
-                    <div className="h-32 bg-gray-100 rounded-lg mb-3"></div>
+                    <div className="h-32 bg-background rounded-lg mb-3"></div>
                     <div className="space-y-2">
-                        <div className="h-4 bg-gray-50 rounded w-full"></div>
-                        <div className="h-4 bg-gray-50 rounded w-5/6"></div>
+                        <div className="h-4 bg-background rounded w-full"></div>
+                        <div className="h-4 bg-background rounded w-5/6"></div>
                     </div>
                 </div>
             ))}
@@ -1348,13 +1348,13 @@ const Announcements = () => {
     const PollSkeleton = () => (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[1, 2, 3, 4].map(i => (
-                <div key={i} className="bg-white rounded-xl border p-6 animate-pulse">
-                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div key={i} className="bg-surface rounded-xl border p-6 animate-pulse">
+                    <div className="h-6 bg-background rounded w-3/4 mb-4"></div>
                     <div className="space-y-3 mb-6">
-                        <div className="h-10 bg-gray-50 rounded"></div>
-                        <div className="h-10 bg-gray-50 rounded"></div>
+                        <div className="h-10 bg-background rounded"></div>
+                        <div className="h-10 bg-background rounded"></div>
                     </div>
-                    <div className="h-12 bg-gray-50 rounded-b-xl -mx-6 -mb-6"></div>
+                    <div className="h-12 bg-background rounded-b-xl -mx-6 -mb-6"></div>
                 </div>
             ))}
         </div>
@@ -1373,9 +1373,9 @@ const Announcements = () => {
     return (
         <div className="min-h-screen bg-transparent space-y-6 animate-fade-in relative">
             {/* Header with Page Name & Action */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 bg-white/80 backdrop-blur-md px-6 py-4 rounded-t-2xl shadow-sm overflow-hidden sticky top-0 z-30">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border bg-[var(--surface)]/80 backdrop-blur-md px-6 py-4 rounded-t-2xl shadow-sm overflow-hidden sticky top-0 z-30">
                 <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
-                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
+                    <h1 className="text-xl sm:text-2xl font-bold text-main tracking-tight">
                         {pageTitle}
                     </h1>
                     {activeTab !== 'sms' && (
@@ -1412,14 +1412,14 @@ const Announcements = () => {
                 <div className="flex items-center gap-3">
                     {/* View Mode Setup: Both Cards and List page setup in the right top corner */}
                     {(activeTab === 'announcements' || activeTab === 'events') && (
-                        <div className="bg-gray-100 p-1 rounded-xl flex items-center border border-gray-200 shadow-2xs">
+                        <div className="bg-background p-1 rounded-xl flex items-center border border-border shadow-2xs">
                             <button
                                 type="button"
                                 onClick={() => setViewMode('cards')}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                                     viewMode === 'cards'
-                                        ? 'bg-white text-blue-600 shadow-xs'
-                                        : 'text-gray-500 hover:text-gray-900'
+                                        ? 'bg-surface text-primary shadow-xs'
+                                        : 'text-muted-text hover:text-main'
                                 }`}
                                 title="Cards View"
                             >
@@ -1431,8 +1431,8 @@ const Announcements = () => {
                                 onClick={() => setViewMode('list')}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                                     viewMode === 'list'
-                                        ? 'bg-white text-blue-600 shadow-xs'
-                                        : 'text-gray-500 hover:text-gray-900'
+                                        ? 'bg-surface text-primary shadow-xs'
+                                        : 'text-muted-text hover:text-main'
                                 }`}
                                 title="List View"
                             >
@@ -1445,7 +1445,7 @@ const Announcements = () => {
                     {activeTab !== 'sms' && (
                         <button
                             onClick={() => openCreateModal(activeTab, activeTab === 'events' ? 'event' : null)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 text-sm shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transform transition-all hover:-translate-y-0.5"
+                            className="bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 text-sm shadow-lg shadow-primary/20 hover:shadow-primary/40 transform transition-all hover:-translate-y-0.5"
                         >
                             <Plus size={18} strokeWidth={3} />
                             {activeTab === 'polls' ? 'Create New Poll' : activeTab === 'events' ? 'Create New Event' : 'Create New Announcement'}
@@ -1455,12 +1455,12 @@ const Announcements = () => {
             </div>
 
             {/* Content Area */}
-            <div className="bg-white rounded-b-2xl shadow-sm border border-gray-200 border-t-0 p-6 min-h-[400px]">
+            <div className="bg-surface rounded-b-2xl shadow-sm border border-border border-t-0 p-6 min-h-[400px]">
                 {fetchingFeed && announcements.length === 0 && (activeTab === 'announcements' || activeTab === 'events') && <AnnouncementSkeleton />}
                 {fetchingFeed && activeTab === 'polls' && <PollSkeleton />}
                 {fetchingFeed && activeTab === 'sms' && (
                     <div className="flex justify-center py-10">
-                        <Loader2 className="animate-spin text-blue-600" />
+                        <Loader2 className="animate-spin text-primary" />
                     </div>
                 )}
 
@@ -1471,13 +1471,13 @@ const Announcements = () => {
                         <div className="flex gap-2 sm:gap-4 border-b pb-4 overflow-x-auto">
                             <button
                                 onClick={() => setSmsMode('broadcast')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${smsMode === 'broadcast' ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${smsMode === 'broadcast' ? 'bg-[var(--primary-light)] text-primary font-bold' : 'text-sub hover:bg-background'}`}
                             >
                                 <Send size={16} /> Send Broadcast
                             </button>
                             <button
                                 onClick={() => setSmsMode('templates')}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${smsMode === 'templates' ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${smsMode === 'templates' ? 'bg-[var(--primary-light)] text-primary font-bold' : 'text-sub hover:bg-background'}`}
                             >
                                 <LayoutTemplate size={16} /> Manage Templates
                             </button>
@@ -1486,7 +1486,7 @@ const Announcements = () => {
                                     setSmsMode('history');
                                     fetchSmsHistory();
                                 }}
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${smsMode === 'history' ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 whitespace-nowrap ${smsMode === 'history' ? 'bg-[var(--primary-light)] text-primary font-bold' : 'text-sub hover:bg-background'}`}
                             >
                                 <History size={16} /> SMS Sent Till Date
                             </button>
@@ -1495,10 +1495,10 @@ const Announcements = () => {
                         {smsMode === 'templates' ? (
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
-                                    <h3 className="text-lg font-bold text-gray-800">SMS Templates</h3>
+                                    <h3 className="text-lg font-bold text-main">SMS Templates</h3>
                                     <button
                                         onClick={() => openTemplateModal()}
-                                        className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"
+                                        className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"
                                     >
                                         <Plus size={16} /> Create Template
                                     </button>
@@ -1506,20 +1506,20 @@ const Announcements = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {smsTemplates.map(template => (
-                                        <div key={template.id} className="bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition-all group">
+                                        <div key={template.id} className="bg-surface border rounded-xl p-4 shadow-sm hover:shadow-md transition-all group">
                                             <div className="flex justify-between items-start mb-2">
-                                                <h4 className="font-bold text-gray-900">{template.name}</h4>
+                                                <h4 className="font-bold text-main">{template.name}</h4>
                                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => openTemplateModal(template)} className="p-1.5 hover:bg-blue-50 text-blue-500 rounded"><Pencil size={14} /></button>
-                                                    <button onClick={() => handleDeleteTemplate(template.id)} className="p-1.5 hover:bg-red-50 text-red-500 rounded"><Trash2 size={14} /></button>
+                                                    <button onClick={() => openTemplateModal(template)} className="p-1.5 hover:bg-[var(--primary-light)] text-primary rounded"><Pencil size={14} /></button>
+                                                    <button onClick={() => handleDeleteTemplate(template.id)} className="p-1.5 hover:bg-[var(--danger-light)] text-danger rounded"><Trash2 size={14} /></button>
                                                 </div>
                                             </div>
-                                            <div className="text-xs text-gray-500 mb-2 font-mono bg-gray-50 p-1 rounded w-fit">ID: {template.template_id}</div>
-                                            <p className="text-sm text-gray-600 line-clamp-3">{template.content}</p>
+                                            <div className="text-xs text-muted-text mb-2 font-mono bg-background p-1 rounded w-fit">ID: {template.template_id}</div>
+                                            <p className="text-sm text-sub line-clamp-3">{template.content}</p>
                                         </div>
                                     ))}
                                     {smsTemplates.length === 0 && (
-                                        <div className="col-span-full text-center py-10 text-gray-400">No templates found. Create one to get started.</div>
+                                        <div className="col-span-full text-center py-10 text-muted-text">No templates found. Create one to get started.</div>
                                     )}
                                 </div>
                             </div>
@@ -1527,29 +1527,29 @@ const Announcements = () => {
                             <div className="space-y-6">
                                 {/* KPI Summary Cards */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    <div className="bg-gradient-to-br from-blue-50 to-white p-5 rounded-2xl border border-blue-100 shadow-sm flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-200">
+                                    <div className="bg-gradient-to-br from-[var(--primary-light)] to-surface p-5 rounded-2xl border border-[var(--primary-light)] shadow-sm flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 shadow-md shadow-primary">
                                             <Smartphone size={22} />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-blue-900 uppercase tracking-wider">SMS Sent Till Date</div>
-                                            <div className="text-2xl font-black text-gray-900 mt-0.5">
+                                            <div className="text-xs font-bold text-primary uppercase tracking-wider">SMS Sent Till Date</div>
+                                            <div className="text-2xl font-black text-main mt-0.5">
                                                 {Number(smsHistory?.summary?.total_sent_all_time || 0).toLocaleString()}
                                             </div>
-                                            <div className="text-[11px] text-gray-500 mt-0.5">All-time broadcast volume</div>
+                                            <div className="text-[11px] text-muted-text mt-0.5">All-time broadcast volume</div>
                                         </div>
                                     </div>
 
-                                    <div className="bg-gradient-to-br from-emerald-50 to-white p-5 rounded-2xl border border-emerald-100 shadow-sm flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-200">
+                                    <div className="bg-gradient-to-br from-[var(--success-light)] to-surface p-5 rounded-2xl border border-[var(--success-light)] shadow-sm flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-success text-white flex items-center justify-center shrink-0 shadow-md shadow-success">
                                             <CheckCircle2 size={22} />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Delivered</div>
-                                            <div className="text-2xl font-black text-emerald-700 mt-0.5">
+                                            <div className="text-xs font-bold text-success uppercase tracking-wider">Delivered</div>
+                                            <div className="text-2xl font-black text-success mt-0.5">
                                                 {Number(smsHistory?.summary?.sent_count_all_time || 0).toLocaleString()}
                                             </div>
-                                            <div className="text-[11px] text-emerald-600/80 mt-0.5">
+                                            <div className="text-[11px] text-success mt-0.5">
                                                 {smsHistory?.summary?.total_sent_all_time > 0
                                                     ? `${((smsHistory.summary.sent_count_all_time / smsHistory.summary.total_sent_all_time) * 100).toFixed(1)}% success rate`
                                                     : '100% success rate'}
@@ -1557,16 +1557,16 @@ const Announcements = () => {
                                         </div>
                                     </div>
 
-                                    <div className="bg-gradient-to-br from-rose-50 to-white p-5 rounded-2xl border border-rose-100 shadow-sm flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-rose-200">
+                                    <div className="bg-gradient-to-br from-[var(--danger-light)] to-surface p-5 rounded-2xl border border-[var(--danger-light)] shadow-sm flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-danger text-white flex items-center justify-center shrink-0 shadow-md shadow-danger">
                                             <XCircle size={22} />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-rose-900 uppercase tracking-wider">Failed / Undelivered</div>
-                                            <div className="text-2xl font-black text-rose-700 mt-0.5">
+                                            <div className="text-xs font-bold text-danger uppercase tracking-wider">Failed / Undelivered</div>
+                                            <div className="text-2xl font-black text-danger mt-0.5">
                                                 {Number(smsHistory?.summary?.failed_count_all_time || 0).toLocaleString()}
                                             </div>
-                                            <div className="text-[11px] text-rose-600/80 mt-0.5">
+                                            <div className="text-[11px] text-danger mt-0.5">
                                                 {smsHistory?.summary?.total_sent_all_time > 0
                                                     ? `${((smsHistory.summary.failed_count_all_time / smsHistory.summary.total_sent_all_time) * 100).toFixed(1)}% failure rate`
                                                     : '0% failure rate'}
@@ -1574,29 +1574,29 @@ const Announcements = () => {
                                         </div>
                                     </div>
 
-                                    <div className="bg-gradient-to-br from-indigo-50 to-white p-5 rounded-2xl border border-indigo-100 shadow-sm flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-200">
+                                    <div className="bg-gradient-to-br from-[var(--primary-light)] to-surface p-5 rounded-2xl border border-[var(--primary-light)] shadow-sm flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 shadow-md shadow-primary">
                                             <LayoutTemplate size={22} />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-indigo-900 uppercase tracking-wider">Templates Used</div>
-                                            <div className="text-2xl font-black text-indigo-700 mt-0.5">
+                                            <div className="text-xs font-bold text-primary uppercase tracking-wider">Templates Used</div>
+                                            <div className="text-2xl font-black text-primary mt-0.5">
                                                 {smsHistory?.summary?.templates_used_all_time || 0}
                                             </div>
-                                            <div className="text-[11px] text-gray-500 mt-0.5">Registered DLT templates</div>
+                                            <div className="text-[11px] text-muted-text mt-0.5">Registered DLT templates</div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Template Quick Stats Pills */}
                                 {smsHistory?.perTemplate && smsHistory.perTemplate.length > 0 && (
-                                    <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4">
+                                    <div className="bg-[var(--background)]/70 border border-border rounded-2xl p-4">
                                         <div className="flex items-center justify-between mb-3">
-                                            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                                                <LayoutTemplate size={14} className="text-blue-600" />
+                                            <span className="text-xs font-bold text-sub uppercase tracking-wider flex items-center gap-1.5">
+                                                <LayoutTemplate size={14} className="text-primary" />
                                                 SMS Sent Till Date by Template
                                             </span>
-                                            <span className="text-xs text-slate-500 font-medium">
+                                            <span className="text-xs text-muted-text font-medium">
                                                 Click a template to filter actions
                                             </span>
                                         </div>
@@ -1610,21 +1610,21 @@ const Announcements = () => {
                                                         onClick={() => handleHistoryFilterChange('template_id', isSelected ? '' : pt.template_id)}
                                                         className={`p-3 rounded-xl border text-left transition-all ${
                                                             isSelected
-                                                                ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-500/20 shadow-sm'
-                                                                : 'bg-white border-slate-200 hover:border-blue-300 hover:shadow-sm'
+                                                                ? 'bg-[var(--primary-light)] border-primary ring-2 ring-[var(--primary-light)] shadow-sm'
+                                                                : 'bg-surface border-border hover:border-[var(--primary-light)] hover:shadow-sm'
                                                         }`}
                                                     >
                                                         <div className="flex items-start justify-between gap-1 mb-1">
-                                                            <span className="font-semibold text-xs text-gray-900 truncate" title={pt.template_name}>
+                                                            <span className="font-semibold text-xs text-main truncate" title={pt.template_name}>
                                                                 {pt.template_name}
                                                             </span>
-                                                            <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full shrink-0">
+                                                            <span className="text-[11px] font-bold text-primary bg-[var(--primary-light)] px-2 py-0.5 rounded-full shrink-0">
                                                                 {Number(pt.total_sent).toLocaleString()}
                                                             </span>
                                                         </div>
-                                                        <div className="flex items-center justify-between text-[10px] text-gray-500 font-mono">
+                                                        <div className="flex items-center justify-between text-[10px] text-muted-text font-mono">
                                                             <span>ID: {pt.template_id}</span>
-                                                            <span className="text-emerald-600 font-medium font-sans">
+                                                            <span className="text-success font-medium font-sans">
                                                                 {Number(pt.sent_count).toLocaleString()} sent
                                                             </span>
                                                         </div>
@@ -1636,17 +1636,17 @@ const Announcements = () => {
                                 )}
 
                                 {/* Filter and Search Bar */}
-                                <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-3">
-                                    <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-gray-100">
+                                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm space-y-3">
+                                    <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-border">
                                         <div className="flex items-center gap-2">
-                                            <Filter size={16} className="text-blue-600" />
-                                            <span className="text-sm font-bold text-gray-800">Filter Sent History</span>
+                                            <Filter size={16} className="text-primary" />
+                                            <span className="text-sm font-bold text-main">Filter Sent History</span>
                                         </div>
                                         {(historyFilters.date_from || historyFilters.date_to || historyFilters.template_id || historyFilters.search) && (
                                             <button
                                                 type="button"
                                                 onClick={handleResetHistoryFilters}
-                                                className="text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1"
+                                                className="text-xs font-semibold text-danger hover:text-danger hover:bg-[var(--danger-light)] px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1"
                                             >
                                                 <RotateCcw size={12} /> Clear Filters
                                             </button>
@@ -1655,29 +1655,29 @@ const Announcements = () => {
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                                         <div>
-                                            <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">Date From</label>
+                                            <label className="block text-[11px] font-bold text-sub uppercase mb-1">Date From</label>
                                             <input
                                                 type="date"
                                                 value={historyFilters.date_from}
                                                 onChange={(e) => handleHistoryFilterChange('date_from', e.target.value)}
-                                                className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-gray-50 hover:bg-white focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="w-full text-xs p-2.5 border border-border rounded-xl bg-background hover:bg-surface focus:bg-surface focus:ring-2 focus:ring-primary outline-none"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">Date To</label>
+                                            <label className="block text-[11px] font-bold text-sub uppercase mb-1">Date To</label>
                                             <input
                                                 type="date"
                                                 value={historyFilters.date_to}
                                                 onChange={(e) => handleHistoryFilterChange('date_to', e.target.value)}
-                                                className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-gray-50 hover:bg-white focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="w-full text-xs p-2.5 border border-border rounded-xl bg-background hover:bg-surface focus:bg-surface focus:ring-2 focus:ring-primary outline-none"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">Filter by Template</label>
+                                            <label className="block text-[11px] font-bold text-sub uppercase mb-1">Filter by Template</label>
                                             <select
                                                 value={historyFilters.template_id}
                                                 onChange={(e) => handleHistoryFilterChange('template_id', e.target.value)}
-                                                className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-gray-50 hover:bg-white focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer"
+                                                className="w-full text-xs p-2.5 border border-border rounded-xl bg-background hover:bg-surface focus:bg-surface focus:ring-2 focus:ring-primary outline-none cursor-pointer"
                                             >
                                                 <option value="">All Templates</option>
                                                 {smsTemplates.map(t => (
@@ -1688,7 +1688,7 @@ const Announcements = () => {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">Search Keywords</label>
+                                            <label className="block text-[11px] font-bold text-sub uppercase mb-1">Search Keywords</label>
                                             <div className="relative">
                                                 <input
                                                     type="text"
@@ -1700,26 +1700,26 @@ const Announcements = () => {
                                                             handleHistoryFilterChange('search', historyFilters.search);
                                                         }
                                                     }}
-                                                    className="w-full text-xs p-2.5 pl-8 border border-gray-200 rounded-xl bg-gray-50 hover:bg-white focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                                    className="w-full text-xs p-2.5 pl-8 border border-border rounded-xl bg-background hover:bg-surface focus:bg-surface focus:ring-2 focus:ring-primary outline-none"
                                                 />
-                                                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-text pointer-events-none" />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Action-wise Sent History Table */}
-                                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-                                    <div className="p-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2 bg-gray-50/50">
+                                <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+                                    <div className="p-4 border-b border-border flex items-center justify-between flex-wrap gap-2 bg-[var(--background)]/50">
                                         <div className="flex items-center gap-2">
-                                            <History size={16} className="text-blue-600" />
-                                            <h3 className="font-bold text-gray-800 text-sm">SMS Sent History by Action</h3>
-                                            <span className="text-xs text-gray-500 font-medium">
+                                            <History size={16} className="text-primary" />
+                                            <h3 className="font-bold text-main text-sm">SMS Sent History by Action</h3>
+                                            <span className="text-xs text-muted-text font-medium">
                                                 ({smsHistory?.pagination?.total || 0} broadcast actions)
                                             </span>
                                         </div>
                                         {historyLoading && (
-                                            <div className="flex items-center gap-1.5 text-xs text-blue-600 font-semibold">
+                                            <div className="flex items-center gap-1.5 text-xs text-primary font-semibold">
                                                 <Loader2 size={14} className="animate-spin" /> Loading…
                                             </div>
                                         )}
@@ -1728,7 +1728,7 @@ const Announcements = () => {
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
-                                                <tr className="bg-gray-50/80 text-[11px] uppercase tracking-wider font-bold text-gray-500 border-b border-gray-100">
+                                                <tr className="bg-[var(--background)]/80 text-[11px] uppercase tracking-wider font-bold text-muted-text border-b border-border">
                                                     <th className="py-3 px-4">Date & Time</th>
                                                     <th className="py-3 px-4">Template Used</th>
                                                     <th className="py-3 px-4">Count / Recipients</th>
@@ -1737,25 +1737,25 @@ const Announcements = () => {
                                                     <th className="py-3 px-4 text-right">Actions</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="divide-y divide-gray-100 text-xs">
+                                            <tbody className="divide-y divide-border text-xs">
                                                 {smsHistory?.history && smsHistory.history.length > 0 ? (
                                                     smsHistory.history.map((row, idx) => (
-                                                        <tr key={`${row.action_date}-${row.template_id}-${idx}`} className="hover:bg-blue-50/40 transition-colors">
+                                                        <tr key={`${row.action_date}-${row.template_id}-${idx}`} className="hover:bg-[var(--primary-light)] transition-colors">
                                                             {/* Date & Time */}
                                                             <td className="py-3 px-4 whitespace-nowrap">
-                                                                <div className="font-bold text-gray-900 flex items-center gap-1.5">
-                                                                    <Calendar size={13} className="text-blue-600" />
+                                                                <div className="font-bold text-main flex items-center gap-1.5">
+                                                                    <Calendar size={13} className="text-primary" />
                                                                     {(row.first_sent_at || row.last_sent_at || row.action_date) ? new Date(row.first_sent_at || row.last_sent_at || row.action_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                                                                 </div>
-                                                                <div className="text-[11px] text-gray-500 mt-0.5 pl-4">
+                                                                <div className="text-[11px] text-muted-text mt-0.5 pl-4">
                                                                     {row.last_sent_at ? new Date(row.last_sent_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}
                                                                 </div>
                                                             </td>
 
                                                             {/* Template Used */}
                                                             <td className="py-3 px-4">
-                                                                <div className="font-bold text-gray-900">{row.template_name || 'Direct / Custom Template'}</div>
-                                                                <div className="text-[10px] text-gray-500 font-mono mt-0.5 bg-gray-100 px-1.5 py-0.5 rounded w-fit">
+                                                                <div className="font-bold text-main">{row.template_name || 'Direct / Custom Template'}</div>
+                                                                <div className="text-[10px] text-muted-text font-mono mt-0.5 bg-background px-1.5 py-0.5 rounded w-fit">
                                                                     DLT ID: {row.template_id || 'N/A'}
                                                                 </div>
                                                             </td>
@@ -1763,17 +1763,17 @@ const Announcements = () => {
                                                             {/* Count / Recipients */}
                                                             <td className="py-3 px-4 whitespace-nowrap">
                                                                 <div className="flex items-center gap-1.5">
-                                                                    <span className="font-bold text-gray-900 text-sm">
+                                                                    <span className="font-bold text-main text-sm">
                                                                         {Number(row.total_count || 0).toLocaleString()}
                                                                     </span>
-                                                                    <span className="text-[10px] text-gray-400 font-medium">total</span>
+                                                                    <span className="text-[10px] text-muted-text font-medium">total</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-2 mt-1">
-                                                                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                                                                    <span className="text-[10px] font-semibold text-success bg-[var(--success-light)] px-1.5 py-0.5 rounded flex items-center gap-0.5">
                                                                         <CheckCircle2 size={10} /> {Number(row.sent_count || 0).toLocaleString()}
                                                                     </span>
                                                                     {Number(row.failed_count || 0) > 0 && (
-                                                                        <span className="text-[10px] font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                                                                        <span className="text-[10px] font-semibold text-danger bg-[var(--danger-light)] px-1.5 py-0.5 rounded flex items-center gap-0.5">
                                                                             <XCircle size={10} /> {Number(row.failed_count || 0).toLocaleString()}
                                                                         </span>
                                                                     )}
@@ -1782,14 +1782,14 @@ const Announcements = () => {
 
                                                             {/* Sent By */}
                                                             <td className="py-3 px-4 whitespace-nowrap">
-                                                                <span className="inline-block px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-100 text-slate-700">
+                                                                <span className="inline-block px-2 py-1 rounded-lg text-[11px] font-medium bg-background text-sub">
                                                                     {row.sent_by || 'System Generated'}
                                                                 </span>
                                                             </td>
 
                                                             {/* Sample Message Preview */}
                                                             <td className="py-3 px-4 max-w-xs">
-                                                                <p className="text-gray-600 text-xs line-clamp-2 font-mono bg-gray-50 p-1.5 rounded-lg border border-gray-100">
+                                                                <p className="text-sub text-xs line-clamp-2 font-mono bg-background p-1.5 rounded-lg border border-border">
                                                                     {row.sample_message || 'No content preview available'}
                                                                 </p>
                                                             </td>
@@ -1799,7 +1799,7 @@ const Announcements = () => {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => setSelectedHistoryItem(row)}
-                                                                    className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-lg text-xs transition-colors"
+                                                                    className="px-3 py-1.5 bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary font-semibold rounded-lg text-xs transition-colors"
                                                                 >
                                                                     View Details
                                                                 </button>
@@ -1808,15 +1808,15 @@ const Announcements = () => {
                                                     ))
                                                 ) : (
                                                     <tr>
-                                                        <td colSpan={6} className="text-center py-12 text-gray-400">
+                                                        <td colSpan={6} className="text-center py-12 text-muted-text">
                                                             <div className="flex flex-col items-center justify-center gap-2">
-                                                                <History size={32} className="text-gray-300" />
-                                                                <p className="text-sm font-medium text-gray-500">No SMS broadcast records found matching criteria.</p>
+                                                                <History size={32} className="text-muted-text" />
+                                                                <p className="text-sm font-medium text-muted-text">No SMS broadcast records found matching criteria.</p>
                                                                 {(historyFilters.date_from || historyFilters.date_to || historyFilters.template_id || historyFilters.search) && (
                                                                     <button
                                                                         type="button"
                                                                         onClick={handleResetHistoryFilters}
-                                                                        className="text-xs text-blue-600 hover:underline mt-1 font-semibold"
+                                                                        className="text-xs text-primary hover:underline mt-1 font-semibold"
                                                                     >
                                                                         Clear filters and view all
                                                                     </button>
@@ -1831,28 +1831,28 @@ const Announcements = () => {
 
                                     {/* Pagination Controls */}
                                     {smsHistory?.pagination && smsHistory.pagination.totalPages > 1 && (
-                                        <div className="p-4 border-t border-gray-100 flex items-center justify-between flex-wrap gap-3 bg-gray-50/50">
-                                            <div className="text-xs text-gray-500">
-                                                Showing Page <strong className="text-gray-800">{smsHistory.pagination.page}</strong> of{' '}
-                                                <strong className="text-gray-800">{smsHistory.pagination.totalPages}</strong> ({smsHistory.pagination.total} total actions)
+                                        <div className="p-4 border-t border-border flex items-center justify-between flex-wrap gap-3 bg-[var(--background)]/50">
+                                            <div className="text-xs text-muted-text">
+                                                Showing Page <strong className="text-main">{smsHistory.pagination.page}</strong> of{' '}
+                                                <strong className="text-main">{smsHistory.pagination.totalPages}</strong> ({smsHistory.pagination.total} total actions)
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     type="button"
                                                     disabled={smsHistory.pagination.page <= 1 || historyLoading}
                                                     onClick={() => handleHistoryPageChange(smsHistory.pagination.page - 1)}
-                                                    className="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 transition-all"
+                                                    className="px-3 py-1.5 border border-border bg-surface rounded-lg text-xs font-semibold text-sub hover:bg-background disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 transition-all"
                                                 >
                                                     <ChevronLeft size={14} /> Previous
                                                 </button>
-                                                <div className="text-xs font-bold text-gray-700 px-2">
+                                                <div className="text-xs font-bold text-sub px-2">
                                                     {smsHistory.pagination.page} / {smsHistory.pagination.totalPages}
                                                 </div>
                                                 <button
                                                     type="button"
                                                     disabled={smsHistory.pagination.page >= smsHistory.pagination.totalPages || historyLoading}
                                                     onClick={() => handleHistoryPageChange(smsHistory.pagination.page + 1)}
-                                                    className="px-3 py-1.5 border border-gray-200 bg-white rounded-lg text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 transition-all"
+                                                    className="px-3 py-1.5 border border-border bg-surface rounded-lg text-xs font-semibold text-sub hover:bg-background disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1 transition-all"
                                                 >
                                                     Next <ChevronRight size={14} />
                                                 </button>
@@ -1864,21 +1864,21 @@ const Announcements = () => {
                         ) : (
                             <div className="w-full">
                                 <form onSubmit={handleSendBroadcast} className="block w-full">
-                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-140px)] overflow-hidden">
+                                    <div className="bg-surface p-6 rounded-2xl shadow-sm border border-border flex flex-col h-[calc(100vh-140px)] overflow-hidden">
                                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start h-full">
                                             {/* Left Column: Template Selection & Preview */}
-                                            <div className="lg:col-span-5 space-y-6 border-r border-gray-100 pr-8 overflow-y-auto scrollbar-hide">
-                                                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2 sticky top-0 bg-white z-10 py-2">
-                                                    <LayoutTemplate className="text-blue-500" size={20} />
+                                            <div className="lg:col-span-5 space-y-6 border-r border-border pr-8 overflow-y-auto scrollbar-hide">
+                                                <h3 className="text-lg font-bold text-main mb-4 flex items-center gap-2 sticky top-0 bg-surface z-10 py-2">
+                                                    <LayoutTemplate className="text-primary" size={20} />
                                                     Template Configuration
                                                 </h3>
 
                                                 <div className="space-y-4">
                                                     <div>
-                                                        <label className="block text-sm font-semibold text-gray-700 mb-2">Select Template</label>
+                                                        <label className="block text-sm font-semibold text-sub mb-2">Select Template</label>
                                                         <div className="relative">
                                                             <select
-                                                                className="w-full p-3 pl-4 pr-10 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-all appearance-none cursor-pointer text-gray-700 font-medium shadow-sm"
+                                                                className="w-full p-3 pl-4 pr-10 border border-border rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent bg-background hover:bg-surface transition-all appearance-none cursor-pointer text-sub font-medium shadow-sm"
                                                                 value={selectedTemplate?.id || ''}
                                                                 onChange={handleTemplateSelect}
                                                             >
@@ -1887,7 +1887,7 @@ const Announcements = () => {
                                                                     <option key={t.id} value={t.id}>{t.name} ({t.template_id})</option>
                                                                 ))}
                                                             </select>
-                                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-text">
                                                                 <ChevronDown size={18} />
                                                             </div>
                                                         </div>
@@ -1897,14 +1897,14 @@ const Announcements = () => {
                                                             const tmplStats = smsHistory?.perTemplate?.find(t => String(t.template_id) === String(selectedTemplate.template_id));
                                                             if (!tmplStats) return null;
                                                             return (
-                                                                <div className="bg-blue-50/60 border border-blue-100 rounded-xl p-2.5 text-xs text-blue-900 flex items-center justify-between mt-2">
+                                                                <div className="bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl p-2.5 text-xs text-primary flex items-center justify-between mt-2">
                                                                     <div className="flex items-center gap-1.5">
-                                                                        <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                                                                        <span className="w-2 h-2 rounded-full bg-success shrink-0"></span>
                                                                         <span>Sent till date: <strong className="font-bold">{Number(tmplStats.total_sent).toLocaleString()}</strong> SMS</span>
-                                                                        <span className="text-blue-700/80">({Number(tmplStats.sent_count).toLocaleString()} sent{tmplStats.failed_count > 0 ? `, ${tmplStats.failed_count} failed` : ''})</span>
+                                                                        <span className="text-primary">({Number(tmplStats.sent_count).toLocaleString()} sent{tmplStats.failed_count > 0 ? `, ${tmplStats.failed_count} failed` : ''})</span>
                                                                     </div>
                                                                     {tmplStats.last_used_at && (
-                                                                        <span className="text-[10px] text-blue-600 font-medium">Last used: {new Date(tmplStats.last_used_at).toLocaleDateString()}</span>
+                                                                        <span className="text-[10px] text-primary font-medium">Last used: {new Date(tmplStats.last_used_at).toLocaleDateString()}</span>
                                                                     )}
                                                                 </div>
                                                             );
@@ -1914,7 +1914,7 @@ const Announcements = () => {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setSmsMode('templates')}
-                                                                className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline flex items-center gap-1 transition-colors"
+                                                                className="text-xs font-semibold text-primary hover:text-primary hover:underline flex items-center gap-1 transition-colors"
                                                             >
                                                                 <Settings size={12} /> Manage Templates
                                                             </button>
@@ -1925,20 +1925,20 @@ const Announcements = () => {
                                                         <div className="animate-fade-in space-y-4">
                                                             {/* Send-time variable values (editable; defaults from template) */}
                                                             {formData.variable_mappings.length > 0 ? (
-                                                                <div className="bg-amber-50 p-5 rounded-xl border border-amber-200">
+                                                                <div className="bg-[var(--warning-light)] p-5 rounded-xl border border-[var(--warning-light)]">
                                                                     <div className="flex items-center gap-2 mb-1">
-                                                                        <Settings size={14} className="text-amber-700" />
-                                                                        <label className="text-xs font-bold text-amber-800 uppercase">Set Variable Values Before Sending</label>
+                                                                        <Settings size={14} className="text-warning" />
+                                                                        <label className="text-xs font-bold text-warning uppercase">Set Variable Values Before Sending</label>
                                                                     </div>
-                                                                    <p className="text-xs text-amber-700/80 mb-3">
+                                                                    <p className="text-xs text-warning mb-3">
                                                                         Defaults from the template are pre-filled. Change them here for this broadcast only — enter a static value or pick a student field.
                                                                     </p>
                                                                     <div className="space-y-3">
                                                                         {formData.variable_mappings.map((mapping, idx) => (
-                                                                            <div key={idx} className="flex flex-wrap gap-2 items-center bg-white p-2.5 rounded-lg border border-amber-100 shadow-sm">
-                                                                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold font-mono shrink-0">var#{idx + 1}</span>
+                                                                            <div key={idx} className="flex flex-wrap gap-2 items-center bg-surface p-2.5 rounded-lg border border-[var(--warning-light)] shadow-sm">
+                                                                                <span className="bg-[var(--primary-light)] text-primary px-2 py-0.5 rounded text-[10px] font-bold font-mono shrink-0">var#{idx + 1}</span>
                                                                                 <select
-                                                                                    className="p-1.5 border rounded-lg text-xs bg-white min-w-[90px]"
+                                                                                    className="p-1.5 border rounded-lg text-xs bg-surface min-w-[90px]"
                                                                                     value={mapping.type || 'static'}
                                                                                     onChange={(e) => handleMappingChange(idx, 'type', e.target.value)}
                                                                                 >
@@ -1947,7 +1947,7 @@ const Announcements = () => {
                                                                                 </select>
                                                                                 {mapping.type === 'field' ? (
                                                                                     <select
-                                                                                        className="flex-1 min-w-[140px] p-1.5 border rounded-lg text-xs bg-white"
+                                                                                        className="flex-1 min-w-[140px] p-1.5 border rounded-lg text-xs bg-surface"
                                                                                         value={mapping.value || ''}
                                                                                         onChange={(e) => handleMappingChange(idx, 'value', e.target.value)}
                                                                                     >
@@ -1970,23 +1970,23 @@ const Announcements = () => {
                                                                     </div>
                                                                 </div>
                                                             ) : (
-                                                                <p className="text-xs text-gray-500 bg-gray-50 border rounded-lg p-3">
+                                                                <p className="text-xs text-muted-text bg-background border rounded-lg p-3">
                                                                     This template has no {'{#var#}'} placeholders — message will send as-is.
                                                                 </p>
                                                             )}
 
                                                             {/* Message Preview */}
                                                             <div>
-                                                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Message Preview</label>
-                                                                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-2xl rounded-tr-none border border-blue-100 shadow-sm relative">
-                                                                    <div className="absolute -right-2 -top-2 bg-blue-600 text-white p-1 rounded-full shadow-md">
+                                                                <label className="block text-xs font-bold text-muted-text uppercase tracking-wider mb-2">Message Preview</label>
+                                                                <div className="bg-gradient-to-br from-[var(--primary-light)] to-[var(--primary-light)] p-4 rounded-2xl rounded-tr-none border border-[var(--primary-light)] shadow-sm relative">
+                                                                    <div className="absolute -right-2 -top-2 bg-primary text-white p-1 rounded-full shadow-md">
                                                                         <MessageSquare size={12} />
                                                                     </div>
-                                                                    <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed font-medium">
+                                                                    <p className="text-sm text-main whitespace-pre-wrap leading-relaxed font-medium">
                                                                         {getSendTimePreview()}
                                                                     </p>
                                                                     <div className="mt-2 flex justify-end">
-                                                                        <span className="text-[10px] text-gray-400 font-medium uppercase">SMS Preview</span>
+                                                                        <span className="text-[10px] text-muted-text font-medium uppercase">SMS Preview</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -2002,11 +2002,11 @@ const Announcements = () => {
                                                 </div>
 
                                                 {/* On-Page Mobile Target Selection */}
-                                                <div className="mt-3 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl shrink-0 space-y-2.5">
+                                                <div className="mt-3 p-3.5 bg-background border border-border rounded-2xl shrink-0 space-y-2.5">
                                                     <div className="flex items-center justify-between flex-wrap gap-2">
                                                         <div className="flex items-center gap-1.5">
-                                                            <Smartphone size={16} className="text-blue-600" />
-                                                            <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                                                            <Smartphone size={16} className="text-primary" />
+                                                            <span className="text-xs font-bold text-main uppercase tracking-wider">
                                                                 Send SMS To (Recipient Numbers)
                                                             </span>
                                                         </div>
@@ -2016,8 +2016,8 @@ const Announcements = () => {
                                                                 onClick={() => setSelectedMobileTargets(['student_mobile', 'parent_mobile1'])}
                                                                 className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-all ${
                                                                     selectedMobileTargets.includes('student_mobile') && selectedMobileTargets.includes('parent_mobile1')
-                                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                                                                        : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200'
+                                                                        ? 'bg-primary text-white border-primary shadow-2xs'
+                                                                        : 'bg-surface text-sub hover:bg-background border-border'
                                                                 }`}
                                                             >
                                                                 Both at a time
@@ -2027,8 +2027,8 @@ const Announcements = () => {
                                                                 onClick={() => setSelectedMobileTargets(['parent_mobile1'])}
                                                                 className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-all ${
                                                                     selectedMobileTargets.length === 1 && selectedMobileTargets.includes('parent_mobile1')
-                                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                                                                        : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200'
+                                                                        ? 'bg-primary text-white border-primary shadow-2xs'
+                                                                        : 'bg-surface text-sub hover:bg-background border-border'
                                                                 }`}
                                                             >
                                                                 Parent Preferred Only
@@ -2038,8 +2038,8 @@ const Announcements = () => {
                                                                 onClick={() => setSelectedMobileTargets(['student_mobile'])}
                                                                 className={`px-2 py-0.5 rounded text-[11px] font-semibold border transition-all ${
                                                                     selectedMobileTargets.length === 1 && selectedMobileTargets.includes('student_mobile')
-                                                                        ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
-                                                                        : 'bg-white text-slate-600 hover:bg-slate-100 border-slate-200'
+                                                                        ? 'bg-primary text-white border-primary shadow-2xs'
+                                                                        : 'bg-surface text-sub hover:bg-background border-border'
                                                                 }`}
                                                             >
                                                                 Student Only
@@ -2059,21 +2059,21 @@ const Announcements = () => {
                                                                     key={target.key}
                                                                     className={`flex items-start gap-2.5 p-2 rounded-xl border cursor-pointer transition-all ${
                                                                         isChecked
-                                                                            ? 'bg-blue-50/70 border-blue-300 ring-1 ring-blue-300/60 shadow-2xs'
-                                                                            : 'bg-white border-slate-200 hover:bg-slate-50'
+                                                                            ? 'bg-[var(--primary-light)] border-[var(--primary-light)] ring-1 ring-[var(--primary-light)] shadow-2xs'
+                                                                            : 'bg-surface border-border hover:bg-background'
                                                                     }`}
                                                                 >
                                                                     <input
                                                                         type="checkbox"
                                                                         checked={isChecked}
                                                                         onChange={() => toggleMobileTarget(target.key)}
-                                                                        className="mt-0.5 h-4 w-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                                                                        className="mt-0.5 h-4 w-4 text-primary rounded border-border-strong focus:ring-primary"
                                                                     />
                                                                     <div className="min-w-0">
-                                                                        <span className="text-xs font-bold text-slate-800 block truncate leading-tight">
+                                                                        <span className="text-xs font-bold text-main block truncate leading-tight">
                                                                             {target.label}
                                                                         </span>
-                                                                        <span className="text-[10px] text-slate-500 block truncate">
+                                                                        <span className="text-[10px] text-muted-text block truncate">
                                                                             {target.desc}
                                                                         </span>
                                                                     </div>
@@ -2083,10 +2083,10 @@ const Announcements = () => {
                                                     </div>
                                                 </div>
 
-                                                <div className="mt-auto pt-4 border-t border-gray-100 bg-white">
+                                                <div className="mt-auto pt-4 border-t border-border bg-surface">
                                                     <div className="flex items-center justify-between gap-4">
-                                                        <div className="text-sm text-gray-500">
-                                                            <p className="font-medium text-gray-700">Ready to broadcast?</p>
+                                                        <div className="text-sm text-muted-text">
+                                                            <p className="font-medium text-sub">Ready to broadcast?</p>
                                                             <p className="text-xs">
                                                                 {!selectedTemplate
                                                                     ? 'Select a template first'
@@ -2098,7 +2098,7 @@ const Announcements = () => {
                                                         <button
                                                             type="submit"
                                                             disabled={loading || !selectedTemplate || selectedMobileTargets.length === 0}
-                                                            className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3.5 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 flex items-center gap-3 shadow-lg hover:shadow-green-500/30 transform transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none min-w-[200px] justify-center"
+                                                            className="bg-gradient-to-r from-success to-success text-white px-8 py-3.5 rounded-xl font-bold hover:from-success hover:to-success flex items-center gap-3 shadow-lg hover:shadow-success/30 transform transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none min-w-[200px] justify-center"
                                                         >
                                                             {loading ? <Loader2 className="animate-spin" /> : <Send size={20} />}
                                                             <span>Send Broadcast</span>
@@ -2129,36 +2129,36 @@ const Announcements = () => {
                                         <div
                                             key={ann.id}
                                             onClick={() => handleOpenAnnouncementDetails(ann)}
-                                            className={`bg-white rounded-2xl shadow-sm border p-4 group hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between ${!ann.is_active ? 'opacity-75 grayscale' : ''} ${type === 'achievement' ? 'border-amber-200 bg-gradient-to-b from-amber-50/20 to-white' : ''}`}
+                                            className={`bg-surface rounded-2xl shadow-sm border p-4 group hover:shadow-lg hover:border-[var(--primary-light)] transition-all cursor-pointer flex flex-col justify-between ${!ann.is_active ? 'opacity-75 grayscale' : ''} ${type === 'achievement' ? 'border-[var(--warning-light)] bg-gradient-to-b from-[var(--warning-light)] to-surface' : ''}`}
                                         >
                                             <div>
                                                 {/* Card Header & Type Badge */}
                                                 <div className="flex justify-between items-start mb-2 gap-2">
                                                     <div className="flex items-center gap-1.5 flex-wrap">
                                                         {type === 'circular' ? (
-                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]">
                                                                 <FileText size={11} /> Circular
                                                             </span>
                                                         ) : type === 'event' ? (
-                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)]">
                                                                 <Calendar size={11} /> Event
                                                             </span>
                                                         ) : type === 'poll' ? (
-                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[var(--success-light)] text-success border border-[var(--success-light)]">
                                                                 <BarChart2 size={11} /> Poll
                                                             </span>
                                                         ) : type === 'achievement' ? (
-                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">
-                                                                <Trophy size={11} className="text-amber-600" /> Leaderboard
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] shadow-2xs">
+                                                                <Trophy size={11} className="text-warning" /> Leaderboard
                                                             </span>
                                                         ) : (
-                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                                                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                                                                 <Megaphone size={11} /> Notice
                                                             </span>
                                                         )}
 
                                                         {type === 'achievement' && ach.rank_title && (
-                                                            <span className="text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
+                                                            <span className="text-[10px] font-bold bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] px-2 py-0.5 rounded-full">
                                                                 {ach.rank_title}
                                                             </span>
                                                         )}
@@ -2167,21 +2167,21 @@ const Announcements = () => {
                                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" onClick={e => e.stopPropagation()}>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); toggleStatus(ann.id, ann.is_active, 'announcements'); }}
-                                                            className="p-1.5 hover:bg-gray-100 rounded text-gray-500"
+                                                            className="p-1.5 hover:bg-background rounded text-muted-text"
                                                             title={ann.is_active ? 'Active (Click to hide)' : 'Hidden (Click to show)'}
                                                         >
                                                             {ann.is_active ? <Eye size={16} /> : <EyeOff size={16} />}
                                                         </button>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); openEditModal(ann, 'announcements'); }}
-                                                            className="p-1.5 hover:bg-blue-50 text-blue-500 rounded"
+                                                            className="p-1.5 hover:bg-[var(--primary-light)] text-primary rounded"
                                                             title="Edit announcement"
                                                         >
                                                             <Pencil size={16} />
                                                         </button>
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); handleDelete(ann.id, 'announcements'); }}
-                                                            className="p-1.5 hover:bg-red-50 text-red-500 rounded"
+                                                            className="p-1.5 hover:bg-[var(--danger-light)] text-danger rounded"
                                                             title="Delete announcement"
                                                         >
                                                             <Trash2 size={16} />
@@ -2190,23 +2190,23 @@ const Announcements = () => {
                                                 </div>
 
                                                 {/* Headline / Subject Line */}
-                                                <h4 className="font-extrabold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors mb-2">
-                                                    {type === 'circular' && <span className="text-rose-600 mr-1 font-mono text-xs uppercase">Sub:</span>}
+                                                <h4 className="font-extrabold text-main line-clamp-2 group-hover:text-primary transition-colors mb-2">
+                                                    {type === 'circular' && <span className="text-danger mr-1 font-mono text-xs uppercase">Sub:</span>}
                                                     {ann.title}
                                                 </h4>
 
                                                 {/* Type 1: Circular Card Body (PDF Attachment Box) */}
                                                 {type === 'circular' && (
-                                                    <div className="mb-3 p-3 bg-rose-50/70 border border-rose-100 rounded-xl space-y-3">
+                                                    <div className="mb-3 p-3 bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-xl space-y-3">
                                                         <div className="flex items-center gap-2.5 min-w-0">
-                                                            <div className="w-10 h-10 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                                            <div className="w-10 h-10 rounded-lg bg-danger text-white flex items-center justify-center shrink-0 shadow-xs">
                                                                 <FileText size={20} />
                                                             </div>
                                                             <div className="min-w-0">
-                                                                <p className="text-xs font-bold text-gray-900 truncate">
+                                                                <p className="text-xs font-bold text-main truncate">
                                                                     {Object.values(parseCircularNumbers(ann.circular_numbers)).join(' · ') || ann.file_name || 'Circular PDF'}
                                                                 </p>
-                                                                <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">College-wise numbered PDF</span>
+                                                                <span className="text-[10px] text-danger font-bold uppercase tracking-wider block">College-wise numbered PDF</span>
                                                             </div>
                                                         </div>
                                                         <div className="flex flex-wrap gap-2">
@@ -2229,7 +2229,7 @@ const Announcements = () => {
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 onClick={e => e.stopPropagation()}
-                                                                className="px-3 py-1.5 bg-white border border-rose-200 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
+                                                                className="px-3 py-1.5 bg-surface border border-[var(--danger-light)] hover:bg-[var(--danger-light)] text-danger rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
                                                             >
                                                                 <ExternalLink size={13} /> Attachment
                                                             </a>
@@ -2240,16 +2240,16 @@ const Announcements = () => {
 
                                                 {/* Type 2: Event Details Banner */}
                                                 {type === 'event' && (ann.event_date || ann.event_venue) && (
-                                                    <div className="mb-3 p-2.5 bg-purple-50/80 border border-purple-100 rounded-xl space-y-1 text-xs">
+                                                    <div className="mb-3 p-2.5 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl space-y-1 text-xs">
                                                         {ann.event_date && (
-                                                            <div className="flex items-center gap-1.5 font-bold text-purple-900">
-                                                                <Calendar size={13} className="text-purple-600 shrink-0" />
+                                                            <div className="flex items-center gap-1.5 font-bold text-secondary">
+                                                                <Calendar size={13} className="text-secondary shrink-0" />
                                                                 <span>{ann.event_date} {ann.event_time ? `(${ann.event_time})` : ''}</span>
                                                             </div>
                                                         )}
                                                         {ann.event_venue && (
-                                                            <div className="flex items-center gap-1.5 text-purple-700 font-medium">
-                                                                <MapPin size={13} className="text-purple-500 shrink-0" />
+                                                            <div className="flex items-center gap-1.5 text-secondary font-medium">
+                                                                <MapPin size={13} className="text-secondary shrink-0" />
                                                                 <span className="truncate">{ann.event_venue}</span>
                                                             </div>
                                                         )}
@@ -2258,8 +2258,8 @@ const Announcements = () => {
 
                                                 {/* Type 3: Poll Live Options Preview */}
                                                 {type === 'poll' && Array.isArray(ann.poll_options) && ann.poll_options.length > 0 && (
-                                                    <div className="mb-3 space-y-2 p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl">
-                                                        <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center justify-between">
+                                                    <div className="mb-3 space-y-2 p-3 bg-[var(--success-light)] border border-[var(--success-light)] rounded-xl">
+                                                        <div className="text-[10px] font-bold text-success uppercase tracking-wider flex items-center justify-between">
                                                             <span>Poll Options</span>
                                                             <span>{ann.total_votes || 0} Total Votes</span>
                                                         </div>
@@ -2269,27 +2269,27 @@ const Announcements = () => {
                                                             const percent = ann.total_votes ? Math.round((count / total) * 100) : 0;
                                                             return (
                                                                 <div key={optIdx} className="text-xs">
-                                                                    <div className="flex justify-between text-[11px] mb-0.5 text-gray-700">
+                                                                    <div className="flex justify-between text-[11px] mb-0.5 text-sub">
                                                                         <span className="font-semibold truncate pr-2">{opt}</span>
-                                                                        <span className="font-mono text-gray-500 shrink-0">{count} ({percent}%)</span>
+                                                                        <span className="font-mono text-muted-text shrink-0">{count} ({percent}%)</span>
                                                                     </div>
-                                                                    <div className="h-1.5 w-full bg-emerald-100/60 rounded-full overflow-hidden">
-                                                                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${percent}%` }}></div>
+                                                                    <div className="h-1.5 w-full bg-[var(--success-light)] rounded-full overflow-hidden">
+                                                                        <div className="h-full bg-success rounded-full" style={{ width: `${percent}%` }}></div>
                                                                     </div>
                                                                 </div>
                                                             );
                                                         })}
                                                         {ann.poll_options.length > 3 && (
-                                                            <span className="text-[10px] text-gray-400 font-medium">+{ann.poll_options.length - 3} more options</span>
+                                                            <span className="text-[10px] text-muted-text font-medium">+{ann.poll_options.length - 3} more options</span>
                                                         )}
                                                     </div>
                                                 )}
 
                                                 {/* Type 5: Student Achievement Leader Board Card */}
                                                 {type === 'achievement' && (
-                                                    <div className="mb-3 p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl flex items-center gap-3">
+                                                    <div className="mb-3 p-3.5 bg-gradient-to-r from-[var(--warning-light)] to-[var(--warning-light)] border border-[var(--warning-light)] rounded-2xl flex items-center gap-3">
                                                         <div className="relative shrink-0">
-                                                            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-400 shadow-md bg-white">
+                                                            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-warning shadow-md bg-surface">
                                                                 {ach.student_photo || ann.image_url ? (
                                                                     <img
                                                                         src={ach.student_photo || ann.image_url}
@@ -2297,34 +2297,34 @@ const Announcements = () => {
                                                                         className="w-full h-full object-cover"
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center bg-amber-100 text-amber-700">
+                                                                    <div className="w-full h-full flex items-center justify-center bg-[var(--warning-light)] text-warning">
                                                                         <User size={24} />
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                                                            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-warning text-white flex items-center justify-center shadow-xs">
                                                                 <Trophy size={11} />
                                                             </div>
                                                         </div>
 
                                                         <div className="min-w-0 flex-1">
-                                                            <h5 className="font-black text-gray-900 text-sm truncate leading-tight">
+                                                            <h5 className="font-black text-main text-sm truncate leading-tight">
                                                                 {ach.student_name || 'Student Topper'}
                                                             </h5>
                                                             <div className="flex flex-wrap items-center gap-1.5 mt-1">
                                                                 {ach.branch && (
-                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800">
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--primary-light)] text-primary">
                                                                         {ach.branch}
                                                                     </span>
                                                                 )}
                                                                 {ach.year_sem && (
-                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800">
+                                                                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[var(--primary-light)] text-secondary">
                                                                         {ach.year_sem}
                                                                     </span>
                                                                 )}
                                                             </div>
                                                             {ach.topper_prize && (
-                                                                <span className="text-[11px] font-black text-amber-800 block mt-1">
+                                                                <span className="text-[11px] font-black text-warning block mt-1">
                                                                     🏆 {ach.topper_prize}
                                                                 </span>
                                                             )}
@@ -2335,14 +2335,14 @@ const Announcements = () => {
                                                 {/* Registration Status Pill if enabled */}
                                                 {ann.requires_registration ? (
                                                     <div className="flex items-center gap-2 mb-3">
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                                                            <Ticket size={12} className="text-indigo-600" />
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
+                                                            <Ticket size={12} className="text-primary" />
                                                             <span>{ann.registered_count || 0}{ann.max_seats ? `/${ann.max_seats}` : ''} Registered</span>
                                                         </span>
                                                         {ann.is_full ? (
-                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-red-100 text-red-700 uppercase tracking-wider">Seats Full</span>
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[var(--danger-light)] text-danger uppercase tracking-wider">Seats Full</span>
                                                         ) : ann.max_seats ? (
-                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[var(--success-light)] text-success">
                                                                 {ann.available_seats} seats left
                                                             </span>
                                                         ) : null}
@@ -2356,29 +2356,29 @@ const Announcements = () => {
 
                                                 {/* Text Content */}
                                                 {ann.content && (
-                                                    <p className="text-sm text-gray-500 mb-3 line-clamp-2">{ann.content}</p>
+                                                    <p className="text-sm text-muted-text mb-3 line-clamp-2">{ann.content}</p>
                                                 )}
                                             </div>
 
                                             <div>
-                                                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px]">
+                                                <div className="pt-2 border-t border-border flex items-center justify-between text-[11px]">
                                                     <div className="flex items-center gap-1.5 font-medium">
-                                                        <Clock size={12} className={ann.expires_at && new Date(ann.expires_at) < new Date() ? 'text-red-500' : 'text-blue-500'} />
+                                                        <Clock size={12} className={ann.expires_at && new Date(ann.expires_at) < new Date() ? 'text-danger' : 'text-primary'} />
                                                         {ann.expires_at ? (
                                                             new Date(ann.expires_at) < new Date() ? (
-                                                                <span className="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">Expired</span>
+                                                                <span className="text-danger font-bold bg-[var(--danger-light)] px-2 py-0.5 rounded text-[10px] uppercase tracking-wider">Expired</span>
                                                             ) : (
-                                                                <span className="text-blue-600 font-semibold">Expires {new Date(ann.expires_at).toLocaleDateString()}</span>
+                                                                <span className="text-primary font-semibold">Expires {new Date(ann.expires_at).toLocaleDateString()}</span>
                                                             )
                                                         ) : (
-                                                            <span className="text-gray-400">No Time Limit</span>
+                                                            <span className="text-muted-text">No Time Limit</span>
                                                         )}
                                                     </div>
                                                     {ann.audience_count > 0 && (
-                                                        <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-bold">{ann.audience_count} Reach</span>
+                                                        <span className="text-[10px] bg-background text-sub px-2 py-0.5 rounded font-bold">{ann.audience_count} Reach</span>
                                                     )}
                                                 </div>
-                                                <div className="mt-3 pt-2 border-t border-gray-50 flex items-center justify-between text-xs text-blue-600 font-semibold group-hover:translate-x-0.5 transition-transform">
+                                                <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-xs text-primary font-semibold group-hover:translate-x-0.5 transition-transform">
                                                     <span>{ann.requires_registration ? 'View Registered Candidates' : 'Click to View Details'}</span>
                                                     <ChevronRight size={14} />
                                                 </div>
@@ -2387,18 +2387,18 @@ const Announcements = () => {
                                     );
                                 })}
                                 {visibleAnnouncements.length === 0 && !fetchingFeed && (
-                                    <div className="col-span-full text-center py-10 text-gray-500">
+                                    <div className="col-span-full text-center py-10 text-muted-text">
                                         {activeTab === 'events' ? 'No events found.' : 'No announcements found.'}
                                     </div>
                                 )}
                             </div>
                         ) : (
                             /* ================= LIST VIEW (TABLE SETUP) ================= */
-                            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
+                            <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-xs">
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left border-collapse text-xs">
                                         <thead>
-                                            <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-[11px]">
+                                            <tr className="bg-[var(--background)]/80 border-b border-border text-muted-text font-bold uppercase tracking-wider text-[11px]">
                                                 <th className="py-3.5 px-4">Type</th>
                                                 <th className="py-3.5 px-4">Headline / Subject / Topper</th>
                                                 <th className="py-3.5 px-4">Key Details & Attachments</th>
@@ -2408,7 +2408,7 @@ const Announcements = () => {
                                                 <th className="py-3.5 px-4 text-right">Actions</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100">
+                                        <tbody className="divide-y divide-border">
                                             {visibleAnnouncements.map(ann => {
                                                 const type = (ann.announcement_type || 'announcement').toLowerCase();
                                                 const ach = ann.achievement_data || {};
@@ -2417,28 +2417,28 @@ const Announcements = () => {
                                                     <tr
                                                         key={ann.id}
                                                         onClick={() => handleOpenAnnouncementDetails(ann)}
-                                                        className="hover:bg-blue-50/40 transition-colors cursor-pointer group"
+                                                        className="hover:bg-[var(--primary-light)] transition-colors cursor-pointer group"
                                                     >
                                                         {/* Type Badge */}
                                                         <td className="py-3.5 px-4 whitespace-nowrap">
                                                             {type === 'circular' ? (
-                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-rose-50 text-rose-700 border border-rose-200">
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]">
                                                                     <FileText size={11} /> Circular
                                                                 </span>
                                                             ) : type === 'event' ? (
-                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-purple-50 text-purple-700 border border-purple-200">
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)]">
                                                                     <Calendar size={11} /> Event
                                                                 </span>
                                                             ) : type === 'poll' ? (
-                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-[var(--success-light)] text-success border border-[var(--success-light)]">
                                                                     <BarChart2 size={11} /> Poll
                                                                 </span>
                                                             ) : type === 'achievement' ? (
-                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-300">
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                                                                     <Trophy size={11} /> Leaderboard
                                                                 </span>
                                                             ) : (
-                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-blue-50 text-blue-700 border border-blue-200">
+                                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                                                                     <Megaphone size={11} /> Notice
                                                                 </span>
                                                             )}
@@ -2446,16 +2446,16 @@ const Announcements = () => {
 
                                                         {/* Title / Subject / Headline */}
                                                         <td className="py-3.5 px-4 max-w-xs">
-                                                            <div className="font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                                                            <div className="font-extrabold text-main group-hover:text-primary transition-colors line-clamp-1">
                                                                 {ann.title}
                                                             </div>
                                                             {type === 'achievement' && ach.student_name && (
-                                                                <div className="text-[11px] font-bold text-amber-800 flex items-center gap-1 mt-0.5">
+                                                                <div className="text-[11px] font-bold text-warning flex items-center gap-1 mt-0.5">
                                                                     <span>Topper:</span> <strong>{ach.student_name}</strong> ({ach.branch || ''} {ach.year_sem ? `· ${ach.year_sem}` : ''})
                                                                 </div>
                                                             )}
                                                             {ann.content && type !== 'achievement' && (
-                                                                <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">{ann.content}</p>
+                                                                <p className="text-[11px] text-muted-text line-clamp-1 mt-0.5">{ann.content}</p>
                                                             )}
                                                         </td>
 
@@ -2468,55 +2468,55 @@ const Announcements = () => {
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         onClick={e => e.stopPropagation()}
-                                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-bold text-[11px]"
+                                                                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--danger-light)] text-danger hover:bg-[var(--danger-light)] border border-[var(--danger-light)] font-bold text-[11px]"
                                                                     >
                                                                         <FileDown size={12} /> {ann.file_name || 'Download PDF'}
                                                                     </a>
                                                                 ) : (
-                                                                    <span className="text-gray-400">PDF Attached</span>
+                                                                    <span className="text-muted-text">PDF Attached</span>
                                                                 )
                                                             ) : type === 'event' ? (
-                                                                <div className="text-[11px] text-gray-600">
-                                                                    <div className="font-semibold text-purple-900">{ann.event_date || 'Date TBA'}</div>
-                                                                    {ann.event_venue && <div className="text-gray-400 text-[10px] truncate max-w-[150px]">{ann.event_venue}</div>}
+                                                                <div className="text-[11px] text-sub">
+                                                                    <div className="font-semibold text-secondary">{ann.event_date || 'Date TBA'}</div>
+                                                                    {ann.event_venue && <div className="text-muted-text text-[10px] truncate max-w-[150px]">{ann.event_venue}</div>}
                                                                 </div>
                                                             ) : type === 'poll' ? (
-                                                                <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
+                                                                <span className="font-semibold text-success bg-[var(--success-light)] px-2 py-0.5 rounded text-[11px]">
                                                                     {ann.total_votes || 0} votes · {(ann.poll_options || []).length} options
                                                                 </span>
                                                             ) : type === 'achievement' ? (
-                                                                <span className="font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded text-[11px]">
+                                                                <span className="font-bold text-warning bg-[var(--warning-light)] px-2 py-0.5 rounded text-[11px]">
                                                                     {ach.rank_title || 'Topper'} {ach.topper_prize ? `· ${ach.topper_prize}` : ''}
                                                                 </span>
                                                             ) : (
-                                                                ann.has_image ? <span className="text-blue-600 font-medium">Image attached</span> : <span className="text-gray-400">—</span>
+                                                                ann.has_image ? <span className="text-primary font-medium">Image attached</span> : <span className="text-muted-text">—</span>
                                                             )}
                                                         </td>
 
                                                         {/* Audience Reach */}
-                                                        <td className="py-3.5 px-4 whitespace-nowrap font-bold text-gray-800">
+                                                        <td className="py-3.5 px-4 whitespace-nowrap font-bold text-main">
                                                             {ann.audience_count ? `${Number(ann.audience_count).toLocaleString()} Students` : 'All Students'}
                                                         </td>
 
                                                         {/* Expiry / Date */}
                                                         <td className="py-3.5 px-4 whitespace-nowrap">
-                                                            <div className="text-gray-700 font-medium">
+                                                            <div className="text-sub font-medium">
                                                                 {new Date(ann.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                             </div>
                                                             {ann.expires_at ? (
                                                                 new Date(ann.expires_at) < new Date() ? (
-                                                                    <span className="text-[10px] text-red-600 font-bold uppercase">Expired</span>
+                                                                    <span className="text-[10px] text-danger font-bold uppercase">Expired</span>
                                                                 ) : (
-                                                                    <span className="text-[10px] text-blue-600">Expires {new Date(ann.expires_at).toLocaleDateString()}</span>
+                                                                    <span className="text-[10px] text-primary">Expires {new Date(ann.expires_at).toLocaleDateString()}</span>
                                                                 )
                                                             ) : (
-                                                                <span className="text-[10px] text-gray-400">No Expiry</span>
+                                                                <span className="text-[10px] text-muted-text">No Expiry</span>
                                                             )}
                                                         </td>
 
                                                         {/* Status */}
                                                         <td className="py-3.5 px-4 whitespace-nowrap">
-                                                            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${ann.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-500'}`}>
+                                                            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${ann.is_active ? 'bg-[var(--success-light)] text-success border border-[var(--success-light)]' : 'bg-background text-muted-text'}`}>
                                                                 {ann.is_active ? 'Active' : 'Hidden'}
                                                             </span>
                                                         </td>
@@ -2526,21 +2526,21 @@ const Announcements = () => {
                                                             <div className="flex items-center justify-end gap-1">
                                                                 <button
                                                                     onClick={() => toggleStatus(ann.id, ann.is_active, 'announcements')}
-                                                                    className="p-1.5 hover:bg-gray-100 rounded text-gray-500"
+                                                                    className="p-1.5 hover:bg-background rounded text-muted-text"
                                                                     title={ann.is_active ? 'Hide' : 'Show'}
                                                                 >
                                                                     {ann.is_active ? <Eye size={15} /> : <EyeOff size={15} />}
                                                                 </button>
                                                                 <button
                                                                     onClick={() => openEditModal(ann, 'announcements')}
-                                                                    className="p-1.5 hover:bg-blue-50 text-blue-600 rounded"
+                                                                    className="p-1.5 hover:bg-[var(--primary-light)] text-primary rounded"
                                                                     title="Edit"
                                                                 >
                                                                     <Pencil size={15} />
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDelete(ann.id, 'announcements')}
-                                                                    className="p-1.5 hover:bg-red-50 text-red-600 rounded"
+                                                                    className="p-1.5 hover:bg-[var(--danger-light)] text-danger rounded"
                                                                     title="Delete"
                                                                 >
                                                                     <Trash2 size={15} />
@@ -2552,7 +2552,7 @@ const Announcements = () => {
                                             })}
                                             {visibleAnnouncements.length === 0 && (
                                                 <tr>
-                                                    <td colSpan={7} className="text-center py-10 text-gray-400">
+                                                    <td colSpan={7} className="text-center py-10 text-muted-text">
                                                         {activeTab === 'events' ? 'No events found.' : 'No announcements found.'}
                                                     </td>
                                                 </tr>
@@ -2569,22 +2569,22 @@ const Announcements = () => {
                 {activeTab === 'polls' && !loading && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {polls.map(poll => (
-                            <div key={poll.id} className={`bg-white rounded-2xl shadow-sm border border-gray-100 p-6 group hover:shadow-md transition-all ${!poll.is_active ? 'opacity-75' : ''}`}>
+                            <div key={poll.id} className={`bg-surface rounded-2xl shadow-sm border border-border p-6 group hover:shadow-md transition-all ${!poll.is_active ? 'opacity-75' : ''}`}>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex-1">
-                                        <h4 className="font-bold text-gray-900 text-lg line-clamp-2">{poll.question}</h4>
+                                        <h4 className="font-bold text-main text-lg line-clamp-2">{poll.question}</h4>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-bold">
+                                            <span className="text-[10px] bg-[var(--primary-light)] text-primary px-2 py-0.5 rounded-full font-bold">
                                                 {poll.audience_count || poll.stats?.assigned || 0} Students
                                             </span>
                                         </div>
                                     </div>
                                     <div className="flex gap-1">
-                                        <button onClick={() => toggleStatus(poll.id, poll.is_active, 'polls')} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500">
+                                        <button onClick={() => toggleStatus(poll.id, poll.is_active, 'polls')} className="p-1.5 hover:bg-background rounded-lg text-muted-text">
                                             {poll.is_active ? <Eye size={16} /> : <EyeOff size={16} />}
                                         </button>
-                                        <button onClick={() => openEditModal(poll, 'polls')} className="p-1.5 hover:bg-blue-50 text-blue-500 rounded-lg"><Pencil size={16} /></button>
-                                        <button onClick={() => handleDelete(poll.id, 'polls')} className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg"><Trash2 size={16} /></button>
+                                        <button onClick={() => openEditModal(poll, 'polls')} className="p-1.5 hover:bg-[var(--primary-light)] text-primary rounded-lg"><Pencil size={16} /></button>
+                                        <button onClick={() => handleDelete(poll.id, 'polls')} className="p-1.5 hover:bg-[var(--danger-light)] text-danger rounded-lg"><Trash2 size={16} /></button>
                                     </div>
                                 </div>
                                 <div className="mb-4 space-y-3">
@@ -2595,23 +2595,23 @@ const Announcements = () => {
                                         return (
                                             <div key={i} className="text-sm">
                                                 <div className="flex justify-between mb-1.5">
-                                                    <span className="font-medium text-gray-700">{opt}</span>
-                                                    <span className="text-gray-400 font-bold text-[10px]">{count} votes ({percent}%)</span>
+                                                    <span className="font-medium text-sub">{opt}</span>
+                                                    <span className="text-muted-text font-bold text-[10px]">{count} votes ({percent}%)</span>
                                                 </div>
-                                                <div className="h-2 w-full bg-gray-50 rounded-full overflow-hidden border border-gray-100">
-                                                    <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500" style={{ width: `${percent}%` }}></div>
+                                                <div className="h-2 w-full bg-background rounded-full overflow-hidden border border-border">
+                                                    <div className="h-full bg-gradient-to-r from-primary to-primary rounded-full transition-all duration-500" style={{ width: `${percent}%` }}></div>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
-                                <div className="pt-4 border-t border-gray-50 flex items-center justify-between text-[10px] text-gray-500 mt-6 pt-4">
+                                <div className="pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-text mt-6 pt-4">
                                     <div className="flex gap-4">
                                         <span className="flex items-center gap-1 font-semibold" title="Assigned Students"><Users size={12} /> {poll.stats?.assigned || 0}</span>
                                         <span className="flex items-center gap-1 font-semibold" title="Total Votes"><BarChart2 size={12} /> {poll.stats?.votes || 0}</span>
                                     </div>
-                                    <div className="flex items-center gap-1 bg-gray-50 px-2 py-1 rounded-lg">
-                                        <Clock size={12} className="text-amber-500" />
+                                    <div className="flex items-center gap-1 bg-background px-2 py-1 rounded-lg">
+                                        <Clock size={12} className="text-warning" />
                                         {poll.end_time ? `Deadline: ${new Date(poll.end_time).toLocaleDateString()}` : 'No deadline'}
                                     </div>
                                 </div>
@@ -2635,15 +2635,15 @@ const Announcements = () => {
             {/* General Modal (Announcements/Polls) */}
             {isCreateModalOpen && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl my-8 overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
-                        <div className="p-6 border-b flex justify-between items-center bg-white z-10">
+                    <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-5xl my-8 overflow-hidden animate-scale-in flex flex-col max-h-[90vh]">
+                        <div className="p-6 border-b flex justify-between items-center bg-surface z-10">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                                <div className="w-12 h-12 rounded-2xl bg-[var(--primary-light)] flex items-center justify-center text-primary">
                                     {editId ? <Pencil size={24} /> : <PlusCircle size={24} />}
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <h2 className="text-xl font-bold text-gray-900">
+                                        <h2 className="text-xl font-bold text-main">
                                             {editId ? 'Edit Announcement' : formStep === 0 ? 'Create Announcement' : `Create ${
                                                 formData.announcement_type === 'circular' ? 'Circular' :
                                                 formData.announcement_type === 'event' ? 'Event' :
@@ -2653,12 +2653,12 @@ const Announcements = () => {
                                             }`}
                                         </h2>
                                         {(activeTab === 'announcements' || activeTab === 'events') && formData.requires_registration && (
-                                            <span className="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                            <span className="text-xs bg-[var(--primary-light)] text-primary px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
                                                 <Ticket size={12} /> Step {formStep} of 2
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-muted-text">
                                         {formStep === 0
                                             ? 'Step 1: Select the announcement type'
                                             : formStep === 2 && formData.requires_registration
@@ -2669,18 +2669,18 @@ const Announcements = () => {
                             </div>
                             <div className="flex items-center gap-4">
                                 {/* Live Audience Indicator */}
-                                <div className="hidden md:flex flex-col items-end px-4 py-2 bg-gray-50 rounded-2xl border border-gray-100">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Estimated Reach</span>
+                                <div className="hidden md:flex flex-col items-end px-4 py-2 bg-background rounded-2xl border border-border">
+                                    <span className="text-[10px] font-bold text-muted-text uppercase tracking-wider">Estimated Reach</span>
                                     <div className="flex items-center gap-2">
                                         {fetchingCount ? (
-                                            <Loader2 size={12} className="animate-spin text-blue-500" />
+                                            <Loader2 size={12} className="animate-spin text-primary" />
                                         ) : (
-                                            <Users size={12} className="text-blue-500" />
+                                            <Users size={12} className="text-primary" />
                                         )}
-                                        <span className="text-sm font-black text-gray-900">{audienceCount ?? '...'} Students</span>
+                                        <span className="text-sm font-black text-main">{audienceCount ?? '...'} Students</span>
                                     </div>
                                 </div>
-                                <button onClick={handleCancel} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
+                                <button onClick={handleCancel} className="p-2 hover:bg-background rounded-full text-muted-text transition-colors">
                                     <X size={24} />
                                 </button>
                             </div>
@@ -2688,20 +2688,20 @@ const Announcements = () => {
 
                         {/* Stepper Navigation Bar when registrations are enabled */}
                         {(activeTab === 'announcements' || activeTab === 'events') && formData.requires_registration && (
-                            <div className="px-6 py-2.5 bg-gray-50 border-b flex items-center gap-4 text-xs font-bold">
+                            <div className="px-6 py-2.5 bg-background border-b flex items-center gap-4 text-xs font-bold">
                                 <button
                                     type="button"
                                     onClick={() => setFormStep(1)}
                                     className={`flex items-center gap-2 py-1 px-3 rounded-lg transition-all ${
                                         formStep === 1
-                                            ? 'bg-blue-600 text-white shadow-xs'
-                                            : 'text-gray-600 hover:bg-gray-200'
+                                            ? 'bg-primary text-white shadow-xs'
+                                            : 'text-sub hover:bg-background'
                                     }`}
                                 >
-                                    <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]">1</span>
+                                    <span className="w-4 h-4 rounded-full bg-[var(--surface)]/20 flex items-center justify-center text-[10px]">1</span>
                                     Announcement Details & Audience
                                 </button>
-                                <ChevronRight size={14} className="text-gray-400" />
+                                <ChevronRight size={14} className="text-muted-text" />
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -2712,44 +2712,44 @@ const Announcements = () => {
                                     }}
                                     className={`flex items-center gap-2 py-1 px-3 rounded-lg transition-all ${
                                         formStep === 2
-                                            ? 'bg-indigo-600 text-white shadow-xs'
-                                            : 'text-gray-600 hover:bg-gray-200'
+                                            ? 'bg-primary text-white shadow-xs'
+                                            : 'text-sub hover:bg-background'
                                     }`}
                                 >
-                                    <span className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center text-[10px]">2</span>
+                                    <span className="w-4 h-4 rounded-full bg-[var(--surface)]/20 flex items-center justify-center text-[10px]">2</span>
                                     Event Registration & Dynamic Form
                                 </button>
                             </div>
                         )}
 
-                        <div className="p-6 overflow-y-auto bg-gray-50/30">
+                        <div className="p-6 overflow-y-auto bg-[var(--background)]/30">
                             <form onSubmit={activeTab === 'polls' || formData.announcement_type === 'poll' ? handleSubmitPoll : handleSubmitAnnouncement} className="space-y-6">
                                 {(activeTab === 'announcements' || activeTab === 'events') && formStep === 2 && formData.requires_registration ? (
                                     /* =================== STEP 2: DYNAMIC REGISTRATION FORM & SEATS =================== */
                                     <div className="space-y-6 animate-fade-in">
                                         {/* Step 2 Banner */}
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-gradient-to-r from-[var(--primary-light)] to-[var(--primary-light)] border border-[var(--primary-light)] rounded-2xl">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black">2</div>
+                                                <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-black">2</div>
                                                 <div>
-                                                    <h3 className="text-sm font-bold text-gray-900">Configure Event Registration & Custom Questions</h3>
-                                                    <p className="text-xs text-gray-500">Manage seat limits, registration deadline, and add custom fields for students to answer.</p>
+                                                    <h3 className="text-sm font-bold text-main">Configure Event Registration & Custom Questions</h3>
+                                                    <p className="text-xs text-muted-text">Manage seat limits, registration deadline, and add custom fields for students to answer.</p>
                                                 </div>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => setFormStep(1)}
-                                                className="text-xs font-semibold text-indigo-700 bg-white hover:bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200 flex items-center gap-1 shadow-2xs self-start sm:self-auto transition-colors"
+                                                className="text-xs font-semibold text-primary bg-surface hover:bg-[var(--primary-light)] px-3 py-1.5 rounded-xl border border-[var(--primary-light)] flex items-center gap-1 shadow-2xs self-start sm:self-auto transition-colors"
                                             >
                                                 <ChevronLeft size={14} /> Back to Step 1
                                             </button>
                                         </div>
 
                                         {/* Seat Capacity & Registration Deadline */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 bg-white rounded-2xl border border-gray-200 shadow-xs">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 bg-surface rounded-2xl border border-border shadow-xs">
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                                                    <Users size={14} className="text-indigo-600" />
+                                                <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                                    <Users size={14} className="text-primary" />
                                                     Seat Capacity (Max Seats)
                                                 </label>
                                                 <input
@@ -2758,44 +2758,44 @@ const Announcements = () => {
                                                     placeholder="Leave empty for Unlimited seats"
                                                     value={formData.max_seats}
                                                     onChange={(e) => setFormData({ ...formData, max_seats: e.target.value })}
-                                                    className="w-full text-sm p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white font-medium"
+                                                    className="w-full text-sm p-3 border border-border-strong rounded-xl focus:ring-2 focus:ring-primary outline-none bg-surface font-medium"
                                                 />
-                                                <span className="text-[11px] text-gray-500 mt-1 block">Maximum number of candidate registrations allowed.</span>
+                                                <span className="text-[11px] text-muted-text mt-1 block">Maximum number of candidate registrations allowed.</span>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                                                    <Clock size={14} className="text-indigo-600" />
+                                                <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                                                    <Clock size={14} className="text-primary" />
                                                     Registration Deadline
                                                 </label>
                                                 <input
                                                     type="datetime-local"
                                                     value={formData.registration_deadline}
                                                     onChange={(e) => setFormData({ ...formData, registration_deadline: e.target.value })}
-                                                    className="w-full text-sm p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white font-medium"
+                                                    className="w-full text-sm p-3 border border-border-strong rounded-xl focus:ring-2 focus:ring-primary outline-none bg-surface font-medium"
                                                 />
-                                                <span className="text-[11px] text-gray-500 mt-1 block">Registration will automatically close after this date & time.</span>
+                                                <span className="text-[11px] text-muted-text mt-1 block">Registration will automatically close after this date & time.</span>
                                             </div>
                                         </div>
 
                                         {/* Editable Default Student Profile Data Card */}
-                                        <div className="p-5 bg-white border border-gray-200 rounded-2xl shadow-xs space-y-4">
+                                        <div className="p-5 bg-surface border border-border rounded-2xl shadow-xs space-y-4">
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                                                        <h4 className="text-sm font-bold text-gray-900">Default Student Profile Fields</h4>
-                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                                        <CheckCircle2 size={16} className="text-success shrink-0" />
+                                                        <h4 className="text-sm font-bold text-main">Default Student Profile Fields</h4>
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[var(--success-light)] text-success border border-[var(--success-light)]">
                                                             {(formData.default_profile_fields || INITIAL_DEFAULT_PROFILE_FIELDS).filter(f => f.enabled).length} of 7 Active
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 mt-0.5">
+                                                    <p className="text-xs text-muted-text mt-0.5">
                                                         Pre-filled from the student profile. You can edit field labels, toggle required, or uncheck fields you don't need.
                                                     </p>
                                                 </div>
                                                 <button
                                                     type="button"
                                                     onClick={resetDefaultFields}
-                                                    className="text-xs font-semibold text-gray-500 hover:text-indigo-600 flex items-center gap-1 self-start sm:self-auto transition-colors"
+                                                    className="text-xs font-semibold text-muted-text hover:text-primary flex items-center gap-1 self-start sm:self-auto transition-colors"
                                                     title="Reset to default labels and settings"
                                                 >
                                                     <RotateCcw size={13} /> Reset Defaults
@@ -2809,8 +2809,8 @@ const Announcements = () => {
                                                         key={field.key}
                                                         className={`p-3 rounded-xl border transition-all flex items-center gap-3 ${
                                                             field.enabled
-                                                                ? 'bg-slate-50/80 border-slate-200 shadow-2xs'
-                                                                : 'bg-gray-100/60 border-dashed border-gray-300 opacity-60'
+                                                                ? 'bg-[var(--background)]/80 border-border shadow-2xs'
+                                                                : 'bg-[var(--background)]/60 border-dashed border-border-strong opacity-60'
                                                         }`}
                                                     >
                                                         {/* Enable / Disable Checkbox */}
@@ -2818,7 +2818,7 @@ const Announcements = () => {
                                                             type="checkbox"
                                                             checked={field.enabled}
                                                             onChange={(e) => updateDefaultField(field.key, 'enabled', e.target.checked)}
-                                                            className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
+                                                            className="rounded text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                                                             title={field.enabled ? 'Uncheck to exclude this field' : 'Check to include this field'}
                                                         />
 
@@ -2832,25 +2832,25 @@ const Announcements = () => {
                                                                 placeholder="Field label..."
                                                                 className={`w-full text-xs font-semibold px-2.5 py-1.5 rounded-lg border outline-none transition-colors ${
                                                                     field.enabled
-                                                                        ? 'bg-white border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-slate-800'
-                                                                        : 'bg-transparent border-transparent text-gray-400 cursor-not-allowed'
+                                                                        ? 'bg-surface border-border focus:border-primary focus:ring-1 focus:ring-primary text-main'
+                                                                        : 'bg-transparent border-transparent text-muted-text cursor-not-allowed'
                                                                 }`}
                                                             />
-                                                            <span className="text-[10px] text-gray-400 block px-1 mt-0.5 font-medium truncate">
-                                                                Auto-fills: <code className="text-gray-500">{field.key}</code>
+                                                            <span className="text-[10px] text-muted-text block px-1 mt-0.5 font-medium truncate">
+                                                                Auto-fills: <code className="text-muted-text">{field.key}</code>
                                                             </span>
                                                         </div>
 
                                                         {/* Required Toggle */}
                                                         <label className={`flex items-center gap-1.5 text-[11px] font-bold cursor-pointer shrink-0 select-none ${
-                                                            field.enabled ? 'text-gray-600 hover:text-gray-900' : 'text-gray-400 cursor-not-allowed'
+                                                            field.enabled ? 'text-sub hover:text-main' : 'text-muted-text cursor-not-allowed'
                                                         }`}>
                                                             <input
                                                                 type="checkbox"
                                                                 disabled={!field.enabled}
                                                                 checked={Boolean(field.required)}
                                                                 onChange={(e) => updateDefaultField(field.key, 'required', e.target.checked)}
-                                                                className="rounded text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5"
+                                                                className="rounded text-primary focus:ring-primary h-3.5 w-3.5"
                                                             />
                                                             <span>Required</span>
                                                         </label>
@@ -2860,19 +2860,19 @@ const Announcements = () => {
                                         </div>
 
                                         {/* Dynamic Registration Form Questions Builder */}
-                                        <div className="p-5 bg-white rounded-2xl border border-gray-200 shadow-xs space-y-4">
+                                        <div className="p-5 bg-surface rounded-2xl border border-border shadow-xs space-y-4">
                                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b pb-3">
                                                 <div>
-                                                    <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                                                        <FileText size={16} className="text-indigo-600" />
+                                                    <h4 className="text-sm font-bold text-main flex items-center gap-2">
+                                                        <FileText size={16} className="text-primary" />
                                                         Dynamic Registration Form Fields
                                                     </h4>
-                                                    <p className="text-xs text-gray-500">Add custom questions to collect specific information for this event.</p>
+                                                    <p className="text-xs text-muted-text">Add custom questions to collect specific information for this event.</p>
                                                 </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => addFormField()}
-                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto shadow-xs transition-colors"
+                                                    className="bg-primary hover:bg-primary-hover text-white px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto shadow-xs transition-colors"
                                                 >
                                                     <Plus size={14} /> Add Question
                                                 </button>
@@ -2880,37 +2880,37 @@ const Announcements = () => {
 
                                             {/* Questions list */}
                                             {(!formData.registration_form_fields || formData.registration_form_fields.length === 0) ? (
-                                                <div className="py-8 text-center border-2 border-dashed border-gray-200 rounded-2xl">
-                                                    <div className="w-12 h-12 mx-auto rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 mb-2">
+                                                <div className="py-8 text-center border-2 border-dashed border-border rounded-2xl">
+                                                    <div className="w-12 h-12 mx-auto rounded-full bg-[var(--primary-light)] flex items-center justify-center text-primary mb-2">
                                                         <FileText size={20} />
                                                     </div>
-                                                    <p className="text-sm font-semibold text-gray-700">No custom questions added yet</p>
-                                                    <p className="text-xs text-gray-400 mt-1 max-w-sm mx-auto">
+                                                    <p className="text-sm font-semibold text-sub">No custom questions added yet</p>
+                                                    <p className="text-xs text-muted-text mt-1 max-w-sm mx-auto">
                                                         Click "+ Add Question" above to add event-specific questions (e.g. food preference, t-shirt size, project link).
                                                     </p>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-3">
                                                     {formData.registration_form_fields.map((field, idx) => (
-                                                        <div key={field.id || idx} className="p-4 bg-gray-50/80 rounded-2xl border border-gray-200 space-y-3 relative">
+                                                        <div key={field.id || idx} className="p-4 bg-[var(--background)]/80 rounded-2xl border border-border space-y-3 relative">
                                                             <div className="flex items-center justify-between">
-                                                                <span className="text-xs font-bold text-indigo-700 bg-white px-2.5 py-0.5 rounded-md border border-indigo-100">
+                                                                <span className="text-xs font-bold text-primary bg-surface px-2.5 py-0.5 rounded-md border border-[var(--primary-light)]">
                                                                     Field #{idx + 1}
                                                                 </span>
                                                                 <div className="flex items-center gap-3">
-                                                                    <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 cursor-pointer">
+                                                                    <label className="flex items-center gap-1.5 text-xs font-medium text-sub cursor-pointer">
                                                                         <input
                                                                             type="checkbox"
                                                                             checked={Boolean(field.required)}
                                                                             onChange={(e) => updateFormField(idx, 'required', e.target.checked)}
-                                                                            className="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                                                                            className="rounded text-primary focus:ring-primary h-4 w-4"
                                                                         />
                                                                         <span>Required field</span>
                                                                     </label>
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => removeFormField(idx)}
-                                                                        className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                                        className="p-1 text-muted-text hover:text-danger hover:bg-[var(--danger-light)] rounded-lg transition-colors"
                                                                         title="Delete field"
                                                                     >
                                                                         <Trash2 size={16} />
@@ -2920,7 +2920,7 @@ const Announcements = () => {
 
                                                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                                                 <div className="sm:col-span-2">
-                                                                    <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">
+                                                                    <label className="block text-[11px] font-bold text-sub uppercase mb-1">
                                                                         Field Label / Question
                                                                     </label>
                                                                     <input
@@ -2928,17 +2928,17 @@ const Announcements = () => {
                                                                         value={field.label || ''}
                                                                         onChange={(e) => updateFormField(idx, 'label', e.target.value)}
                                                                         placeholder="e.g. Food Preference (Veg/Non-Veg)"
-                                                                        className="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
+                                                                        className="w-full text-xs p-2.5 border border-border-strong rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none font-medium"
                                                                     />
                                                                 </div>
                                                                 <div>
-                                                                    <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">
+                                                                    <label className="block text-[11px] font-bold text-sub uppercase mb-1">
                                                                         Field Type
                                                                     </label>
                                                                     <select
                                                                         value={field.type || 'text'}
                                                                         onChange={(e) => updateFormField(idx, 'type', e.target.value)}
-                                                                        className="w-full text-xs p-2.5 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none font-medium"
+                                                                        className="w-full text-xs p-2.5 border border-border-strong rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none font-medium"
                                                                     >
                                                                         <option value="text">Short Text</option>
                                                                         <option value="textarea">Paragraph / Long Text</option>
@@ -2951,7 +2951,7 @@ const Announcements = () => {
 
                                                             {field.type === 'select' && (
                                                                 <div className="pt-1">
-                                                                    <label className="block text-[11px] font-bold text-gray-600 uppercase mb-1">
+                                                                    <label className="block text-[11px] font-bold text-sub uppercase mb-1">
                                                                         Options (Separated by comma)
                                                                     </label>
                                                                     <input
@@ -2959,7 +2959,7 @@ const Announcements = () => {
                                                                         value={field.options || ''}
                                                                         onChange={(e) => updateFormField(idx, 'options', e.target.value)}
                                                                         placeholder="e.g. Veg, Non-Veg, Jain"
-                                                                        className="w-full text-xs p-2.5 border border-indigo-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                                                                        className="w-full text-xs p-2.5 border border-[var(--primary-light)] rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none"
                                                                     />
                                                                 </div>
                                                             )}
@@ -2968,7 +2968,7 @@ const Announcements = () => {
                                                     <button
                                                         type="button"
                                                         onClick={() => addFormField()}
-                                                        className="w-full py-2.5 border border-dashed border-indigo-300 text-indigo-700 bg-indigo-50/50 hover:bg-indigo-50 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                                                        className="w-full py-2.5 border border-dashed border-[var(--primary-light)] text-primary bg-[var(--primary-light)] hover:bg-[var(--primary-light)] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
                                                     >
                                                         <Plus size={14} /> Add Another Question
                                                     </button>
@@ -2981,14 +2981,14 @@ const Announcements = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => setFormStep(1)}
-                                                className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
+                                                className="px-5 py-2.5 bg-background hover:bg-background text-sub rounded-xl text-sm font-semibold flex items-center gap-2 transition-colors"
                                             >
                                                 <ChevronLeft size={16} /> Back to Announcement Details
                                             </button>
                                             <button
                                                 type="submit"
                                                 disabled={loading}
-                                                className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white px-8 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-70"
+                                                className="bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary text-white px-8 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-primary/25 transition-all disabled:opacity-70"
                                             >
                                                 {loading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
                                                 <span>{loading ? 'Publishing...' : (editId ? 'Update Announcement & Form' : 'Publish Announcement & Registration')}</span>
@@ -2999,11 +2999,11 @@ const Announcements = () => {
                                     /* =================== STEP 0: ASK ANNOUNCEMENT TYPE FIRST =================== */
                                     <div className="space-y-6 py-4 animate-fade-in">
                                         <div className="text-center max-w-xl mx-auto space-y-2">
-                                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200 uppercase tracking-wider">
+                                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] uppercase tracking-wider">
                                                 Step 1 of 2: Select Type
                                             </span>
-                                            <h3 className="text-2xl font-black text-gray-900">What would you like to create?</h3>
-                                            <p className="text-sm text-gray-500">
+                                            <h3 className="text-2xl font-black text-main">What would you like to create?</h3>
+                                            <p className="text-sm text-muted-text">
                                                 Choose an announcement type below. Form fields and layout will automatically adjust for your selection.
                                             </p>
                                         </div>
@@ -3016,21 +3016,21 @@ const Announcements = () => {
                                                     setFormData(prev => ({ ...prev, announcement_type: 'circular' }));
                                                     setFormStep(1);
                                                 }}
-                                                className="p-5 rounded-2xl border-2 border-slate-200 hover:border-rose-500 bg-white hover:bg-rose-50/20 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                                                className="p-5 rounded-2xl border-2 border-border hover:border-danger bg-surface hover:bg-[var(--danger-light)] text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
                                             >
                                                 <div>
-                                                    <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                    <div className="w-12 h-12 rounded-xl bg-[var(--danger-light)] text-danger flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                                         <FileText size={24} />
                                                     </div>
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-rose-600">Type 1: Circular</h4>
-                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-rose-100 text-rose-700">Generated PDF</span>
+                                                        <h4 className="font-bold text-main text-base group-hover:text-danger">Type 1: Circular</h4>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--danger-light)] text-danger">Generated PDF</span>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                                                    <p className="text-xs text-muted-text leading-relaxed mt-1">
                                                         Write the circular content and signatory details. A college-wise numbered PDF is generated for students to download.
                                                     </p>
                                                 </div>
-                                                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-rose-600">
+                                                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs font-bold text-danger">
                                                     <span>Create Circular</span>
                                                     <ChevronRight size={14} />
                                                 </div>
@@ -3043,21 +3043,21 @@ const Announcements = () => {
                                                     setFormData(prev => ({ ...prev, announcement_type: 'event' }));
                                                     setFormStep(1);
                                                 }}
-                                                className="p-5 rounded-2xl border-2 border-slate-200 hover:border-purple-600 bg-white hover:bg-purple-50/20 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                                                className="p-5 rounded-2xl border-2 border-border hover:border-secondary bg-surface hover:bg-[var(--primary-light)] text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
                                             >
                                                 <div>
-                                                    <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                    <div className="w-12 h-12 rounded-xl bg-[var(--primary-light)] text-secondary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                                         <Calendar size={24} />
                                                     </div>
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-purple-600">Type 2: Events</h4>
-                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-purple-100 text-purple-700">Date & Venue</span>
+                                                        <h4 className="font-bold text-main text-base group-hover:text-secondary">Type 2: Events</h4>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--primary-light)] text-secondary">Date & Venue</span>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                                                    <p className="text-xs text-muted-text leading-relaxed mt-1">
                                                         Campus events, seminars, fests, workshops with date, time, venue, poster, and optional student seat registration.
                                                     </p>
                                                 </div>
-                                                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-purple-600">
+                                                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs font-bold text-secondary">
                                                     <span>Create Event</span>
                                                     <ChevronRight size={14} />
                                                 </div>
@@ -3070,21 +3070,21 @@ const Announcements = () => {
                                                     setFormData(prev => ({ ...prev, announcement_type: 'poll' }));
                                                     setFormStep(1);
                                                 }}
-                                                className="p-5 rounded-2xl border-2 border-slate-200 hover:border-emerald-600 bg-white hover:bg-emerald-50/20 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                                                className="p-5 rounded-2xl border-2 border-border hover:border-success bg-surface hover:bg-[var(--success-light)] text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
                                             >
                                                 <div>
-                                                    <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                    <div className="w-12 h-12 rounded-xl bg-[var(--success-light)] text-success flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                                         <BarChart2 size={24} />
                                                     </div>
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-emerald-600">Type 3: Polls</h4>
-                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">Interactive</span>
+                                                        <h4 className="font-bold text-main text-base group-hover:text-success">Type 3: Polls</h4>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--success-light)] text-success">Interactive</span>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                                                    <p className="text-xs text-muted-text leading-relaxed mt-1">
                                                         Interactive campus polls with question, customizable options, voting timeline, and live vote percentage charts.
                                                     </p>
                                                 </div>
-                                                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-emerald-600">
+                                                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs font-bold text-success">
                                                     <span>Create Poll</span>
                                                     <ChevronRight size={14} />
                                                 </div>
@@ -3097,21 +3097,21 @@ const Announcements = () => {
                                                     setFormData(prev => ({ ...prev, announcement_type: 'announcement' }));
                                                     setFormStep(1);
                                                 }}
-                                                className="p-5 rounded-2xl border-2 border-slate-200 hover:border-blue-600 bg-white hover:bg-blue-50/20 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                                                className="p-5 rounded-2xl border-2 border-border hover:border-primary bg-surface hover:bg-[var(--primary-light)] text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
                                             >
                                                 <div>
-                                                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                    <div className="w-12 h-12 rounded-xl bg-[var(--primary-light)] text-primary flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                                                         <Megaphone size={24} />
                                                     </div>
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-blue-600">Type 4: Announcement</h4>
-                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-blue-100 text-blue-700">Standard</span>
+                                                        <h4 className="font-bold text-main text-base group-hover:text-primary">Type 4: Announcement</h4>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--primary-light)] text-primary">Standard</span>
                                                     </div>
-                                                    <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                                                    <p className="text-xs text-muted-text leading-relaxed mt-1">
                                                         Standard college announcement with title, rich message body, image poster attachment, and auto-expiry options.
                                                     </p>
                                                 </div>
-                                                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-blue-600">
+                                                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs font-bold text-primary">
                                                     <span>Create Announcement</span>
                                                     <ChevronRight size={14} />
                                                 </div>
@@ -3124,25 +3124,25 @@ const Announcements = () => {
                                                     setFormData(prev => ({ ...prev, announcement_type: 'achievement' }));
                                                     setFormStep(1);
                                                 }}
-                                                className="p-5 rounded-2xl border-2 border-amber-300 hover:border-amber-500 bg-gradient-to-br from-amber-50/40 via-white to-amber-50/10 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                                                className="p-5 rounded-2xl border-2 border-[var(--warning-light)] hover:border-warning bg-gradient-to-br from-[var(--warning-light)] via-surface to-[var(--warning-light)] text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
                                             >
                                                 <div>
-                                                    <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md shadow-amber-200">
+                                                    <div className="w-12 h-12 rounded-xl bg-warning text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md shadow-warning">
                                                         <Trophy size={24} />
                                                     </div>
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-amber-800 flex items-center gap-1.5">
+                                                        <h4 className="font-bold text-main text-base group-hover:text-warning flex items-center gap-1.5">
                                                             Type 5: Student Achievement Leader board
                                                         </h4>
-                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                                                             🏆 Hackathon Topper
                                                         </span>
                                                     </div>
-                                                    <p className="text-xs text-gray-600 leading-relaxed mt-1">
+                                                    <p className="text-xs text-sub leading-relaxed mt-1">
                                                         Showcase the student topper in hackathons and competitions! Displays their <strong>Photo, Name, Branch, Year & Semester</strong>, prize, and rank.
                                                     </p>
                                                 </div>
-                                                <div className="mt-4 pt-3 border-t border-amber-100 flex items-center justify-between text-xs font-bold text-amber-700">
+                                                <div className="mt-4 pt-3 border-t border-[var(--warning-light)] flex items-center justify-between text-xs font-bold text-warning">
                                                     <span>Create Leaderboard Spotlight</span>
                                                     <ChevronRight size={14} />
                                                 </div>
@@ -3186,9 +3186,9 @@ const Announcements = () => {
                                     /* =================== STEP 1: DYNAMIC FORM FIELDS BY TYPE =================== */
                                     <>
                                         {/* Type Selector Pill Header */}
-                                        <div className="flex items-center justify-between p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl mb-4">
+                                        <div className="flex items-center justify-between p-3.5 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-2xl mb-4">
                                             <div className="flex items-center gap-2.5">
-                                                <span className="text-xs font-black uppercase tracking-wider text-blue-900 bg-white px-2.5 py-1 rounded-lg border border-blue-200 shadow-2xs">
+                                                <span className="text-xs font-black uppercase tracking-wider text-primary bg-surface px-2.5 py-1 rounded-lg border border-[var(--primary-light)] shadow-2xs">
                                                     {formData.announcement_type === 'circular' ? 'Type 1: Circular' :
                                                      formData.announcement_type === 'event' ? 'Type 2: Event' :
                                                      formData.announcement_type === 'poll' ? 'Type 3: Poll' :
@@ -3196,7 +3196,7 @@ const Announcements = () => {
                                                      formData.announcement_type === 'form' ? 'Type 6: Forms' :
                                                      'Type 4: Announcement'}
                                                 </span>
-                                                <span className="text-xs text-blue-700 hidden sm:inline font-medium">
+                                                <span className="text-xs text-primary hidden sm:inline font-medium">
                                                     {formData.announcement_type === 'circular' ? 'Enter circular content · College-wise numbers and downloadable PDFs are generated automatically' :
                                                      formData.announcement_type === 'event' ? 'Event details with date, time, venue and optional seat registration' :
                                                      formData.announcement_type === 'poll' ? 'Campus poll with interactive student options' :
@@ -3209,7 +3209,7 @@ const Announcements = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormStep(0)}
-                                                    className="text-xs font-bold text-blue-700 hover:text-blue-900 bg-white hover:bg-blue-50 px-3 py-1 rounded-lg border border-blue-200 transition-colors flex items-center gap-1 shadow-2xs"
+                                                    className="text-xs font-bold text-primary hover:text-primary bg-surface hover:bg-[var(--primary-light)] px-3 py-1 rounded-lg border border-[var(--primary-light)] transition-colors flex items-center gap-1 shadow-2xs"
                                                 >
                                                     <ChevronLeft size={13} /> Change Type
                                                 </button>
@@ -3222,27 +3222,27 @@ const Announcements = () => {
                                                 {formData.announcement_type === 'circular' && (
                                                     <div className="space-y-4 animate-fade-in">
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                                Subject Line (Headline) <span className="text-rose-500">*</span>
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Subject Line (Headline) <span className="text-danger">*</span>
                                                             </label>
                                                             <input
                                                                 type="text"
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 outline-none font-medium text-sm"
+                                                                className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-danger outline-none font-medium text-sm"
                                                                 placeholder="e.g. Schedule for B.Tech Semester End Regular & Supplementary Examinations"
                                                                 value={formData.title}
                                                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
                                                             />
-                                                            <span className="text-[11px] text-gray-500 mt-1 block">
+                                                            <span className="text-[11px] text-muted-text mt-1 block">
                                                                 The subject line will be prominently displayed as the headline.
                                                             </span>
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                                                                Circular Content <span className="text-rose-500">*</span>
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1">
+                                                                Circular Content <span className="text-danger">*</span>
                                                             </label>
                                                             <textarea
-                                                                className="w-full p-3 border border-gray-300 rounded-xl min-h-48 focus:ring-2 focus:ring-rose-500 outline-none font-medium text-sm"
+                                                                className="w-full p-3 border border-border-strong rounded-xl min-h-48 focus:ring-2 focus:ring-danger outline-none font-medium text-sm"
                                                                 placeholder="Write the complete circular content here..."
                                                                 value={formData.content}
                                                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
@@ -3280,9 +3280,9 @@ const Announcements = () => {
                                                         </div>
 
                                                         {/* Auto-expire */}
-                                                        <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
-                                                            <label className="block text-xs font-bold text-gray-700 flex items-center gap-1.5 uppercase tracking-wider">
-                                                                <Clock size={13} className="text-gray-600" />
+                                                        <div className="bg-background p-3 rounded-xl border border-border space-y-2">
+                                                            <label className="block text-xs font-bold text-sub flex items-center gap-1.5 uppercase tracking-wider">
+                                                                <Clock size={13} className="text-sub" />
                                                                 Display Time Limit (Auto-Expire)
                                                             </label>
                                                             <div className="grid grid-cols-5 gap-1.5">
@@ -3299,8 +3299,8 @@ const Announcements = () => {
                                                                         onClick={() => setFormData({ ...formData, time_limit_option: opt.id })}
                                                                         className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all border text-center ${
                                                                             formData.time_limit_option === opt.id
-                                                                                ? 'bg-rose-600 text-white border-rose-600 shadow-2xs'
-                                                                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                                                                ? 'bg-danger text-white border-danger shadow-2xs'
+                                                                                : 'bg-surface text-sub border-border hover:bg-background'
                                                                         }`}
                                                                     >
                                                                         {opt.label}
@@ -3310,7 +3310,7 @@ const Announcements = () => {
                                                             {formData.time_limit_option === 'custom' && (
                                                                 <input
                                                                     type="datetime-local"
-                                                                    className="w-full p-2 border border-gray-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-rose-500 bg-white mt-2"
+                                                                    className="w-full p-2 border border-border-strong rounded-lg text-xs font-medium focus:ring-2 focus:ring-danger bg-surface mt-2"
                                                                     value={formData.custom_expiry_date || ''}
                                                                     onChange={e => setFormData({ ...formData, custom_expiry_date: e.target.value })}
                                                                 />
@@ -3323,12 +3323,12 @@ const Announcements = () => {
                                                 {formData.announcement_type === 'event' && (
                                                     <div className="space-y-4 animate-fade-in">
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                                Event Title <span className="text-rose-500">*</span>
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Event Title <span className="text-danger">*</span>
                                                             </label>
                                                             <input
                                                                 type="text"
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-sm"
+                                                                className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-secondary outline-none font-medium text-sm"
                                                                 placeholder="e.g. National Technical Symposium & Workshop 2026"
                                                                 value={formData.title}
                                                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -3337,23 +3337,23 @@ const Announcements = () => {
 
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                             <div>
-                                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1">
                                                                     Event Date
                                                                 </label>
                                                                 <input
                                                                     type="date"
-                                                                    className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-xs bg-white"
+                                                                    className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-secondary outline-none font-medium text-xs bg-surface"
                                                                     value={formData.event_date || ''}
                                                                     onChange={e => setFormData({ ...formData, event_date: e.target.value })}
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1">
                                                                     Event Time
                                                                 </label>
                                                                 <input
                                                                     type="text"
-                                                                    className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-xs bg-white"
+                                                                    className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-secondary outline-none font-medium text-xs bg-surface"
                                                                     placeholder="e.g. 10:00 AM - 04:30 PM"
                                                                     value={formData.event_time || ''}
                                                                     onChange={e => setFormData({ ...formData, event_time: e.target.value })}
@@ -3362,12 +3362,12 @@ const Announcements = () => {
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                                <MapPin size={13} className="text-purple-600" /> Event Venue / Location
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                <MapPin size={13} className="text-secondary" /> Event Venue / Location
                                                             </label>
                                                             <input
                                                                 type="text"
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none font-medium text-xs"
+                                                                className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-secondary outline-none font-medium text-xs"
                                                                 placeholder="e.g. Central Auditorium / Seminar Hall B"
                                                                 value={formData.event_venue || ''}
                                                                 onChange={e => setFormData({ ...formData, event_venue: e.target.value })}
@@ -3375,11 +3375,11 @@ const Announcements = () => {
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1">
                                                                 Event Description / Agenda
                                                             </label>
                                                             <textarea
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl h-24 focus:ring-2 focus:ring-purple-500 outline-none font-medium text-xs"
+                                                                className="w-full p-2.5 border border-border-strong rounded-xl h-24 focus:ring-2 focus:ring-secondary outline-none font-medium text-xs"
                                                                 placeholder="Event details, schedule, chief guests, topics covered..."
                                                                 value={formData.content}
                                                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
@@ -3387,18 +3387,18 @@ const Announcements = () => {
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1">
                                                                 Event Poster / Banner Image
                                                             </label>
                                                             {formData.existing_image_url && !formData.image && (
                                                                 <div className="mb-2 h-20 w-32 relative group">
                                                                     <img src={formData.existing_image_url} alt="Current" className="h-full w-full object-cover rounded border" />
-                                                                    <button type="button" onClick={() => setFormData({ ...formData, existing_image_url: null })} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12} /></button>
+                                                                    <button type="button" onClick={() => setFormData({ ...formData, existing_image_url: null })} className="absolute -top-2 -right-2 bg-danger text-white rounded-full p-0.5"><X size={12} /></button>
                                                                 </div>
                                                             )}
-                                                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-3 text-center cursor-pointer hover:bg-gray-50 transition-colors relative">
+                                                            <div className="border-2 border-dashed border-border-strong rounded-xl p-3 text-center cursor-pointer hover:bg-background transition-colors relative">
                                                                 <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
-                                                                <div className="flex flex-col items-center gap-1 text-gray-500">
+                                                                <div className="flex flex-col items-center gap-1 text-muted-text">
                                                                     <ImageIcon size={20} />
                                                                     <span className="text-xs">{formData.image ? formData.image.name : 'Click to upload event banner'}</span>
                                                                 </div>
@@ -3406,16 +3406,16 @@ const Announcements = () => {
                                                         </div>
 
                                                         {/* Registration Toggle */}
-                                                        <div className="p-3 bg-purple-50/60 border border-purple-200 rounded-xl flex items-center justify-between">
+                                                        <div className="p-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl flex items-center justify-between">
                                                             <div>
-                                                                <span className="text-xs font-bold text-purple-900 block">Candidate Registration & Seat Booking</span>
-                                                                <span className="text-[11px] text-purple-700">Allow students to book tickets / seats for this event</span>
+                                                                <span className="text-xs font-bold text-secondary block">Candidate Registration & Seat Booking</span>
+                                                                <span className="text-[11px] text-secondary">Allow students to book tickets / seats for this event</span>
                                                             </div>
                                                             <input
                                                                 type="checkbox"
                                                                 checked={Boolean(formData.requires_registration)}
                                                                 onChange={e => setFormData({ ...formData, requires_registration: e.target.checked })}
-                                                                className="h-5 w-5 rounded text-purple-600 focus:ring-purple-500"
+                                                                className="h-5 w-5 rounded text-secondary focus:ring-secondary"
                                                             />
                                                         </div>
                                                     </div>
@@ -3425,12 +3425,12 @@ const Announcements = () => {
                                                 {formData.announcement_type === 'poll' && (
                                                     <div className="space-y-4 animate-fade-in">
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                                Poll Question <span className="text-rose-500">*</span>
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Poll Question <span className="text-danger">*</span>
                                                             </label>
                                                             <input
                                                                 type="text"
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-medium text-sm"
+                                                                className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-success outline-none font-medium text-sm"
                                                                 placeholder="e.g. Which programming language should be prioritized for the upcoming winter bootcamp?"
                                                                 value={formData.title}
                                                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -3438,19 +3438,19 @@ const Announcements = () => {
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center justify-between">
-                                                                <span>Poll Options (At least 2 options) <span className="text-rose-500">*</span></span>
-                                                                <span className="text-[10px] text-gray-400 font-mono">{(formData.poll_options || []).length} Options</span>
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-2 flex items-center justify-between">
+                                                                <span>Poll Options (At least 2 options) <span className="text-danger">*</span></span>
+                                                                <span className="text-[10px] text-muted-text font-mono">{(formData.poll_options || []).length} Options</span>
                                                             </label>
                                                             <div className="space-y-2">
                                                                 {(formData.poll_options || ['', '']).map((opt, optIdx) => (
                                                                     <div key={optIdx} className="flex gap-2 items-center">
-                                                                        <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold shrink-0">
+                                                                        <span className="w-6 h-6 rounded-lg bg-[var(--success-light)] text-success flex items-center justify-center text-xs font-bold shrink-0">
                                                                             {optIdx + 1}
                                                                         </span>
                                                                         <input
                                                                             type="text"
-                                                                            className="flex-1 p-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-medium"
+                                                                            className="flex-1 p-2 border border-border-strong rounded-xl focus:ring-2 focus:ring-success outline-none text-xs font-medium"
                                                                             placeholder={`Option ${optIdx + 1} text...`}
                                                                             value={opt}
                                                                             onChange={e => {
@@ -3466,7 +3466,7 @@ const Announcements = () => {
                                                                                     const newOpts = (formData.poll_options || []).filter((_, idx) => idx !== optIdx);
                                                                                     setFormData({ ...formData, poll_options: newOpts });
                                                                                 }}
-                                                                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                                                className="p-1.5 text-danger hover:bg-[var(--danger-light)] rounded-lg transition-colors"
                                                                                 title="Remove option"
                                                                             >
                                                                                 <MinusCircle size={16} />
@@ -3483,7 +3483,7 @@ const Announcements = () => {
                                                                                 poll_options: [...(prev.poll_options || ['', '']), '']
                                                                             }));
                                                                         }}
-                                                                        className="w-full py-2 border border-dashed border-emerald-300 text-emerald-700 bg-emerald-50/50 hover:bg-emerald-50 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 mt-2 transition-colors"
+                                                                        className="w-full py-2 border border-dashed border-[var(--success-light)] text-success bg-[var(--success-light)] hover:bg-[var(--success-light)] rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 mt-2 transition-colors"
                                                                     >
                                                                         <Plus size={14} /> Add Another Option
                                                                     </button>
@@ -3492,16 +3492,16 @@ const Announcements = () => {
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1">
                                                                 Poll Expiry / Deadline
                                                             </label>
                                                             <input
                                                                 type="datetime-local"
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none font-medium text-xs bg-white"
+                                                                className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-success outline-none font-medium text-xs bg-surface"
                                                                 value={formData.custom_expiry_date || ''}
                                                                 onChange={e => setFormData({ ...formData, custom_expiry_date: e.target.value })}
                                                             />
-                                                            <span className="text-[11px] text-gray-500 mt-1 block">Students cannot vote after this date & time.</span>
+                                                            <span className="text-[11px] text-muted-text mt-1 block">Students cannot vote after this date & time.</span>
                                                         </div>
                                                     </div>
                                                 )}
@@ -3510,12 +3510,12 @@ const Announcements = () => {
                                                 {formData.announcement_type === 'announcement' && (
                                                     <div className="space-y-4 animate-fade-in">
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                                Headline / Title <span className="text-rose-500">*</span>
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Headline / Title <span className="text-danger">*</span>
                                                             </label>
                                                             <input
                                                                 type="text"
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-medium text-sm"
+                                                                className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-primary outline-none font-medium text-sm"
                                                                 placeholder="Enter announcement headline"
                                                                 value={formData.title}
                                                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -3523,20 +3523,20 @@ const Announcements = () => {
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                                Content / Message <span className="text-rose-500">*</span>
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Content / Message <span className="text-danger">*</span>
                                                             </label>
                                                             <textarea
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl h-28 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-xs"
+                                                                className="w-full p-2.5 border border-border-strong rounded-xl h-28 focus:ring-2 focus:ring-primary outline-none font-medium text-xs"
                                                                 placeholder="Enter complete announcement details..."
                                                                 value={formData.content}
                                                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
                                                             />
                                                         </div>
 
-                                                        <div className="bg-blue-50/50 p-3.5 rounded-xl border border-blue-100 space-y-2">
-                                                            <label className="block text-xs font-bold text-gray-700 flex items-center gap-1.5 uppercase tracking-wider">
-                                                                <Clock size={13} className="text-blue-600" />
+                                                        <div className="bg-[var(--primary-light)] p-3.5 rounded-xl border border-[var(--primary-light)] space-y-2">
+                                                            <label className="block text-xs font-bold text-sub flex items-center gap-1.5 uppercase tracking-wider">
+                                                                <Clock size={13} className="text-primary" />
                                                                 Display Time Limit (Auto-Expire)
                                                             </label>
                                                             <div className="grid grid-cols-5 gap-1.5">
@@ -3553,8 +3553,8 @@ const Announcements = () => {
                                                                         onClick={() => setFormData({ ...formData, time_limit_option: opt.id })}
                                                                         className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all border text-center ${
                                                                             formData.time_limit_option === opt.id
-                                                                                ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                                                                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                                                                ? 'bg-primary text-white border-primary shadow-sm'
+                                                                                : 'bg-surface text-sub border-border hover:bg-background'
                                                                         }`}
                                                                     >
                                                                         {opt.label}
@@ -3564,7 +3564,7 @@ const Announcements = () => {
                                                             {formData.time_limit_option === 'custom' && (
                                                                 <input
                                                                     type="datetime-local"
-                                                                    className="w-full p-2 border border-gray-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 bg-white mt-2"
+                                                                    className="w-full p-2 border border-border-strong rounded-lg text-xs font-medium focus:ring-2 focus:ring-primary bg-surface mt-2"
                                                                     value={formData.custom_expiry_date || ''}
                                                                     onChange={e => setFormData({ ...formData, custom_expiry_date: e.target.value })}
                                                                 />
@@ -3572,16 +3572,16 @@ const Announcements = () => {
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Image (Optional)</label>
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1">Image (Optional)</label>
                                                             {formData.existing_image_url && !formData.image && (
                                                                 <div className="mb-2 h-20 w-32 relative group">
                                                                     <img src={formData.existing_image_url} alt="Current" className="h-full w-full object-cover rounded border" />
-                                                                    <button type="button" onClick={() => setFormData({ ...formData, existing_image_url: null })} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5"><X size={12} /></button>
+                                                                    <button type="button" onClick={() => setFormData({ ...formData, existing_image_url: null })} className="absolute -top-2 -right-2 bg-danger text-white rounded-full p-0.5"><X size={12} /></button>
                                                                 </div>
                                                             )}
-                                                            <div className="border-2 border-dashed border-gray-300 rounded-xl p-3 text-center cursor-pointer hover:bg-gray-50 transition-colors relative">
+                                                            <div className="border-2 border-dashed border-border-strong rounded-xl p-3 text-center cursor-pointer hover:bg-background transition-colors relative">
                                                                 <input type="file" onChange={handleFileChange} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
-                                                                <div className="flex flex-col items-center gap-1 text-gray-500">
+                                                                <div className="flex flex-col items-center gap-1 text-muted-text">
                                                                     <ImageIcon size={20} />
                                                                     <span className="text-xs">{formData.image ? formData.image.name : 'Click to attach image'}</span>
                                                                 </div>
@@ -3594,12 +3594,12 @@ const Announcements = () => {
                                                 {formData.announcement_type === 'achievement' && (
                                                     <div className="space-y-4 animate-fade-in">
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                                Hackathon / Competition Name <span className="text-rose-500">*</span>
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1 flex items-center gap-1">
+                                                                Hackathon / Competition Name <span className="text-danger">*</span>
                                                             </label>
                                                             <input
                                                                 type="text"
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-sm"
+                                                                className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-warning outline-none font-medium text-sm"
                                                                 placeholder="e.g. Smart India Hackathon 2026 / National Coding Championship"
                                                                 value={formData.title}
                                                                 onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -3608,24 +3608,24 @@ const Announcements = () => {
 
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                             <div>
-                                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1">
                                                                     Rank / Position Title
                                                                 </label>
                                                                 <input
                                                                     type="text"
-                                                                    className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs"
+                                                                    className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-warning outline-none font-medium text-xs"
                                                                     placeholder="e.g. 1st Place / Hackathon Topper / Gold Medal"
                                                                     value={formData.rank_title || ''}
                                                                     onChange={e => setFormData({ ...formData, rank_title: e.target.value })}
                                                                 />
                                                             </div>
                                                             <div>
-                                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1">
                                                                     Cash Prize / Award Details
                                                                 </label>
                                                                 <input
                                                                     type="text"
-                                                                    className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs"
+                                                                    className="w-full p-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-warning outline-none font-medium text-xs"
                                                                     placeholder="e.g. ₹50,000 Cash Prize & Trophy"
                                                                     value={formData.topper_prize || ''}
                                                                     onChange={e => setFormData({ ...formData, topper_prize: e.target.value })}
@@ -3634,19 +3634,19 @@ const Announcements = () => {
                                                         </div>
 
                                                         {/* Topper Spotlight Box */}
-                                                        <div className="p-4 bg-gradient-to-br from-amber-50/60 to-orange-50/30 border-2 border-amber-300/80 rounded-2xl space-y-3">
-                                                            <div className="flex items-center justify-between border-b border-amber-200 pb-2">
-                                                                <h5 className="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-                                                                    <Trophy size={14} className="text-amber-600" /> Student Topper Details (Photo, Name, Branch, Year & Sem)
+                                                        <div className="p-4 bg-gradient-to-br from-[var(--warning-light)] to-[var(--warning-light)] border-2 border-[var(--warning-light)] rounded-2xl space-y-3">
+                                                            <div className="flex items-center justify-between border-b border-[var(--warning-light)] pb-2">
+                                                                <h5 className="text-xs font-black text-warning uppercase tracking-wider flex items-center gap-1.5">
+                                                                    <Trophy size={14} className="text-warning" /> Student Topper Details (Photo, Name, Branch, Year & Sem)
                                                                 </h5>
-                                                                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                                                                <span className="text-[10px] font-bold text-warning bg-[var(--warning-light)] px-2 py-0.5 rounded-full">
                                                                     Required
                                                                 </span>
                                                             </div>
 
                                                             {/* Quick Database Search */}
                                                             <div className="relative">
-                                                                <label className="block text-[11px] font-bold text-gray-600 mb-1">
+                                                                <label className="block text-[11px] font-bold text-sub mb-1">
                                                                     🔍 Quick Student Auto-Fill (Search by Name or PIN):
                                                                 </label>
                                                                 <div className="relative">
@@ -3655,26 +3655,26 @@ const Announcements = () => {
                                                                         placeholder="Type student name or roll number to auto-fill..."
                                                                         value={topperSearchQuery}
                                                                         onChange={e => handleSearchTopper(e.target.value, 0)}
-                                                                        className="w-full text-xs p-2 pl-3 pr-8 border border-amber-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 outline-none"
+                                                                        className="w-full text-xs p-2 pl-3 pr-8 border border-[var(--warning-light)] rounded-xl bg-surface focus:ring-2 focus:ring-warning outline-none"
                                                                     />
                                                                     {isSearchingTopper && (
-                                                                        <Loader2 size={13} className="animate-spin text-amber-600 absolute right-2.5 top-2.5" />
+                                                                        <Loader2 size={13} className="animate-spin text-warning absolute right-2.5 top-2.5" />
                                                                     )}
                                                                 </div>
 
                                                                 {topperSearchResults.length > 0 && (
-                                                                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-gray-100">
+                                                                    <div className="absolute left-0 right-0 top-full mt-1 bg-surface border border-border rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-border">
                                                                         {topperSearchResults.map(s => (
                                                                             <div
                                                                                 key={s.id}
                                                                                 onClick={() => handleSelectTopperStudent(s, 0)}
-                                                                                className="p-2.5 hover:bg-amber-50 cursor-pointer flex items-center justify-between text-xs"
+                                                                                className="p-2.5 hover:bg-[var(--warning-light)] cursor-pointer flex items-center justify-between text-xs"
                                                                             >
                                                                                 <div>
-                                                                                    <span className="font-bold text-gray-900 block">{s.student_name}</span>
-                                                                                    <span className="text-[10px] text-gray-500">PIN: {s.pin_no || s.admission_number} · {s.branch} · Year {s.current_year}</span>
+                                                                                    <span className="font-bold text-main block">{s.student_name}</span>
+                                                                                    <span className="text-[10px] text-muted-text">PIN: {s.pin_no || s.admission_number} · {s.branch} · Year {s.current_year}</span>
                                                                                 </div>
-                                                                                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">Select</span>
+                                                                                <span className="text-[10px] font-bold text-warning bg-[var(--warning-light)] px-2 py-0.5 rounded">Select</span>
                                                                             </div>
                                                                         ))}
                                                                     </div>
@@ -3684,11 +3684,11 @@ const Announcements = () => {
                                                             {/* Photo & Inputs Row */}
                                                             <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
                                                                 <div className="flex flex-col items-center shrink-0">
-                                                                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-400 shadow-md bg-white relative group">
+                                                                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-warning shadow-md bg-surface relative group">
                                                                         {formData.topper_photo_preview ? (
                                                                             <img src={formData.topper_photo_preview} alt="Topper" className="w-full h-full object-cover" />
                                                                         ) : (
-                                                                            <div className="w-full h-full flex items-center justify-center bg-amber-100 text-amber-600">
+                                                                            <div className="w-full h-full flex items-center justify-center bg-[var(--warning-light)] text-warning">
                                                                                 <User size={28} />
                                                                             </div>
                                                                         )}
@@ -3697,7 +3697,7 @@ const Announcements = () => {
                                                                             <input type="file" accept="image/*" onChange={handleTopperPhotoChange} className="hidden" />
                                                                         </label>
                                                                     </div>
-                                                                    <label className="text-[10px] font-bold text-amber-800 mt-1 cursor-pointer hover:underline">
+                                                                    <label className="text-[10px] font-bold text-warning mt-1 cursor-pointer hover:underline">
                                                                         Upload Photo
                                                                         <input type="file" accept="image/*" onChange={handleTopperPhotoChange} className="hidden" />
                                                                     </label>
@@ -3705,48 +3705,48 @@ const Announcements = () => {
 
                                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 flex-1 w-full">
                                                                     <div>
-                                                                        <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
-                                                                            Student Full Name <span className="text-rose-500">*</span>
+                                                                        <label className="block text-[11px] font-bold text-sub mb-0.5">
+                                                                            Student Full Name <span className="text-danger">*</span>
                                                                         </label>
                                                                         <input
                                                                             type="text"
-                                                                            className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
+                                                                            className="w-full p-2 border border-[var(--warning-light)] rounded-xl bg-surface text-xs font-semibold"
                                                                             placeholder="e.g. K. Rajesh Kumar"
                                                                             value={formData.topper_name || ''}
                                                                             onChange={e => updateTopperStudent(0, 'student_name', e.target.value)}
                                                                         />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
-                                                                            Branch / Department <span className="text-rose-500">*</span>
+                                                                        <label className="block text-[11px] font-bold text-sub mb-0.5">
+                                                                            Branch / Department <span className="text-danger">*</span>
                                                                         </label>
                                                                         <input
                                                                             type="text"
-                                                                            className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
+                                                                            className="w-full p-2 border border-[var(--warning-light)] rounded-xl bg-surface text-xs font-semibold"
                                                                             placeholder="e.g. CSE / ECE / AI&DS"
                                                                             value={formData.topper_branch || ''}
                                                                             onChange={e => updateTopperStudent(0, 'branch', e.target.value)}
                                                                         />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
-                                                                            Year & Semester <span className="text-rose-500">*</span>
+                                                                        <label className="block text-[11px] font-bold text-sub mb-0.5">
+                                                                            Year & Semester <span className="text-danger">*</span>
                                                                         </label>
                                                                         <input
                                                                             type="text"
-                                                                            className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
+                                                                            className="w-full p-2 border border-[var(--warning-light)] rounded-xl bg-surface text-xs font-semibold"
                                                                             placeholder="e.g. 3rd Year, 1st Sem (III-I)"
                                                                             value={formData.topper_year_sem || ''}
                                                                             onChange={e => updateTopperStudent(0, 'year_sem', e.target.value)}
                                                                         />
                                                                     </div>
                                                                     <div>
-                                                                        <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
+                                                                        <label className="block text-[11px] font-bold text-sub mb-0.5">
                                                                             Roll No / PIN (Optional)
                                                                         </label>
                                                                         <input
                                                                             type="text"
-                                                                            className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
+                                                                            className="w-full p-2 border border-[var(--warning-light)] rounded-xl bg-surface text-xs font-semibold"
                                                                             placeholder="e.g. 21A91A0501"
                                                                             value={formData.topper_roll_no || ''}
                                                                             onChange={e => updateTopperStudent(0, 'roll_no', e.target.value)}
@@ -3832,11 +3832,11 @@ const Announcements = () => {
                                                         </div>
 
                                                         <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                            <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-1">
                                                                 Project Name & Achievement Description
                                                             </label>
                                                             <textarea
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl h-20 focus:ring-2 focus:ring-amber-500 outline-none font-medium text-xs"
+                                                                className="w-full p-2.5 border border-border-strong rounded-xl h-20 focus:ring-2 focus:ring-warning outline-none font-medium text-xs"
                                                                 placeholder="Project title, mentor, problem statement solved, key highlights..."
                                                                 value={formData.content}
                                                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
@@ -3940,7 +3940,7 @@ const Announcements = () => {
                                         </div>
 
                                         <div className="flex justify-end pt-4 border-t gap-3">
-                                            <button type="button" onClick={handleCancel} className="px-5 py-2.5 border rounded-xl text-gray-600 hover:bg-gray-50 font-medium">Cancel</button>
+                                            <button type="button" onClick={handleCancel} className="px-5 py-2.5 border border-border rounded-xl text-sub hover:bg-background font-medium">Cancel</button>
                                             {(activeTab === 'announcements' || activeTab === 'events') && formData.requires_registration && formData.announcement_type !== 'form' ? (
                                                 <button
                                                     type="button"
@@ -3950,7 +3950,7 @@ const Announcements = () => {
                                                         }
                                                         setFormStep(2);
                                                     }}
-                                                    className="bg-indigo-600 text-white px-7 py-2.5 rounded-xl font-bold hover:bg-indigo-700 flex items-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
+                                                    className="bg-primary text-white px-7 py-2.5 rounded-xl font-bold hover:bg-primary-hover flex items-center gap-2 shadow-lg shadow-primary/25 transition-all"
                                                 >
                                                     <span>Next: Configure Registration Form</span>
                                                     <ChevronRight size={18} />
@@ -3959,7 +3959,7 @@ const Announcements = () => {
                                                 <button
                                                     type="submit"
                                                     disabled={loading}
-                                                    className="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all disabled:opacity-70"
+                                                    className="bg-primary text-white px-8 py-2.5 rounded-xl font-bold hover:bg-primary-hover flex items-center gap-2 shadow-lg hover:shadow-xl transition-all disabled:opacity-70"
                                                 >
                                                     {loading ? <Loader2 className="animate-spin" /> : <Send size={18} />}
                                                     {loading ? (formData.image || formData.file ? 'Uploading...' : 'Submitting...') : (editId ? 'Update' : 'Publish')}
@@ -3978,51 +3978,51 @@ const Announcements = () => {
             {/* SMS Template Modal */}
             {isTemplateModalOpen && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in">
-                        <div className="p-6 border-b flex justify-between items-center bg-gray-50">
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-in">
+                        <div className="p-6 border-b flex justify-between items-center bg-background">
                             <h2 className="text-lg font-bold flex items-center gap-2">
-                                <Settings className="text-blue-600" size={20} />
+                                <Settings className="text-primary" size={20} />
                                 {editId ? 'Edit SMS Template' : 'Create SMS Template'}
                             </h2>
-                            <button onClick={handleCancel} className="p-2 hover:bg-gray-200 rounded-full text-gray-500">
+                            <button onClick={handleCancel} className="p-2 hover:bg-background rounded-full text-muted-text">
                                 <X size={20} />
                             </button>
                         </div>
                         <div className="p-6">
                             <form onSubmit={handleSaveTemplate} className="space-y-4">
-                                <div className="bg-blue-50 p-3 rounded text-xs text-blue-800 mb-4">
+                                <div className="bg-[var(--primary-light)] p-3 rounded text-xs text-primary mb-4">
                                     <h4 className="font-bold flex items-center gap-1 mb-1"><MessageSquare size={14} /> Guide</h4>
                                     <p>Use <code>{'{#var#}'}</code> as placeholder for variables in content.</p>
                                     <p className="mt-1">Optional defaults below are pre-filled when sending. Final values can still be entered or changed on the <strong>Send Broadcast</strong> screen.</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Template Name (Internal)</label>
+                                    <label className="block text-sm font-medium text-sub mb-1">Template Name (Internal)</label>
                                     <input
                                         type="text"
                                         required
-                                        className="w-full p-2 border rounded bg-white"
+                                        className="w-full p-2 border rounded bg-surface"
                                         placeholder="e.g. Absent Alert"
                                         value={formData.template_name}
                                         onChange={e => setFormData({ ...formData, template_name: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">DLT Template ID</label>
+                                    <label className="block text-sm font-medium text-sub mb-1">DLT Template ID</label>
                                     <input
                                         type="text"
                                         required
-                                        className="w-full p-2 border rounded bg-white"
+                                        className="w-full p-2 border rounded bg-surface"
                                         placeholder="1007..."
                                         value={formData.template_id}
                                         onChange={e => setFormData({ ...formData, template_id: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                                    <label className="block text-sm font-medium text-sub mb-1">Content</label>
                                     <textarea
                                         required
-                                        className="w-full p-2 border rounded bg-white h-24"
+                                        className="w-full p-2 border rounded bg-surface h-24"
                                         placeholder="Content with {#var#}..."
                                         value={formData.template_content}
                                         onChange={e => handleTemplateContentChange(e.target.value)}
@@ -4030,14 +4030,14 @@ const Announcements = () => {
                                 </div>
 
                                 {formData.variable_mappings.length > 0 ? (
-                                    <div className="space-y-3 bg-gray-50 p-3 rounded border">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase">Default Variable Mappings (optional)</label>
-                                        <p className="text-xs text-gray-500">Detected {formData.variable_mappings.length} placeholder(s). These defaults appear on Send Broadcast — you can override them before sending.</p>
+                                    <div className="space-y-3 bg-background p-3 rounded border">
+                                        <label className="block text-xs font-bold text-muted-text uppercase">Default Variable Mappings (optional)</label>
+                                        <p className="text-xs text-muted-text">Detected {formData.variable_mappings.length} placeholder(s). These defaults appear on Send Broadcast — you can override them before sending.</p>
                                         {formData.variable_mappings.map((mapping, idx) => (
                                             <div key={idx} className="flex gap-2 items-center">
-                                                <span className="text-xs font-mono text-gray-500 w-12">var#{idx + 1}</span>
+                                                <span className="text-xs font-mono text-muted-text w-12">var#{idx + 1}</span>
                                                 <select
-                                                    className="p-1 border rounded text-xs bg-white"
+                                                    className="p-1 border rounded text-xs bg-surface"
                                                     value={mapping.type}
                                                     onChange={(e) => handleMappingChange(idx, 'type', e.target.value)}
                                                 >
@@ -4054,7 +4054,7 @@ const Announcements = () => {
                                                     />
                                                 ) : (
                                                     <select
-                                                        className="flex-1 p-1 border rounded text-xs bg-white"
+                                                        className="flex-1 p-1 border rounded text-xs bg-surface"
                                                         value={mapping.value}
                                                         onChange={(e) => handleMappingChange(idx, 'value', e.target.value)}
                                                     >
@@ -4069,15 +4069,15 @@ const Announcements = () => {
                                     </div>
                                 ) : (
                                     formData.template_content && (
-                                        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded p-2">
+                                        <p className="text-xs text-warning bg-[var(--warning-light)] border border-[var(--warning-light)] rounded p-2">
                                             No {'{#var#}'} placeholders found yet. Add them in content to configure variable mapping.
                                         </p>
                                     )
                                 )}
 
                                 <div className="flex justify-end gap-3 pt-4">
-                                    <button type="button" onClick={handleCancel} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded">Cancel</button>
-                                    <button type="submit" disabled={loading} className="bg-blue-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-blue-700">
+                                    <button type="button" onClick={handleCancel} className="px-4 py-2 text-sm text-sub hover:bg-background rounded">Cancel</button>
+                                    <button type="submit" disabled={loading} className="bg-primary text-white px-6 py-2 rounded text-sm font-bold hover:bg-primary-hover">
                                         {editId ? 'Save Changes' : 'Create Template'}
                                     </button>
                                 </div>
@@ -4091,22 +4091,22 @@ const Announcements = () => {
             {/* Mobile Target Selection Modal */}
             {isMobileTargetModalOpen && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
-                        <div className="p-5 border-b flex justify-between items-center bg-gray-50">
-                            <h2 className="text-lg font-bold flex items-center gap-2 text-gray-800">
-                                <Smartphone className="text-green-600" size={20} />
+                    <div className="bg-surface rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-scale-in">
+                        <div className="p-5 border-b flex justify-between items-center bg-background">
+                            <h2 className="text-lg font-bold flex items-center gap-2 text-main">
+                                <Smartphone className="text-success" size={20} />
                                 Select Target Mobile Numbers
                             </h2>
                             <button
                                 type="button"
                                 onClick={() => setIsMobileTargetModalOpen(false)}
-                                className="p-2 hover:bg-gray-200 rounded-full text-gray-500"
+                                className="p-2 hover:bg-background rounded-full text-muted-text"
                             >
                                 <X size={20} />
                             </button>
                         </div>
                         <div className="p-5 space-y-4">
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-sub">
                                 Choose one or more number types to receive this SMS broadcast:
                             </p>
 
@@ -4114,23 +4114,23 @@ const Announcements = () => {
                                 <button
                                     type="button"
                                     onClick={() => setSelectedMobileTargets(['student_mobile', 'parent_mobile1'])}
-                                    className="text-xs font-semibold text-blue-600 hover:underline px-1.5"
+                                    className="text-xs font-semibold text-primary hover:underline px-1.5"
                                 >
                                     Both at a time
                                 </button>
-                                <span className="text-gray-300">|</span>
+                                <span className="text-muted-text">|</span>
                                 <button
                                     type="button"
                                     onClick={() => setSelectedMobileTargets(['parent_mobile1'])}
-                                    className="text-xs font-semibold text-blue-600 hover:underline px-1.5"
+                                    className="text-xs font-semibold text-primary hover:underline px-1.5"
                                 >
                                     Parent Only
                                 </button>
-                                <span className="text-gray-300">|</span>
+                                <span className="text-muted-text">|</span>
                                 <button
                                     type="button"
                                     onClick={() => setSelectedMobileTargets(['student_mobile'])}
-                                    className="text-xs font-semibold text-blue-600 hover:underline px-1.5"
+                                    className="text-xs font-semibold text-primary hover:underline px-1.5"
                                 >
                                     Student Only
                                 </button>
@@ -4142,14 +4142,14 @@ const Announcements = () => {
                                     { key: 'parent_mobile1', label: 'Parent Preferred Number (Parent Mobile 1)' },
                                     { key: 'parent_mobile2', label: 'Parent Alternate Number (Parent Mobile 2)' }
                                 ].map((target) => (
-                                    <label key={target.key} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                                    <label key={target.key} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-background cursor-pointer">
                                         <input
                                             type="checkbox"
                                             checked={selectedMobileTargets.includes(target.key)}
                                             onChange={() => toggleMobileTarget(target.key)}
-                                            className="h-4 w-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                                            className="h-4 w-4 text-success rounded border-border-strong focus:ring-success"
                                         />
-                                        <span className="text-sm font-medium text-gray-700">{target.label}</span>
+                                        <span className="text-sm font-medium text-sub">{target.label}</span>
                                     </label>
                                 ))}
                             </div>
@@ -4158,7 +4158,7 @@ const Announcements = () => {
                                 <button
                                     type="button"
                                     onClick={() => setIsMobileTargetModalOpen(false)}
-                                    className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded"
+                                    className="px-4 py-2 text-sm text-sub hover:bg-background rounded"
                                 >
                                     Cancel
                                 </button>
@@ -4166,7 +4166,7 @@ const Announcements = () => {
                                     type="button"
                                     onClick={handleConfirmBroadcastSend}
                                     disabled={loading}
-                                    className="bg-green-600 text-white px-5 py-2 rounded text-sm font-bold hover:bg-green-700 disabled:opacity-70 flex items-center gap-2"
+                                    className="bg-success text-white px-5 py-2 rounded text-sm font-bold hover:bg-success disabled:opacity-70 flex items-center gap-2"
                                 >
                                     {loading ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
                                     Confirm & Send
@@ -4181,15 +4181,15 @@ const Announcements = () => {
             {/* Broadcast Action Details Modal */}
             {selectedHistoryItem && createPortal(
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden animate-scale-in flex flex-col border border-gray-100">
-                        <div className="p-5 border-b flex justify-between items-center bg-gray-50/70">
+                    <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden animate-scale-in flex flex-col border border-border">
+                        <div className="p-5 border-b flex justify-between items-center bg-[var(--background)]/70">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                                <div className="p-2.5 bg-[var(--primary-light)] text-primary rounded-xl">
                                     <History size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-gray-900 text-base">Broadcast Action Details</h3>
-                                    <p className="text-xs text-gray-500">
+                                    <h3 className="font-bold text-main text-base">Broadcast Action Details</h3>
+                                    <p className="text-xs text-muted-text">
                                         Sent on {(selectedHistoryItem.first_sent_at || selectedHistoryItem.last_sent_at || selectedHistoryItem.action_date) ? new Date(selectedHistoryItem.first_sent_at || selectedHistoryItem.last_sent_at || selectedHistoryItem.action_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                                     </p>
                                 </div>
@@ -4197,7 +4197,7 @@ const Announcements = () => {
                             <button
                                 type="button"
                                 onClick={() => setSelectedHistoryItem(null)}
-                                className="p-2 text-gray-400 hover:text-gray-600 rounded-xl hover:bg-gray-100 transition-colors"
+                                className="p-2 text-muted-text hover:text-sub rounded-xl hover:bg-background transition-colors"
                             >
                                 <X size={18} />
                             </button>
@@ -4205,51 +4205,51 @@ const Announcements = () => {
 
                         <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
                             {/* Template Info Card */}
-                            <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100">
-                                <div className="text-[10px] font-bold text-blue-800 uppercase tracking-wider mb-1">Template Used</div>
-                                <div className="text-base font-bold text-gray-900">{selectedHistoryItem.template_name || 'Direct / Custom SMS'}</div>
-                                <div className="text-xs text-gray-600 font-mono mt-1 bg-white px-2 py-0.5 rounded border border-blue-200 inline-block">
+                            <div className="p-4 rounded-2xl bg-[var(--primary-light)] border border-[var(--primary-light)]">
+                                <div className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1">Template Used</div>
+                                <div className="text-base font-bold text-main">{selectedHistoryItem.template_name || 'Direct / Custom SMS'}</div>
+                                <div className="text-xs text-sub font-mono mt-1 bg-surface px-2 py-0.5 rounded border border-[var(--primary-light)] inline-block">
                                     DLT ID: {selectedHistoryItem.template_id || 'N/A'}
                                 </div>
                             </div>
 
                             {/* Metrics 3-column grid */}
                             <div className="grid grid-cols-3 gap-3">
-                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-center">
-                                    <div className="text-[10px] font-bold text-gray-500 uppercase">Total Count</div>
-                                    <div className="text-xl font-bold text-gray-900 mt-0.5">
+                                <div className="p-3 bg-background rounded-xl border border-border text-center">
+                                    <div className="text-[10px] font-bold text-muted-text uppercase">Total Count</div>
+                                    <div className="text-xl font-bold text-main mt-0.5">
                                         {Number(selectedHistoryItem.total_count || 0).toLocaleString()}
                                     </div>
                                 </div>
-                                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-center">
-                                    <div className="text-[10px] font-bold text-emerald-700 uppercase">Delivered</div>
-                                    <div className="text-xl font-bold text-emerald-700 mt-0.5">
+                                <div className="p-3 bg-[var(--success-light)] rounded-xl border border-[var(--success-light)] text-center">
+                                    <div className="text-[10px] font-bold text-success uppercase">Delivered</div>
+                                    <div className="text-xl font-bold text-success mt-0.5">
                                         {Number(selectedHistoryItem.sent_count || 0).toLocaleString()}
                                     </div>
                                 </div>
-                                <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 text-center">
-                                    <div className="text-[10px] font-bold text-rose-700 uppercase">Failed</div>
-                                    <div className="text-xl font-bold text-rose-700 mt-0.5">
+                                <div className="p-3 bg-[var(--danger-light)] rounded-xl border border-[var(--danger-light)] text-center">
+                                    <div className="text-[10px] font-bold text-danger uppercase">Failed</div>
+                                    <div className="text-xl font-bold text-danger mt-0.5">
                                         {Number(selectedHistoryItem.failed_count || 0).toLocaleString()}
                                     </div>
                                 </div>
                             </div>
 
                             {/* Additional Details */}
-                            <div className="space-y-2 text-xs border-t border-b border-gray-100 py-3">
+                            <div className="space-y-2 text-xs border-t border-b border-border py-3">
                                 <div className="flex justify-between py-1">
-                                    <span className="text-gray-500">Triggered / Raised By:</span>
-                                    <span className="font-semibold text-gray-800">{selectedHistoryItem.sent_by || 'System Generated'}</span>
+                                    <span className="text-muted-text">Triggered / Raised By:</span>
+                                    <span className="font-semibold text-main">{selectedHistoryItem.sent_by || 'System Generated'}</span>
                                 </div>
                                 <div className="flex justify-between py-1">
-                                    <span className="text-gray-500">First Sent At:</span>
-                                    <span className="font-semibold text-gray-800">
+                                    <span className="text-muted-text">First Sent At:</span>
+                                    <span className="font-semibold text-main">
                                         {selectedHistoryItem.first_sent_at ? new Date(selectedHistoryItem.first_sent_at).toLocaleString() : '—'}
                                     </span>
                                 </div>
                                 <div className="flex justify-between py-1">
-                                    <span className="text-gray-500">Last Sent At:</span>
-                                    <span className="font-semibold text-gray-800">
+                                    <span className="text-muted-text">Last Sent At:</span>
+                                    <span className="font-semibold text-main">
                                         {selectedHistoryItem.last_sent_at ? new Date(selectedHistoryItem.last_sent_at).toLocaleString() : '—'}
                                     </span>
                                 </div>
@@ -4257,18 +4257,18 @@ const Announcements = () => {
 
                             {/* Message Preview */}
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Message Content / Sample</label>
-                                <div className="p-4 bg-slate-900 text-slate-100 rounded-2xl text-xs font-mono leading-relaxed whitespace-pre-wrap border border-slate-800 shadow-inner">
+                                <label className="block text-xs font-bold text-sub uppercase tracking-wider mb-2">Message Content / Sample</label>
+                                <div className="p-4 bg-sidebar text-muted-text rounded-2xl text-xs font-mono leading-relaxed whitespace-pre-wrap border border-border-strong shadow-inner">
                                     {selectedHistoryItem.sample_message || 'No sample message available'}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-4 bg-gray-50 border-t flex justify-end">
+                        <div className="p-4 bg-background border-t flex justify-end">
                             <button
                                 type="button"
                                 onClick={() => setSelectedHistoryItem(null)}
-                                className="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-sm font-semibold transition-colors"
+                                className="px-5 py-2 bg-background hover:bg-background text-sub rounded-xl text-sm font-semibold transition-colors"
                             >
                                 Close
                             </button>
@@ -4281,11 +4281,11 @@ const Announcements = () => {
             {/* Announcement Details & Registered Candidates Modal */}
             {selectedAnnouncementForView && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl my-6 overflow-hidden animate-scale-in flex flex-col max-h-[92vh]">
+                    <div className="bg-surface rounded-3xl shadow-2xl w-full max-w-5xl my-6 overflow-hidden animate-scale-in flex flex-col max-h-[92vh]">
                         {/* Header */}
-                        <div className="p-6 border-b flex justify-between items-center bg-white z-10 shrink-0">
+                        <div className="p-6 border-b flex justify-between items-center bg-surface z-10 shrink-0">
                             <div className="flex items-center gap-3">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${selectedAnnouncementForView.requires_registration ? 'bg-indigo-50 text-indigo-600' : (selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'event' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
+                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[var(--primary-light)] text-primary">
                                     {selectedAnnouncementForView.requires_registration
                                         ? <Ticket size={24} />
                                         : (selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'event'
@@ -4294,22 +4294,22 @@ const Announcements = () => {
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <h2 className="text-xl font-bold text-gray-900 line-clamp-1">{selectedAnnouncementForView.title}</h2>
+                                        <h2 className="text-xl font-bold text-main line-clamp-1">{selectedAnnouncementForView.title}</h2>
                                         {selectedAnnouncementForView.requires_registration ? (
-                                            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 shrink-0">
+                                            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[var(--primary-light)] text-primary shrink-0">
                                                 {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Student Form' : 'Event Registration'}
                                             </span>
                                         ) : (selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'event' ? (
-                                            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 shrink-0">
+                                            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[var(--primary-light)] text-secondary shrink-0">
                                                 Event
                                             </span>
                                         ) : (
-                                            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 shrink-0">
+                                            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[var(--primary-light)] text-primary shrink-0">
                                                 Broadcast Notice
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-muted-text">
                                         Posted on {new Date(selectedAnnouncementForView.created_at).toLocaleDateString()} • {selectedAnnouncementForView.audience_count || 0} Targeted Students
                                     </p>
                                 </div>
@@ -4322,7 +4322,7 @@ const Announcements = () => {
                                             registrationDetails.announcement || selectedAnnouncementForView,
                                             registrationDetails.registrations || []
                                         )}
-                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors"
+                                        className="bg-success hover:bg-success text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors"
                                     >
                                         <Download size={15} />
                                         <span>Export CSV</span>
@@ -4330,7 +4330,7 @@ const Announcements = () => {
                                 )}
                                 <button
                                     onClick={() => setSelectedAnnouncementForView(null)}
-                                    className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                                    className="p-2 hover:bg-background rounded-full text-muted-text hover:text-sub transition-colors"
                                 >
                                     <X size={22} />
                                 </button>
@@ -4338,28 +4338,28 @@ const Announcements = () => {
                         </div>
 
                         {/* Modal Body */}
-                        <div className="p-6 overflow-y-auto space-y-6 bg-gray-50/50">
+                        <div className="p-6 overflow-y-auto space-y-6 bg-[var(--background)]/50">
                             {/* Announcement Content & Image Preview */}
-                            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs space-y-4">
+                            <div className="bg-surface p-5 rounded-2xl border border-border shadow-2xs space-y-4">
                                 {/* Type 1: Circular PDF Preview Box */}
                                 {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'circular' && selectedAnnouncementForView.file_url && (
-                                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between gap-3">
+                                    <div className="p-4 bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-2xl flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-12 h-12 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                            <div className="w-12 h-12 rounded-xl bg-danger text-white flex items-center justify-center shrink-0 shadow-xs">
                                                 <FileText size={24} />
                                             </div>
                                             <div className="min-w-0">
-                                                <h4 className="text-sm font-bold text-gray-900 truncate">
+                                                <h4 className="text-sm font-bold text-main truncate">
                                                     {selectedAnnouncementForView.file_name || 'Attached_Circular.pdf'}
                                                 </h4>
-                                                <span className="text-xs text-rose-700 font-semibold uppercase tracking-wider block">Official Circular PDF Attachment</span>
+                                                <span className="text-xs text-danger font-semibold uppercase tracking-wider block">Official Circular PDF Attachment</span>
                                             </div>
                                         </div>
                                         <a
                                             href={selectedAnnouncementForView.file_url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs shrink-0 transition-colors"
+                                            className="px-4 py-2 bg-danger hover:bg-danger text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs shrink-0 transition-colors"
                                         >
                                             <FileDown size={14} /> Open / Download PDF
                                         </a>
@@ -4371,13 +4371,13 @@ const Announcements = () => {
                                     const ach = typeof selectedAnnouncementForView.achievement_data === 'string' ? JSON.parse(selectedAnnouncementForView.achievement_data) : selectedAnnouncementForView.achievement_data;
                                     const students = Array.isArray(ach.students) && ach.students.length ? ach.students : [ach];
                                     return (
-                                        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl space-y-3">
+                                        <div className="p-4 bg-gradient-to-r from-[var(--warning-light)] to-[var(--warning-light)] border-2 border-[var(--warning-light)] rounded-2xl space-y-3">
                                             <div>
-                                                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-1">
+                                                <span className="text-[10px] font-black uppercase tracking-wider text-warning bg-[var(--warning-light)] px-2 py-0.5 rounded-full inline-block mb-1">
                                                     🏆 {ach.rank_title || 'Hackathon Topper'}
                                                 </span>
                                                 {ach.topper_prize && (
-                                                    <p className="text-xs font-black text-amber-900 mt-1">Award: {ach.topper_prize}</p>
+                                                    <p className="text-xs font-black text-warning mt-1">Award: {ach.topper_prize}</p>
                                                 )}
                                             </div>
                                             <div className="grid gap-3 sm:grid-cols-2">
@@ -4405,16 +4405,16 @@ const Announcements = () => {
 
                                 {/* Type 2: Event Details Banner */}
                                 {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'event' && (selectedAnnouncementForView.event_date || selectedAnnouncementForView.event_venue) && (
-                                    <div className="p-3 bg-purple-50/80 border border-purple-200 rounded-2xl text-xs space-y-1">
+                                    <div className="p-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-2xl text-xs space-y-1">
                                         {selectedAnnouncementForView.event_date && (
-                                            <div className="flex items-center gap-1.5 font-bold text-purple-900">
-                                                <Calendar size={13} className="text-purple-600" />
+                                            <div className="flex items-center gap-1.5 font-bold text-secondary">
+                                                <Calendar size={13} className="text-secondary" />
                                                 <span>Event Date: {selectedAnnouncementForView.event_date} {selectedAnnouncementForView.event_time ? `(${selectedAnnouncementForView.event_time})` : ''}</span>
                                             </div>
                                         )}
                                         {selectedAnnouncementForView.event_venue && (
-                                            <div className="flex items-center gap-1.5 text-purple-700 font-medium">
-                                                <MapPin size={13} className="text-purple-500" />
+                                            <div className="flex items-center gap-1.5 text-secondary font-medium">
+                                                <MapPin size={13} className="text-secondary" />
                                                 <span>Venue: {selectedAnnouncementForView.event_venue}</span>
                                             </div>
                                         )}
@@ -4422,7 +4422,7 @@ const Announcements = () => {
                                 )}
 
                                 {selectedAnnouncementForView.image_url && (selectedAnnouncementForView.announcement_type || '').toLowerCase() !== 'circular' && (
-                                    <div className="max-h-72 w-full overflow-hidden rounded-xl bg-slate-900 relative">
+                                    <div className="max-h-72 w-full overflow-hidden rounded-xl bg-sidebar relative">
                                         <img
                                             src={selectedAnnouncementForView.image_url}
                                             alt={selectedAnnouncementForView.title}
@@ -4431,44 +4431,44 @@ const Announcements = () => {
                                     </div>
                                 )}
                                 <div className="space-y-2">
-                                    <h3 className="text-base font-bold text-gray-900">
+                                    <h3 className="text-base font-bold text-main">
                                         {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'circular' ? 'Circular Remarks / Summary' : 'Announcement Description'}
                                     </h3>
-                                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                    <p className="text-sm text-sub whitespace-pre-wrap leading-relaxed">
                                         {selectedAnnouncementForView.content}
                                     </p>
                                 </div>
                                 {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'circular' && (
-                                    <div className="space-y-3 rounded-2xl border border-rose-200 bg-rose-50/60 p-4">
-                                        <h3 className="text-sm font-bold text-rose-900">College-wise circular PDFs</h3>
+                                    <div className="space-y-3 rounded-2xl border border-[var(--danger-light)] bg-[var(--danger-light)] p-4">
+                                        <h3 className="text-sm font-bold text-danger">College-wise circular PDFs</h3>
                                         <div className="flex flex-wrap gap-2">
                                             {Object.entries(parseCircularNumbers(selectedAnnouncementForView.circular_numbers)).map(([college, number]) => (
                                                 <button
                                                     key={college}
                                                     type="button"
                                                     onClick={() => handleCircularDownload(selectedAnnouncementForView, college)}
-                                                    className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-800 hover:bg-rose-100"
+                                                    className="inline-flex items-center gap-2 rounded-lg border border-[var(--danger-light)] bg-surface px-3 py-2 text-xs font-semibold text-danger hover:bg-background"
                                                 >
                                                     <FileDown size={14} /> {college} · {number}
                                                 </button>
                                             ))}
                                         </div>
-                                        <p className="text-xs text-rose-900">
+                                        <p className="text-xs text-danger">
                                             {selectedAnnouncementForView.circular_signatory}
                                             {selectedAnnouncementForView.circular_designation ? ` · ${selectedAnnouncementForView.circular_designation}` : ''}
                                         </p>
                                     </div>
                                 )}
-                                <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
+                                <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-border text-xs text-muted-text">
                                     <span className="flex items-center gap-1 font-medium">
-                                        <Users size={14} className="text-blue-500" />
+                                        <Users size={14} className="text-primary" />
                                         {selectedAnnouncementForView.audience_count || 0} Target Students
                                     </span>
                                     <span className="flex items-center gap-1 font-medium">
-                                        <Clock size={14} className="text-amber-500" />
+                                        <Clock size={14} className="text-warning" />
                                         {selectedAnnouncementForView.expires_at ? `Expires: ${new Date(selectedAnnouncementForView.expires_at).toLocaleString()}` : 'No Expiry'}
                                     </span>
-                                    <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${selectedAnnouncementForView.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
+                                    <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${selectedAnnouncementForView.is_active ? 'bg-[var(--success-light)] text-success' : 'bg-background text-sub'}`}>
                                         {selectedAnnouncementForView.is_active ? 'Active' : 'Hidden / Inactive'}
                                     </span>
                                 </div>
@@ -4488,45 +4488,45 @@ const Announcements = () => {
                                         return (
                                             <div className="space-y-3">
                                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                    <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                                                    <div className="bg-surface p-4 rounded-2xl border border-border shadow-2xs">
+                                                        <span className="text-[10px] font-bold text-muted-text uppercase tracking-wider block">
                                                             {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Response Limit' : 'Seat Capacity'}
                                                         </span>
-                                                        <span className="text-2xl font-black text-gray-900 mt-1 block">
+                                                        <span className="text-2xl font-black text-main mt-1 block">
                                                             {totalCapacity !== null ? totalCapacity : 'Unlimited'}
                                                         </span>
-                                                        <span className="text-[10px] text-gray-400">Total allowed</span>
+                                                        <span className="text-[10px] text-muted-text">Total allowed</span>
                                                     </div>
-                                                    <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-                                                        <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">
+                                                    <div className="bg-surface p-4 rounded-2xl border border-border shadow-2xs">
+                                                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">
                                                             {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Responses' : 'Registered'}
                                                         </span>
-                                                        <span className="text-2xl font-black text-indigo-600 mt-1 block">
+                                                        <span className="text-2xl font-black text-primary mt-1 block">
                                                             {registeredCount}
                                                         </span>
-                                                        <span className="text-[10px] text-gray-400">
+                                                        <span className="text-[10px] text-muted-text">
                                                             {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Student submissions' : 'Confirmed candidates'}
                                                         </span>
                                                     </div>
-                                                    <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-                                                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">
+                                                    <div className="bg-surface p-4 rounded-2xl border border-border shadow-2xs">
+                                                        <span className="text-[10px] font-bold text-success uppercase tracking-wider block">
                                                             {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Remaining' : 'Available'}
                                                         </span>
-                                                        <span className="text-2xl font-black text-emerald-600 mt-1 block">
+                                                        <span className="text-2xl font-black text-success mt-1 block">
                                                             {availableSeats}
                                                         </span>
-                                                        <span className="text-[10px] text-gray-400">
+                                                        <span className="text-[10px] text-muted-text">
                                                             {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Response slots' : 'Seats remaining'}
                                                         </span>
                                                     </div>
-                                                    <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-                                                        <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">
+                                                    <div className="bg-surface p-4 rounded-2xl border border-border shadow-2xs">
+                                                        <span className="text-[10px] font-bold text-warning uppercase tracking-wider block">
                                                             {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Closing Date' : 'Deadline'}
                                                         </span>
-                                                        <span className="text-xs font-bold text-gray-800 mt-2 block line-clamp-1">
+                                                        <span className="text-xs font-bold text-main mt-2 block line-clamp-1">
                                                             {ann.registration_deadline ? new Date(ann.registration_deadline).toLocaleDateString() : 'No Deadline'}
                                                         </span>
-                                                        <span className="text-[10px] text-gray-400">
+                                                        <span className="text-[10px] text-muted-text">
                                                             {ann.registration_deadline ? new Date(ann.registration_deadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Open anytime'}
                                                         </span>
                                                     </div>
@@ -4534,19 +4534,19 @@ const Announcements = () => {
 
                                                 {/* Capacity Progress Bar */}
                                                 {totalCapacity && (
-                                                    <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs space-y-1.5">
+                                                    <div className="bg-surface p-4 rounded-2xl border border-border shadow-2xs space-y-1.5">
                                                         <div className="flex justify-between items-center text-xs font-bold">
-                                                            <span className="text-gray-700">
+                                                            <span className="text-sub">
                                                                 {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Response Limit' : 'Seat Occupancy'}
                                                             </span>
-                                                            <span className={percentFilled >= 100 ? 'text-red-600' : 'text-indigo-600'}>
+                                                            <span className={percentFilled >= 100 ? 'text-danger' : 'text-primary'}>
                                                                 {registeredCount} of {totalCapacity} ({percentFilled}%)
                                                             </span>
                                                         </div>
-                                                        <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                                                        <div className="w-full bg-background h-2.5 rounded-full overflow-hidden">
                                                             <div
                                                                 className={`h-full rounded-full transition-all duration-500 ${
-                                                                    percentFilled >= 100 ? 'bg-red-500' : percentFilled >= 80 ? 'bg-amber-500' : 'bg-indigo-600'
+                                                                    percentFilled >= 100 ? 'bg-danger' : percentFilled >= 80 ? 'bg-warning' : 'bg-primary'
                                                                 }`}
                                                                 style={{ width: `${percentFilled}%` }}
                                                             ></div>
@@ -4558,29 +4558,29 @@ const Announcements = () => {
                                     })()}
 
                                     {/* Candidates Management Toolbar & Table */}
-                                    <div className="bg-white rounded-2xl border border-gray-200 shadow-2xs overflow-hidden">
+                                    <div className="bg-surface rounded-2xl border border-border shadow-2xs overflow-hidden">
                                         <div className="p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                             <div className="flex items-center gap-2">
-                                                <UserCheck className="text-indigo-600" size={18} />
-                                                <h4 className="text-sm font-bold text-gray-900">
+                                                <UserCheck className="text-primary" size={18} />
+                                                <h4 className="text-sm font-bold text-main">
                                                     {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Form Responses' : 'Registered Candidates'} ({registrationDetails.registrations?.length || 0})
                                                 </h4>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <div className="relative">
-                                                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-text" />
                                                     <input
                                                         type="text"
                                                         placeholder={(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Search responses...' : 'Search candidates...'}
                                                         value={registrationSearch}
                                                         onChange={(e) => setRegistrationSearch(e.target.value)}
-                                                        className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none w-48 sm:w-60"
+                                                        className="pl-8 pr-3 py-1.5 text-xs border border-border rounded-xl focus:ring-2 focus:ring-primary outline-none w-48 sm:w-60"
                                                     />
                                                 </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => fetchAnnouncementRegistrations(selectedAnnouncementForView.id)}
-                                                    className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500"
+                                                    className="p-1.5 hover:bg-background rounded-lg text-muted-text"
                                                     title="Refresh list"
                                                 >
                                                     <RefreshCw size={14} className={registrationsLoading ? 'animate-spin' : ''} />
@@ -4590,8 +4590,8 @@ const Announcements = () => {
 
                                         {/* Table */}
                                         {registrationsLoading ? (
-                                            <div className="py-12 flex flex-col items-center justify-center text-gray-500">
-                                                <Loader2 size={24} className="animate-spin text-indigo-600 mb-2" />
+                                            <div className="py-12 flex flex-col items-center justify-center text-muted-text">
+                                                <Loader2 size={24} className="animate-spin text-primary mb-2" />
                                                 <span className="text-xs">Loading candidates...</span>
                                             </div>
                                         ) : (() => {
@@ -4610,12 +4610,12 @@ const Announcements = () => {
 
                                             if (filtered.length === 0) {
                                                 return (
-                                                    <div className="py-12 text-center text-gray-500 space-y-1">
-                                                        <Ticket size={28} className="mx-auto text-gray-300 mb-2" />
-                                                        <p className="text-sm font-semibold text-gray-700">
+                                                    <div className="py-12 text-center text-muted-text space-y-1">
+                                                        <Ticket size={28} className="mx-auto text-muted-text mb-2" />
+                                                        <p className="text-sm font-semibold text-sub">
                                                             {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'No responses found' : 'No candidates found'}
                                                         </p>
-                                                        <p className="text-xs text-gray-400">
+                                                        <p className="text-xs text-muted-text">
                                                             {registrationSearch
                                                                 ? ((selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'No responses matched your search.' : 'No registrations matched your search query.')
                                                                 : ((selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'No students have submitted a response yet.' : 'No students have registered yet for this event.')}
@@ -4630,7 +4630,7 @@ const Announcements = () => {
                                                 <div className="overflow-x-auto">
                                                     <table className="w-full text-left border-collapse text-xs">
                                                         <thead>
-                                                            <tr className="bg-gray-50/80 border-b border-gray-100 text-gray-500 font-bold uppercase tracking-wider text-[10px]">
+                                                            <tr className="bg-[var(--background)]/80 border-b border-border text-muted-text font-bold uppercase tracking-wider text-[10px]">
                                                                 <th className="py-3 px-4">#</th>
                                                                 <th className="py-3 px-4">Student Name</th>
                                                                 <th className="py-3 px-4">PIN / Roll No</th>
@@ -4641,28 +4641,28 @@ const Announcements = () => {
                                                                 <th className="py-3 px-4 text-center">Action</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-gray-100">
+                                                        <tbody className="divide-y divide-border">
                                                             {filtered.map((candidate, idx) => (
-                                                                <tr key={candidate.id} className="hover:bg-indigo-50/30 transition-colors">
-                                                                    <td className="py-3 px-4 font-mono text-gray-400">{idx + 1}</td>
-                                                                    <td className="py-3 px-4 font-bold text-gray-900">
+                                                                <tr key={candidate.id} className="hover:bg-[var(--primary-light)] transition-colors">
+                                                                    <td className="py-3 px-4 font-mono text-muted-text">{idx + 1}</td>
+                                                                    <td className="py-3 px-4 font-bold text-main">
                                                                         {candidate.student_name}
                                                                         {candidate.college && (
-                                                                            <span className="block text-[10px] font-normal text-gray-500">{candidate.college}</span>
+                                                                            <span className="block text-[10px] font-normal text-muted-text">{candidate.college}</span>
                                                                         )}
                                                                     </td>
-                                                                    <td className="py-3 px-4 font-mono font-medium text-gray-800">
+                                                                    <td className="py-3 px-4 font-mono font-medium text-main">
                                                                         {candidate.pin_number}
                                                                     </td>
-                                                                    <td className="py-3 px-4 text-gray-700">
+                                                                    <td className="py-3 px-4 text-sub">
                                                                         <span className="font-semibold">{candidate.branch || 'N/A'}</span>
-                                                                        <span className="block text-[10px] text-gray-500">
+                                                                        <span className="block text-[10px] text-muted-text">
                                                                             {[candidate.current_year, candidate.current_semester].filter(Boolean).join(' • ') || '—'}
                                                                         </span>
                                                                     </td>
-                                                                    <td className="py-3 px-4 text-gray-700">
+                                                                    <td className="py-3 px-4 text-sub">
                                                                         <span className="font-medium">{candidate.phone || '—'}</span>
-                                                                        <span className="block text-[10px] text-gray-500 truncate max-w-[140px]">{candidate.email || '—'}</span>
+                                                                        <span className="block text-[10px] text-muted-text truncate max-w-[140px]">{candidate.email || '—'}</span>
                                                                     </td>
                                                                     <td className="py-3 px-4">
                                                                         {candidate.form_responses && Object.keys(candidate.form_responses).length > 0 ? (
@@ -4672,28 +4672,28 @@ const Announcements = () => {
                                                                                     const displayLabel = matchedField?.label || k;
                                                                                     return (
                                                                                         <div key={rIdx} className="text-[11px] leading-tight">
-                                                                                            <span className="text-gray-500 font-semibold">{displayLabel}: </span>
-                                                                                            <span className="font-bold text-gray-800">{String(v)}</span>
+                                                                                            <span className="text-muted-text font-semibold">{displayLabel}: </span>
+                                                                                            <span className="font-bold text-main">{String(v)}</span>
                                                                                         </div>
                                                                                     );
                                                                                 })}
                                                                             </div>
                                                                         ) : candidate.custom_field_value ? (
-                                                                            <span className="text-xs font-medium text-gray-800 bg-gray-100 px-2 py-0.5 rounded">
+                                                                            <span className="text-xs font-medium text-main bg-background px-2 py-0.5 rounded">
                                                                                 {candidate.custom_field_value}
                                                                             </span>
                                                                         ) : (
-                                                                            <span className="text-gray-400 italic">None</span>
+                                                                            <span className="text-muted-text italic">None</span>
                                                                         )}
                                                                     </td>
-                                                                    <td className="py-3 px-4 text-[11px] text-gray-500">
+                                                                    <td className="py-3 px-4 text-[11px] text-muted-text">
                                                                         {candidate.registered_at ? new Date(candidate.registered_at).toLocaleString('en-IN') : '—'}
                                                                     </td>
                                                                     <td className="py-3 px-4 text-center">
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => handleRemoveCandidate(selectedAnnouncementForView.id, candidate.id, candidate.student_name)}
-                                                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                            className="p-1.5 text-muted-text hover:text-danger hover:bg-[var(--danger-light)] rounded-lg transition-colors"
                                                                             title="Remove candidate registration (frees seat)"
                                                                         >
                                                                             <Trash2 size={15} />
@@ -4712,11 +4712,11 @@ const Announcements = () => {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="p-4 bg-gray-50 border-t flex justify-end gap-3 shrink-0">
+                        <div className="p-4 bg-background border-t flex justify-end gap-3 shrink-0">
                             <button
                                 type="button"
                                 onClick={() => setSelectedAnnouncementForView(null)}
-                                className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition-colors"
+                                className="px-5 py-2.5 bg-background hover:bg-background text-sub rounded-xl text-xs font-bold transition-colors"
                             >
                                 Close
                             </button>

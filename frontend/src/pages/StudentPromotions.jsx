@@ -920,24 +920,24 @@ const StudentPromotions = () => {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 heading-font flex items-center gap-2 sm:gap-3">
-            <TrendingUp className="text-indigo-600" size={24} />
+          <h1 className="text-2xl sm:text-3xl font-bold text-main heading-font flex items-center gap-2 sm:gap-3">
+            <TrendingUp className="text-primary" size={24} />
             Student Promotions
           </h1>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => setShowProfileUpdateSettings(true)}
-            className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors touch-manipulation min-h-[44px] text-sm"
+            className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg border border-border text-sub hover:bg-background active:bg-background transition-colors touch-manipulation min-h-[44px] text-sm"
             title="Configure Student Profile Update Request Fields"
           >
-            <Settings size={18} className="text-gray-500" />
+            <Settings size={18} className="text-muted-text" />
             <span className="hidden sm:inline">Settings</span>
             <span className="sm:hidden text-xs">Settings</span>
           </button>
           <button
             onClick={fetchQuickFilterOptions}
-            className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors touch-manipulation min-h-[44px] text-sm"
+            className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg border border-border text-sub hover:bg-background active:bg-background transition-colors touch-manipulation min-h-[44px] text-sm"
             disabled={loadingFilters}
           >
             {loadingFilters ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
@@ -949,19 +949,19 @@ const StudentPromotions = () => {
       </div>
 
       {/* Filter Card with Inline Promotion Review */}
-      <div className="bg-white rounded-lg sm:rounded-xl shadow-sm border border-gray-200 p-4 sm:p-5 space-y-3 sm:space-y-4">
-        <div className="flex items-center gap-2 text-gray-700">
+      <div className="bg-surface rounded-lg sm:rounded-xl shadow-sm border border-border p-4 sm:p-5 space-y-3 sm:space-y-4">
+        <div className="flex items-center gap-2 text-sub">
           <Filter size={18} />
           <h2 className="text-base sm:text-lg font-semibold">Promotion Criteria</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
           <div className="flex flex-col">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Batch</label>
+            <label className="text-xs font-semibold text-sub uppercase tracking-wide mb-1">Batch</label>
             <select
               value={filters.batch}
               onChange={(e) => handleFilterChange('batch', e.target.value)}
-              className="px-3 py-2.5 sm:py-2 text-base sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 touch-manipulation min-h-[44px]"
+              className="px-3 py-2.5 sm:py-2 text-base sm:text-sm border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary touch-manipulation min-h-[44px]"
             >
               <option value="">All Batches</option>
               {(quickFilterOptions.batches || []).map((batch) => (
@@ -971,7 +971,7 @@ const StudentPromotions = () => {
           </div>
 
           <div className="flex flex-col">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Program</label>
+            <label className="text-xs font-semibold text-sub uppercase tracking-wide mb-1">Program</label>
             <select
               value={filters.course || ''}
               onChange={(e) => handleFilterChange('course', e.target.value)}
@@ -987,7 +987,7 @@ const StudentPromotions = () => {
                 });
               }}
               disabled={!filters.batch}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm disabled:bg-background disabled:cursor-not-allowed"
             >
               <option value="">All Programs</option>
               {(quickFilterOptions.courses || [])
@@ -1006,11 +1006,11 @@ const StudentPromotions = () => {
           </div>
 
           <div className="flex flex-col">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Level</label>
+            <label className="text-xs font-semibold text-sub uppercase tracking-wide mb-1">Level</label>
             <select
               value={filters.level || ''}
               onChange={(e) => handleFilterChange('level', e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
             >
               <option value="">All Levels</option>
               <option value="diploma">Diploma</option>
@@ -1020,7 +1020,7 @@ const StudentPromotions = () => {
           </div>
 
           <div className="flex flex-col">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">Branch</label>
+            <label className="text-xs font-semibold text-sub uppercase tracking-wide mb-1">Branch</label>
             <select
               value={filters.branch || ''}
               onChange={(e) => handleFilterChange('branch', e.target.value)}
@@ -1036,7 +1036,7 @@ const StudentPromotions = () => {
                 });
               }}
               disabled={!filters.course}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+              className="px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm disabled:bg-background disabled:cursor-not-allowed"
             >
               <option value="">All Branches</option>
               {(quickFilterOptions.branches || []).map((branch) => (
@@ -1046,13 +1046,13 @@ const StudentPromotions = () => {
           </div>
 
           <div className="flex flex-col">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+            <label className="text-xs font-semibold text-sub uppercase tracking-wide mb-1">
               Current Year
             </label>
             <select
               value={filters.year}
               onChange={(e) => handleFilterChange('year', e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
             >
               <option value="">All Years</option>
               {(quickFilterOptions.years || []).map((year) => (
@@ -1064,13 +1064,13 @@ const StudentPromotions = () => {
           </div>
 
           <div className="flex flex-col">
-            <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+            <label className="text-xs font-semibold text-sub uppercase tracking-wide mb-1">
               Current Semester
             </label>
             <select
               value={filters.semester}
               onChange={(e) => handleFilterChange('semester', e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+              className="px-3 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
             >
               <option value="">All Semesters</option>
               {(quickFilterOptions.semesters || []).map((semester) => (
@@ -1083,22 +1083,22 @@ const StudentPromotions = () => {
         </div>
 
         {/* Promotion Review Inline */}
-        <div className="border-t border-gray-200 pt-4 mt-4">
+        <div className="border-t border-border pt-4 mt-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <TrendingUp size={18} className="text-indigo-600" />
+              <TrendingUp size={18} className="text-primary" />
               <div>
-                <h3 className="text-sm font-semibold text-gray-900">Promotion Review</h3>
-                <p className="text-xs text-gray-600">
+                <h3 className="text-sm font-semibold text-main">Promotion Review</h3>
+                <p className="text-xs text-sub">
                   Selected {selectedCount} of {totalStudents.toLocaleString()} student{totalStudents === 1 ? '' : 's'}
                   {totalStudents > 0 && selectedCount > 0 && (
-                    <span className="ml-1 text-gray-500">
+                    <span className="ml-1 text-muted-text">
                       ({students.filter(s => selectedAdmissionNumbers.has(s.admission_number)).length} visible on this page)
                     </span>
                   )}
                 </p>
                 {totalStudents > 0 && selectedCount < totalStudents && (
-                  <p className="text-xs text-amber-600 mt-1 font-medium">
+                  <p className="text-xs text-warning mt-1 font-medium">
                     ⚠️ {totalStudents - selectedCount} student{totalStudents - selectedCount === 1 ? '' : 's'} will require remarks/status update
                   </p>
                 )}
@@ -1107,7 +1107,7 @@ const StudentPromotions = () => {
             <div className="flex flex-wrap gap-2 sm:gap-3">
               <button
                 onClick={() => toggleSelectAllStudents(true)}
-                className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation min-h-[44px]"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg border border-border-strong text-sub hover:bg-background active:bg-background transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation min-h-[44px]"
                 disabled={totalStudents === 0 || loadingStudents}
                 title="Select all students matching current filters (across all pages)"
               >
@@ -1116,14 +1116,14 @@ const StudentPromotions = () => {
               </button>
               <button
                 onClick={() => setSelectedAdmissionNumbers(new Set())}
-                className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation min-h-[44px]"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 sm:py-2 rounded-lg border border-border-strong text-sub hover:bg-background active:bg-background transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation min-h-[44px]"
                 disabled={selectedCount === 0}
               >
                 Clear
               </button>
               <button
                 onClick={handlePromoteSelected}
-                className="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 sm:py-2 rounded-lg bg-indigo-600 text-white font-semibold shadow hover:bg-indigo-700 active:bg-indigo-800 transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation min-h-[44px]"
+                className="flex-1 sm:flex-none px-4 sm:px-5 py-2.5 sm:py-2 rounded-lg bg-primary text-white font-semibold shadow hover:bg-primary-hover active:bg-primary transition-all text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation min-h-[44px]"
                 disabled={selectedCount === 0 || submitting || loadingPromotionPlan}
               >
                 {loadingPromotionPlan ? (
@@ -1151,21 +1151,21 @@ const StudentPromotions = () => {
 
           {promotionSummary && (
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-4">
-              <div className="flex items-center gap-2 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                <RefreshCw size={16} className="text-indigo-600" />
+              <div className="flex items-center gap-2 bg-background text-sub border border-border rounded-lg px-3 py-2 text-sm">
+                <RefreshCw size={16} className="text-primary" />
                 <span>
                   Progress: {promotionSummary.processed ?? promotionSummary.success + promotionSummary.skipped + promotionSummary.errors}/{promotionSummary.total ?? '-'}
                 </span>
               </div>
-              <div className="flex items-center gap-2 bg-green-50 text-green-700 border border-green-100 rounded-lg px-3 py-2 text-sm">
+              <div className="flex items-center gap-2 bg-[var(--success-light)] text-success border border-[var(--success-light)] rounded-lg px-3 py-2 text-sm">
                 <CheckCircle size={16} />
                 <span>Promoted: {promotionSummary.success}</span>
               </div>
-              <div className="flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-100 rounded-lg px-3 py-2 text-sm">
+              <div className="flex items-center gap-2 bg-[var(--warning-light)] text-warning border border-[var(--warning-light)] rounded-lg px-3 py-2 text-sm">
                 <RefreshCw size={16} />
                 <span>Skipped: {promotionSummary.skipped}</span>
               </div>
-              <div className="flex items-center gap-2 bg-red-50 text-red-700 border border-red-100 rounded-lg px-3 py-2 text-sm">
+              <div className="flex items-center gap-2 bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] rounded-lg px-3 py-2 text-sm">
                 <AlertTriangle size={16} />
                 <span>Errors: {promotionSummary.errors + (promotionSummary.leftOutErrors || 0)}</span>
               </div>
@@ -1173,14 +1173,14 @@ const StudentPromotions = () => {
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-gray-200">
-          <div className="text-sm text-gray-600">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2 border-t border-border">
+          <div className="text-sm text-sub">
             Adjust the filters to refresh the matching students automatically.
           </div>
           <div className="flex flex-wrap items-center gap-3">
             {/* Search Bar */}
             <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-text" />
               <input
                 type="text"
                 value={searchTerm}
@@ -1194,12 +1194,12 @@ const StudentPromotions = () => {
                   }
                 }}
                 placeholder="Search by name or PIN number..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm outline-none"
+                className="w-full pl-10 pr-4 py-2 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm outline-none"
               />
             </div>
             <button
               onClick={clearFilters}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors text-sm whitespace-nowrap"
+              className="px-4 py-2 rounded-lg border border-border-strong text-sub hover:bg-background transition-colors text-sm whitespace-nowrap"
             >
               Clear Filters
             </button>
@@ -1208,18 +1208,18 @@ const StudentPromotions = () => {
       </div>
 
       {/* Students Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+      <div className="bg-surface rounded-xl shadow-sm border border-border p-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Matched Students</h2>
-            <p className="text-sm text-gray-600">
+            <h2 className="text-lg font-semibold text-main">Matched Students</h2>
+            <p className="text-sm text-sub">
               Review the students that match the current criteria and choose who to promote.
             </p>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-sub">
             Total: {totalStudents.toLocaleString()} student{totalStudents === 1 ? '' : 's'}
             {totalStudents > 0 && (
-              <span className="ml-2 text-gray-500">
+              <span className="ml-2 text-muted-text">
                 (Showing {((currentPage - 1) * pageSize + 1).toLocaleString()}-{Math.min(currentPage * pageSize, totalStudents).toLocaleString()})
               </span>
             )}
@@ -1231,110 +1231,110 @@ const StudentPromotions = () => {
             <SkeletonTable rows={pageSize || 10} cols={6} />
           </div>
         ) : students.length === 0 ? (
-          <div className="py-12 text-center text-gray-500 border border-dashed border-gray-200 rounded-lg">
+          <div className="py-12 text-center text-muted-text border border-dashed border-border rounded-lg">
             Adjust the filters to find the students you want to promote.
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 text-sm">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-border text-sm">
+                <thead className="bg-background">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub uppercase tracking-wide">
                       <input
                         type="checkbox"
                         checked={isAllSelected}
                         onChange={(e) => toggleSelectAllStudents(e.target.checked)}
-                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                        className="w-4 h-4 text-primary border-border-strong rounded focus:ring-primary"
                       />
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub uppercase tracking-wide">
                       Batch
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub uppercase tracking-wide">
                       Admission Number
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub uppercase tracking-wide">
                       PIN Number
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub uppercase tracking-wide">
                       Student Name
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub uppercase tracking-wide">
                       Course
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub uppercase tracking-wide">
                       Branch
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub uppercase tracking-wide">
                       Year
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub uppercase tracking-wide">
                       Semester
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-sub uppercase tracking-wide">
                       Accommodation
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {students.map((student) => {
                     const admissionNumber = student.admission_number;
                     const isSelected = selectedAdmissionNumbers.has(admissionNumber);
                     return (
                       <tr
                         key={admissionNumber}
-                        className={isSelected ? 'bg-indigo-50/40' : 'bg-white'}
+                        className={isSelected ? 'bg-[var(--primary-light)]' : 'bg-surface'}
                       >
                         <td className="px-4 py-3">
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleSelectStudent(admissionNumber)}
-                            className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                            className="w-4 h-4 text-primary border-border-strong rounded focus:ring-primary"
                           />
                         </td>
-                        <td className="px-4 py-3 text-gray-600 font-medium">{student.batch || '-'}</td>
-                        <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                        <td className="px-4 py-3 text-sub font-medium">{student.batch || '-'}</td>
+                        <td className="px-4 py-3 font-medium text-main whitespace-nowrap">
                           {admissionNumber}
                         </td>
-                        <td className="px-4 py-3 text-gray-600">
+                        <td className="px-4 py-3 text-sub">
                           {student.pin_no ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded bg-green-100 text-green-800 text-xs font-medium">
+                            <span className="inline-flex items-center px-2 py-1 rounded bg-[var(--success-light)] text-success text-xs font-medium">
                               {student.pin_no}
                             </span>
                           ) : (
-                            <span className="text-gray-400 text-xs">-</span>
+                            <span className="text-muted-text text-xs">-</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-gray-800">
+                        <td className="px-4 py-3 text-main">
                           {getStudentName(student)}
                         </td>
-                        <td className="px-4 py-3 text-gray-600 font-medium">
+                        <td className="px-4 py-3 text-sub font-medium">
                           {student.course || '-'}
                         </td>
-                        <td className="px-4 py-3 text-gray-600">
+                        <td className="px-4 py-3 text-sub">
                           <span className="text-xs uppercase tracking-wide">
                             {student.branch || '—'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-600">
+                        <td className="px-4 py-3 text-sub">
                           {student.current_year || '-'}
                         </td>
-                        <td className="px-4 py-3 text-gray-600">
+                        <td className="px-4 py-3 text-sub">
                           {student.current_semester || '-'}
                         </td>
-                        <td className="px-4 py-3 text-gray-600">
+                        <td className="px-4 py-3 text-sub">
                           {student.accommodation === 'Hostel' ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded bg-purple-100 text-purple-800 text-xs font-medium">
+                            <span className="inline-flex items-center px-2 py-1 rounded bg-[var(--primary-light)] text-secondary text-xs font-medium">
                               Hostel
                             </span>
                           ) : student.accommodation === 'Transport' ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded bg-blue-100 text-blue-800 text-xs font-medium">
+                            <span className="inline-flex items-center px-2 py-1 rounded bg-[var(--primary-light)] text-primary text-xs font-medium">
                               Transport
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-800 text-xs font-medium">
+                            <span className="inline-flex items-center px-2 py-1 rounded bg-background text-main text-xs font-medium">
                               Own Transport
                             </span>
                           )}
@@ -1348,19 +1348,19 @@ const StudentPromotions = () => {
 
             {/* Pagination Controls */}
             {totalStudents > 0 && (
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 px-4 py-4 border-t border-gray-100 mt-4">
-                <div className="text-sm text-gray-600">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 px-4 py-4 border-t border-border mt-4">
+                <div className="text-sm text-sub">
                   {totalStudents === 0
                     ? 'No students to display'
                     : `Showing ${((currentPage - 1) * pageSize + 1).toLocaleString()}-${Math.min(currentPage * pageSize, totalStudents).toLocaleString()} of ${totalStudents.toLocaleString()}`}
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                  <label className="flex items-center gap-2 text-sm text-sub">
                     Rows per page
                     <select
                       value={pageSize}
                       onChange={handlePageSizeChange}
-                      className="px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                      className="px-2 py-1 border border-border-strong rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
                       disabled={loadingStudents || isFetchingStudents}
                     >
                       {pageSizeOptions.map((option) => (
@@ -1373,18 +1373,18 @@ const StudentPromotions = () => {
                       type="button"
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage <= 1 || loadingStudents || isFetchingStudents || totalStudents === 0}
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1.5 border border-border-strong rounded-lg text-sm text-sub hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Previous
                     </button>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-sub">
                       Page {Math.min(currentPage, totalPages).toLocaleString()} of {totalPages.toLocaleString()}
                     </span>
                     <button
                       type="button"
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage >= totalPages || loadingStudents || isFetchingStudents || totalStudents === 0}
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-3 py-1.5 border border-border-strong rounded-lg text-sm text-sub hover:bg-background disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Next
                     </button>
@@ -1394,34 +1394,34 @@ const StudentPromotions = () => {
             )}
 
             {promotionResults && promotionResults.length > 0 && (
-              <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-200 bg-gray-100 flex items-center justify-between gap-3">
-                  <h3 className="text-sm font-semibold text-gray-700">Latest Promotion Results</h3>
+              <div className="mt-6 bg-background border border-border rounded-lg overflow-hidden">
+                <div className="px-4 py-3 border-b border-border bg-background flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-sub">Latest Promotion Results</h3>
                   {promotionProgress?.label && (
-                    <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1">
+                    <span className="text-xs font-semibold text-primary bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-full px-3 py-1">
                       Progress: {promotionProgress.label}
                     </span>
                   )}
                 </div>
-                <ul className="divide-y divide-gray-200 max-h-64 overflow-y-auto">
+                <ul className="divide-y divide-border max-h-64 overflow-y-auto">
                   {promotionResults.map((result, index) => {
                     const isSuccess = result.status === 'success';
                     const isCompleted = result.status === 'completed';
                     const isSkipped = result.status === 'skipped';
                     const statusColor = isSuccess
-                      ? 'text-green-700'
+                      ? 'text-success'
                       : isCompleted
-                        ? 'text-blue-700'
+                        ? 'text-primary'
                         : isSkipped
-                          ? 'text-amber-700'
-                          : 'text-red-700';
+                          ? 'text-warning'
+                          : 'text-danger';
                     const statusBg = isSuccess
-                      ? 'bg-green-50 border-green-100'
+                      ? 'bg-[var(--success-light)] border-[var(--success-light)]'
                       : isCompleted
-                        ? 'bg-blue-50 border-blue-100'
+                        ? 'bg-[var(--primary-light)] border-[var(--primary-light)]'
                         : isSkipped
-                          ? 'bg-amber-50 border-amber-100'
-                          : 'bg-red-50 border-red-100';
+                          ? 'bg-[var(--warning-light)] border-[var(--warning-light)]'
+                          : 'bg-[var(--danger-light)] border-[var(--danger-light)]';
                     const progressLabel = result?.progress?.label;
                     return (
                       <li
@@ -1430,19 +1430,19 @@ const StudentPromotions = () => {
                       >
                         <div className="flex items-center gap-3">
                           {isSuccess ? (
-                            <CheckCircle size={18} className="text-green-600" />
+                            <CheckCircle size={18} className="text-success" />
                           ) : isCompleted ? (
-                            <CheckCircle size={18} className="text-blue-600" />
+                            <CheckCircle size={18} className="text-primary" />
                           ) : isSkipped ? (
-                            <RefreshCw size={18} className="text-amber-600" />
+                            <RefreshCw size={18} className="text-warning" />
                           ) : (
-                            <AlertTriangle size={18} className="text-red-600" />
+                            <AlertTriangle size={18} className="text-danger" />
                           )}
                           <div>
                             <p className={`font-semibold ${statusColor}`}>
                               {result.admissionNumber || 'Unknown admission number'}
                             </p>
-                            <p className="text-xs text-gray-600">
+                            <p className="text-xs text-sub">
                               {isSuccess
                                 ? `Updated to Year ${result.currentYear}, Semester ${result.currentSemester}`
                                 : isCompleted
@@ -1455,7 +1455,7 @@ const StudentPromotions = () => {
                           <div className="flex items-center gap-2">
                             <span>{isCompleted ? 'Course Completed' : result.status}</span>
                             {progressLabel && (
-                              <span className="px-2 py-0.5 rounded-full bg-white text-gray-700 border border-gray-300 lowercase">
+                              <span className="px-2 py-0.5 rounded-full bg-surface text-sub border border-border-strong lowercase">
                                 {progressLabel}
                               </span>
                             )}
@@ -1473,23 +1473,23 @@ const StudentPromotions = () => {
 
       {confirmationOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 px-4 py-6">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-surface rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
             {/* Header */}
-            <div className="px-6 py-5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white flex items-center justify-between">
+            <div className="px-6 py-5 bg-gradient-to-r from-primary to-primary text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/20 rounded-lg">
+                <div className="p-2 bg-[var(--surface)]/20 rounded-lg">
                   <TrendingUp size={24} />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">Confirm Promotion</h3>
-                  <p className="text-sm text-indigo-100 mt-0.5">
+                  <p className="text-sm text-primary mt-0.5">
                     Review the promotion plan before proceeding
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setConfirmationOpen(false)}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                className="p-2 hover:bg-[var(--surface)]/20 rounded-lg transition-colors"
                 disabled={submitting}
               >
                 <X size={20} />
@@ -1499,11 +1499,11 @@ const StudentPromotions = () => {
             {/* Content */}
             <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
               {hasStageConflicts && (
-                <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg px-4 py-3 flex items-start gap-3">
-                  <AlertTriangle className="text-amber-600 flex-shrink-0 mt-0.5" size={20} />
+                <div className="bg-[var(--warning-light)] border-l-4 border-warning rounded-lg px-4 py-3 flex items-start gap-3">
+                  <AlertTriangle className="text-warning flex-shrink-0 mt-0.5" size={20} />
                   <div>
-                    <p className="text-sm font-semibold text-amber-900">Stage Conflicts Detected</p>
-                    <p className="text-xs text-amber-700 mt-1">
+                    <p className="text-sm font-semibold text-warning">Stage Conflicts Detected</p>
+                    <p className="text-xs text-warning mt-1">
                       Some selected students already have peers in the target stage. Please review carefully before proceeding.
                     </p>
                   </div>
@@ -1512,11 +1512,11 @@ const StudentPromotions = () => {
 
               {/* Warnings Panel */}
               {promotionPlan.some(item => item.warnings && item.warnings.length > 0) && (
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 rounded-lg px-4 py-3 flex items-start gap-3">
-                  <AlertTriangle className="text-yellow-600 flex-shrink-0 mt-0.5" size={20} />
+                <div className="bg-[var(--warning-light)] border-l-4 border-warning rounded-lg px-4 py-3 flex items-start gap-3">
+                  <AlertTriangle className="text-warning flex-shrink-0 mt-0.5" size={20} />
                   <div>
-                    <p className="text-sm font-semibold text-yellow-900">Future End Date Warnings</p>
-                    <p className="text-xs text-yellow-700 mt-1">
+                    <p className="text-sm font-semibold text-warning">Future End Date Warnings</p>
+                    <p className="text-xs text-warning mt-1">
                       Some selected students are in semesters that have an end date in the future (or missing). By confirming, you are choosing to proceed with their promotion anyway.
                     </p>
                   </div>
@@ -1525,32 +1525,32 @@ const StudentPromotions = () => {
 
               {/* Additional Year Decision Panel */}
               {additionalYearStudents.length > 0 && (
-                <div className="bg-orange-50 border border-orange-200 rounded-xl overflow-hidden">
-                  <div className="px-4 py-3 bg-orange-100 border-b border-orange-200 flex items-center gap-2">
-                    <AlertTriangle size={16} className="text-orange-600" />
-                    <span className="text-sm font-bold text-orange-900">
+                <div className="bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl overflow-hidden">
+                  <div className="px-4 py-3 bg-[var(--warning-light)] border-b border-[var(--warning-light)] flex items-center gap-2">
+                    <AlertTriangle size={16} className="text-warning" />
+                    <span className="text-sm font-bold text-warning">
                       {additionalYearStudents.length} Student{additionalYearStudents.length === 1 ? '' : 's'} at Final Year — Branch has Optional Year
                     </span>
                   </div>
                   <div className="p-4 space-y-3">
-                    <p className="text-xs text-orange-800">
+                    <p className="text-xs text-warning">
                       These students have completed the regular course. Their branch offers an optional additional year.
                       Choose to promote them to it or mark as Course Completed.
                     </p>
                     <div className="space-y-2">
                       {additionalYearStudents.map(item => (
-                        <div key={item.admissionNumber} className="flex flex-col sm:flex-row sm:items-center gap-3 bg-white border border-orange-100 rounded-lg px-3 py-2.5">
+                        <div key={item.admissionNumber} className="flex flex-col sm:flex-row sm:items-center gap-3 bg-surface border border-[var(--warning-light)] rounded-lg px-3 py-2.5">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">{item.studentName}</p>
-                            <p className="text-xs text-gray-500">{item.admissionNumber} — Year {item.currentStage?.year}, Sem {item.currentStage?.semester}</p>
+                            <p className="text-sm font-semibold text-main truncate">{item.studentName}</p>
+                            <p className="text-xs text-muted-text">{item.admissionNumber} — Year {item.currentStage?.year}, Sem {item.currentStage?.semester}</p>
                           </div>
                           <div className="flex gap-2 flex-shrink-0">
                             <button
                               onClick={() => setAdditionalYearChoices(prev => ({ ...prev, [item.admissionNumber]: 'additional' }))}
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all ${
                                 additionalYearChoices[item.admissionNumber] === 'additional'
-                                  ? 'bg-indigo-600 border-indigo-600 text-white'
-                                  : 'bg-white border-gray-300 text-gray-700 hover:border-indigo-400'
+                                  ? 'bg-primary border-primary text-white'
+                                  : 'bg-surface border-border-strong text-sub hover:border-primary'
                               }`}
                             >
                               → Year {item.additionalYearTarget?.year}, Sem 1
@@ -1559,8 +1559,8 @@ const StudentPromotions = () => {
                               onClick={() => setAdditionalYearChoices(prev => ({ ...prev, [item.admissionNumber]: 'complete' }))}
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 transition-all ${
                                 additionalYearChoices[item.admissionNumber] === 'complete'
-                                  ? 'bg-blue-600 border-blue-600 text-white'
-                                  : 'bg-white border-gray-300 text-gray-700 hover:border-blue-400'
+                                  ? 'bg-primary border-primary text-white'
+                                  : 'bg-surface border-border-strong text-sub hover:border-primary'
                               }`}
                             >
                               ✓ Course Completed
@@ -1573,39 +1573,39 @@ const StudentPromotions = () => {
                 </div>
               )}
 
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl overflow-hidden">
-                <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-4 py-3">
+              <div className="bg-gradient-to-br from-[var(--background)] to-[var(--background)] border border-border rounded-xl overflow-hidden">
+                <div className="bg-[var(--surface)]/80 backdrop-blur-sm border-b border-border px-4 py-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                    <h4 className="text-sm font-bold text-main uppercase tracking-wide">
                       Promotion Summary
                     </h4>
-                    <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+                    <span className="text-xs font-semibold text-primary bg-[var(--primary-light)] px-2.5 py-1 rounded-full">
                       {promotionPlan.filter(item => (item.nextStage && item.issues.length === 0) || (item.isCourseCompleted && item.issues.length === 0) || (item.hasAdditionalYearOption && item.issues.length === 0)).length} Eligible
                     </span>
                   </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-100/80 backdrop-blur-sm">
+                    <thead className="bg-[var(--background)]/80 backdrop-blur-sm">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-bold text-sub uppercase tracking-wider">
                           Admission No
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-bold text-sub uppercase tracking-wider">
                           Student Name
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-bold text-sub uppercase tracking-wider">
                           Current Stage
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-left text-xs font-bold text-sub uppercase tracking-wider">
                           Next Stage
                         </th>
-                        <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        <th className="px-4 py-3 text-center text-xs font-bold text-sub uppercase tracking-wider">
                           Status
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
+                    <tbody className="divide-y divide-border bg-surface">
                       {promotionPlan.map((item) => {
                         const isEligible = (item.nextStage && item.issues.length === 0) ||
                           (item.isCourseCompleted && item.issues.length === 0) ||
@@ -1634,53 +1634,53 @@ const StudentPromotions = () => {
                           <tr
                             key={item.admissionNumber}
                             className={`transition-colors ${isEligible
-                              ? 'hover:bg-indigo-50/50'
-                              : 'bg-red-50/30 hover:bg-red-50/50'
+                              ? 'hover:bg-[var(--primary-light)]'
+                              : 'bg-[var(--danger-light)] hover:bg-[var(--danger-light)]'
                               }`}
                           >
-                            <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">
+                            <td className="px-4 py-3 font-semibold text-main whitespace-nowrap">
                               {item.admissionNumber}
                             </td>
-                            <td className="px-4 py-3 text-gray-800 font-medium">
+                            <td className="px-4 py-3 text-main font-medium">
                               {item.studentName || '-'}
                             </td>
                             <td className="px-4 py-3">
                               {item.currentStage ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 border border-gray-200 text-xs font-semibold">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-background text-sub border border-border text-xs font-semibold">
                                   Year {item.currentStage.year} • Sem {item.currentStage.semester}
                                 </span>
                               ) : (
-                                <span className="text-gray-400 text-xs">—</span>
+                                <span className="text-muted-text text-xs">—</span>
                               )}
                             </td>
                             <td className="px-4 py-3">
                               {displayNextStage ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold">
-                                  <ArrowRight size={14} className="text-indigo-600" />
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] text-xs font-bold">
+                                  <ArrowRight size={14} className="text-primary" />
                                   Year {displayNextStage.year} • Sem {displayNextStage.semester}
                                 </span>
                               ) : displayCourseCompleted ? (
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold">
-                                  <CheckCircle size={14} className="text-blue-600" />
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--primary-light)] text-primary border border-[var(--primary-light)] text-xs font-bold">
+                                  <CheckCircle size={14} className="text-primary" />
                                   Course Completed
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-red-100 text-red-700 border border-red-200 text-xs font-semibold">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] text-xs font-semibold">
                                   Not eligible
                                 </span>
                               )}
                               {noteText && (
-                                <p className="mt-1.5 text-xs text-gray-500 italic">{noteText}</p>
+                                <p className="mt-1.5 text-xs text-muted-text italic">{noteText}</p>
                               )}
                             </td>
                             <td className="px-4 py-3 text-center">
                               {isEligible ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--success-light)] text-success text-xs font-semibold">
                                   <CheckCircle size={14} />
                                   Ready
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-xs font-semibold">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--danger-light)] text-danger text-xs font-semibold">
                                   <AlertTriangle size={14} />
                                   Issue
                                 </span>
@@ -1696,17 +1696,17 @@ const StudentPromotions = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="px-6 py-4 bg-background border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-2">
-                <div className="p-1.5 bg-blue-100 rounded-lg">
-                  <CheckCircle className="text-blue-600" size={16} />
+                <div className="p-1.5 bg-[var(--primary-light)] rounded-lg">
+                  <CheckCircle className="text-primary" size={16} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Promotion Notice</p>
-                  <p className="text-xs text-gray-600 mt-0.5">
+                  <p className="text-sm font-medium text-main">Promotion Notice</p>
+                  <p className="text-xs text-sub mt-0.5">
                     Only students marked as eligible will be promoted.
                     {detectedLeftOutStudents.length > 0 && (
-                      <span className="block mt-1 text-amber-600 font-medium">
+                      <span className="block mt-1 text-warning font-medium">
                         ⚠️ {detectedLeftOutStudents.length} left-out student{detectedLeftOutStudents.length === 1 ? '' : 's'} will require status/remarks update.
                       </span>
                     )}
@@ -1716,14 +1716,14 @@ const StudentPromotions = () => {
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => setConfirmationOpen(false)}
-                  className="px-5 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-5 py-2.5 rounded-lg border-2 border-border-strong text-sub font-semibold hover:bg-background hover:border-border-strong transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmPromotionClick}
-                  className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold shadow-lg hover:from-indigo-700 hover:to-indigo-800 transition-all transform hover:scale-105 active:scale-95 text-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+                  className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-primary to-primary text-white font-bold shadow-lg hover:from-primary hover:to-primary transition-all transform hover:scale-105 active:scale-95 text-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
                   disabled={submitting}
                 >
                   {submitting ? (
@@ -1744,23 +1744,23 @@ const StudentPromotions = () => {
       {/* Left-Out Students Modal */}
       {leftOutModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 px-4 py-6">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-surface rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
             {/* Header */}
-            <div className="px-6 py-5 bg-gradient-to-r from-amber-600 to-amber-700 text-white flex items-center justify-between">
+            <div className="px-6 py-5 bg-gradient-to-r from-warning to-warning text-white flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-white/20 rounded-lg">
+                <div className="p-2 bg-[var(--surface)]/20 rounded-lg">
                   <AlertTriangle size={24} />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">Handle Left-Out Students</h3>
-                  <p className="text-sm text-amber-100 mt-0.5">
+                  <p className="text-sm text-warning mt-0.5">
                     {leftOutStudents.length} student{leftOutStudents.length === 1 ? '' : 's'} not selected for promotion
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setLeftOutModalOpen(false)}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                className="p-2 hover:bg-[var(--surface)]/20 rounded-lg transition-colors"
                 disabled={submitting}
               >
                 <X size={20} />
@@ -1769,50 +1769,50 @@ const StudentPromotions = () => {
 
             {/* Content */}
             <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
-              <div className="bg-amber-50 border-l-4 border-amber-400 rounded-lg px-4 py-3 flex items-start gap-3">
-                <AlertTriangle className="text-amber-600 flex-shrink-0 mt-0.5" size={20} />
+              <div className="bg-[var(--warning-light)] border-l-4 border-warning rounded-lg px-4 py-3 flex items-start gap-3">
+                <AlertTriangle className="text-warning flex-shrink-0 mt-0.5" size={20} />
                 <div>
-                  <p className="text-sm font-semibold text-amber-900">Action Required</p>
-                  <p className="text-xs text-amber-700 mt-1">
+                  <p className="text-sm font-semibold text-warning">Action Required</p>
+                  <p className="text-xs text-warning mt-1">
                     Please add remarks and update the status for students who were not promoted.
                     Common statuses include: Regular, Detained, Discontinued, etc.
                   </p>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-xl overflow-hidden">
-                <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200 px-4 py-3">
-                  <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+              <div className="bg-gradient-to-br from-[var(--background)] to-[var(--background)] border border-border rounded-xl overflow-hidden">
+                <div className="bg-[var(--surface)]/80 backdrop-blur-sm border-b border-border px-4 py-3">
+                  <h4 className="text-sm font-bold text-main uppercase tracking-wide">
                     Left-Out Students ({leftOutStudents.length})
                   </h4>
                 </div>
                 <div className="overflow-x-auto max-h-96">
-                  <div className="divide-y divide-gray-200">
+                  <div className="divide-y divide-border">
                     {leftOutStudents.map((student) => {
                       const studentData = leftOutStudentData[student.admission_number] || {
                         remarks: student.remarks || '',
                         student_status: student.student_status || 'Regular'
                       };
                       return (
-                        <div key={student.admission_number} className="p-4 bg-white hover:bg-gray-50 transition-colors border-l-4 border-amber-200">
+                        <div key={student.admission_number} className="p-4 bg-surface hover:bg-background transition-colors border-l-4 border-[var(--warning-light)]">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="md:col-span-1">
                               <div className="space-y-1">
-                                <p className="font-semibold text-gray-900">{getStudentName(student)}</p>
-                                <p className="text-xs text-gray-600 font-mono">{student.admission_number}</p>
-                                <p className="text-xs text-gray-500">
+                                <p className="font-semibold text-main">{getStudentName(student)}</p>
+                                <p className="text-xs text-sub font-mono">{student.admission_number}</p>
+                                <p className="text-xs text-muted-text">
                                   {student.course} • {student.branch}
                                 </p>
                                 {student.current_year && student.current_semester && (
-                                  <p className="text-xs text-gray-400 mt-1">
+                                  <p className="text-xs text-muted-text mt-1">
                                     Year {student.current_year} • Sem {student.current_semester}
                                   </p>
                                 )}
                               </div>
                             </div>
                             <div className="md:col-span-1">
-                              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
-                                Student Status <span className="text-red-500">*</span>
+                              <label className="block text-xs font-semibold text-sub uppercase tracking-wide mb-1.5">
+                                Student Status <span className="text-danger">*</span>
                               </label>
                               <select
                                 value={studentData.student_status}
@@ -1832,7 +1832,7 @@ const StudentPromotions = () => {
                                     }));
                                   }
                                 }}
-                                className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm font-medium bg-white"
+                                className="w-full px-3 py-2.5 border-2 border-border-strong rounded-lg focus:ring-2 focus:ring-warning focus:border-warning text-sm font-medium bg-surface"
                                 disabled={submitting}
                                 required
                               >
@@ -1846,13 +1846,13 @@ const StudentPromotions = () => {
                                 <option value="Admission Cancelled">Admission Cancelled</option>
                                 <option value="Rejoined">Rejoined</option>
                               </select>
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-muted-text mt-1">
                                 Current: <span className="font-medium">{student.student_status || 'Regular'}</span>
                               </p>
                             </div>
                             <div className="md:col-span-1">
-                              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
-                                Remarks <span className="text-amber-600">(Required)</span>
+                              <label className="block text-xs font-semibold text-sub uppercase tracking-wide mb-1.5">
+                                Remarks <span className="text-warning">(Required)</span>
                               </label>
                               <textarea
                                 value={studentData.remarks}
@@ -1867,11 +1867,11 @@ const StudentPromotions = () => {
                                 }}
                                 placeholder="Enter remarks (e.g., Detained due to low attendance, Failed in exams, etc.)"
                                 rows="3"
-                                className="w-full px-3 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm resize-none"
+                                className="w-full px-3 py-2.5 border-2 border-border-strong rounded-lg focus:ring-2 focus:ring-warning focus:border-warning text-sm resize-none"
                                 disabled={submitting}
                                 required
                               />
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-muted-text mt-1">
                                 {studentData.remarks.length} characters
                               </p>
                             </div>
@@ -1885,17 +1885,17 @@ const StudentPromotions = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="px-6 py-4 bg-background border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-2">
-                <div className="p-1.5 bg-amber-100 rounded-lg">
-                  <AlertTriangle className="text-amber-600" size={16} />
+                <div className="p-1.5 bg-[var(--warning-light)] rounded-lg">
+                  <AlertTriangle className="text-warning" size={16} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Important Notice</p>
-                  <p className="text-xs text-gray-600 mt-0.5">
+                  <p className="text-sm font-medium text-main">Important Notice</p>
+                  <p className="text-xs text-sub mt-0.5">
                     These students will <strong>NOT</strong> be promoted. Please update their status and add remarks explaining why they were not promoted.
                   </p>
-                  <p className="text-xs text-amber-700 mt-1 font-medium">
+                  <p className="text-xs text-warning mt-1 font-medium">
                     ⚠️ Status and remarks are required for all left-out students.
                   </p>
                 </div>
@@ -1907,14 +1907,14 @@ const StudentPromotions = () => {
                     setLeftOutStudents([]);
                     setLeftOutStudentData({});
                   }}
-                  className="px-5 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 hover:border-gray-400 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-5 py-2.5 rounded-lg border-2 border-border-strong text-sub font-semibold hover:bg-background hover:border-border-strong transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleLeftOutSubmit}
-                  className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold shadow-lg hover:from-amber-700 hover:to-amber-800 transition-all transform hover:scale-105 active:scale-95 text-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+                  className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-warning to-warning text-white font-bold shadow-lg hover:from-warning hover:to-warning transition-all transform hover:scale-105 active:scale-95 text-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
                   disabled={submitting}
                 >
                   {submitting ? (

@@ -23,19 +23,19 @@ const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const STATUS_META = {
   submitted: {
     label: 'Submitted',
-    badgeClass: 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+    badgeClass: 'bg-[var(--success-light)] text-success border border-[var(--success-light)]'
   },
   not_marked: {
     label: 'Not marked',
-    badgeClass: 'bg-rose-100 text-rose-700 border border-rose-200'
+    badgeClass: 'bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]'
   },
   pending: {
     label: 'Pending',
-    badgeClass: 'bg-amber-100 text-amber-700 border border-amber-200'
+    badgeClass: 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
   },
   upcoming: {
     label: 'Upcoming',
-    badgeClass: 'bg-blue-100 text-blue-700 border border-blue-200'
+    badgeClass: 'bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]'
   }
 };
 
@@ -276,15 +276,15 @@ const HolidayCalendarModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-3 py-6 overflow-y-auto">
-      <div className="relative w-full max-w-7xl rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+      <div className="relative w-full max-w-7xl rounded-2xl bg-surface shadow-2xl">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-full bg-blue-100 p-3 text-blue-600">
+            <div className="rounded-full bg-[var(--primary-light)] p-3 text-primary">
               <CalendarDays size={24} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Attendance Calendar</h2>
-              <p className="text-sm text-gray-500">
+              <h2 className="text-lg font-semibold text-main">Attendance Calendar</h2>
+              <p className="text-sm text-muted-text">
                 Review public holidays, institute breaks, and mark custom holidays.
               </p>
             </div>
@@ -292,7 +292,7 @@ const HolidayCalendarModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            className="rounded-full p-2 text-muted-text transition-colors hover:bg-background hover:text-sub"
             aria-label="Close calendar"
           >
             <X size={20} />
@@ -300,33 +300,33 @@ const HolidayCalendarModal = ({
         </div>
 
         <div className="flex flex-col lg:flex-row">
-          <div className="flex-1 border-b border-gray-200 lg:border-b-0 lg:border-r">
+          <div className="flex-1 border-b border-border lg:border-b-0 lg:border-r">
             <div className="flex items-center justify-between px-6 py-4">
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="rounded-lg border border-gray-200 p-2 text-gray-600 transition-colors hover:bg-gray-100"
+                className="rounded-lg border border-border p-2 text-sub transition-colors hover:bg-background"
                 aria-label="Previous month"
               >
                 <ChevronLeft size={18} />
               </button>
               <div className="text-center">
-                <div className="text-lg font-semibold text-gray-900">{monthLabel}</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-lg font-semibold text-main">{monthLabel}</div>
+                <div className="text-xs text-muted-text">
                   {loading ? 'Loading calendar…' : 'Tap a date to view details'}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="rounded-lg border border-gray-200 p-2 text-gray-600 transition-colors hover:bg-gray-100"
+                className="rounded-lg border border-border p-2 text-sub transition-colors hover:bg-background"
                 aria-label="Next month"
               >
                 <ChevronRight size={18} />
               </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-1 px-4 pb-3 text-center text-xs font-semibold uppercase text-gray-500">
+            <div className="grid grid-cols-7 gap-1 px-4 pb-3 text-center text-xs font-semibold uppercase text-muted-text">
               {WEEKDAY_NAMES.map((name) => (
                 <div key={name} className="py-2">
                   {name}
@@ -347,30 +347,30 @@ const HolidayCalendarModal = ({
 
                 // Determine cell background color based on day type
                 // Use distinct colors to differentiate holidays from "Not marked" status (which uses red)
-                let cellBgColor = 'bg-white';
+                let cellBgColor = 'bg-surface';
                 if (isHoliday) {
                   if (publicHoliday) {
-                    cellBgColor = 'bg-orange-50'; // Changed from red to orange to differentiate from "Not marked"
+                    cellBgColor = 'bg-[var(--warning-light)]'; // Changed from red to orange to differentiate from "Not marked"
                   } else if (customHoliday) {
-                    cellBgColor = 'bg-purple-50';
+                    cellBgColor = 'bg-[var(--primary-light)]';
                   } else if (isSunday) {
-                    cellBgColor = 'bg-amber-50';
+                    cellBgColor = 'bg-[var(--warning-light)]';
                   }
                 } else {
-                  cellBgColor = 'bg-blue-50';
+                  cellBgColor = 'bg-[var(--primary-light)]';
                 }
 
                 const badgeColor = isHoliday
                   ? publicHoliday
-                    ? 'bg-orange-100 text-orange-700 border border-orange-300' // Changed from red to orange
+                    ? 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]' // Changed from red to orange
                     : customHoliday
-                      ? 'bg-purple-100 text-purple-700 border border-purple-300'
-                      : 'bg-amber-100 text-amber-700 border border-amber-300'
-                  : 'bg-blue-100 text-blue-700 border border-blue-300';
+                      ? 'bg-[var(--primary-light)] text-secondary border border-[var(--primary-light)]'
+                      : 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
+                  : 'bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]';
 
                 const baseClasses = cell.isCurrentMonth
-                  ? 'cursor-pointer hover:border-blue-500 hover:text-blue-600'
-                  : 'cursor-not-allowed text-gray-300';
+                  ? 'cursor-pointer hover:border-primary hover:text-primary'
+                  : 'cursor-not-allowed text-muted-text';
 
                 return (
                   <button
@@ -379,8 +379,8 @@ const HolidayCalendarModal = ({
                     onClick={() => handleDayClick(cell)}
                     disabled={!cell.isCurrentMonth}
                     className={`flex h-28 flex-col justify-between rounded-lg border py-2 px-1 text-sm transition-colors ${isSelected
-                      ? 'border-blue-500 bg-blue-100 text-blue-800 shadow-md ring-2 ring-blue-300'
-                      : `${cellBgColor} text-gray-700 ${baseClasses}`
+                      ? 'border-primary bg-[var(--primary-light)] text-primary shadow-md ring-2 ring-[var(--primary-light)]'
+                      : `${cellBgColor} text-sub ${baseClasses}`
                       }`}
                   >
                     <span className="font-semibold text-base">{cell.day}</span>
@@ -388,8 +388,8 @@ const HolidayCalendarModal = ({
                     {/* Show present/absent counts for non-holiday dates */}
                     {!isHoliday && data.attendanceCounts && data.attendanceCounts[cell.isoDate] && (
                       <div className="flex flex-col gap-0.5 text-[10px] font-semibold leading-tight">
-                        <span className="text-green-700">P: {data.attendanceCounts[cell.isoDate].present}</span>
-                        <span className="text-red-700">A: {data.attendanceCounts[cell.isoDate].absent}</span>
+                        <span className="text-success">P: {data.attendanceCounts[cell.isoDate].present}</span>
+                        <span className="text-danger">A: {data.attendanceCounts[cell.isoDate].absent}</span>
                       </div>
                     )}
 
@@ -417,10 +417,10 @@ const HolidayCalendarModal = ({
             </div>
 
             {error && (
-              <div className="mx-6 mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              <div className="mx-6 mb-4 flex items-start gap-2 rounded-lg border border-[var(--danger-light)] bg-[var(--danger-light)] p-3 text-sm text-danger">
                 <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
                 <div>
-                  <div className="font-semibold uppercase tracking-wide text-red-800">
+                  <div className="font-semibold uppercase tracking-wide text-danger">
                     Calendar data unavailable
                   </div>
                   <div>{error}</div>
@@ -428,7 +428,7 @@ const HolidayCalendarModal = ({
                     <button
                       type="button"
                       onClick={onRetry}
-                      className="mt-2 inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-4 hover:text-red-800"
+                      className="mt-2 inline-flex items-center gap-1 text-xs font-semibold underline underline-offset-4 hover:text-danger"
                     >
                       Retry
                     </button>
@@ -442,9 +442,9 @@ const HolidayCalendarModal = ({
             {/* Selected Date Section */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Selected Date</h3>
+                <h3 className="text-base font-semibold text-main">Selected Date</h3>
                 {selectedDate && (
-                  <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+                  <span className="rounded-full bg-background px-3 py-1 text-xs font-semibold text-sub">
                     {formatIsoDate(selectedDate, {
                       weekday: 'short',
                       month: 'short',
@@ -457,10 +457,10 @@ const HolidayCalendarModal = ({
 
               {/* Non-working Day Warning */}
               {nonWorkingDayDetails?.isNonWorkingDay && (
-                <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
+                <div className="flex items-start gap-2 rounded-md border border-[var(--warning-light)] bg-[var(--warning-light)] p-3 text-xs text-warning">
                   <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
                   <div className="space-y-1">
-                    <div className="font-semibold uppercase tracking-wide text-amber-800">
+                    <div className="font-semibold uppercase tracking-wide text-warning">
                       Non-working day
                     </div>
                     <div>{nonWorkingDayDetails.reasons?.join('. ') || 'Holiday'}</div>
@@ -470,10 +470,10 @@ const HolidayCalendarModal = ({
 
               {/* Calendar Error */}
               {calendarError && (
-                <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                <div className="flex items-start gap-2 rounded-md border border-[var(--danger-light)] bg-[var(--danger-light)] p-3 text-xs text-danger">
                   <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
                   <div className="space-y-1">
-                    <div className="font-semibold uppercase tracking-wide text-red-800">
+                    <div className="font-semibold uppercase tracking-wide text-danger">
                       Calendar sync unavailable
                     </div>
                     <div>{calendarError}</div>
@@ -481,7 +481,7 @@ const HolidayCalendarModal = ({
                       <button
                         type="button"
                         onClick={onRetryCalendarFetch}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 hover:text-red-800 underline decoration-dotted"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-danger hover:text-danger underline decoration-dotted"
                       >
                         Retry
                       </button>
@@ -492,8 +492,8 @@ const HolidayCalendarModal = ({
 
               {/* Upcoming Holidays */}
               {!calendarError && upcomingHolidays.length > 0 && (
-                <div className="rounded-md border border-blue-100 bg-blue-50 p-3 text-xs text-blue-700">
-                  <div className="font-semibold uppercase tracking-wide text-blue-800 mb-2">Upcoming holidays</div>
+                <div className="rounded-md border border-[var(--primary-light)] bg-[var(--primary-light)] p-3 text-xs text-primary">
+                  <div className="font-semibold uppercase tracking-wide text-primary mb-2">Upcoming holidays</div>
                   <div className="space-y-2">
                     {upcomingHolidays.map((holiday) => (
                       <div key={`${holiday.type}-${holiday.date}`} className="flex items-center justify-between gap-2">
@@ -502,8 +502,8 @@ const HolidayCalendarModal = ({
                           <span className="text-xs">{holiday.label}</span>
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${holiday.type === 'public'
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-purple-100 text-purple-700'
+                              ? 'bg-[var(--danger-light)] text-danger'
+                              : 'bg-[var(--primary-light)] text-secondary'
                               }`}
                           >
                             {holiday.type === 'public' ? 'Public' : 'Institute'}
@@ -517,7 +517,7 @@ const HolidayCalendarModal = ({
 
               {/* Editing Lock Reason */}
               {!nonWorkingDayDetails?.isNonWorkingDay && editingLockReason && (
-                <div className="rounded-md border border-blue-200 bg-blue-50 p-3 text-xs text-blue-700">
+                <div className="rounded-md border border-[var(--primary-light)] bg-[var(--primary-light)] p-3 text-xs text-primary">
                   {editingLockReason}
                 </div>
               )}
@@ -527,7 +527,7 @@ const HolidayCalendarModal = ({
                 selectedDateStatus !== 'holiday' &&
                 statusSummaryMeta[selectedDateStatus] && (
                   <div
-                    className={`rounded-md border px-3 py-2 text-xs font-semibold ${statusSummaryMeta[selectedDateStatus].className || 'bg-gray-100 text-gray-600 border-gray-200'
+                    className={`rounded-md border px-3 py-2 text-xs font-semibold ${statusSummaryMeta[selectedDateStatus].className || 'bg-background text-sub border-border'
                       }`}
                   >
                     {statusSummaryMeta[selectedDateStatus].message || selectedDateStatus}
@@ -535,26 +535,26 @@ const HolidayCalendarModal = ({
                 )}
 
               {/* Attendance Summary */}
-              <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-                <div className="text-xs font-semibold uppercase tracking-wide text-gray-600 mb-2">
+              <div className="rounded-md border border-border bg-background p-3">
+                <div className="text-xs font-semibold uppercase tracking-wide text-sub mb-2">
                   Attendance Summary
                 </div>
                 <div className="space-y-1 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-700">Present:</span>
-                    <span className="font-semibold text-green-600">{presentCount}</span>
+                    <span className="text-sub">Present:</span>
+                    <span className="font-semibold text-success">{presentCount}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-700">Absent:</span>
-                    <span className="font-semibold text-red-600">{absentCount}</span>
+                    <span className="text-sub">Absent:</span>
+                    <span className="font-semibold text-danger">{absentCount}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-700">Pending:</span>
-                    <span className="font-semibold text-gray-600">{unmarkedCount}</span>
+                    <span className="text-sub">Pending:</span>
+                    <span className="font-semibold text-sub">{unmarkedCount}</span>
                   </div>
                 </div>
                 {lastUpdatedAt && (
-                  <div className="mt-2 text-xs text-gray-500 border-t border-gray-200 pt-2">
+                  <div className="mt-2 text-xs text-muted-text border-t border-border pt-2">
                     Last updated: {new Date(lastUpdatedAt).toLocaleTimeString()}
                   </div>
                 )}
@@ -562,15 +562,15 @@ const HolidayCalendarModal = ({
             </div>
 
             {!selectedDate && (
-              <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+              <div className="mt-4 rounded-lg border border-border bg-background p-4 text-sm text-sub">
                 Choose a date on the calendar to view holiday details or mark an institute break.
               </div>
             )}
 
             {selectedDate && (
               <div className="mt-4 space-y-4">
-                <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm text-blue-700">
-                  <div className="font-semibold text-blue-900">
+                <div className="rounded-lg border border-[var(--primary-light)] bg-[var(--primary-light)] p-4 text-sm text-primary">
+                  <div className="font-semibold text-primary">
                     {selectedHolidayDetails?.publicHoliday
                       ? selectedHolidayDetails.publicHoliday.localName ||
                       selectedHolidayDetails.publicHoliday.name
@@ -580,7 +580,7 @@ const HolidayCalendarModal = ({
                           ? 'Sunday'
                           : 'Instructional Day'}
                   </div>
-                  <div className="mt-1 text-xs text-blue-600">
+                  <div className="mt-1 text-xs text-primary">
                     {selectedHolidayDetails?.publicHoliday
                       ? selectedHolidayDetails.publicHoliday.name
                       : selectedHolidayDetails?.customHoliday?.description
@@ -598,7 +598,7 @@ const HolidayCalendarModal = ({
                   !selectedHolidayDetails?.isSunday && (
                     <div
                       className={`rounded-lg border px-3 py-2 text-xs font-semibold ${STATUS_META[selectedHolidayDetails.status]?.badgeClass ||
-                        'bg-gray-100 text-gray-600 border-gray-200'
+                        'bg-background text-sub border-border'
                         }`}
                     >
                       {STATUS_META[selectedHolidayDetails.status]?.label ||
@@ -610,27 +610,27 @@ const HolidayCalendarModal = ({
                   <div className="space-y-3">
                     {(selectedHolidayDetails?.customHolidays || []).length > 0 && (
                       <div className="space-y-2">
-                        <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-muted-text">
                           Holidays on this date
                         </div>
                         {(selectedHolidayDetails.customHolidays || []).map((holiday) => (
                           <div
                             key={holiday.id || `${holiday.date}-${holiday.title}`}
-                            className="rounded-lg border border-purple-100 bg-purple-50 p-3"
+                            className="rounded-lg border border-[var(--primary-light)] bg-[var(--primary-light)] p-3"
                           >
                             <div className="flex items-start justify-between gap-2">
                               <div>
-                                <div className="text-sm font-semibold text-purple-900">{holiday.title || 'Institute Holiday'}</div>
+                                <div className="text-sm font-semibold text-secondary">{holiday.title || 'Institute Holiday'}</div>
                                 {holiday.description && (
-                                  <div className="mt-1 text-xs text-purple-700">{holiday.description}</div>
+                                  <div className="mt-1 text-xs text-secondary">{holiday.description}</div>
                                 )}
-                                <div className="mt-1 text-[11px] text-purple-600">{formatHolidayScope(holiday)}</div>
+                                <div className="mt-1 text-[11px] text-secondary">{formatHolidayScope(holiday)}</div>
                               </div>
                               <button
                                 type="button"
                                 onClick={() => handleRemoveHoliday(holiday.id)}
                                 disabled={mutationLoading || !holiday.id}
-                                className="rounded-md border border-red-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50"
+                                className="rounded-md border border-[var(--danger-light)] bg-surface px-2 py-1 text-[11px] font-semibold text-danger hover:bg-[var(--danger-light)] disabled:opacity-50"
                               >
                                 Remove
                               </button>
@@ -641,7 +641,7 @@ const HolidayCalendarModal = ({
                     )}
 
                     <div>
-                      <label className="block text-xs font-medium uppercase tracking-wide text-gray-500">
+                      <label className="block text-xs font-medium uppercase tracking-wide text-muted-text">
                         Holiday title
                       </label>
                       <input
@@ -649,12 +649,12 @@ const HolidayCalendarModal = ({
                         value={localTitle}
                         onChange={(event) => setLocalTitle(event.target.value)}
                         placeholder="e.g. Founders' Day"
-                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="mt-1 w-full rounded-md border border-border-strong px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                         disabled={mutationLoading}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium uppercase tracking-wide text-gray-500">
+                      <label className="block text-xs font-medium uppercase tracking-wide text-muted-text">
                         Notes (visible to staff)
                       </label>
                       <textarea
@@ -662,7 +662,7 @@ const HolidayCalendarModal = ({
                         onChange={(event) => setLocalDescription(event.target.value)}
                         placeholder="Optional: add a note for this holiday"
                         rows={3}
-                        className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="mt-1 w-full rounded-md border border-border-strong px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                         disabled={mutationLoading}
                       />
                     </div>
@@ -674,11 +674,11 @@ const HolidayCalendarModal = ({
                         type="button"
                         onClick={handleCreateHoliday}
                         disabled={mutationLoading}
-                        className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                        className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:bg-primary"
                       >
                         {mutationLoading ? (
                           <>
-                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-surface border-t-transparent" />
                             Saving…
                           </>
                         ) : (
@@ -691,55 +691,55 @@ const HolidayCalendarModal = ({
               </div>
             )}
 
-            <div className="mt-6 space-y-3 border-t border-gray-200 pt-4">
-              <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <div className="mt-6 space-y-3 border-t border-border pt-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-muted-text">
                 Calendar Legend
               </div>
-              <div className="grid grid-cols-1 gap-2 text-xs text-gray-600">
+              <div className="grid grid-cols-1 gap-2 text-xs text-sub">
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex h-5 w-5 rounded border-2 border-orange-300 bg-orange-50" />
+                  <span className="inline-flex h-5 w-5 rounded border-2 border-[var(--warning-light)] bg-[var(--warning-light)]" />
                   <span className="font-medium">Public Holiday</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex h-5 w-5 rounded border-2 border-purple-300 bg-purple-50" />
+                  <span className="inline-flex h-5 w-5 rounded border-2 border-[var(--primary-light)] bg-[var(--primary-light)]" />
                   <span className="font-medium">Institute Holiday</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex h-5 w-5 rounded border-2 border-amber-300 bg-amber-50" />
+                  <span className="inline-flex h-5 w-5 rounded border-2 border-[var(--warning-light)] bg-[var(--warning-light)]" />
                   <span className="font-medium">Sunday</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex h-5 w-5 rounded border-2 border-blue-300 bg-blue-50" />
+                  <span className="inline-flex h-5 w-5 rounded border-2 border-[var(--primary-light)] bg-[var(--primary-light)]" />
                   <span className="font-medium">Working Day</span>
                 </div>
-                <div className="mt-2 pt-2 border-t border-gray-200">
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-500 mb-1">
+                <div className="mt-2 pt-2 border-t border-border">
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-text mb-1">
                     Attendance Status
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex h-4 w-4 rounded-full border border-emerald-200 bg-emerald-100" />
+                    <span className="inline-flex h-4 w-4 rounded-full border border-[var(--success-light)] bg-[var(--success-light)]" />
                     <span>Submitted</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex h-4 w-4 rounded-full border border-rose-200 bg-rose-100" />
+                    <span className="inline-flex h-4 w-4 rounded-full border border-[var(--danger-light)] bg-[var(--danger-light)]" />
                     <span>Not marked</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex h-4 w-4 rounded-full border border-amber-200 bg-amber-100" />
+                    <span className="inline-flex h-4 w-4 rounded-full border border-[var(--warning-light)] bg-[var(--warning-light)]" />
                     <span>Pending</span>
                   </div>
                 </div>
               </div>
 
               <div className="mt-4">
-                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-text">
                   This month&apos;s holidays
                 </div>
-                <div className="mt-2 max-h-48 space-y-2 overflow-y-auto pr-2 text-sm text-gray-600">
+                <div className="mt-2 max-h-48 space-y-2 overflow-y-auto pr-2 text-sm text-sub">
                   {data.publicHolidays?.length === 0 &&
                     data.customHolidays?.length === 0 &&
                     data.sundays?.length === 0 ? (
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-500">
+                    <div className="rounded-lg border border-border bg-background p-3 text-xs text-muted-text">
                       No holidays recorded for this month yet.
                     </div>
                   ) : (
@@ -747,11 +747,11 @@ const HolidayCalendarModal = ({
                       {(data.publicHolidays || []).map((holiday) => (
                         <div
                           key={`public-${holiday.date}`}
-                          className="flex items-start gap-2 rounded-lg border border-orange-100 bg-orange-50 p-2 text-orange-700"
+                          className="flex items-start gap-2 rounded-lg border border-[var(--warning-light)] bg-[var(--warning-light)] p-2 text-warning"
                         >
-                          <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-orange-400" />
+                          <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-warning" />
                           <div>
-                            <div className="text-xs font-semibold uppercase tracking-wide text-orange-800">
+                            <div className="text-xs font-semibold uppercase tracking-wide text-warning">
                               {formatIsoDate(holiday.date, {
                                 day: 'numeric',
                                 month: 'short',
@@ -762,7 +762,7 @@ const HolidayCalendarModal = ({
                               {holiday.localName || holiday.name}
                             </div>
                             {holiday.name && holiday.localName && holiday.localName !== holiday.name && (
-                              <div className="text-xs text-orange-600">{holiday.name}</div>
+                              <div className="text-xs text-warning">{holiday.name}</div>
                             )}
                           </div>
                         </div>
@@ -770,11 +770,11 @@ const HolidayCalendarModal = ({
                       {(data.customHolidays || []).map((holiday) => (
                         <div
                           key={`custom-${holiday.id || holiday.date}-${holiday.title}`}
-                          className="flex items-start gap-2 rounded-lg border border-purple-100 bg-purple-50 p-2 text-purple-700"
+                          className="flex items-start gap-2 rounded-lg border border-[var(--primary-light)] bg-[var(--primary-light)] p-2 text-secondary"
                         >
-                          <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-purple-400" />
+                          <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-secondary" />
                           <div>
-                            <div className="text-xs font-semibold uppercase tracking-wide text-purple-800">
+                            <div className="text-xs font-semibold uppercase tracking-wide text-secondary">
                               {formatIsoDate(holiday.date, {
                                 day: 'numeric',
                                 month: 'short',
@@ -783,20 +783,20 @@ const HolidayCalendarModal = ({
                             </div>
                             <div className="text-sm font-semibold">{holiday.title || 'Institute Holiday'}</div>
                             {holiday.description && (
-                              <div className="text-xs text-purple-600">{holiday.description}</div>
+                              <div className="text-xs text-secondary">{holiday.description}</div>
                             )}
-                            <div className="text-[11px] text-purple-600">{formatHolidayScope(holiday)}</div>
+                            <div className="text-[11px] text-secondary">{formatHolidayScope(holiday)}</div>
                           </div>
                         </div>
                       ))}
                       {(data.sundays || []).map((iso) => (
                         <div
                           key={`sunday-${iso}`}
-                          className="flex items-start gap-2 rounded-lg border border-amber-100 bg-amber-50 p-2 text-amber-700"
+                          className="flex items-start gap-2 rounded-lg border border-[var(--warning-light)] bg-[var(--warning-light)] p-2 text-warning"
                         >
-                          <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-amber-400" />
+                          <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-warning" />
                           <div>
-                            <div className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+                            <div className="text-xs font-semibold uppercase tracking-wide text-warning">
                               {formatIsoDate(iso, {
                                 day: 'numeric',
                                 month: 'short',

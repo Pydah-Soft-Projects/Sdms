@@ -545,9 +545,9 @@ const StudentAnnouncements = () => {
 
     if (loading && announcements.length === 0 && polls.length === 0 && events.length === 0) {
         return (
-            <div className="animate-pulse bg-gray-50/50 min-h-screen">
-                <div className="sticky top-0 bg-white/95 border-b border-slate-100 px-3 sm:px-6 py-2 flex items-center justify-center">
-                    <div className="flex gap-1 w-full max-w-md bg-slate-100/90 p-1 rounded-xl">
+            <div className="animate-pulse bg-[var(--background)]/50 min-h-screen">
+                <div className="sticky top-0 bg-[var(--surface)]/95 border-b border-border px-3 sm:px-6 py-2 flex items-center justify-center">
+                    <div className="flex gap-1 w-full max-w-md bg-[var(--background)]/90 p-1 rounded-xl">
                         <SkeletonBox height="h-8" className="flex-1 rounded-lg" />
                         <SkeletonBox height="h-8" className="flex-1 rounded-lg" />
                         <SkeletonBox height="h-8" className="flex-1 rounded-lg" />
@@ -556,7 +556,7 @@ const StudentAnnouncements = () => {
                 <div className="p-3 sm:p-6 pt-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                         {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="bg-white rounded-xl border border-slate-100 p-3 flex flex-col space-y-2.5">
+                            <div key={i} className="bg-surface rounded-xl border border-border p-3 flex flex-col space-y-2.5">
                                 <SkeletonBox height="h-32" className="w-full rounded-lg" />
                                 <SkeletonBox height="h-3.5" width="w-2/3" />
                                 <SkeletonBox height="h-3" width="w-1/3" />
@@ -569,15 +569,15 @@ const StudentAnnouncements = () => {
     }
 
     return (
-        <div className="animate-fade-in bg-gray-50/50 min-h-screen">
+        <div className="animate-fade-in bg-[var(--background)]/50 min-h-screen">
 
             {/* ── Sticky Tab Bar ── */}
             <div className="sticky top-0 z-30 px-3 sm:px-6 py-2 flex items-center justify-center">
-                <div className="bg-slate-200/70 backdrop-blur-md border border-slate-200/80 rounded-xl p-1 flex gap-1 w-full max-w-md shadow-xs">
+                <div className="bg-[var(--background)]/70 backdrop-blur-md border border-border rounded-xl p-1 flex gap-1 w-full max-w-md shadow-xs">
                     <button
                         id="tab-announcements"
                         onClick={() => setActiveTab('announcements')}
-                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap min-w-0 ${activeTab === 'announcements' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200/60' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'}`}
+                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap min-w-0 ${activeTab === 'announcements' ? 'bg-primary text-white shadow-md shadow-primary/60' : 'text-sub hover:text-main hover:bg-[var(--surface)]/50'}`}
                     >
                         <Megaphone size={13} className="shrink-0" />
                         <span className="truncate">Announcements</span>
@@ -585,7 +585,7 @@ const StudentAnnouncements = () => {
                     <button
                         id="tab-events"
                         onClick={() => setActiveTab('events')}
-                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap min-w-0 ${activeTab === 'events' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200/60' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'}`}
+                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap min-w-0 ${activeTab === 'events' ? 'bg-primary text-white shadow-md shadow-primary/60' : 'text-sub hover:text-main hover:bg-[var(--surface)]/50'}`}
                     >
                         <Calendar size={13} className="shrink-0" />
                         <span className="truncate">Events</span>
@@ -593,7 +593,7 @@ const StudentAnnouncements = () => {
                     <button
                         id="tab-polls"
                         onClick={() => setActiveTab('polls')}
-                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap min-w-0 ${activeTab === 'polls' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200/60' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'}`}
+                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:py-2 rounded-lg font-bold text-xs sm:text-sm transition-all duration-200 whitespace-nowrap min-w-0 ${activeTab === 'polls' ? 'bg-primary text-white shadow-md shadow-primary/60' : 'text-sub hover:text-main hover:bg-[var(--surface)]/50'}`}
                     >
                         <BarChart2 size={13} className="shrink-0" />
                         <span className="truncate">Campus Polls</span>
@@ -607,12 +607,12 @@ const StudentAnnouncements = () => {
             {activeTab === 'announcements' && (
                 <div>
                     {announcements.length === 0 ? (
-                        <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-100">
-                            <div className="mx-auto w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-400 mb-3">
+                        <div className="text-center py-16 bg-surface rounded-2xl shadow-sm border border-border">
+                            <div className="mx-auto w-14 h-14 bg-[var(--primary-light)] rounded-2xl flex items-center justify-center text-primary mb-3">
                                 <Megaphone size={26} />
                             </div>
-                            <h3 className="text-base font-black text-slate-800 tracking-tight">No Announcements</h3>
-                            <p className="text-slate-400 font-medium text-xs mt-1">Nothing new right now.</p>
+                            <h3 className="text-base font-black text-main tracking-tight">No Announcements</h3>
+                            <p className="text-muted-text font-medium text-xs mt-1">Nothing new right now.</p>
                         </div>
                     ) : (
                         <>
@@ -629,27 +629,27 @@ const StudentAnnouncements = () => {
                                         <div
                                             key={ann.id}
                                             onClick={() => setSelectedAnnouncement(ann)}
-                                            className={`rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full bg-white ${type === 'achievement' ? 'border-amber-300/80 bg-gradient-to-b from-amber-50/25 to-white' : ''}`}
+                                            className={`rounded-2xl border border-border shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full bg-surface ${type === 'achievement' ? 'border-[var(--warning-light)] bg-gradient-to-b from-[var(--warning-light)] to-surface' : ''}`}
                                         >
                                             {/* Type Banner / Image / PDF Showcase */}
                                             {type === 'circular' ? (
-                                                <div className="w-full p-4 bg-gradient-to-br from-rose-50 via-red-50/40 to-white border-b border-rose-100 shrink-0">
+                                                <div className="w-full p-4 bg-gradient-to-br from-[var(--danger-light)] via-[var(--danger-light)] to-surface border-b border-[var(--danger-light)] shrink-0">
                                                     <div className="flex items-center justify-between mb-2">
-                                                        <span className="inline-flex items-center gap-1 bg-rose-600 text-white px-2.5 py-0.5 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-xs">
+                                                        <span className="inline-flex items-center gap-1 bg-danger text-white px-2.5 py-0.5 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-xs">
                                                             <FileText size={11} /> Official Circular
                                                         </span>
-                                                        <span className="text-[10px] font-bold text-slate-400">
+                                                        <span className="text-[10px] font-bold text-muted-text">
                                                             {formatTarget(ann.target_college)}
                                                         </span>
                                                     </div>
-                                                    <div className="p-3 bg-white border border-rose-200 rounded-xl flex items-center justify-between gap-3 shadow-2xs">
+                                                    <div className="p-3 bg-surface border border-[var(--danger-light)] rounded-xl flex items-center justify-between gap-3 shadow-2xs">
                                                         <div className="flex items-center gap-2.5 min-w-0">
-                                                            <div className="w-9 h-9 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                                            <div className="w-9 h-9 rounded-lg bg-danger text-white flex items-center justify-center shrink-0 shadow-xs">
                                                                 <FileText size={18} />
                                                             </div>
                                                             <div className="min-w-0">
-                                                                <p className="text-xs font-bold text-slate-900 truncate">{ann.title}</p>
-                                                                <span className="text-[9px] font-bold text-rose-600 uppercase tracking-wider block">
+                                                                <p className="text-xs font-bold text-main truncate">{ann.title}</p>
+                                                                <span className="text-[9px] font-bold text-danger uppercase tracking-wider block">
                                                                     Circular No. {getCircularNumberForCollege(ann.circular_numbers, user?.college) || 'Generated PDF'}
                                                                 </span>
                                                             </div>
@@ -667,7 +667,7 @@ const StudentAnnouncements = () => {
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 onClick={e => e.stopPropagation()}
-                                                                className="px-2.5 py-1.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-700 rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
+                                                                className="px-2.5 py-1.5 bg-surface border border-[var(--danger-light)] hover:bg-[var(--danger-light)] text-danger rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
                                                             >
                                                                 <ExternalLink size={12} /> Attachment
                                                             </a>
@@ -675,57 +675,57 @@ const StudentAnnouncements = () => {
                                                     </div>
                                                 </div>
                                             ) : type === 'achievement' ? (
-                                                <div className="w-full p-4 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-white shrink-0 shadow-xs">
+                                                <div className="w-full p-4 bg-gradient-to-r from-warning via-warning to-warning text-white shrink-0 shadow-xs">
                                                     <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-wider mb-2">
                                                         <span className="flex items-center gap-1 bg-black/20 px-2 py-0.5 rounded-full">
                                                             <Trophy size={11} /> Hackathon Topper
                                                         </span>
-                                                        <span className="bg-white/20 px-2 py-0.5 rounded-full">
+                                                        <span className="bg-[var(--surface)]/20 px-2 py-0.5 rounded-full">
                                                             {ach.rank_title || 'Champion'}
                                                         </span>
                                                     </div>
                                                     <div className="grid gap-2 sm:grid-cols-2">
                                                         {achievementStudents.map((student, index) => (
-                                                            <div key={student.id || `${student.student_name}-${index}`} className="flex items-center gap-3 bg-white/95 text-slate-900 p-3 rounded-xl shadow-xs">
-                                                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400 shrink-0 bg-amber-50 shadow-xs">
+                                                            <div key={student.id || `${student.student_name}-${index}`} className="flex items-center gap-3 bg-[var(--surface)]/95 text-main p-3 rounded-xl shadow-xs">
+                                                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-warning shrink-0 bg-[var(--warning-light)] shadow-xs">
                                                                     {student.student_photo || ann.image_url ? (
                                                                         <img src={student.student_photo || ann.image_url} alt={student.student_name || 'Student'} className="w-full h-full object-cover" />
                                                                     ) : (
-                                                                        <div className="w-full h-full flex items-center justify-center text-amber-600"><User size={22} /></div>
+                                                                        <div className="w-full h-full flex items-center justify-center text-warning"><User size={22} /></div>
                                                                     )}
                                                                 </div>
                                                                 <div className="min-w-0 flex-1">
-                                                                    <h4 className="font-black text-xs sm:text-sm text-slate-900 truncate leading-tight">{student.student_name || 'Student'}</h4>
+                                                                    <h4 className="font-black text-xs sm:text-sm text-main truncate leading-tight">{student.student_name || 'Student'}</h4>
                                                                     <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                                                                        {student.branch && <span className="px-1.5 py-0.2 rounded bg-blue-50 text-blue-800 text-[10px] font-bold">{student.branch}</span>}
-                                                                        {student.year_sem && <span className="px-1.5 py-0.2 rounded bg-purple-50 text-purple-800 text-[10px] font-bold">{student.year_sem}</span>}
+                                                                        {student.branch && <span className="px-1.5 py-0.2 rounded bg-[var(--primary-light)] text-primary text-[10px] font-bold">{student.branch}</span>}
+                                                                        {student.year_sem && <span className="px-1.5 py-0.2 rounded bg-[var(--primary-light)] text-secondary text-[10px] font-bold">{student.year_sem}</span>}
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         ))}
-                                                        {ach.topper_prize && <p className="text-[10px] font-black text-amber-800 sm:col-span-2">🏆 {ach.topper_prize}</p>}
+                                                        {ach.topper_prize && <p className="text-[10px] font-black text-warning sm:col-span-2">🏆 {ach.topper_prize}</p>}
                                                     </div>
                                                 </div>
                                             ) : ann.image_url ? (
-                                                <div className="w-full h-44 sm:h-48 bg-slate-100 overflow-hidden relative shrink-0">
+                                                <div className="w-full h-44 sm:h-48 bg-background overflow-hidden relative shrink-0">
                                                     <img src={ann.image_url} alt={ann.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                                    <span className={`absolute top-2.5 right-2.5 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm ${type === 'event' ? 'bg-purple-600/95' : type === 'poll' ? 'bg-emerald-600/95' : 'bg-indigo-600/95'}`}>
+                                                    <span className={`absolute top-2.5 right-2.5 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm ${type === 'event' ? 'bg-[var(--primary-light)]' : type === 'poll' ? 'bg-[var(--success-light)]' : 'bg-[var(--primary-light)]'}`}>
                                                         {type === 'event' ? 'Event' : type === 'poll' ? 'Poll' : 'Announcement'}
                                                     </span>
                                                     <div className="absolute bottom-2.5 left-2.5 z-10">
-                                                        <span className="bg-indigo-600/95 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
+                                                        <span className="bg-[var(--primary-light)] backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
                                                             {formatTarget(ann.target_college)}
                                                         </span>
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div className="w-full h-44 sm:h-48 bg-slate-900 overflow-hidden relative shrink-0">
+                                                <div className="w-full h-44 sm:h-48 bg-sidebar overflow-hidden relative shrink-0">
                                                     <img src="/images/announcement-fallback.jpg" alt={ann.title} className="w-full h-full object-cover" />
-                                                    <span className={`absolute top-2.5 right-2.5 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm ${type === 'event' ? 'bg-purple-600/95' : type === 'poll' ? 'bg-emerald-600/95' : 'bg-indigo-600/95'}`}>
+                                                    <span className={`absolute top-2.5 right-2.5 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm ${type === 'event' ? 'bg-[var(--primary-light)]' : type === 'poll' ? 'bg-[var(--success-light)]' : 'bg-[var(--primary-light)]'}`}>
                                                         {type === 'event' ? 'Event' : type === 'poll' ? 'Poll' : 'Announcement'}
                                                     </span>
                                                     <div className="absolute bottom-2.5 left-2.5 z-10">
-                                                        <span className="bg-indigo-600/95 backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
+                                                        <span className="bg-[var(--primary-light)] backdrop-blur-sm text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">
                                                             {formatTarget(ann.target_college)}
                                                         </span>
                                                     </div>
@@ -735,22 +735,22 @@ const StudentAnnouncements = () => {
                                             {/* Content */}
                                             <div className="p-4 flex-1 flex flex-col justify-between">
                                                 <div>
-                                                    <div className="flex items-center justify-between gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">
+                                                    <div className="flex items-center justify-between gap-1.5 text-[10px] uppercase font-bold tracking-wider text-muted-text mb-2">
                                                         <div className="flex items-center gap-1.5">
-                                                            <Calendar size={12} className="text-indigo-500 shrink-0" />
+                                                            <Calendar size={12} className="text-primary shrink-0" />
                                                             <span>{new Date(ann.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                                         </div>
                                                         {Boolean(ann.requires_registration) && (
                                                             ann.is_registered ? (
-                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-[var(--success-light)] text-success border border-[var(--success-light)]">
                                                                     <CheckCircle size={10} /> Registered
                                                                 </span>
                                                             ) : ann.is_full ? (
-                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-rose-700 border border-rose-200">
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]">
                                                                     Seats Full
                                                                 </span>
                                                             ) : (
-                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                                                                     <Ticket size={10} /> {ann.available_seats !== null ? `${ann.available_seats} left` : 'Register'}
                                                                 </span>
                                                             )
@@ -758,23 +758,23 @@ const StudentAnnouncements = () => {
                                                     </div>
 
                                                     {/* Headline / Subject Line */}
-                                                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-indigo-600 transition-colors">
-                                                        {type === 'circular' && <span className="text-rose-600 mr-1 text-xs uppercase font-mono">Sub:</span>}
+                                                    <h3 className="text-sm sm:text-base font-extrabold text-main leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                                                        {type === 'circular' && <span className="text-danger mr-1 text-xs uppercase font-mono">Sub:</span>}
                                                         {ann.title}
                                                     </h3>
 
                                                     {/* Type 2 Event Sub-Banner */}
                                                     {type === 'event' && (ann.event_date || ann.event_venue) && (
-                                                        <div className="mt-2 p-2 bg-purple-50/70 rounded-xl text-xs text-purple-900 font-semibold space-y-0.5">
+                                                        <div className="mt-2 p-2 bg-[var(--primary-light)] rounded-xl text-xs text-secondary font-semibold space-y-0.5">
                                                             {ann.event_date && (
                                                                 <div className="flex items-center gap-1">
-                                                                    <Calendar size={12} className="text-purple-600" />
+                                                                    <Calendar size={12} className="text-secondary" />
                                                                     <span>{ann.event_date} {ann.event_time ? `(${ann.event_time})` : ''}</span>
                                                                 </div>
                                                             )}
                                                             {ann.event_venue && (
-                                                                <div className="flex items-center gap-1 text-[11px] text-purple-700">
-                                                                    <MapPin size={11} className="text-purple-500" />
+                                                                <div className="flex items-center gap-1 text-[11px] text-secondary">
+                                                                    <MapPin size={11} className="text-secondary" />
                                                                     <span className="truncate">{ann.event_venue}</span>
                                                                 </div>
                                                             )}
@@ -783,10 +783,10 @@ const StudentAnnouncements = () => {
 
                                                     {/* Type 3 Poll Interactive Voting in Feed */}
                                                     {type === 'poll' && Array.isArray(ann.poll_options) && ann.poll_options.length > 0 && (
-                                                        <div className="mt-3 space-y-2 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100" onClick={e => e.stopPropagation()}>
+                                                        <div className="mt-3 space-y-2 p-3 bg-[var(--success-light)] rounded-xl border border-[var(--success-light)]" onClick={e => e.stopPropagation()}>
                                                             {ann.has_voted ? (
                                                                 <div className="space-y-1.5">
-                                                                    <div className="text-[10px] font-bold text-emerald-800 uppercase flex items-center justify-between">
+                                                                    <div className="text-[10px] font-bold text-success uppercase flex items-center justify-between">
                                                                         <span className="flex items-center gap-1"><CheckCircle size={11} /> You Voted</span>
                                                                         <span>{ann.total_votes || 0} Votes</span>
                                                                     </div>
@@ -798,13 +798,13 @@ const StudentAnnouncements = () => {
                                                                         return (
                                                                             <div key={oIdx} className="text-xs">
                                                                                 <div className="flex justify-between text-[11px] mb-0.5">
-                                                                                    <span className={`font-semibold ${isMyChoice ? 'text-emerald-800 font-black' : 'text-slate-600'}`}>
+                                                                                    <span className={`font-semibold ${isMyChoice ? 'text-success font-black' : 'text-sub'}`}>
                                                                                         {opt} {isMyChoice && '✓'}
                                                                                     </span>
-                                                                                    <span className="font-mono text-slate-500">{pct}%</span>
+                                                                                    <span className="font-mono text-muted-text">{pct}%</span>
                                                                                 </div>
-                                                                                <div className="h-1.5 w-full bg-emerald-100 rounded-full overflow-hidden">
-                                                                                    <div className="h-full bg-emerald-600 rounded-full" style={{ width: `${pct}%` }}></div>
+                                                                                <div className="h-1.5 w-full bg-[var(--success-light)] rounded-full overflow-hidden">
+                                                                                    <div className="h-full bg-success rounded-full" style={{ width: `${pct}%` }}></div>
                                                                                 </div>
                                                                             </div>
                                                                         );
@@ -812,16 +812,16 @@ const StudentAnnouncements = () => {
                                                                 </div>
                                                             ) : (
                                                                 <div className="space-y-1.5">
-                                                                    <span className="text-[10px] font-bold text-emerald-800 uppercase block">Vote on this poll:</span>
+                                                                    <span className="text-[10px] font-bold text-success uppercase block">Vote on this poll:</span>
                                                                     {ann.poll_options.map((opt, oIdx) => (
                                                                         <button
                                                                             key={oIdx}
                                                                             type="button"
                                                                             onClick={(e) => handleAnnouncementPollVote(e, ann.id, oIdx)}
-                                                                            className="w-full text-left p-2 rounded-lg bg-white hover:bg-emerald-100 border border-emerald-200 text-xs font-semibold text-slate-700 hover:text-emerald-900 transition-colors flex items-center justify-between"
+                                                                            className="w-full text-left p-2 rounded-lg bg-surface hover:bg-[var(--success-light)] border border-[var(--success-light)] text-xs font-semibold text-sub hover:text-success transition-colors flex items-center justify-between"
                                                                         >
                                                                             <span className="truncate pr-2">{opt}</span>
-                                                                            <span className="text-[10px] text-emerald-600 font-bold">Vote</span>
+                                                                            <span className="text-[10px] text-success font-bold">Vote</span>
                                                                         </button>
                                                                     ))}
                                                                 </div>
@@ -830,17 +830,17 @@ const StudentAnnouncements = () => {
                                                     )}
 
                                                     {ann.content && (
-                                                        <p className="text-xs text-slate-500 line-clamp-2 mt-2 leading-relaxed">
+                                                        <p className="text-xs text-muted-text line-clamp-2 mt-2 leading-relaxed">
                                                             {ann.content}
                                                         </p>
                                                     )}
                                                 </div>
-                                                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider">
+                                                <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[10px] font-extrabold text-primary uppercase tracking-wider">
                                                     <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                                                         {type === 'circular' ? (
-                                                            <span className="text-rose-600 flex items-center gap-1">Download Circular <FileDown size={12} /></span>
+                                                            <span className="text-danger flex items-center gap-1">Download Circular <FileDown size={12} /></span>
                                                         ) : Boolean(ann.requires_registration) && !ann.is_registered ? (
-                                                            <span className="text-indigo-600 flex items-center gap-1">
+                                                            <span className="text-primary flex items-center gap-1">
                                                                 {type === 'form' ? 'Respond Now' : 'Register Now'} <ChevronRight size={12} />
                                                             </span>
                                                         ) : (
@@ -859,13 +859,13 @@ const StudentAnnouncements = () => {
                                 <div ref={sentinelRef} className="flex justify-center py-5">
                                     {isFetchingMore && (
                                         <div className="flex items-center gap-2">
-                                            <Loader2 size={16} className="animate-spin text-indigo-500" />
-                                            <span className="text-[11px] font-bold text-slate-400">Loading more...</span>
+                                            <Loader2 size={16} className="animate-spin text-primary" />
+                                            <span className="text-[11px] font-bold text-muted-text">Loading more...</span>
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest py-4">All caught up</p>
+                                <p className="text-center text-[10px] font-bold text-muted-text uppercase tracking-widest py-4">All caught up</p>
                             )}
                         </>
                     )}
@@ -878,7 +878,7 @@ const StudentAnnouncements = () => {
                     {loading && events.length === 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                             {Array.from({ length: 4 }).map((_, index) => (
-                                <div key={index} className="rounded-2xl border border-slate-100 bg-white p-3 space-y-3">
+                                <div key={index} className="rounded-2xl border border-border bg-surface p-3 space-y-3">
                                     <SkeletonBox height="h-44" className="w-full rounded-xl" />
                                     <SkeletonBox height="h-4" width="w-2/3" />
                                     <SkeletonBox height="h-3" width="w-1/3" />
@@ -886,12 +886,12 @@ const StudentAnnouncements = () => {
                             ))}
                         </div>
                     ) : events.length === 0 ? (
-                        <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-100">
-                            <div className="mx-auto w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-400 mb-3">
+                        <div className="text-center py-16 bg-surface rounded-2xl shadow-sm border border-border">
+                            <div className="mx-auto w-14 h-14 bg-[var(--primary-light)] rounded-2xl flex items-center justify-center text-primary mb-3">
                                 <Calendar size={26} />
                             </div>
-                            <h3 className="text-base font-black text-slate-800 tracking-tight">No Events</h3>
-                            <p className="text-slate-400 font-medium text-xs mt-1">There are no upcoming campus events right now.</p>
+                            <h3 className="text-base font-black text-main tracking-tight">No Events</h3>
+                            <p className="text-muted-text font-medium text-xs mt-1">There are no upcoming campus events right now.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -903,29 +903,29 @@ const StudentAnnouncements = () => {
                                         setSelectedEvent(event);
                                         openEventRegistration(event);
                                     }}
-                                    className="rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full bg-white text-left"
+                                    className="rounded-2xl border border-border shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full bg-surface text-left"
                                 >
                                     <div className="w-full h-44 sm:h-48 overflow-hidden relative shrink-0">
                                         <EventPoster event={event} className="group-hover:scale-105 transition-transform duration-500" />
-                                        <span className="absolute top-2.5 right-2.5 bg-purple-600/95 text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">Event</span>
+                                        <span className="absolute top-2.5 right-2.5 bg-[var(--primary-light)] text-white px-2.5 py-1 rounded-lg text-[9px] uppercase font-black tracking-widest shadow-sm">Event</span>
                                     </div>
                                     <div className="p-4 flex-1 flex flex-col justify-between">
                                         <div>
-                                            <div className="flex items-center justify-between gap-2 text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-2">
+                                            <div className="flex items-center justify-between gap-2 text-[10px] uppercase font-bold tracking-wider text-muted-text mb-2">
                                                 <span className="inline-flex items-center gap-1.5">
-                                                    <Calendar size={12} className="text-indigo-500 shrink-0" />
+                                                    <Calendar size={12} className="text-primary shrink-0" />
                                                     {new Date(event.event_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                 </span>
                                                 {Boolean(event.requires_registration) && (
                                                     event.my_registration_id
-                                                        ? <span className="text-emerald-700">Registered</span>
-                                                        : <span className="text-indigo-700"><Ticket size={10} className="inline" /> Register</span>
+                                                        ? <span className="text-success">Registered</span>
+                                                        : <span className="text-primary"><Ticket size={10} className="inline" /> Register</span>
                                                 )}
                                             </div>
-                                            <h3 className="text-sm font-black text-slate-900 line-clamp-2 group-hover:text-indigo-700">{event.title}</h3>
-                                            <p className="mt-1 text-xs text-slate-500 line-clamp-3">{event.description || 'No description provided.'}</p>
+                                            <h3 className="text-sm font-black text-main line-clamp-2 group-hover:text-primary">{event.title}</h3>
+                                            <p className="mt-1 text-xs text-muted-text line-clamp-3">{event.description || 'No description provided.'}</p>
                                         </div>
-                                        <div className="mt-4 border-t border-slate-100 pt-3 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+                                        <div className="mt-4 border-t border-border pt-3 flex items-center justify-between text-[11px] font-semibold text-muted-text">
                                             <span>{event.start_time || 'All day'}</span>
                                             {Boolean(event.requires_registration) && <span>{event.registered_count || 0}{event.max_seats ? ` / ${event.max_seats}` : ''} registered</span>}
                                         </div>
@@ -941,12 +941,12 @@ const StudentAnnouncements = () => {
             {activeTab === 'polls' && (
                 <div>
                     {polls.length === 0 ? (
-                        <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-100">
-                            <div className="mx-auto w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500 mb-3">
+                        <div className="text-center py-16 bg-surface rounded-2xl shadow-sm border border-border">
+                            <div className="mx-auto w-14 h-14 bg-[var(--primary-light)] rounded-2xl flex items-center justify-center text-primary mb-3">
                                 <BarChart2 size={26} />
                             </div>
-                            <h3 className="text-base font-black text-slate-800 tracking-tight">No Active Polls</h3>
-                            <p className="text-slate-400 font-medium text-xs mt-1">Check back later for new polls.</p>
+                            <h3 className="text-base font-black text-main tracking-tight">No Active Polls</h3>
+                            <p className="text-muted-text font-medium text-xs mt-1">Check back later for new polls.</p>
                         </div>
                     ) : (
                         <>
@@ -956,24 +956,24 @@ const StudentAnnouncements = () => {
                                     const timeLeft = poll.end_time ? new Date(poll.end_time) - new Date() : null;
                                     const isUrgent = timeLeft && timeLeft < 86400000;
                                     return (
-                                        <div key={poll.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                                            <div className="flex items-start gap-2.5 px-3 py-2.5 border-b border-slate-50">
-                                                <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0 mt-0.5">
-                                                    <BarChart2 size={13} className="text-indigo-500" />
+                                        <div key={poll.id} className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+                                            <div className="flex items-start gap-2.5 px-3 py-2.5 border-b border-border">
+                                                <div className="w-7 h-7 rounded-lg bg-[var(--primary-light)] flex items-center justify-center shrink-0 mt-0.5">
+                                                    <BarChart2 size={13} className="text-primary" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-[12px] font-black text-slate-800 leading-snug line-clamp-2">{poll.question}</p>
-                                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                                                    <p className="text-[12px] font-black text-main leading-snug line-clamp-2">{poll.question}</p>
+                                                    <p className="text-[9px] text-muted-text font-bold uppercase tracking-wider mt-0.5">
                                                         {new Date(poll.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                                                         {poll.end_time && ` · Ends ${new Date(poll.end_time).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}`}
                                                     </p>
                                                 </div>
                                                 {poll.has_voted ? (
-                                                    <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-lg uppercase tracking-wider shrink-0 flex items-center gap-0.5 mt-0.5">
+                                                    <span className="text-[9px] font-black text-success bg-[var(--success-light)] border border-[var(--success-light)] px-1.5 py-0.5 rounded-lg uppercase tracking-wider shrink-0 flex items-center gap-0.5 mt-0.5">
                                                         <CheckCircle size={9} /> Done
                                                     </span>
                                                 ) : (
-                                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-lg uppercase tracking-wider shrink-0 flex items-center gap-0.5 border mt-0.5 ${isUrgent ? 'text-rose-600 bg-rose-50 border-rose-100 animate-pulse' : 'text-indigo-600 bg-indigo-50 border-indigo-100'}`}>
+                                                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-lg uppercase tracking-wider shrink-0 flex items-center gap-0.5 border mt-0.5 ${isUrgent ? 'text-danger bg-[var(--danger-light)] border-[var(--danger-light)] animate-pulse' : 'text-primary bg-[var(--primary-light)] border-[var(--primary-light)]'}`}>
                                                         {isUrgent ? <><Clock size={9} /> Soon</> : <><AlertCircle size={9} /> Vote</>}
                                                     </span>
                                                 )}
@@ -985,20 +985,20 @@ const StudentAnnouncements = () => {
                                                             key={idx}
                                                             onClick={() => handleVote(poll.id, idx)}
                                                             disabled={votingId === poll.id}
-                                                            className="w-full text-left px-3 py-2 rounded-xl border border-slate-100 bg-slate-50 hover:border-indigo-300 hover:bg-indigo-50/60 transition-all text-[11px] font-bold text-slate-700 flex items-center justify-between gap-2 active:scale-[0.98] relative overflow-hidden"
+                                                            className="w-full text-left px-3 py-2 rounded-xl border border-border bg-background hover:border-[var(--primary-light)] hover:bg-[var(--primary-light)] transition-all text-[11px] font-bold text-sub flex items-center justify-between gap-2 active:scale-[0.98] relative overflow-hidden"
                                                         >
                                                             <span className="truncate">{opt}</span>
-                                                            <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200 shrink-0" />
+                                                            <div className="w-3.5 h-3.5 rounded-full border-2 border-border shrink-0" />
                                                             {votingId === poll.id && (
-                                                                <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
-                                                                    <Loader2 className="animate-spin text-indigo-600" size={13} />
+                                                                <div className="absolute inset-0 bg-[var(--surface)]/80 flex items-center justify-center">
+                                                                    <Loader2 className="animate-spin text-primary" size={13} />
                                                                 </div>
                                                             )}
                                                         </button>
                                                     ))}
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center gap-2 px-3 py-2.5 text-emerald-600">
+                                                <div className="flex items-center gap-2 px-3 py-2.5 text-success">
                                                     <CheckCircle size={13} />
                                                     <span className="text-[11px] font-black">Your vote has been recorded.</span>
                                                 </div>
@@ -1014,37 +1014,37 @@ const StudentAnnouncements = () => {
                                     const timeLeft = poll.end_time ? new Date(poll.end_time) - new Date() : null;
                                     const isUrgent = timeLeft && timeLeft < 86400000;
                                     return (
-                                        <div key={poll.id} className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6 sm:p-8 hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative flex flex-col h-full group">
+                                        <div key={poll.id} className="bg-surface rounded-[2rem] shadow-sm border border-border p-6 sm:p-8 hover:shadow-md hover:-translate-y-1 transition-all duration-300 relative flex flex-col h-full group">
                                             <div className="absolute top-5 right-5">
                                                 {poll.has_voted ? (
-                                                    <span className="bg-green-100 text-green-700 px-3 py-1.5 rounded-xl text-[10px] uppercase font-black tracking-widest flex items-center gap-1.5 shadow-sm border border-green-200/50">
+                                                    <span className="bg-[var(--success-light)] text-success px-3 py-1.5 rounded-xl text-[10px] uppercase font-black tracking-widest flex items-center gap-1.5 shadow-sm border border-[var(--success-light)]">
                                                         <CheckCircle size={13} /> Voted
                                                     </span>
                                                 ) : (
-                                                    <span className={`px-3 py-1.5 rounded-xl text-[10px] uppercase font-black tracking-widest flex items-center gap-1.5 shadow-sm border ${isUrgent ? 'bg-rose-50 text-rose-600 border-rose-200/50 animate-pulse' : 'bg-indigo-50 text-indigo-600 border-indigo-200/50'}`}>
+                                                    <span className={`px-3 py-1.5 rounded-xl text-[10px] uppercase font-black tracking-widest flex items-center gap-1.5 shadow-sm border ${isUrgent ? 'bg-[var(--danger-light)] text-danger border-[var(--danger-light)] animate-pulse' : 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]'}`}>
                                                         {isUrgent ? <Clock size={13} /> : <AlertCircle size={13} />}
                                                         {isUrgent ? 'Ending Soon' : 'Active'}
                                                     </span>
                                                 )}
                                             </div>
                                             <div className="mb-6 pr-24">
-                                                <h3 className="text-xl font-black text-gray-900 mb-2 leading-tight tracking-tight group-hover:text-indigo-600 transition-colors">{poll.question}</h3>
-                                                <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-widest text-gray-400 font-bold">
+                                                <h3 className="text-xl font-black text-main mb-2 leading-tight tracking-tight group-hover:text-primary transition-colors">{poll.question}</h3>
+                                                <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-widest text-muted-text font-bold">
                                                     <span>{new Date(poll.created_at).toLocaleDateString()}</span>
                                                     {poll.end_time && (
-                                                        <span className={`flex items-center gap-1.5 ${isUrgent ? 'text-rose-500' : ''}`}>
+                                                        <span className={`flex items-center gap-1.5 ${isUrgent ? 'text-danger' : ''}`}>
                                                             <Clock size={13} className="opacity-70" /> {new Date(poll.end_time).toLocaleDateString()}
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
                                             {poll.has_voted ? (
-                                                <div className="flex flex-col items-center justify-center py-8 text-center bg-green-50/50 rounded-3xl border border-green-100 mt-auto">
-                                                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-green-500 shadow-md mb-3">
+                                                <div className="flex flex-col items-center justify-center py-8 text-center bg-[var(--success-light)] rounded-3xl border border-[var(--success-light)] mt-auto">
+                                                    <div className="w-14 h-14 bg-surface rounded-2xl flex items-center justify-center text-success shadow-md mb-3">
                                                         <CheckCircle size={28} strokeWidth={2.5} />
                                                     </div>
-                                                    <h3 className="text-base font-black text-green-800 mb-1">Vote Confirmed</h3>
-                                                    <p className="text-green-600/80 font-semibold text-sm">Your response has been recorded.</p>
+                                                    <h3 className="text-base font-black text-success mb-1">Vote Confirmed</h3>
+                                                    <p className="text-success font-semibold text-sm">Your response has been recorded.</p>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-2.5 mt-auto">
@@ -1053,22 +1053,22 @@ const StudentAnnouncements = () => {
                                                             key={idx}
                                                             onClick={() => handleVote(poll.id, idx)}
                                                             disabled={votingId === poll.id}
-                                                            className="w-full text-left p-4 rounded-2xl border-2 border-transparent bg-gray-50 hover:border-indigo-400 hover:bg-indigo-50/50 hover:shadow-md transition-all duration-300 text-gray-700 font-bold group relative overflow-hidden active:scale-[0.98]"
+                                                            className="w-full text-left p-4 rounded-2xl border-2 border-transparent bg-background hover:border-primary hover:bg-[var(--primary-light)] hover:shadow-md transition-all duration-300 text-sub font-bold group relative overflow-hidden active:scale-[0.98]"
                                                         >
                                                             <div className="flex items-center justify-between relative z-10">
                                                                 <span className="pr-4 text-sm">{opt}</span>
-                                                                <div className="w-5 h-5 rounded-full border-2 border-gray-300 group-hover:border-indigo-600 group-hover:bg-indigo-600 transition-colors shrink-0 flex items-center justify-center">
-                                                                    <div className="w-1.5 h-1.5 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                                <div className="w-5 h-5 rounded-full border-2 border-border-strong group-hover:border-primary group-hover:bg-primary transition-colors shrink-0 flex items-center justify-center">
+                                                                    <div className="w-1.5 h-1.5 bg-surface rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                                                 </div>
                                                             </div>
                                                             {votingId === poll.id && (
-                                                                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-20">
-                                                                    <Loader2 className="animate-spin text-indigo-600" size={20} />
+                                                                <div className="absolute inset-0 bg-[var(--surface)]/80 backdrop-blur-sm flex items-center justify-center z-20">
+                                                                    <Loader2 className="animate-spin text-primary" size={20} />
                                                                 </div>
                                                             )}
                                                         </button>
                                                     ))}
-                                                    <p className="text-[10px] font-bold tracking-widest uppercase text-center text-gray-400 pt-2">Select an option to cast vote</p>
+                                                    <p className="text-[10px] font-bold tracking-widest uppercase text-center text-muted-text pt-2">Select an option to cast vote</p>
                                                 </div>
                                             )}
                                         </div>
@@ -1084,18 +1084,18 @@ const StudentAnnouncements = () => {
             {/* ── Detail Modal (bottom-sheet on mobile, centered on desktop) ── */}
             {selectedEvent && (
                 <div
-                    className="fixed inset-0 z-[85] flex items-end sm:items-center justify-center sm:p-4 bg-gray-900/60 backdrop-blur-sm animate-fade-in"
+                    className="fixed inset-0 z-[85] flex items-end sm:items-center justify-center sm:p-4 bg-[var(--sidebar)]/60 backdrop-blur-sm animate-fade-in"
                     onClick={() => setSelectedEvent(null)}
                 >
                     <div
-                        className="bg-white w-full sm:rounded-[2rem] sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] flex flex-col overflow-hidden border border-white/80 rounded-t-[2rem] shadow-2xl"
+                        className="bg-surface w-full sm:rounded-[2rem] sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] flex flex-col overflow-hidden border border-surface rounded-t-[2rem] shadow-2xl"
                         onClick={e => e.stopPropagation()}
                     >
-                        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-3">
+                        <div className="px-4 sm:px-6 py-4 border-b border-border flex items-start justify-between gap-3">
                             <div className="min-w-0">
-                                <span className="inline-flex px-2.5 py-1 rounded-lg bg-purple-100 text-purple-700 text-[9px] uppercase font-black tracking-widest">Event</span>
-                                <h2 className="mt-2 text-base sm:text-xl font-black text-slate-900">{selectedEvent.title}</h2>
-                                <p className="mt-1 text-xs text-slate-500">
+                                <span className="inline-flex px-2.5 py-1 rounded-lg bg-[var(--primary-light)] text-secondary text-[9px] uppercase font-black tracking-widest">Event</span>
+                                <h2 className="mt-2 text-base sm:text-xl font-black text-main">{selectedEvent.title}</h2>
+                                <p className="mt-1 text-xs text-muted-text">
                                     {new Date(selectedEvent.event_date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                                     {selectedEvent.start_time ? ` · ${selectedEvent.start_time}` : ' · All day'}
                                 </p>
@@ -1103,7 +1103,7 @@ const StudentAnnouncements = () => {
                             <button
                                 type="button"
                                 onClick={() => setSelectedEvent(null)}
-                                className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200"
+                                className="p-2 rounded-xl bg-background text-muted-text hover:bg-background"
                                 aria-label="Close event"
                             >
                                 <X size={17} />
@@ -1113,31 +1113,31 @@ const StudentAnnouncements = () => {
                             <div className="h-44 sm:h-56 overflow-hidden rounded-xl">
                                 <EventPoster event={selectedEvent} />
                             </div>
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{selectedEvent.description || 'No description provided.'}</p>
+                            <p className="whitespace-pre-wrap text-sm leading-relaxed text-sub">{selectedEvent.description || 'No description provided.'}</p>
                             {Boolean(selectedEvent.requires_registration) && (
-                                <section className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-4">
+                                <section className="rounded-2xl border border-[var(--primary-light)] bg-[var(--primary-light)] p-4 space-y-4">
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
-                                            <h3 className="flex items-center gap-2 text-sm font-black text-slate-900"><Ticket size={16} className="text-indigo-600" /> Event Registration</h3>
-                                            <p className="mt-1 text-xs text-slate-500">
+                                            <h3 className="flex items-center gap-2 text-sm font-black text-main"><Ticket size={16} className="text-primary" /> Event Registration</h3>
+                                            <p className="mt-1 text-xs text-muted-text">
                                                 {selectedEvent.registered_count || 0}
                                                 {selectedEvent.max_seats ? ` of ${selectedEvent.max_seats} seats filled` : ' registered'}
                                             </p>
                                         </div>
                                         {selectedEvent.registration_deadline && (
-                                            <span className="text-right text-[10px] font-semibold text-slate-500">
+                                            <span className="text-right text-[10px] font-semibold text-muted-text">
                                                 Deadline<br />{new Date(selectedEvent.registration_deadline).toLocaleString()}
                                             </span>
                                         )}
                                     </div>
                                     {selectedEvent.my_registration_id ? (
-                                        <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-                                            <span className="flex items-center gap-2 text-xs font-bold text-emerald-700"><CheckCircle size={15} /> You are registered.</span>
+                                        <div className="flex items-center justify-between gap-3 rounded-xl border border-[var(--success-light)] bg-[var(--success-light)] p-3">
+                                            <span className="flex items-center gap-2 text-xs font-bold text-success"><CheckCircle size={15} /> You are registered.</span>
                                             <button
                                                 type="button"
                                                 disabled={eventRegistrationSubmitting}
                                                 onClick={handleEventRegistrationCancel}
-                                                className="rounded-lg px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100 disabled:opacity-50"
+                                                className="rounded-lg px-3 py-1.5 text-xs font-bold text-danger hover:bg-[var(--danger-light)] disabled:opacity-50"
                                             >
                                                 Cancel registration
                                             </button>
@@ -1145,35 +1145,35 @@ const StudentAnnouncements = () => {
                                     ) : (
                                         <form onSubmit={handleEventRegistration} className="space-y-3">
                                             {parseEventRegistrationFields(selectedEvent.registration_form_fields).map((field, index) => (
-                                                <label key={field.id || index} className="block text-xs font-bold text-slate-700">
-                                                    {field.label}{field.required && <span className="text-rose-500"> *</span>}
+                                                <label key={field.id || index} className="block text-xs font-bold text-sub">
+                                                    {field.label}{field.required && <span className="text-danger"> *</span>}
                                                     {field.type === 'textarea' ? (
                                                         <textarea
                                                             required={Boolean(field.required)}
                                                             value={eventRegistrationResponses[field.id || field.label] || ''}
                                                             onChange={e => setEventRegistrationResponses(current => ({ ...current, [field.id || field.label]: e.target.value }))}
                                                             rows={3}
-                                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-normal"
+                                                            className="mt-1 w-full rounded-xl border border-border bg-surface p-2.5 text-sm font-normal"
                                                         />
                                                     ) : (
                                                         <input
                                                             required={Boolean(field.required)}
                                                             value={eventRegistrationResponses[field.id || field.label] || ''}
                                                             onChange={e => setEventRegistrationResponses(current => ({ ...current, [field.id || field.label]: e.target.value }))}
-                                                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white p-2.5 text-sm font-normal"
+                                                            className="mt-1 w-full rounded-xl border border-border bg-surface p-2.5 text-sm font-normal"
                                                         />
                                                     )}
                                                 </label>
                                             ))}
                                             {selectedEvent.registration_deadline && new Date(selectedEvent.registration_deadline) < new Date() ? (
-                                                <p className="rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700">Registration deadline has passed.</p>
+                                                <p className="rounded-xl bg-[var(--danger-light)] p-3 text-xs font-semibold text-danger">Registration deadline has passed.</p>
                                             ) : selectedEvent.max_seats && Number(selectedEvent.registered_count) >= Number(selectedEvent.max_seats) ? (
-                                                <p className="rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700">Registration is full.</p>
+                                                <p className="rounded-xl bg-[var(--danger-light)] p-3 text-xs font-semibold text-danger">Registration is full.</p>
                                             ) : (
                                                 <button
                                                     type="submit"
                                                     disabled={eventRegistrationSubmitting}
-                                                    className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-black text-white hover:bg-indigo-700 disabled:opacity-50"
+                                                    className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-black text-white hover:bg-primary-hover disabled:opacity-50"
                                                 >
                                                     {eventRegistrationSubmitting ? 'Please wait…' : 'Register for Event'}
                                                 </button>
@@ -1189,30 +1189,30 @@ const StudentAnnouncements = () => {
 
             {selectedAnnouncement && (
                 <div
-                    className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center sm:p-4 bg-gray-900/60 backdrop-blur-sm animate-fade-in"
+                    className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center sm:p-4 bg-[var(--sidebar)]/60 backdrop-blur-sm animate-fade-in"
                     onClick={() => setSelectedAnnouncement(null)}
                 >
                     <div
-                        className="bg-white w-full sm:rounded-[2rem] sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] flex flex-col overflow-hidden border border-white/80 rounded-t-[2rem] shadow-2xl"
+                        className="bg-surface w-full sm:rounded-[2rem] sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] flex flex-col overflow-hidden border border-surface rounded-t-[2rem] shadow-2xl"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Drag Handle */}
                         <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
-                            <div className="w-10 h-1 rounded-full bg-slate-200" />
+                            <div className="w-10 h-1 rounded-full bg-background" />
                         </div>
                         {/* Header */}
-                        <div className="px-4 sm:px-6 pt-2 sm:pt-5 pb-3 sm:pb-4 border-b border-slate-100 shrink-0">
+                        <div className="px-4 sm:px-6 pt-2 sm:pt-5 pb-3 sm:pb-4 border-b border-border shrink-0">
                             <div className="flex items-start justify-between gap-3">
-                                <h2 className="text-sm sm:text-xl font-black text-slate-900 leading-snug flex-1 pr-2 tracking-tight">{selectedAnnouncement.title}</h2>
+                                <h2 className="text-sm sm:text-xl font-black text-main leading-snug flex-1 pr-2 tracking-tight">{selectedAnnouncement.title}</h2>
                                 <button
                                     onClick={() => setSelectedAnnouncement(null)}
-                                    className="p-1.5 sm:p-2 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all shrink-0 text-slate-500 hover:text-slate-900 active:scale-95"
+                                    className="p-1.5 sm:p-2 bg-background hover:bg-background rounded-xl transition-all shrink-0 text-muted-text hover:text-main active:scale-95"
                                     aria-label="Close"
                                 >
                                     <X size={16} />
                                 </button>
                             </div>
-                            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-indigo-500 font-black mt-1.5">
+                            <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-primary font-black mt-1.5">
                                 <Calendar size={10} className="opacity-80 shrink-0" />
                                 {new Date(selectedAnnouncement.created_at).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                             </div>
@@ -1220,7 +1220,7 @@ const StudentAnnouncements = () => {
                         {/* Body */}
                         <div className="flex-1 overflow-y-auto custom-scrollbar min-h-0">
                             {selectedAnnouncement.image_url && (
-                                <div className="w-full h-44 sm:h-56 bg-slate-100 overflow-hidden shrink-0">
+                                <div className="w-full h-44 sm:h-56 bg-background overflow-hidden shrink-0">
                                     <img src={selectedAnnouncement.image_url} alt={selectedAnnouncement.title} className="w-full h-full object-cover" />
                                 </div>
                             )}
@@ -1228,14 +1228,14 @@ const StudentAnnouncements = () => {
                                 {/* Type 1: Circular PDF Download Box in Detail Modal */}
                                 {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'circular' &&
                                     (selectedAnnouncement.file_url || Object.keys(parseCircularNumbers(selectedAnnouncement.circular_numbers)).length > 0) && (
-                                    <div className="p-4 bg-rose-50/80 border border-rose-200 rounded-2xl flex items-center justify-between gap-3">
+                                    <div className="p-4 bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-2xl flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-11 h-11 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                            <div className="w-11 h-11 rounded-xl bg-danger text-white flex items-center justify-center shrink-0 shadow-xs">
                                                 <FileText size={22} />
                                             </div>
                                             <div className="min-w-0">
-                                                <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{selectedAnnouncement.title}</h4>
-                                                <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">
+                                                <h4 className="text-xs sm:text-sm font-bold text-main truncate">{selectedAnnouncement.title}</h4>
+                                                <span className="text-[10px] font-bold text-danger uppercase tracking-wider block">
                                                     Circular No. {getCircularNumberForCollege(selectedAnnouncement.circular_numbers, user?.college) || 'Generated PDF'}
                                                 </span>
                                             </div>
@@ -1244,7 +1244,7 @@ const StudentAnnouncements = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => handleCircularDownload(selectedAnnouncement)}
-                                                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+                                                className="px-4 py-2 bg-danger hover:bg-danger text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
                                             >
                                                 <FileDown size={14} /> Download PDF
                                             </button>
@@ -1253,7 +1253,7 @@ const StudentAnnouncements = () => {
                                                     href={selectedAnnouncement.file_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="px-3 py-2 border border-rose-200 bg-white hover:bg-rose-50 text-rose-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+                                                    className="px-3 py-2 border border-[var(--danger-light)] bg-surface hover:bg-[var(--danger-light)] text-danger rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
                                                 >
                                                     <ExternalLink size={14} /> Attachment
                                                 </a>
@@ -1267,13 +1267,13 @@ const StudentAnnouncements = () => {
                                     const ach = parseAnnouncementObject(selectedAnnouncement.achievement_data);
                                     const students = Array.isArray(ach.students) && ach.students.length ? ach.students : [ach];
                                     return (
-                                        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl space-y-3">
+                                        <div className="p-4 bg-gradient-to-r from-[var(--warning-light)] to-[var(--warning-light)] border-2 border-[var(--warning-light)] rounded-2xl space-y-3">
                                             <div>
-                                                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-1">
+                                                <span className="text-[10px] font-black uppercase tracking-wider text-warning bg-[var(--warning-light)] px-2 py-0.5 rounded-full inline-block mb-1">
                                                     🏆 {ach.rank_title || 'Hackathon Topper'}
                                                 </span>
                                                 {ach.topper_prize && (
-                                                    <p className="text-xs font-black text-amber-900 mt-1">Award: {ach.topper_prize}</p>
+                                                    <p className="text-xs font-black text-warning mt-1">Award: {ach.topper_prize}</p>
                                                 )}
                                             </div>
                                             <div className="grid gap-3 sm:grid-cols-2">
@@ -1301,59 +1301,59 @@ const StudentAnnouncements = () => {
 
                                 {/* Type 2: Event Date & Venue Bar */}
                                 {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'event' && (selectedAnnouncement.event_date || selectedAnnouncement.event_venue) && (
-                                    <div className="p-3 bg-purple-50/80 border border-purple-200 rounded-2xl text-xs space-y-1">
+                                    <div className="p-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-2xl text-xs space-y-1">
                                         {selectedAnnouncement.event_date && (
-                                            <div className="flex items-center gap-1.5 font-bold text-purple-900">
-                                                <Calendar size={13} className="text-purple-600" />
+                                            <div className="flex items-center gap-1.5 font-bold text-secondary">
+                                                <Calendar size={13} className="text-secondary" />
                                                 <span>Event Date: {selectedAnnouncement.event_date} {selectedAnnouncement.event_time ? `(${selectedAnnouncement.event_time})` : ''}</span>
                                             </div>
                                         )}
                                         {selectedAnnouncement.event_venue && (
-                                            <div className="flex items-center gap-1.5 text-purple-700 font-medium">
-                                                <MapPin size={13} className="text-purple-500" />
+                                            <div className="flex items-center gap-1.5 text-secondary font-medium">
+                                                <MapPin size={13} className="text-secondary" />
                                                 <span>Venue: {selectedAnnouncement.event_venue}</span>
                                             </div>
                                         )}
                                     </div>
                                 )}
 
-                                <p className="whitespace-pre-wrap text-slate-600 leading-relaxed text-[13px] sm:text-sm break-words font-medium">{selectedAnnouncement.content}</p>
+                                <p className="whitespace-pre-wrap text-sub leading-relaxed text-[13px] sm:text-sm break-words font-medium">{selectedAnnouncement.content}</p>
                                 {selectedAnnouncement.target_college && (
-                                    <div className="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center gap-2">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Targeted to:</span>
-                                        <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">{formatTarget(selectedAnnouncement.target_college)}</span>
-                                        {selectedAnnouncement.target_course && <span className="bg-slate-50 text-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-100">{formatTarget(selectedAnnouncement.target_course)}</span>}
-                                        {selectedAnnouncement.target_branch && <span className="bg-slate-50 text-slate-700 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-slate-100">{formatTarget(selectedAnnouncement.target_branch)}</span>}
+                                    <div className="mt-5 pt-4 border-t border-border flex flex-wrap items-center gap-2">
+                                        <span className="text-[10px] font-black text-muted-text uppercase tracking-widest">Targeted to:</span>
+                                        <span className="bg-[var(--primary-light)] text-primary px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider">{formatTarget(selectedAnnouncement.target_college)}</span>
+                                        {selectedAnnouncement.target_course && <span className="bg-background text-sub px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-border">{formatTarget(selectedAnnouncement.target_course)}</span>}
+                                        {selectedAnnouncement.target_branch && <span className="bg-background text-sub px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-border">{formatTarget(selectedAnnouncement.target_branch)}</span>}
                                     </div>
                                 )}
 
                                 {/* Event Registration & Seats Block */}
                                 {Boolean(selectedAnnouncement.requires_registration) && (
-                                    <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-blue-50/40 border border-indigo-100/90 shadow-xs space-y-4">
+                                    <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[var(--primary-light)] via-surface to-[var(--primary-light)] border border-[var(--primary-light)] shadow-xs space-y-4">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2.5">
-                                                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                                                <div className="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shadow-xs">
                                                     <Ticket size={18} />
                                                 </div>
                                                 <div>
-                                                    <h4 className="text-xs sm:text-sm font-black text-slate-900">
+                                                    <h4 className="text-xs sm:text-sm font-black text-main">
                                                         {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Form Response' : 'Event Registration & Seats'}
                                                     </h4>
-                                                    <p className="text-[10px] text-slate-500 font-medium">
+                                                    <p className="text-[10px] text-muted-text font-medium">
                                                         {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Submit your response to the admin' : 'Reserve your seat to participate'}
                                                     </p>
                                                 </div>
                                             </div>
                                             {selectedAnnouncement.is_registered ? (
-                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[var(--success-light)] text-success border border-[var(--success-light)] flex items-center gap-1">
                                                     <CheckCircle size={12} /> Registered
                                                 </span>
                                             ) : selectedAnnouncement.is_full ? (
-                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-200">
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[var(--danger-light)] text-danger border border-[var(--danger-light)]">
                                                     Seats Full
                                                 </span>
                                             ) : (
-                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-[var(--primary-light)] text-primary border border-[var(--primary-light)]">
                                                     Open
                                                 </span>
                                             )}
@@ -1361,21 +1361,21 @@ const StudentAnnouncements = () => {
 
                                         {/* Stats Row */}
                                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center">
-                                            <div className="p-2.5 bg-white rounded-xl border border-slate-100 shadow-2xs">
-                                                <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Total Capacity</span>
-                                                <span className="text-xs sm:text-sm font-black text-slate-800">
+                                            <div className="p-2.5 bg-surface rounded-xl border border-border shadow-2xs">
+                                                <span className="text-[9px] uppercase tracking-wider font-bold text-muted-text block">Total Capacity</span>
+                                                <span className="text-xs sm:text-sm font-black text-main">
                                                     {selectedAnnouncement.max_seats ? `${selectedAnnouncement.max_seats} Seats` : 'Unlimited'}
                                                 </span>
                                             </div>
-                                            <div className="p-2.5 bg-white rounded-xl border border-slate-100 shadow-2xs">
-                                                <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Available</span>
-                                                <span className="text-xs sm:text-sm font-black text-indigo-600">
+                                            <div className="p-2.5 bg-surface rounded-xl border border-border shadow-2xs">
+                                                <span className="text-[9px] uppercase tracking-wider font-bold text-muted-text block">Available</span>
+                                                <span className="text-xs sm:text-sm font-black text-primary">
                                                     {selectedAnnouncement.available_seats !== null ? `${selectedAnnouncement.available_seats} Seats` : 'Open'}
                                                 </span>
                                             </div>
-                                            <div className="col-span-2 sm:col-span-1 p-2.5 bg-white rounded-xl border border-slate-100 shadow-2xs">
-                                                <span className="text-[9px] uppercase tracking-wider font-bold text-slate-400 block">Deadline</span>
-                                                <span className="text-xs font-black text-slate-800 truncate block">
+                                            <div className="col-span-2 sm:col-span-1 p-2.5 bg-surface rounded-xl border border-border shadow-2xs">
+                                                <span className="text-[9px] uppercase tracking-wider font-bold text-muted-text block">Deadline</span>
+                                                <span className="text-xs font-black text-main truncate block">
                                                     {selectedAnnouncement.registration_deadline
                                                         ? new Date(selectedAnnouncement.registration_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
                                                         : 'No Deadline'}
@@ -1385,14 +1385,14 @@ const StudentAnnouncements = () => {
 
                                         {/* Status / Action */}
                                         {selectedAnnouncement.is_registered ? (
-                                            <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center justify-between gap-3">
+                                            <div className="p-3.5 bg-[var(--success-light)] border border-[var(--success-light)] rounded-xl flex items-center justify-between gap-3">
                                                 <div className="flex items-center gap-2.5">
-                                                    <CheckCircle size={18} className="text-emerald-600 shrink-0" />
+                                                    <CheckCircle size={18} className="text-success shrink-0" />
                                                     <div>
-                                                        <p className="text-xs font-black text-emerald-900">
+                                                        <p className="text-xs font-black text-success">
                                                             {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Your response has been submitted.' : 'Your registration is confirmed!'}
                                                         </p>
-                                                        <p className="text-[10px] text-emerald-700 font-medium">
+                                                        <p className="text-[10px] text-success font-medium">
                                                             {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'The admin can now review your response.' : 'Your seat is reserved for this event.'}
                                                         </p>
                                                     </div>
@@ -1400,7 +1400,7 @@ const StudentAnnouncements = () => {
                                                 <button
                                                     onClick={() => handleCancelRegistration(selectedAnnouncement.id)}
                                                     disabled={cancellingRegId === selectedAnnouncement.id}
-                                                    className="px-3 py-1.5 rounded-lg text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 transition-all flex items-center gap-1 shrink-0"
+                                                    className="px-3 py-1.5 rounded-lg text-xs font-bold text-danger hover:text-danger hover:bg-[var(--danger-light)] border border-[var(--danger-light)] transition-all flex items-center gap-1 shrink-0"
                                                 >
                                                     {cancellingRegId === selectedAnnouncement.id
                                                         ? <Loader2 size={12} className="animate-spin" />
@@ -1412,7 +1412,7 @@ const StudentAnnouncements = () => {
                                                 const isDeadlinePassed = selectedAnnouncement.registration_deadline && new Date(selectedAnnouncement.registration_deadline) < new Date();
                                                 if (isDeadlinePassed) {
                                                     return (
-                                                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-amber-800 text-xs font-bold">
+                                                        <div className="p-3 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl flex items-center gap-2 text-warning text-xs font-bold">
                                                             <Clock size={16} className="shrink-0" />
                                                             Registration closed: Deadline passed.
                                                         </div>
@@ -1420,7 +1420,7 @@ const StudentAnnouncements = () => {
                                                 }
                                                 if (selectedAnnouncement.is_full) {
                                                     return (
-                                                        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-800 text-xs font-bold">
+                                                        <div className="p-3 bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-xl flex items-center gap-2 text-danger text-xs font-bold">
                                                             <AlertCircle size={16} className="shrink-0" />
                                                             Registration closed: All seats have been filled.
                                                         </div>
@@ -1429,7 +1429,7 @@ const StudentAnnouncements = () => {
                                                 return (
                                                     <button
                                                         onClick={() => handleOpenRegisterModal(selectedAnnouncement)}
-                                                        className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-md shadow-indigo-200 transition-all"
+                                                        className="w-full py-2.5 px-4 bg-primary hover:bg-primary-hover active:scale-[0.99] text-white rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-md shadow-primary transition-all"
                                                     >
                                                         <Ticket size={16} />
                                                         {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Submit Form Response' : 'Register & Book Seat Now'}
@@ -1448,29 +1448,29 @@ const StudentAnnouncements = () => {
             {/* ── Student Event Registration Modal ── */}
             {registerModalAnnouncement && (
                 <div
-                    className="fixed inset-0 z-[95] flex items-center justify-center p-3 sm:p-4 bg-slate-900/70 backdrop-blur-sm animate-fade-in"
+                    className="fixed inset-0 z-[95] flex items-center justify-center p-3 sm:p-4 bg-[var(--sidebar)]/70 backdrop-blur-sm animate-fade-in"
                     onClick={() => setRegisterModalAnnouncement(null)}
                 >
                     <div
-                        className="bg-white w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[90vh] overflow-hidden"
+                        className="bg-surface w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-border flex flex-col max-h-[90vh] overflow-hidden"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Modal Header */}
-                        <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-[var(--background)]/50">
                             <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                                <div className="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center shadow-xs">
                                     <Ticket size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">
+                                    <h3 className="text-sm sm:text-base font-black text-main leading-tight">
                                         {(registerModalAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Submit Form Response' : 'Event Registration'}
                                     </h3>
-                                    <p className="text-[11px] font-medium text-slate-500 line-clamp-1">{registerModalAnnouncement.title}</p>
+                                    <p className="text-[11px] font-medium text-muted-text line-clamp-1">{registerModalAnnouncement.title}</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setRegisterModalAnnouncement(null)}
-                                className="p-1.5 hover:bg-slate-200 rounded-xl transition-all text-slate-400 hover:text-slate-700"
+                                className="p-1.5 hover:bg-background rounded-xl transition-all text-muted-text hover:text-sub"
                             >
                                 <X size={16} />
                             </button>
@@ -1501,14 +1501,14 @@ const StudentAnnouncements = () => {
                             return (
                                 <form onSubmit={handleSubmitRegistration} className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-4">
                                     {/* Notice / Intro */}
-                                    <div className="p-3 bg-indigo-50/70 rounded-xl border border-indigo-100 flex items-center justify-between gap-2">
+                                    <div className="p-3 bg-[var(--primary-light)] rounded-xl border border-[var(--primary-light)] flex items-center justify-between gap-2">
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                                            <div className="w-6 h-6 rounded-lg bg-primary text-white flex items-center justify-center shrink-0">
                                                 <Check size={13} strokeWidth={3} />
                                             </div>
                                             <div>
-                                                <p className="text-xs font-bold text-indigo-950">Student Profile Information</p>
-                                                <p className="text-[11px] text-indigo-700/80 font-medium">
+                                                <p className="text-xs font-bold text-primary">Student Profile Information</p>
+                                                <p className="text-[11px] text-primary font-medium">
                                                     {(registerModalAnnouncement.announcement_type || '').toLowerCase() === 'form'
                                                         ? 'Complete the requested fields and submit your response.'
                                                         : 'Pre-filled from your profile. You can edit any details below if needed.'}
@@ -1533,8 +1533,8 @@ const StudentAnnouncements = () => {
 
                                             return (
                                                 <div key={field.key} className={field.key === 'student_name' || field.key === 'college' ? 'sm:col-span-2' : ''}>
-                                                    <label className="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1">
-                                                        {field.label} {field.required && <span className="text-rose-500 font-bold">*</span>}
+                                                    <label className="block text-[11px] font-black text-sub uppercase tracking-wider mb-1">
+                                                        {field.label} {field.required && <span className="text-danger font-bold">*</span>}
                                                     </label>
                                                     <input
                                                         type={inputType}
@@ -1542,7 +1542,7 @@ const StudentAnnouncements = () => {
                                                         value={registerFormData[field.key] ?? ''}
                                                         onChange={e => setRegisterFormData(prev => ({ ...prev, [field.key]: e.target.value }))}
                                                         placeholder={placeholderMap[field.key] || `Enter ${field.label}...`}
-                                                        className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 transition-colors"
+                                                        className="w-full px-3 py-2 text-xs font-semibold bg-background border border-border rounded-xl focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary text-main transition-colors"
                                                     />
                                                 </div>
                                             );
@@ -1551,8 +1551,8 @@ const StudentAnnouncements = () => {
 
                                     {/* Dynamic Questions configured by Admin */}
                                     {customFields.length > 0 && (
-                                        <div className="space-y-3.5 pt-2 border-t border-slate-100">
-                                            <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Registration Details</h4>
+                                        <div className="space-y-3.5 pt-2 border-t border-border">
+                                            <h4 className="text-xs font-black text-main uppercase tracking-wider">Registration Details</h4>
                                             {customFields.map((field) => {
                                                 const fieldKey = field.id || field.label;
                                                 const fieldValue = registerFormResponses[fieldKey] || '';
@@ -1560,8 +1560,8 @@ const StudentAnnouncements = () => {
 
                                                 return (
                                                     <div key={fieldKey} className="space-y-1">
-                                                        <label className="block text-xs font-bold text-slate-700">
-                                                            {field.label} {field.required && <span className="text-rose-500 font-black">*</span>}
+                                                        <label className="block text-xs font-bold text-sub">
+                                                            {field.label} {field.required && <span className="text-danger font-black">*</span>}
                                                         </label>
 
                                                         {field.type === 'select' ? (
@@ -1569,7 +1569,7 @@ const StudentAnnouncements = () => {
                                                                 required={field.required}
                                                                 value={fieldValue}
                                                                 onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
-                                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                                className="w-full px-3 py-2 text-xs font-semibold bg-background border border-border rounded-xl focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
                                                             >
                                                                 <option value="">Select an option...</option>
                                                                 {optionsList.map(opt => (
@@ -1581,7 +1581,7 @@ const StudentAnnouncements = () => {
                                                                 required={field.required}
                                                                 value={fieldValue}
                                                                 onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
-                                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                                className="w-full px-3 py-2 text-xs font-semibold bg-background border border-border rounded-xl focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
                                                             >
                                                                 <option value="">Select Yes / No...</option>
                                                                 <option value="Yes">Yes</option>
@@ -1594,7 +1594,7 @@ const StudentAnnouncements = () => {
                                                                 value={fieldValue}
                                                                 onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
                                                                 placeholder={`Enter ${field.label}...`}
-                                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                                className="w-full px-3 py-2 text-xs font-semibold bg-background border border-border rounded-xl focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
                                                             />
                                                         ) : field.type === 'number' || field.type === 'date' ? (
                                                             <input
@@ -1603,7 +1603,7 @@ const StudentAnnouncements = () => {
                                                                 value={fieldValue}
                                                                 onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
                                                                 placeholder={`Enter ${field.label}...`}
-                                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                                className="w-full px-3 py-2 text-xs font-semibold bg-background border border-border rounded-xl focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
                                                             />
                                                         ) : (
                                                             <input
@@ -1612,7 +1612,7 @@ const StudentAnnouncements = () => {
                                                                 value={fieldValue}
                                                                 onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
                                                                 placeholder={`Enter ${field.label}...`}
-                                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                                className="w-full px-3 py-2 text-xs font-semibold bg-background border border-border rounded-xl focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
                                                             />
                                                         )}
                                                     </div>
@@ -1623,8 +1623,8 @@ const StudentAnnouncements = () => {
 
                                     {/* Legacy single custom field support */}
                                     {customFields.length === 0 && registerModalAnnouncement.custom_registration_field && (
-                                        <div className="space-y-1 pt-2 border-t border-slate-100">
-                                            <label className="block text-xs font-bold text-slate-700">
+                                        <div className="space-y-1 pt-2 border-t border-border">
+                                            <label className="block text-xs font-bold text-sub">
                                                 {registerModalAnnouncement.custom_registration_field}
                                             </label>
                                             <input
@@ -1632,24 +1632,24 @@ const StudentAnnouncements = () => {
                                                 value={registerFormResponses['custom_registration_field'] || ''}
                                                 onChange={e => setRegisterFormResponses(prev => ({ ...prev, custom_registration_field: e.target.value }))}
                                                 placeholder="Your answer..."
-                                                className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                className="w-full px-3 py-2 text-xs font-semibold bg-background border border-border rounded-xl focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
                                             />
                                         </div>
                                     )}
 
                                     {/* Modal Footer */}
-                                    <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                                    <div className="pt-3 border-t border-border flex items-center justify-end gap-2.5">
                                         <button
                                             type="button"
                                             onClick={() => setRegisterModalAnnouncement(null)}
-                                            className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                                            className="px-4 py-2 rounded-xl text-xs font-bold text-sub hover:bg-background transition-colors"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={registerSubmitting}
-                                            className="px-5 py-2 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white shadow-md shadow-indigo-200 transition-all flex items-center gap-1.5"
+                                            className="px-5 py-2 rounded-xl text-xs font-black bg-primary hover:bg-primary-hover active:scale-95 text-white shadow-md shadow-primary transition-all flex items-center gap-1.5"
                                         >
                                             {registerSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Ticket size={14} />}
                                             {registerSubmitting

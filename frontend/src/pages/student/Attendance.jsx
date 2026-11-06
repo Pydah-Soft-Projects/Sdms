@@ -122,9 +122,9 @@ const calcPct = (present, absent) => {
 };
 
 const pctColors = (pct) => {
-    if (pct >= 75) return { ring: '#22c55e', text: 'text-green-700', bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-green-100 text-green-700' };
-    if (pct >= 50) return { ring: '#f59e0b', text: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', badge: 'bg-amber-100 text-amber-700' };
-    return { ring: '#ef4444', text: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-600' };
+    if (pct >= 75) return { ring: 'var(--success)', text: 'text-success', bg: 'bg-[var(--success-light)]', border: 'border-[var(--success-light)]', badge: 'bg-[var(--success-light)] text-success' };
+    if (pct >= 50) return { ring: 'var(--warning)', text: 'text-warning', bg: 'bg-[var(--warning-light)]', border: 'border-[var(--warning-light)]', badge: 'bg-[var(--warning-light)] text-warning' };
+    return { ring: 'var(--danger)', text: 'text-danger', bg: 'bg-[var(--danger-light)]', border: 'border-[var(--danger-light)]', badge: 'bg-[var(--danger-light)] text-danger' };
 };
 
 // ─── Circular Progress Ring ───────────────────────────────────────────────────
@@ -142,11 +142,11 @@ const CircularRing = ({ pct, size, inverted = false }) => {
             style={size ? { width: size, height: size } : undefined}
         >
             <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90">
-                <circle cx="60" cy="60" r={radius} fill="none" stroke={inverted ? 'rgba(255,255,255,0.2)' : '#f1f5f9'} strokeWidth="10" />
+                <circle cx="60" cy="60" r={radius} fill="none" stroke={inverted ? 'rgba(255,255,255,0.2)' : 'var(--background)'} strokeWidth="10" />
                 <circle
                     cx="60" cy="60" r={radius}
                     fill="none"
-                    stroke={inverted ? '#ffffff' : colors.ring}
+                    stroke={inverted ? 'var(--surface)' : colors.ring}
                     strokeWidth="10"
                     strokeLinecap="round"
                     strokeDasharray={circumference}
@@ -156,7 +156,7 @@ const CircularRing = ({ pct, size, inverted = false }) => {
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className={`text-lg sm:text-2xl font-extrabold ${inverted ? 'text-white' : colors.text}`}>{clampedPct.toFixed(1)}%</span>
-                <span className={`text-[8px] sm:text-[10px] font-medium uppercase tracking-wide mt-0.5 ${inverted ? 'text-emerald-100/80' : 'text-gray-400'}`}>Attendance</span>
+                <span className={`text-[8px] sm:text-[10px] font-medium uppercase tracking-wide mt-0.5 ${inverted ? 'text-success' : 'text-muted-text'}`}>Attendance</span>
             </div>
         </div>
     );
@@ -166,28 +166,28 @@ const CircularRing = ({ pct, size, inverted = false }) => {
 
 const StatusIcon = ({ status, size = 16 }) => {
     switch (status) {
-        case 'present': return <CheckCircle size={size} className="text-green-500" />;
-        case 'absent': return <XCircle size={size} className="text-red-500" />;
-        case 'holiday': return <Umbrella size={size} className="text-amber-500" />;
-        default: return <Clock size={size} className="text-gray-400" />;
+        case 'present': return <CheckCircle size={size} className="text-success" />;
+        case 'absent': return <XCircle size={size} className="text-danger" />;
+        case 'holiday': return <Umbrella size={size} className="text-warning" />;
+        default: return <Clock size={size} className="text-muted-text" />;
     }
 };
 
 const statusBg = (status) => {
     switch (status) {
-        case 'present': return 'border-emerald-300 bg-emerald-100/80 text-emerald-900 font-extrabold';
-        case 'absent': return 'border-rose-300 bg-rose-100/80 text-rose-900 font-extrabold';
-        case 'holiday': return 'border-amber-300 bg-amber-100/80 text-amber-900 font-extrabold';
-        default: return 'border-slate-200 bg-slate-50 text-slate-400 font-medium';
+        case 'present': return 'border-[var(--success-light)] bg-[var(--success-light)] text-success font-extrabold';
+        case 'absent': return 'border-[var(--danger-light)] bg-[var(--danger-light)] text-danger font-extrabold';
+        case 'holiday': return 'border-[var(--warning-light)] bg-[var(--warning-light)] text-warning font-extrabold';
+        default: return 'border-border bg-background text-muted-text font-medium';
     }
 };
 
 const statusDot = (status) => {
     switch (status) {
-        case 'present': return 'bg-green-500';
-        case 'absent': return 'bg-red-500';
-        case 'holiday': return 'bg-amber-400';
-        default: return 'bg-gray-300';
+        case 'present': return 'bg-success';
+        case 'absent': return 'bg-danger';
+        case 'holiday': return 'bg-warning';
+        default: return 'bg-background';
     }
 };
 
@@ -214,9 +214,9 @@ const LoadingSkeleton = () => (
 // ─── Stat Mini Card ───────────────────────────────────────────────────────────
 
 const StatCard = ({ label, value, colorClass }) => (
-    <div className="bg-white border-slate-100 border rounded-xl py-2 px-2.5 text-center shadow-xs">
-        <p className="text-[8px] sm:text-[9px] text-slate-500 uppercase font-black tracking-wider mb-0.5 truncate">{label}</p>
-        <p className={`text-base sm:text-lg font-black ${colorClass || 'text-slate-900'} tracking-tight`}>{value}</p>
+    <div className="bg-surface border-border border rounded-xl py-2 px-2.5 text-center shadow-xs">
+        <p className="text-[8px] sm:text-[9px] text-muted-text uppercase font-black tracking-wider mb-0.5 truncate">{label}</p>
+        <p className={`text-base sm:text-lg font-black ${colorClass || 'text-main'} tracking-tight`}>{value}</p>
     </div>
 );
 
@@ -246,8 +246,8 @@ const DailyTab = ({ daily }) => {
     return (
         <div className="space-y-4 sm:space-y-6">
             {/* Hero Summary Card */}
-            <div className="bg-white rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-6 lg:p-7 shadow-md border border-slate-100 relative overflow-hidden transition-all group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/40 rounded-full -mr-32 -mt-32 blur-2xl group-hover:bg-blue-100/40 transition-all pointer-events-none"></div>
+            <div className="bg-surface rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-6 lg:p-7 shadow-md border border-border relative overflow-hidden transition-all group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--primary-light)] rounded-full -mr-32 -mt-32 blur-2xl group-hover:bg-[var(--primary-light)] transition-all pointer-events-none"></div>
 
                 <div className="relative z-10 space-y-4 sm:space-y-5">
                     {/* Top Row: Percentage ring on the left, Stats beside it on the right */}
@@ -256,35 +256,35 @@ const DailyTab = ({ daily }) => {
 
                         {/* 4 Stats Grid */}
                         <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
-                            <div className="bg-emerald-50/60 border border-emerald-100/80 rounded-xl py-2 px-2.5 text-center">
-                                <p className="text-[8px] sm:text-[9px] text-emerald-700 uppercase font-black tracking-wider truncate">Present</p>
-                                <p className="text-base sm:text-lg font-black text-emerald-600 tracking-tight mt-0.5">{totals.present || 0}</p>
+                            <div className="bg-[var(--success-light)] border border-[var(--success-light)] rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-success uppercase font-black tracking-wider truncate">Present</p>
+                                <p className="text-base sm:text-lg font-black text-success tracking-tight mt-0.5">{totals.present || 0}</p>
                             </div>
-                            <div className="bg-rose-50/60 border border-rose-100/80 rounded-xl py-2 px-2.5 text-center">
-                                <p className="text-[8px] sm:text-[9px] text-rose-700 uppercase font-black tracking-wider truncate">Absent</p>
-                                <p className="text-base sm:text-lg font-black text-rose-600 tracking-tight mt-0.5">{totals.absent || 0}</p>
+                            <div className="bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-danger uppercase font-black tracking-wider truncate">Absent</p>
+                                <p className="text-base sm:text-lg font-black text-danger tracking-tight mt-0.5">{totals.absent || 0}</p>
                             </div>
-                            <div className="bg-amber-50/60 border border-amber-100/80 rounded-xl py-2 px-2.5 text-center">
-                                <p className="text-[8px] sm:text-[9px] text-amber-700 uppercase font-black tracking-wider truncate">Not Posted</p>
-                                <p className="text-base sm:text-lg font-black text-amber-600 tracking-tight mt-0.5">{totals.notPosted || 0}</p>
+                            <div className="bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-warning uppercase font-black tracking-wider truncate">Not Posted</p>
+                                <p className="text-base sm:text-lg font-black text-warning tracking-tight mt-0.5">{totals.notPosted || 0}</p>
                             </div>
-                            <div className="bg-blue-50/60 border border-blue-100/80 rounded-xl py-2 px-2.5 text-center">
-                                <p className="text-[8px] sm:text-[9px] text-blue-700 uppercase font-black tracking-wider truncate">Total Sessions</p>
-                                <p className="text-base sm:text-lg font-black text-blue-600 tracking-tight mt-0.5">{totals.totalSessions || 0}</p>
+                            <div className="bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-primary uppercase font-black tracking-wider truncate">Total Sessions</p>
+                                <p className="text-base sm:text-lg font-black text-primary tracking-tight mt-0.5">{totals.totalSessions || 0}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Bottom Row */}
-                    <div className="pt-3.5 sm:pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="pt-3.5 sm:pt-4 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div className="min-w-0">
-                            <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">Daily Attendance</p>
-                            <h2 className="text-sm sm:text-lg font-black text-blue-900 tracking-tight truncate mt-0.5">
+                            <p className="text-[10px] sm:text-xs font-black text-muted-text uppercase tracking-widest">Daily Attendance</p>
+                            <h2 className="text-sm sm:text-lg font-black text-primary tracking-tight truncate mt-0.5">
                                 Daily Attendance Records
                             </h2>
 
                         </div>
-                        <p className="text-xs sm:text-sm text-slate-500 font-semibold truncate shrink-0">
+                        <p className="text-xs sm:text-sm text-muted-text font-semibold truncate shrink-0">
                             {totals.present || 0} Present • {totals.absent || 0} Absent • {totals.notPosted || 0} Not Posted
                         </p>
                     </div>
@@ -298,8 +298,8 @@ const DailyTab = ({ daily }) => {
                         onClick={() => setSelectedDate('all')}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
                             selectedDate === 'all'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'bg-surface border border-border text-sub hover:bg-background'
                         }`}
                     >
                         All Dates ({records.length})
@@ -310,8 +310,8 @@ const DailyTab = ({ daily }) => {
                             onClick={() => setSelectedDate(rec.date)}
                             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
                                 selectedDate === rec.date
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                    ? 'bg-primary text-white shadow-sm'
+                                    : 'bg-surface border border-border text-sub hover:bg-background'
                             }`}
                         >
                             {formatShortDate(rec.date)} ({rec.sessions?.length || 0})
@@ -324,18 +324,18 @@ const DailyTab = ({ daily }) => {
             {filteredRecords.length > 0 ? (
                 <div className="space-y-4">
                     {filteredRecords.map(day => (
-                        <div key={day.date} className="bg-white border border-slate-100 rounded-2xl sm:rounded-[2rem] p-4 sm:p-5 shadow-sm">
+                        <div key={day.date} className="bg-surface border border-border rounded-2xl sm:rounded-[2rem] p-4 sm:p-5 shadow-sm">
                             {/* Day Header */}
-                            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+                            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-border">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                                    <div className="p-2 bg-[var(--primary-light)] text-primary rounded-xl">
                                         <Calendar size={16} />
                                     </div>
                                     <div>
-                                        <h4 className="text-sm sm:text-base font-black text-blue-900 tracking-tight">
+                                        <h4 className="text-sm sm:text-base font-black text-primary tracking-tight">
                                             {formatDisplayDate(day.date)}
                                         </h4>
-                                        <p className="text-[10px] sm:text-xs text-slate-400 font-semibold">
+                                        <p className="text-[10px] sm:text-xs text-muted-text font-semibold">
                                             {formatShortDate(day.date).split(',')[0]} • {day.sessions?.length || 0} class sessions
                                         </p>
                                     </div>
@@ -343,12 +343,12 @@ const DailyTab = ({ daily }) => {
                                 <div className="flex items-center gap-2">
                                     <span className={`px-2.5 py-1 rounded-full text-xs font-extrabold ${
                                         day.dayStatus === 'present'
-                                            ? 'bg-emerald-100 text-emerald-800'
+                                            ? 'bg-[var(--success-light)] text-success'
                                             : day.dayStatus === 'absent'
-                                                ? 'bg-rose-100 text-rose-800'
+                                                ? 'bg-[var(--danger-light)] text-danger'
                                                 : day.dayStatus === 'not_posted'
-                                                    ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                                    : 'bg-blue-100 text-blue-800'
+                                                    ? 'bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]'
+                                                    : 'bg-[var(--primary-light)] text-primary'
                                     }`}>
                                         {day.dayStatus === 'present'
                                             ? 'Present'
@@ -372,50 +372,50 @@ const DailyTab = ({ daily }) => {
                                             key={session.id || sIdx}
                                             className={`p-3.5 rounded-xl border transition-all ${
                                                 isPres
-                                                    ? 'bg-emerald-50/40 border-emerald-200/80'
+                                                    ? 'bg-[var(--success-light)] border-[var(--success-light)]'
                                                     : isAbs
-                                                        ? 'bg-rose-50/40 border-rose-200/80'
-                                                        : 'bg-amber-50/30 border-amber-200/60'
+                                                        ? 'bg-[var(--danger-light)] border-[var(--danger-light)]'
+                                                        : 'bg-[var(--warning-light)] border-[var(--warning-light)]'
                                             } flex flex-col justify-between min-h-[96px]`}
                                         >
                                             <div className="flex items-start justify-between gap-2">
                                                 <div className="min-w-0">
-                                                    <span className="text-[10px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded bg-white/80 text-slate-600 border border-slate-200/60 inline-block mb-1">
+                                                    <span className="text-[10px] font-black tracking-wider uppercase px-1.5 py-0.5 rounded bg-[var(--surface)]/80 text-sub border border-border inline-block mb-1">
                                                         {session.subjectCode || 'CLASS'}
                                                     </span>
-                                                    <h5 className="text-xs sm:text-sm font-black text-slate-800 truncate" title={session.subjectName}>
+                                                    <h5 className="text-xs sm:text-sm font-black text-main truncate" title={session.subjectName}>
                                                         {session.subjectName || 'Class Session'}
                                                     </h5>
                                                 </div>
                                                 <div className="shrink-0">
                                                     {isPres ? (
-                                                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                                                            <CheckCircle size={12} className="text-emerald-600" />
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-success bg-[var(--success-light)] px-2.5 py-0.5 rounded-full">
+                                                            <CheckCircle size={12} className="text-success" />
                                                             Present
                                                         </span>
                                                     ) : isAbs ? (
-                                                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-rose-700 bg-rose-100 px-2.5 py-0.5 rounded-full">
-                                                            <XCircle size={12} className="text-rose-600" />
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-danger bg-[var(--danger-light)] px-2.5 py-0.5 rounded-full">
+                                                            <XCircle size={12} className="text-danger" />
                                                             Absent
                                                         </span>
                                                     ) : (
-                                                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-amber-800 bg-amber-100/90 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                                                            <AlertCircle size={12} className="text-amber-600" />
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-black text-warning bg-[var(--warning-light)] border border-[var(--warning-light)] px-2.5 py-0.5 rounded-full">
+                                                            <AlertCircle size={12} className="text-warning" />
                                                             Not Posted
                                                         </span>
                                                     )}
                                                 </div>
                                             </div>
 
-                                            <div className="pt-2 mt-2 border-t border-slate-200/50 flex items-center justify-between text-[11px] text-slate-500 font-semibold">
+                                            <div className="pt-2 mt-2 border-t border-border flex items-center justify-between text-[11px] text-muted-text font-semibold">
                                                 <span className="flex items-center gap-1">
-                                                    <Clock size={12} className="text-slate-400" />
+                                                    <Clock size={12} className="text-muted-text" />
                                                     {session.startTime && session.endTime
                                                         ? `${session.startTime.slice(0, 5)} - ${session.endTime.slice(0, 5)}`
                                                         : 'Scheduled Period'}
                                                 </span>
                                                 {session.roomLabel && (
-                                                    <span className="text-slate-400 font-medium truncate">
+                                                    <span className="text-muted-text font-medium truncate">
                                                         {session.roomLabel}
                                                     </span>
                                                 )}
@@ -428,10 +428,10 @@ const DailyTab = ({ daily }) => {
                     ))}
                 </div>
             ) : (
-                <div className="bg-white border border-slate-100 rounded-2xl p-8 text-center text-slate-400">
-                    <Clock className="mx-auto h-10 w-10 text-slate-300 mb-2" />
-                    <p className="text-sm font-bold text-slate-700">No Daily Attendance Records</p>
-                    <p className="text-xs text-slate-400 mt-1">There are no daily attendance records posted yet.</p>
+                <div className="bg-surface border border-border rounded-2xl p-8 text-center text-muted-text">
+                    <Clock className="mx-auto h-10 w-10 text-muted-text mb-2" />
+                    <p className="text-sm font-bold text-sub">No Daily Attendance Records</p>
+                    <p className="text-xs text-muted-text mt-1">There are no daily attendance records posted yet.</p>
                 </div>
             )}
         </div>
@@ -457,8 +457,8 @@ const WeeklyTab = ({ weekly, semesterSeries }) => {
     return (
         <div className="space-y-4 sm:space-y-6">
             {/* Hero Card - Stats beside Percentage Ring, Content below */}
-            <div className="bg-white rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-6 lg:p-7 shadow-md border border-slate-100 relative overflow-hidden transition-all group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50/40 rounded-full -mr-32 -mt-32 blur-2xl group-hover:bg-emerald-100/40 transition-all pointer-events-none"></div>
+            <div className="bg-surface rounded-2xl sm:rounded-[2.5rem] p-5 sm:p-6 lg:p-7 shadow-md border border-border relative overflow-hidden transition-all group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--success-light)] rounded-full -mr-32 -mt-32 blur-2xl group-hover:bg-[var(--success-light)] transition-all pointer-events-none"></div>
 
                 <div className="relative z-10 space-y-4 sm:space-y-5">
                     {/* Top Row: Percentage ring on the left, 4 Stats beside it on the right */}
@@ -467,36 +467,36 @@ const WeeklyTab = ({ weekly, semesterSeries }) => {
 
                         {/* 4 Stats Grid: 2x2 on mobile, 4 columns on tablet/desktop */}
                         <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
-                            <div className="bg-emerald-50/60 border border-emerald-100/80 rounded-xl py-2 px-2.5 text-center">
-                                <p className="text-[8px] sm:text-[9px] text-emerald-700 uppercase font-black tracking-wider truncate">Present</p>
-                                <p className="text-base sm:text-lg font-black text-emerald-600 tracking-tight mt-0.5">{present}</p>
+                            <div className="bg-[var(--success-light)] border border-[var(--success-light)] rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-success uppercase font-black tracking-wider truncate">Present</p>
+                                <p className="text-base sm:text-lg font-black text-success tracking-tight mt-0.5">{present}</p>
                             </div>
-                            <div className="bg-rose-50/60 border border-rose-100/80 rounded-xl py-2 px-2.5 text-center">
-                                <p className="text-[8px] sm:text-[9px] text-rose-700 uppercase font-black tracking-wider truncate">Absent</p>
-                                <p className="text-base sm:text-lg font-black text-rose-600 tracking-tight mt-0.5">{absent}</p>
+                            <div className="bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-danger uppercase font-black tracking-wider truncate">Absent</p>
+                                <p className="text-base sm:text-lg font-black text-danger tracking-tight mt-0.5">{absent}</p>
                             </div>
-                            <div className="bg-amber-50/60 border border-amber-100/80 rounded-xl py-2 px-2.5 text-center">
-                                <p className="text-[8px] sm:text-[9px] text-amber-700 uppercase font-black tracking-wider truncate">Holiday</p>
-                                <p className="text-base sm:text-lg font-black text-amber-600 tracking-tight mt-0.5">{holidays}</p>
+                            <div className="bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-warning uppercase font-black tracking-wider truncate">Holiday</p>
+                                <p className="text-base sm:text-lg font-black text-warning tracking-tight mt-0.5">{holidays}</p>
                             </div>
-                            <div className="bg-slate-50 border border-slate-100 rounded-xl py-2 px-2.5 text-center">
-                                <p className="text-[8px] sm:text-[9px] text-slate-700 uppercase font-black tracking-wider truncate">Pending</p>
-                                <p className="text-base sm:text-lg font-black text-slate-900 tracking-tight mt-0.5">{unmarked}</p>
+                            <div className="bg-background border border-border rounded-xl py-2 px-2.5 text-center">
+                                <p className="text-[8px] sm:text-[9px] text-sub uppercase font-black tracking-wider truncate">Pending</p>
+                                <p className="text-base sm:text-lg font-black text-main tracking-tight mt-0.5">{unmarked}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Bottom Row: Weekly Performance Index Content */}
-                    <div className="pt-3.5 sm:pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2">
+                    <div className="pt-3.5 sm:pt-4 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 sm:gap-2">
                         <div className="min-w-0">
-                            <p className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-widest">Weekly Performance Index</p>
+                            <p className="text-[10px] sm:text-xs font-black text-muted-text uppercase tracking-widest">Weekly Performance Index</p>
                             {weekly?.startDate && weekly?.endDate && (
-                                <h2 className="text-sm sm:text-lg font-black text-blue-900 tracking-tight truncate mt-0.5">
-                                    {formatShortDate(weekly.startDate)} <span className="text-slate-300 mx-1.5">—</span> {formatShortDate(weekly.endDate)}
+                                <h2 className="text-sm sm:text-lg font-black text-primary tracking-tight truncate mt-0.5">
+                                    {formatShortDate(weekly.startDate)} <span className="text-muted-text mx-1.5">—</span> {formatShortDate(weekly.endDate)}
                                 </h2>
                             )}
                         </div>
-                        <p className="text-xs sm:text-sm text-slate-500 font-semibold truncate">
+                        <p className="text-xs sm:text-sm text-muted-text font-semibold truncate">
                             {present} Present • {absent} Absent • {holidays} Holiday
                         </p>
                     </div>
@@ -505,15 +505,15 @@ const WeeklyTab = ({ weekly, semesterSeries }) => {
 
             {/* Day-by-Day List */}
             {days.length > 0 && (
-                <div className="bg-white border border-slate-100 rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-6 shadow-md">
+                <div className="bg-surface border border-border rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-6 shadow-md">
                     <div className="flex items-center justify-between mb-3.5 sm:mb-4">
-                        <h3 className="text-xs sm:text-sm font-black text-blue-900 uppercase tracking-wider flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg">
+                        <h3 className="text-xs sm:text-sm font-black text-primary uppercase tracking-wider flex items-center gap-2">
+                            <div className="p-1.5 bg-[var(--success-light)] text-success rounded-lg">
                                 <Calendar size={14} className="sm:w-4 sm:h-4" />
                             </div>
                             Daily Attendance Record
                         </h3>
-                        <span className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">{days.length} Days</span>
+                        <span className="text-[10px] sm:text-xs font-bold text-muted-text uppercase tracking-wider">{days.length} Days</span>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
@@ -525,21 +525,21 @@ const WeeklyTab = ({ weekly, semesterSeries }) => {
                                     className={`p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border transition-all ${statusBg(effectiveStatus)} border-opacity-70 flex flex-col justify-between min-h-[92px] sm:min-h-[105px] shadow-sm`}
                                 >
                                     <div className="flex items-center justify-between gap-1">
-                                        <span className="text-xs sm:text-sm font-black text-slate-800 tracking-tight">
+                                        <span className="text-xs sm:text-sm font-black text-main tracking-tight">
                                             {formatShortDate(entry.date).split(',')[0]}
                                         </span>
                                         <StatusIcon status={effectiveStatus} size={15} />
                                     </div>
                                     <div className="my-1.5">
-                                        <p className="text-xs sm:text-sm font-bold text-slate-700">
+                                        <p className="text-xs sm:text-sm font-bold text-sub">
                                             {formatShortDate(entry.date).split(',')[1] || entry.date}
                                         </p>
                                     </div>
-                                    <div className="pt-1.5 border-t border-slate-200/50 flex items-center justify-between">
+                                    <div className="pt-1.5 border-t border-border flex items-center justify-between">
                                         <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider truncate ${
-                                            effectiveStatus === 'present' ? 'text-emerald-700' :
-                                            effectiveStatus === 'absent' ? 'text-rose-700' :
-                                            effectiveStatus === 'holiday' ? 'text-amber-700' : 'text-slate-400'
+                                            effectiveStatus === 'present' ? 'text-success' :
+                                            effectiveStatus === 'absent' ? 'text-danger' :
+                                            effectiveStatus === 'holiday' ? 'text-warning' : 'text-muted-text'
                                         }`}>
                                             {entry.isHoliday
                                                 ? (getHolidayLabel(entry.holiday) || 'Holiday')
@@ -664,34 +664,34 @@ const MonthlyTab = ({ monthly, semesterSeries, attendanceStartDate }) => {
     return (
         <div className="space-y-4 sm:space-y-6">
             {/* Hero Card - Spacious, balanced layout */}
-            <div className="bg-emerald-600 rounded-2xl sm:rounded-[2.5rem] py-5 px-4 sm:py-6 sm:px-6 shadow-md border border-emerald-500 relative overflow-hidden transition-all group shrink-0 text-white">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-2xl group-hover:bg-white/20 transition-all pointer-events-none"></div>
+            <div className="bg-success rounded-2xl sm:rounded-[2.5rem] py-5 px-4 sm:py-6 sm:px-6 shadow-md border border-success relative overflow-hidden transition-all group shrink-0 text-white">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--surface)]/10 rounded-full -mr-32 -mt-32 blur-2xl group-hover:bg-[var(--surface)]/20 transition-all pointer-events-none"></div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 relative z-10">
                     <div className="flex items-center gap-4 sm:gap-5 w-full sm:w-auto">
                         <CircularRing pct={pct} inverted={true} />
                         <div className="flex-1 sm:hidden min-w-0 pl-1.5 flex flex-col justify-center py-1">
-                            <p className="text-[10px] font-black text-emerald-100 uppercase tracking-widest">Monthly Index</p>
+                            <p className="text-[10px] font-black text-success uppercase tracking-widest">Monthly Index</p>
                             <div className="flex items-center justify-between gap-2 mt-1">
                                 <h2 className="text-sm font-black text-white tracking-tight truncate">{monthLabel}</h2>
                                 <div className="flex items-center gap-1 shrink-0">
                                     <button
                                         onClick={goToPrevMonth}
-                                        className="w-7 h-7 rounded-lg bg-white/15 hover:bg-white/25 border border-white/20 text-white flex items-center justify-center transition-all active:scale-90"
+                                        className="w-7 h-7 rounded-lg bg-[var(--surface)]/15 hover:bg-[var(--surface)]/25 border border-surface text-white flex items-center justify-center transition-all active:scale-90"
                                         aria-label="Previous Month"
                                     >
                                         <ChevronLeft size={14} />
                                     </button>
                                     <button
                                         onClick={goToNextMonth}
-                                        className="w-7 h-7 rounded-lg bg-white/15 hover:bg-white/25 border border-white/20 text-white flex items-center justify-center transition-all active:scale-90"
+                                        className="w-7 h-7 rounded-lg bg-[var(--surface)]/15 hover:bg-[var(--surface)]/25 border border-surface text-white flex items-center justify-center transition-all active:scale-90"
                                         aria-label="Next Month"
                                     >
                                         <ChevronRight size={14} />
                                     </button>
                                 </div>
                             </div>
-                            <p className="text-[11px] text-emerald-100 font-semibold mt-1 truncate">
+                            <p className="text-[11px] text-success font-semibold mt-1 truncate">
                                 {present} Present • {absent} Absent • {holidays} Holiday
                             </p>
                         </div>
@@ -700,20 +700,20 @@ const MonthlyTab = ({ monthly, semesterSeries, attendanceStartDate }) => {
                     <div className="flex-1 w-full space-y-3 sm:space-y-3.5 text-center sm:text-left">
                         <div className="hidden sm:flex items-center justify-between gap-4">
                             <div>
-                                <p className="text-[10px] font-black text-emerald-100 uppercase tracking-[0.2em] mb-0.5 opacity-90">Monthly Attendance</p>
+                                <p className="text-[10px] font-black text-success uppercase tracking-[0.2em] mb-0.5 opacity-90">Monthly Attendance</p>
                                 <h2 className="text-base sm:text-xl font-black text-white heading-font">{monthLabel}</h2>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={goToPrevMonth}
-                                    className="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white flex items-center justify-center transition-all active:scale-90"
+                                    className="w-8 h-8 rounded-xl bg-[var(--surface)]/15 hover:bg-[var(--surface)]/25 border border-surface text-white flex items-center justify-center transition-all active:scale-90"
                                     aria-label="Previous Month"
                                 >
                                     <ChevronLeft size={16} />
                                 </button>
                                 <button
                                     onClick={goToNextMonth}
-                                    className="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-white flex items-center justify-center transition-all active:scale-90"
+                                    className="w-8 h-8 rounded-xl bg-[var(--surface)]/15 hover:bg-[var(--surface)]/25 border border-surface text-white flex items-center justify-center transition-all active:scale-90"
                                     aria-label="Next Month"
                                 >
                                     <ChevronRight size={16} />
@@ -723,21 +723,21 @@ const MonthlyTab = ({ monthly, semesterSeries, attendanceStartDate }) => {
 
                         {/* 4 Stats Grid */}
                         <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-                            <div className="bg-white border border-slate-100 rounded-xl py-1.5 sm:py-2 px-1 text-center shadow-xs">
-                                <p className="text-[8px] sm:text-[9px] text-emerald-700 uppercase font-black tracking-wider truncate">Present</p>
-                                <p className="text-sm sm:text-lg font-black text-emerald-600 tracking-tight mt-0.5">{present}</p>
+                            <div className="bg-surface border border-border rounded-xl py-1.5 sm:py-2 px-1 text-center shadow-xs">
+                                <p className="text-[8px] sm:text-[9px] text-success uppercase font-black tracking-wider truncate">Present</p>
+                                <p className="text-sm sm:text-lg font-black text-success tracking-tight mt-0.5">{present}</p>
                             </div>
-                            <div className="bg-white border border-slate-100 rounded-xl py-1.5 sm:py-2 px-1 text-center shadow-xs">
-                                <p className="text-[8px] sm:text-[9px] text-rose-700 uppercase font-black tracking-wider truncate">Absent</p>
-                                <p className="text-sm sm:text-lg font-black text-rose-600 tracking-tight mt-0.5">{absent}</p>
+                            <div className="bg-surface border border-border rounded-xl py-1.5 sm:py-2 px-1 text-center shadow-xs">
+                                <p className="text-[8px] sm:text-[9px] text-danger uppercase font-black tracking-wider truncate">Absent</p>
+                                <p className="text-sm sm:text-lg font-black text-danger tracking-tight mt-0.5">{absent}</p>
                             </div>
-                            <div className="bg-white border border-slate-100 rounded-xl py-1.5 sm:py-2 px-1 text-center shadow-xs">
-                                <p className="text-[8px] sm:text-[9px] text-amber-700 uppercase font-black tracking-wider truncate">Holiday</p>
-                                <p className="text-sm sm:text-lg font-black text-amber-600 tracking-tight mt-0.5">{holidays}</p>
+                            <div className="bg-surface border border-border rounded-xl py-1.5 sm:py-2 px-1 text-center shadow-xs">
+                                <p className="text-[8px] sm:text-[9px] text-warning uppercase font-black tracking-wider truncate">Holiday</p>
+                                <p className="text-sm sm:text-lg font-black text-warning tracking-tight mt-0.5">{holidays}</p>
                             </div>
-                            <div className="bg-white border border-slate-100 rounded-xl py-1.5 sm:py-2 px-1 text-center shadow-xs">
-                                <p className="text-[8px] sm:text-[9px] text-slate-700 uppercase font-black tracking-wider truncate">Pending</p>
-                                <p className="text-sm sm:text-lg font-black text-slate-900 tracking-tight mt-0.5">{unmarked}</p>
+                            <div className="bg-surface border border-border rounded-xl py-1.5 sm:py-2 px-1 text-center shadow-xs">
+                                <p className="text-[8px] sm:text-[9px] text-sub uppercase font-black tracking-wider truncate">Pending</p>
+                                <p className="text-sm sm:text-lg font-black text-main tracking-tight mt-0.5">{unmarked}</p>
                             </div>
                         </div>
                     </div>
@@ -745,22 +745,22 @@ const MonthlyTab = ({ monthly, semesterSeries, attendanceStartDate }) => {
             </div>
 
             {/* Calendar Grid Card */}
-            <div className="bg-white border border-slate-100 rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-6 shadow-md">
+            <div className="bg-surface border border-border rounded-2xl sm:rounded-[2.5rem] p-4 sm:p-6 shadow-md">
                 <div className="flex items-center justify-between mb-2.5 sm:mb-3">
-                    <h3 className="text-xs sm:text-sm font-black text-blue-900 uppercase tracking-wider flex items-center gap-2">
-                        <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+                    <h3 className="text-xs sm:text-sm font-black text-primary uppercase tracking-wider flex items-center gap-2">
+                        <div className="p-1.5 bg-[var(--primary-light)] text-primary rounded-lg">
                             <Calendar size={14} className="sm:w-4 sm:h-4" />
                         </div>
                         Monthly Calendar
                     </h3>
-                    <div className="flex items-center gap-2.5 text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <div className="flex items-center gap-2.5 text-[8px] sm:text-[10px] font-bold text-muted-text uppercase tracking-wider">
                         <span>Present</span>
                         <span>Absent</span>
                         <span>Holiday</span>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] sm:text-xs font-black text-slate-400 py-1">
+                <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] sm:text-xs font-black text-muted-text py-1">
                     {weekdayLabels.map(label => (
                         <div key={label} className="uppercase tracking-wider">
                             {label}
@@ -775,9 +775,9 @@ const MonthlyTab = ({ monthly, semesterSeries, attendanceStartDate }) => {
                             return (
                                 <div
                                     key={cell.dateKey}
-                                    className="rounded-lg sm:rounded-xl border border-slate-100 bg-slate-50 flex flex-col items-center justify-center p-1 sm:p-1.5 min-h-[34px] sm:min-h-[42px] text-center"
+                                    className="rounded-lg sm:rounded-xl border border-border bg-background flex flex-col items-center justify-center p-1 sm:p-1.5 min-h-[34px] sm:min-h-[42px] text-center"
                                 >
-                                    <span className="text-[10px] sm:text-xs font-bold text-slate-300">{cell.dayNumber}</span>
+                                    <span className="text-[10px] sm:text-xs font-bold text-muted-text">{cell.dayNumber}</span>
                                 </div>
                             );
                         }
@@ -852,7 +852,7 @@ const SemesterTab = ({ semester, semesterSeries }) => {
 
     if (!semester || !stats) {
         return (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-muted-text">
                 <AlertCircle className="mx-auto h-10 w-10 mb-3" />
                 <p className="text-sm">No semester data available.</p>
             </div>
@@ -862,10 +862,10 @@ const SemesterTab = ({ semester, semesterSeries }) => {
     return (
         <div className="space-y-6">
             {/* Hero Card */}
-            <div className={`bg-emerald-600 rounded-[2.5rem] p-6 md:p-8 shadow-2xl border border-emerald-500 relative overflow-hidden transition-all duration-500 hover:scale-[1.01] hover:-translate-y-1.5 group mb-6`}>
-                <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -mr-40 -mt-40 blur-3xl group-hover:bg-white/20 transition-all duration-500 pointer-events-none"></div>
+            <div className={`bg-success rounded-[2.5rem] p-6 md:p-8 shadow-2xl border border-success relative overflow-hidden transition-all duration-500 hover:scale-[1.01] hover:-translate-y-1.5 group mb-6`}>
+                <div className="absolute top-0 right-0 w-80 h-80 bg-[var(--surface)]/10 rounded-full -mr-40 -mt-40 blur-3xl group-hover:bg-[var(--surface)]/20 transition-all duration-500 pointer-events-none"></div>
                 {isFallback && (
-                    <div className="relative z-20 flex items-start gap-2 px-4 py-3 mb-6 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-[10px] sm:text-xs text-white">
+                    <div className="relative z-20 flex items-start gap-2 px-4 py-3 mb-6 bg-[var(--surface)]/10 backdrop-blur-md border border-surface rounded-2xl text-[10px] sm:text-xs text-white">
                         <Info size={16} className="mt-0.5 shrink-0" />
                         <span>Semester dates are not set. Configure them in <strong>Settings → Academic Calendar</strong> for accurate attendance.</span>
                     </div>
@@ -874,37 +874,37 @@ const SemesterTab = ({ semester, semesterSeries }) => {
                     <CircularRing pct={pct} size={150} inverted={true} />
                     <div className="flex-1 space-y-4 text-center sm:text-left w-full">
                         <div>
-                            <p className="text-[10px] font-black text-emerald-100 uppercase tracking-[0.2em] mb-1 opacity-80 flex items-center justify-center sm:justify-start gap-1.5">
+                            <p className="text-[10px] font-black text-success uppercase tracking-[0.2em] mb-1 opacity-80 flex items-center justify-center sm:justify-start gap-1.5">
                                 <BookOpen size={14} /> Semester Attendance
                             </p>
                             <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mt-3 max-w-full sm:max-w-md mx-auto sm:mx-0">
                                 {semester.startDate && (
-                                    <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl bg-white/10 border border-white/20 text-white text-[10px] sm:text-xs font-bold leading-none min-w-0">
-                                        <Calendar size={12} className="shrink-0 text-emerald-200" />
+                                    <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl bg-[var(--surface)]/10 border border-surface text-white text-[10px] sm:text-xs font-bold leading-none min-w-0">
+                                        <Calendar size={12} className="shrink-0 text-success" />
                                         <span className="truncate">{formatDisplayDate(semester.startDate)}</span>
                                     </span>
                                 )}
                                 {semester.endDate && (
-                                    <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl bg-white/10 border border-white/20 text-white text-[10px] sm:text-xs font-bold leading-none min-w-0">
-                                        <Calendar size={12} className="shrink-0 text-emerald-200" />
+                                    <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl bg-[var(--surface)]/10 border border-surface text-white text-[10px] sm:text-xs font-bold leading-none min-w-0">
+                                        <Calendar size={12} className="shrink-0 text-success" />
                                         <span className="truncate">{formatDisplayDate(semester.endDate)}</span>
                                     </span>
                                 )}
-                                <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl bg-white/10 text-emerald-100 border border-white/15 text-[10px] sm:text-xs font-bold leading-none min-w-0">
-                                    <Calendar size={12} className="shrink-0 text-emerald-200" />
+                                <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl bg-[var(--surface)]/10 text-success border border-surface text-[10px] sm:text-xs font-bold leading-none min-w-0">
+                                    <Calendar size={12} className="shrink-0 text-success" />
                                     <span className="truncate">{stats.workingDays} Working Days</span>
                                 </span>
-                                <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl bg-white/10 text-amber-300 border border-white/15 text-[10px] sm:text-xs font-bold leading-none min-w-0">
-                                    <Sun size={12} className="shrink-0 text-amber-300" />
+                                <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 rounded-xl bg-[var(--surface)]/10 text-warning border border-surface text-[10px] sm:text-xs font-bold leading-none min-w-0">
+                                    <Sun size={12} className="shrink-0 text-warning" />
                                     <span className="truncate">{stats.holidays} Holidays</span>
                                 </span>
                             </div>
                         </div>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-                            <StatCard label="Present" value={stats.present} colorClass="text-emerald-600" />
-                            <StatCard label="Absent" value={stats.absent} colorClass="text-rose-600" />
-                            <StatCard label="Holidays" value={stats.holidays} colorClass="text-amber-600" />
-                            <StatCard label="Pending" value={stats.unmarked} colorClass="text-slate-900" />
+                            <StatCard label="Present" value={stats.present} colorClass="text-success" />
+                            <StatCard label="Absent" value={stats.absent} colorClass="text-danger" />
+                            <StatCard label="Holidays" value={stats.holidays} colorClass="text-warning" />
+                            <StatCard label="Pending" value={stats.unmarked} colorClass="text-main" />
                         </div>
                     </div>
                 </div>
@@ -912,30 +912,30 @@ const SemesterTab = ({ semester, semesterSeries }) => {
 
             {/* Holidays */}
             {semesterHolidays.length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300">
-                    <h3 className="text-sm font-bold text-blue-900 mb-4 flex items-center gap-2">
-                        <Umbrella size={16} className="text-amber-500" />
+                <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300">
+                    <h3 className="text-sm font-bold text-primary mb-4 flex items-center gap-2">
+                        <Umbrella size={16} className="text-warning" />
                         Holidays This Semester
-                        <span className="ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="ml-auto text-xs font-medium px-2.5 py-0.5 rounded-full bg-[var(--warning-light)] text-warning border border-[var(--warning-light)]">
                             {semesterHolidays.length} total
                         </span>
                     </h3>
                     <div className="space-y-4">
                         {customHolidays.length > 0 && (
                             <div>
-                                <p className="text-xs font-semibold text-purple-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded-full bg-purple-500 inline-block" />
+                                <p className="text-xs font-semibold text-secondary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-secondary inline-block" />
                                     Institute Holidays ({customHolidays.length})
                                 </p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                                     {customHolidays.map(h => (
-                                        <div key={h.date} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-purple-50 border border-purple-100">
-                                            <div className="mt-0.5 w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
-                                                <BookOpen size={13} className="text-purple-600" />
+                                        <div key={h.date} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-[var(--primary-light)] border border-[var(--primary-light)]">
+                                            <div className="mt-0.5 w-8 h-8 rounded-lg bg-[var(--primary-light)] flex items-center justify-center shrink-0">
+                                                <BookOpen size={13} className="text-secondary" />
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-sm font-semibold text-purple-900 truncate">{h.label}</p>
-                                                <p className="text-xs text-purple-600 mt-0.5">{formatShortDate(h.date)}</p>
+                                                <p className="text-sm font-semibold text-secondary truncate">{h.label}</p>
+                                                <p className="text-xs text-secondary mt-0.5">{formatShortDate(h.date)}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -944,19 +944,19 @@ const SemesterTab = ({ semester, semesterSeries }) => {
                         )}
                         {publicHolidays.length > 0 && (
                             <div>
-                                <p className="text-xs font-semibold text-orange-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                                    <span className="w-2 h-2 rounded-full bg-orange-500 inline-block" />
+                                <p className="text-xs font-semibold text-warning uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-warning inline-block" />
                                     Public Holidays ({publicHolidays.length})
                                 </p>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                                     {publicHolidays.map(h => (
-                                        <div key={h.date} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-orange-50 border border-orange-100">
-                                            <div className="mt-0.5 w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
-                                                <Sun size={13} className="text-orange-600" />
+                                        <div key={h.date} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-[var(--warning-light)] border border-[var(--warning-light)]">
+                                            <div className="mt-0.5 w-8 h-8 rounded-lg bg-[var(--warning-light)] flex items-center justify-center shrink-0">
+                                                <Sun size={13} className="text-warning" />
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-sm font-semibold text-orange-900 truncate">{h.label}</p>
-                                                <p className="text-xs text-orange-500 mt-0.5">{formatShortDate(h.date)}</p>
+                                                <p className="text-sm font-semibold text-warning truncate">{h.label}</p>
+                                                <p className="text-xs text-warning mt-0.5">{formatShortDate(h.date)}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -966,13 +966,13 @@ const SemesterTab = ({ semester, semesterSeries }) => {
                         {otherHolidays.length > 0 && (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                                 {otherHolidays.map(h => (
-                                    <div key={h.date} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-100">
-                                        <div className="mt-0.5 w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
-                                            <Umbrella size={13} className="text-amber-600" />
+                                    <div key={h.date} className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-[var(--warning-light)] border border-[var(--warning-light)]">
+                                        <div className="mt-0.5 w-8 h-8 rounded-lg bg-[var(--warning-light)] flex items-center justify-center shrink-0">
+                                            <Umbrella size={13} className="text-warning" />
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="text-sm font-semibold text-amber-900 truncate">{h.label}</p>
-                                            <p className="text-xs text-amber-600 mt-0.5">{formatShortDate(h.date)}</p>
+                                            <p className="text-sm font-semibold text-warning truncate">{h.label}</p>
+                                            <p className="text-xs text-warning mt-0.5">{formatShortDate(h.date)}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -1079,9 +1079,9 @@ const Attendance = ({ apiPath = '/attendance/student', logParentView = false }) 
     if (!historyData) {
         return (
             <div className="text-center py-12">
-                <AlertCircle className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-blue-900">No Attendance Records Found</h3>
-                <p className="text-gray-500">Could not retrieve attendance data at this time.</p>
+                <AlertCircle className="mx-auto h-12 w-12 text-muted-text mb-4" />
+                <h3 className="text-lg font-medium text-primary">No Attendance Records Found</h3>
+                <p className="text-muted-text">Could not retrieve attendance data at this time.</p>
             </div>
         );
     }
@@ -1092,15 +1092,15 @@ const Attendance = ({ apiPath = '/attendance/student', logParentView = false }) 
             {/* ── Header ── */}
             <header className="flex items-center justify-between shrink-0">
                 <div>
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold !text-blue-900 heading-font">My Attendance</h1>
-                    <p className="text-[11px] sm:text-xs md:text-sm text-gray-500 mt-0.5"></p>
+                    <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold !text-primary heading-font">My Attendance</h1>
+                    <p className="text-[11px] sm:text-xs md:text-sm text-muted-text mt-0.5"></p>
                 </div>
                 {/* refresh only shown outside monthly tab; monthly data auto-fetches on navigation */}
                 {activeTab !== 'monthly' && (
                     <button
                         onClick={() => fetchAttendanceHistory(true)}
                         disabled={loading}
-                        className="p-2 sm:p-2.5 bg-blue-600 text-white rounded-lg sm:rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center"
+                        className="p-2 sm:p-2.5 bg-primary text-white rounded-lg sm:rounded-xl font-semibold hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center justify-center"
                         title="Refresh"
                         aria-label="Refresh"
                     >
@@ -1110,7 +1110,7 @@ const Attendance = ({ apiPath = '/attendance/student', logParentView = false }) 
             </header>
 
             {/* ── Tabs ── */}
-            <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-100/80 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl w-full sm:w-fit shrink-0">
+            <div className="flex items-center gap-1 sm:gap-1.5 bg-[var(--background)]/80 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl w-full sm:w-fit shrink-0">
                 {TABS.map(tab => {
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
@@ -1119,8 +1119,8 @@ const Attendance = ({ apiPath = '/attendance/student', logParentView = false }) 
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex flex-1 sm:flex-none justify-center items-center gap-1 sm:gap-2 px-2 sm:px-5 py-1.5 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap ${isActive
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-sub hover:text-main hover:bg-[var(--surface)]/50'
                                 }`}
                         >
                             <Icon size={13} className="sm:w-[15px] sm:h-[15px]" />

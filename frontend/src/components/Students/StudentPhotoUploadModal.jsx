@@ -397,9 +397,9 @@ export function JoiningPhotoGuidelinesOverlay({
     <div
       className={`pointer-events-none absolute inset-0 z-10 select-none overflow-hidden transition-colors duration-300 ${
         isFailed
-          ? 'ring-4 ring-inset ring-amber-500/60'
+          ? 'ring-4 ring-inset ring-[var(--warning-light)]'
           : isMatched
-          ? 'ring-4 ring-inset ring-emerald-400/70'
+          ? 'ring-4 ring-inset ring-[var(--success-light)]'
           : ''
       }`}
       aria-hidden
@@ -452,7 +452,7 @@ export function JoiningPhotoGuidelinesOverlay({
         <text
           x="75"
           y="36.5"
-          fill={isMatched ? '#a7f3d0' : isFailed ? '#fdba74' : 'rgba(147, 197, 253, 0.95)'}
+          fill={isMatched ? 'var(--success)' : isFailed ? 'var(--warning)' : 'rgba(147, 197, 253, 0.95)'}
           fontSize="2.4"
           fontWeight="600"
           fontFamily="sans-serif"
@@ -492,22 +492,22 @@ export function JoiningPhotoGuidelinesOverlay({
       {/* Top Badges */}
       {showHdBadge ? (
         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 px-2.5 py-1 text-[10px] font-semibold text-emerald-300 shadow-md backdrop-blur-md border border-emerald-500/30">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--sidebar)]/80 px-2.5 py-1 text-[10px] font-semibold text-success shadow-md backdrop-blur-md border border-success">
+            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
             1:1 HD Ratio
           </span>
           {isMatched ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/90 px-2.5 py-1 text-[10px] font-semibold text-emerald-300 shadow-md backdrop-blur-md border border-emerald-500/50">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--success-light)] px-2.5 py-1 text-[10px] font-semibold text-success shadow-md backdrop-blur-md border border-success">
+              <span className="h-1.5 w-1.5 rounded-full bg-success animate-ping" />
               Ready ✓
             </span>
           ) : isFailed ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-950/90 px-2.5 py-1 text-[10px] font-semibold text-amber-300 shadow-md backdrop-blur-md border border-amber-500/50">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--warning-light)] px-2.5 py-1 text-[10px] font-semibold text-warning shadow-md backdrop-blur-md border border-warning">
+              <span className="h-1.5 w-1.5 rounded-full bg-warning" />
               Adjust Position ⚠
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-900/80 px-2.5 py-1 text-[10px] font-medium text-blue-200 shadow-md backdrop-blur-md border border-blue-400/30">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--sidebar)]/80 px-2.5 py-1 text-[10px] font-medium text-primary shadow-md backdrop-blur-md border border-primary">
               Guidelines Active
             </span>
           )}
@@ -519,10 +519,10 @@ export function JoiningPhotoGuidelinesOverlay({
         <div
           className={`rounded-lg px-3.5 py-1.5 text-center shadow-lg backdrop-blur-md border transition-all duration-200 ${
             isMatched
-              ? 'bg-emerald-950/90 border-emerald-400/60 text-emerald-100 scale-105'
+              ? 'bg-[var(--success-light)] border-success text-success scale-105'
               : isFailed
-              ? 'bg-amber-950/90 border-amber-400/50 text-amber-100'
-              : 'bg-slate-900/85 border-white/20 text-white'
+              ? 'bg-[var(--warning-light)] border-warning text-warning'
+              : 'bg-[var(--sidebar)]/85 border-surface text-white'
           }`}
         >
           <p className="text-[11px] font-semibold tracking-wide drop-shadow-sm">
@@ -1040,19 +1040,19 @@ export default function StudentPhotoUploadModal({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-[9999999] flex items-center justify-center p-4 bg-[var(--sidebar)]/70 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg bg-surface rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-slate-50 via-white to-indigo-50/40">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-gradient-to-r from-[var(--background)] via-surface to-[var(--primary-light)]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary text-white flex items-center justify-center shadow-md shadow-primary/20">
               <Camera size={20} />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900 tracking-tight flex items-center gap-2">
+              <h3 className="text-base font-bold text-main tracking-tight flex items-center gap-2">
                 Update Student Photo
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-text">
                 {student?.student_name || 'Student'}
                 {student?.admission_number ? ` • ${student.admission_number}` : ''}
               </p>
@@ -1062,7 +1062,7 @@ export default function StudentPhotoUploadModal({
             type="button"
             onClick={handleClose}
             disabled={isUploading}
-            className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors disabled:opacity-50"
+            className="p-1.5 text-muted-text hover:text-sub hover:bg-background rounded-xl transition-colors disabled:opacity-50"
           >
             <X size={18} />
           </button>
@@ -1070,8 +1070,8 @@ export default function StudentPhotoUploadModal({
 
         {/* Tab Selection */}
         {!previewUrl && (
-          <div className="p-3 bg-slate-50/80 border-b border-gray-100">
-            <div className="flex p-1 bg-slate-200/70 rounded-xl max-w-sm mx-auto">
+          <div className="p-3 bg-[var(--background)]/80 border-b border-border">
+            <div className="flex p-1 bg-[var(--background)]/70 rounded-xl max-w-sm mx-auto">
               <button
                 type="button"
                 onClick={() => {
@@ -1080,8 +1080,8 @@ export default function StudentPhotoUploadModal({
                 }}
                 className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                   activeTab === 'camera'
-                    ? 'bg-white text-indigo-700 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-surface text-primary shadow-xs'
+                    : 'text-sub hover:text-main'
                 }`}
               >
                 <Camera size={14} />
@@ -1095,8 +1095,8 @@ export default function StudentPhotoUploadModal({
                 }}
                 className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                   activeTab === 'file'
-                    ? 'bg-white text-indigo-700 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-surface text-primary shadow-xs'
+                    : 'text-sub hover:text-main'
                 }`}
               >
                 <Upload size={14} />
@@ -1111,7 +1111,7 @@ export default function StudentPhotoUploadModal({
           {/* Preview Mode */}
           {previewUrl ? (
             <div className="w-full flex flex-col items-center">
-              <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-2xl overflow-hidden border-4 border-indigo-100 shadow-xl bg-slate-900">
+              <div className="relative w-56 h-56 sm:w-64 sm:h-64 rounded-2xl overflow-hidden border-4 border-[var(--primary-light)] shadow-xl bg-sidebar">
                 <img
                   src={previewUrl}
                   alt="Captured Preview"
@@ -1119,7 +1119,7 @@ export default function StudentPhotoUploadModal({
                 />
                 <div
                   className={`absolute top-2 right-2 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-xs flex items-center gap-1 ${
-                    validationResult?.passesAll ? 'bg-emerald-600/90' : 'bg-rose-600/90'
+                    validationResult?.passesAll ? 'bg-[var(--success-light)]' : 'bg-[var(--danger-light)]'
                   }`}
                 >
                   {validationResult?.passesAll ? (
@@ -1137,11 +1137,11 @@ export default function StudentPhotoUploadModal({
               </div>
 
               <div className="mt-2 text-center">
-                <p className="text-xs font-bold text-gray-800">
+                <p className="text-xs font-bold text-main">
                   {selectedFile?.name || 'Captured Photo'}
                 </p>
                 {selectedFile?.size && (
-                  <p className="text-[11px] text-slate-500 mt-0.5">
+                  <p className="text-[11px] text-muted-text mt-0.5">
                     {(selectedFile.size / 1024).toFixed(1)} KB
                   </p>
                 )}
@@ -1149,21 +1149,21 @@ export default function StudentPhotoUploadModal({
 
               {/* Guidelines Compliance Card */}
               {validationResult && (
-                <div className="w-full max-w-sm mt-3 bg-slate-50 border border-slate-200 rounded-xl p-3 shadow-xs text-left">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200 mb-2">
-                    <h5 className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                <div className="w-full max-w-sm mt-3 bg-background border border-border rounded-xl p-3 shadow-xs text-left">
+                  <div className="flex items-center justify-between pb-2 border-b border-border mb-2">
+                    <h5 className="text-xs font-bold text-main flex items-center gap-1.5">
                       <ShieldCheck
                         size={15}
-                        className={validationResult.passesAll ? 'text-emerald-600' : 'text-rose-600'}
+                        className={validationResult.passesAll ? 'text-success' : 'text-danger'}
                       />
                       Posture & Quality Verification
                     </h5>
                     {validationResult.passesAll ? (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--success-light)] text-success text-[10px] font-extrabold flex items-center gap-1">
                         <CheckCircle2 size={11} /> PASSED
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-extrabold flex items-center gap-1">
+                      <span className="px-2 py-0.5 rounded-full bg-[var(--danger-light)] text-danger text-[10px] font-extrabold flex items-center gap-1">
                         <XCircle size={11} /> REJECTED
                       </span>
                     )}
@@ -1173,15 +1173,15 @@ export default function StudentPhotoUploadModal({
                     {validationResult.guidelines.map((g) => (
                       <div key={g.id} className="text-[11px] leading-tight flex items-start gap-2">
                         {g.passed ? (
-                          <CheckCircle2 size={13} className="text-emerald-500 shrink-0 mt-0.5" />
+                          <CheckCircle2 size={13} className="text-success shrink-0 mt-0.5" />
                         ) : (
-                          <XCircle size={13} className="text-rose-500 shrink-0 mt-0.5" />
+                          <XCircle size={13} className="text-danger shrink-0 mt-0.5" />
                         )}
                         <div>
-                          <span className={`font-bold ${g.passed ? 'text-slate-800' : 'text-rose-900'}`}>
+                          <span className={`font-bold ${g.passed ? 'text-main' : 'text-danger'}`}>
                             {g.title}
                           </span>
-                          <p className={`text-[10.5px] mt-0.5 ${g.passed ? 'text-slate-500' : 'text-rose-700 font-semibold'}`}>
+                          <p className={`text-[10.5px] mt-0.5 ${g.passed ? 'text-muted-text' : 'text-danger font-semibold'}`}>
                             {g.reason}
                           </p>
                         </div>
@@ -1190,8 +1190,8 @@ export default function StudentPhotoUploadModal({
                   </div>
 
                   {!validationResult.passesAll && (
-                    <div className="mt-2.5 p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-900 text-[11px] font-medium flex items-center gap-1.5">
-                      <ShieldAlert size={14} className="text-rose-600 shrink-0" />
+                    <div className="mt-2.5 p-2 rounded-lg bg-[var(--danger-light)] border border-[var(--danger-light)] text-danger text-[11px] font-medium flex items-center gap-1.5">
+                      <ShieldAlert size={14} className="text-danger shrink-0" />
                       <span>Photo rejected: Does not meet posture or quality guidelines. Please click Retake.</span>
                     </div>
                   )}
@@ -1204,7 +1204,7 @@ export default function StudentPhotoUploadModal({
                   type="button"
                   onClick={handleRetake}
                   disabled={isUploading}
-                  className="flex-1 py-2 px-3 border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="flex-1 py-2 px-3 border border-border-strong hover:bg-background text-sub font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   <RotateCcw size={14} />
                   Retake Photo
@@ -1216,8 +1216,8 @@ export default function StudentPhotoUploadModal({
                   title={validationResult && !validationResult.passesAll ? 'Fix posture/quality issues to save' : 'Confirm & Save'}
                   className={`flex-1 py-2 px-3 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5 ${
                     validationResult && !validationResult.passesAll
-                      ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'
-                      : 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 shadow-indigo-200'
+                      ? 'bg-background text-muted-text cursor-not-allowed shadow-none'
+                      : 'bg-gradient-to-r from-primary to-primary hover:from-primary hover:to-primary shadow-primary'
                   }`}
                 >
                   {isUploading ? (
@@ -1238,32 +1238,32 @@ export default function StudentPhotoUploadModal({
             /* Camera Mode */
             <div className="w-full flex flex-col items-center">
               {/* Guidelines Reference Accordion */}
-              <div className="w-full max-w-sm mb-3 bg-indigo-50/70 border border-indigo-100 rounded-xl p-2.5 text-left transition-all">
+              <div className="w-full max-w-sm mb-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl p-2.5 text-left transition-all">
                 <div
                   onClick={() => setShowGuidelines(!showGuidelines)}
                   className="flex items-center justify-between cursor-pointer select-none"
                 >
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-indigo-900">
-                    <ShieldCheck size={15} className="text-indigo-600" />
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-primary">
+                    <ShieldCheck size={15} className="text-primary" />
                     Posture & Camera Guidelines
                   </span>
-                  <span className="text-[11px] font-semibold text-indigo-600 flex items-center gap-1">
+                  <span className="text-[11px] font-semibold text-primary flex items-center gap-1">
                     {showGuidelines ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </span>
                 </div>
 
                 {showGuidelines && (
-                  <ul className="mt-2 space-y-1 text-[11px] text-indigo-950 font-medium border-t border-indigo-100/80 pt-2">
+                  <ul className="mt-2 space-y-1 text-[11px] text-primary font-medium border-t border-[var(--primary-light)] pt-2">
                     <li className="flex items-start gap-1.5">
-                      <UserCheck size={13} className="text-indigo-600 shrink-0 mt-0.5" />
+                      <UserCheck size={13} className="text-primary shrink-0 mt-0.5" />
                       <span><strong>Face Alignment:</strong> Position face straight ahead in camera view.</span>
                     </li>
                     <li className="flex items-start gap-1.5">
-                      <Focus size={13} className="text-indigo-600 shrink-0 mt-0.5" />
+                      <Focus size={13} className="text-primary shrink-0 mt-0.5" />
                       <span><strong>Face Visibility:</strong> Ensure exactly one face is clearly visible.</span>
                     </li>
                     <li className="flex items-start gap-1.5">
-                      <Sun size={13} className="text-indigo-600 shrink-0 mt-0.5" />
+                      <Sun size={13} className="text-primary shrink-0 mt-0.5" />
                       <span><strong>Lighting:</strong> Ensure even room lighting without heavy shadows or backlight.</span>
                     </li>
                   </ul>
@@ -1271,24 +1271,24 @@ export default function StudentPhotoUploadModal({
               </div>
 
               {cameraError ? (
-                <div className="p-5 max-w-sm bg-rose-50 border border-rose-200 rounded-2xl text-center">
-                  <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
+                <div className="p-5 max-w-sm bg-[var(--danger-light)] border border-[var(--danger-light)] rounded-2xl text-center">
+                  <div className="w-12 h-12 rounded-full bg-[var(--danger-light)] text-danger flex items-center justify-center mx-auto mb-3">
                     <AlertCircle size={22} />
                   </div>
-                  <h4 className="text-sm font-bold text-rose-900 mb-1">Camera Access Issue</h4>
-                  <p className="text-xs text-rose-700 leading-relaxed mb-4">{cameraError}</p>
+                  <h4 className="text-sm font-bold text-danger mb-1">Camera Access Issue</h4>
+                  <p className="text-xs text-danger leading-relaxed mb-4">{cameraError}</p>
                   <div className="flex flex-col sm:flex-row gap-2 justify-center">
                     <button
                       type="button"
                       onClick={() => startCamera(facingMode)}
-                      className="px-3 py-1.5 bg-rose-600 text-white font-bold text-xs rounded-lg hover:bg-rose-700 transition-colors"
+                      className="px-3 py-1.5 bg-danger text-white font-bold text-xs rounded-lg hover:bg-danger transition-colors"
                     >
                       Retry Camera
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveTab('file')}
-                      className="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-50 transition-colors"
+                      className="px-3 py-1.5 bg-surface border border-border-strong text-sub font-bold text-xs rounded-lg hover:bg-background transition-colors"
                     >
                       Use File Upload Instead
                     </button>
@@ -1297,7 +1297,7 @@ export default function StudentPhotoUploadModal({
               ) : (
                 <>
                   {/* Viewfinder Frame with JoiningPhotoGuidelinesOverlay */}
-                  <div className="relative w-72 h-72 sm:w-80 sm:h-80 rounded-3xl overflow-hidden bg-slate-900 shadow-2xl flex items-center justify-center">
+                  <div className="relative w-72 h-72 sm:w-80 sm:h-80 rounded-3xl overflow-hidden bg-sidebar shadow-2xl flex items-center justify-center">
                     <video
                       ref={videoRef}
                       playsInline
@@ -1314,8 +1314,8 @@ export default function StudentPhotoUploadModal({
                     />
 
                     {isCameraStarting && (
-                      <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-xs flex flex-col items-center justify-center text-white text-xs gap-2 z-20">
-                        <RefreshCw size={20} className="animate-spin text-indigo-400" />
+                      <div className="absolute inset-0 bg-[var(--sidebar)]/80 backdrop-blur-xs flex flex-col items-center justify-center text-white text-xs gap-2 z-20">
+                        <RefreshCw size={20} className="animate-spin text-primary" />
                         <span>Starting camera...</span>
                       </div>
                     )}
@@ -1324,14 +1324,14 @@ export default function StudentPhotoUploadModal({
                     <button
                       type="button"
                       onClick={toggleFacingMode}
-                      className="absolute bottom-3 right-3 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-md border border-white/20 transition-colors z-20 pointer-events-auto"
+                      className="absolute bottom-3 right-3 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-md border border-surface transition-colors z-20 pointer-events-auto"
                       title="Switch camera"
                     >
                       <FlipHorizontal size={16} />
                     </button>
                   </div>
 
-                  <p className="text-[11px] font-semibold text-slate-600 mt-2 text-center">
+                  <p className="text-[11px] font-semibold text-sub mt-2 text-center">
                     {liveValidation.instruction}
                   </p>
 
@@ -1341,10 +1341,10 @@ export default function StudentPhotoUploadModal({
                       type="button"
                       onClick={capturePhoto}
                       disabled={isCameraStarting || !hasActiveStream}
-                      className="group relative flex items-center justify-center w-16 h-16 rounded-full border-4 shadow-xl transition-all bg-white border-emerald-500 hover:scale-105 active:scale-95 cursor-pointer shadow-emerald-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="group relative flex items-center justify-center w-16 h-16 rounded-full border-4 shadow-xl transition-all bg-surface border-success hover:scale-105 active:scale-95 cursor-pointer shadow-success/30 disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Capture Photo"
                     >
-                      <span className="w-11 h-11 rounded-full transition-all bg-gradient-to-tr from-emerald-600 to-teal-500 group-hover:from-emerald-700 group-hover:to-teal-600" />
+                      <span className="w-11 h-11 rounded-full transition-all bg-gradient-to-tr from-success to-primary group-hover:from-success group-hover:to-primary" />
                     </button>
                   </div>
                 </>
@@ -1356,12 +1356,12 @@ export default function StudentPhotoUploadModal({
             /* File Upload Mode */
             <div className="w-full max-w-sm flex flex-col items-center">
               {/* Guidelines Notice for File Upload */}
-              <div className="w-full mb-3 bg-indigo-50/70 border border-indigo-100 rounded-xl p-2.5 text-left">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-indigo-900 mb-1">
-                  <ShieldCheck size={15} className="text-indigo-600" />
+              <div className="w-full mb-3 bg-[var(--primary-light)] border border-[var(--primary-light)] rounded-xl p-2.5 text-left">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-primary mb-1">
+                  <ShieldCheck size={15} className="text-primary" />
                   Uploaded Photo Requirements
                 </span>
-                <p className="text-[11px] text-indigo-950 font-medium leading-relaxed">
+                <p className="text-[11px] text-primary font-medium leading-relaxed">
                   Uploaded image will be automatically validated for face presence, face size, upright head posture, and image quality.
                 </p>
               </div>
@@ -1373,8 +1373,8 @@ export default function StudentPhotoUploadModal({
                 onClick={() => fileInputRef.current?.click()}
                 className={`w-full p-6 sm:p-8 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center text-center cursor-pointer ${
                   isDragOver
-                    ? 'border-indigo-500 bg-indigo-50/70 scale-[1.01]'
-                    : 'border-slate-300 hover:border-indigo-400 bg-slate-50/60 hover:bg-slate-50'
+                    ? 'border-primary bg-[var(--primary-light)] scale-[1.01]'
+                    : 'border-border-strong hover:border-primary bg-[var(--background)]/60 hover:bg-background'
                 }`}
               >
                 <input
@@ -1388,18 +1388,18 @@ export default function StudentPhotoUploadModal({
                   className="hidden"
                 />
 
-                <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-3 shadow-xs">
+                <div className="w-14 h-14 rounded-2xl bg-[var(--primary-light)] text-primary flex items-center justify-center mb-3 shadow-xs">
                   <ImageIcon size={26} />
                 </div>
 
-                <h4 className="text-sm font-bold text-gray-800 mb-1">
+                <h4 className="text-sm font-bold text-main mb-1">
                   Choose an image or drag & drop
                 </h4>
-                <p className="text-xs text-slate-500 mb-3">
+                <p className="text-xs text-muted-text mb-3">
                   JPEG, PNG, or WEBP up to 5MB
                 </p>
 
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-indigo-600 shadow-xs hover:bg-indigo-50 transition-colors">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border text-xs font-bold text-primary shadow-xs hover:bg-[var(--primary-light)] transition-colors">
                   <Upload size={12} />
                   Browse from device
                 </span>
@@ -1409,16 +1409,16 @@ export default function StudentPhotoUploadModal({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-gray-100 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
+        <div className="px-5 py-3 border-t border-border bg-background flex items-center justify-between text-xs text-muted-text">
           <span className="flex items-center gap-1">
-            <Sparkles size={13} className="text-amber-500" />
+            <Sparkles size={13} className="text-warning" />
             AI face posture & quality guidelines enabled
           </span>
           <button
             type="button"
             onClick={handleClose}
             disabled={isUploading}
-            className="px-3 py-1.5 text-slate-600 hover:text-slate-900 font-bold hover:bg-slate-200/60 rounded-lg transition-colors"
+            className="px-3 py-1.5 text-sub hover:text-main font-bold hover:bg-[var(--background)]/60 rounded-lg transition-colors"
           >
             Cancel
           </button>

@@ -24,12 +24,12 @@ const FeedbackFormBuilder = () => {
 
     // Predefined field types
     const AVAILABLE_FIELD_TYPES = [
-        { key: 'text', label: 'Text Input', icon: '📝', color: 'from-blue-400 to-blue-600' },
-        { key: 'textarea', label: 'Text Area', icon: '📄', color: 'from-purple-400 to-purple-600' },
-        { key: 'select', label: 'Dropdown', icon: '📋', color: 'from-green-400 to-green-600' },
-        { key: 'radio', label: 'Radio Buttons', icon: '🔘', color: 'from-orange-400 to-orange-600' },
-        { key: 'checkbox', label: 'Checkboxes', icon: '☑️', color: 'from-pink-400 to-pink-600' },
-        { key: 'rating', label: 'Rating (1-5)', icon: '⭐', color: 'from-yellow-400 to-yellow-600' }
+        { key: 'text', label: 'Text Input', icon: '📝', color: 'from-primary to-primary' },
+        { key: 'textarea', label: 'Text Area', icon: '📄', color: 'from-secondary to-secondary' },
+        { key: 'select', label: 'Dropdown', icon: '📋', color: 'from-success to-success' },
+        { key: 'radio', label: 'Radio Buttons', icon: '🔘', color: 'from-warning to-warning' },
+        { key: 'checkbox', label: 'Checkboxes', icon: '☑️', color: 'from-accent to-accent' },
+        { key: 'rating', label: 'Rating (1-5)', icon: '⭐', color: 'from-warning to-warning' }
     ];
 
     useEffect(() => {
@@ -229,50 +229,50 @@ const FeedbackFormBuilder = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen bg-gradient-to-br from-[var(--background)] via-[var(--primary-light)] to-[var(--primary-light)] p-4 sm:p-6 lg:p-8">
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => navigate('/feedback-forms')}
-                        className="p-3 hover:bg-white/80 rounded-xl transition-all shadow-sm border border-gray-200 bg-white"
+                        className="p-3 hover:bg-[var(--surface)]/80 rounded-xl transition-all shadow-sm border border-border bg-surface"
                     >
-                        <ArrowLeft size={24} className="text-gray-700" />
+                        <ArrowLeft size={24} className="text-sub" />
                     </button>
                     <div className="flex-1">
-                        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
                             {formId ? 'Edit Feedback Form' : 'Create New Feedback Form'}
                         </h1>
-                        <p className="text-gray-600 mt-1 text-sm sm:text-base">Design student feedback surveys with custom questions</p>
+                        <p className="text-sub mt-1 text-sm sm:text-base">Design student feedback surveys with custom questions</p>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Form Details */}
-                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8 backdrop-blur-sm">
+                    <div className="bg-surface rounded-2xl shadow-lg border border-border p-6 sm:p-8 backdrop-blur-sm">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                            <div className="p-3 bg-gradient-to-br from-primary to-secondary rounded-xl shadow-lg">
                                 <Calendar className="text-white" size={24} />
                             </div>
-                            <h2 className="text-2xl font-bold text-gray-900">Form Details</h2>
+                            <h2 className="text-2xl font-bold text-main">Form Details</h2>
                         </div>
                         <div className="space-y-5">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Form Name *</label>
+                                <label className="block text-sm font-semibold text-sub mb-2">Form Name *</label>
                                 <input
                                     type="text"
                                     value={formData.formName}
                                     onChange={(e) => setFormData({ ...formData, formName: e.target.value })}
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                                    className="w-full px-4 py-3 border-2 border-border rounded-xl focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all"
                                     placeholder="e.g., Academic Feedback Form"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                                <label className="block text-sm font-semibold text-sub mb-2">Description</label>
                                 <textarea
                                     value={formData.formDescription}
                                     onChange={(e) => setFormData({ ...formData, formDescription: e.target.value })}
-                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
+                                    className="w-full px-4 py-3 border-2 border-border rounded-xl focus:ring-2 focus:ring-secondary focus:border-secondary outline-none transition-all"
                                     rows="3"
                                     placeholder="Provide feedback on teaching quality and course content"
                                 />
@@ -281,13 +281,13 @@ const FeedbackFormBuilder = () => {
                     </div>
 
                     {/* Schedule Settings */}
-                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8">
+                    <div className="bg-surface rounded-2xl shadow-lg border border-border p-6 sm:p-8">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
-                                <div className="p-3 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+                                <div className="p-3 bg-gradient-to-br from-primary to-secondary rounded-xl shadow-lg">
                                     <Clock className="text-white" size={24} />
                                 </div>
-                                <h2 className="text-2xl font-bold text-gray-900">Schedule Sender</h2>
+                                <h2 className="text-2xl font-bold text-main">Schedule Sender</h2>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
                                 <input
@@ -299,8 +299,8 @@ const FeedbackFormBuilder = () => {
                                         recurrence: { ...formData.recurrence, enabled: e.target.checked }
                                     })}
                                 />
-                                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-purple-600 peer-checked:to-pink-600 shadow-inner"></div>
-                                <span className="ml-3 text-sm font-semibold text-gray-700">Enable</span>
+                                <div className="w-14 h-7 bg-background peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--primary-light)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface after:border-border-strong after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-secondary peer-checked:to-accent shadow-inner"></div>
+                                <span className="ml-3 text-sm font-semibold text-sub">Enable</span>
                             </label>
                         </div>
 
@@ -308,7 +308,7 @@ const FeedbackFormBuilder = () => {
                             <div className="space-y-6 animate-fadeIn">
                                 {/* Duration Selection */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-3">Active Duration</label>
+                                    <label className="block text-sm font-semibold text-sub mb-3">Active Duration</label>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                         {[7, 10, 15, 20, 30].map((days) => (
                                             <button
@@ -319,8 +319,8 @@ const FeedbackFormBuilder = () => {
                                                     recurrence: { ...formData.recurrence, durationDays: days }
                                                 })}
                                                 className={`px-4 py-3 rounded-xl font-semibold transition-all ${formData.recurrence.durationDays === days
-                                                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-105'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                    ? 'bg-gradient-to-r from-secondary to-accent text-white shadow-lg scale-105'
+                                                    : 'bg-background text-sub hover:bg-background'
                                                     }`}
                                             >
                                                 {days} Days
@@ -333,12 +333,12 @@ const FeedbackFormBuilder = () => {
                     </div>
 
                     {/* Add Fields */}
-                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8">
+                    <div className="bg-surface rounded-2xl shadow-lg border border-border p-6 sm:p-8">
                         <div className="flex items-center gap-3 mb-6">
-                            <div className="p-3 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl shadow-lg">
+                            <div className="p-3 bg-gradient-to-br from-success to-primary rounded-xl shadow-lg">
                                 <Plus className="text-white" size={24} />
                             </div>
-                            <h2 className="text-2xl font-bold text-gray-900">Add Question Fields</h2>
+                            <h2 className="text-2xl font-bold text-main">Add Question Fields</h2>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                             {AVAILABLE_FIELD_TYPES.map((fieldType) => (
@@ -346,11 +346,11 @@ const FeedbackFormBuilder = () => {
                                     key={fieldType.key}
                                     type="button"
                                     onClick={() => addField(fieldType.key)}
-                                    className={`group relative overflow-hidden flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-dashed border-gray-300 hover:border-transparent transition-all hover:scale-105 hover:shadow-xl bg-gradient-to-br ${fieldType.color} hover:from-opacity-100`}
+                                    className={`group relative overflow-hidden flex flex-col items-center gap-3 p-5 rounded-2xl border-2 border-dashed border-border-strong hover:border-transparent transition-all hover:scale-105 hover:shadow-xl bg-gradient-to-br ${fieldType.color} hover:from-opacity-100`}
                                 >
-                                    <div className="absolute inset-0 bg-white opacity-90 group-hover:opacity-0 transition-opacity"></div>
+                                    <div className="absolute inset-0 bg-surface opacity-90 group-hover:opacity-0 transition-opacity"></div>
                                     <span className="text-3xl relative z-10">{fieldType.icon}</span>
-                                    <span className="text-xs font-bold text-gray-700 group-hover:text-white relative z-10 text-center transition-colors">
+                                    <span className="text-xs font-bold text-sub group-hover:text-white relative z-10 text-center transition-colors">
                                         {fieldType.label}
                                     </span>
                                 </button>
@@ -360,15 +360,15 @@ const FeedbackFormBuilder = () => {
 
                     {/* Form Fields */}
                     {formData.formFields.length > 0 && (
-                        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sm:p-8">
+                        <div className="bg-surface rounded-2xl shadow-lg border border-border p-6 sm:p-8">
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl shadow-lg">
+                                    <div className="p-3 bg-gradient-to-br from-warning to-danger rounded-xl shadow-lg">
                                         <Star className="text-white" size={24} />
                                     </div>
-                                    <h2 className="text-2xl font-bold text-gray-900">Questions ({formData.formFields.length})</h2>
+                                    <h2 className="text-2xl font-bold text-main">Questions ({formData.formFields.length})</h2>
                                 </div>
-                                <div className="text-xs sm:text-sm text-gray-500 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+                                <div className="text-xs sm:text-sm text-muted-text bg-[var(--primary-light)] px-4 py-2 rounded-xl border border-[var(--primary-light)]">
                                     💡 Drag to reorder • Toggle visibility
                                 </div>
                             </div>
@@ -377,8 +377,8 @@ const FeedbackFormBuilder = () => {
                                     <div
                                         key={field.id}
                                         className={`border-2 rounded-2xl p-5 transition-all duration-200 ${field.isEnabled
-                                            ? 'border-gray-200 bg-white shadow-sm hover:shadow-md'
-                                            : 'border-gray-100 bg-gray-50 opacity-60'
+                                            ? 'border-border bg-surface shadow-sm hover:shadow-md'
+                                            : 'border-border bg-background opacity-60'
                                             } ${draggedIndex === index ? 'opacity-50 scale-95' : ''}`}
                                         draggable
                                         onDragStart={(e) => handleDragStart(e, index)}
@@ -388,18 +388,18 @@ const FeedbackFormBuilder = () => {
                                     >
                                         <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="cursor-move p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                                                    <GripVertical size={18} className="text-gray-400" />
+                                                <div className="cursor-move p-2 hover:bg-background rounded-lg transition-colors">
+                                                    <GripVertical size={18} className="text-muted-text" />
                                                 </div>
                                                 <span className="text-2xl">{AVAILABLE_FIELD_TYPES.find(ft => ft.key === field.type)?.icon || '📝'}</span>
                                                 <div>
-                                                    <span className="font-bold text-gray-800 block">{field.label || `Question ${index + 1}`}</span>
-                                                    <span className="text-xs bg-gradient-to-r from-blue-600 to-purple-600 text-white px-2 py-1 rounded-full">
+                                                    <span className="font-bold text-main block">{field.label || `Question ${index + 1}`}</span>
+                                                    <span className="text-xs bg-gradient-to-r from-primary to-secondary text-white px-2 py-1 rounded-full">
                                                         {field.type}
                                                     </span>
                                                 </div>
                                                 {field.required && (
-                                                    <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-semibold">
+                                                    <span className="text-xs bg-[var(--danger-light)] text-danger px-2 py-1 rounded-full font-semibold">
                                                         Required
                                                     </span>
                                                 )}
@@ -409,8 +409,8 @@ const FeedbackFormBuilder = () => {
                                                     type="button"
                                                     onClick={() => toggleFieldEnabled(index)}
                                                     className={`p-2 rounded-lg transition-all ${field.isEnabled
-                                                        ? 'text-green-600 bg-green-50 hover:bg-green-100'
-                                                        : 'text-gray-400 bg-gray-100 hover:bg-gray-200'
+                                                        ? 'text-success bg-[var(--success-light)] hover:bg-[var(--success-light)]'
+                                                        : 'text-muted-text bg-background hover:bg-background'
                                                         }`}
                                                 >
                                                     {field.isEnabled ? <Eye size={18} /> : <EyeOff size={18} />}
@@ -418,7 +418,7 @@ const FeedbackFormBuilder = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => removeField(index)}
-                                                    className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-all"
+                                                    className="p-2 text-danger bg-[var(--danger-light)] hover:bg-[var(--danger-light)] rounded-lg transition-all"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -427,21 +427,21 @@ const FeedbackFormBuilder = () => {
 
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-600 mb-2">Question Label *</label>
+                                                <label className="block text-xs font-bold text-sub mb-2">Question Label *</label>
                                                 <input
                                                     type="text"
                                                     value={field.label}
                                                     onChange={(e) => updateField(index, 'label', e.target.value)}
-                                                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm"
+                                                    className="w-full px-3 py-2 border-2 border-border rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary outline-none text-sm"
                                                     placeholder="Enter question"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-600 mb-2">Field Type</label>
+                                                <label className="block text-xs font-bold text-sub mb-2">Field Type</label>
                                                 <select
                                                     value={field.type}
                                                     onChange={(e) => changeFieldType(index, e.target.value)}
-                                                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm"
+                                                    className="w-full px-3 py-2 border-2 border-border rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary outline-none text-sm"
                                                 >
                                                     {AVAILABLE_FIELD_TYPES.map((type) => (
                                                         <option key={type.key} value={type.key}>
@@ -451,12 +451,12 @@ const FeedbackFormBuilder = () => {
                                                 </select>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-bold text-gray-600 mb-2">Placeholder</label>
+                                                <label className="block text-xs font-bold text-sub mb-2">Placeholder</label>
                                                 <input
                                                     type="text"
                                                     value={field.placeholder}
                                                     onChange={(e) => updateField(index, 'placeholder', e.target.value)}
-                                                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm"
+                                                    className="w-full px-3 py-2 border-2 border-border rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary outline-none text-sm"
                                                     placeholder="Hint text"
                                                 />
                                             </div>
@@ -468,21 +468,21 @@ const FeedbackFormBuilder = () => {
                                                     type="checkbox"
                                                     checked={field.required}
                                                     onChange={(e) => updateField(index, 'required', e.target.checked)}
-                                                    className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                                                    className="w-5 h-5 text-secondary border-border-strong rounded focus:ring-secondary"
                                                 />
-                                                <span className="text-sm font-semibold text-gray-700">Required field</span>
+                                                <span className="text-sm font-semibold text-sub">Required field</span>
                                             </label>
                                         </div>
 
                                         {/* Options for select, radio, checkbox */}
                                         {(field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') && (
-                                            <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                                            <div className="mt-4 p-4 bg-background rounded-xl border border-border">
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <label className="text-sm font-bold text-gray-700">Options</label>
+                                                    <label className="text-sm font-bold text-sub">Options</label>
                                                     <button
                                                         type="button"
                                                         onClick={() => addOption(index)}
-                                                        className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-semibold"
+                                                        className="flex items-center gap-1 text-sm text-secondary hover:text-secondary font-semibold"
                                                     >
                                                         <Plus size={16} />
                                                         Add Option
@@ -495,13 +495,13 @@ const FeedbackFormBuilder = () => {
                                                                 type="text"
                                                                 value={option}
                                                                 onChange={(e) => updateOption(index, optionIndex, e.target.value)}
-                                                                className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none text-sm"
+                                                                className="flex-1 px-3 py-2 border-2 border-border rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary outline-none text-sm"
                                                                 placeholder="Option text"
                                                             />
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removeOption(index, optionIndex)}
-                                                                className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+                                                                className="p-2 text-danger bg-[var(--danger-light)] hover:bg-[var(--danger-light)] rounded-lg transition-colors"
                                                             >
                                                                 <Trash2 size={16} />
                                                             </button>
@@ -517,12 +517,12 @@ const FeedbackFormBuilder = () => {
                     )}
 
                     {/* Save Button */}
-                    <div className="flex items-center gap-4 sticky bottom-6 bg-white/80 backdrop-blur-lg p-6 rounded-2xl shadow-2xl border border-gray-200">
+                    <div className="flex items-center gap-4 sticky bottom-6 bg-[var(--surface)]/80 backdrop-blur-lg p-6 rounded-2xl shadow-2xl border border-border">
                         <button
                             type="submit"
                             disabled={saving}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-3 bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white px-8 py-4 rounded-xl font-bold text-lg
-                            hover:from-red-600 hover:via-pink-700 hover:to-purple-700 focus:ring-4 focus:ring-purple-300/50 
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-3 bg-gradient-to-r from-secondary via-accent to-danger text-white px-8 py-4 rounded-xl font-bold text-lg
+                            hover:from-danger hover:via-accent hover:to-secondary focus:ring-4 focus:ring-[var(--primary-light)]
                             transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed
                             shadow-lg hover:shadow-2xl transform hover:scale-105 active:scale-95"
                         >
@@ -533,7 +533,7 @@ const FeedbackFormBuilder = () => {
                         <button
                             type="button"
                             onClick={() => navigate('/feedback-forms')}
-                            className="px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-semibold"
+                            className="px-6 py-4 border-2 border-border-strong text-sub rounded-xl hover:bg-background transition-all font-semibold"
                         >
                             Cancel
                         </button>

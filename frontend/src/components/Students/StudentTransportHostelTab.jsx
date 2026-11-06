@@ -139,15 +139,15 @@ const StudentTransportHostelTab = ({ student }) => {
   // Overall student facility category tag
   const facilityCategoryBadge = useMemo(() => {
     if (hasLiveTransport && hasLiveHostel) {
-      return { label: 'Both Transport & Hostel', color: 'bg-purple-100 text-purple-800 border-purple-200' };
+      return { label: 'Both Transport & Hostel', color: 'bg-[var(--primary-light)] text-secondary border-[var(--primary-light)]' };
     }
     if (hasLiveTransport) {
-      return { label: 'Transport Only (Bus)', color: 'bg-teal-100 text-teal-800 border-teal-200' };
+      return { label: 'Transport Only (Bus)', color: 'bg-[var(--primary-light)] text-primary border-[var(--primary-light)]' };
     }
     if (hasLiveHostel) {
-      return { label: 'Hostel Resident Only', color: 'bg-amber-100 text-amber-800 border-amber-200' };
+      return { label: 'Hostel Resident Only', color: 'bg-[var(--warning-light)] text-warning border-[var(--warning-light)]' };
     }
-    return { label: 'Day Scholar (No Facility)', color: 'bg-slate-100 text-slate-700 border-slate-200' };
+    return { label: 'Day Scholar (No Facility)', color: 'bg-background text-sub border-border' };
   }, [hasLiveTransport, hasLiveHostel]);
 
   const activePass = transportData?.activePass;
@@ -336,22 +336,22 @@ const StudentTransportHostelTab = ({ student }) => {
   }).format(val || 0);
 
   return (
-    <div className="space-y-3 text-gray-800 font-sans">
+    <div className="space-y-3 text-main font-sans">
       {/* Top Header Bar */}
-      <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+      <div className="bg-surface rounded-xl border border-border p-3 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 shrink-0">
+          <div className="p-2 bg-[var(--primary-light)] text-primary rounded-lg border border-[var(--primary-light)] shrink-0">
             <Bus size={18} />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-xs font-extrabold text-gray-900">Transport & Hostel Summary</h3>
+              <h3 className="text-xs font-extrabold text-main">Transport & Hostel Summary</h3>
               <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold border ${facilityCategoryBadge.color}`}>
                 {facilityCategoryBadge.label}
               </span>
-              {loading && <Loader2 size={12} className="animate-spin text-blue-600" />}
+              {loading && <Loader2 size={12} className="animate-spin text-primary" />}
             </div>
-            <p className="text-[11px] text-gray-500 mt-0.5">
+            <p className="text-[11px] text-muted-text mt-0.5">
               {student?.student_name || 'Student'} ({pinNo || admissionNumber || 'N/A'}) · Year {currentYear}
             </p>
           </div>
@@ -362,7 +362,7 @@ const StudentTransportHostelTab = ({ student }) => {
             type="button"
             onClick={fetchLiveData}
             disabled={loading}
-            className="px-2 py-1 rounded-md text-[11px] font-semibold text-gray-600 hover:bg-gray-100 border border-gray-200 transition-colors flex items-center gap-1"
+            className="px-2 py-1 rounded-md text-[11px] font-semibold text-sub hover:bg-background border border-border transition-colors flex items-center gap-1"
             title="Refresh Live Data"
           >
             <RefreshCw size={11} className={loading ? 'animate-spin' : ''} />
@@ -370,13 +370,13 @@ const StudentTransportHostelTab = ({ student }) => {
           </button>
           
           {hasLiveTransport && (
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border bg-teal-50 text-teal-700 border-teal-200">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border bg-[var(--primary-light)] text-primary border-[var(--primary-light)]">
               Transport: {currentYearTransportFare > 0 ? formatCurrency(currentYearTransportFare) : 'Opted'}
             </span>
           )}
 
           {hasLiveHostel && (
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border bg-amber-50 text-amber-700 border-amber-200">
+            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border bg-[var(--warning-light)] text-warning border-[var(--warning-light)]">
               Hostel: {currentYearHostelFee > 0 ? formatCurrency(currentYearHostelFee) : 'Opted'}
             </span>
           )}
@@ -388,28 +388,28 @@ const StudentTransportHostelTab = ({ student }) => {
         {yearlyBreakdown.map((item) => (
           <div 
             key={`year-${item.yearNumber}`}
-            className={`bg-white rounded-xl border shadow-2xs overflow-hidden transition-all ${
-              item.isCurrent ? 'border-blue-300 ring-1 ring-blue-400/20' : 'border-gray-200/80'
+            className={`bg-surface rounded-xl border shadow-2xs overflow-hidden transition-all ${
+              item.isCurrent ? 'border-[var(--primary-light)] ring-1 ring-[var(--primary-light)]' : 'border-border'
             }`}
           >
             {/* Year Title Bar */}
             <div className={`px-3 py-2 flex items-center justify-between border-b text-[11px] ${
-              item.isCurrent ? 'bg-blue-50/60 border-blue-100' : 'bg-gray-50/70 border-gray-100'
+              item.isCurrent ? 'bg-[var(--primary-light)] border-[var(--primary-light)]' : 'bg-[var(--background)]/70 border-border'
             }`}>
               <div className="flex items-center gap-2">
                 <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
-                  item.isCurrent ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+                  item.isCurrent ? 'bg-primary text-white' : 'bg-background text-sub'
                 }`}>
                   Year {item.yearNumber}
                 </span>
-                <span className="font-bold text-gray-700">Academic Year: {item.academicYear}</span>
+                <span className="font-bold text-sub">Academic Year: {item.academicYear}</span>
                 {item.isCurrent && (
-                  <span className="text-[9px] font-extrabold text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded-full">
+                  <span className="text-[9px] font-extrabold text-primary bg-[var(--primary-light)] px-1.5 py-0.5 rounded-full">
                     Current Year
                   </span>
                 )}
               </div>
-              <span className="font-extrabold text-gray-900">
+              <span className="font-extrabold text-main">
                 Total: {formatCurrency(item.totalFare)}
               </span>
             </div>
@@ -423,47 +423,47 @@ const StudentTransportHostelTab = ({ student }) => {
               
               {/* Transport Box (Shown ONLY if student has transport for this year) */}
               {item.transport.hasRecord && (
-                <div className="p-2.5 rounded-lg border border-teal-100 bg-teal-50/20 space-y-1">
-                  <div className="flex items-center justify-between border-b border-teal-100/80 pb-1">
-                    <span className="font-bold text-teal-700 flex items-center gap-1">
+                <div className="p-2.5 rounded-lg border border-[var(--primary-light)] bg-[var(--primary-light)] space-y-1">
+                  <div className="flex items-center justify-between border-b border-[var(--primary-light)] pb-1">
+                    <span className="font-bold text-primary flex items-center gap-1">
                       <Bus size={13} /> Transport Details
                     </span>
-                    <span className="font-extrabold text-teal-800">
+                    <span className="font-extrabold text-primary">
                       {item.transport.fareAmount > 0 ? formatCurrency(item.transport.fareAmount) : 'Opted'}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-gray-600">
-                    <div><span className="font-semibold text-gray-400">Academic Year:</span> {item.transport.academicYear}</div>
-                    <div><span className="font-semibold text-gray-400">Route Name:</span> {item.transport.routeName} {item.transport.routeId && item.transport.routeId !== '—' ? `(${item.transport.routeId})` : ''}</div>
-                    <div><span className="font-semibold text-gray-400">Bus No:</span> {item.transport.busNumber}</div>
-                    <div><span className="font-semibold text-gray-400">Stage:</span> {item.transport.pickupStop}</div>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-sub">
+                    <div><span className="font-semibold text-muted-text">Academic Year:</span> {item.transport.academicYear}</div>
+                    <div><span className="font-semibold text-muted-text">Route Name:</span> {item.transport.routeName} {item.transport.routeId && item.transport.routeId !== '—' ? `(${item.transport.routeId})` : ''}</div>
+                    <div><span className="font-semibold text-muted-text">Bus No:</span> {item.transport.busNumber}</div>
+                    <div><span className="font-semibold text-muted-text">Stage:</span> {item.transport.pickupStop}</div>
                   </div>
                 </div>
               )}
 
               {/* Hostel Box (Shown ONLY if student has hostel for this year) */}
               {item.hostel.hasRecord && (
-                <div className="p-2.5 rounded-lg border border-amber-100 bg-amber-50/20 space-y-1">
-                  <div className="flex items-center justify-between border-b border-amber-100/80 pb-1">
-                    <span className="font-bold text-amber-700 flex items-center gap-1">
+                <div className="p-2.5 rounded-lg border border-[var(--warning-light)] bg-[var(--warning-light)] space-y-1">
+                  <div className="flex items-center justify-between border-b border-[var(--warning-light)] pb-1">
+                    <span className="font-bold text-warning flex items-center gap-1">
                       <Home size={13} /> Hostel Details
                     </span>
-                    <span className="font-extrabold text-amber-800">
+                    <span className="font-extrabold text-warning">
                       {item.hostel.feeAmount > 0 ? formatCurrency(item.hostel.feeAmount) : 'Opted'}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-gray-600">
-                    <div><span className="font-semibold text-gray-400">Academic Year:</span> {item.hostel.academicYear}</div>
-                    <div><span className="font-semibold text-gray-400">Category:</span> {item.hostel.hostelCategory}</div>
-                    <div><span className="font-semibold text-gray-400">Hostel:</span> {item.hostel.hostelName}</div>
-                    <div><span className="font-semibold text-gray-400">Room:</span> {item.hostel.roomNumber}</div>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-sub">
+                    <div><span className="font-semibold text-muted-text">Academic Year:</span> {item.hostel.academicYear}</div>
+                    <div><span className="font-semibold text-muted-text">Category:</span> {item.hostel.hostelCategory}</div>
+                    <div><span className="font-semibold text-muted-text">Hostel:</span> {item.hostel.hostelName}</div>
+                    <div><span className="font-semibold text-muted-text">Room:</span> {item.hostel.roomNumber}</div>
                   </div>
                 </div>
               )}
 
               {/* Day Scholar / Neither Opted Note */}
               {!item.transport.hasRecord && !item.hostel.hasRecord && (
-                <div className="py-2 text-center text-[10px] text-gray-400 font-medium bg-gray-50/60 rounded-lg border border-dashed border-gray-200">
+                <div className="py-2 text-center text-[10px] text-muted-text font-medium bg-[var(--background)]/60 rounded-lg border border-dashed border-border">
                   Day Scholar / No Transport or Hostel Opted for Year {item.yearNumber}
                 </div>
               )}

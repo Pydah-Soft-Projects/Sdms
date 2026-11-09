@@ -225,7 +225,7 @@ const NAV_ITEMS = [
   {
     path: "/announcements",
     icon: Megaphone,
-    label: "Announcements & Comm",
+    label: "Announcements",
     permission: FRONTEND_MODULES.ANNOUNCEMENTS,
     subItems: [
       {
@@ -235,21 +235,9 @@ const NAV_ITEMS = [
         permission: FRONTEND_MODULES.ANNOUNCEMENTS,
       },
       {
-        path: "/announcements?tab=polls",
-        label: "Polls",
-        icon: BarChart3,
-        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
-      },
-      {
         path: "/announcements?tab=sms",
         label: "SMS",
         icon: Smartphone,
-        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
-      },
-      {
-        path: "/events",
-        label: "Events",
-        icon: Calendar,
         permission: FRONTEND_MODULES.ANNOUNCEMENTS,
       },
       {

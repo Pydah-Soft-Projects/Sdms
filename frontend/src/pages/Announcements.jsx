@@ -57,6 +57,7 @@ import toast from 'react-hot-toast';
 
 import TargetSelector from '../components/TargetSelector';
 import EventCalendar from './admin/EventCalendar';
+import { downloadCircularPdf, parseCircularNumbers } from '../utils/circularPdf';
 
 const AnnouncementImage = ({ src, alt }) => {
     const [loaded, setLoaded] = useState(false);
@@ -91,7 +92,7 @@ const Announcements = () => {
         const tab = params.get('tab');
         if (tab === 'polls') return 'polls';
         if (tab === 'sms') return 'sms';
-        if (tab === 'events' || tab === 'calendar') return 'calendar';
+        if (tab === 'events' || tab === 'calendar') return 'events';
         return 'announcements';
     };
 
@@ -103,11 +104,13 @@ const Announcements = () => {
     }, [searchParams]);
 
     const handleTabChange = (tabId) => {
+        if (tabId === 'calendar') {
+            tabId = 'events';
+        }
+
         setActiveTab(tabId);
         if (tabId === 'announcements') {
             setSearchParams({});
-        } else if (tabId === 'calendar') {
-            setSearchParams({ tab: 'events' });
         } else {
             setSearchParams({ tab: tabId });
         }
@@ -118,6 +121,7 @@ const Announcements = () => {
     const [topperSearchResults, setTopperSearchResults] = useState([]);
     const [isSearchingTopper, setIsSearchingTopper] = useState(false);
     const [topperSearchQuery, setTopperSearchQuery] = useState('');
+    const [activeTopperIndex, setActiveTopperIndex] = useState(0);
     const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
     // Data States with instant sessionStorage caching
@@ -194,11 +198,8 @@ const Announcements = () => {
         time_limit_option: '3', // '1', '3', '7', '30', 'none', 'custom'
         custom_expiry_date: '',
         // Circular specific
-        circular_number: '',
-        file: null,
-        file_name: '',
-        file_preview_url: null,
-        existing_file_url: null,
+        circular_signatory: '',
+        circular_designation: '',
         // Event specific
         event_date: '',
         event_time: '',
@@ -225,6 +226,7 @@ const Announcements = () => {
         topper_roll_no: '',
         topper_photo: null,
         topper_photo_preview: null,
+        topper_students: [{ id: `topper_${Date.now()}`, student_id: '', student_name: '', branch: '', year_sem: '', roll_no: '', student_photo: '' }],
         // SMS Specific
         template_name: '', // For saving template
         template_id: '',
@@ -296,7 +298,7 @@ const Announcements = () => {
     };
 
     useEffect(() => {
-        if (activeTab === 'announcements') fetchAnnouncements();
+        if (activeTab === 'announcements' || activeTab === 'events') fetchAnnouncements();
         else if (activeTab === 'polls') fetchPolls();
         else if (activeTab === 'sms') {
             fetchSmsTemplates();
@@ -402,6 +404,11 @@ const Announcements = () => {
     const handleCircularFileChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
+        if (file.size > 200 * 1024) {
+            toast.error('Student photos must be 200 KB or smaller');
+            e.target.value = '';
+            return;
+        }
 
         if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
             toast.error('Only "PDF" files are allowed for circulars!');
@@ -422,15 +429,25 @@ const Announcements = () => {
     const handleTopperPhotoChange = (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        setFormData(prev => ({
-            ...prev,
-            topper_photo: file,
-            topper_photo_preview: URL.createObjectURL(file)
-        }));
+        const reader = new FileReader();
+        reader.onload = () => {
+            const photo = String(reader.result || '');
+            setFormData(prev => ({
+                ...prev,
+                topper_photo: file,
+                topper_photo_preview: photo,
+                topper_students: (prev.topper_students || []).map((topper, index) =>
+                    index === 0 ? { ...topper, student_photo: photo } : topper
+                )
+            }));
+        };
+        reader.onerror = () => toast.error('Failed to read student photo');
+        reader.readAsDataURL(file);
     };
 
     // Auto-search students from DB for Topper selection
-    const handleSearchTopper = async (query) => {
+    const handleSearchTopper = async (query, index) => {
+        setActiveTopperIndex(index);
         setTopperSearchQuery(query);
         if (!query || query.trim().length < 2) {
             setTopperSearchResults([]);
@@ -438,44 +455,97 @@ const Announcements = () => {
         }
         setIsSearchingTopper(true);
         try {
-            const res = await api.get(`/announcements/students/search?q=${encodeURIComponent(query.trim())}`);
+            const res = await api.get('/students', {
+                params: { search: query.trim(), limit: 10, lite: true }
+            });
             if (res.data.success) {
                 setTopperSearchResults(res.data.data || []);
             }
         } catch (e) {
             console.error('Error searching students:', e);
+            toast.error('Unable to search students');
         } finally {
             setIsSearchingTopper(false);
         }
     };
 
-    const handleSelectTopperStudent = (student) => {
+    const handleSelectTopperStudent = (student, index = activeTopperIndex) => {
         const yearSem = [
             student.current_year ? `Year ${student.current_year}` : '',
             student.current_semester ? `Sem ${student.current_semester}` : ''
         ].filter(Boolean).join(' · ');
+        const selectedTopper = {
+            id: `topper_${student.id || Date.now()}`,
+            student_id: student.id,
+            student_name: student.student_name || '',
+            branch: student.branch || '',
+            year_sem: yearSem || '',
+            roll_no: student.pin_no || student.admission_number || '',
+            student_photo: typeof student.student_image === 'string' && student.student_image.length <= 2000
+                ? student.student_image
+                : ''
+        };
 
         setFormData(prev => ({
             ...prev,
-            topper_name: student.student_name || '',
-            topper_branch: student.branch || '',
-            topper_year_sem: yearSem || '',
-            topper_roll_no: student.pin_no || student.admission_number || '',
-            topper_photo_preview: student.student_image || prev.topper_photo_preview
+            topper_students: (prev.topper_students || []).map((topper, topperIndex) => topperIndex === index
+                ? { ...topper, ...selectedTopper }
+                : topper),
+            ...(index === 0 ? {
+                topper_name: selectedTopper.student_name,
+                topper_branch: selectedTopper.branch,
+                topper_year_sem: selectedTopper.year_sem,
+                topper_roll_no: selectedTopper.roll_no,
+                topper_photo_preview: selectedTopper.student_photo || prev.topper_photo_preview
+            } : {})
         }));
         setTopperSearchResults([]);
         setTopperSearchQuery('');
         toast.success(`Selected student: ${student.student_name}`);
     };
 
-    const openCreateModal = (type = 'announcements') => {
+    const addTopperStudent = () => {
+        setFormData(prev => ({
+            ...prev,
+            topper_students: [
+                ...(prev.topper_students || []),
+                { id: `topper_${Date.now()}`, student_id: '', student_name: '', branch: '', year_sem: '', roll_no: '', student_photo: '' }
+            ]
+        }));
+    };
+
+    const updateTopperStudent = (index, key, value) => {
+        setFormData(prev => ({
+            ...prev,
+            topper_students: (prev.topper_students || []).map((topper, topperIndex) =>
+                topperIndex === index ? { ...topper, [key]: value } : topper
+            ),
+            ...(index === 0 ? {
+                [key === 'student_name' ? 'topper_name' :
+                    key === 'branch' ? 'topper_branch' :
+                        key === 'year_sem' ? 'topper_year_sem' :
+                            key === 'roll_no' ? 'topper_roll_no' : key]: value
+            } : {})
+        }));
+    };
+
+    const removeTopperStudent = (index) => {
+        setFormData(prev => ({
+            ...prev,
+            topper_students: (prev.topper_students || []).filter((_, topperIndex) => topperIndex !== index)
+        }));
+        setTopperSearchResults([]);
+        setTopperSearchQuery('');
+    };
+
+    const openCreateModal = (type = 'announcements', announcementType = null) => {
         setFormData({
             ...initialFormState,
-            announcement_type: type === 'polls' ? 'poll' : '' // empty so user picks type first!
+            announcement_type: announcementType || (type === 'polls' ? 'poll' : '')
         });
         setEditId(null);
-        setFormStep(0); // 0 = Ask Type First!
-        handleTabChange(type === 'polls' ? 'polls' : 'announcements');
+        setFormStep(announcementType ? 1 : 0);
+        handleTabChange(type === 'polls' ? 'polls' : type === 'events' ? 'events' : 'announcements');
         setIsCreateModalOpen(true);
     };
 
@@ -520,7 +590,6 @@ const Announcements = () => {
 
     const openEditModal = (item, type) => {
         setEditId(item.id);
-        setFormStep(1);
         handleTabChange(type);
 
         const parseField = (val) => {
@@ -577,6 +646,10 @@ const Announcements = () => {
             });
 
             const itemType = item.announcement_type || 'announcement';
+            const registrationEnabled = itemType === 'form'
+                || item.requires_registration === true
+                || Number(item.requires_registration) === 1;
+            setFormStep(registrationEnabled ? 2 : 1);
             let achObj = {};
             if (item.achievement_data) {
                 achObj = typeof item.achievement_data === 'string' ? JSON.parse(item.achievement_data) : item.achievement_data;
@@ -594,6 +667,8 @@ const Announcements = () => {
                 content: item.content || '',
                 file_name: item.file_name || '',
                 existing_file_url: item.file_url || null,
+                circular_signatory: item.circular_signatory || '',
+                circular_designation: item.circular_designation || '',
                 event_date: item.event_date || '',
                 event_time: item.event_time || '',
                 event_venue: item.event_venue || '',
@@ -605,14 +680,29 @@ const Announcements = () => {
                 topper_roll_no: achObj.roll_no || '',
                 topper_prize: achObj.topper_prize || '',
                 topper_photo_preview: achObj.student_photo || item.image_url || null,
+                topper_students: Array.isArray(achObj.students) && achObj.students.length
+                    ? achObj.students.map((student, index) => ({ id: student.id || `topper_${index}`, ...student }))
+                    : [{
+                        id: `topper_${Date.now()}`,
+                        student_id: achObj.student_id || '',
+                        student_name: achObj.student_name || '',
+                        branch: achObj.branch || '',
+                        year_sem: achObj.year_sem || '',
+                        roll_no: achObj.roll_no || '',
+                        student_photo: achObj.student_photo || item.image_url || ''
+                    }],
                 time_limit_option: timeLimitOpt,
                 custom_expiry_date: customExpiry,
-                requires_registration: Boolean(item.requires_registration),
+                requires_registration: registrationEnabled,
                 max_seats: item.max_seats || '',
                 registration_deadline: regDeadline,
                 custom_registration_field: item.custom_registration_field || '',
                 default_profile_fields: loadedDefaultFields,
                 registration_form_fields: customFieldsFromItem,
+                target_type: item.target_type || (Array.isArray(item.target_student_ids) && item.target_student_ids.length ? 'individual' : 'filters'),
+                selected_student_ids: Array.isArray(item.target_student_ids) ? item.target_student_ids : [],
+                selected_students: (Array.isArray(item.target_student_ids) ? item.target_student_ids : [])
+                    .map(studentId => ({ id: studentId, student_name: `Student #${studentId}` })),
                 target_college: parseField(item.target_college),
                 target_batch: parseField(item.target_batch),
                 target_course: parseField(item.target_course),
@@ -758,12 +848,22 @@ const Announcements = () => {
             if (!formData.title || !formData.title.trim()) {
                 return toast.error('Please enter the Subject Line for the circular');
             }
-            if (!formData.file && !formData.existing_file_url && !editId) {
-                return toast.error('Only "PDF" file upload is allowed for circulars. Please select a PDF file.');
+            if (!formData.content || !formData.content.trim()) {
+                return toast.error('Please enter the circular content');
+            }
+            if (!formData.circular_signatory.trim() || !formData.circular_designation.trim()) {
+                return toast.error('Please enter the signatory name and designation');
             }
         } else if (type === 'event') {
             if (!formData.title || !formData.title.trim()) {
                 return toast.error('Please enter the Event Title');
+            }
+        } else if (type === 'form') {
+            if (!formData.title.trim() || !formData.content.trim()) {
+                return toast.error('Please enter a form title and description');
+            }
+            if (!(formData.registration_form_fields || []).some(field => field.label?.trim())) {
+                return toast.error('Add at least one form field');
             }
         } else if (type === 'poll') {
             if (!formData.title || !formData.title.trim()) {
@@ -777,14 +877,12 @@ const Announcements = () => {
             if (!formData.title || !formData.title.trim()) {
                 return toast.error('Please enter the Hackathon / Competition Name');
             }
-            if (!formData.topper_name || !formData.topper_name.trim()) {
-                return toast.error('Student Topper Name is required');
+            const students = (formData.topper_students || []).filter(student => student.student_name.trim());
+            if (!students.length) {
+                return toast.error('Add at least one student to the leadership board');
             }
-            if (!formData.topper_branch || !formData.topper_branch.trim()) {
-                return toast.error('Student Branch is required');
-            }
-            if (!formData.topper_year_sem || !formData.topper_year_sem.trim()) {
-                return toast.error('Student Year & Semester is required');
+            if (students.some(student => !student.branch.trim() || !student.year_sem.trim())) {
+                return toast.error('Each student needs a branch and year/semester');
             }
         } else {
             if (!formData.title || !formData.title.trim()) return toast.error('Title is required');
@@ -798,39 +896,40 @@ const Announcements = () => {
         data.append('content', formData.content || '');
 
         if (type === 'circular') {
-            if (formData.file) {
-                data.append('file', formData.file);
-                data.append('file_name', formData.file_name || formData.file.name);
-            } else if (formData.file_name) {
-                data.append('file_name', formData.file_name);
-            }
+            data.append('circular_signatory', formData.circular_signatory.trim());
+            data.append('circular_designation', formData.circular_designation.trim());
         } else if (type === 'event') {
-            data.append('event_date', formData.event_date || '');
-            data.append('event_time', formData.event_time || '');
-            data.append('event_venue', formData.event_venue || '');
             if (formData.image) data.append('image', formData.image);
         } else if (type === 'poll') {
             const validOptions = (formData.poll_options || []).filter(o => o && o.trim());
             data.append('poll_options', JSON.stringify(validOptions));
         } else if (type === 'achievement') {
+            const topperStudents = (formData.topper_students || [])
+                .filter(student => student.student_name.trim())
+                .map(student => ({
+                    id: student.student_id || '',
+                    student_name: student.student_name.trim(),
+                    branch: student.branch.trim(),
+                    year_sem: student.year_sem.trim(),
+                    roll_no: student.roll_no || '',
+                    student_photo: student.student_photo || ''
+                }));
             const achievementPayload = {
                 hackathon_name: formData.title.trim(),
                 rank_title: formData.rank_title || '1st Place / Hackathon Topper',
                 topper_prize: formData.topper_prize || '',
-                student_name: formData.topper_name.trim(),
-                branch: formData.topper_branch.trim(),
-                year_sem: formData.topper_year_sem.trim(),
-                roll_no: formData.topper_roll_no || '',
-                student_photo: formData.topper_photo_preview || null
+                students: topperStudents,
+                ...topperStudents[0]
             };
             data.append('achievement_data', JSON.stringify(achievementPayload));
-            if (formData.topper_photo) {
-                data.append('image', formData.topper_photo);
-            } else if (formData.image) {
-                data.append('image', formData.image);
-            }
         } else {
             if (formData.image) data.append('image', formData.image);
+        }
+
+        if (type === 'event') {
+            data.append('event_date', formData.event_date || '');
+            data.append('event_time', formData.event_time || '');
+            data.append('event_venue', formData.event_venue || '');
         }
 
         if (editId && formData.existing_image_url && !formData.image && !formData.topper_photo) {
@@ -854,8 +953,9 @@ const Announcements = () => {
         }
 
         // Registration & Seat Management Fields
-        data.append('requires_registration', formData.requires_registration ? '1' : '0');
-        if (formData.requires_registration) {
+        const requiresRegistration = type === 'form' || Boolean(formData.requires_registration);
+        data.append('requires_registration', requiresRegistration ? '1' : '0');
+        if (requiresRegistration) {
             data.append('max_seats', formData.max_seats || '');
             if (formData.registration_deadline) {
                 const regDl = new Date(formData.registration_deadline).toISOString().slice(0, 19).replace('T', ' ');
@@ -893,6 +993,13 @@ const Announcements = () => {
             data.append('registration_deadline', '');
             data.append('custom_registration_field', '');
             data.append('registration_form_fields', '[]');
+        }
+
+        data.append('target_type', formData.target_type || 'filters');
+        if (formData.target_type === 'individual') {
+            data.append('selected_student_ids', JSON.stringify((formData.selected_students || []).map(student => (
+                typeof student === 'object' ? student.id : student
+            ))));
         }
 
         ['target_college', 'target_batch', 'target_course', 'target_branch', 'target_year', 'target_semester'].forEach(key => {
@@ -1093,6 +1200,14 @@ const Announcements = () => {
         }
     };
 
+    const handleCircularDownload = (announcement, college) => {
+        try {
+            downloadCircularPdf(announcement, college);
+        } catch (error) {
+            toast.error(error.message || 'Unable to download circular');
+        }
+    };
+
     const fetchAnnouncementRegistrations = async (annId) => {
         setRegistrationsLoading(true);
         try {
@@ -1125,7 +1240,7 @@ const Announcements = () => {
             return toast.error('No registrations to export');
         }
 
-        const formFields = announcement?.registration_form_fields || [];
+        const formFields = (announcement?.registration_form_fields || []).filter(field => !field.is_default);
         const dynamicHeaders = formFields.map(f => `"${(f.label || 'Question').replace(/"/g, '""')}"`);
         const headers = ['S.No', 'Student Name', 'PIN / Roll No', 'College', 'Branch', 'Year', 'Semester', 'Mobile', 'Email', 'Registered At', ...dynamicHeaders, 'Additional Info', 'Status'];
         
@@ -1238,7 +1353,11 @@ const Announcements = () => {
         </div>
     );
 
-    const pageTitle = activeTab === 'polls' ? 'Polls' : activeTab === 'sms' ? 'SMS' : activeTab === 'calendar' ? 'Calendar' : 'Announcements';
+    const visibleAnnouncements = announcements.filter(announcement => {
+        const isEvent = String(announcement.announcement_type || 'announcement').toLowerCase() === 'event';
+        return activeTab === 'events' ? isEvent : !isEvent;
+    });
+    const pageTitle = activeTab === 'polls' ? 'Polls' : activeTab === 'sms' ? 'SMS' : activeTab === 'events' ? 'Events' : 'Announcements';
 
     useEffect(() => {
         document.title = `${pageTitle} | Pydah Super Admin`;
@@ -1248,15 +1367,44 @@ const Announcements = () => {
         <div className="min-h-screen bg-transparent space-y-6 animate-fade-in relative">
             {/* Header with Page Name & Action */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 bg-white/80 backdrop-blur-md px-6 py-4 rounded-t-2xl shadow-sm overflow-hidden sticky top-0 z-30">
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col items-start gap-3 lg:flex-row lg:items-center">
                     <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
                         {pageTitle}
                     </h1>
+                    {activeTab !== 'sms' && (
+                        <div
+                            role="tablist"
+                            aria-label="Announcements sections"
+                            className="flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-gray-100 p-1"
+                        >
+                            {[
+                                { id: 'announcements', label: 'Announcements', icon: Megaphone },
+                                { id: 'polls', label: 'Polls', icon: BarChart2 },
+                                { id: 'events', label: 'Events', icon: CalendarIcon }
+                            ].map(({ id, label, icon: Icon }) => (
+                                <button
+                                    key={id}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={activeTab === id}
+                                    onClick={() => handleTabChange(id)}
+                                    className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-colors sm:text-sm ${
+                                        activeTab === id
+                                            ? 'bg-white text-blue-700 shadow-sm'
+                                            : 'text-gray-600 hover:bg-white/70 hover:text-gray-900'
+                                    }`}
+                                >
+                                    <Icon size={16} />
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-3">
                     {/* View Mode Setup: Both Cards and List page setup in the right top corner */}
-                    {activeTab === 'announcements' && (
+                    {(activeTab === 'announcements' || activeTab === 'events') && (
                         <div className="bg-gray-100 p-1 rounded-xl flex items-center border border-gray-200 shadow-2xs">
                             <button
                                 type="button"
@@ -1287,13 +1435,13 @@ const Announcements = () => {
                         </div>
                     )}
 
-                    {activeTab !== 'calendar' && activeTab !== 'sms' && (
+                    {activeTab !== 'sms' && (
                         <button
-                            onClick={() => openCreateModal(activeTab)}
+                            onClick={() => openCreateModal(activeTab, activeTab === 'events' ? 'event' : null)}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 text-sm shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transform transition-all hover:-translate-y-0.5"
                         >
                             <Plus size={18} strokeWidth={3} />
-                            {activeTab === 'polls' ? 'Create New Poll' : 'Create New Announcement'}
+                            {activeTab === 'polls' ? 'Create New Poll' : activeTab === 'events' ? 'Create New Event' : 'Create New Announcement'}
                         </button>
                     )}
                 </div>
@@ -1301,9 +1449,9 @@ const Announcements = () => {
 
             {/* Content Area */}
             <div className="bg-white rounded-b-2xl shadow-sm border border-gray-200 border-t-0 p-6 min-h-[400px]">
-                {fetchingFeed && announcements.length === 0 && activeTab === 'announcements' && <AnnouncementSkeleton />}
+                {fetchingFeed && announcements.length === 0 && (activeTab === 'announcements' || activeTab === 'events') && <AnnouncementSkeleton />}
                 {fetchingFeed && activeTab === 'polls' && <PollSkeleton />}
-                {fetchingFeed && (activeTab === 'sms' || activeTab === 'calendar') && (
+                {fetchingFeed && activeTab === 'sms' && (
                     <div className="flex justify-center py-10">
                         <Loader2 className="animate-spin text-blue-600" />
                     </div>
@@ -1961,11 +2109,12 @@ const Announcements = () => {
 
 
                 {
-                    activeTab === 'announcements' && (!fetchingFeed || announcements.length > 0) && (
+                    activeTab === 'announcements'
+                    && (!fetchingFeed || visibleAnnouncements.length > 0) && (
                         viewMode === 'cards' ? (
                             /* ================= CARDS VIEW (GRID) ================= */
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {announcements.map(ann => {
+                                {visibleAnnouncements.map(ann => {
                                     const type = (ann.announcement_type || 'announcement').toLowerCase();
                                     const ach = ann.achievement_data || {};
 
@@ -2041,29 +2190,44 @@ const Announcements = () => {
 
                                                 {/* Type 1: Circular Card Body (PDF Attachment Box) */}
                                                 {type === 'circular' && (
-                                                    <div className="mb-3 p-3 bg-rose-50/70 border border-rose-100 rounded-xl flex items-center justify-between gap-3">
+                                                    <div className="mb-3 p-3 bg-rose-50/70 border border-rose-100 rounded-xl space-y-3">
                                                         <div className="flex items-center gap-2.5 min-w-0">
                                                             <div className="w-10 h-10 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                                                                 <FileText size={20} />
                                                             </div>
                                                             <div className="min-w-0">
                                                                 <p className="text-xs font-bold text-gray-900 truncate">
-                                                                    {ann.file_name || 'Official_Circular.pdf'}
+                                                                    {Object.values(parseCircularNumbers(ann.circular_numbers)).join(' · ') || ann.file_name || 'Circular PDF'}
                                                                 </p>
-                                                                <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">Official PDF Document</span>
+                                                                <span className="text-[10px] text-rose-600 font-bold uppercase tracking-wider block">College-wise numbered PDF</span>
                                                             </div>
                                                         </div>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {Object.entries(parseCircularNumbers(ann.circular_numbers)).map(([college, number]) => (
+                                                                <button
+                                                                    key={college}
+                                                                    type="button"
+                                                                    onClick={e => {
+                                                                        e.stopPropagation();
+                                                                        handleCircularDownload(ann, college);
+                                                                    }}
+                                                                    className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs transition-colors"
+                                                                >
+                                                                    <FileDown size={13} /> Download {college}
+                                                                </button>
+                                                            ))}
                                                         {ann.file_url && (
                                                             <a
                                                                 href={ann.file_url}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 onClick={e => e.stopPropagation()}
-                                                                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
+                                                                className="px-3 py-1.5 bg-white border border-rose-200 hover:bg-rose-100 text-rose-700 rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
                                                             >
-                                                                <FileDown size={13} /> View PDF
+                                                                <ExternalLink size={13} /> Attachment
                                                             </a>
                                                         )}
+                                                        </div>
                                                     </div>
                                                 )}
 
@@ -2215,8 +2379,10 @@ const Announcements = () => {
                                         </div>
                                     );
                                 })}
-                                {announcements.length === 0 && !fetchingFeed && (
-                                    <div className="col-span-full text-center py-10 text-gray-500">No announcements found.</div>
+                                {visibleAnnouncements.length === 0 && !fetchingFeed && (
+                                    <div className="col-span-full text-center py-10 text-gray-500">
+                                        {activeTab === 'events' ? 'No events found.' : 'No announcements found.'}
+                                    </div>
                                 )}
                             </div>
                         ) : (
@@ -2236,7 +2402,7 @@ const Announcements = () => {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
-                                            {announcements.map(ann => {
+                                            {visibleAnnouncements.map(ann => {
                                                 const type = (ann.announcement_type || 'announcement').toLowerCase();
                                                 const ach = ann.achievement_data || {};
 
@@ -2377,9 +2543,11 @@ const Announcements = () => {
                                                     </tr>
                                                 );
                                             })}
-                                            {announcements.length === 0 && (
+                                            {visibleAnnouncements.length === 0 && (
                                                 <tr>
-                                                    <td colSpan={7} className="text-center py-10 text-gray-400">No announcements found.</td>
+                                                    <td colSpan={7} className="text-center py-10 text-gray-400">
+                                                        {activeTab === 'events' ? 'No events found.' : 'No announcements found.'}
+                                                    </td>
                                                 </tr>
                                             )}
                                         </tbody>
@@ -2445,13 +2613,16 @@ const Announcements = () => {
                     </div>
                 )}
 
-                {
-                    activeTab === 'calendar' && (
-                        <div className="-m-6">
-                            <EventCalendar isEmbedded={true} />
-                        </div>
-                    )
-                }
+                {activeTab === 'events' && (
+                    <EventCalendar
+                        isEmbedded={true}
+                        announcementEvents={visibleAnnouncements}
+                        onOpenAnnouncement={handleOpenAnnouncementDetails}
+                        onEditAnnouncement={announcement => openEditModal(announcement, 'announcements')}
+                        onToggleAnnouncement={announcement => toggleStatus(announcement.id, announcement.is_active, 'announcements')}
+                        onDeleteAnnouncement={announcement => handleDelete(announcement.id, 'announcements')}
+                    />
+                )}
             </div >
 
             {/* General Modal (Announcements/Polls) */}
@@ -2474,7 +2645,7 @@ const Announcements = () => {
                                                 'Announcement'
                                             }`}
                                         </h2>
-                                        {activeTab === 'announcements' && formData.requires_registration && (
+                                        {(activeTab === 'announcements' || activeTab === 'events') && formData.requires_registration && (
                                             <span className="text-xs bg-indigo-100 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
                                                 <Ticket size={12} /> Step {formStep} of 2
                                             </span>
@@ -2509,7 +2680,7 @@ const Announcements = () => {
                         </div>
 
                         {/* Stepper Navigation Bar when registrations are enabled */}
-                        {activeTab === 'announcements' && formData.requires_registration && (
+                        {(activeTab === 'announcements' || activeTab === 'events') && formData.requires_registration && (
                             <div className="px-6 py-2.5 bg-gray-50 border-b flex items-center gap-4 text-xs font-bold">
                                 <button
                                     type="button"
@@ -2545,8 +2716,8 @@ const Announcements = () => {
                         )}
 
                         <div className="p-6 overflow-y-auto bg-gray-50/30">
-                            <form onSubmit={activeTab === 'announcements' ? handleSubmitAnnouncement : handleSubmitPoll} className="space-y-6">
-                                {activeTab === 'announcements' && formStep === 2 && formData.requires_registration ? (
+                            <form onSubmit={activeTab === 'polls' ? handleSubmitPoll : handleSubmitAnnouncement} className="space-y-6">
+                                {(activeTab === 'announcements' || activeTab === 'events') && formStep === 2 && formData.requires_registration ? (
                                     /* =================== STEP 2: DYNAMIC REGISTRATION FORM & SEATS =================== */
                                     <div className="space-y-6 animate-fade-in">
                                         {/* Step 2 Banner */}
@@ -2830,7 +3001,7 @@ const Announcements = () => {
                                             </p>
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto pt-2">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto pt-2">
                                             {/* Type 1: Circular */}
                                             <button
                                                 type="button"
@@ -2846,10 +3017,10 @@ const Announcements = () => {
                                                     </div>
                                                     <div className="flex items-center justify-between mb-1">
                                                         <h4 className="font-bold text-gray-900 text-base group-hover:text-rose-600">Type 1: Circular</h4>
-                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-rose-100 text-rose-700">PDF Only</span>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-rose-100 text-rose-700">Generated PDF</span>
                                                     </div>
                                                     <p className="text-xs text-gray-500 leading-relaxed mt-1">
-                                                        Official notifications. Only PDF documents can be uploaded. Prompts for a Subject Line to display in the headline.
+                                                        Write the circular content and signatory details. A college-wise numbered PDF is generated for students to download.
                                                     </p>
                                                 </div>
                                                 <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-rose-600">
@@ -2946,7 +3117,7 @@ const Announcements = () => {
                                                     setFormData(prev => ({ ...prev, announcement_type: 'achievement' }));
                                                     setFormStep(1);
                                                 }}
-                                                className="p-5 rounded-2xl border-2 border-amber-300 hover:border-amber-500 bg-gradient-to-br from-amber-50/40 via-white to-amber-50/10 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between sm:col-span-2 lg:col-span-2"
+                                                className="p-5 rounded-2xl border-2 border-amber-300 hover:border-amber-500 bg-gradient-to-br from-amber-50/40 via-white to-amber-50/10 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
                                             >
                                                 <div>
                                                     <div className="w-12 h-12 rounded-xl bg-amber-500 text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-md shadow-amber-200">
@@ -2969,6 +3140,39 @@ const Announcements = () => {
                                                     <ChevronRight size={14} />
                                                 </div>
                                             </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        announcement_type: 'form',
+                                                        requires_registration: true,
+                                                        max_seats: '',
+                                                        registration_deadline: '',
+                                                        default_profile_fields: INITIAL_DEFAULT_PROFILE_FIELDS.map(field => ({ ...field }))
+                                                    }));
+                                                    setFormStep(1);
+                                                }}
+                                                className="p-5 rounded-2xl border-2 border-indigo-200 hover:border-indigo-500 bg-white hover:bg-indigo-50/30 text-left transition-all duration-200 shadow-xs hover:shadow-md group flex flex-col justify-between"
+                                            >
+                                                <div>
+                                                    <div className="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                        <FileText size={24} />
+                                                    </div>
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <h4 className="font-bold text-gray-900 text-base group-hover:text-indigo-700">Type 6: Forms</h4>
+                                                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-100 text-indigo-700">Collect Responses</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 leading-relaxed mt-1">
+                                                        Build a form with custom fields, share it with selected students, and review or export their responses.
+                                                    </p>
+                                                </div>
+                                                <div className="mt-4 pt-3 border-t border-indigo-100 flex items-center justify-between text-xs font-bold text-indigo-700">
+                                                    <span>Create Form</span>
+                                                    <ChevronRight size={14} />
+                                                </div>
+                                            </button>
                                         </div>
                                     </div>
                                 ) : (
@@ -2982,13 +3186,15 @@ const Announcements = () => {
                                                      formData.announcement_type === 'event' ? 'Type 2: Event' :
                                                      formData.announcement_type === 'poll' ? 'Type 3: Poll' :
                                                      formData.announcement_type === 'achievement' ? 'Type 5: Student Achievement Leader board' :
+                                                     formData.announcement_type === 'form' ? 'Type 6: Forms' :
                                                      'Type 4: Announcement'}
                                                 </span>
                                                 <span className="text-xs text-blue-700 hidden sm:inline font-medium">
-                                                    {formData.announcement_type === 'circular' ? 'Only PDF upload allowed · Subject line displays in headline' :
+                                                    {formData.announcement_type === 'circular' ? 'Enter circular content · College-wise numbers and downloadable PDFs are generated automatically' :
                                                      formData.announcement_type === 'event' ? 'Event details with date, time, venue and optional seat registration' :
                                                      formData.announcement_type === 'poll' ? 'Campus poll with interactive student options' :
                                                      formData.announcement_type === 'achievement' ? 'Spotlight hackathon topper with Photo, Name, Branch, Year & Sem' :
+                                                     formData.announcement_type === 'form' ? 'Create a custom form and collect student responses' :
                                                      'Standard general campus announcement'}
                                                 </span>
                                             </div>
@@ -3024,78 +3230,46 @@ const Announcements = () => {
                                                             </span>
                                                         </div>
 
-                                                        {/* Strictly PDF Document Upload */}
-                                                        <div>
-                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                                Upload Circular Document (Only PDF) <span className="text-rose-500">*</span>
-                                                            </label>
-
-                                                            {formData.file || formData.file_name || formData.existing_file_url ? (
-                                                                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center justify-between gap-3">
-                                                                    <div className="flex items-center gap-2.5 min-w-0">
-                                                                        <div className="w-10 h-10 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                                                                            <FileText size={20} />
-                                                                        </div>
-                                                                        <div className="min-w-0">
-                                                                            <p className="text-xs font-bold text-gray-900 truncate">
-                                                                                {formData.file_name || formData.file?.name || 'Attached_Circular.pdf'}
-                                                                            </p>
-                                                                            <span className="text-[10px] text-rose-700 font-semibold uppercase tracking-wider block">
-                                                                                {formData.file ? `${(formData.file.size / (1024 * 1024)).toFixed(2)} MB · Valid PDF` : 'Attached PDF Document'}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2 shrink-0">
-                                                                        {(formData.file_preview_url || formData.existing_file_url) && (
-                                                                            <a
-                                                                                href={formData.file_preview_url || formData.existing_file_url}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                className="p-1.5 bg-white text-rose-700 hover:bg-rose-100 rounded-lg border border-rose-200 text-xs font-bold flex items-center gap-1"
-                                                                                title="Preview PDF"
-                                                                            >
-                                                                                <ExternalLink size={13} />
-                                                                            </a>
-                                                                        )}
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => setFormData(prev => ({ ...prev, file: null, file_name: '', file_preview_url: null, existing_file_url: null }))}
-                                                                            className="p-1.5 text-rose-600 hover:bg-rose-100 rounded-lg transition-colors"
-                                                                            title="Remove File"
-                                                                        >
-                                                                            <Trash2 size={15} />
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="border-2 border-dashed border-rose-300 hover:border-rose-500 rounded-xl p-5 text-center cursor-pointer bg-rose-50/30 hover:bg-rose-50/60 transition-colors relative">
-                                                                    <input
-                                                                        type="file"
-                                                                        accept=".pdf,application/pdf"
-                                                                        onChange={handleCircularFileChange}
-                                                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                                                    />
-                                                                    <div className="flex flex-col items-center gap-1.5 text-rose-700">
-                                                                        <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center text-rose-600 mb-1">
-                                                                            <FileDown size={22} />
-                                                                        </div>
-                                                                        <span className="text-xs font-bold">Click or drag & drop PDF document</span>
-                                                                        <span className="text-[10px] text-gray-500">Only .pdf files are accepted (max 10MB)</span>
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
                                                         <div>
                                                             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                                                                Summary / Notes (Optional)
+                                                                Circular Content <span className="text-rose-500">*</span>
                                                             </label>
                                                             <textarea
-                                                                className="w-full p-2.5 border border-gray-300 rounded-xl h-24 focus:ring-2 focus:ring-rose-500 outline-none font-medium text-xs"
-                                                                placeholder="Add brief instructions or summary of the circular for quick student preview..."
+                                                                className="w-full p-3 border border-gray-300 rounded-xl min-h-48 focus:ring-2 focus:ring-rose-500 outline-none font-medium text-sm"
+                                                                placeholder="Write the complete circular content here..."
                                                                 value={formData.content}
                                                                 onChange={e => setFormData({ ...formData, content: e.target.value })}
                                                             />
+                                                        </div>
+
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-xl border border-rose-100 bg-rose-50/50 p-4">
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                    Signatory Name <span className="text-rose-500">*</span>
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={formData.circular_signatory}
+                                                                    onChange={e => setFormData({ ...formData, circular_signatory: e.target.value })}
+                                                                    placeholder="Name of the concerned authority"
+                                                                    className="w-full p-2.5 border border-gray-300 rounded-xl text-sm"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                    Designation <span className="text-rose-500">*</span>
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={formData.circular_designation}
+                                                                    onChange={e => setFormData({ ...formData, circular_designation: e.target.value })}
+                                                                    placeholder="e.g. Principal"
+                                                                    className="w-full p-2.5 border border-gray-300 rounded-xl text-sm"
+                                                                />
+                                                            </div>
+                                                            <p className="sm:col-span-2 text-[11px] text-rose-800">
+                                                                A college-wise circular number and downloadable PDF will be generated automatically.
+                                                            </p>
                                                         </div>
 
                                                         {/* Auto-expire */}
@@ -3473,7 +3647,7 @@ const Announcements = () => {
                                                                         type="text"
                                                                         placeholder="Type student name or roll number to auto-fill..."
                                                                         value={topperSearchQuery}
-                                                                        onChange={e => handleSearchTopper(e.target.value)}
+                                                                        onChange={e => handleSearchTopper(e.target.value, 0)}
                                                                         className="w-full text-xs p-2 pl-3 pr-8 border border-amber-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-500 outline-none"
                                                                     />
                                                                     {isSearchingTopper && (
@@ -3486,7 +3660,7 @@ const Announcements = () => {
                                                                         {topperSearchResults.map(s => (
                                                                             <div
                                                                                 key={s.id}
-                                                                                onClick={() => handleSelectTopperStudent(s)}
+                                                                                onClick={() => handleSelectTopperStudent(s, 0)}
                                                                                 className="p-2.5 hover:bg-amber-50 cursor-pointer flex items-center justify-between text-xs"
                                                                             >
                                                                                 <div>
@@ -3532,7 +3706,7 @@ const Announcements = () => {
                                                                             className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
                                                                             placeholder="e.g. K. Rajesh Kumar"
                                                                             value={formData.topper_name || ''}
-                                                                            onChange={e => setFormData({ ...formData, topper_name: e.target.value })}
+                                                                            onChange={e => updateTopperStudent(0, 'student_name', e.target.value)}
                                                                         />
                                                                     </div>
                                                                     <div>
@@ -3544,7 +3718,7 @@ const Announcements = () => {
                                                                             className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
                                                                             placeholder="e.g. CSE / ECE / AI&DS"
                                                                             value={formData.topper_branch || ''}
-                                                                            onChange={e => setFormData({ ...formData, topper_branch: e.target.value })}
+                                                                            onChange={e => updateTopperStudent(0, 'branch', e.target.value)}
                                                                         />
                                                                     </div>
                                                                     <div>
@@ -3556,7 +3730,7 @@ const Announcements = () => {
                                                                             className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
                                                                             placeholder="e.g. 3rd Year, 1st Sem (III-I)"
                                                                             value={formData.topper_year_sem || ''}
-                                                                            onChange={e => setFormData({ ...formData, topper_year_sem: e.target.value })}
+                                                                            onChange={e => updateTopperStudent(0, 'year_sem', e.target.value)}
                                                                         />
                                                                     </div>
                                                                     <div>
@@ -3568,11 +3742,86 @@ const Announcements = () => {
                                                                             className="w-full p-2 border border-amber-200 rounded-xl bg-white text-xs font-semibold"
                                                                             placeholder="e.g. 21A91A0501"
                                                                             value={formData.topper_roll_no || ''}
-                                                                            onChange={e => setFormData({ ...formData, topper_roll_no: e.target.value })}
+                                                                            onChange={e => updateTopperStudent(0, 'roll_no', e.target.value)}
                                                                         />
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                        </div>
+
+                                                        <div className="space-y-3">
+                                                            {(formData.topper_students || []).slice(1).map((student, index) => {
+                                                                const studentIndex = index + 1;
+                                                                return (
+                                                                    <div key={student.id} className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50/40 p-4">
+                                                                        <div className="flex items-center justify-between">
+                                                                            <h6 className="text-xs font-black uppercase tracking-wide text-amber-900">Student {studentIndex + 1}</h6>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => removeTopperStudent(studentIndex)}
+                                                                                className="rounded-lg p-1.5 text-rose-600 hover:bg-rose-50"
+                                                                                aria-label={`Remove student ${studentIndex + 1}`}
+                                                                            >
+                                                                                <Trash2 size={15} />
+                                                                            </button>
+                                                                        </div>
+                                                                        <div className="relative">
+                                                                            <input
+                                                                                type="search"
+                                                                                value={activeTopperIndex === studentIndex ? topperSearchQuery : ''}
+                                                                                onChange={e => handleSearchTopper(e.target.value, studentIndex)}
+                                                                                placeholder="Search student by name or PIN"
+                                                                                className="w-full rounded-xl border border-amber-200 bg-white p-2.5 text-xs"
+                                                                            />
+                                                                            {activeTopperIndex === studentIndex && topperSearchResults.length > 0 && (
+                                                                                <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-48 overflow-y-auto rounded-xl border bg-white shadow-lg">
+                                                                                    {topperSearchResults.map(result => (
+                                                                                        <button
+                                                                                            key={result.id}
+                                                                                            type="button"
+                                                                                            onClick={() => handleSelectTopperStudent(result, studentIndex)}
+                                                                                            className="flex w-full items-center justify-between border-b p-2.5 text-left text-xs hover:bg-amber-50"
+                                                                                        >
+                                                                                            <span>
+                                                                                                <strong className="block text-gray-900">{result.student_name}</strong>
+                                                                                                <span className="text-[10px] text-gray-500">
+                                                                                                    PIN: {result.pin_no || result.admission_number || '—'} · {result.branch || '—'} · Year {result.current_year || '—'} / Sem {result.current_semester || '—'}
+                                                                                                </span>
+                                                                                            </span>
+                                                                                            {result.student_image && <img src={result.student_image} alt="" className="h-8 w-8 rounded-full object-cover" />}
+                                                                                        </button>
+                                                                                    ))}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                                                            {[
+                                                                                ['student_name', 'Student Full Name'],
+                                                                                ['branch', 'Branch / Department'],
+                                                                                ['year_sem', 'Year & Semester'],
+                                                                                ['roll_no', 'Roll No / PIN']
+                                                                            ].map(([key, label]) => (
+                                                                                <label key={key} className="text-[11px] font-bold text-gray-700">
+                                                                                    {label}
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        value={student[key] || ''}
+                                                                                        onChange={e => updateTopperStudent(studentIndex, key, e.target.value)}
+                                                                                        className="mt-1 w-full rounded-xl border border-amber-200 bg-white p-2 text-xs font-medium"
+                                                                                    />
+                                                                                </label>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                            <button
+                                                                type="button"
+                                                                onClick={addTopperStudent}
+                                                                className="inline-flex items-center gap-2 rounded-xl border border-dashed border-amber-400 bg-white px-4 py-2.5 text-xs font-black text-amber-800 hover:bg-amber-50"
+                                                            >
+                                                                <Plus size={15} /> AddStudent
+                                                            </button>
                                                         </div>
 
                                                         <div>
@@ -3588,13 +3837,104 @@ const Announcements = () => {
                                                         </div>
                                                     </div>
                                                 )}
+
+                                                {formData.announcement_type === 'form' && (
+                                                    <div className="space-y-4 animate-fade-in">
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                Form Title <span className="text-rose-500">*</span>
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={formData.title}
+                                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                                                placeholder="e.g. Student Feedback Form"
+                                                                className="w-full p-2.5 border border-gray-300 rounded-xl text-sm"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                                                Form Description <span className="text-rose-500">*</span>
+                                                            </label>
+                                                            <textarea
+                                                                value={formData.content}
+                                                                onChange={e => setFormData({ ...formData, content: e.target.value })}
+                                                                placeholder="Explain what information this form collects."
+                                                                className="w-full p-3 border border-gray-300 rounded-xl min-h-24 text-sm"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-3 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4">
+                                                            <div className="flex items-center justify-between gap-2">
+                                                                <div>
+                                                                    <h4 className="text-sm font-bold text-indigo-950">Custom Form Fields</h4>
+                                                                    <p className="text-xs text-indigo-800">Students submit answers that admins can review and export.</p>
+                                                                </div>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={addFormField}
+                                                                    className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white hover:bg-indigo-700"
+                                                                >
+                                                                    <Plus size={14} /> Add Field
+                                                                </button>
+                                                            </div>
+                                                            {(formData.registration_form_fields || []).map((field, index) => (
+                                                                <div key={field.id || index} className="grid grid-cols-1 gap-2 rounded-xl border border-indigo-100 bg-white p-3 sm:grid-cols-[1fr_150px_auto_auto] sm:items-center">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={field.label}
+                                                                        onChange={e => updateFormField(index, 'label', e.target.value)}
+                                                                        placeholder={`Field ${index + 1} label`}
+                                                                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs"
+                                                                    />
+                                                                    <select
+                                                                        value={field.type || 'text'}
+                                                                        onChange={e => updateFormField(index, 'type', e.target.value)}
+                                                                        className="w-full rounded-lg border border-gray-200 px-2 py-2 text-xs"
+                                                                    >
+                                                                        <option value="text">Short answer</option>
+                                                                        <option value="textarea">Long answer</option>
+                                                                        <option value="number">Number</option>
+                                                                        <option value="date">Date</option>
+                                                                        <option value="select">Dropdown</option>
+                                                                        <option value="boolean">Yes / No</option>
+                                                                    </select>
+                                                                    <label className="flex items-center gap-1 text-xs font-semibold text-gray-600">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={Boolean(field.required)}
+                                                                            onChange={e => updateFormField(index, 'required', e.target.checked)}
+                                                                        />
+                                                                        Required
+                                                                    </label>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => removeFormField(index)}
+                                                                        className="inline-flex items-center justify-center rounded-lg p-2 text-rose-600 hover:bg-rose-50"
+                                                                        aria-label={`Remove field ${index + 1}`}
+                                                                    >
+                                                                        <Trash2 size={15} />
+                                                                    </button>
+                                                                    {field.type === 'select' && (
+                                                                        <input
+                                                                            type="text"
+                                                                            value={field.options || ''}
+                                                                            onChange={e => updateFormField(index, 'options', e.target.value)}
+                                                                            placeholder="Dropdown options, separated by commas"
+                                                                            className="sm:col-span-4 w-full rounded-lg border border-gray-200 px-3 py-2 text-xs"
+                                                                        />
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                             <TargetSelector formData={formData} setFormData={setFormData} />
                                         </div>
 
                                         <div className="flex justify-end pt-4 border-t gap-3">
                                             <button type="button" onClick={handleCancel} className="px-5 py-2.5 border rounded-xl text-gray-600 hover:bg-gray-50 font-medium">Cancel</button>
-                                            {activeTab === 'announcements' && formData.requires_registration ? (
+                                            {(activeTab === 'announcements' || activeTab === 'events') && formData.requires_registration && formData.announcement_type !== 'form' ? (
                                                 <button
                                                     type="button"
                                                     onClick={() => {
@@ -3938,15 +4278,23 @@ const Announcements = () => {
                         {/* Header */}
                         <div className="p-6 border-b flex justify-between items-center bg-white z-10 shrink-0">
                             <div className="flex items-center gap-3">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${selectedAnnouncementForView.requires_registration ? 'bg-indigo-50 text-indigo-600' : 'bg-blue-50 text-blue-600'}`}>
-                                    {selectedAnnouncementForView.requires_registration ? <Ticket size={24} /> : <Megaphone size={24} />}
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${selectedAnnouncementForView.requires_registration ? 'bg-indigo-50 text-indigo-600' : (selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'event' ? 'bg-purple-50 text-purple-600' : 'bg-blue-50 text-blue-600'}`}>
+                                    {selectedAnnouncementForView.requires_registration
+                                        ? <Ticket size={24} />
+                                        : (selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'event'
+                                            ? <Calendar size={24} />
+                                            : <Megaphone size={24} />}
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <h2 className="text-xl font-bold text-gray-900 line-clamp-1">{selectedAnnouncementForView.title}</h2>
                                         {selectedAnnouncementForView.requires_registration ? (
                                             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 shrink-0">
-                                                Event Registration
+                                                {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Student Form' : 'Event Registration'}
+                                            </span>
+                                        ) : (selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'event' ? (
+                                            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 shrink-0">
+                                                Event
                                             </span>
                                         ) : (
                                             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 shrink-0">
@@ -4014,34 +4362,35 @@ const Announcements = () => {
                                 {/* Type 5: Student Achievement Leader Board Card */}
                                 {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'achievement' && selectedAnnouncementForView.achievement_data && (() => {
                                     const ach = typeof selectedAnnouncementForView.achievement_data === 'string' ? JSON.parse(selectedAnnouncementForView.achievement_data) : selectedAnnouncementForView.achievement_data;
+                                    const students = Array.isArray(ach.students) && ach.students.length ? ach.students : [ach];
                                     return (
-                                        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl flex items-center gap-4">
-                                            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-400 bg-white shrink-0 shadow-md">
-                                                {ach.student_photo || selectedAnnouncementForView.image_url ? (
-                                                    <img src={ach.student_photo || selectedAnnouncementForView.image_url} alt={ach.student_name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-amber-600 bg-amber-100">
-                                                        <User size={28} />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="min-w-0 flex-1">
+                                        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl space-y-3">
+                                            <div>
                                                 <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-1">
                                                     🏆 {ach.rank_title || 'Hackathon Topper'}
                                                 </span>
-                                                <h3 className="text-base font-black text-slate-900 leading-tight">
-                                                    {ach.student_name}
-                                                </h3>
-                                                <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                                                    {ach.branch && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800">{ach.branch}</span>}
-                                                    {ach.year_sem && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800">{ach.year_sem}</span>}
-                                                    {ach.roll_no && <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-700 font-mono">{ach.roll_no}</span>}
-                                                </div>
                                                 {ach.topper_prize && (
-                                                    <p className="text-xs font-black text-amber-900 mt-1">
-                                                        Award: {ach.topper_prize}
-                                                    </p>
+                                                    <p className="text-xs font-black text-amber-900 mt-1">Award: {ach.topper_prize}</p>
                                                 )}
+                                            </div>
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                {students.map((student, index) => (
+                                                    <div key={student.id || `${student.student_name}-${index}`} className="flex items-center gap-3 rounded-xl bg-white/80 p-3">
+                                                        <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-400 bg-white shrink-0 shadow-md">
+                                                            {student.student_photo || selectedAnnouncementForView.image_url
+                                                                ? <img src={student.student_photo || selectedAnnouncementForView.image_url} alt={student.student_name} className="w-full h-full object-cover" />
+                                                                : <div className="w-full h-full flex items-center justify-center text-amber-600 bg-amber-100"><User size={24} /></div>}
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <h3 className="text-sm font-black text-slate-900">{student.student_name}</h3>
+                                                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                                                {student.branch && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800">{student.branch}</span>}
+                                                                {student.year_sem && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800">{student.year_sem}</span>}
+                                                                {student.roll_no && <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-700 font-mono">{student.roll_no}</span>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     );
@@ -4082,6 +4431,27 @@ const Announcements = () => {
                                         {selectedAnnouncementForView.content}
                                     </p>
                                 </div>
+                                {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'circular' && (
+                                    <div className="space-y-3 rounded-2xl border border-rose-200 bg-rose-50/60 p-4">
+                                        <h3 className="text-sm font-bold text-rose-900">College-wise circular PDFs</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {Object.entries(parseCircularNumbers(selectedAnnouncementForView.circular_numbers)).map(([college, number]) => (
+                                                <button
+                                                    key={college}
+                                                    type="button"
+                                                    onClick={() => handleCircularDownload(selectedAnnouncementForView, college)}
+                                                    className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-rose-800 hover:bg-rose-100"
+                                                >
+                                                    <FileDown size={14} /> {college} · {number}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <p className="text-xs text-rose-900">
+                                            {selectedAnnouncementForView.circular_signatory}
+                                            {selectedAnnouncementForView.circular_designation ? ` · ${selectedAnnouncementForView.circular_designation}` : ''}
+                                        </p>
+                                    </div>
+                                )}
                                 <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-gray-100 text-xs text-gray-500">
                                     <span className="flex items-center gap-1 font-medium">
                                         <Users size={14} className="text-blue-500" />
@@ -4097,7 +4467,7 @@ const Announcements = () => {
                                 </div>
                             </div>
 
-                            {/* Event Registration & Seat Management Section */}
+                            {/* Event Registrations and Form Responses */}
                             {selectedAnnouncementForView.requires_registration && (
                                 <div className="space-y-4">
                                     {/* Metrics Cards */}
@@ -4112,28 +4482,40 @@ const Announcements = () => {
                                             <div className="space-y-3">
                                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                     <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">Seat Capacity</span>
+                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                                                            {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Response Limit' : 'Seat Capacity'}
+                                                        </span>
                                                         <span className="text-2xl font-black text-gray-900 mt-1 block">
                                                             {totalCapacity !== null ? totalCapacity : 'Unlimited'}
                                                         </span>
                                                         <span className="text-[10px] text-gray-400">Total allowed</span>
                                                     </div>
                                                     <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-                                                        <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Registered</span>
+                                                        <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">
+                                                            {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Responses' : 'Registered'}
+                                                        </span>
                                                         <span className="text-2xl font-black text-indigo-600 mt-1 block">
                                                             {registeredCount}
                                                         </span>
-                                                        <span className="text-[10px] text-gray-400">Confirmed candidates</span>
+                                                        <span className="text-[10px] text-gray-400">
+                                                            {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Student submissions' : 'Confirmed candidates'}
+                                                        </span>
                                                     </div>
                                                     <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-                                                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">Available</span>
+                                                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block">
+                                                            {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Remaining' : 'Available'}
+                                                        </span>
                                                         <span className="text-2xl font-black text-emerald-600 mt-1 block">
                                                             {availableSeats}
                                                         </span>
-                                                        <span className="text-[10px] text-gray-400">Seats remaining</span>
+                                                        <span className="text-[10px] text-gray-400">
+                                                            {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Response slots' : 'Seats remaining'}
+                                                        </span>
                                                     </div>
                                                     <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs">
-                                                        <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">Deadline</span>
+                                                        <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider block">
+                                                            {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Closing Date' : 'Deadline'}
+                                                        </span>
                                                         <span className="text-xs font-bold text-gray-800 mt-2 block line-clamp-1">
                                                             {ann.registration_deadline ? new Date(ann.registration_deadline).toLocaleDateString() : 'No Deadline'}
                                                         </span>
@@ -4147,9 +4529,11 @@ const Announcements = () => {
                                                 {totalCapacity && (
                                                     <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-2xs space-y-1.5">
                                                         <div className="flex justify-between items-center text-xs font-bold">
-                                                            <span className="text-gray-700">Seat Occupancy</span>
+                                                            <span className="text-gray-700">
+                                                                {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Response Limit' : 'Seat Occupancy'}
+                                                            </span>
                                                             <span className={percentFilled >= 100 ? 'text-red-600' : 'text-indigo-600'}>
-                                                                {registeredCount} of {totalCapacity} booked ({percentFilled}%)
+                                                                {registeredCount} of {totalCapacity} ({percentFilled}%)
                                                             </span>
                                                         </div>
                                                         <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
@@ -4172,7 +4556,7 @@ const Announcements = () => {
                                             <div className="flex items-center gap-2">
                                                 <UserCheck className="text-indigo-600" size={18} />
                                                 <h4 className="text-sm font-bold text-gray-900">
-                                                    Registered Candidates List ({registrationDetails.registrations?.length || 0})
+                                                    {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Form Responses' : 'Registered Candidates'} ({registrationDetails.registrations?.length || 0})
                                                 </h4>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -4180,7 +4564,7 @@ const Announcements = () => {
                                                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                                     <input
                                                         type="text"
-                                                        placeholder="Search candidates..."
+                                                        placeholder={(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'Search responses...' : 'Search candidates...'}
                                                         value={registrationSearch}
                                                         onChange={(e) => setRegistrationSearch(e.target.value)}
                                                         className="pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none w-48 sm:w-60"
@@ -4212,7 +4596,8 @@ const Announcements = () => {
                                                     (r.pin_number && r.pin_number.toLowerCase().includes(searchLower)) ||
                                                     (r.branch && r.branch.toLowerCase().includes(searchLower)) ||
                                                     (r.phone && r.phone.toLowerCase().includes(searchLower)) ||
-                                                    (r.email && r.email.toLowerCase().includes(searchLower))
+                                                    (r.email && r.email.toLowerCase().includes(searchLower)) ||
+                                                    JSON.stringify(r.form_responses || {}).toLowerCase().includes(searchLower)
                                                 );
                                             });
 
@@ -4220,9 +4605,13 @@ const Announcements = () => {
                                                 return (
                                                     <div className="py-12 text-center text-gray-500 space-y-1">
                                                         <Ticket size={28} className="mx-auto text-gray-300 mb-2" />
-                                                        <p className="text-sm font-semibold text-gray-700">No candidates found</p>
+                                                        <p className="text-sm font-semibold text-gray-700">
+                                                            {(selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'No responses found' : 'No candidates found'}
+                                                        </p>
                                                         <p className="text-xs text-gray-400">
-                                                            {registrationSearch ? 'No registrations matched your search query.' : 'No students have registered yet for this event.'}
+                                                            {registrationSearch
+                                                                ? ((selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'No responses matched your search.' : 'No registrations matched your search query.')
+                                                                : ((selectedAnnouncementForView.announcement_type || '').toLowerCase() === 'form' ? 'No students have submitted a response yet.' : 'No students have registered yet for this event.')}
                                                         </p>
                                                     </div>
                                                 );

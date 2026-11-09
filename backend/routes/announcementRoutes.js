@@ -30,6 +30,32 @@ router.get(
 );
 
 router.get(
+    '/:id/registrations',
+    authMiddleware,
+    verifyPermission('announcements', 'view'),
+    announcementController.getAnnouncementRegistrations
+);
+
+router.delete(
+    '/:id/registrations/:registrationId',
+    authMiddleware,
+    verifyPermission('announcements', 'edit'),
+    announcementController.removeCandidateRegistration
+);
+
+router.post(
+    '/:id/register',
+    authMiddleware,
+    announcementController.registerForAnnouncement
+);
+
+router.delete(
+    '/:id/register',
+    authMiddleware,
+    announcementController.cancelMyRegistration
+);
+
+router.get(
     '/sms/history',
     authMiddleware,
     verifyPermission('announcements', 'view'),

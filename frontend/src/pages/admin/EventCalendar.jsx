@@ -8,7 +8,9 @@ import {
     Trash2,
     Users,
     Pencil,
-    Ticket
+    Ticket,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import api from '../../config/api';
 import toast from 'react-hot-toast';
@@ -25,7 +27,14 @@ const DEFAULT_EVENT_REGISTRATION_FIELDS = [
     { id: 'email', label: 'Email ID', type: 'text', required: false }
 ];
 
-const EventCalendar = ({ isEmbedded = false }) => {
+const EventCalendar = ({
+    isEmbedded = false,
+    announcementEvents = [],
+    onOpenAnnouncement,
+    onEditAnnouncement,
+    onToggleAnnouncement,
+    onDeleteAnnouncement
+}) => {
     const navigate = useNavigate();
     const [events, setEvents] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -218,6 +227,14 @@ const EventCalendar = ({ isEmbedded = false }) => {
     const sortedEvents = events
         .filter(event => String(event.event_type || '').toLowerCase() === 'event')
         .sort((a, b) => new Date(b.event_date) - new Date(a.event_date));
+    const unifiedEvents = [
+        ...sortedEvents.map(event => ({ ...event, source: 'calendar' })),
+        ...announcementEvents.map(event => ({ ...event, source: 'announcement' }))
+    ].sort((a, b) => {
+        const dateA = new Date(a.event_date || a.created_at || 0).getTime();
+        const dateB = new Date(b.event_date || b.created_at || 0).getTime();
+        return dateB - dateA;
+    });
 
     return (
         <div className={`min-h-screen bg-gray-50/50 p-6 space-y-6 animate-fade-in ${isEmbedded ? '!min-h-0 !p-1' : ''}`}>
@@ -254,7 +271,78 @@ const EventCalendar = ({ isEmbedded = false }) => {
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {sortedEvents.map(event => (
+                {unifiedEvents.map(event => event.source === 'announcement' ? (
+                    <div
+                        key={`announcement-${event.id}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => onOpenAnnouncement?.(event)}
+                        onKeyDown={e => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onOpenAnnouncement?.(event);
+                            }
+                        }}
+                        className={`group rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md ${!event.is_active ? 'opacity-75 grayscale' : ''}`}
+                    >
+                        <div className="flex items-start justify-between gap-3">
+                            <span className="rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-[10px] font-bold uppercase text-purple-700">
+                                Event Announcement
+                            </span>
+                            <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                                <button
+                                    type="button"
+                                    onClick={() => onToggleAnnouncement?.(event)}
+                                    className="rounded p-1.5 text-gray-500 hover:bg-gray-100"
+                                    title={event.is_active ? 'Hide event' : 'Show event'}
+                                >
+                                    {event.is_active ? <Eye size={15} /> : <EyeOff size={15} />}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => onEditAnnouncement?.(event)}
+                                    className="rounded p-1.5 text-blue-600 hover:bg-blue-50"
+                                    title="Edit event announcement"
+                                >
+                                    <Pencil size={15} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => onDeleteAnnouncement?.(event)}
+                                    className="rounded p-1.5 text-red-600 hover:bg-red-50"
+                                    title="Delete event announcement"
+                                >
+                                    <Trash2 size={15} />
+                                </button>
+                            </div>
+                        </div>
+                        {event.image_url && (
+                            <div className="mt-4 h-40 overflow-hidden rounded-xl">
+                                <img src={event.image_url} alt="" className="h-full w-full object-cover" />
+                            </div>
+                        )}
+                        <div className="mt-3 flex items-start justify-between gap-3">
+                            <h2 className="text-base font-bold text-gray-900 group-hover:text-blue-700">{event.title}</h2>
+                            <span className="shrink-0 text-xs font-semibold text-gray-500">
+                                {event.event_date ? new Date(event.event_date).toLocaleDateString() : new Date(event.created_at).toLocaleDateString()}
+                            </span>
+                        </div>
+                        <p className="mt-1 line-clamp-3 min-h-[3.75rem] text-sm leading-relaxed text-gray-500">
+                            {event.content || event.event_venue || 'No description provided.'}
+                        </p>
+                        <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-xs text-gray-500">
+                            <span className="flex items-center gap-1.5">
+                                <Clock size={13} />
+                                {[event.event_time, event.event_venue].filter(Boolean).join(' · ') || 'Time and venue TBA'}
+                            </span>
+                            {event.requires_registration && (
+                                <span className="flex items-center gap-1.5 font-semibold text-indigo-600">
+                                    <Users size={14} /> {event.registered_count || 0}{event.max_seats ? ` / ${event.max_seats}` : ''} registered
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                ) : (
                     <button
                         key={event.id}
                         type="button"
@@ -288,7 +376,7 @@ const EventCalendar = ({ isEmbedded = false }) => {
                         </div>
                     </button>
                 ))}
-                {sortedEvents.length === 0 && (
+                {unifiedEvents.length === 0 && (
                     <div className="col-span-full rounded-2xl border border-dashed border-gray-300 bg-white py-16 text-center text-gray-500">
                         <CalendarIcon className="mx-auto mb-3 text-gray-300" size={32} />
                         No events created yet.

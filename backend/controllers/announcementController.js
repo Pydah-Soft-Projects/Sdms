@@ -11,6 +11,85 @@ const parseTargetParam = (val) => {
     return arr && arr.length > 0 ? arr : null;
 };
 
+const parseJsonField = (value, fallback = null) => {
+    if (value === undefined || value === null || value === '') return fallback;
+    if (typeof value !== 'string') return value;
+    try {
+        return JSON.parse(value);
+    } catch {
+        return fallback;
+    }
+};
+
+const parseBoolean = (value) => value === true || value === 1 || value === '1' || value === 'true';
+const parseStudentIds = (value) => parseTargetParam(value)
+    ?.map(id => Number(id))
+    .filter((id, index, ids) => Number.isSafeInteger(id) && id > 0 && ids.indexOf(id) === index) || [];
+const hasCustomFormFields = (fields) => Array.isArray(fields) && fields.some(
+    field => field && !field.is_default && field.enabled !== false && String(field.label || '').trim()
+);
+
+const getCircularNumbers = async (connection, colleges, existing = {}) => {
+    const numbers = { ...existing };
+    const year = new Date().getFullYear();
+
+    for (const college of colleges) {
+        if (numbers[college]) continue;
+        const code = college.toUpperCase().replace(/[^A-Z0-9]+/g, '').slice(0, 8) || 'COLLEGE';
+        await connection.query(
+            `INSERT IGNORE INTO announcement_circular_sequences (college_name, series_year, last_number)
+             VALUES (?, ?, 0)`,
+            [college, year]
+        );
+        await connection.query(
+            `UPDATE announcement_circular_sequences
+             SET last_number = last_number + 1
+             WHERE college_name = ? AND series_year = ?`,
+            [college, year]
+        );
+        const [sequenceRows] = await connection.query(
+            `SELECT last_number FROM announcement_circular_sequences
+             WHERE college_name = ? AND series_year = ?`,
+            [college, year]
+        );
+        numbers[college] = `CIRC/${code}/${year}/${String(sequenceRows[0].last_number).padStart(4, '0')}`;
+    }
+
+    return numbers;
+};
+
+const getAnnouncementAudienceCount = async (connection, targets, studentIds = []) => {
+    if (studentIds.length > 0) {
+        const [rows] = await connection.query(
+            'SELECT COUNT(*) AS count FROM students WHERE student_status = "Regular" AND id IN (?)',
+            [studentIds]
+        );
+        return Number(rows[0]?.count || 0);
+    }
+
+    let query = 'SELECT COUNT(*) AS count FROM students WHERE student_status = "Regular"';
+    const params = [];
+    const mappings = [
+        ['target_college', 'college'],
+        ['target_batch', 'batch'],
+        ['target_course', 'course'],
+        ['target_branch', 'branch'],
+        ['target_year', 'current_year'],
+        ['target_semester', 'current_semester']
+    ];
+
+    mappings.forEach(([target, column]) => {
+        const values = parseTargetParam(targets[target]);
+        if (values) {
+            query += ` AND ${column} IN (?)`;
+            params.push(values);
+        }
+    });
+
+    const [rows] = await connection.query(query, params);
+    return Number(rows[0]?.count || 0);
+};
+
 
 // Helper to delete local file
 const deleteLocalFile = (path) => {
@@ -34,30 +113,75 @@ const deleteLocalFile = (path) => {
 
 exports.createAnnouncement = async (req, res) => {
     let localFilePath = null;
+    let connection;
     try {
         const {
             title,
             content,
+            announcement_type,
+            target_type,
+            selected_student_ids,
             target_college,
             target_batch,
             target_course,
             target_branch,
             target_year,
             target_semester,
-            expires_at
+            expires_at,
+            circular_signatory,
+            circular_designation,
+            event_date,
+            event_time,
+            event_venue,
+            achievement_data,
+            requires_registration,
+            max_seats,
+            registration_deadline,
+            custom_registration_field,
+            registration_form_fields
         } = req.body;
 
+        const normalizedType = String(announcement_type || 'announcement').toLowerCase();
+        const supportedTypes = ['announcement', 'circular', 'event', 'achievement', 'form'];
+        if (!supportedTypes.includes(normalizedType)) {
+            return res.status(400).json({ success: false, message: 'Unsupported announcement type' });
+        }
+        if (!String(title || '').trim()) {
+            return res.status(400).json({ success: false, message: 'A title is required' });
+        }
+        if ((normalizedType === 'circular' || normalizedType === 'form') && !String(content || '').trim()) {
+            return res.status(400).json({ success: false, message: 'Content is required' });
+        }
+        if (normalizedType === 'circular' && (!String(circular_signatory || '').trim() || !String(circular_designation || '').trim())) {
+            return res.status(400).json({ success: false, message: 'Signatory name and designation are required' });
+        }
+
+        const isIndividualTarget = target_type === 'individual';
+        const targetStudentIds = isIndividualTarget ? parseStudentIds(selected_student_ids) : [];
+        if (isIndividualTarget && targetStudentIds.length === 0) {
+            return res.status(400).json({ success: false, message: 'Select at least one student' });
+        }
         const createdBy = req.user?.id || 1;
-
-        const reqReg = 0;
-        const parsedMaxSeats = null;
-        const parsedRegDeadline = null;
-        const customField = null;
-        const parsedFormFields = null;
-
+        const parsedTargets = {
+            target_college: isIndividualTarget ? null : target_college || null,
+            target_batch: isIndividualTarget ? null : target_batch || null,
+            target_course: isIndividualTarget ? null : target_course || null,
+            target_branch: isIndividualTarget ? null : target_branch || null,
+            target_year: isIndividualTarget ? null : target_year || null,
+            target_semester: isIndividualTarget ? null : target_semester || null
+        };
+        const parsedFields = parseJsonField(registration_form_fields, []);
+        const isForm = normalizedType === 'form';
+        if (isForm && !hasCustomFormFields(parsedFields)) {
+            return res.status(400).json({ success: false, message: 'Add at least one form field' });
+        }
+        const isRegistrationEnabled = isForm || parseBoolean(requires_registration);
+        const parsedMaxSeats = max_seats ? Number.parseInt(max_seats, 10) : null;
+        if (parsedMaxSeats !== null && (!Number.isInteger(parsedMaxSeats) || parsedMaxSeats < 1)) {
+            return res.status(400).json({ success: false, message: 'Seat limit must be a positive number' });
+        }
         let imageUrl = null;
 
-        // Handle Image Upload
         if (req.file) {
             localFilePath = req.file.path;
             const fileData = fs.readFileSync(localFilePath);
@@ -66,78 +190,94 @@ exports.createAnnouncement = async (req, res) => {
             imageUrl = `data:${mimeType};base64,${base64Image}`;
         }
 
-        // Calculate audience count first
-        let countQuery = 'SELECT COUNT(*) as count FROM students WHERE student_status = "Regular"';
-        const queryParams = [];
-
-        const parseParam = parseTargetParam;
-
-        const colleges = parseParam(target_college);
-        const batches = parseParam(target_batch);
-        const courses = parseParam(target_course);
-        const branches = parseParam(target_branch);
-        const years = parseParam(target_year);
-        const semesters = parseParam(target_semester);
-
-        if (colleges) { countQuery += ' AND college IN (?)'; queryParams.push(colleges); }
-        if (batches) { countQuery += ' AND batch IN (?)'; queryParams.push(batches); }
-        if (courses) { countQuery += ' AND course IN (?)'; queryParams.push(courses); }
-        if (branches) { countQuery += ' AND branch IN (?)'; queryParams.push(branches); }
-        if (years) { countQuery += ' AND current_year IN (?)'; queryParams.push(years); }
-        if (semesters) { countQuery += ' AND current_semester IN (?)'; queryParams.push(semesters); }
-
-        const [countRow] = await masterPool.query(countQuery, queryParams);
-        const audienceCount = countRow[0].count;
-
+        connection = await masterPool.getConnection();
+        await connection.beginTransaction();
+        const audienceCount = await getAnnouncementAudienceCount(connection, parsedTargets, targetStudentIds);
         const parsedExpiresAt = expires_at && expires_at !== 'null' ? expires_at : null;
+        let circularNumbers = null;
 
-        const [result] = await masterPool.query(
+        if (normalizedType === 'circular') {
+            const targetColleges = isIndividualTarget
+                ? (await connection.query('SELECT DISTINCT college FROM students WHERE id IN (?) AND college IS NOT NULL AND TRIM(college) <> "" ORDER BY college', [targetStudentIds]))[0].map(row => row.college)
+                : parseTargetParam(target_college);
+            const colleges = targetColleges || (await connection.query(
+                'SELECT DISTINCT college FROM students WHERE college IS NOT NULL AND TRIM(college) <> "" ORDER BY college'
+            ))[0].map(row => row.college);
+            if (colleges.length === 0) {
+                await connection.rollback();
+                return res.status(400).json({ success: false, message: 'Select at least one college for a circular' });
+            }
+            circularNumbers = await getCircularNumbers(connection, colleges);
+        }
+
+        const [result] = await connection.query(
             `INSERT INTO announcements 
-            (title, content, image_url, target_college, target_batch, target_course, target_branch, target_year, target_semester, created_by, audience_count, expires_at, requires_registration, max_seats, registration_deadline, custom_registration_field, registration_form_fields) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (title, content, image_url, target_college, target_batch, target_course, target_branch, target_year, target_semester, target_student_ids,
+             created_by, audience_count, expires_at, announcement_type, circular_numbers, circular_signatory, circular_designation,
+             event_date, event_time, event_venue, achievement_data, requires_registration, max_seats, registration_deadline,
+             custom_registration_field, registration_form_fields)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
             [
-                title,
-                content,
+                String(title).trim(),
+                content || '',
                 imageUrl,
-                target_college || null,
-                target_batch || null,
-                target_course || null,
-                target_branch || null,
-                target_year || null,
-                target_semester || null,
+                ...Object.values(parsedTargets),
+                targetStudentIds.length ? JSON.stringify(targetStudentIds) : null,
                 createdBy,
                 audienceCount,
                 parsedExpiresAt,
-                reqReg,
+                normalizedType,
+                circularNumbers ? JSON.stringify(circularNumbers) : null,
+                circular_signatory || null,
+                circular_designation || null,
+                event_date || null,
+                event_time || null,
+                event_venue || null,
+                achievement_data ? JSON.stringify(parseJsonField(achievement_data, achievement_data)) : null,
+                isRegistrationEnabled ? 1 : 0,
                 parsedMaxSeats,
-                parsedRegDeadline,
-                customField,
-                parsedFormFields
+                registration_deadline || null,
+                custom_registration_field || null,
+                isRegistrationEnabled ? JSON.stringify(Array.isArray(parsedFields) ? parsedFields : []) : null
             ]
         );
+        await connection.commit();
+        connection.release();
+        connection = null;
 
         // Trigger Push Notifications (Background)
         (async () => {
             try {
                 if (audienceCount === 0) return;
 
-                // For large lists, we skip the memory-heavy id fetching if we can,
-                // but since sendBatchNotification needs IDs, we fetch them efficiently.
                 let idQuery = 'SELECT id FROM students WHERE student_status = "Regular"';
-                if (colleges) idQuery += ' AND college IN (?)';
-                if (batches) idQuery += ' AND batch IN (?)';
-                if (courses) idQuery += ' AND course IN (?)';
-                if (branches) idQuery += ' AND branch IN (?)';
-                if (years) idQuery += ' AND current_year IN (?)';
-                if (semesters) idQuery += ' AND current_semester IN (?)';
-
-                const [students] = await masterPool.query(idQuery, queryParams);
+                const params = [];
+                if (targetStudentIds.length) {
+                    idQuery += ' AND id IN (?)';
+                    params.push(targetStudentIds);
+                } else {
+                    [
+                        ['target_college', 'college'],
+                        ['target_batch', 'batch'],
+                        ['target_course', 'course'],
+                        ['target_branch', 'branch'],
+                        ['target_year', 'current_year'],
+                        ['target_semester', 'current_semester']
+                    ].forEach(([target, column]) => {
+                        const values = parseTargetParam(parsedTargets[target]);
+                        if (values) {
+                            idQuery += ` AND ${column} IN (?)`;
+                            params.push(values);
+                        }
+                    });
+                }
+                const [students] = await masterPool.query(idQuery, params);
                 const userIds = students.map(s => s.id);
 
                 if (userIds.length > 0) {
                     await pushController.sendBatchNotification(userIds, {
                         title: `New Announcement: ${title}`,
-                        body: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
+                        body: String(content || '').substring(0, 100) + (String(content || '').length > 100 ? '...' : ''),
                         icon: '/icon-192x192.png',
                         data: { url: '/student/announcements' }
                     });
@@ -150,13 +290,15 @@ exports.createAnnouncement = async (req, res) => {
         res.status(201).json({
             success: true,
             message: 'Announcement created successfully',
-            data: { id: result.insertId, title, imageUrl, audience_count: audienceCount }
+            data: { id: result.insertId, title, image_url: imageUrl, audience_count: audienceCount, circular_numbers: circularNumbers }
         });
 
     } catch (error) {
+        if (connection) await connection.rollback();
         console.error('Create announcement error:', error);
         res.status(500).json({ success: false, message: 'Failed to create announcement' });
     } finally {
+        if (connection) connection.release();
         if (localFilePath) deleteLocalFile(localFilePath);
     }
 };
@@ -170,23 +312,45 @@ exports.getAnnouncements = async (req, res) => {
                 a.id,
                 a.title,
                 a.content,
+                a.announcement_type,
+                a.circular_numbers,
+                a.circular_signatory,
+                a.circular_designation,
+                a.event_date,
+                a.event_time,
+                a.event_venue,
+                a.achievement_data,
                 (a.image_url IS NOT NULL AND a.image_url != '') as has_image,
                 CASE WHEN a.image_url LIKE 'http%' THEN a.image_url ELSE NULL END as external_image_url,
+                a.file_name,
                 a.target_college,
                 a.target_batch,
                 a.target_course,
                 a.target_branch,
                 a.target_year,
                 a.target_semester,
+                a.target_student_ids,
                 a.created_by,
                 a.audience_count,
                 a.is_active,
                 a.expires_at,
+                a.requires_registration,
+                a.max_seats,
+                a.registration_deadline,
+                a.custom_registration_field,
+                a.registration_form_fields,
+                COALESCE(reg.registered_count, 0) AS registered_count,
                 a.created_at,
                 a.updated_at,
                 u.username as created_by_name
             FROM announcements a
             LEFT JOIN admins u ON a.created_by = u.id
+            LEFT JOIN (
+                SELECT announcement_id, COUNT(*) AS registered_count
+                FROM announcement_registrations
+                WHERE status = 'confirmed'
+                GROUP BY announcement_id
+            ) reg ON reg.announcement_id = a.id
             WHERE 1=1
         `;
         const params = [];
@@ -204,17 +368,24 @@ exports.getAnnouncements = async (req, res) => {
         const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
         const baseUrl = `${protocol}://${req.get('host')}`;
         const data = rows.map(ann => {
+            const maxSeats = ann.max_seats ? Number(ann.max_seats) : null;
+            const registeredCount = Number(ann.registered_count || 0);
+            const imageUrl = ann.external_image_url || (ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null);
             return {
                 ...ann,
-                requires_registration: false,
-                registration_form_fields: [],
-                registered_count: 0,
-                max_seats: null,
-                registration_deadline: null,
-                custom_registration_field: null,
-                available_seats: null,
-                is_full: false,
-                image_url: ann.external_image_url || (ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null)
+                announcement_type: ann.announcement_type || 'announcement',
+                target_type: parseStudentIds(ann.target_student_ids).length ? 'individual' : 'filters',
+                target_student_ids: parseStudentIds(ann.target_student_ids),
+                circular_numbers: parseJsonField(ann.circular_numbers, {}),
+                achievement_data: parseJsonField(ann.achievement_data, null),
+                requires_registration: Boolean(ann.requires_registration),
+                registration_form_fields: parseJsonField(ann.registration_form_fields, []),
+                registered_count: registeredCount,
+                max_seats: maxSeats,
+                available_seats: maxSeats === null ? null : Math.max(0, maxSeats - registeredCount),
+                is_full: maxSeats !== null && registeredCount >= maxSeats,
+                image_url: imageUrl,
+                file_url: ann.announcement_type === 'circular' ? imageUrl : null
             };
         });
 
@@ -270,6 +441,15 @@ exports.getStudentAnnouncements = async (req, res) => {
                     a.target_branch, 
                     a.target_year, 
                     a.target_semester,
+                    a.target_student_ids,
+                    a.announcement_type,
+                    a.circular_numbers,
+                    a.circular_signatory,
+                    a.circular_designation,
+                    a.event_date,
+                    a.event_time,
+                    a.event_venue,
+                    a.achievement_data,
                     a.requires_registration,
                     a.max_seats,
                     a.registration_deadline,
@@ -307,6 +487,15 @@ exports.getStudentAnnouncements = async (req, res) => {
                     a.target_branch, 
                     a.target_year, 
                     a.target_semester,
+                    a.target_student_ids,
+                    a.announcement_type,
+                    a.circular_numbers,
+                    a.circular_signatory,
+                    a.circular_designation,
+                    a.event_date,
+                    a.event_time,
+                    a.event_venue,
+                    a.achievement_data,
                     a.requires_registration,
                     a.max_seats,
                     a.registration_deadline,
@@ -324,6 +513,8 @@ exports.getStudentAnnouncements = async (req, res) => {
         let matchedAnnouncements = rows;
         if (student) {
             matchedAnnouncements = rows.filter(ann => {
+                const individualIds = parseStudentIds(ann.target_student_ids);
+                if (individualIds.length && !individualIds.includes(Number(student.id))) return false;
                 const targets = parseTargetsFromRow(ann);
                 return matchesStudent(student, targets);
             });
@@ -341,10 +532,20 @@ exports.getStudentAnnouncements = async (req, res) => {
             if (maxSeats !== null) {
                 availableSeats = Math.max(0, maxSeats - registeredCount);
             }
+            const circularNumbers = parseJsonField(ann.circular_numbers, {});
+            const studentCircularNumbers = student?.college
+                ? Object.fromEntries(Object.entries(circularNumbers).filter(([college]) =>
+                    college.trim().toLowerCase() === String(student.college).trim().toLowerCase()
+                ))
+                : circularNumbers;
+            const imageUrl = ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null;
             return {
                 ...ann,
+                announcement_type: ann.announcement_type || 'announcement',
+                circular_numbers: studentCircularNumbers,
+                achievement_data: parseJsonField(ann.achievement_data, null),
                 requires_registration: requiresReg,
-                registration_form_fields: ann.registration_form_fields ? (typeof ann.registration_form_fields === 'string' ? JSON.parse(ann.registration_form_fields) : ann.registration_form_fields) : [],
+                registration_form_fields: parseJsonField(ann.registration_form_fields, []),
                 registered_count: registeredCount,
                 max_seats: maxSeats,
                 registration_deadline: ann.registration_deadline,
@@ -353,7 +554,8 @@ exports.getStudentAnnouncements = async (req, res) => {
                 is_full: isFull,
                 is_registered: isRegistered,
                 my_registration: isRegistered ? { id: ann.my_registration_id, status: ann.my_registration_status } : null,
-                image_url: ann.has_image ? `${baseUrl}/api/announcements/${ann.id}/image` : null
+                image_url: imageUrl,
+                file_url: ann.announcement_type === 'circular' ? imageUrl : null
             };
         });
 
@@ -430,11 +632,15 @@ exports.calculateRecipientCount = async (req, res) => {
 
 exports.updateAnnouncement = async (req, res) => {
     let localFilePath = null;
+    let connection;
     try {
         const { id } = req.params;
         const {
             title,
             content,
+            announcement_type,
+            target_type,
+            selected_student_ids,
             target_college,
             target_batch,
             target_course,
@@ -442,68 +648,114 @@ exports.updateAnnouncement = async (req, res) => {
             target_year,
             target_semester,
             existing_image_url,
-            expires_at
+            expires_at,
+            circular_signatory,
+            circular_designation,
+            event_date,
+            event_time,
+            event_venue,
+            achievement_data,
+            requires_registration,
+            max_seats,
+            registration_deadline,
+            custom_registration_field,
+            registration_form_fields
         } = req.body;
 
-        const reqReg = 0;
-        const parsedMaxSeats = null;
-        const parsedRegDeadline = null;
-        const customField = null;
-        const parsedFormFields = null;
+        const normalizedType = String(announcement_type || 'announcement').toLowerCase();
+        const supportedTypes = ['announcement', 'circular', 'event', 'achievement', 'form'];
+        if (!supportedTypes.includes(normalizedType)) {
+            return res.status(400).json({ success: false, message: 'Unsupported announcement type' });
+        }
+        if (!String(title || '').trim()) {
+            return res.status(400).json({ success: false, message: 'A title is required' });
+        }
+        if ((normalizedType === 'circular' || normalizedType === 'form') && !String(content || '').trim()) {
+            return res.status(400).json({ success: false, message: 'Content is required' });
+        }
+        if (normalizedType === 'circular' && (!String(circular_signatory || '').trim() || !String(circular_designation || '').trim())) {
+            return res.status(400).json({ success: false, message: 'Signatory name and designation are required' });
+        }
 
-        let imageClause = '';
-        const imageParam = [];
+        const isIndividualTarget = target_type === 'individual';
+        const targetStudentIds = isIndividualTarget ? parseStudentIds(selected_student_ids) : [];
+        if (isIndividualTarget && targetStudentIds.length === 0) {
+            return res.status(400).json({ success: false, message: 'Select at least one student' });
+        }
+        const parsedTargets = {
+            target_college: isIndividualTarget ? null : target_college || null,
+            target_batch: isIndividualTarget ? null : target_batch || null,
+            target_course: isIndividualTarget ? null : target_course || null,
+            target_branch: isIndividualTarget ? null : target_branch || null,
+            target_year: isIndividualTarget ? null : target_year || null,
+            target_semester: isIndividualTarget ? null : target_semester || null
+        };
+        const isRegistrationEnabled = normalizedType === 'form' || parseBoolean(requires_registration);
+        const parsedMaxSeats = max_seats ? Number.parseInt(max_seats, 10) : null;
+        if (parsedMaxSeats !== null && (!Number.isInteger(parsedMaxSeats) || parsedMaxSeats < 1)) {
+            return res.status(400).json({ success: false, message: 'Seat limit must be a positive number' });
+        }
+        const parsedFields = parseJsonField(registration_form_fields, []);
+        if (normalizedType === 'form' && !hasCustomFormFields(parsedFields)) {
+            return res.status(400).json({ success: false, message: 'Add at least one form field' });
+        }
+        let imageUrl = existing_image_url || null;
 
         if (req.file) {
             localFilePath = req.file.path;
             const fileData = fs.readFileSync(localFilePath);
             const base64Image = fileData.toString('base64');
             const mimeType = req.file.mimetype;
-            imageClause = 'image_url = ?, ';
-            imageParam.push(`data:${mimeType};base64,${base64Image}`);
-        } else if (!existing_image_url) {
-            // User explicitly removed the image
-            imageClause = 'image_url = NULL, ';
+            imageUrl = `data:${mimeType};base64,${base64Image}`;
         }
 
-        // Calculate audience count
-        let countQuery = 'SELECT COUNT(*) as count FROM students WHERE student_status = "Regular"';
-        const queryParams = [];
-
-        const parseParam = parseTargetParam;
-
-        const colleges = parseParam(target_college);
-        const batches = parseParam(target_batch);
-        const courses = parseParam(target_course);
-        const branches = parseParam(target_branch);
-        const years = parseParam(target_year);
-        const semesters = parseParam(target_semester);
-
-        if (colleges) { countQuery += ' AND college IN (?)'; queryParams.push(colleges); }
-        if (batches) { countQuery += ' AND batch IN (?)'; queryParams.push(batches); }
-        if (courses) { countQuery += ' AND course IN (?)'; queryParams.push(courses); }
-        if (branches) { countQuery += ' AND branch IN (?)'; queryParams.push(branches); }
-        if (years) { countQuery += ' AND current_year IN (?)'; queryParams.push(years); }
-        if (semesters) { countQuery += ' AND current_semester IN (?)'; queryParams.push(semesters); }
-
-        const [countRow] = await masterPool.query(countQuery, queryParams);
-        const audienceCount = countRow[0].count;
-
+        connection = await masterPool.getConnection();
+        await connection.beginTransaction();
+        const [currentRows] = await connection.query('SELECT circular_numbers FROM announcements WHERE id = ? FOR UPDATE', [id]);
+        if (!currentRows.length) {
+            await connection.rollback();
+            return res.status(404).json({ success: false, message: 'Announcement not found' });
+        }
+        const audienceCount = await getAnnouncementAudienceCount(connection, parsedTargets, targetStudentIds);
         const parsedExpiresAt = expires_at && expires_at !== 'null' ? expires_at : null;
+        let circularNumbers = null;
+        if (normalizedType === 'circular') {
+            const targetColleges = isIndividualTarget
+                ? (await connection.query('SELECT DISTINCT college FROM students WHERE id IN (?) AND college IS NOT NULL AND TRIM(college) <> "" ORDER BY college', [targetStudentIds]))[0].map(row => row.college)
+                : parseTargetParam(target_college);
+            const colleges = targetColleges || (await connection.query(
+                'SELECT DISTINCT college FROM students WHERE college IS NOT NULL AND TRIM(college) <> "" ORDER BY college'
+            ))[0].map(row => row.college);
+            if (colleges.length === 0) {
+                await connection.rollback();
+                return res.status(400).json({ success: false, message: 'Select at least one college for a circular' });
+            }
+            const previousNumbers = parseJsonField(currentRows[0].circular_numbers, {});
+            circularNumbers = await getCircularNumbers(connection, colleges, previousNumbers);
+        }
 
-        await masterPool.query(
+        await connection.query(
             `UPDATE announcements SET 
                 title = ?, 
-                content = ?, 
-                ${imageClause}
+                content = ?,
+                image_url = ?,
                 target_college = ?, 
                 target_batch = ?, 
                 target_course = ?, 
                 target_branch = ?, 
                 target_year = ?, 
                 target_semester = ?,
+                target_student_ids = ?,
                 audience_count = ?,
                 expires_at = ?,
+                announcement_type = ?,
+                circular_numbers = ?,
+                circular_signatory = ?,
+                circular_designation = ?,
+                event_date = ?,
+                event_time = ?,
+                event_venue = ?,
+                achievement_data = ?,
                 requires_registration = ?,
                 max_seats = ?,
                 registration_deadline = ?,
@@ -511,33 +763,42 @@ exports.updateAnnouncement = async (req, res) => {
                 registration_form_fields = ?
             WHERE id = ?`,
             [
-                title,
-                content,
-                ...imageParam,
-                target_college || null,
-                target_batch || null,
-                target_course || null,
-                target_branch || null,
-                target_year || null,
-                target_semester || null,
+                String(title).trim(),
+                content || '',
+                imageUrl,
+                ...Object.values(parsedTargets),
+                targetStudentIds.length ? JSON.stringify(targetStudentIds) : null,
                 audienceCount,
                 parsedExpiresAt,
-                reqReg,
+                normalizedType,
+                circularNumbers ? JSON.stringify(circularNumbers) : null,
+                circular_signatory || null,
+                circular_designation || null,
+                event_date || null,
+                event_time || null,
+                event_venue || null,
+                achievement_data ? JSON.stringify(parseJsonField(achievement_data, achievement_data)) : null,
+                isRegistrationEnabled ? 1 : 0,
                 parsedMaxSeats,
-                parsedRegDeadline,
-                customField,
-                parsedFormFields,
+                registration_deadline || null,
+                custom_registration_field || null,
+                isRegistrationEnabled ? JSON.stringify(Array.isArray(parsedFields) ? parsedFields : []) : null,
                 id
             ]
         );
+        await connection.commit();
+        connection.release();
+        connection = null;
 
-        res.json({ success: true, message: 'Announcement updated', audience_count: audienceCount });
+        res.json({ success: true, message: 'Announcement updated', audience_count: audienceCount, circular_numbers: circularNumbers });
 
     } catch (error) {
+        if (connection) await connection.rollback();
         console.error('Update announcement error:', error);
         res.status(500).json({ success: false, message: 'Failed to update announcement' });
     } finally {
-        if (localFilePath && fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
+        if (connection) connection.release();
+        if (localFilePath) deleteLocalFile(localFilePath);
     }
 };
 
@@ -1148,9 +1409,10 @@ exports.registerForAnnouncement = async (req, res) => {
         const { admission_number, admissionNumber, id: tokenUserId } = req.user || {};
         const studentAdmNum = admission_number || admissionNumber;
 
+        const submittedResponses = parseJsonField(form_responses, {});
         let responsesJson = null;
         if (form_responses) {
-            responsesJson = typeof form_responses === 'string' ? form_responses : JSON.stringify(form_responses);
+            responsesJson = JSON.stringify(submittedResponses);
         }
 
         // 1. Fetch announcement with seat info
@@ -1200,6 +1462,19 @@ exports.registerForAnnouncement = async (req, res) => {
         }
 
         const student = studentRows[0];
+        if (!matchesStudent(student, parseTargetsFromRow(announcement))) {
+            return res.status(403).json({ success: false, message: 'This announcement is not available to your student profile' });
+        }
+
+        const registrationFields = parseJsonField(announcement.registration_form_fields, []);
+        for (const field of registrationFields.filter(item => !item.is_default && item.enabled !== false && item.required)) {
+            const fieldKey = field.id || field.label;
+            const response = submittedResponses?.[fieldKey];
+            if (response === undefined || response === null || String(response).trim() === '') {
+                return res.status(400).json({ success: false, message: `Please provide an answer for "${field.label}"` });
+            }
+        }
+
         const finalName = (submittedName || student.student_name || '').trim();
         const finalPin = (submittedPin || student.pin_no || student.admission_number || 'N/A').trim();
         const finalCollege = submittedCollege || student.college || null;
@@ -1260,7 +1535,9 @@ exports.registerForAnnouncement = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: 'Successfully registered for the event!'
+            message: announcement.announcement_type === 'form'
+                ? 'Your form response has been submitted successfully'
+                : 'Successfully registered for the event!'
         });
     } catch (error) {
         console.error('Registration error:', error);

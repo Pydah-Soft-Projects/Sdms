@@ -1522,6 +1522,21 @@ exports.updateUser = async (req, res) => {
 
     const existingUser = existingRows[0];
 
+    // Only super_admin can edit a super_admin user or assign super_admin role
+    if ((existingUser.role === USER_ROLES.SUPER_ADMIN || existingUser.role === 'admin') && !isSuperAdmin(updater)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only Super Admin can edit Super Admin users'
+      });
+    }
+
+    if ((role === USER_ROLES.SUPER_ADMIN || role === 'admin') && !isSuperAdmin(updater)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only Super Admin can assign the Super Admin role'
+      });
+    }
+
     // Build update query
     const updates = [];
     const params = [];
@@ -1842,10 +1857,18 @@ exports.deleteUser = async (req, res) => {
     }
 
     if (userRows[0].role === USER_ROLES.SUPER_ADMIN) {
-      return res.status(403).json({
-        success: false,
-        message: 'Cannot deactivate Super Admin users'
-      });
+      if (!isSuperAdmin(user)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Cannot deactivate Super Admin users'
+        });
+      }
+      if (String(user.id) === String(id)) {
+        return res.status(400).json({
+          success: false,
+          message: 'You cannot deactivate your own Super Admin account'
+        });
+      }
     }
 
     const [result] = await masterPool.query(
@@ -1905,12 +1928,20 @@ exports.permanentDeleteUser = async (req, res) => {
 
     const targetUser = userRows[0];
 
-    // Prevent deleting super admin users
+    // Prevent deleting super admin users unless performed by super admin (and not deleting self)
     if (targetUser.role === USER_ROLES.SUPER_ADMIN) {
-      return res.status(403).json({
-        success: false,
-        message: 'Cannot delete Super Admin users'
-      });
+      if (!isSuperAdmin(user)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Cannot delete Super Admin users'
+        });
+      }
+      if (String(user.id) === String(id)) {
+        return res.status(400).json({
+          success: false,
+          message: 'You cannot delete your own Super Admin account'
+        });
+      }
     }
 
     // Permanently delete the user
@@ -2132,6 +2163,11 @@ exports.getAvailableRoles = async (req, res) => {
       const { CONFIGURABLE_ROLES } = require('./roleConfigController');
       availableRoles = [...(CONFIGURABLE_ROLES || [])];
 
+      // Super admin can create another super admin
+      if (!availableRoles.includes(USER_ROLES.SUPER_ADMIN)) {
+        availableRoles.unshift(USER_ROLES.SUPER_ADMIN);
+      }
+
       // 2. Add Faculty (standard teaching role)
       if (!availableRoles.includes(USER_ROLES.FACULTY)) {
         availableRoles.push(USER_ROLES.FACULTY);
@@ -2148,8 +2184,10 @@ exports.getAvailableRoles = async (req, res) => {
         }
       });
     } else {
-      // For non-super admins, stay with standard hierarchy
-      availableRoles = ROLE_HIERARCHY[effectiveRole] || [];
+      // For non-super admins, stay with standard hierarchy and never expose super admin
+      availableRoles = (ROLE_HIERARCHY[effectiveRole] || []).filter(
+        r => r !== USER_ROLES.SUPER_ADMIN && r !== 'admin'
+      );
     }
 
     const roleLabels = { ...ROLE_LABELS };

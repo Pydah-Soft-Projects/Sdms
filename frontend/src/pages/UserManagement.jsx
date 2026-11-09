@@ -868,6 +868,30 @@ const UserManagement = () => {
   const [deletingRole, setDeletingRole] = useState(false);
   const [availableRolesForCreate, setAvailableRolesForCreate] = useState([]);
 
+  // Filtered available roles for creating a user based on current user's role
+  const displayedRolesForCreate = useMemo(() => {
+    const isSuper = user?.role === 'super_admin' || user?.role === 'admin';
+    let roles = availableRolesForCreate.length
+      ? [...availableRolesForCreate]
+      : (isSuper ? [{ value: 'super_admin', label: 'Super Admin' }, ...FIXED_ROLES] : FIXED_ROLES);
+
+    if (isSuper) {
+      if (!roles.some(r => (r.value ?? r.role_key) === 'super_admin')) {
+        roles.unshift({
+          value: 'super_admin',
+          label: ROLE_LABELS['super_admin'] || 'Super Admin',
+          description: ROLE_DESCRIPTIONS['super_admin'] || 'Complete system control and administration'
+        });
+      }
+    } else {
+      roles = roles.filter(r => {
+        const val = r.value ?? r.role_key;
+        return val !== 'super_admin' && val !== 'admin';
+      });
+    }
+    return roles;
+  }, [availableRolesForCreate, user?.role]);
+
   // All roles for editing user - ensures ALL system roles are represented and selectable
   const allRolesForEdit = useMemo(() => {
     const rolesMap = new Map();
@@ -901,7 +925,7 @@ const UserManagement = () => {
       }
     });
     Object.entries(ROLE_LABELS || {}).forEach(([key, label]) => {
-      if (key !== 'super_admin' && !rolesMap.has(key)) {
+      if (!rolesMap.has(key)) {
         rolesMap.set(key, {
           value: key,
           label,
@@ -909,8 +933,22 @@ const UserManagement = () => {
         });
       }
     });
-    return Array.from(rolesMap.values());
-  }, [roleConfigs, availableRolesForCreate]);
+
+    const isCurrentSuper = user?.role === 'super_admin' || user?.role === 'admin';
+    if (isCurrentSuper && !rolesMap.has('super_admin')) {
+      rolesMap.set('super_admin', {
+        value: 'super_admin',
+        label: ROLE_LABELS['super_admin'] || 'Super Admin',
+        description: ROLE_DESCRIPTIONS['super_admin'] || 'Complete system control and administration'
+      });
+    }
+
+    let result = Array.from(rolesMap.values());
+    if (!isCurrentSuper) {
+      result = result.filter(r => r.value !== 'super_admin' && r.value !== 'admin');
+    }
+    return result;
+  }, [roleConfigs, availableRolesForCreate, user?.role]);
 
   const hasUserManagementAccess = useMemo(() => {
     if (isFullAccessRole(user?.role)) return true;
@@ -1419,7 +1457,7 @@ const UserManagement = () => {
       toast.error('Password must be at least 6 characters');
       return;
     }
-    if (form.collegeIds.length === 0) {
+    if (form.role !== 'super_admin' && form.collegeIds.length === 0) {
       toast.error('Please select at least one college');
       return;
     }
@@ -1436,6 +1474,7 @@ const UserManagement = () => {
 
     setCreatingUser(true);
     try {
+      const isSuper = form.role === 'super_admin';
       const payload = {
         name: form.name.trim(),
         email: form.email.trim(),
@@ -1443,11 +1482,11 @@ const UserManagement = () => {
         username: form.username.trim(),
         password: form.password,
         role: form.role,
-        collegeIds: form.collegeIds,
-        courseIds: form.allCourses && form.role !== 'branch_hod' ? [] : form.courseIds,
-        branchIds: form.allBranches && form.role !== 'branch_hod' ? [] : form.branchIds,
-        allCourses: form.role === 'branch_hod' ? false : form.allCourses,
-        allBranches: form.role === 'branch_hod' ? false : form.allBranches,
+        collegeIds: isSuper ? [] : form.collegeIds,
+        courseIds: isSuper || (form.allCourses && form.role !== 'branch_hod') ? [] : form.courseIds,
+        branchIds: isSuper || (form.allBranches && form.role !== 'branch_hod') ? [] : form.branchIds,
+        allCourses: isSuper ? false : (form.role === 'branch_hod' ? false : form.allCourses),
+        allBranches: isSuper ? false : (form.role === 'branch_hod' ? false : form.allBranches),
         hodYears: form.role === 'branch_hod' ? form.hodYears : [],
         allHodYears: form.role === 'branch_hod' ? !!form.allHodYears : false,
         permissions: (form.permissions && Object.keys(form.permissions).length > 0) ? form.permissions : initializePermissions(),
@@ -1487,7 +1526,8 @@ const UserManagement = () => {
   };
 
   const openEditModal = async (userData) => {
-    if (userData?.role === 'super_admin') {
+    const isSuper = user?.role === 'super_admin' || user?.role === 'admin';
+    if (userData?.role === 'super_admin' && !isSuper) {
       toast.error('Super Admin users cannot be edited');
       return;
     }
@@ -1723,16 +1763,17 @@ const UserManagement = () => {
 
     setUpdatingUser(true);
     try {
+      const isSuper = editForm.role === 'super_admin';
       const payload = {
         name: editForm.name.trim(),
         email: editForm.email.trim(),
         phone: editForm.phone?.trim() || null,
         role: editForm.role,
-        collegeIds: editForm.collegeIds,
-        courseIds: editForm.allCourses && editForm.role !== 'branch_hod' ? [] : editForm.courseIds,
-        branchIds: editForm.allBranches && editForm.role !== 'branch_hod' ? [] : editForm.branchIds,
-        allCourses: editForm.role === 'branch_hod' ? false : editForm.allCourses,
-        allBranches: editForm.role === 'branch_hod' ? false : editForm.allBranches,
+        collegeIds: isSuper ? [] : editForm.collegeIds,
+        courseIds: isSuper || (editForm.allCourses && editForm.role !== 'branch_hod') ? [] : editForm.courseIds,
+        branchIds: isSuper || (editForm.allBranches && editForm.role !== 'branch_hod') ? [] : editForm.branchIds,
+        allCourses: isSuper ? false : (editForm.role === 'branch_hod' ? false : editForm.allCourses),
+        allBranches: isSuper ? false : (editForm.role === 'branch_hod' ? false : editForm.allBranches),
         hodYears: editForm.role === 'branch_hod' ? editForm.hodYears : [],
         allHodYears: editForm.role === 'branch_hod' ? !!editForm.allHodYears : false,
         permissions: editForm.permissions,
@@ -1758,9 +1799,16 @@ const UserManagement = () => {
   };
 
   const handleDeactivateUser = async (userId, userRole) => {
+    const isSuper = user?.role === 'super_admin' || user?.role === 'admin';
     if (userRole === 'super_admin') {
-      toast.error('Super Admin users cannot be deactivated');
-      return;
+      if (!isSuper) {
+        toast.error('Super Admin users cannot be deactivated');
+        return;
+      }
+      if (String(user?.id) === String(userId)) {
+        toast.error('You cannot deactivate your own Super Admin account');
+        return;
+      }
     }
     if (!window.confirm('Deactivate this user?')) return;
     try {
@@ -1789,9 +1837,16 @@ const UserManagement = () => {
 
   // Delete User Functions
   const openDeleteModal = (userData) => {
+    const isSuper = user?.role === 'super_admin' || user?.role === 'admin';
     if (userData?.role === 'super_admin') {
-      toast.error('Super Admin users cannot be deleted');
-      return;
+      if (!isSuper) {
+        toast.error('Super Admin users cannot be deleted');
+        return;
+      }
+      if (String(user?.id) === String(userData?.id)) {
+        toast.error('You cannot delete your own Super Admin account');
+        return;
+      }
     }
     setDeleteUserModal(userData);
   };
@@ -2342,7 +2397,7 @@ const UserManagement = () => {
                   </div>
                 </div>
                 <div className="p-3 space-y-2 flex-1 overflow-y-auto max-h-[500px]">
-                  {(availableRolesForCreate.length ? availableRolesForCreate : FIXED_ROLES.map(r => ({ value: r.value, label: r.label }))).map(role => {
+                  {(displayedRolesForCreate || []).map(role => {
                     const roleValue = role.value ?? role.role_key;
                     // Use backend provided label if available, otherwise fallback to frontend constants
                     const roleLabel = role.label ?? ROLE_LABELS[roleValue] ?? roleValue;
@@ -2352,6 +2407,10 @@ const UserManagement = () => {
                         key={roleValue}
                         onClick={async () => {
                           handleFormChange('role', roleValue);
+                          if (roleValue === 'super_admin') {
+                            setForm(prev => ({ ...prev, role: roleValue, permissions: createSuperAdminPermissions(), collegeIds: [], courseIds: [], branchIds: [], allCourses: false, allBranches: false }));
+                            return;
+                          }
                           try {
                             const res = await api.get(`/rbac/role-config/${roleValue}`);
                             if (res.data?.success && res.data?.data?.permissions) {
@@ -2398,6 +2457,16 @@ const UserManagement = () => {
                   </div>
                 </div>
                 <div className="p-3 space-y-2.5 flex-1 overflow-y-auto max-h-[500px]">
+                  {form.role === 'super_admin' ? (
+                    <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-center my-3">
+                      <ShieldCheck size={28} className="text-emerald-600 mx-auto mb-2" />
+                      <h4 className="font-bold text-xs text-emerald-800">Unrestricted System-Wide Access</h4>
+                      <p className="text-[10px] text-emerald-600 mt-1">
+                        Super Admin has full system access across all colleges, courses, and branches without restriction.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
                   {/* Colleges Selection */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
@@ -2558,6 +2627,8 @@ const UserManagement = () => {
                       <Layers size={20} className="text-slate-300 mx-auto mb-1.5" />
                       <p className="text-[10px] text-slate-400">Select a college to configure access</p>
                     </div>
+                  )}
+                    </>
                   )}
 
                   {/* Module Access / Permissions Shortcut */}
@@ -3086,7 +3157,7 @@ const UserManagement = () => {
                               <div className="flex items-center gap-1.5">
                                 {canManageUsers && (
                                   <>
-                                    {userData.role !== 'super_admin' && (
+                                    {(userData.role !== 'super_admin' || user?.role === 'super_admin') && (
                                       <button
                                         onClick={() => openEditModal(userData)}
                                         className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors"
@@ -3104,10 +3175,10 @@ const UserManagement = () => {
                                       <KeyRound size={11} />
                                       Reset
                                     </button>
-                                    {userData.role === 'super_admin' ? (
+                                    {userData.role === 'super_admin' && (user?.role !== 'super_admin' || String(user?.id) === String(userData?.id)) ? (
                                       <span
                                         className="p-1.5 rounded-md bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed"
-                                        title="Super Admin cannot be deactivated"
+                                        title={user?.role === 'super_admin' ? "You cannot deactivate your own account" : "Super Admin cannot be deactivated"}
                                       >
                                         <ToggleRight size={14} className="text-slate-300" />
                                       </span>
@@ -3128,10 +3199,10 @@ const UserManagement = () => {
                                         <ToggleLeft size={14} />
                                       </button>
                                     )}
-                                    {userData.role === 'super_admin' ? (
+                                    {userData.role === 'super_admin' && (user?.role !== 'super_admin' || String(user?.id) === String(userData?.id)) ? (
                                       <span
                                         className="p-1.5 rounded-md bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed"
-                                        title="Super Admin cannot be deleted"
+                                        title={user?.role === 'super_admin' ? "You cannot delete your own account" : "Super Admin cannot be deleted"}
                                       >
                                         <Trash2 size={11} />
                                       </span>
@@ -3314,7 +3385,7 @@ const UserManagement = () => {
                           <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
                             {canManageUsers && (
                               <>
-                                {userData.role !== 'super_admin' && (
+                                {(userData.role !== 'super_admin' || user?.role === 'super_admin') && (
                                   <button
                                     onClick={() => openEditModal(userData)}
                                     className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 active:bg-blue-200 border border-blue-200 transition-colors touch-manipulation min-h-[44px]"
@@ -3332,10 +3403,10 @@ const UserManagement = () => {
                                   <KeyRound size={13} />
                                   Reset
                                 </button>
-                                {userData.role === 'super_admin' ? (
+                                {userData.role === 'super_admin' && (user?.role !== 'super_admin' || String(user?.id) === String(userData?.id)) ? (
                                   <span
                                     className="p-2 rounded-lg bg-slate-50 text-slate-300 border border-slate-200 cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
-                                    title="Super Admin cannot be deactivated"
+                                    title={user?.role === 'super_admin' ? "You cannot deactivate your own account" : "Super Admin cannot be deactivated"}
                                   >
                                     <ToggleRight size={18} className="text-slate-300" />
                                   </span>
@@ -3356,10 +3427,10 @@ const UserManagement = () => {
                                     <ToggleLeft size={18} />
                                   </button>
                                 )}
-                                {userData.role === 'super_admin' ? (
+                                {userData.role === 'super_admin' && (user?.role !== 'super_admin' || String(user?.id) === String(userData?.id)) ? (
                                   <span
                                     className="p-2 rounded-lg bg-slate-50 text-slate-300 border border-slate-200 cursor-not-allowed min-w-[44px] min-h-[44px] flex items-center justify-center"
-                                    title="Super Admin cannot be deleted"
+                                    title={user?.role === 'super_admin' ? "You cannot delete your own account" : "Super Admin cannot be deleted"}
                                   >
                                     <Trash2 size={14} />
                                   </span>
@@ -4949,6 +5020,16 @@ const UserManagement = () => {
                       <h3 className="text-sm font-bold text-slate-800">Access Scope</h3>
                     </div>
 
+                    {editForm.role === 'super_admin' ? (
+                      <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-center my-3">
+                        <ShieldCheck size={28} className="text-emerald-600 mx-auto mb-2" />
+                        <h4 className="font-bold text-xs text-emerald-800">Unrestricted System-Wide Access</h4>
+                        <p className="text-[10px] text-emerald-600 mt-1">
+                          Super Admin has full system access across all colleges, courses, and branches without restriction.
+                        </p>
+                      </div>
+                    ) : (
+                      <>
                     {/* Colleges Selection */}
                     <div>
                       <div className="flex items-center justify-between mb-2">
@@ -5103,6 +5184,8 @@ const UserManagement = () => {
                         <Layers size={32} className="text-slate-300 mx-auto mb-2" />
                         <p className="text-xs text-slate-400">Select a college to configure access</p>
                       </div>
+                    )}
+                      </>
                     )}
                   </div>
 

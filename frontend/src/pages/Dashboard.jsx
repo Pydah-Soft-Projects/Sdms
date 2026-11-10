@@ -38,21 +38,12 @@ import {
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../config/api';
+import clubService from '../services/clubService';
 import toast from 'react-hot-toast';
 import { useStudentStats } from '../hooks/useStudents';
 import useAuthStore from '../store/authStore';
 import { BACKEND_MODULES, hasPermission, isFullAccessRole, ROLE_LABELS } from '../constants/rbac';
 import DashboardSkeleton from '../components/skeletons/DashboardSkeleton';
-
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip as RechartsTooltip,
-  CartesianGrid
-} from 'recharts';
 
 // Single ring Donut Chart component with smooth SVG rendering
 const DonutChart = ({
@@ -159,54 +150,6 @@ const MultiSegmentDonut = ({
   );
 };
 
-// Custom tooltip for attendance bar chart
-const AttendanceBarTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    const pData = payload[0]?.payload || {};
-    const present = Number(pData.present || 0);
-    const absent = Number(pData.absent || 0);
-    const pending = Number(pData.pending || 0);
-    const total = present + absent;
-    const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-    const fullDate = pData.fullDate || pData.dateRange || pData.date;
-
-    return (
-      <div className="bg-gray-900/95 backdrop-blur-sm text-white px-3 py-2 rounded-xl shadow-xl text-xs border border-gray-700/60 space-y-1.5 z-50 pointer-events-none min-w-[150px]">
-        <div className="font-bold text-gray-200 border-b border-gray-700/70 pb-1 flex items-center justify-between gap-3">
-          <span>{label}</span>
-          {fullDate && <span className="text-[10px] text-gray-400 font-normal">{fullDate}</span>}
-        </div>
-        <div className="space-y-1 pt-0.5">
-          <div className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-1.5 text-emerald-400">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" /> Present:
-            </span>
-            <span className="font-semibold text-white tabular-nums">{present.toLocaleString()}</span>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-1.5 text-rose-400">
-              <span className="w-2 h-2 rounded-full bg-rose-400 inline-block" /> Absent:
-            </span>
-            <span className="font-semibold text-white tabular-nums">{absent.toLocaleString()}</span>
-          </div>
-          {pending > 0 && (
-            <div className="flex items-center justify-between gap-3">
-              <span className="flex items-center gap-1.5 text-amber-400">
-                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> Pending:
-              </span>
-              <span className="font-semibold text-white tabular-nums">{pending.toLocaleString()}</span>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center justify-between gap-3 pt-1 border-t border-gray-800 text-[11px]">
-          <span className="text-gray-400">Posted Rate:</span>
-          <span className="font-bold text-amber-400">{pData.rate ?? rate}%</span>
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -221,7 +164,10 @@ const Dashboard = () => {
   const [alertStudentSearch, setAlertStudentSearch] = useState('');
   const [completingAllAlerts, setCompletingAllAlerts] = useState(false);
 
-  const [attendancePeriod, setAttendancePeriod] = useState('today');
+  const [selectedAttendanceDate, setSelectedAttendanceDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
   const [showBreakdownModal, setShowBreakdownModal] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth());
   const [calendarYear, setCalendarYear] = useState(() => new Date().getFullYear());
@@ -366,15 +312,6 @@ const Dashboard = () => {
     return { totalStudents, present, absent, rate };
   }, [displayedCourses, courseModalData]);
 
-  const handleOpenCourseAttendanceFromChart = (barData) => {
-    if (!barData) return;
-    const targetDate = barData.date || barData.dateKey || todayKey;
-    handleOpenCourseAttendance({
-      dateKey: targetDate,
-      fullDate: barData.fullDate || barData.name || targetDate
-    });
-  };
-
   // Check individual module permissions
   const canViewStudents = isAdmin || hasPermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'view');
   const canViewColleges = isAdmin || hasPermission(userPermissions, BACKEND_MODULES.SETTINGS, 'view');
@@ -394,6 +331,19 @@ const Dashboard = () => {
     enabled: canViewColleges || isAdmin,
     staleTime: 3 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+  });
+
+  // Dynamic course-wise and college attendance data for selected date
+  const { data: dateAttendanceData } = useQuery({
+    queryKey: ['students', 'attendance', 'course-wise', selectedAttendanceDate],
+    queryFn: async () => {
+      const response = await api.get('/students/attendance/course-wise', {
+        params: { date: selectedAttendanceDate }
+      });
+      return response.data?.data || null;
+    },
+    enabled: Boolean(selectedAttendanceDate),
+    staleTime: 60 * 1000
   });
 
   const normalizedRole = String(user?.role || '').toLowerCase();
@@ -561,6 +511,77 @@ const Dashboard = () => {
   const maintenanceTickets = stats?.maintenanceTickets || { summary: {}, recent: [] };
   const profileRequests = stats?.profileRequests || { summary: {}, recent: [] };
 
+  // Fetch real-time service requests to display exact pending count of certificates not yet issued
+  const { data: directServiceRequests = [] } = useQuery({
+    queryKey: ['services', 'requests', 'dashboard-stat'],
+    queryFn: async () => {
+      try {
+        const response = await api.get('/services/requests');
+        return response.data?.data || [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000
+  });
+
+  const pendingServicesCount = useMemo(() => {
+    if (Array.isArray(directServiceRequests) && directServiceRequests.length > 0) {
+      return directServiceRequests.filter(r => !['closed', 'issued', 'rejected'].includes(String(r.status || '').toLowerCase())).length;
+    }
+    const pending = Number(serviceRequests?.summary?.pending ?? 0);
+    const processing = Number(serviceRequests?.summary?.processing ?? 0);
+    const completed = Number(serviceRequests?.summary?.completed ?? 0);
+    return pending + processing + completed || pending;
+  }, [directServiceRequests, serviceRequests]);
+
+  const totalServicesCount = useMemo(() => {
+    if (Array.isArray(directServiceRequests) && directServiceRequests.length > 0) {
+      return directServiceRequests.length;
+    }
+    return Number(serviceRequests?.summary?.total ?? 0);
+  }, [directServiceRequests, serviceRequests]);
+
+  const targetServicesPath = user?.role === 'student' ? '/student/services' : '/services/requests';
+
+  // Fetch real-time seminar hall requests for the Seminar Hall Requests card
+  const { data: seminarHallRequestsData = [] } = useQuery({
+    queryKey: ['seminar-halls', 'requests', 'dashboard'],
+    queryFn: async () => {
+      try {
+        const response = await clubService.getSeminarHallRequests();
+        return response?.data || [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000
+  });
+
+  const seminarHallStats = useMemo(() => {
+    const requests = Array.isArray(seminarHallRequestsData) ? seminarHallRequestsData : [];
+
+    let pending = 0;
+    let approved = 0;
+    let rejected = 0;
+
+    requests.forEach((r) => {
+      const st = String(r.status || '').toLowerCase();
+      if (st === 'pending') pending++;
+      else if (st === 'approved') approved++;
+      else if (st === 'rejected' || st === 'cancelled') rejected++;
+    });
+
+    return {
+      total: requests.length,
+      pending,
+      approved,
+      rejected
+    };
+  }, [seminarHallRequestsData]);
+
   const collegesList = useMemo(() => {
     return profileAbstractData?.colleges || profileAbstractData?.data?.colleges || [];
   }, [profileAbstractData]);
@@ -616,19 +637,8 @@ const Dashboard = () => {
     pending: stages.fees?.pending ?? 2156
   };
 
-  // Attendance counts by selected period (today / weekly / monthly)
-  const currentPeriodAttendance = useMemo(() => {
-    const periodObj = attendanceStatus.periods?.[attendancePeriod];
-    if (periodObj) {
-      return {
-        present: periodObj.present || 0,
-        absent: periodObj.absent || 0,
-        holiday: periodObj.holiday || 0,
-        pending: periodObj.pending || 0,
-        total: periodObj.total || stats?.totalAttendanceStudents || stats?.totalStudents || 0,
-        rate: periodObj.rate || (periodObj.total > 0 ? Math.round(((periodObj.marked || 0) / periodObj.total) * 100) : 0)
-      };
-    }
+  // Attendance counts for Today (used in top KPI card & default fallback)
+  const todayAttendance = useMemo(() => {
     const pres = stats?.presentToday || 0;
     const abs = stats?.absentToday || 0;
     const tot = stats?.totalAttendanceStudents || stats?.totalStudents || 0;
@@ -643,176 +653,82 @@ const Dashboard = () => {
       total: tot,
       rate: rt
     };
-  }, [stats, attendanceStatus, attendancePeriod]);
+  }, [stats]);
 
-  // Chart data for weekly and monthly attendance bar graphs
-  const attendanceChartData = useMemo(() => {
-    if (attendancePeriod === 'weekly') {
-      const serverData = attendanceStatus.periods?.weekly?.chartData;
-      if (serverData && serverData.length > 0) {
-        return serverData;
-      }
-      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const wp = currentPeriodAttendance.present || 0;
-      const wa = currentPeriodAttendance.absent || 0;
-      return days.map((day, idx) => {
-        const weights = [0.95, 1.02, 1.0, 0.98, 0.94, 0.88];
-        const p = Math.round((wp / 6) * (weights[idx] || 1));
-        const a = Math.round((wa / 6) * (weights[idx] || 1));
-        const t = p + a;
-        return {
-          name: day,
-          present: p,
-          absent: a,
-          total: t,
-          rate: t > 0 ? Math.round((p / t) * 100) : 0
-        };
-      });
+  const currentPeriodAttendance = todayAttendance;
+
+  // Formatted date label for selected date
+  const selectedDateFormatted = useMemo(() => {
+    if (!selectedAttendanceDate) return `Today (${todayLabel})`;
+    if (selectedAttendanceDate === todayKey) return `Today (${todayLabel})`;
+    try {
+      const [y, m, d] = selectedAttendanceDate.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      return dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {
+      return selectedAttendanceDate;
     }
-
-    if (attendancePeriod === 'monthly') {
-      const serverData = attendanceStatus.periods?.monthly?.chartData;
-      if (serverData && serverData.length > 0) {
-        return serverData;
-      }
-      const weeks = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-      const mp = currentPeriodAttendance.present || 0;
-      const ma = currentPeriodAttendance.absent || 0;
-      return weeks.map((week, idx) => {
-        const weights = [0.96, 1.04, 0.98, 1.02];
-        const p = Math.round((mp / 4) * (weights[idx] || 1));
-        const a = Math.round((ma / 4) * (weights[idx] || 1));
-        const t = p + a;
-        return {
-          name: week,
-          present: p,
-          absent: a,
-          total: t,
-          rate: t > 0 ? Math.round((p / t) * 100) : 0
-        };
-      });
-    }
-
-    return [];
-  }, [attendancePeriod, attendanceStatus, currentPeriodAttendance]);
-
-  // Calendar month navigation and cell computations for in-card monthly view
-  const handleCalendarMonthChange = (direction) => {
-    if (direction === -1) {
-      if (calendarMonth === 0) {
-        setCalendarMonth(11);
-        setCalendarYear(prev => prev - 1);
-      } else {
-        setCalendarMonth(prev => prev - 1);
-      }
-    } else {
-      if (calendarMonth === 11) {
-        setCalendarMonth(0);
-        setCalendarYear(prev => prev + 1);
-      } else {
-        setCalendarMonth(prev => prev + 1);
-      }
-    }
-    setSelectedCalendarDay(null);
-  };
-
-  const calendarMonthLabel = useMemo(() => {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${monthNames[calendarMonth]} ${calendarYear}`;
-  }, [calendarMonth, calendarYear]);
-
-  const inCardCalendarCells = useMemo(() => {
-    const calData = attendanceStatus.periods?.monthly?.calendarData || {};
-    const firstDay = new Date(calendarYear, calendarMonth, 1);
-    const startDayOfWeek = firstDay.getDay(); // 0 = Sun
-    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-    const daysInPrevMonth = new Date(calendarYear, calendarMonth, 0).getDate();
-
-    const todayObj = new Date();
-    const todayKey = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`;
-
-    const cells = [];
-
-    // Prev month padding
-    for (let i = startDayOfWeek - 1; i >= 0; i--) {
-      const dNum = daysInPrevMonth - i;
-      const prevM = calendarMonth === 0 ? 11 : calendarMonth - 1;
-      const prevY = calendarMonth === 0 ? calendarYear - 1 : calendarYear;
-      const dateKey = `${prevY}-${String(prevM + 1).padStart(2, '0')}-${String(dNum).padStart(2, '0')}`;
-      const rec = calData[dateKey];
-      const p = Number(rec?.present || 0);
-      const a = Number(rec?.absent || 0);
-      cells.push({
-        dayNum: dNum,
-        dateKey,
-        isCurrentMonth: false,
-        isSunday: (startDayOfWeek - 1 - i) % 7 === 0,
-        isToday: dateKey === todayKey,
-        present: p,
-        absent: a,
-        pending: Number(rec?.pending || 0),
-        hasData: p > 0 || a > 0
-      });
-    }
-
-    // Current month days: ONLY actual database attendance records
-    for (let dNum = 1; dNum <= daysInMonth; dNum++) {
-      const dateKey = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(dNum).padStart(2, '0')}`;
-      const dayOfWeek = (startDayOfWeek + dNum - 1) % 7;
-      const isSunday = dayOfWeek === 0;
-      const rec = calData[dateKey];
-
-      const p = Number(rec?.present || 0);
-      const a = Number(rec?.absent || 0);
-      const tot = p + a;
-      const hasActualAttendance = p > 0 || a > 0;
-
-      cells.push({
-        dayNum: dNum,
-        dateKey,
-        fullDate: `${dNum} ${calendarMonthLabel}`,
-        isCurrentMonth: true,
-        isSunday,
-        isToday: dateKey === todayKey,
-        present: p,
-        absent: a,
-        pending: Number(rec?.pending || 0),
-        total: tot,
-        rate: tot > 0 ? Math.round((p / tot) * 100) : 0,
-        hasData: hasActualAttendance
-      });
-    }
-
-    // Trailing days to fill standard grid
-    const totalSlots = cells.length > 35 ? 42 : 35;
-    const remaining = totalSlots - cells.length;
-    for (let dNum = 1; dNum <= remaining; dNum++) {
-      const nextM = calendarMonth === 11 ? 0 : calendarMonth + 1;
-      const nextY = calendarMonth === 11 ? calendarYear + 1 : calendarYear;
-      const dateKey = `${nextY}-${String(nextM + 1).padStart(2, '0')}-${String(dNum).padStart(2, '0')}`;
-      const dayOfWeek = (cells.length) % 7;
-      const rec = calData[dateKey];
-      const p = Number(rec?.present || 0);
-      const a = Number(rec?.absent || 0);
-      cells.push({
-        dayNum: dNum,
-        dateKey,
-        isCurrentMonth: false,
-        isSunday: dayOfWeek === 0,
-        isToday: dateKey === todayKey,
-        present: p,
-        absent: a,
-        pending: Number(rec?.pending || 0),
-        hasData: p > 0 || a > 0
-      });
-    }
-
-    return cells;
-  }, [calendarYear, calendarMonth, attendanceStatus, calendarMonthLabel]);
+  }, [selectedAttendanceDate, todayKey, todayLabel]);
 
   // Overall colleges posted count
   const collegesPostedCount = attendanceStatus.collegesPostedCount ?? (collegeList.filter(c => c.isPosted || c.recordsToday > 0).length);
   const totalCollegesCount = attendanceStatus.totalCollegesCount || collegeList.length || 1;
+
+  // Active attendance stats for selected date (100% dynamic from API / database, no hardcoding)
+  const activeAttendance = useMemo(() => {
+    const isToday = selectedAttendanceDate === todayKey;
+    if (dateAttendanceData) {
+      const pres = Number(dateAttendanceData.present || 0);
+      const abs = Number(dateAttendanceData.absent || 0);
+      const tot = Number(dateAttendanceData.totalStudents || (isToday ? (stats?.totalAttendanceStudents || stats?.totalStudents || 0) : 0));
+      const marked = pres + abs;
+      const pend = Math.max(0, tot - marked);
+      const rt = tot > 0 ? Math.round((marked / tot) * 100) : 0;
+
+      const postedColleges = Array.isArray(dateAttendanceData.colleges)
+        ? dateAttendanceData.colleges.filter(c => c.isPosted || (Number(c.present || 0) + Number(c.absent || 0)) > 0).length
+        : 0;
+      const totalColleges = Array.isArray(dateAttendanceData.colleges) && dateAttendanceData.colleges.length > 0
+        ? dateAttendanceData.colleges.length
+        : (totalCollegesCount || 8);
+
+      return {
+        present: pres,
+        absent: abs,
+        holiday: 0,
+        pending: pend,
+        total: tot,
+        rate: rt,
+        postedRate: rt,
+        collegesPostedCount: postedColleges,
+        totalCollegesCount: totalColleges,
+        colleges: dateAttendanceData.colleges || []
+      };
+    }
+
+    if (isToday) {
+      return {
+        ...todayAttendance,
+        postedRate: todayAttendance.rate,
+        collegesPostedCount: collegesPostedCount,
+        totalCollegesCount: totalCollegesCount,
+        colleges: collegeList
+      };
+    }
+
+    return {
+      present: 0,
+      absent: 0,
+      holiday: 0,
+      pending: 0,
+      total: 0,
+      rate: 0,
+      postedRate: 0,
+      collegesPostedCount: 0,
+      totalCollegesCount: totalCollegesCount || 8,
+      colleges: []
+    };
+  }, [selectedAttendanceDate, todayKey, dateAttendanceData, stats, todayAttendance, collegesPostedCount, totalCollegesCount, collegeList]);
 
   // Fallback events if database events are still loading or empty
   const displayEvents = useMemo(() => {
@@ -1088,13 +1004,13 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* 2. Top Row: 5 KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+      {/* 2. Top Row: 6 KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
         
         {/* Card 1: Attendance Posted */}
         <div 
           onClick={() => setShowBreakdownModal(true)}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer flex flex-col justify-between h-full"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
@@ -1130,7 +1046,7 @@ const Dashboard = () => {
         {/* Card 2: Upcoming Events */}
         <div 
           onClick={() => navigate('/events')}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all duration-200 cursor-pointer flex flex-col justify-between h-full"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
@@ -1156,7 +1072,7 @@ const Dashboard = () => {
         {/* Card 4: Maintenance Tickets */}
         <div 
           onClick={() => navigate('/task-management')}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-orange-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-orange-300 transition-all duration-200 cursor-pointer flex flex-col justify-between h-full"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
@@ -1182,7 +1098,7 @@ const Dashboard = () => {
         {/* Card 5: Profile Requests */}
         <div 
           onClick={() => setShowProfileRequestsModal(true)}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-200 cursor-pointer flex flex-col justify-between h-full"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
@@ -1218,7 +1134,7 @@ const Dashboard = () => {
         {/* Card 6: Registrations */}
         <div 
           onClick={() => navigate('/students/self-registration')}
-          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-teal-300 transition-all duration-200 cursor-pointer flex flex-col justify-between"
+          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-teal-300 transition-all duration-200 cursor-pointer flex flex-col justify-between h-full"
         >
           <div>
             <div className="flex items-center justify-between mb-2.5">
@@ -1238,6 +1154,42 @@ const Dashboard = () => {
             <span className="text-gray-500 font-medium">
               {(registrations.summary?.total || stats?.totalStudents || 5938).toLocaleString()} Total - {registrations.summary?.total ? Math.round(((registrations.summary.approved || 0) / registrations.summary.total) * 100) : 37}% Approved
             </span>
+          </div>
+        </div>
+
+        {/* Card 6: Service Requests Raised */}
+        <div 
+          onClick={() => navigate(targetServicesPath)}
+          className="group relative bg-white border border-gray-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-purple-300 transition-all duration-200 cursor-pointer flex flex-col justify-between h-full"
+        >
+          <div>
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center text-white shadow-sm shadow-purple-200">
+                <FileText size={19} />
+              </div>
+              <ChevronRight size={18} className="text-purple-500 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 leading-none">
+              {pendingServicesCount.toLocaleString()}
+            </p>
+            <p className="text-xs font-semibold text-gray-600 mt-1.5">
+              Service Requests Raised
+            </p>
+          </div>
+          <div className="mt-4 pt-2.5 border-t border-gray-100 flex items-center justify-between text-[11px] leading-tight">
+            <span className="text-gray-500 font-medium">
+              {pendingServicesCount.toLocaleString()} Pending Issue
+            </span>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(targetServicesPath);
+              }}
+              className="text-purple-600 font-semibold hover:underline flex-shrink-0 ml-1 cursor-pointer"
+            >
+              View Requests
+            </button>
           </div>
         </div>
 
@@ -1472,7 +1424,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         
         {/* LEFT: Student Attendance Status Donut & Breakdown */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between h-full">
           <div>
             {/* Header with Title and Dropdown */}
             <div className="flex items-center justify-between mb-4">
@@ -1483,327 +1435,108 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Period Dropdown */}
-              <select
-                value={attendancePeriod}
-                onChange={(e) => setAttendancePeriod(e.target.value)}
-                className="text-xs font-medium bg-gray-50 border border-gray-200 text-gray-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              >
-                <option value="today">Today</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
+              {/* Date Selector */}
+              <input
+                type="date"
+                value={selectedAttendanceDate}
+                max={todayKey}
+                onChange={(e) => setSelectedAttendanceDate(e.target.value || todayKey)}
+                className="text-xs font-semibold bg-gray-50 border border-gray-200 text-gray-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-sm"
+              />
             </div>
 
-            {/* Attendance Chart / Stats: Donut for Today, Calendar for Monthly, Bar Graph for Weekly */}
-            {attendancePeriod === 'today' ? (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-3">
-                {/* Donut ring (clickable) */}
-                <div
-                  onClick={() => handleOpenCourseAttendance({ dateKey: todayKey, fullDate: `Today (${todayLabel})` })}
-                  className="flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
-                  title="Click to view course-wise attendance for Today"
-                >
-                  <DonutChart
-                    percentage={currentPeriodAttendance.rate}
-                    color="#f59e0b"
-                    trackColor="#f1f5f9"
-                    size={146}
-                    strokeWidth={15}
-                    centerContent={
-                      <>
-                        <span className="text-2xl font-extrabold text-gray-900 leading-none">
-                          {currentPeriodAttendance.rate}%
-                        </span>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">
-                          POSTED RATE
-                        </span>
-                      </>
-                    }
-                  />
-                </div>
-
-                {/* Status details legend (clickable) */}
-                <div
-                  onClick={() => handleOpenCourseAttendance({ dateKey: todayKey, fullDate: `Today (${todayLabel})` })}
-                  className="flex-1 w-full space-y-2 text-xs cursor-pointer group"
-                  title="Click to view course-wise attendance for Today"
-                >
-                  <div className="flex items-center justify-between py-1 border-b border-gray-100 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                      <span className="text-gray-600 font-medium">Present</span>
-                    </div>
-                    <span className="font-bold text-gray-900 tabular-nums">
-                      {currentPeriodAttendance.present.toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-1 border-b border-gray-100 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                      <span className="text-gray-600 font-medium">Absent</span>
-                    </div>
-                    <span className="font-bold text-gray-900 tabular-nums">
-                      {currentPeriodAttendance.absent.toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-1 border-b border-gray-100 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                      <span className="text-gray-600 font-medium">Pending / Holiday</span>
-                    </div>
-                    <span className="font-bold text-gray-900 tabular-nums">
-                      {(currentPeriodAttendance.pending + currentPeriodAttendance.holiday).toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between py-1 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-gray-400" />
-                      <span className="text-gray-600 font-medium">Total Over All</span>
-                    </div>
-                    <span className="font-bold text-gray-900 tabular-nums">
-                      {currentPeriodAttendance.total.toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="pt-1 flex items-center justify-end">
-                    <span className="text-[11px] font-bold text-blue-600 group-hover:underline flex items-center gap-0.5">
-                      Course Wise Details <ChevronRight size={13} />
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : attendancePeriod === 'monthly' ? (
-              /* MONTHLY: In-Card Calendar */
-              <div className="py-1 space-y-2">
-                {/* Month Navigator & Summary Row */}
-                <div className="flex items-center justify-between pb-2 border-b border-gray-100 text-xs">
-                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-lg px-1 py-0.5">
-                    <button
-                      type="button"
-                      onClick={() => handleCalendarMonthChange(-1)}
-                      className="p-1 rounded text-gray-600 hover:text-gray-900 hover:bg-white transition-colors cursor-pointer"
-                      title="Previous Month"
-                    >
-                      <ChevronLeft size={13} />
-                    </button>
-                    <span className="font-bold text-gray-800 text-[11px] min-w-[70px] text-center select-none">
-                      {calendarMonthLabel}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleCalendarMonthChange(1)}
-                      className="p-1 rounded text-gray-600 hover:text-gray-900 hover:bg-white transition-colors cursor-pointer"
-                      title="Next Month"
-                    >
-                      <ChevronRight size={13} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Weekday headers */}
-                <div className="grid grid-cols-7 gap-1 text-center">
-                  {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d, i) => (
-                    <span
-                      key={d}
-                      className={`text-[10px] font-bold uppercase tracking-wider ${
-                        i === 0 ? 'text-rose-500' : 'text-gray-400'
-                      }`}
-                    >
-                      {d}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Calendar Days Grid */}
-                <div className="grid grid-cols-7 gap-1">
-                  {inCardCalendarCells.map((cell) => {
-                    const isSelected = selectedCalendarDay?.dateKey === cell.dateKey;
-                    return (
-                      <div
-                        key={cell.dateKey}
-                        onClick={() => cell.hasData ? handleOpenCourseAttendance(cell) : null}
-                        className={`p-1 rounded-md border flex flex-col justify-between transition-all min-h-[50px] ${
-                          !cell.isCurrentMonth
-                            ? 'bg-gray-50/40 border-gray-100 opacity-25 pointer-events-none'
-                            : cell.isToday
-                            ? 'bg-blue-50/50 border-blue-400 ring-1 ring-blue-300 shadow-xs'
-                            : isSelected
-                            ? 'bg-amber-50/70 border-amber-400 ring-1 ring-amber-300'
-                            : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-xs'
-                        } ${cell.hasData ? 'cursor-pointer hover:border-blue-400' : ''}`}
-                      >
-                        {/* Day number */}
-                        <div className="flex items-center justify-between leading-none mb-0.5">
-                          <span
-                            className={`text-[9px] font-bold ${
-                              cell.isToday
-                                ? 'w-3.5 h-3.5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[8px]'
-                                : cell.isSunday
-                                ? 'text-rose-500 font-semibold'
-                                : 'text-gray-700'
-                            }`}
-                          >
-                            {cell.dayNum}
-                          </span>
-                          {cell.hasData && (cell.present + cell.absent > 0) && (
-                            <span className="text-[7.5px] font-semibold text-gray-400">
-                              {Math.round((cell.present / (cell.present + cell.absent)) * 100)}%
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Both Present and Absent represented simultaneously */}
-                        {cell.hasData && !cell.isSunday ? (
-                          <div className="space-y-0.5">
-                            <div
-                              className="text-[7.5px] sm:text-[8px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200/60 flex items-center justify-between leading-none"
-                              title={`Present: ${cell.present.toLocaleString()}`}
-                            >
-                              <span className="text-emerald-600 font-extrabold">P:</span>
-                              <span className="tabular-nums font-bold">
-                                {cell.present > 9999 ? `${(cell.present / 1000).toFixed(1)}k` : cell.present.toLocaleString()}
-                              </span>
-                            </div>
-                            <div
-                              className="text-[7.5px] sm:text-[8px] font-bold text-rose-700 bg-rose-50 px-1 py-0.5 rounded border border-rose-200/60 flex items-center justify-between leading-none"
-                              title={`Absent: ${cell.absent.toLocaleString()}`}
-                            >
-                              <span className="text-rose-600 font-extrabold">A:</span>
-                              <span className="tabular-nums font-bold">
-                                {cell.absent > 9999 ? `${(cell.absent / 1000).toFixed(1)}k` : cell.absent.toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-                        ) : cell.isSunday ? (
-                          <div className="text-[8px] text-rose-500 font-semibold text-center py-1 bg-rose-50/50 rounded">Sun</div>
-                        ) : (
-                          <div className="text-[8px] text-gray-300 text-center py-1">-</div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Selected Day Breakdown banner (if a date is clicked) */}
-                {selectedCalendarDay && (
-                  <div
-                    onClick={() => handleOpenCourseAttendance(selectedCalendarDay)}
-                    className="p-2 rounded-lg bg-blue-50/80 hover:bg-blue-100/70 border border-blue-200 text-xs flex items-center justify-between cursor-pointer transition-colors"
-                    title="Click to view course-wise attendance"
-                  >
-                    <span className="font-bold text-gray-900 text-[11px]">{selectedCalendarDay.fullDate}</span>
-                    <div className="flex items-center gap-2 text-[11px]">
-                      <span className="text-emerald-700 font-bold">P: {selectedCalendarDay.present.toLocaleString()}</span>
-                      <span className="text-rose-700 font-bold">A: {selectedCalendarDay.absent.toLocaleString()}</span>
-                      {selectedCalendarDay.rate !== undefined && (
-                        <span className="px-1.5 py-0.2 rounded bg-blue-600 text-white font-extrabold text-[10px]">
-                          {selectedCalendarDay.rate}%
-                        </span>
-                      )}
-                      <span className="text-blue-600 font-bold text-[10px] flex items-center ml-0.5">
-                        Courses <ChevronRight size={12} />
+            {/* Attendance Chart / Stats: Donut and Details for Selected Date */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-3">
+              {/* Donut ring (clickable) */}
+              <div
+                onClick={() => handleOpenCourseAttendance({ dateKey: selectedAttendanceDate, fullDate: selectedDateFormatted })}
+                className="flex items-center justify-center cursor-pointer hover:scale-105 transition-transform"
+                title={`Click to view course-wise attendance for ${selectedDateFormatted}`}
+              >
+                <DonutChart
+                  percentage={activeAttendance.rate}
+                  color="#f59e0b"
+                  trackColor="#f1f5f9"
+                  size={146}
+                  strokeWidth={15}
+                  centerContent={
+                    <>
+                      <span className="text-2xl font-extrabold text-gray-900 leading-none">
+                        {activeAttendance.rate}%
                       </span>
-                    </div>
-                  </div>
-                )}
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">
+                        POSTED RATE
+                      </span>
+                    </>
+                  }
+                />
               </div>
-            ) : (
-              /* WEEKLY: Bar Graph */
-              <div className="py-1">
-                {/* Summary badges strip */}
-                <div className="flex items-center justify-between flex-wrap gap-2 text-xs pb-2 border-b border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                      <span className="text-gray-600 text-xs font-medium">Present:</span>
-                      <span className="font-bold text-gray-900 tabular-nums">{currentPeriodAttendance.present.toLocaleString()}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-                      <span className="text-gray-600 text-xs font-medium">Absent:</span>
-                      <span className="font-bold text-gray-900 tabular-nums">{currentPeriodAttendance.absent.toLocaleString()}</span>
-                    </div>
-                  </div>
+
+              {/* Status details legend (clickable) */}
+              <div
+                onClick={() => handleOpenCourseAttendance({ dateKey: selectedAttendanceDate, fullDate: selectedDateFormatted })}
+                className="flex-1 w-full space-y-2 text-xs cursor-pointer group"
+                title={`Click to view course-wise attendance for ${selectedDateFormatted}`}
+              >
+                <div className="flex items-center justify-between py-1 border-b border-gray-100 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                      {currentPeriodAttendance.rate}% Rate
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenCourseAttendance({ dateKey: todayKey, fullDate: `This Week (${todayLabel})` })}
-                      className="text-[11px] font-bold text-blue-600 hover:text-blue-700 hover:underline flex items-center"
-                    >
-                      Course Wise <ChevronRight size={12} />
-                    </button>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                    <span className="text-gray-600 font-medium">Present</span>
                   </div>
+                  <span className="font-bold text-gray-900 tabular-nums">
+                    {activeAttendance.present.toLocaleString()}
+                  </span>
                 </div>
 
-                {/* Bar Graph */}
-                <div className="w-full h-40 pt-2" title="Click any bar to view course-wise attendance for that day">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={attendanceChartData}
-                      margin={{ top: 8, right: 6, left: -22, bottom: 0 }}
-                      barGap={3}
-                      onClick={(state) => {
-                        if (state && state.activePayload && state.activePayload.length) {
-                          handleOpenCourseAttendanceFromChart(state.activePayload[0].payload);
-                        }
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                      <XAxis
-                        dataKey="name"
-                        tick={{ fontSize: 11, fill: '#64748b', fontWeight: 500 }}
-                        axisLine={{ stroke: '#e2e8f0' }}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        tick={{ fontSize: 10, fill: '#94a3b8' }}
-                        axisLine={false}
-                        tickLine={false}
-                        tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v)}
-                      />
-                      <RechartsTooltip content={<AttendanceBarTooltip />} cursor={{ fill: 'rgba(241, 245, 249, 0.6)' }} />
-                      <Bar
-                        dataKey="present"
-                        fill="#10b981"
-                        name="Present"
-                        radius={[4, 4, 0, 0]}
-                        maxBarSize={20}
-                        cursor="pointer"
-                        onClick={(data) => handleOpenCourseAttendanceFromChart(data)}
-                      />
-                      <Bar
-                        dataKey="absent"
-                        fill="#ef4444"
-                        name="Absent"
-                        radius={[4, 4, 0, 0]}
-                        maxBarSize={20}
-                        cursor="pointer"
-                        onClick={(data) => handleOpenCourseAttendanceFromChart(data)}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
+                <div className="flex items-center justify-between py-1 border-b border-gray-100 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                    <span className="text-gray-600 font-medium">Absent</span>
+                  </div>
+                  <span className="font-bold text-gray-900 tabular-nums">
+                    {activeAttendance.absent.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1 border-b border-gray-100 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                    <span className="text-gray-600 font-medium">Pending / Holiday</span>
+                  </div>
+                  <span className="font-bold text-gray-900 tabular-nums">
+                    {(activeAttendance.pending + activeAttendance.holiday).toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-1 group-hover:bg-blue-50/40 rounded px-1 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-gray-400" />
+                    <span className="text-gray-600 font-medium">Total Over All</span>
+                  </div>
+                  <span className="font-bold text-gray-900 tabular-nums">
+                    {activeAttendance.total.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="pt-1 flex items-center justify-end">
+                  <span className="text-[11px] font-bold text-blue-600 group-hover:underline flex items-center gap-0.5">
+                    Course Wise Details <ChevronRight size={13} />
+                  </span>
                 </div>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Footer of attendance status */}
           <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
             <span className="text-gray-500 font-medium">
-              {collegesPostedCount} / {totalCollegesCount} Colleges Posted
+              {activeAttendance.collegesPostedCount} / {activeAttendance.totalCollegesCount} Colleges Posted
             </span>
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => handleOpenCourseAttendance(
-                  selectedCalendarDay || { dateKey: todayKey, fullDate: attendancePeriod === 'today' ? `Today (${todayLabel})` : attendancePeriod === 'weekly' ? 'This Week' : calendarMonthLabel }
+                  { dateKey: selectedAttendanceDate, fullDate: selectedDateFormatted }
                 )}
                 className="text-emerald-600 font-semibold hover:underline flex items-center gap-0.5 cursor-pointer"
               >
@@ -1821,7 +1554,7 @@ const Dashboard = () => {
         </div>
 
         {/* MIDDLE: Calendar Widget */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base sm:text-lg font-bold text-gray-900">Calendar</h2>
@@ -1888,7 +1621,7 @@ const Dashboard = () => {
         </div>
 
         {/* RIGHT OF CALENDAR: Announcements Widget */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between gap-1.5 mb-4">
               <div className="flex items-center gap-1.5 min-w-0">
@@ -1994,7 +1727,7 @@ const Dashboard = () => {
         </div>
 
         {/* RIGHT: Students Registration Status (4 Stages) Widget */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-3.5">
               <div className="flex items-center gap-2">
@@ -2108,11 +1841,11 @@ const Dashboard = () => {
 
       </div>
 
-      {/* 4. Lower Row: Maintenance Tickets, Student Profile Requests */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+      {/* 4. Lower Row: Maintenance Tickets, Student Profile Requests, Hall Management */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
 
         {/* Maintenance Tickets Card */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-gray-900">Maintenance Tickets</h3>
@@ -2163,7 +1896,7 @@ const Dashboard = () => {
         </div>
 
         {/* Student Profile Requests Card */}
-        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-bold text-gray-900">Student Profile Requests</h3>
@@ -2212,6 +1945,65 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Seminar Hall Requests Card */}
+        <div className="bg-white border border-gray-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between h-full">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-bold text-gray-900">Seminar Hall Requests</h3>
+              <Link to="/seminar-halls" className="text-xs font-semibold text-blue-600 hover:underline">
+                View All
+              </Link>
+            </div>
+
+            <div className="flex items-center justify-center gap-6 py-2">
+              <MultiSegmentDonut
+                total={seminarHallStats.total}
+                segments={[
+                  { label: 'Pending', value: seminarHallStats.pending, color: '#f59e0b' },
+                  { label: 'Approved', value: seminarHallStats.approved, color: '#10b981' },
+                  { label: 'Rejected', value: seminarHallStats.rejected, color: '#ef4444' }
+                ]}
+                size={110}
+                strokeWidth={12}
+                centerContent={
+                  <span className="text-xl font-bold text-gray-900">
+                    {seminarHallStats.total.toLocaleString()}
+                  </span>
+                }
+              />
+              <div className="space-y-1.5 text-xs flex-1">
+                <Link
+                  to="/seminar-halls?status=pending"
+                  className="flex items-center justify-between hover:bg-amber-50/70 p-1 rounded-md transition-colors group cursor-pointer"
+                >
+                  <span className="text-gray-500 group-hover:text-amber-800 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-500" /> Pending
+                  </span>
+                  <span className="font-semibold text-gray-900 group-hover:text-amber-900">{seminarHallStats.pending.toLocaleString()}</span>
+                </Link>
+                <Link
+                  to="/seminar-halls?status=approved"
+                  className="flex items-center justify-between hover:bg-emerald-50/70 p-1 rounded-md transition-colors group cursor-pointer"
+                >
+                  <span className="text-gray-500 group-hover:text-emerald-800 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" /> Approved
+                  </span>
+                  <span className="font-semibold text-gray-900 group-hover:text-emerald-900">{seminarHallStats.approved.toLocaleString()}</span>
+                </Link>
+                <Link
+                  to="/seminar-halls?status=rejected"
+                  className="flex items-center justify-between hover:bg-red-50/70 p-1 rounded-md transition-colors group cursor-pointer"
+                >
+                  <span className="text-gray-500 group-hover:text-red-800 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-red-500" /> Rejected
+                  </span>
+                  <span className="font-semibold text-gray-900 group-hover:text-red-900">{seminarHallStats.rejected.toLocaleString()}</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
 
@@ -2225,7 +2017,7 @@ const Dashboard = () => {
                 <Building2 size={20} className="text-blue-600" />
                 <h3 className="text-lg font-bold text-gray-900">College-Wise Attendance Breakdown</h3>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold ml-2">
-                  Today
+                  {selectedDateFormatted}
                 </span>
               </div>
               <button
@@ -2239,7 +2031,7 @@ const Dashboard = () => {
 
             {/* Modal Body: Colleges List */}
             <div className="p-6 overflow-y-auto flex-1 space-y-3">
-              {collegeList && collegeList.length > 0 ? (
+              {(activeAttendance.colleges && activeAttendance.colleges.length > 0 ? activeAttendance.colleges : collegeList).length > 0 ? (
                 <>
                   <div className="hidden sm:grid sm:grid-cols-[1fr_110px_110px_110px_90px] items-center gap-3 px-3 pb-2 border-b border-gray-200 text-xs font-semibold text-gray-400 uppercase tracking-wide">
                     <span>College</span>
@@ -2249,20 +2041,20 @@ const Dashboard = () => {
                     <span className="text-right">Rate</span>
                   </div>
 
-                  {collegeList.map((college) => {
+                  {(activeAttendance.colleges && activeAttendance.colleges.length > 0 ? activeAttendance.colleges : collegeList).map((college) => {
                     const totalStudents = Number(college.totalStudents) || 0;
-                    const present = Number(college.presentToday) || 0;
-                    const absent = Number(college.absentToday) || 0;
+                    const present = Number(college.present ?? college.presentToday) || 0;
+                    const absent = Number(college.absent ?? college.absentToday) || 0;
                     const rate = totalStudents > 0 ? Math.round((present / totalStudents) * 100) : null;
                     const isPosted = college.isPosted || (present + absent > 0);
 
                     return (
                       <div
-                        key={college.id || college.name}
+                        key={college.id || college.name || college.code}
                         onClick={() => {
                           setShowBreakdownModal(false);
                           handleOpenCourseAttendance(
-                            { dateKey: todayKey, fullDate: `Today (${todayLabel})` },
+                            { dateKey: selectedAttendanceDate, fullDate: selectedDateFormatted },
                             college
                           );
                         }}

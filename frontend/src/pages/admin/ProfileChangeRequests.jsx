@@ -357,9 +357,18 @@ export const ProfileChangeRequests = () => {
         if (!selectedRequest) return;
 
         try {
+            const userName = (user?.name || user?.username || 'Admin').trim();
+            const rawEmpId = (user?.hrms_id || user?.employee_id || user?.emp_no || user?.username || '').trim();
+            let reviewerFormatted = userName;
+            if (userName && rawEmpId && userName.toLowerCase() !== rawEmpId.toLowerCase()) {
+                const idLabel = /^emp/i.test(rawEmpId) ? rawEmpId : `Emp ID: ${rawEmpId}`;
+                reviewerFormatted = `${userName} (${idLabel})`;
+            }
+
             const res = await api.put(`/profile-changes/${selectedRequest.id}/status`, {
                 status,
-                comments: reviewComments
+                comments: reviewComments,
+                reviewed_by: reviewerFormatted
             });
 
             if (res.data?.success) {
@@ -966,8 +975,8 @@ export const ProfileChangeRequests = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-3.5 py-2 whitespace-nowrap">
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[10px] font-bold shadow-2xs">
-                                                            <UserCheck size={11} className="text-emerald-600 shrink-0" />
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-bold shadow-2xs">
+                                                            <UserCheck size={12} className="text-emerald-600 shrink-0" />
                                                             <span>{req.reviewed_by || 'Admin'}</span>
                                                         </span>
                                                     </td>
@@ -996,8 +1005,8 @@ export const ProfileChangeRequests = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-3.5 py-2 whitespace-nowrap">
-                                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-50 text-rose-800 border border-rose-200/80 text-[10px] font-bold shadow-2xs">
-                                                            <UserCheck size={11} className="text-rose-600 shrink-0" />
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-rose-50 text-rose-800 border border-rose-200/80 text-[11px] font-bold shadow-2xs">
+                                                            <UserCheck size={12} className="text-rose-600 shrink-0" />
                                                             <span>{req.reviewed_by || 'Admin'}</span>
                                                         </span>
                                                     </td>
@@ -1400,8 +1409,8 @@ export const ProfileChangeRequests = () => {
                                                 {selectedRequest.status === 'approved' ? 'Approved By' : 'Rejected By'}
                                             </span>
                                             <span className="font-bold text-gray-900 flex items-center gap-1.5 mt-0.5">
-                                                <UserCheck size={13} className={selectedRequest.status === 'approved' ? 'text-emerald-600' : 'text-rose-600'} />
-                                                <span>{selectedRequest.reviewed_by || 'Admin'}</span>
+                                                <UserCheck size={13} className={`${selectedRequest.status === 'approved' ? 'text-emerald-600' : 'text-rose-600'} shrink-0`} />
+                                                <span className="text-xs sm:text-sm font-semibold text-gray-900 break-words">{selectedRequest.reviewed_by || 'Admin'}</span>
                                             </span>
                                         </div>
                                         <div>

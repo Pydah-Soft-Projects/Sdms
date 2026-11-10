@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import {
     Building2,
     CalendarClock,
@@ -188,8 +188,9 @@ const SeminarHallRequests = () => {
     const canManage = hasPermission(user?.permissions, BACKEND_MODULES.SEMINAR_HALLS, 'manage_seminar_halls') || isAdmin;
     const canCreateRequest = hasPermission(user?.permissions, BACKEND_MODULES.SEMINAR_HALLS, 'create_seminar_hall_request') || canManage;
     const canView = canCreateRequest || hasPermission(user?.permissions, BACKEND_MODULES.SEMINAR_HALLS, 'view_seminar_halls');
+    const [searchParams] = useSearchParams();
     const [showRequestForm, setShowRequestForm] = useState(false);
-    const [showHallForm, setShowHallForm] = useState(false);
+    const [showHallForm, setShowHallForm] = useState(() => searchParams.get('view') === 'halls');
     const [requests, setRequests] = useState([]);
     const [halls, setHalls] = useState([]);
     const [clubs, setClubs] = useState([]);
@@ -197,7 +198,17 @@ const SeminarHallRequests = () => {
     const [requestCourses, setRequestCourses] = useState([]);
     const [requestBranches, setRequestBranches] = useState([]);
     const [estimatingCount, setEstimatingCount] = useState(false);
-    const [statusFilter, setStatusFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') || 'all');
+
+    useEffect(() => {
+        const queryStatus = searchParams.get('status');
+        if (queryStatus) {
+            setStatusFilter(queryStatus);
+        }
+        if (searchParams.get('view') === 'halls') {
+            setShowHallForm(true);
+        }
+    }, [searchParams]);
     const [hallFilter, setHallFilter] = useState('all');
     const [dateAlert, setDateAlert] = useState('');
     const [form, setForm] = useState(EMPTY_FORM);

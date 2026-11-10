@@ -558,7 +558,7 @@ const AdminLayout = () => {
               {!sidebarCollapsed && (
                 <div className="flex flex-col">
                   <span className="text-lg font-bold tracking-wider !text-white heading-font">
-                    PYDAH
+                    CAMPOSDMS
                   </span>
                   <span className="text-[10px] text-gray-300 font-medium uppercase tracking-tight">
                     {user?.role ? (ROLE_LABELS[user.role] || user.role.replace('_', ' ')) : "ADMIN"}

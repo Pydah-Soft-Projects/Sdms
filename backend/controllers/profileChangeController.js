@@ -590,6 +590,53 @@ exports.getProfileCompletionReport = async (req, res) => {
     }
 };
 
+// Helper: Enrich reviewed_by with detailed User name and Employee ID
+const enrichReviewersWithEmployeeId = async (requestsList) => {
+    if (!Array.isArray(requestsList) || requestsList.length === 0) return;
+
+    const unformattedReviewers = [...new Set(
+        requestsList
+            .map(r => r.reviewed_by)
+            .filter(rb => rb && typeof rb === 'string' && !rb.includes('(') && rb.toLowerCase() !== 'admin')
+    )];
+
+    if (unformattedReviewers.length === 0) return;
+
+    try {
+        const numericIds = unformattedReviewers.filter(v => /^\d+$/.test(v)).map(Number);
+        const [matchedUsers] = await masterPool.query(
+            'SELECT id, name, username, hrms_id FROM rbac_users WHERE username IN (?)' +
+            (numericIds.length > 0 ? ' OR id IN (?)' : ''),
+            numericIds.length > 0 ? [unformattedReviewers, numericIds] : [unformattedReviewers]
+        );
+
+        const userMap = new Map();
+        (matchedUsers || []).forEach(u => {
+            const uName = (u.name || '').trim();
+            const empId = (u.hrms_id || u.username || '').trim();
+            if (uName && empId && uName.toLowerCase() !== empId.toLowerCase()) {
+                const idLabel = /^emp/i.test(empId) ? empId : `Emp ID: ${empId}`;
+                const formatted = `${uName} (${idLabel})`;
+                if (u.username) userMap.set(String(u.username).toLowerCase(), formatted);
+                if (u.id) userMap.set(String(u.id), formatted);
+            }
+        });
+
+        requestsList.forEach(r => {
+            if (r.reviewed_by && typeof r.reviewed_by === 'string' && !r.reviewed_by.includes('(')) {
+                const key = String(r.reviewed_by).toLowerCase();
+                if (userMap.has(key)) {
+                    r.reviewed_by = userMap.get(key);
+                } else if (userMap.has(String(r.reviewed_by))) {
+                    r.reviewed_by = userMap.get(String(r.reviewed_by));
+                }
+            }
+        });
+    } catch (enrichErr) {
+        console.error('Error enriching reviewer details:', enrichErr.message);
+    }
+};
+
 // Admin fetches all requests (scoped + optional course/branch filters)
 exports.getAllRequests = async (req, res) => {
     try {
@@ -709,6 +756,8 @@ exports.getAllRequests = async (req, res) => {
 
         const [requests] = await masterPool.query(query, dataParams);
         const totalPages = isPaginated ? (limitNum > 0 ? Math.ceil(total / limitNum) : 1) : 1;
+
+        await enrichReviewersWithEmployeeId(requests);
 
         res.json({
             success: true,
@@ -907,11 +956,43 @@ exports.updateRequestStatus = async (req, res) => {
             }
         }
 
-        // Update the request status
-        const adminName = req.admin?.name || req.user?.username || req.user?.name || 'Admin';
+        // Update the request status with detailed reviewer: User name with Employee ID
+        let reviewerDetail = (req.body.reviewed_by || '').trim();
+        if (!reviewerDetail || reviewerDetail.toLowerCase() === 'admin') {
+            const userId = req.user?.id || req.admin?.id;
+            const tokenUsername = req.user?.username || req.admin?.username;
+            let dbName = '';
+            let dbEmpId = '';
+
+            if (userId) {
+                try {
+                    const [userRows] = await connection.query(
+                        'SELECT name, username, hrms_id FROM rbac_users WHERE id = ?',
+                        [userId]
+                    );
+                    if (userRows && userRows.length > 0) {
+                        dbName = userRows[0].name || '';
+                        dbEmpId = userRows[0].hrms_id || userRows[0].username || '';
+                    }
+                } catch (uErr) {
+                    console.error('Error fetching reviewer details from rbac_users:', uErr.message);
+                }
+            }
+
+            const finalName = (dbName || req.user?.name || req.admin?.name || tokenUsername || 'Admin').trim();
+            const finalEmpId = (dbEmpId || tokenUsername || '').trim();
+
+            if (finalName && finalEmpId && finalName.toLowerCase() !== finalEmpId.toLowerCase()) {
+                const idLabel = /^emp/i.test(finalEmpId) ? finalEmpId : `Emp ID: ${finalEmpId}`;
+                reviewerDetail = `${finalName} (${idLabel})`;
+            } else {
+                reviewerDetail = finalName || 'Admin';
+            }
+        }
+
         await connection.query(
             'UPDATE profile_change_requests SET status = ?, comments = ?, reviewed_by = ? WHERE id = ?',
-            [status, comments || '', adminName, id]
+            [status, comments || '', reviewerDetail, id]
         );
 
         await connection.commit();
@@ -951,6 +1032,8 @@ exports.getRequestsByAdmission = async (req, res) => {
              ORDER BY p.created_at DESC`,
             [admission_number]
         );
+
+        await enrichReviewersWithEmployeeId(requests);
 
         res.json({ success: true, data: requests });
     } catch (error) {

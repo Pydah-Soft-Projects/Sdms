@@ -84,7 +84,6 @@ const RaiseTicket = lazy(() => import('./pages/student/RaiseTicket'));
 const MyTickets = lazy(() => import('./pages/student/MyTickets'));
 
 const TicketManagement = lazy(() => import('./pages/TicketManagement'));
-const TicketAppRedirect = lazy(() => import('./components/student/TicketAppRedirect'));
 const StudentAnnouncements = lazy(() => import('./pages/student/StudentAnnouncements'));
 const StudentFeedback = lazy(() => import('./pages/student/StudentFeedback'));
 const StudentAttendance = lazy(() => import('./pages/student/Attendance'));
@@ -109,7 +108,6 @@ const FacultyChats = lazy(() => import('./pages/faculty/Chats'));
 const FacultyTimetable = lazy(() => import('./pages/faculty/FacultyTimetable'));
 
 // Event Pages (Lazy Loaded)
-const EventCalendar = lazy(() => import('./pages/admin/EventCalendar'));
 const EventCalendarView = lazy(() => import('./pages/admin/EventCalendarView'));
 const EventRegistrations = lazy(() => import('./pages/admin/EventRegistrations'));
 const StudentCalendar = lazy(() => import('./pages/student/StudentCalendar'));
@@ -333,7 +331,7 @@ React.useEffect(() => {
             <Route path="task-management" element={<TaskManagement />} />
             <Route path="announcements" element={<Announcements />} />
             <Route path="student-history" element={<StudentHistory />} />
-            <Route path="events" element={<EventCalendar />} />
+            <Route path="events" element={<Navigate to="/announcements?tab=events" replace />} />
             <Route path="calendar" element={<EventCalendarView />} />
             <Route path="events/:eventId/registrations" element={<EventRegistrations />} />
             <Route path="services/config" element={<ServicesConfig />} />

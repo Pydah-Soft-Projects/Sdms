@@ -7,6 +7,7 @@ import api from '../../config/api';
 import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
 import EventPoster from '../../components/EventPoster';
+import { downloadCircularPdf, getCircularNumberForCollege, parseCircularNumbers } from '../../utils/circularPdf';
 
 const formatTarget = (val) => {
     if (!val) return 'Notice';
@@ -31,6 +32,17 @@ const parseEventRegistrationFields = (fields) => {
         return Array.isArray(parsed) ? parsed : [];
     } catch {
         return [];
+    }
+};
+
+const parseAnnouncementObject = (value) => {
+    if (value && typeof value === 'object') return value;
+    if (typeof value !== 'string' || !value.trim()) return {};
+    try {
+        const parsed = JSON.parse(value);
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch {
+        return {};
     }
 };
 
@@ -62,6 +74,14 @@ const StudentAnnouncements = () => {
     });
     const [registerSubmitting, setRegisterSubmitting] = useState(false);
     const [cancellingRegId, setCancellingRegId] = useState(null);
+
+    const handleCircularDownload = (announcement) => {
+        try {
+            downloadCircularPdf(announcement, user?.college);
+        } catch (error) {
+            toast.error(error.message || 'Unable to download circular');
+        }
+    };
 
     // Pagination & Caching states
     const [hasMore, setHasMore] = useState(true);
@@ -414,7 +434,8 @@ const StudentAnnouncements = () => {
 
             const response = await api.post(`/announcements/${registerModalAnnouncement.id}/register`, payload);
             if (response.data.success) {
-                toast.success('Registration confirmed successfully!');
+                const isForm = (registerModalAnnouncement.announcement_type || '').toLowerCase() === 'form';
+                toast.success(isForm ? 'Your form response has been submitted' : 'Registration confirmed successfully!');
                 const targetId = registerModalAnnouncement.id;
                 
                 // Update announcements list
@@ -599,7 +620,10 @@ const StudentAnnouncements = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                                 {announcements.map((ann) => {
                                     const type = (ann.announcement_type || 'announcement').toLowerCase();
-                                    const ach = ann.achievement_data || {};
+                                    const ach = parseAnnouncementObject(ann.achievement_data);
+                                    const achievementStudents = Array.isArray(ach.students) && ach.students.length
+                                        ? ach.students
+                                        : [ach];
 
                                     return (
                                         <div
@@ -624,21 +648,28 @@ const StudentAnnouncements = () => {
                                                                 <FileText size={18} />
                                                             </div>
                                                             <div className="min-w-0">
-                                                                <p className="text-xs font-bold text-slate-900 truncate">
-                                                                    {ann.file_name || 'Official_Circular.pdf'}
-                                                                </p>
-                                                                <span className="text-[9px] font-bold text-rose-600 uppercase tracking-wider block">PDF Document</span>
+                                                                <p className="text-xs font-bold text-slate-900 truncate">{ann.title}</p>
+                                                                <span className="text-[9px] font-bold text-rose-600 uppercase tracking-wider block">
+                                                                    Circular No. {getCircularNumberForCollege(ann.circular_numbers, user?.college) || 'Generated PDF'}
+                                                                </span>
                                                             </div>
                                                         </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={e => { e.stopPropagation(); handleCircularDownload(ann); }}
+                                                            className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
+                                                        >
+                                                            <FileDown size={12} /> Download
+                                                        </button>
                                                         {ann.file_url && (
                                                             <a
                                                                 href={ann.file_url}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 onClick={e => e.stopPropagation()}
-                                                                className="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
+                                                                className="px-2.5 py-1.5 bg-white border border-rose-200 hover:bg-rose-50 text-rose-700 rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs shrink-0 transition-colors"
                                                             >
-                                                                <FileDown size={12} /> Open PDF
+                                                                <ExternalLink size={12} /> Attachment
                                                             </a>
                                                         )}
                                                     </div>
@@ -653,42 +684,26 @@ const StudentAnnouncements = () => {
                                                             {ach.rank_title || 'Champion'}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-3 bg-white/95 text-slate-900 p-3 rounded-xl shadow-xs">
-                                                        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400 shrink-0 bg-amber-50 shadow-xs">
-                                                            {ach.student_photo || ann.image_url ? (
-                                                                <img
-                                                                    src={ach.student_photo || ann.image_url}
-                                                                    alt={ach.student_name || 'Topper'}
-                                                                    className="w-full h-full object-cover"
-                                                                />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center text-amber-600">
-                                                                    <User size={22} />
+                                                    <div className="grid gap-2 sm:grid-cols-2">
+                                                        {achievementStudents.map((student, index) => (
+                                                            <div key={student.id || `${student.student_name}-${index}`} className="flex items-center gap-3 bg-white/95 text-slate-900 p-3 rounded-xl shadow-xs">
+                                                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400 shrink-0 bg-amber-50 shadow-xs">
+                                                                    {student.student_photo || ann.image_url ? (
+                                                                        <img src={student.student_photo || ann.image_url} alt={student.student_name || 'Student'} className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <div className="w-full h-full flex items-center justify-center text-amber-600"><User size={22} /></div>
+                                                                    )}
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <h4 className="font-black text-xs sm:text-sm text-slate-900 truncate leading-tight">
-                                                                {ach.student_name || 'Student Topper'}
-                                                            </h4>
-                                                            <div className="flex flex-wrap items-center gap-1 mt-0.5">
-                                                                {ach.branch && (
-                                                                    <span className="px-1.5 py-0.2 rounded bg-blue-50 text-blue-800 text-[10px] font-bold">
-                                                                        {ach.branch}
-                                                                    </span>
-                                                                )}
-                                                                {ach.year_sem && (
-                                                                    <span className="px-1.5 py-0.2 rounded bg-purple-50 text-purple-800 text-[10px] font-bold">
-                                                                        {ach.year_sem}
-                                                                    </span>
-                                                                )}
+                                                                <div className="min-w-0 flex-1">
+                                                                    <h4 className="font-black text-xs sm:text-sm text-slate-900 truncate leading-tight">{student.student_name || 'Student'}</h4>
+                                                                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                                                                        {student.branch && <span className="px-1.5 py-0.2 rounded bg-blue-50 text-blue-800 text-[10px] font-bold">{student.branch}</span>}
+                                                                        {student.year_sem && <span className="px-1.5 py-0.2 rounded bg-purple-50 text-purple-800 text-[10px] font-bold">{student.year_sem}</span>}
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                            {ach.topper_prize && (
-                                                                <span className="text-[10px] font-black text-amber-800 block mt-0.5">
-                                                                    🏆 {ach.topper_prize}
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                                        ))}
+                                                        {ach.topper_prize && <p className="text-[10px] font-black text-amber-800 sm:col-span-2">🏆 {ach.topper_prize}</p>}
                                                     </div>
                                                 </div>
                                             ) : ann.image_url ? (
@@ -822,10 +837,12 @@ const StudentAnnouncements = () => {
                                                 </div>
                                                 <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] font-extrabold text-indigo-600 uppercase tracking-wider">
                                                     <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                                                        {type === 'circular' && ann.file_url ? (
+                                                        {type === 'circular' ? (
                                                             <span className="text-rose-600 flex items-center gap-1">Download Circular <FileDown size={12} /></span>
                                                         ) : Boolean(ann.requires_registration) && !ann.is_registered ? (
-                                                            <span className="text-indigo-600 flex items-center gap-1">Register Now <ChevronRight size={12} /></span>
+                                                            <span className="text-indigo-600 flex items-center gap-1">
+                                                                {type === 'form' ? 'Respond Now' : 'Register Now'} <ChevronRight size={12} />
+                                                            </span>
                                                         ) : (
                                                             <span className="flex items-center gap-1">Read More <ChevronRight size={12} /></span>
                                                         )}
@@ -1209,61 +1226,74 @@ const StudentAnnouncements = () => {
                             )}
                             <div className="p-4 sm:p-6 pb-[calc(88px+env(safe-area-inset-bottom))] sm:pb-6 space-y-4">
                                 {/* Type 1: Circular PDF Download Box in Detail Modal */}
-                                {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'circular' && selectedAnnouncement.file_url && (
+                                {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'circular' &&
+                                    (selectedAnnouncement.file_url || Object.keys(parseCircularNumbers(selectedAnnouncement.circular_numbers)).length > 0) && (
                                     <div className="p-4 bg-rose-50/80 border border-rose-200 rounded-2xl flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className="w-11 h-11 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                                                 <FileText size={22} />
                                             </div>
                                             <div className="min-w-0">
-                                                <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">
-                                                    {selectedAnnouncement.file_name || 'Official_Circular.pdf'}
-                                                </h4>
-                                                <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">Official Circular PDF Attachment</span>
+                                                <h4 className="text-xs sm:text-sm font-bold text-slate-900 truncate">{selectedAnnouncement.title}</h4>
+                                                <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">
+                                                    Circular No. {getCircularNumberForCollege(selectedAnnouncement.circular_numbers, user?.college) || 'Generated PDF'}
+                                                </span>
                                             </div>
                                         </div>
-                                        <a
-                                            href={selectedAnnouncement.file_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs shrink-0 transition-colors"
-                                        >
-                                            <FileDown size={14} /> Open / Download PDF
-                                        </a>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCircularDownload(selectedAnnouncement)}
+                                                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+                                            >
+                                                <FileDown size={14} /> Download PDF
+                                            </button>
+                                            {selectedAnnouncement.file_url && (
+                                                <a
+                                                    href={selectedAnnouncement.file_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="px-3 py-2 border border-rose-200 bg-white hover:bg-rose-50 text-rose-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
+                                                >
+                                                    <ExternalLink size={14} /> Attachment
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* Type 5: Student Achievement Leader Board Topper Card in Modal */}
                                 {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'achievement' && selectedAnnouncement.achievement_data && (() => {
-                                    const ach = typeof selectedAnnouncement.achievement_data === 'string' ? JSON.parse(selectedAnnouncement.achievement_data) : selectedAnnouncement.achievement_data;
+                                    const ach = parseAnnouncementObject(selectedAnnouncement.achievement_data);
+                                    const students = Array.isArray(ach.students) && ach.students.length ? ach.students : [ach];
                                     return (
-                                        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl flex items-center gap-4">
-                                            <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-400 bg-white shrink-0 shadow-md">
-                                                {ach.student_photo || selectedAnnouncement.image_url ? (
-                                                    <img src={ach.student_photo || selectedAnnouncement.image_url} alt={ach.student_name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-amber-600 bg-amber-100">
-                                                        <User size={28} />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="min-w-0 flex-1">
+                                        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl space-y-3">
+                                            <div>
                                                 <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full inline-block mb-1">
                                                     🏆 {ach.rank_title || 'Hackathon Topper'}
                                                 </span>
-                                                <h3 className="text-base font-black text-slate-900 leading-tight">
-                                                    {ach.student_name}
-                                                </h3>
-                                                <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                                                    {ach.branch && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800">{ach.branch}</span>}
-                                                    {ach.year_sem && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800">{ach.year_sem}</span>}
-                                                    {ach.roll_no && <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-700 font-mono">{ach.roll_no}</span>}
-                                                </div>
                                                 {ach.topper_prize && (
-                                                    <p className="text-xs font-black text-amber-900 mt-1">
-                                                        Award: {ach.topper_prize}
-                                                    </p>
+                                                    <p className="text-xs font-black text-amber-900 mt-1">Award: {ach.topper_prize}</p>
                                                 )}
+                                            </div>
+                                            <div className="grid gap-3 sm:grid-cols-2">
+                                                {students.map((student, index) => (
+                                                    <div key={student.id || `${student.student_name}-${index}`} className="flex items-center gap-3 rounded-xl bg-white/80 p-3">
+                                                        <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-400 bg-white shrink-0 shadow-md">
+                                                            {student.student_photo || selectedAnnouncement.image_url
+                                                                ? <img src={student.student_photo || selectedAnnouncement.image_url} alt={student.student_name} className="w-full h-full object-cover" />
+                                                                : <div className="w-full h-full flex items-center justify-center text-amber-600 bg-amber-100"><User size={24} /></div>}
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <h3 className="text-sm font-black text-slate-900 leading-tight">{student.student_name}</h3>
+                                                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                                                                {student.branch && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 text-blue-800">{student.branch}</span>}
+                                                                {student.year_sem && <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800">{student.year_sem}</span>}
+                                                                {student.roll_no && <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-700 font-mono">{student.roll_no}</span>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     );
@@ -1306,8 +1336,12 @@ const StudentAnnouncements = () => {
                                                     <Ticket size={18} />
                                                 </div>
                                                 <div>
-                                                    <h4 className="text-xs sm:text-sm font-black text-slate-900">Event Registration & Seats</h4>
-                                                    <p className="text-[10px] text-slate-500 font-medium">Reserve your seat to participate</p>
+                                                    <h4 className="text-xs sm:text-sm font-black text-slate-900">
+                                                        {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Form Response' : 'Event Registration & Seats'}
+                                                    </h4>
+                                                    <p className="text-[10px] text-slate-500 font-medium">
+                                                        {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Submit your response to the admin' : 'Reserve your seat to participate'}
+                                                    </p>
                                                 </div>
                                             </div>
                                             {selectedAnnouncement.is_registered ? (
@@ -1355,8 +1389,12 @@ const StudentAnnouncements = () => {
                                                 <div className="flex items-center gap-2.5">
                                                     <CheckCircle size={18} className="text-emerald-600 shrink-0" />
                                                     <div>
-                                                        <p className="text-xs font-black text-emerald-900">Your registration is confirmed!</p>
-                                                        <p className="text-[10px] text-emerald-700 font-medium">Your seat is reserved for this event.</p>
+                                                        <p className="text-xs font-black text-emerald-900">
+                                                            {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Your response has been submitted.' : 'Your registration is confirmed!'}
+                                                        </p>
+                                                        <p className="text-[10px] text-emerald-700 font-medium">
+                                                            {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'The admin can now review your response.' : 'Your seat is reserved for this event.'}
+                                                        </p>
                                                     </div>
                                                 </div>
                                                 <button
@@ -1364,7 +1402,9 @@ const StudentAnnouncements = () => {
                                                     disabled={cancellingRegId === selectedAnnouncement.id}
                                                     className="px-3 py-1.5 rounded-lg text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 border border-rose-200 transition-all flex items-center gap-1 shrink-0"
                                                 >
-                                                    {cancellingRegId === selectedAnnouncement.id ? <Loader2 size={12} className="animate-spin" /> : 'Cancel Seat'}
+                                                    {cancellingRegId === selectedAnnouncement.id
+                                                        ? <Loader2 size={12} className="animate-spin" />
+                                                        : ((selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Withdraw Response' : 'Cancel Seat')}
                                                 </button>
                                             </div>
                                         ) : (
@@ -1392,7 +1432,7 @@ const StudentAnnouncements = () => {
                                                         className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 shadow-md shadow-indigo-200 transition-all"
                                                     >
                                                         <Ticket size={16} />
-                                                        Register & Book Seat Now
+                                                        {(selectedAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Submit Form Response' : 'Register & Book Seat Now'}
                                                     </button>
                                                 );
                                             })()
@@ -1422,7 +1462,9 @@ const StudentAnnouncements = () => {
                                     <Ticket size={18} />
                                 </div>
                                 <div>
-                                    <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">Event Registration</h3>
+                                    <h3 className="text-sm sm:text-base font-black text-slate-900 leading-tight">
+                                        {(registerModalAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Submit Form Response' : 'Event Registration'}
+                                    </h3>
                                     <p className="text-[11px] font-medium text-slate-500 line-clamp-1">{registerModalAnnouncement.title}</p>
                                 </div>
                             </div>
@@ -1466,7 +1508,11 @@ const StudentAnnouncements = () => {
                                             </div>
                                             <div>
                                                 <p className="text-xs font-bold text-indigo-950">Student Profile Information</p>
-                                                <p className="text-[11px] text-indigo-700/80 font-medium">Pre-filled from your profile. You can edit any details below if needed.</p>
+                                                <p className="text-[11px] text-indigo-700/80 font-medium">
+                                                    {(registerModalAnnouncement.announcement_type || '').toLowerCase() === 'form'
+                                                        ? 'Complete the requested fields and submit your response.'
+                                                        : 'Pre-filled from your profile. You can edit any details below if needed.'}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
@@ -1550,9 +1596,9 @@ const StudentAnnouncements = () => {
                                                                 placeholder={`Enter ${field.label}...`}
                                                                 className="w-full px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                                             />
-                                                        ) : field.type === 'number' ? (
+                                                        ) : field.type === 'number' || field.type === 'date' ? (
                                                             <input
-                                                                type="number"
+                                                                type={field.type}
                                                                 required={field.required}
                                                                 value={fieldValue}
                                                                 onChange={e => setRegisterFormResponses(prev => ({ ...prev, [fieldKey]: e.target.value }))}
@@ -1606,7 +1652,9 @@ const StudentAnnouncements = () => {
                                             className="px-5 py-2 rounded-xl text-xs font-black bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white shadow-md shadow-indigo-200 transition-all flex items-center gap-1.5"
                                         >
                                             {registerSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Ticket size={14} />}
-                                            {registerSubmitting ? 'Registering...' : 'Confirm Registration'}
+                                            {registerSubmitting
+                                                ? ((registerModalAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Submitting...' : 'Registering...')
+                                                : ((registerModalAnnouncement.announcement_type || '').toLowerCase() === 'form' ? 'Submit Response' : 'Confirm Registration')}
                                         </button>
                                     </div>
                                 </form>

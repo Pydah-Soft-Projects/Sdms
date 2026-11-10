@@ -714,12 +714,13 @@ const Announcements = () => {
         } else {
             // Poll
             const formatDate = (dateStr) => dateStr ? new Date(dateStr).toISOString().slice(0, 16) : '';
+            const pollOptions = parseField(item.options);
             setFormData({
                 ...initialFormState,
-                question: item.question,
-                options: Array.isArray(item.options) ? item.options : JSON.parse(item.options),
-                start_time: formatDate(item.start_time),
-                end_time: formatDate(item.end_time),
+                announcement_type: 'poll',
+                title: item.question || '',
+                poll_options: pollOptions.length > 0 ? pollOptions : ['', ''],
+                custom_expiry_date: formatDate(item.end_time),
                 target_college: parseField(item.target_college),
                 target_batch: parseField(item.target_batch),
                 target_course: parseField(item.target_course),
@@ -1019,14 +1020,16 @@ const Announcements = () => {
 
     const handleSubmitPoll = async (e) => {
         e.preventDefault();
-        if (!formData.question || formData.options.filter(o => o.trim()).length < 2) return toast.error('Question and at least 2 options required');
+        const question = formData.title.trim();
+        const options = (formData.poll_options || []).filter(option => option.trim());
+        if (!question || options.length < 2) return toast.error('Question and at least 2 options required');
 
         setLoading(true);
         const payload = {
-            question: formData.question,
-            options: formData.options.filter(o => o.trim()),
+            question,
+            options,
             start_time: formData.start_time || null,
-            end_time: formData.end_time || null,
+            end_time: formData.custom_expiry_date || null,
             target_college: formData.target_college,
             target_batch: formData.target_batch,
             target_course: formData.target_course,
@@ -1044,7 +1047,11 @@ const Announcements = () => {
                 toast.success('Poll created successfully');
             }
             handleCancel();
-            fetchPolls();
+            if (activeTab === 'polls') {
+                fetchPolls();
+            } else {
+                handleTabChange('polls');
+            }
         } catch (error) {
             console.error(error);
             toast.error(error.response?.data?.message || 'Failed to save poll');
@@ -2716,7 +2723,7 @@ const Announcements = () => {
                         )}
 
                         <div className="p-6 overflow-y-auto bg-gray-50/30">
-                            <form onSubmit={activeTab === 'polls' ? handleSubmitPoll : handleSubmitAnnouncement} className="space-y-6">
+                            <form onSubmit={activeTab === 'polls' || formData.announcement_type === 'poll' ? handleSubmitPoll : handleSubmitAnnouncement} className="space-y-6">
                                 {(activeTab === 'announcements' || activeTab === 'events') && formStep === 2 && formData.requires_registration ? (
                                     /* =================== STEP 2: DYNAMIC REGISTRATION FORM & SEATS =================== */
                                     <div className="space-y-6 animate-fade-in">

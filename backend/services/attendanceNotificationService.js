@@ -2,6 +2,7 @@ const { masterPool } = require('../config/database');
 const { USER_ROLES } = require('../constants/rbac');
 const { generateAttendanceReportPDF } = require('./pdfService');
 const { sendBrevoEmail } = require('../utils/emailService');
+const { getPinUpdatesForDate, generatePinUpdatesCardHtml } = require('./notificationService');
 const fs = require('fs');
 
 // ========== EMAIL TRACKING HELPERS (Prevent Duplicate Day-End Reports) ==========
@@ -443,6 +444,29 @@ const sendAttendanceReportNotifications = async ({
     }
 
     const recipientName = recipientUser ? recipientUser.name : recipientType;
+
+    // Fetch PIN updates for this report's scope and date (to send along with attendance)
+    let pinUpdatesCardHtml = '';
+    let pinTextSummary = '';
+    try {
+      const pinDate = attendanceDate || new Date().toISOString().split('T')[0];
+      const allPinUpdates = await getPinUpdatesForDate(pinDate);
+      const relevantPinUpdates = allPinUpdates.filter(p => {
+        if (collegeName && collegeName !== 'All Colleges' && p.college && p.college.toLowerCase() !== collegeName.toLowerCase()) return false;
+        if (courseName && courseName !== 'All Courses' && p.course && p.course.toLowerCase() !== courseName.toLowerCase()) return false;
+        if (branchName && branchName !== 'All Branches' && p.branch && p.branch.toLowerCase() !== branchName.toLowerCase()) return false;
+        return true;
+      });
+
+      if (relevantPinUpdates.length > 0) {
+        pinUpdatesCardHtml = generatePinUpdatesCardHtml(relevantPinUpdates, { formattedDate });
+        pinTextSummary = `\n\nStudent PIN Numbers Updated Today (${relevantPinUpdates.length}):\n` +
+          relevantPinUpdates.map((p, idx) => `  ${idx + 1}. ${p.student_name || ''} | Adm: ${p.admission_number} | PIN: ${p.pin_no} | ${p.course || ''} - ${p.branch || ''}`).join('\n');
+      }
+    } catch (pinErr) {
+      console.warn('Could not fetch PIN updates for attendance notification email:', pinErr.message);
+    }
+
     const emailBody = `
       Dear ${recipientName},
 
@@ -459,6 +483,7 @@ const sendAttendanceReportNotifications = async ({
       - Students Unmarked (Pending): ${unmarkedCount}
       - Total Students Present Today: ${presentCount}
       - Total Students Absent Today: ${absentCount}
+      ${pinTextSummary}
 
       Please find the detailed attendance statistics in the attached PDF report.
 
@@ -545,6 +570,8 @@ const sendAttendanceReportNotifications = async ({
                 <span class="summary-value">${absentCount}</span>
               </div>
             </div>
+
+            ${pinUpdatesCardHtml}
 
             <div class="link-box">
               <p style="margin: 0 0 10px 0; color: #92400e; font-weight: 600;">Please find the detailed attendance statistics in the attached PDF report.</p>

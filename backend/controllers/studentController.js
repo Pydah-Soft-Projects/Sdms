@@ -4715,7 +4715,7 @@ exports.updateStudent = async (req, res) => {
       try {
         const [updatedStudents] = await masterPool.query(
           `SELECT student_name, admission_number, pin_no, college, batch, course, branch,
-                  college_id, course_id, branch_id
+                  current_year, current_semester, college_id, course_id, branch_id
            FROM students WHERE admission_number = ? LIMIT 1`,
           [admissionNumber]
         );
@@ -4861,7 +4861,7 @@ exports.updatePinNumber = async (req, res) => {
     try {
       const [updatedStudents] = await masterPool.query(
         `SELECT student_name, admission_number, pin_no, college, batch, course, branch,
-                college_id, course_id, branch_id
+                current_year, current_semester, college_id, course_id, branch_id
          FROM students WHERE admission_number = ? LIMIT 1`,
         [admissionNumber]
       );
@@ -7557,7 +7557,7 @@ exports.bulkUpdatePinNumbers = async (req, res) => {
               .map((update) => update.admissionNumber);
             const [studentBatch] = await connection.query(
               `SELECT student_name, admission_number, pin_no, college, batch, course, branch,
-                      college_id, course_id, branch_id
+                      current_year, current_semester, college_id, course_id, branch_id
                FROM students WHERE admission_number IN (?)`,
               [admissionNumbers]
             );

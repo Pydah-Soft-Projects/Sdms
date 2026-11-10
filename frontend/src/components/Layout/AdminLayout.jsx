@@ -64,7 +64,6 @@ import {
   USER_ROLES,
 } from "../../constants/rbac";
 import toast from "react-hot-toast";
-import { getTicketAppUrl } from "../../utils/ticketAppUrl";
 import { navigateToCrtApp } from "../../utils/crtAppUrl";
 import PydahAiChat from "../PydahAiChat";
 

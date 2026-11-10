@@ -84,7 +84,6 @@ const RaiseTicket = lazy(() => import('./pages/student/RaiseTicket'));
 const MyTickets = lazy(() => import('./pages/student/MyTickets'));
 
 const TicketManagement = lazy(() => import('./pages/TicketManagement'));
-const TicketAppRedirect = lazy(() => import('./components/student/TicketAppRedirect'));
 const StudentAnnouncements = lazy(() => import('./pages/student/StudentAnnouncements'));
 const StudentFeedback = lazy(() => import('./pages/student/StudentFeedback'));
 const StudentAttendance = lazy(() => import('./pages/student/Attendance'));

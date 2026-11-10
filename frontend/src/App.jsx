@@ -339,6 +339,7 @@ React.useEffect(() => {
             <Route path="services/edit/:id" element={<AddServiceWizard />} />
             <Route path="services/design/:serviceId" element={<CertificateDesigner />} />
             <Route path="college-configuration" element={<CollegeConfiguration />} />
+            <Route path="services" element={<Navigate to="/services/requests" replace />} />
             <Route path="services/requests" element={<ServiceRequests />} />
             <Route path="clubs" element={<Clubs />} />
             <Route path="clubs/students" element={<Clubs initialSubPage="students" />} />

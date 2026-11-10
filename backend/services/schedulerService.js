@@ -2,7 +2,12 @@ const cron = require('node-cron');
 const { masterPool } = require('../config/database');
 const { sendBrevoEmail } = require('../utils/emailService');
 const { checkAndSendBirthdayNotifications } = require('./birthdayNotificationService');
-const { createBroadcastNotification } = require('./notificationService');
+const {
+    createBroadcastNotification,
+    getPinUpdatesForDate,
+    filterPinUpdatesByUserScope,
+    generatePinUpdatesTableHtml
+} = require('./notificationService');
 const { getISTDateString } = require('../utils/dateUtils');
 const { getNonWorkingDayInfo } = require('./nonWorkingDayService');
 const { getAllNotificationUsers, filterAttendanceByUserScope } = require('./getUserScopeAttendance');
@@ -20,7 +25,7 @@ const getTodayDate = () => getISTDateString();
 /**
  * Generate Report HTML with Multiple Tables (Grouped by College)
  */
-const generateReportHtml = (rows, title, attendanceDate) => {
+const generateReportHtml = (rows, title, attendanceDate, pinUpdates = []) => {
     // Group rows by college
     const rowsByCollege = rows.reduce((acc, row) => {
         const college = row.college || 'Unknown College';
@@ -141,6 +146,10 @@ const generateReportHtml = (rows, title, attendanceDate) => {
         `;
     }).join('');
 
+    const pinUpdatesSection = (Array.isArray(pinUpdates) && pinUpdates.length > 0)
+        ? generatePinUpdatesTableHtml(pinUpdates, { attendanceDate })
+        : '';
+
     return `
         <!DOCTYPE html>
         <html>
@@ -172,6 +181,8 @@ const generateReportHtml = (rows, title, attendanceDate) => {
             </div>
 
             ${collegeTables}
+
+            ${pinUpdatesSection}
 
             <div class="footer">
                 This is an automated report sent at 4:00 PM IST.
@@ -354,8 +365,12 @@ const sendDailyAttendanceReports = async () => {
 
         const [groupedRows] = await masterPool.query(query, params);
 
+        // 1.5. Fetch Student PIN Updates for today (to send along with attendance report)
+        const allPinUpdatesToday = await getPinUpdatesForDate(attendanceDate);
+        console.log(`ℹ️ Found ${allPinUpdatesToday.length} student PIN update(s) for ${attendanceDate} to include with attendance reports.`);
+
         // 2. Send Super Admin Report (Global) to all users with role super_admin
-        const globalHtml = generateReportHtml(groupedRows, 'Day End Attendance Report (Global)', attendanceDate);
+        const globalHtml = generateReportHtml(groupedRows, 'Day End Attendance Report (Global)', attendanceDate, allPinUpdatesToday);
 
         const [superAdmins] = await masterPool.query(
             `SELECT id, name, email FROM rbac_users 
@@ -367,7 +382,7 @@ const sendDailyAttendanceReports = async () => {
             const toEmail = (admin.email || '').trim().toLowerCase();
             if (!toEmail) continue;
             try {
-                console.log(`📧 Sending Super Admin report to ${admin.name} (${toEmail})`);
+                console.log(`📧 Sending Super Admin report to ${admin.name} (${toEmail}) [Attendance Groups: ${groupedRows.length}, PIN Updates: ${allPinUpdatesToday.length}]`);
                 const adminEmailResult = await sendBrevoEmail({
                     to: toEmail,
                     toName: admin.name || 'Super Admin',
@@ -391,10 +406,11 @@ const sendDailyAttendanceReports = async () => {
         console.log(`ℹ️ Found ${notificationRecipients.length} active AOs and Principals to notify.`);
 
         for (const user of notificationRecipients) {
-            // Step 1: Filter global rows based on user's authorized access scope
+            // Step 1: Filter global rows and PIN updates based on user's authorized access scope
             const authorizedRows = filterAttendanceByUserScope(groupedRows, user);
+            const userPinUpdates = filterPinUpdatesByUserScope(allPinUpdatesToday, user);
 
-            if (authorizedRows.length > 0) {
+            if (authorizedRows.length > 0 || userPinUpdates.length > 0) {
                 // Step 2: Determine if we need to split reports (e.g., PCE Engineering vs PCE Diploma)
                 
                 const isDiplomaRow = (row) => {
@@ -412,9 +428,17 @@ const sendDailyAttendanceReports = async () => {
                 const sendReport = async (rows, typeLabel) => {
                     const collegeDisplay = user.collegeNames[0] || 'College';
                     const titlePrefix = typeLabel ? `${typeLabel} - ` : '';
-                    const html = generateReportHtml(rows, `Day End Attendance Report - ${titlePrefix}${collegeDisplay}`, attendanceDate);
+
+                    let scopedPinUpdates = userPinUpdates;
+                    if (typeLabel === 'Engineering') {
+                        scopedPinUpdates = userPinUpdates.filter(p => !isDiplomaRow(p));
+                    } else if (typeLabel === 'Diploma') {
+                        scopedPinUpdates = userPinUpdates.filter(p => isDiplomaRow(p));
+                    }
+
+                    const html = generateReportHtml(rows, `Day End Attendance Report - ${titlePrefix}${collegeDisplay}`, attendanceDate, scopedPinUpdates);
                     
-                    console.log(`📧 Sending ${typeLabel || 'Regular'} report to ${user.email} (${user.role})`);
+                    console.log(`📧 Sending ${typeLabel || 'Regular'} report to ${user.email} (${user.role}) [Groups: ${rows.length}, PIN Updates: ${scopedPinUpdates.length}]`);
                     await sendBrevoEmail({
                         to: user.email,
                         toName: user.name || 'User',

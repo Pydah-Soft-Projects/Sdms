@@ -526,7 +526,7 @@ const AdminLayout = () => {
 
       <aside
         className={`
-          hidden lg:flex flex-col bg-[var(--success)] border-r border-surface transition-all duration-300 ease-in-out z-40
+          hidden lg:flex flex-col bg-sidebar text-sidebar-text border-r border-border transition-all duration-300 ease-in-out z-40
           ${sidebarCollapsed ? "w-20" : "w-72"}
           premium-stars-sidebar
         `}
@@ -595,7 +595,7 @@ const AdminLayout = () => {
                         toggleSubmenu(item.path);
                       }}
                       className={`w-full flex items-center justify-between rounded-lg transition-all duration-200 gap-3 px-3 py-2.5 min-h-[44px]
-                        ${isActive && !isExpanded ? "bg-[var(--success)] text-white font-semibold shadow-md active" : isExpanded ? "bg-[var(--surface)]/5 text-white font-medium" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white"}`}
+                        ${isActive && !isExpanded ? "bg-[var(--primary)] text-white font-semibold shadow-md active" : isExpanded ? "bg-[var(--surface)]/10 text-white font-medium" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white"}`}
                     >
                       <div className="flex items-center gap-2 flex-1">
                         <Icon size={18} className="flex-shrink-0" />
@@ -604,7 +604,7 @@ const AdminLayout = () => {
                       {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                     </button>
                     {isExpanded && (
-                      <div className="ml-2 space-y-0.5 pl-6 py-2 border-l-2 border-[var(--success)] rounded-r-md">
+                      <div className="ml-2 space-y-0.5 pl-6 py-2 border-l-2 border-[var(--primary)] rounded-r-md">
                         {item.subItems.map((subItem) => {
                           const currentFullPath = location.pathname + location.search;
                           let isSubActive = false;
@@ -625,7 +625,7 @@ const AdminLayout = () => {
                               to={subItem.path}
                               onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false); }}
                               className={`flex items-center rounded-md transition-all duration-200 gap-2 px-2 py-1.5 text-[11px] font-medium relative min-h-[36px]
-                                ${isSubActive ? "bg-[var(--success)] text-white font-semibold shadow-lg scale-[1.02] active" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white hover:translate-x-1"}`}
+                                ${isSubActive ? "bg-[var(--primary)] text-white font-semibold shadow-lg scale-[1.02] active" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white hover:translate-x-1"}`}
                             >
                               <SubIcon size={14} className={isSubActive ? "text-white" : "text-muted-text"} />
                               <span className="whitespace-nowrap">{subItem.label}</span>
@@ -645,7 +645,7 @@ const AdminLayout = () => {
                   onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false); }}
                   className={`flex items-center rounded-md transition-all duration-200 
                     ${sidebarCollapsed ? "justify-center px-1.5 py-3" : "gap-2 px-2.5 py-2"}
-                    ${isActive ? "bg-[var(--success)] text-white font-semibold shadow-md active" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white"}`}
+                    ${isActive ? "bg-[var(--primary)] text-white font-semibold shadow-md active" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white"}`}
                   title={sidebarCollapsed ? item.label : ""}
                 >
                   <Icon size={18} className="flex-shrink-0" />
@@ -707,18 +707,18 @@ const AdminLayout = () => {
                 key={item.path}
                 to={item.path}
                 className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 transition-all duration-300
-                  ${isActive ? "text-[var(--success)] -translate-y-1" : "text-muted-text"}`}
+                  ${isActive ? "text-[var(--primary)] -translate-y-1" : "text-muted-text"}`}
               >
-                <div className={`relative p-2 rounded-2xl transition-all duration-300 ${isActive ? "bg-[var(--success)]/10 shadow-sm" : "hover:bg-background"}`}>
+                <div className={`relative p-2 rounded-2xl transition-all duration-300 ${isActive ? "bg-[var(--primary)]/10 shadow-sm" : "hover:bg-background"}`}>
                   <Icon size={24} strokeWidth={isActive ? 2.5 : 1.5} />
                   {isActive && (
                     <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--success)] opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--success)]"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--primary)]"></span>
                     </span>
                   )}
                 </div>
-                <span className={`text-[10px] font-black tracking-tighter uppercase transition-colors ${isActive ? "text-[var(--success)]" : "text-muted-text"}`}>
+                <span className={`text-[10px] font-black tracking-tighter uppercase transition-colors ${isActive ? "text-[var(--primary)]" : "text-muted-text"}`}>
                   {item.label === "User Management" ? "Users" : item.label}
                 </span>
               </Link>
@@ -728,12 +728,12 @@ const AdminLayout = () => {
           <button
             onClick={() => setMoreMenuOpen(true)}
             className={`flex-1 flex flex-col items-center justify-center gap-1.5 py-3 transition-all duration-300
-              ${moreMenuOpen ? "text-[var(--success)] -translate-y-1" : "text-muted-text"}`}
+              ${moreMenuOpen ? "text-[var(--primary)] -translate-y-1" : "text-muted-text"}`}
           >
-            <div className={`p-2 rounded-2xl transition-all duration-300 ${moreMenuOpen ? "bg-[var(--success)]/10 shadow-sm" : "hover:bg-background"}`}>
+            <div className={`p-2 rounded-2xl transition-all duration-300 ${moreMenuOpen ? "bg-[var(--primary)]/10 shadow-sm" : "hover:bg-background"}`}>
               <Menu size={24} strokeWidth={moreMenuOpen ? 2.5 : 1.5} />
             </div>
-            <span className={`text-[10px] font-black tracking-tighter uppercase ${moreMenuOpen ? "text-[var(--success)]" : "text-muted-text"}`}>Menu</span>
+            <span className={`text-[10px] font-black tracking-tighter uppercase ${moreMenuOpen ? "text-[var(--primary)]" : "text-muted-text"}`}>Menu</span>
           </button>
         </div>
       </div>
@@ -774,7 +774,7 @@ const AdminLayout = () => {
                     onClick={() => setMoreMenuOpen(false)}
                     className={`flex flex-col items-center gap-3 p-4 rounded-3xl transition-all duration-300 border
                       ${isActive
-                        ? "bg-[var(--success)] text-white border-[var(--success)] shadow-xl shadow-[var(--success)]/20 -translate-y-1"
+                        ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-xl shadow-[var(--primary)]/20 -translate-y-1"
                         : "bg-surface text-sub border-border hover:border-border active:scale-95"}`}
                   >
                     <div className={`p-3 rounded-2xl transition-all ${isActive ? "bg-[var(--surface)]/20 shadow-inner" : "bg-background text-muted-text"}`}>

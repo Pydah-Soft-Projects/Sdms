@@ -34,18 +34,26 @@
   <script>
     var isLocalThemeEnvironment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     var themeServer = isLocalThemeEnvironment ? 'http://localhost:7000' : 'https://ui-theme.pydah.edu.in';
+    
+    // Direct CSS link fallback so active live theme loads immediately
+    var themeLink = document.createElement('link');
+    themeLink.rel = 'stylesheet';
+    themeLink.id = 'app-theme-preload';
+    themeLink.href = themeServer + '/themes/theme.css';
+    document.head.appendChild(themeLink);
+
     var themeLoaderScript = document.createElement('script');
     themeLoaderScript.src = themeServer + '/themes/theme-loader.js';
     themeLoaderScript.setAttribute('data-theme-server', themeServer);
-    themeLoaderScript.setAttribute('data-poll-interval', isLocalThemeEnvironment ? '10' : '30');
+    themeLoaderScript.setAttribute('data-poll-interval', isLocalThemeEnvironment ? '10' : '15');
     document.head.appendChild(themeLoaderScript);
   </script>
   <style>
     body {
       margin: 0;
       padding: 0;
-      background-color: #FAFAF5;
-      color: #0F172A;
+      background-color: var(--background, #FAFAF5);
+      color: var(--text-primary, #0F172A);
       overflow: auto;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }

@@ -51,6 +51,7 @@ import {
 import useAuthStore from "../../store/authStore";
 import LogoutConfirmModal from "../LogoutConfirmModal";
 import NotificationIcon from "../Notifications/NotificationIcon";
+import Sidebar from "./Sidebar";
 import {
   MODULE_ROUTE_MAP,
   getModuleKeyForPath,
@@ -73,12 +74,14 @@ const NAV_ITEMS = [
     icon: LayoutDashboard,
     label: "Dashboard",
     permission: FRONTEND_MODULES.DASHBOARD,
+    section: "MAIN",
   },
   {
     path: "/students",
     icon: Users,
     label: "Students",
     permission: FRONTEND_MODULES.STUDENTS,
+    section: "MANAGEMENT",
     subItems: [
       {
         path: "/students",
@@ -122,10 +125,42 @@ const NAV_ITEMS = [
     ],
   },
   {
+    path: "/clubs",
+    icon: Users,
+    label: "Student Clubs",
+    permission: FRONTEND_MODULES.CLUBS,
+    section: "MANAGEMENT",
+    subItems: [
+      {
+        path: "/clubs",
+        label: "Club Management",
+        icon: ShieldCheck,
+        permission: FRONTEND_MODULES.CLUBS,
+        action: 'view'
+      },
+      {
+        path: "/clubs/students",
+        label: "Members",
+        icon: UserCheck,
+        permission: FRONTEND_MODULES.CLUBS,
+        action: 'view_students'
+      },
+      {
+        path: "/clubs/settings",
+        label: "Club Settings",
+        icon: Settings,
+        permission: FRONTEND_MODULES.CLUBS,
+        action: 'view_settings',
+        actions: ['view_settings', 'manage_settings', 'manage_club_admins', 'manage_club_roles']
+      }
+    ]
+  },
+  {
     path: "/attendance",
     icon: CalendarCheck,
     label: "Attendance",
     permission: FRONTEND_MODULES.ATTENDANCE,
+    section: "OPERATIONS",
     subItems: [
       {
         path: "/attendance",
@@ -156,6 +191,7 @@ const NAV_ITEMS = [
     icon: BarChart3,
     label: "Reports",
     permission: FRONTEND_MODULES.REPORTS,
+    section: "OPERATIONS",
     subItems: [
       {
         path: "/reports",
@@ -211,83 +247,16 @@ const NAV_ITEMS = [
         label: "Profile Reports",
         icon: ClipboardList,
         permission: FRONTEND_MODULES.REPORTS,
-        action: 'view_profile_reports'
+        action: 'view_profile_requests'
       },
     ],
-  },
-  {
-    path: "/users",
-    icon: ShieldCheck,
-    label: "User Management",
-    permission: FRONTEND_MODULES.USERS,
-  },
-  {
-    path: "/announcements",
-    icon: Megaphone,
-    label: "Announcements",
-    permission: FRONTEND_MODULES.ANNOUNCEMENTS,
-    subItems: [
-      {
-        path: "/announcements",
-        label: "Announcements",
-        icon: Megaphone,
-        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
-      },
-      {
-        path: "/announcements?tab=sms",
-        label: "SMS",
-        icon: Smartphone,
-        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
-      },
-      {
-        path: "/calendar",
-        label: "Examination Notifications",
-        icon: Calendar,
-        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
-      },
-    ],
-  },
-  {
-    path: "/clubs",
-    icon: Users,
-    label: "Student Clubs",
-    permission: FRONTEND_MODULES.CLUBS,
-    subItems: [
-      {
-        path: "/clubs",
-        label: "Club Management",
-        icon: ShieldCheck,
-        permission: FRONTEND_MODULES.CLUBS,
-        action: 'view'
-      },
-      {
-        path: "/clubs/students",
-        label: "Members",
-        icon: UserCheck,
-        permission: FRONTEND_MODULES.CLUBS,
-        action: 'view_students'
-      },
-      {
-        path: "/clubs/settings",
-        label: "Club Settings",
-        icon: Settings,
-        permission: FRONTEND_MODULES.CLUBS,
-        action: 'view_settings',
-        actions: ['view_settings', 'manage_settings', 'manage_club_admins', 'manage_club_roles']
-      }
-    ]
-  },
-  {
-    path: "/seminar-halls",
-    icon: Building2,
-    label: "Seminar Hall Requests",
-    permission: FRONTEND_MODULES.SEMINAR_HALLS,
   },
   {
     path: "/services",
     icon: Briefcase,
     label: "Services",
     permission: FRONTEND_MODULES.SERVICES,
+    section: "OPERATIONS",
     subItems: [
       {
         path: "/services/requests",
@@ -311,10 +280,52 @@ const NAV_ITEMS = [
     ],
   },
   {
+    path: "/announcements",
+    icon: Megaphone,
+    label: "Announcements",
+    permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+    section: "OPERATIONS",
+    subItems: [
+      {
+        path: "/announcements",
+        label: "Announcements",
+        icon: Megaphone,
+        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+      },
+      {
+        path: "/announcements?tab=sms",
+        label: "SMS",
+        icon: Smartphone,
+        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+      },
+      {
+        path: "/calendar",
+        label: "Examination Notifications",
+        icon: Calendar,
+        permission: FRONTEND_MODULES.ANNOUNCEMENTS,
+      },
+    ],
+  },
+  {
+    path: "/seminar-halls",
+    icon: Building2,
+    label: "Seminar Hall Requests",
+    permission: FRONTEND_MODULES.SEMINAR_HALLS,
+    section: "OPERATIONS",
+  },
+  {
+    path: "/users",
+    icon: ShieldCheck,
+    label: "User Management",
+    permission: FRONTEND_MODULES.USERS,
+    section: "ADMINISTRATION",
+  },
+  {
     path: "/courses",
     icon: Settings,
     label: "Settings",
     permission: FRONTEND_MODULES.COURSES,
+    section: "ADMINISTRATION",
   },
 ];
 
@@ -516,164 +527,27 @@ const AdminLayout = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-main relative">
-      {/* 1. Global Sidebars & Overlays (Stacking Context Fix) */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-[var(--sidebar)]/60 backdrop-blur-sm z-[90] lg:hidden transition-opacity duration-300"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <aside
-        className={`
-          hidden lg:flex flex-col bg-sidebar text-sidebar-text border-r border-border transition-all duration-300 ease-in-out z-40
-          ${sidebarCollapsed ? "w-20" : "w-72"}
-          premium-stars-sidebar
-        `}
-      >
-        <div className="flex flex-col h-full overflow-hidden">
-          {/* Logo and Close Button */}
-          <div
-            className={`border-b border-surface flex items-center transition-[padding,justify-content] duration-300 ease-out ${sidebarCollapsed ? "flex-col justify-center gap-2 p-3" : "justify-between px-4 py-4 sm:px-5"}`}
-          >
-            <div className={`flex items-center gap-3 transition-all duration-300 ${sidebarCollapsed ? 'justify-center' : 'flex-1 min-w-0'}`}>
-              {sidebarCollapsed ? (
-                <img
-                  src="/campo-logos/icon-192.png"
-                  alt="Campo"
-                  className="w-9 h-9 rounded-xl object-contain shadow-md shrink-0"
-                />
-              ) : (
-                <div className="flex flex-col min-w-0 gap-1">
-                  <img
-                    src="/campo-logos/campo_logo_transparent_hq.png"
-                    alt="Campo"
-                    className="h-8 w-auto max-w-[155px] object-contain object-left shrink-0"
-                  />
-                  <span className="text-[10px] text-muted-text font-medium uppercase tracking-wider whitespace-nowrap pl-0.5">
-                    SD · {user?.role ? (ROLE_LABELS[user.role] || user.role.replace('_', ' ')) : "ADMIN"}
-                  </span>
-                </div>
-              )}
-            </div>
-            {/* Toggle button for sidebar */}
-            <button
-              onClick={() => {
-                if (window.innerWidth < 1024) {
-                  setSidebarOpen(!sidebarOpen);
-                } else {
-                  setSidebarCollapsed(!sidebarCollapsed);
-                }
-              }}
-              className="p-2.5 rounded-lg text-muted-text hover:text-white transition-all flex-shrink-0 touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center bg-transparent"
-              aria-label={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-            >
-              {window.innerWidth < 1024 ? (
-                sidebarOpen ? <ChevronsLeft size={24} /> : <Menu size={24} />
-              ) : (
-                sidebarCollapsed ? <ChevronsRight size={20} /> : <ChevronsLeft size={20} />
-              )}
-            </button>
-          </div>
-
-          {/* Navigation */}
-          <nav
-            className={`flex-1 space-y-1 transition-[padding] duration-300 ease-out overflow-y-auto overflow-x-hidden premium-sidebar-nav ${sidebarCollapsed ? "p-2" : "p-3 sm:p-4"}`}
-            style={{ scrollBehavior: "smooth" }}
-          >
-            {filteredNavItems.map((item) => {
-              const Icon = item.icon;
-              const hasSubItems = item.subItems && item.subItems.length > 0;
-              const isExpanded = expandedItems.has(item.path);
-              const isActive = isRouteActive(item.path);
-
-              if (hasSubItems && !sidebarCollapsed) {
-                return (
-                  <div key={item.path} className="space-y-1">
-                    <button
-                      onClick={() => {
-                        toggleSubmenu(item.path);
-                      }}
-                      className={`w-full flex items-center justify-between rounded-lg transition-all duration-200 gap-3 px-3 py-2.5 min-h-[44px]
-                        ${isActive && !isExpanded ? "bg-[var(--primary)] text-white font-semibold shadow-md active" : isExpanded ? "bg-[var(--surface)]/10 text-white font-medium" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white"}`}
-                    >
-                      <div className="flex items-center gap-2 flex-1">
-                        <Icon size={18} className="flex-shrink-0" />
-                        <span className="whitespace-nowrap font-medium text-xs">{item.label}</span>
-                      </div>
-                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </button>
-                    {isExpanded && (
-                      <div className="ml-2 space-y-0.5 pl-6 py-2 border-l-2 border-[var(--primary)] rounded-r-md">
-                        {item.subItems.map((subItem) => {
-                          const currentFullPath = location.pathname + location.search;
-                          let isSubActive = false;
-                          if (subItem.path.includes('?')) {
-                            isSubActive = currentFullPath === subItem.path;
-                          } else {
-                            if (subItem.path === '/announcements') {
-                              isSubActive = location.pathname === '/announcements' && (!location.search || location.search === '?tab=announcements');
-                            } else {
-                              const [subPath] = subItem.path.split('?');
-                              isSubActive = location.pathname === subPath;
-                            }
-                          }
-                          const SubIcon = subItem.icon || LayoutDashboard;
-                          return (
-                            <Link
-                              key={subItem.path}
-                              to={subItem.path}
-                              onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false); }}
-                              className={`flex items-center rounded-md transition-all duration-200 gap-2 px-2 py-1.5 text-[11px] font-medium relative min-h-[36px]
-                                ${isSubActive ? "bg-[var(--primary)] text-white font-semibold shadow-lg scale-[1.02] active" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white hover:translate-x-1"}`}
-                            >
-                              <SubIcon size={14} className={isSubActive ? "text-white" : "text-muted-text"} />
-                              <span className="whitespace-nowrap">{subItem.label}</span>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              return (
-                <Link
-                  key={item.path}
-                  to={item.subItems?.[0]?.path || item.path}
-                  onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false); }}
-                  className={`flex items-center rounded-md transition-all duration-200 
-                    ${sidebarCollapsed ? "justify-center px-1.5 py-3" : "gap-2 px-2.5 py-2"}
-                    ${isActive ? "bg-[var(--primary)] text-white font-semibold shadow-md active" : "text-muted-text hover:bg-[var(--surface)]/10 hover:text-white"}`}
-                  title={sidebarCollapsed ? item.label : ""}
-                >
-                  <Icon size={18} className="flex-shrink-0" />
-                  {!sidebarCollapsed && <span className="text-xs">{item.label}</span>}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Footer of Sidebar */}
-          <div className={`border-t border-surface ${sidebarCollapsed ? "p-2" : "p-4"} space-y-4`}>
-            <div className={`flex items-center ${sidebarCollapsed ? "flex-col gap-3" : "justify-between"}`}>
-              <Link to="/profile" onClick={() => { if (window.innerWidth < 1024) setSidebarOpen(false); }} className="flex items-center gap-2 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-                  <span className="text-white text-xs font-bold">{user?.username?.charAt(0).toUpperCase()}</span>
-                </div>
-                {!sidebarCollapsed && <span className="text-sm text-white truncate">{user?.name || user?.username}</span>}
-              </Link>
-              <button onClick={handleLogout} className="p-2 rounded-lg hover:bg-[var(--danger-light)] text-muted-text hover:text-danger">
-                <LogOut size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </aside>
+      {/* 1. Standardized Campo Portal Sidebar */}
+      <Sidebar
+        items={filteredNavItems}
+        isCollapsed={sidebarCollapsed}
+        setIsCollapsed={setSidebarCollapsed}
+        isOpen={sidebarOpen}
+        setIsOpen={setSidebarOpen}
+        user={user}
+        onLogout={handleLogout}
+        isRouteActive={isRouteActive}
+        expandedItems={expandedItems}
+        toggleSubmenu={toggleSubmenu}
+        moduleSubtitle="Student Database"
+      />
 
       {/* 2. Main Content Area */}
-      <main className={`flex-1 h-screen overflow-y-auto overflow-x-hidden transition-all duration-300 pb-20 lg:pb-0`}>
+      <main
+        className={`flex-1 h-screen overflow-y-auto overflow-x-hidden transition-all duration-300 pb-20 lg:pb-0 ${
+          sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
+        }`}
+      >
         <div className="p-4 lg:p-8 bg-[var(--background)]/20 min-h-full">
           <Outlet />
         </div>

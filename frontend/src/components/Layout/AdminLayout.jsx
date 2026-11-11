@@ -534,21 +534,24 @@ const AdminLayout = () => {
         <div className="flex flex-col h-full overflow-hidden">
           {/* Logo and Close Button */}
           <div
-            className={`border-b border-surface flex items-center transition-[padding,justify-content] duration-300 ease-out ${sidebarCollapsed ? "justify-center p-3 lg:p-4" : "justify-between px-4 py-4 sm:px-5"}`}
+            className={`border-b border-surface flex items-center transition-[padding,justify-content] duration-300 ease-out ${sidebarCollapsed ? "flex-col justify-center gap-2 p-3" : "justify-between px-4 py-4 sm:px-5"}`}
           >
-            <div className={`flex items-center gap-3 transition-all duration-300 ${sidebarCollapsed ? 'justify-center w-10 h-10' : 'flex-1 min-w-0'}`}>
-              {!sidebarCollapsed && (
-                <div className="p-2 rounded-lg bg-[var(--surface)]/10 backdrop-blur-md border border-surface shadow-lg flex items-center justify-center shrink-0">
-                  <Building2 size={20} className="text-white" />
-                </div>
-              )}
-              {!sidebarCollapsed && (
-                <div className="flex flex-col min-w-0">
-                  <span className="text-base sm:text-lg font-bold tracking-wider !text-white heading-font whitespace-nowrap">
-                    CAMPO SD
-                  </span>
-                  <span className="text-[10px] text-muted-text font-medium uppercase tracking-tight whitespace-nowrap">
-                    {user?.role ? (ROLE_LABELS[user.role] || user.role.replace('_', ' ')) : "ADMIN"}
+            <div className={`flex items-center gap-3 transition-all duration-300 ${sidebarCollapsed ? 'justify-center' : 'flex-1 min-w-0'}`}>
+              {sidebarCollapsed ? (
+                <img
+                  src="/campo-logos/icon-192.png"
+                  alt="Campo"
+                  className="w-9 h-9 rounded-xl object-contain shadow-md shrink-0"
+                />
+              ) : (
+                <div className="flex flex-col min-w-0 gap-1">
+                  <img
+                    src="/campo-logos/campo_logo_transparent_hq.png"
+                    alt="Campo"
+                    className="h-8 w-auto max-w-[155px] object-contain object-left shrink-0"
+                  />
+                  <span className="text-[10px] text-muted-text font-medium uppercase tracking-wider whitespace-nowrap pl-0.5">
+                    SD · {user?.role ? (ROLE_LABELS[user.role] || user.role.replace('_', ' ')) : "ADMIN"}
                   </span>
                 </div>
               )}

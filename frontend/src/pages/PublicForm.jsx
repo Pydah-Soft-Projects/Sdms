@@ -1466,9 +1466,9 @@ const PublicForm = () => {
             <div className="flex items-center gap-3 sm:gap-5">
               <div className="p-2 sm:p-2.5 bg-[var(--surface)]/10 backdrop-blur-md rounded-xl border border-surface shadow-lg flex-shrink-0">
                 <img
-                  src="/logo.png"
-                  alt="Pydah DB Logo"
-                  className="h-10 sm:h-12 w-auto object-contain drop-shadow-md transition-transform duration-300 hover:scale-105"
+                  src="/campo-logos/icon-192.png"
+                  alt="CAMPO SD Logo"
+                  className="h-10 sm:h-12 w-auto object-contain rounded-lg drop-shadow-md transition-transform duration-300 hover:scale-105"
                   loading="lazy"
                 />
               </div>
@@ -1934,7 +1934,7 @@ const PublicForm = () => {
         </div>
 
         <p className="text-center text-sub text-sm mt-6">
-          © 2025 Pydah Student Database Management System
+          © 2025 CAMPO SD Student Database Management System
         </p>
       </div>
     </div>

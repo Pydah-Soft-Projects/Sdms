@@ -71,7 +71,7 @@ const ParentLayout = () => {
       <header className="lg:hidden shrink-0 z-50 w-full bg-[var(--surface)]/95 backdrop-blur-xl border-b border-border shadow-sm pt-[env(safe-area-inset-top,0px)]">
         <div className="h-14 w-full flex items-center gap-3 px-4">
           <div className="h-10 w-10 flex items-center justify-center p-1 bg-surface rounded-xl shadow-sm border border-border shrink-0">
-            <img src="/logo.png" alt="College Logo" className="max-h-full max-w-full object-contain" />
+            <img src="/campo-logos/icon-192.png" alt="CAMPO SD" className="max-h-full max-w-full object-contain" />
           </div>
           <div className="flex flex-col justify-center min-w-0">
             <p className="text-[10px] font-bold text-muted-text uppercase tracking-widest leading-tight">Parent</p>
@@ -99,7 +99,7 @@ const ParentLayout = () => {
           <div className="h-24 flex items-center justify-between px-6 border-b border-border">
             <div className="flex items-center gap-3 cursor-pointer min-w-0" onClick={() => navigate('/parent/dashboard')}>
               <div className="h-12 w-12 rounded-2xl bg-surface border border-border shadow-sm flex items-center justify-center p-1.5 shrink-0">
-                <img src="/logo.png" alt="College Logo" className="h-full w-full object-contain" />
+                <img src="/campo-logos/icon-192.png" alt="CAMPO SD" className="h-full w-full object-contain" />
               </div>
               <div className="min-w-0">
                 <span className="text-lg font-black text-main tracking-tight block leading-none">Parent</span>

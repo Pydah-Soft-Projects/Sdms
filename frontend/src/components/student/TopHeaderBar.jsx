@@ -49,9 +49,9 @@ const TopHeaderBar = () => {
                     </button>
                 )}
                 <img
-                    src="/logo.png"
+                    src="/campo-logos/icon-192.png"
                     alt="CAMPO SD"
-                    className="h-8 sm:h-9 w-auto object-contain drop-shadow-xs cursor-pointer block"
+                    className="h-8 sm:h-9 w-auto object-contain drop-shadow-xs cursor-pointer block rounded-lg"
                     onClick={() => navigate('/student/dashboard')}
                 />
                 <div className="flex items-center border-l border-border-strong pl-2.5 sm:pl-3 h-6 sm:h-7 min-w-0">

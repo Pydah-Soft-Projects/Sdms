@@ -1367,7 +1367,7 @@ const Announcements = () => {
     const pageTitle = activeTab === 'polls' ? 'Polls' : activeTab === 'sms' ? 'SMS' : activeTab === 'events' ? 'Events' : 'Announcements';
 
     useEffect(() => {
-        document.title = `${pageTitle} | Pydah Super Admin`;
+        document.title = `${pageTitle} | CAMPO SD Admin`;
     }, [pageTitle]);
 
     return (

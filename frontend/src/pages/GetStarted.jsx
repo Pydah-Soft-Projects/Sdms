@@ -42,9 +42,11 @@ const GetStarted = () => {
       {/* Top Navbar */}
       <header className="shrink-0 h-16 sm:h-20 border-b border-[#E8E6DF] bg-[#FAFAF5]/90 backdrop-blur-md px-4 sm:px-8 lg:px-12 flex items-center justify-between z-20">
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-          <div className="w-10 h-10 sm:w-11 sm:h-11 bg-[#1A2517] text-white rounded-xl shadow-sm flex items-center justify-center shrink-0">
-            <Building2 size={22} className="text-white" />
-          </div>
+          <img
+            src="/campo-logos/icon-192.png"
+            alt="Campo"
+            className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl shadow-sm object-contain shrink-0"
+          />
           <div className="flex flex-col">
             <span className="text-lg sm:text-xl font-black text-[#1A2517] tracking-wider leading-none">
               CAMPO STUDENTS

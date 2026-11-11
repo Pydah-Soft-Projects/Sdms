@@ -489,13 +489,26 @@ const StudentLayout = ({ children }) => {
                     {/* Logo Area */}
                     <div className={`shrink-0 h-16 lg:h-[4.25rem] flex items-center justify-between px-5 border-b transition-all duration-300 ${isBirthday ? 'border-[var(--warning-light)] bg-gradient-to-r from-[var(--warning-light)] to-[var(--warning-light)]' : 'border-border bg-[var(--surface)]/50'}`}>
                         <div className="flex items-center gap-3.5 group cursor-pointer" onClick={() => navigate('/student/dashboard')}>
-                            <div className={`h-11 w-11 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 ${isBirthday ? 'bg-gradient-to-br from-warning to-warning shadow-warning' : 'bg-gradient-to-br from-info to-primary shadow-info'}`}>
-                                {isBirthday ? <span className="text-xl">🎂</span> : <span className="font-black text-xl tracking-tighter">S</span>}
-                            </div>
+                            {isBirthday ? (
+                                <div className="h-11 w-11 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3 bg-gradient-to-br from-warning to-warning shadow-warning">
+                                    <span className="text-xl">🎂</span>
+                                </div>
+                            ) : (
+                                <img
+                                    src="/campo-logos/icon-192.png"
+                                    alt="CAMPO SD"
+                                    className="h-11 w-11 rounded-2xl object-contain shadow-md transition-transform duration-300 group-hover:scale-105"
+                                />
+                            )}
                             <div className="flex flex-col justify-center">
                                 <span className="text-lg font-black text-main tracking-tight leading-none">
-                                    {isBirthday ? 'Happy Day!' : 'Student'}
+                                    {isBirthday ? 'Happy Day!' : 'CAMPO'}
                                 </span>
+                                {!isBirthday && (
+                                    <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest mt-0.5">
+                                        Student
+                                    </span>
+                                )}
                             </div>
                         </div>
                         <button

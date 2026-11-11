@@ -1,7 +1,7 @@
 {
-    "id": "pydah-student-portal",
-    "name": "Pydah Student Portal",
-    "short_name": "Pydah Student",
+    "id": "campo-student-portal",
+    "name": "CAMPO Student Portal",
+    "short_name": "CAMPO",
     "description": "Student Portal for managing attendance, fees, and more.",
     "start_url": "/",
     "scope": "/",
@@ -11,13 +11,13 @@
     "theme_color": "#ffffff",
     "icons": [
         {
-            "src": "/logo.png",
+            "src": "/campo-logos/icon-192.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any maskable"
         },
         {
-            "src": "/logo.png",
+            "src": "/campo-logos/icon-512.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"

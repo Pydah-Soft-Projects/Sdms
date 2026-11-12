@@ -3011,7 +3011,10 @@ const Clubs = ({ initialSubPage }) => {
                                 <h3 className="text-sm font-bold text-main flex items-center gap-1.5">
                                     <Shield size={16} className="text-primary" /> Multiple Club Admin Roles
                                 </h3>
-                                <p className="text-[11px] text-muted-text">Assign multiple officers (President, Vice Presidents, Faculty Coordinators, etc.) to this club.</p>
+                                <p className="text-[11px] text-muted-text">
+                                    Assign multiple officers (President, Vice Presidents, Faculty Coordinators, etc.) to this club.
+                                    {showCreateModal && ' The club creator will automatically be assigned as Club Coordinator.'}
+                                </p>
                             </div>
                         </div>
 

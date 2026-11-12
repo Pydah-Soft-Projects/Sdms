@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -157,6 +157,11 @@ const Dashboard = () => {
   const userPermissions = user?.permissions || {};
   const isAdmin = isFullAccessRole(user?.role);
   const isSuperAdmin = ['super_admin', 'superadmin'].includes(String(user?.role || '').toLowerCase());
+  const canViewProfileRequests = isAdmin ||
+    hasPermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'view_profile_requests') ||
+    hasPermission(userPermissions, BACKEND_MODULES.STUDENT_MANAGEMENT, 'edit_profile_requests');
+  const canViewServiceRequests = isAdmin ||
+    hasPermission(userPermissions, BACKEND_MODULES.SERVICES, 'view');
   const [completingDashboardAlertId, setCompletingDashboardAlertId] = useState(null);
   const [selectedDashboardAlert, setSelectedDashboardAlert] = useState(null);
   const [showAllDashboardAlerts, setShowAllDashboardAlerts] = useState(false);
@@ -187,7 +192,8 @@ const Dashboard = () => {
   const [profileAbstractData, setProfileAbstractData] = useState(null);
   const [loadingProfileAbstract, setLoadingProfileAbstract] = useState(false);
 
-  const fetchProfileAbstract = async () => {
+  const fetchProfileAbstract = useCallback(async () => {
+    if (!canViewProfileRequests) return;
     try {
       setLoadingProfileAbstract(true);
       const res = await api.get('/profile-changes/college-abstract');
@@ -200,18 +206,18 @@ const Dashboard = () => {
     } finally {
       setLoadingProfileAbstract(false);
     }
-  };
+  }, [canViewProfileRequests]);
 
   useEffect(() => {
     fetchProfileAbstract();
-  }, []);
+  }, [fetchProfileAbstract]);
 
   // Auto-refresh when modal is opened to ensure data is always fresh
   useEffect(() => {
     if (showProfileRequestsModal) {
       fetchProfileAbstract();
     }
-  }, [showProfileRequestsModal]);
+  }, [fetchProfileAbstract, showProfileRequestsModal]);
 
   const toggleProfileCollege = (collegeName) => {
     setExpandedProfileColleges((prev) => ({
@@ -521,6 +527,7 @@ const Dashboard = () => {
         return [];
       }
     },
+    enabled: canViewServiceRequests,
     staleTime: 60 * 1000,
     gcTime: 5 * 60 * 1000
   });

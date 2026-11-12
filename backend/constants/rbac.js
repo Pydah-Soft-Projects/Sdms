@@ -62,7 +62,12 @@ const ROLE_HIERARCHY = {
   [USER_ROLES.COLLEGE_ATTENDER]: [],
   [USER_ROLES.OFFICE_ASSISTANT]: [],
   [USER_ROLES.CASHIER]: [],
-  [USER_ROLES.FACULTY]: []
+  [USER_ROLES.FACULTY]: [
+    USER_ROLES.FACULTY
+  ],
+  [USER_ROLES.BRANCH_FACULTY]: [
+    USER_ROLES.FACULTY
+  ]
 };
 
 // Available Modules
@@ -585,8 +590,10 @@ const validateRoleRequirements = (role, collegeIds, courseIds, branchIds, allCou
 
 // Check if a role can create another role
 const canCreateRole = (creatorRole, targetRole) => {
-  const allowedRoles = ROLE_HIERARCHY[creatorRole] || [];
-  return allowedRoles.includes(targetRole);
+  const normalizedCreatorRole = String(creatorRole || '').trim().toLowerCase();
+  const normalizedTargetRole = String(targetRole || '').trim().toLowerCase();
+  const allowedRoles = ROLE_HIERARCHY[normalizedCreatorRole] || [];
+  return allowedRoles.includes(normalizedTargetRole);
 };
 
 // Parse permissions from JSON (handles both old and new format)

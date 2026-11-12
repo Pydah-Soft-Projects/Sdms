@@ -924,7 +924,8 @@ exports.createUser = async (req, res) => {
     }
 
     // Check if creator can create this role (super_admin may also create custom roles from role config)
-    const effectiveCreatorRole = creator.role === 'admin' ? USER_ROLES.SUPER_ADMIN : creator.role;
+    const normalizedCreatorRole = String(creator.role || '').trim().toLowerCase();
+    const effectiveCreatorRole = normalizedCreatorRole === 'admin' ? USER_ROLES.SUPER_ADMIN : normalizedCreatorRole;
     const canCreate = canCreateRole(effectiveCreatorRole, role) || (isSuperAdmin(creator) && (await roleExistsInConfig(role)));
     if (!canCreate) {
       return res.status(403).json({
@@ -936,7 +937,7 @@ exports.createUser = async (req, res) => {
     // Validate scope restrictions
     if (!isSuperAdmin(creator)) {
       // College Principal / College AO can only create users in their college
-      if (creator.role === USER_ROLES.COLLEGE_PRINCIPAL || creator.role === USER_ROLES.COLLEGE_AO) {
+      if (normalizedCreatorRole === USER_ROLES.COLLEGE_PRINCIPAL || normalizedCreatorRole === USER_ROLES.COLLEGE_AO) {
         const [userRows] = await masterPool.query(
           'SELECT college_id, college_ids FROM rbac_users WHERE id = ?',
           [creator.id]
@@ -955,8 +956,8 @@ exports.createUser = async (req, res) => {
           }
         }
       }
-      // Branch HOD can only create users in their branch
-      else if (creator.role === USER_ROLES.BRANCH_HOD) {
+      // Branch-scoped users can only create users in their assigned branches
+      else if ([USER_ROLES.BRANCH_HOD, USER_ROLES.BRANCH_FACULTY].includes(normalizedCreatorRole)) {
         const [userRows] = await masterPool.query(
           'SELECT branch_id, branch_ids FROM rbac_users WHERE id = ?',
           [creator.id]
@@ -2155,7 +2156,8 @@ exports.resetPassword = async (req, res) => {
 exports.getAvailableRoles = async (req, res) => {
   try {
     const user = req.user || req.admin;
-    const effectiveRole = user.role === 'admin' ? USER_ROLES.SUPER_ADMIN : user.role;
+    const normalizedRole = String(user.role || '').trim().toLowerCase();
+    const effectiveRole = normalizedRole === 'admin' ? USER_ROLES.SUPER_ADMIN : normalizedRole;
     let availableRoles = [];
 
     if (isSuperAdmin(user)) {

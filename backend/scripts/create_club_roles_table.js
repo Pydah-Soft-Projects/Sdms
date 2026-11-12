@@ -55,6 +55,7 @@ const createClubRolesTable = async () => {
     const [roles] = await masterPool.query('SELECT COUNT(*) as count FROM club_roles');
     if (roles[0].count === 0) {
       const defaultRoles = [
+        ['Club Coordinator', 'club_coordinator', 'Coordinates club operations, members, and activities', true],
         ['President', 'president', 'Club President - Head of operations and club activities', true],
         ['Vice President', 'vice_president', 'Assists President in managing club operations', true],
         ['Secretary', 'secretary', 'Maintains club records, schedules, and correspondence', true],
@@ -73,6 +74,20 @@ const createClubRolesTable = async () => {
       console.log('✓ Default dynamic club roles seeded successfully.');
     } else {
       console.log('✓ Dynamic club roles already present.');
+    }
+
+    const [clubCoordinatorRole] = await masterPool.query(
+      'SELECT id FROM club_roles WHERE role_code = ? LIMIT 1',
+      ['club_coordinator']
+    );
+    if (clubCoordinatorRole.length === 0) {
+      await masterPool.query(
+        'INSERT INTO club_roles (role_name, role_code, description, is_system) VALUES (?, ?, ?, ?)',
+        ['Club Coordinator', 'club_coordinator', 'Coordinates club operations, members, and activities', true]
+      );
+      console.log('✓ Club Coordinator role added.');
+    } else {
+      console.log('✓ Club Coordinator role already present.');
     }
 
     console.log('✓ Student Club schema initialization complete!');

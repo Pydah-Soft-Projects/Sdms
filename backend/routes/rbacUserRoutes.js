@@ -2,12 +2,44 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const { verifyRole, verifyPermission, verifyPermissionAny, verifyCanCreateRole, verifyCanManageUser } = require('../middleware/rbac');
-const { USER_ROLES } = require('../constants/rbac');
+const { USER_ROLES, hasPermission } = require('../constants/rbac');
+const { masterPool } = require('../config/database');
 const rbacUserController = require('../controllers/rbacUserController');
 const studentFieldsController = require('../controllers/studentFieldsController');
 
 // All routes require authentication
 router.use(authMiddleware);
+
+const verifyCurrentUserManagementPermission = (...actions) => async (req, res, next) => {
+  const user = req.user || req.admin;
+  if (!user) {
+    return res.status(401).json({ success: false, message: 'Authentication required' });
+  }
+
+  if (['admin', 'super_admin', 'superadmin'].includes(String(user.role || '').trim().toLowerCase())) {
+    return next();
+  }
+
+  try {
+    const [rows] = await masterPool.query(
+      'SELECT permissions FROM rbac_users WHERE id = ? LIMIT 1',
+      [user.id]
+    );
+    const permissions = rows[0]?.permissions;
+
+    if (actions.some(action => hasPermission(permissions, 'user_management', action))) {
+      return next();
+    }
+
+    return res.status(403).json({
+      success: false,
+      message: `Access denied. Requires user_management/${actions.join(' or ')} permission`
+    });
+  } catch (error) {
+    console.error('Failed to verify current user management permissions:', error);
+    return res.status(500).json({ success: false, message: 'Failed to verify user management permission' });
+  }
+};
 
 // Get available student fields (for field-level permissions)
 router.get('/student-fields', studentFieldsController.getStudentFields);
@@ -17,10 +49,10 @@ router.get('/roles/available', rbacUserController.getAvailableRoles);
 router.get('/modules', rbacUserController.getModules);
 
 // Get all users (filtered by scope)
-// Requires user_management view permission
+// Requires current user_management view or control permission
 router.get(
   '/',
-  verifyPermission('user_management', 'view'),
+  verifyCurrentUserManagementPermission('view', 'control'),
   rbacUserController.getUsers
 );
 
@@ -48,7 +80,7 @@ router.get(
 // Requires user_management write permission and role creation check
 router.post(
   '/',
-  verifyPermission('user_management', 'control'),
+  verifyCurrentUserManagementPermission('control'),
   verifyCanCreateRole,
   rbacUserController.createUser
 );

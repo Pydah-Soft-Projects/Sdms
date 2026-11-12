@@ -321,8 +321,39 @@ const createClub = async (req, res) => {
         const activities = JSON.stringify([]);
         const form_fields = JSON.stringify([]);
         const suppliedAdminRoles = typeof admin_roles === 'string' ? JSON.parse(admin_roles) : (admin_roles || []);
+        const creator = req.user || req.admin || {};
+        if (!creator.id) {
+            throw new Error('Authenticated club creator ID is missing');
+        }
+
+        const creatorIdentityKeys = new Set(getAssignmentIdentityKeys({
+            userId: creator.id,
+            empNo: creator.username,
+            email: creator.email,
+            hrmsId: creator.hrms_id
+        }));
+        const creatorAssignment = {
+            userId: creator.id,
+            hrmsId: creator.hrms_id,
+            empNo: creator.username,
+            name: creator.name || creator.username || creator.email || 'Club Coordinator',
+            email: creator.email,
+            roleCode: 'club_coordinator',
+            roleName: 'Club Coordinator',
+            pages: [...DEFAULT_CLUB_ADMIN_PAGES],
+            pagePermissions: Object.fromEntries(DEFAULT_CLUB_ADMIN_PAGES.map(page => [
+                page,
+                { read: true, write: true }
+            ]))
+        };
+        const adminRolesWithCreator = [
+            creatorAssignment,
+            ...suppliedAdminRoles.filter(assignment =>
+                assignment && !getAssignmentIdentityKeys(assignment).some(key => creatorIdentityKeys.has(key))
+            )
+        ];
         const fullAccessUserKeys = await getFullAccessUserKeys();
-        const parsedAdminRoles = JSON.stringify(applyFullAccessClubPages(suppliedAdminRoles, fullAccessUserKeys));
+        const parsedAdminRoles = JSON.stringify(applyFullAccessClubPages(adminRolesWithCreator, fullAccessUserKeys));
 
         await masterPool.query(
             'INSERT INTO clubs (name, description, image_url, form_fields, members, activities, created_by, membership_fee, fee_type, admin_roles) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',

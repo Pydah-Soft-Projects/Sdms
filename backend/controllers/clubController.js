@@ -30,6 +30,8 @@ const normalizeClubAdminPages = (pages) => {
     const allowedPages = new Set(DEFAULT_CLUB_ADMIN_PAGES);
     return [...new Set(pages.filter(page => allowedPages.has(page)))];
 };
+const normalizeClubRoleUserCreationAccess = (value) =>
+    value === true || value === 1 || value === '1' || String(value).toLowerCase() === 'true';
 const parseClubRolePages = (pages) => {
     try {
         return normalizeClubAdminPages(typeof pages === 'string' ? JSON.parse(pages) : pages);
@@ -1155,13 +1157,14 @@ const getClubRoles = async (req, res) => {
 
 const createClubRole = async (req, res) => {
     try {
-        const { role_name, description, pages } = req.body;
+        const { role_name, description, pages, can_create_users } = req.body;
         if (!role_name || !role_name.trim()) {
             return res.status(400).json({ success: false, message: 'Role name is required' });
         }
 
         const role_code = role_name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_');
         const rolePages = normalizeClubAdminPages(pages);
+        const canCreateUsers = normalizeClubRoleUserCreationAccess(can_create_users);
 
         const [existing] = await masterPool.query('SELECT id FROM club_roles WHERE role_code = ?', [role_code]);
         if (existing.length > 0) {
@@ -1169,14 +1172,22 @@ const createClubRole = async (req, res) => {
         }
 
         const [result] = await masterPool.query(
-            'INSERT INTO club_roles (role_name, role_code, description, pages, is_system) VALUES (?, ?, ?, ?, FALSE)',
-            [role_name.trim(), role_code, description || '', JSON.stringify(rolePages)]
+            'INSERT INTO club_roles (role_name, role_code, description, pages, can_create_users, is_system) VALUES (?, ?, ?, ?, ?, FALSE)',
+            [role_name.trim(), role_code, description || '', JSON.stringify(rolePages), canCreateUsers]
         );
 
         res.json({
             success: true,
             message: 'Club role created successfully',
-            data: { id: result.insertId, role_name: role_name.trim(), role_code, description, pages: rolePages, is_system: false }
+            data: {
+                id: result.insertId,
+                role_name: role_name.trim(),
+                role_code,
+                description,
+                pages: rolePages,
+                can_create_users: canCreateUsers,
+                is_system: false
+            }
         });
     } catch (error) {
         console.error('Error creating club role:', error);
@@ -1187,7 +1198,7 @@ const createClubRole = async (req, res) => {
 const updateClubRole = async (req, res) => {
     try {
         const { roleId } = req.params;
-        const { role_name, description, pages } = req.body;
+        const { role_name, description, pages, can_create_users } = req.body;
 
         const [existing] = await masterPool.query('SELECT * FROM club_roles WHERE id = ?', [roleId]);
         if (existing.length === 0) {
@@ -1195,10 +1206,13 @@ const updateClubRole = async (req, res) => {
         }
 
         const rolePages = normalizeClubAdminPages(pages ?? parseClubRolePages(existing[0].pages));
+        const canCreateUsers = can_create_users === undefined
+            ? normalizeClubRoleUserCreationAccess(existing[0].can_create_users)
+            : normalizeClubRoleUserCreationAccess(can_create_users);
 
         await masterPool.query(
-            'UPDATE club_roles SET role_name = ?, description = ?, pages = ? WHERE id = ?',
-            [role_name.trim(), description || '', JSON.stringify(rolePages), roleId]
+            'UPDATE club_roles SET role_name = ?, description = ?, pages = ?, can_create_users = ? WHERE id = ?',
+            [role_name.trim(), description || '', JSON.stringify(rolePages), canCreateUsers, roleId]
         );
 
         const [clubs] = await masterPool.query('SELECT id, admin_roles FROM clubs');

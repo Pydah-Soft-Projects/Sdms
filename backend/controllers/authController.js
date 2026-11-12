@@ -56,6 +56,13 @@ const addClubRolesToUserResponse = async (rbacUser, userResponse) => {
     const pageKeys = ['management', 'students', 'settings'];
     const fullAccess = ['admin', 'super_admin', 'superadmin'].includes(String(rbacUser.role || '').toLowerCase());
     const [clubs] = await masterPool.query('SELECT id, name, admin_roles FROM clubs WHERE is_active = 1');
+    const [clubRoleDefinitions] = await masterPool.query('SELECT role_code, can_create_users FROM club_roles');
+    const roleUserCreationAccess = new Map(
+      (clubRoleDefinitions || []).map(role => [
+        role.role_code,
+        role.can_create_users === true || Number(role.can_create_users) === 1
+      ])
+    );
     const userKeys = new Set([
       `id_${rbacUser.id}`,
       rbacUser.email ? `email_${String(rbacUser.email).toLowerCase().trim()}` : null,
@@ -80,6 +87,7 @@ const addClubRolesToUserResponse = async (rbacUser, userResponse) => {
           assignment.hrmsId ? `hrms_${String(assignment.hrmsId)}` : null
         ].filter(Boolean);
         if (assignmentKeys.some(key => userKeys.has(key))) {
+          const roleCode = assignment.roleCode || null;
           const legacyPages = Array.isArray(assignment.pages) ? assignment.pages : pageKeys;
           const pagePermissions = Object.fromEntries(pageKeys.map(page => {
             const configured = assignment.pagePermissions?.[page];
@@ -94,7 +102,9 @@ const addClubRolesToUserResponse = async (rbacUser, userResponse) => {
           clubRoles.push({
             clubId: club.id,
             clubName: club.name,
+            roleCode,
             roleName: assignment.roleName || assignment.roleCode || 'Club Admin',
+            canCreateUsers: roleCode ? roleUserCreationAccess.get(roleCode) === true : false,
             pages: pageKeys.filter(page => pagePermissions[page].read || pagePermissions[page].write),
             pagePermissions
           });

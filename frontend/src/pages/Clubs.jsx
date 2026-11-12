@@ -528,6 +528,10 @@ const Clubs = ({ initialSubPage }) => {
         hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage_settings') ||
         hasPermission(user?.permissions, BACKEND_MODULES.CLUBS, 'manage') ||
         getClubPageAccess(null, 'settings').write;
+    const hasUserManagementControl = isAdmin ||
+        hasPermission(user?.permissions, BACKEND_MODULES.USER_MANAGEMENT, 'control');
+    const canCreateUserAccounts = hasUserManagementControl ||
+        (user?.clubRoles || []).some(role => role.canCreateUsers === true);
 
     // Determine subPage directly from pathname or initialSubPage prop
     const getSubPageFromPath = () => {
@@ -647,12 +651,20 @@ const Clubs = ({ initialSubPage }) => {
     const [selectedStudentRole, setSelectedStudentRole] = useState(null);
 
     // New/Edit Role Form Data
-    const [roleForm, setRoleForm] = useState({ role_name: '', description: '', pages: [...DEFAULT_CLUB_ADMIN_PAGES] });
+    const [roleForm, setRoleForm] = useState({
+        role_name: '',
+        description: '',
+        pages: [...DEFAULT_CLUB_ADMIN_PAGES],
+        can_create_users: false
+    });
 
     // Inline Create User Form Data (for HRMS employee without SDMS user account)
     // Uses HRMS credentials — no manual password needed
     const [collegesList, setCollegesList] = useState([]);
     const [createUserRoleOptions, setCreateUserRoleOptions] = useState(DEFAULT_USER_ROLE_OPTIONS);
+    const effectiveCreateUserRoleOptions = hasUserManagementControl
+        ? createUserRoleOptions
+        : (canCreateUserAccounts ? [{ value: 'faculty', label: 'Faculty' }] : []);
     const [createUserCourses, setCreateUserCourses] = useState([]);
     const [createUserBranches, setCreateUserBranches] = useState([]);
     const [loadingCreateUserCourses, setLoadingCreateUserCourses] = useState(false);
@@ -876,6 +888,9 @@ const Clubs = ({ initialSubPage }) => {
 
     // Open inline modal to create SDMS user account for HRMS employee
     const handleOpenCreateUserModal = () => {
+        if (!canCreateUserAccounts) {
+            return toast.error('Your club role does not have user creation access');
+        }
         if (!selectedHrmsEmployee) return;
         const defaultCol = collegesList.length > 0 ? collegesList[0].id : '';
         setCreateUserForm({
@@ -927,7 +942,7 @@ const Clubs = ({ initialSubPage }) => {
                 username: selectedHrmsEmployee?.emp_no || createUserForm.email,
                 use_hrms_credentials: true  // backend will derive password from HRMS link
             };
-            const response = await api.post('/rbac/users', payload);
+            const response = await api.post('/rbac/users/from-club-admin', payload);
             if (response.data && response.data.success) {
                 toast.success(`SDMS User Account created for ${createUserForm.name}`);
                 setShowCreateUserModal(false);
@@ -1320,7 +1335,12 @@ const Clubs = ({ initialSubPage }) => {
                     toast.success('Dynamic role updated');
                     setShowRoleModal(false);
                     setEditingRole(null);
-                    setRoleForm({ role_name: '', description: '', pages: [...DEFAULT_CLUB_ADMIN_PAGES] });
+                    setRoleForm({
+                        role_name: '',
+                        description: '',
+                        pages: [...DEFAULT_CLUB_ADMIN_PAGES],
+                        can_create_users: false
+                    });
                     fetchDynamicRoles();
                 } else {
                     toast.error(res.message || 'Failed to update role');
@@ -1330,7 +1350,12 @@ const Clubs = ({ initialSubPage }) => {
                 if (res.success) {
                     toast.success('Dynamic role created');
                     setShowRoleModal(false);
-                    setRoleForm({ role_name: '', description: '', pages: [...DEFAULT_CLUB_ADMIN_PAGES] });
+                    setRoleForm({
+                        role_name: '',
+                        description: '',
+                        pages: [...DEFAULT_CLUB_ADMIN_PAGES],
+                        can_create_users: false
+                    });
                     fetchDynamicRoles();
                 } else {
                     toast.error(res.message || 'Failed to create role');
@@ -1346,7 +1371,8 @@ const Clubs = ({ initialSubPage }) => {
         setRoleForm({
             role_name: role.role_name || '',
             description: role.description || '',
-            pages: [...(role.pages || DEFAULT_CLUB_ADMIN_PAGES)]
+            pages: [...(role.pages || DEFAULT_CLUB_ADMIN_PAGES)],
+            can_create_users: role.can_create_users === true || Number(role.can_create_users) === 1
         });
         setShowRoleModal(true);
     };
@@ -2618,7 +2644,12 @@ const Clubs = ({ initialSubPage }) => {
                                     type="button"
                                     onClick={() => {
                                         setEditingRole(null);
-                                        setRoleForm({ role_name: '', description: '', pages: [...DEFAULT_CLUB_ADMIN_PAGES] });
+                                        setRoleForm({
+                                            role_name: '',
+                                            description: '',
+                                            pages: [...DEFAULT_CLUB_ADMIN_PAGES],
+                                            can_create_users: false
+                                        });
                                         setShowRoleModal(true);
                                     }}
                                     className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white hover:bg-primary-hover"
@@ -2640,6 +2671,11 @@ const Clubs = ({ initialSubPage }) => {
                                             </span>
                                         </div>
                                         <p className="text-xs text-muted-text mt-1 line-clamp-2">{role.description || 'No description provided.'}</p>
+                                        {(role.can_create_users === true || Number(role.can_create_users) === 1) && (
+                                            <span className="mt-2 inline-flex rounded-full bg-[var(--success-light)] px-2 py-0.5 text-[10px] font-semibold text-success">
+                                                Can create users
+                                            </span>
+                                        )}
                                     </div>
 
                                     <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
@@ -2831,7 +2867,7 @@ const Clubs = ({ initialSubPage }) => {
                                             {hrmsUserStatus?.checking ? 'Checking SDMS Account...' : hrmsUserStatus?.hasUserAccount ? '✓ Active SDMS Account Linked' : '⚠ No SDMS Account found.'}
                                         </p>
                                     </div>
-                                    {!hrmsUserStatus?.checking && !hrmsUserStatus?.hasUserAccount && (
+                                    {!hrmsUserStatus?.checking && !hrmsUserStatus?.hasUserAccount && canCreateUserAccounts && (
                                         <button
                                             type="button"
                                             onClick={handleOpenCreateUserModal}
@@ -3262,7 +3298,7 @@ const Clubs = ({ initialSubPage }) => {
                                     )}
 
                                     {/* ALERT IF NO SDMS USER ACCOUNT */}
-                                    {hrmsUserStatus && !hrmsUserStatus.checking && !hrmsUserStatus.hasUserAccount && (
+                                    {hrmsUserStatus && !hrmsUserStatus.checking && !hrmsUserStatus.hasUserAccount && canCreateUserAccounts && (
                                         <div className="p-3 bg-[var(--warning-light)] border border-[var(--warning-light)] rounded-lg space-y-2">
                                             <div className="flex items-start gap-2 text-warning text-xs">
                                                 <AlertTriangle size={16} className="text-warning shrink-0 mt-0.5" />
@@ -3451,6 +3487,21 @@ const Clubs = ({ initialSubPage }) => {
                             ))}
                         </div>
                     </fieldset>
+                    <label className="flex items-start gap-2 rounded-lg border border-border px-3 py-3 text-xs text-sub">
+                        <input
+                            type="checkbox"
+                            checked={Boolean(roleForm.can_create_users)}
+                            onChange={(e) => setRoleForm(prev => ({
+                                ...prev,
+                                can_create_users: e.target.checked
+                            }))}
+                            className="mt-0.5 rounded border-border-strong text-primary focus:ring-primary"
+                        />
+                        <span>
+                            <span className="block font-semibold text-main">Allow assigned club admins to create Faculty user accounts</span>
+                            <span className="mt-0.5 block text-[11px] text-muted-text">This grants access to the SDMS account creation popup for HRMS employees.</span>
+                        </span>
+                    </label>
                     <div className="flex justify-end gap-2 pt-3">
                         <button type="button" onClick={() => { setShowRoleModal(false); setEditingRole(null); }} className="px-4 py-2 text-xs font-bold text-sub border rounded-lg">Cancel</button>
                         <button type="submit" className="px-5 py-2 text-xs font-bold text-white bg-primary rounded-lg hover:bg-primary-hover">
@@ -3515,6 +3566,7 @@ const Clubs = ({ initialSubPage }) => {
                             <label className="font-bold text-sub">System Role *</label>
                             <select
                                 value={createUserForm.role}
+                                disabled={!hasUserManagementControl}
                                 onChange={(e) => setCreateUserForm(prev => ({
                                     ...prev,
                                     role: e.target.value,
@@ -3524,7 +3576,7 @@ const Clubs = ({ initialSubPage }) => {
                                 className="mt-1 min-h-10 w-full rounded-lg border border-border-strong bg-surface px-3 py-2 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                 required
                             >
-                                {createUserRoleOptions.map(role => (
+                                {effectiveCreateUserRoleOptions.map(role => (
                                     <option key={role.value || role.role_key} value={role.value || role.role_key}>
                                         {role.label || role.role_key || role.value}
                                     </option>

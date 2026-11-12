@@ -1397,9 +1397,12 @@ const Clubs = ({ initialSubPage }) => {
                 setShowCreateModal(false);
                 resetForm();
                 fetchClubs();
+            } else {
+                toast.error(response.message || 'Failed to create club');
             }
         } catch (error) {
-            toast.error('Failed to create club');
+            console.error('Failed to create club:', error.response?.data || error);
+            toast.error(error.response?.data?.message || 'Failed to create club');
         }
     };
 

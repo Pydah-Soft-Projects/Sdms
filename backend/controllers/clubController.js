@@ -354,10 +354,13 @@ const createClub = async (req, res) => {
         ];
         const fullAccessUserKeys = await getFullAccessUserKeys();
         const parsedAdminRoles = JSON.stringify(applyFullAccessClubPages(adminRolesWithCreator, fullAccessUserKeys));
+        const createdBy = String(creator.role || '').trim().toLowerCase() === 'admin'
+            ? creator.id
+            : null;
 
         await masterPool.query(
             'INSERT INTO clubs (name, description, image_url, form_fields, members, activities, created_by, membership_fee, fee_type, admin_roles) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [name, description, image_url, form_fields, members, activities, req.user?.id || null, membership_fee || 0, fee_type || 'Yearly', parsedAdminRoles]
+            [name, description, image_url, form_fields, members, activities, createdBy, membership_fee || 0, fee_type || 'Yearly', parsedAdminRoles]
         );
 
         res.json({ success: true, message: 'Club created successfully', data: { image_url } });

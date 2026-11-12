@@ -544,7 +544,7 @@ const AdminLayout = () => {
 
       {/* 2. Main Content Area */}
       <main
-        className={`flex-1 h-screen overflow-y-auto overflow-x-hidden transition-all duration-300 pb-20 lg:pb-0 ${
+        className={`flex-1 h-screen overflow-y-auto overflow-x-hidden transition-all duration-200 ease-in-out pb-20 lg:pb-0 ${
           sidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
         }`}
       >

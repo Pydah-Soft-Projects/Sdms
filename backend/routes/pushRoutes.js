@@ -7,8 +7,11 @@ const { requireAdmin } = require('../middleware/authorize');
 // Public key does not need auth, but better to have it open
 router.get('/vapid-public-key', pushController.getVapidPublicKey);
 
-// Subscribe
+// Subscribe (Web)
 router.post('/subscribe', verifyToken, pushController.subscribe);
+
+// Register Mobile Push Token (Expo Android / iOS)
+router.post('/register-mobile', verifyToken, pushController.registerMobile);
 
 // Broadcast (Admin only)
 router.post('/broadcast', verifyToken, requireAdmin, pushController.broadcastNotification);

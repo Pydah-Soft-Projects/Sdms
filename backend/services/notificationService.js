@@ -443,6 +443,19 @@ exports.createNotification = async ({ studentId, title, message, category = 'Gen
     });
     if (created) {
         console.log(`🔔 Notification created for Student ${studentId}: ${title}`);
+        // Dispatch to mobile device via Expo push
+        try {
+            const pushController = require('../controllers/pushController');
+            pushController.sendNotificationToUser(studentId, {
+                title,
+                body: message,
+                data: {
+                    ...(data || {}),
+                    category,
+                    url: '/(tabs)/announcements',
+                }
+            }).catch(pushErr => console.warn('Mobile push trigger error in createNotification:', pushErr?.message));
+        } catch (e) {}
     }
     return created;
 };

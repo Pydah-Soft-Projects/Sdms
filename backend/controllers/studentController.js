@@ -7656,6 +7656,12 @@ exports.login = async (req, res) => {
 
     const studentProfile = studentRows[0];
 
+    const isMobileClient =
+      req?.headers?.['x-client-type'] === 'mobile' ||
+      req?.headers?.['x-platform'] === 'mobile' ||
+      req?.body?.isMobile === true;
+    const tokenExpiry = isMobileClient ? '3650d' : (process.env.JWT_EXPIRES_IN || '24h');
+
     // Create Token
     const token = jwt.sign(
       {
@@ -7669,7 +7675,7 @@ exports.login = async (req, res) => {
         section: studentProfile.section
       },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: tokenExpiry }
     );
 
     // Filter sensitive data

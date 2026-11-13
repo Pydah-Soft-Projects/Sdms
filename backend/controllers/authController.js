@@ -14,6 +14,14 @@ const { buildStudentRegistrationStatusComputedSql } = require('../services/regis
 
 const studentRegistrationStatusComputedSql = buildStudentRegistrationStatusComputedSql('s', null);
 
+const getTokenExpiry = (req) => {
+  const isMobile =
+    req?.headers?.['x-client-type'] === 'mobile' ||
+    req?.headers?.['x-platform'] === 'mobile' ||
+    req?.body?.isMobile === true;
+  return isMobile ? '3650d' : (process.env.JWT_EXPIRES_IN || '24h');
+};
+
 const buildAdminResponse = (admin) => ({
   id: admin.id,
   username: admin.username,
@@ -180,7 +188,7 @@ exports.unifiedLogin = async (req, res) => {
             collegeId: rbacUser.college_id, courseId: rbacUser.course_id, branchId: rbacUser.branch_id,
             collegeIds: rbacUser.college_ids, courseIds: rbacUser.course_ids, branchIds: rbacUser.branch_ids,
             permissions: rbacUser.permissions
-          }, process.env.JWT_SECRET, { expiresIn: '24h' });
+          }, process.env.JWT_SECRET, { expiresIn: getTokenExpiry(req) });
           return res.json({ success: true, message: 'Login successful', token, user: rbacResponse });
         }
 
@@ -193,7 +201,7 @@ exports.unifiedLogin = async (req, res) => {
 
         const token = jwt.sign({
           id: adminAccount.id, username: adminAccount.username, role: 'admin', modules: ALL_OPERATION_KEYS
-        }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        }, process.env.JWT_SECRET, { expiresIn: getTokenExpiry(req) });
         return res.json({ success: true, message: 'Login successful', token, user: buildAdminResponse(adminAccount) });
       }
     }
@@ -225,7 +233,7 @@ exports.unifiedLogin = async (req, res) => {
           collegeId: rbacUser.college_id, courseId: rbacUser.course_id, branchId: rbacUser.branch_id,
           collegeIds: rbacUser.college_ids, courseIds: rbacUser.course_ids, branchIds: rbacUser.branch_ids,
           permissions: rbacUser.permissions
-        }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        }, process.env.JWT_SECRET, { expiresIn: getTokenExpiry(req) });
         return res.json({ success: true, message: 'Login successful', token, user: rbacResponse });
       }
     }
@@ -275,7 +283,7 @@ exports.unifiedLogin = async (req, res) => {
           current_year: s.current_year,
           current_semester: s.current_semester,
           section: s.section
-        }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        }, process.env.JWT_SECRET, { expiresIn: getTokenExpiry(req) });
 
         // Helper to resolve status
         let parsedData = {};
@@ -345,7 +353,7 @@ exports.unifiedLogin = async (req, res) => {
         const staffResponse = buildStaffResponse(staffUser);
         const token = jwt.sign({
           id: staffUser.id, username: staffUser.username, role: 'staff', modules: staffResponse.modules
-        }, process.env.JWT_SECRET, { expiresIn: '24h' });
+        }, process.env.JWT_SECRET, { expiresIn: getTokenExpiry(req) });
         return res.json({ success: true, message: 'Login successful', token, user: staffResponse });
       }
     }
@@ -506,7 +514,7 @@ exports.unifiedLogin = async (req, res) => {
             collegeId: rbacUser.college_id, courseId: rbacUser.course_id, branchId: rbacUser.branch_id,
             collegeIds: rbacUser.college_ids, courseIds: rbacUser.course_ids, branchIds: rbacUser.branch_ids,
             permissions: rbacUser.permissions
-          }, process.env.JWT_SECRET, { expiresIn: '24h' });
+          }, process.env.JWT_SECRET, { expiresIn: getTokenExpiry(req) });
 
           return res.json({ success: true, message: 'Login successful', token, user: rbacResponse });
         }
@@ -685,7 +693,7 @@ exports.createSSOSession = async (req, res) => {
           college: s.college
         },
         process.env.JWT_SECRET,
-        { expiresIn: '24h' }
+        { expiresIn: getTokenExpiry(req) }
       );
 
       masterPool.query(
@@ -735,7 +743,7 @@ exports.createSSOSession = async (req, res) => {
         permissions: rbacUser.permissions
       },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: getTokenExpiry(req) }
     );
 
     return res.json({
@@ -885,9 +893,27 @@ exports.verifyToken = async (req, res) => {
         role: 'student'
       };
 
+      let token = null;
+      if (req.headers['x-client-type'] === 'mobile' || req.body?.isMobile === true || authUser.role === 'student') {
+        token = jwt.sign({
+          id: studentValid.student_id || authUser.id,
+          admissionNumber: studentValid.admission_number,
+          name: studentValid.student_name,
+          pinNo: studentValid.pin_no || studentValid.username,
+          role: 'student',
+          college_id: studentValid.college_id,
+          branch_id: studentValid.branch_id,
+          course_id: studentValid.course_id,
+          current_year: studentValid.current_year,
+          current_semester: studentValid.current_semester,
+          section: studentValid.section
+        }, process.env.JWT_SECRET, { expiresIn: getTokenExpiry(req) });
+      }
+
       return res.json({
         success: true,
-        user
+        user,
+        ...(token ? { token } : {})
       });
     }
 

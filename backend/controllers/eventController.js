@@ -308,7 +308,7 @@ exports.getStudentEvents = async (req, res) => {
              LEFT JOIN event_registrations mine
                 ON mine.event_id = e.id AND mine.student_id = ? AND mine.status = 'confirmed'
              WHERE e.is_active = 1
-             ORDER BY e.event_date ASC`,
+             ORDER BY e.event_date DESC, e.id DESC`,
                 [student.id]
             );
         } catch (error) {
@@ -343,7 +343,7 @@ exports.getStudentEvents = async (req, res) => {
                         NULL AS my_registration_id, NULL AS my_registration_status
                  FROM events e
                  WHERE e.is_active = 1
-                 ORDER BY e.event_date ASC`
+                 ORDER BY e.event_date DESC, e.id DESC`
             );
         }
 

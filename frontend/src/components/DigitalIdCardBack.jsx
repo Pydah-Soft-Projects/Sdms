@@ -18,13 +18,13 @@ const BackTopWaveSVG = () => {
     >
       <defs>
         <linearGradient id={accentId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--danger)" />
-          <stop offset="50%" stopColor="var(--danger)" />
-          <stop offset="100%" stopColor="var(--danger)" />
+          <stop offset="0%" stopColor="#FCA5A5" />
+          <stop offset="50%" stopColor="#F87171" />
+          <stop offset="100%" stopColor="#DC2626" />
         </linearGradient>
         <linearGradient id={mainId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--danger)" />
-          <stop offset="100%" stopColor="var(--danger)" />
+          <stop offset="0%" stopColor="#D71920" />
+          <stop offset="100%" stopColor="#991B1B" />
         </linearGradient>
       </defs>
       {/* Soft light red background wave accent */}
@@ -32,13 +32,13 @@ const BackTopWaveSVG = () => {
         d="M 0 0 L 540 0 L 540 120 C 360 40, 180 140, 0 105 Z"
         fill={`url(#${accentId})`}
         opacity="0.85"
-        style={{ fill: `url(#${accentId}) var(--danger)` }}
+        style={{ fill: `url(#${accentId}) #F87171` }}
       />
       {/* Main primary vibrant red wave */}
       <path
         d="M 0 0 L 540 0 L 540 95 C 380 30, 160 115, 0 88 Z"
         fill={`url(#${mainId})`}
-        style={{ fill: `url(#${mainId}) var(--danger)` }}
+        style={{ fill: `url(#${mainId}) #D71920` }}
       />
     </svg>
   );
@@ -61,14 +61,14 @@ const BackBottomWaveSVG = () => {
     >
       <defs>
         <linearGradient id={accentId} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="var(--danger)" />
-          <stop offset="50%" stopColor="var(--danger)" />
-          <stop offset="100%" stopColor="var(--danger)" />
+          <stop offset="0%" stopColor="#FCA5A5" />
+          <stop offset="50%" stopColor="#F87171" />
+          <stop offset="100%" stopColor="#EF4444" />
         </linearGradient>
         <linearGradient id={mainId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--danger)" />
-          <stop offset="50%" stopColor="var(--danger)" />
-          <stop offset="100%" stopColor="var(--danger)" />
+          <stop offset="0%" stopColor="#EA2635" />
+          <stop offset="50%" stopColor="#D71920" />
+          <stop offset="100%" stopColor="#991B1B" />
         </linearGradient>
       </defs>
       {/* Light red accent ribbon above bottom wave */}
@@ -76,13 +76,13 @@ const BackBottomWaveSVG = () => {
         d="M 0 55 C 160 125, 380 20, 540 60 L 540 140 L 0 140 Z"
         fill={`url(#${accentId})`}
         opacity="0.85"
-        style={{ fill: `url(#${accentId}) var(--danger)` }}
+        style={{ fill: `url(#${accentId}) #F87171` }}
       />
       {/* Main vibrant red bottom wave */}
       <path
         d="M 0 70 C 180 135, 360 40, 540 78 L 540 140 L 0 140 Z"
         fill={`url(#${mainId})`}
-        style={{ fill: `url(#${mainId}) var(--danger)` }}
+        style={{ fill: `url(#${mainId}) #D71920` }}
       />
     </svg>
   );
@@ -281,7 +281,7 @@ const DigitalIdCardBack = ({
 
   return (
     <div
-      className={`id-card-print-root id-card-back relative flex flex-col bg-surface overflow-hidden text-main select-none transition-transform duration-300 ${
+      className={`id-card-print-root id-card-back relative flex flex-col bg-white overflow-hidden text-gray-900 select-none transition-transform duration-300 ${
         rotate180 ? 'rotate-180 rotate-back-180' : ''
       } ${className}`}
       style={{
@@ -289,8 +289,8 @@ const DigitalIdCardBack = ({
         height: '85.6mm',
         boxSizing: 'border-box',
         position: 'relative',
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
+        background: '#ffffff',
+        border: '1px solid #e5e7eb',
         borderRadius: '12px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -388,21 +388,21 @@ const DigitalIdCardBack = ({
         {/* ── Lower block: separator + return info (sticky to the bottom right above the red wave) ── */}
         <div className="w-full flex flex-col">
           {/* Separator Line */}
-          <div className="w-full h-[0.5px] bg-[var(--border-strong)] mb-[2.0mm]" />
+          <div className="w-full h-[0.5px] bg-[#CBD5E1] mb-[2.0mm]" />
 
           {/* Return Information */}
           <div className="flex flex-col gap-[0.8mm]">
-            <span className="text-[var(--text-secondary)] font-semibold text-[6.0pt] leading-tight">
+            <span className="text-[#64748B] font-semibold text-[6.0pt] leading-tight">
               If found, please return to:
             </span>
-            <h3 className="text-[var(--primary)] font-extrabold text-[9.7pt] leading-tight m-0 line-clamp-2">
+            <h3 className="text-[#111827] font-extrabold text-[9.7pt] leading-tight m-0 line-clamp-2">
               {collegeName}
             </h3>
-            <span className="text-[var(--text-primary)] font-medium text-[6.2pt] leading-tight line-clamp-2">
+            <span className="text-[#334155] font-medium text-[6.2pt] leading-tight line-clamp-2">
               {collegeAddress}
             </span>
             {collegeContact ? (
-              <span className="text-[var(--text-primary)] font-semibold text-[6.2pt] leading-tight">
+              <span className="text-[#334155] font-semibold text-[6.2pt] leading-tight">
                 College Contact: {collegeContact}
               </span>
             ) : null}
@@ -430,7 +430,7 @@ const DigitalIdCardBack = ({
           <span
             style={{
               display: 'block',
-              color: 'var(--surface)',
+              color: '#ffffff',
               fontWeight: 700,
               fontSize: websiteFontSize,
               lineHeight: '1',

@@ -232,6 +232,31 @@ async function fetchTimetableData({ branch_id, branch, year, semester, section, 
                 };
             }
 
+            // Fallback: Check SDMS Master DB (student_database) if Academic Portal has no plan for this branch/year/sem
+            try {
+                const [sdmsRows] = await masterPool.query(
+                    `SELECT te.*, s.name as subject_name, s.code as subject_code,
+                            ps.name as slot_label, ps.start_time, ps.end_time, ps.sort_order as slot_order
+                     FROM timetable_entries te
+                     LEFT JOIN subjects s ON s.id = te.subject_id
+                     LEFT JOIN period_slots ps ON ps.id = te.period_slot_id
+                     WHERE (te.branch_id = ? OR ? IS NULL) AND te.year_of_study = ? AND te.semester_number = ?
+                     ORDER BY FIELD(te.day_of_week, 'MON', 'TUE', 'WED', 'THUR', 'THU', 'FRI', 'SAT', 'SUN', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), ps.sort_order`,
+                    [branch_id || null, branch_id || null, year, semester]
+                );
+                if (sdmsRows && sdmsRows.length > 0) {
+                    return {
+                        success: true,
+                        data: sdmsRows,
+                        plan: null,
+                        slots: [],
+                        source: 'sdms_master'
+                    };
+                }
+            } catch (sdmsErr) {
+                console.warn('SDMS master fallback timetable error:', sdmsErr.message);
+            }
+
             return {
                 success: true,
                 data: [],

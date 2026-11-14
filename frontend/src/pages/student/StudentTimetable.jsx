@@ -138,32 +138,34 @@ const StudentTimetable = () => {
             if (isManualRefresh) setRefreshing(true);
             else setLoading(true);
 
-            // 1. Fetch Default Period Slots
-            const slotsRes = await api.get('/period-slots', {
-                params: collegeId ? { college_id: collegeId } : {}
-            });
-            if (slotsRes.data?.success && Array.isArray(slotsRes.data.data)) {
-                setPeriodSlots(normalizeSlotTimings(slotsRes.data.data));
+            // 1. Fetch Default Period Slots safely
+            try {
+                const slotsRes = await api.get('/period-slots', {
+                    params: collegeId ? { college_id: collegeId } : {}
+                });
+                if (slotsRes.data?.success && Array.isArray(slotsRes.data.data)) {
+                    setPeriodSlots(normalizeSlotTimings(slotsRes.data.data));
+                }
+            } catch (slotsErr) {
+                console.warn('Period slots fetch notice:', slotsErr?.message);
             }
 
-            // 2. Fetch Timetable for Selected Year & Semester strictly from Academic Portal
-            const timetableRes = await api.get('/timetable/my-timetable', {
-                params: {
-                    branch_id: branchId,
-                    branch: user?.branch,
-                    year: selectedYear,
-                    semester: selectedSem
-                }
-            }).catch(async () => {
-                return await api.get('/timetable', {
-                    params: {
-                        branch_id: branchId,
-                        branch: user?.branch,
-                        year: selectedYear,
-                        semester: selectedSem
-                    }
+            // 2. Fetch Timetable for Selected Year & Semester
+            const timetableEndpoint = user?.role === 'parent' ? '/parent/timetable' : '/timetable/my-timetable';
+            const queryParams = {
+                branch_id: branchId,
+                branch: user?.branch,
+                year: selectedYear,
+                semester: selectedSem
+            };
+
+            const timetableRes = await api.get(timetableEndpoint, { params: queryParams })
+                .catch(async () => {
+                    return await api.get('/timetable/my-timetable', { params: queryParams });
+                })
+                .catch(async () => {
+                    return await api.get('/timetable', { params: queryParams });
                 });
-            });
 
             if (timetableRes?.data?.success) {
                 setTimetableData(timetableRes.data.data || []);
@@ -173,9 +175,10 @@ const StudentTimetable = () => {
                 }
             }
 
-            // 3. Fetch Academic Attendance Summary
+            // 3. Fetch Academic Attendance Summary safely
             try {
-                const attRes = await api.get('/attendance/student');
+                const attEndpoint = user?.role === 'parent' ? '/parent/attendance' : '/attendance/student';
+                const attRes = await api.get(attEndpoint);
                 if (attRes.data?.success) {
                     setAttendanceData(attRes.data.data || null);
                 }
@@ -186,7 +189,9 @@ const StudentTimetable = () => {
             if (isManualRefresh) toast.success('Timetable & Attendance refreshed!');
         } catch (error) {
             console.error('Failed to fetch timetable data:', error);
-            toast.error('Failed to load timetable details');
+            if (isManualRefresh) {
+                toast.error('Failed to load timetable details');
+            }
         } finally {
             setLoading(false);
             setRefreshing(false);

@@ -29,6 +29,7 @@ import useAuthStore from '../../store/authStore';
 import toast from 'react-hot-toast';
 import api, { getStaticFileUrlDirect } from '../../config/api';
 import LogoutConfirmModal from '../LogoutConfirmModal';
+import ParentTopHeaderBar from '../parent/TopHeaderBar';
 
 const ParentLayout = () => {
   const navigate = useNavigate();
@@ -189,60 +190,79 @@ const ParentLayout = () => {
       {!desktopSidebarOpen && (
         <button
           type="button"
-          className="hidden lg:flex fixed top-6 left-6 z-50 p-2 bg-surface/80 backdrop-blur-md rounded-lg shadow-sm border border-border text-muted-text hover:text-main"
+          className="hidden lg:flex fixed top-6 left-6 z-50 p-2 bg-[var(--surface)]/80 backdrop-blur-md rounded-lg shadow-sm border border-border text-muted-text hover:text-main transition-all hover:scale-105 active:scale-95"
           onClick={() => setDesktopSidebarOpen(true)}
+          title="Expand Sidebar"
         >
           <RiMenuLine size={20} />
         </button>
       )}
 
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar (Identical to Student Portal Theme and Design) */}
       <aside
-        className={`hidden lg:flex fixed inset-y-0 left-0 z-40 w-72 bg-surface/95 backdrop-blur-xl border-r border-border shadow-sm transform transition-all duration-500 ${
+        className={`hidden lg:flex fixed inset-y-0 left-0 z-40 w-72 backdrop-blur-xl border-r transform transition-all duration-500 ease-in-out bg-[var(--surface)]/95 border-border shadow-[4px_0_24px_-2px_rgba(0,0,0,0.02)] ${
           desktopSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="h-full flex flex-col w-full">
-          {/* Logo Header */}
-          <div className="h-20 flex items-center justify-between px-6 border-b border-border">
-            <div className="flex items-center gap-3 cursor-pointer min-w-0" onClick={() => navigate('/parent/dashboard')}>
-              <div className="h-11 w-11 rounded-2xl bg-surface border border-border shadow-xs flex items-center justify-center p-1.5 shrink-0">
-                <img src="/campo-logos/icon-192.png" alt="CAMPO SD" className="h-full w-full object-contain" />
-              </div>
-              <div className="min-w-0">
-                <span className="text-base font-black text-main tracking-tight block leading-none">Parent</span>
-                <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest">Portal</span>
+        <div className="h-full w-full flex flex-col min-h-0 overflow-hidden">
+          {/* Logo Area */}
+          <div className="shrink-0 h-16 lg:h-[4.25rem] flex items-center justify-between px-5 border-b transition-all duration-300 border-border bg-[var(--surface)]/50">
+            <div className="flex items-center gap-3.5 group cursor-pointer" onClick={() => navigate('/parent/dashboard')}>
+              <img
+                src="/campo-logos/icon-192.png"
+                alt="CAMPO SD"
+                className="h-11 w-11 rounded-2xl object-contain shadow-md transition-transform duration-300 group-hover:scale-105"
+              />
+              <div className="flex flex-col justify-center">
+                <span className="text-lg font-black text-main tracking-tight leading-none">
+                  CAMPO
+                </span>
+                <span className="text-[10px] font-bold text-muted-text uppercase tracking-widest mt-0.5">
+                  Parent Portal
+                </span>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setDesktopSidebarOpen(false)}
-              className="p-1.5 text-muted-text hover:bg-background rounded-xl shrink-0"
+              className="p-2 text-muted-text hover:text-main hover:bg-[var(--background)]/80 rounded-xl transition-all active:scale-90"
             >
               <RiMenuLine size={18} />
             </button>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+          {/* Navigation Links with Student Side Pill Indicators and Active Pulse */}
+          <nav className="flex-1 min-h-0 px-3 py-4 lg:py-5 space-y-0.5 overflow-y-auto no-scrollbar scroll-smooth">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={({ isActive }) =>
-                  `relative flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-[13px] font-bold transition-all ${
-                    isActive
-                      ? 'bg-primary/10 text-primary shadow-xs border border-primary/20'
-                      : 'text-muted-text hover:bg-background hover:text-main'
-                  }`
-                }
+                className={({ isActive }) => `
+                  relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] font-bold transition-all duration-200 group
+                  ${isActive
+                    ? 'bg-[var(--primary-light)] text-info shadow-sm border border-info'
+                    : 'text-muted-text hover:bg-[var(--background)]/80 hover:text-main'}
+                `}
               >
                 {({ isActive }) => {
                   const Icon = isActive ? item.activeIcon : item.icon;
                   return (
                     <>
-                      <Icon size={19} className="shrink-0" />
-                      <span className="truncate">{item.label}</span>
+                      <span
+                        className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-r-full transition-all duration-500 bg-info ${
+                          isActive ? 'opacity-100 translate-x-[-8px]' : 'opacity-0 scale-y-0'
+                        }`}
+                      />
+                      <Icon
+                        size={20}
+                        className={`transition-all duration-300 ${
+                          isActive ? 'scale-110 opacity-100' : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'
+                        }`}
+                      />
+                      <span className="tracking-tight">{item.label}</span>
+                      {isActive && (
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full animate-pulse transition-all bg-info shadow-lg shadow-info/40" />
+                      )}
                     </>
                   );
                 }}
@@ -250,27 +270,39 @@ const ParentLayout = () => {
             ))}
           </nav>
 
-          {/* Active Student Info / Child Switcher */}
-          <div className="mx-4 mb-3 p-3 rounded-2xl border border-border bg-background shadow-xs">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl overflow-hidden bg-primary/10 ring-2 ring-white shrink-0">
-                {photoUrl ? (
-                  <img src={photoUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-primary">
-                    <RiUser3Fill size={18} />
-                  </div>
-                )}
+          {/* User Info Card with Theme Background Accent and Child Switcher */}
+          <div
+            onClick={() => navigate('/parent/profile')}
+            className="shrink-0 mx-5 mb-3 p-3.5 rounded-2xl border relative overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-500 bg-surface border-[var(--primary-light)] shadow-info/10"
+          >
+            <div className="absolute top-0 right-0 w-20 h-20 rounded-bl-full -mr-10 -mt-10 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-12 bg-[var(--primary-light)]" />
+            <div className="flex items-center gap-3.5 relative z-10">
+              <div className="relative shrink-0">
+                <div className="h-11 w-11 rounded-full ring-2 ring-white shadow-lg bg-background overflow-hidden relative z-10 transition-transform duration-500 group-hover:scale-105">
+                  {photoUrl ? (
+                    <img src={photoUrl} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center bg-[var(--primary-light)] text-info">
+                      <RiUser3Fill size={20} />
+                    </div>
+                  )}
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-surface z-20 bg-success" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-black text-main truncate">{user?.student_name || 'Child'}</p>
-                <p className="text-[10px] font-bold text-muted-text truncate">{user?.admission_number}</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-[13px] font-black text-main truncate tracking-tight">{user?.student_name || 'Child'}</p>
+                </div>
+                <p className="text-[11px] font-bold text-muted-text truncate tracking-wide uppercase">{user?.admission_number}</p>
               </div>
             </div>
 
             {/* Child Switcher if multiple children */}
             {childrenList.length > 1 && (
-              <div className="mt-2 pt-2 border-t border-border flex items-center justify-between">
+              <div
+                className="mt-2.5 pt-2 border-t border-border flex items-center justify-between relative z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <span className="text-[10px] text-muted-text font-bold uppercase">Children ({childrenList.length})</span>
                 <button
                   type="button"
@@ -284,16 +316,22 @@ const ParentLayout = () => {
             )}
 
             {showChildDropdown && childrenList.length > 1 && (
-              <div className="mt-2 space-y-1 pt-1">
+              <div
+                className="mt-2 space-y-1 pt-1 border-t border-border relative z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {childrenList.map((c) => (
                   <button
                     key={c.id}
                     type="button"
-                    onClick={() => handleSwitchChild(c.id)}
+                    onClick={() => {
+                      handleSwitchChild(c.id);
+                      setShowChildDropdown(false);
+                    }}
                     className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-between ${
                       String(c.id) === String(user?.studentId || user?.id)
                         ? 'bg-primary text-white'
-                        : 'bg-surface hover:bg-muted text-main border border-border'
+                        : 'bg-background hover:bg-muted text-main border border-border'
                     }`}
                   >
                     <span className="truncate">{c.student_name}</span>
@@ -304,26 +342,29 @@ const ParentLayout = () => {
             )}
           </div>
 
-          {/* Sign Out Button */}
-          <div className="p-4 border-t border-border">
+          {/* Sign Out Button (Identical to Student Portal) */}
+          <div className="shrink-0 p-4 border-t border-border bg-[var(--background)]/30">
             <button
               type="button"
               onClick={handleLogout}
-              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-sidebar text-white text-xs font-bold hover:bg-sidebar/90 transition-all shadow-xs"
+              className="flex items-center justify-center gap-2.5 px-4 py-3.5 w-full rounded-xl text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 group bg-sidebar hover:bg-sidebar"
             >
-              <RiLogoutBoxRLine size={16} />
+              <RiLogoutBoxRLine size={18} className="group-hover:-translate-x-1 transition-transform" />
               <span>Sign Out</span>
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Main Page Body */}
+      {/* Main Page Body - Balanced Centering with desktop sidebar padding */}
       <main
-        className={`parent-portal-scroll relative z-10 flex flex-col flex-1 min-h-0 w-full min-w-0 overflow-hidden lg:ml-0 ${
-          desktopSidebarOpen ? 'lg:ml-72' : 'lg:ml-0'
+        className={`relative z-10 flex flex-col flex-1 min-h-0 w-full min-w-0 overflow-hidden transition-all duration-300 ${
+          desktopSidebarOpen ? 'lg:pl-72' : 'lg:pl-0'
         }`}
       >
+        {/* Desktop Top Header Bar (Matching Student Portal TopHeaderBar Design) */}
+        <ParentTopHeaderBar />
+
         <div className="flex-1 w-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-contain">
           <Outlet />
         </div>

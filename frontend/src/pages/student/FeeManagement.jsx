@@ -139,18 +139,32 @@ const FeeManagement = () => {
     };
 
     const fetchFeeDetails = async () => {
-        if (!user?.admission_number) return;
+        const admissionNum = user?.admission_number || user?.admissionNumber;
+        if (!admissionNum && !user?.studentId && !user?.id) return;
         try {
             setLoading(true);
-            const response = await api.get(`/fees/students/${user.admission_number}/details`);
-            if (response.data.success) {
+            setError(null);
+            let response = null;
+
+            if (user?.role === 'parent') {
+                response = await api.get('/parent/fees')
+                    .catch(async () => {
+                        const target = admissionNum || user?.studentId || user?.id;
+                        return await api.get(`/fees/students/${target}/details`);
+                    });
+            } else {
+                const target = admissionNum || user?.studentId || user?.id;
+                response = await api.get(`/fees/students/${target}/details`);
+            }
+
+            if (response?.data?.success) {
                 setFeeData(response.data);
                 const currYear = response.data.studentDetails?.currentYear;
                 if (currYear) {
                     setSelectedYear(Number(currYear));
                 }
             } else {
-                setError('Failed to load fee details');
+                setError(response?.data?.message || 'Failed to load fee details');
             }
         } catch (err) {
             console.error('Error fetching fee details:', err);

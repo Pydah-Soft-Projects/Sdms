@@ -172,19 +172,47 @@ const attachUserScope = async (req, res, next) => {
       return next();
     }
 
-    // Students don't have RBAC scope (they are not in rbac_users table)
-    if (user.role === 'student') {
+    // Students and Parents don't have RBAC scope (they are not in rbac_users table)
+    if (user.role === 'student' || user.role === 'parent') {
+      let collegeId = user.college_id || user.collegeId;
+      let courseId = user.course_id || user.courseId;
+      let branchId = user.branch_id || user.branchId;
+      let collegeName = user.college;
+      let courseName = user.course;
+      let branchName = user.branch;
+
+      const studentLookup = user.studentId || user.id || user.admission_number || user.admissionNumber;
+      if ((!collegeId || !branchId) && studentLookup) {
+        try {
+          const [sRows] = await masterPool.query(
+            'SELECT college_id, course_id, branch_id, college, course, branch FROM students WHERE id = ? OR admission_number = ? LIMIT 1',
+            [user.studentId || user.id, user.admission_number || user.admissionNumber || '']
+          );
+          if (sRows && sRows.length > 0) {
+            collegeId = collegeId || sRows[0].college_id;
+            courseId = courseId || sRows[0].course_id;
+            branchId = branchId || sRows[0].branch_id;
+            collegeName = collegeName || sRows[0].college;
+            courseName = courseName || sRows[0].course;
+            branchName = branchName || sRows[0].branch;
+          }
+        } catch (sErr) {
+          // ignore lookup failure
+        }
+      }
+
       req.userScope = {
-        collegeIds: user.college_id ? [Number(user.college_id)] : [],
-        courseIds: user.courseId ? [Number(user.courseId)] : [], // If present in token
-        branchIds: user.branch_id ? [Number(user.branch_id)] : [],
-        collegeNames: user.college ? [user.college] : [],
-        courseNames: user.course ? [user.course] : [],
-        branchNames: user.branch ? [user.branch] : [],
+        collegeIds: collegeId ? [Number(collegeId)] : [],
+        courseIds: courseId ? [Number(courseId)] : [],
+        branchIds: branchId ? [Number(branchId)] : [],
+        collegeNames: collegeName ? [collegeName] : [],
+        courseNames: courseName ? [courseName] : [],
+        branchNames: branchName ? [branchName] : [],
         allCourses: false,
         allBranches: false,
         unrestricted: false,
-        isStudent: true
+        isStudent: user.role === 'student',
+        isParent: user.role === 'parent'
       };
       return next();
     }

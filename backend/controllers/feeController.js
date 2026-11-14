@@ -229,8 +229,8 @@ exports.getStudentFeeDetails = async (req, res) => {
        LEFT JOIN colleges ON (s.college_id = colleges.id OR s.college COLLATE utf8mb4_unicode_ci = colleges.name COLLATE utf8mb4_unicode_ci)
        LEFT JOIN courses ON (s.course_id = courses.id OR (s.course COLLATE utf8mb4_unicode_ci = courses.name COLLATE utf8mb4_unicode_ci AND (courses.college_id = colleges.id OR courses.college_id IS NULL)))
        LEFT JOIN course_branches ON s.branch_id = course_branches.id
-       WHERE s.admission_number = ?`,
-      [studentId]
+       WHERE s.admission_number = ? OR s.id = ?`,
+      [studentId, isNaN(studentId) ? 0 : Number(studentId)]
     );
 
     if (!students || students.length === 0) {

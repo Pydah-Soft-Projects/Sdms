@@ -11,6 +11,7 @@ const { getHRMSConnection } = require('../config/mongoConfig');
 const { getModel: getHRMSUserModel } = require('../models/HRMSUser');
 const { getModel: getHRMSEmployeeModel } = require('../models/HRMSEmployee');
 const { buildStudentRegistrationStatusComputedSql } = require('../services/registrationReportSql');
+const { checkEmployeeHrmsStatus, isHrmsDeactivated } = require('../services/hrmsSyncService');
 
 const studentRegistrationStatusComputedSql = buildStudentRegistrationStatusComputedSql('s', null);
 
@@ -195,6 +196,16 @@ exports.unifiedLogin = async (req, res) => {
         if (rbacAdmin && rbacAdmin.length > 0) {
           const rbacUser = rbacAdmin[0];
           if (!rbacUser.is_active) return res.status(403).json({ success: false, message: 'Account deactivated' });
+          if (rbacUser.hrms_id) {
+            const hrmsStatus = await checkEmployeeHrmsStatus(rbacUser);
+            if (hrmsStatus.isDeactivated) {
+              await masterPool.query('UPDATE rbac_users SET is_active = 0, updated_at = NOW() WHERE id = ?', [rbacUser.id]);
+              return res.status(403).json({
+                success: false,
+                message: 'Account deactivated centrally in HRMS. Access to SDMS is disabled.'
+              });
+            }
+          }
           if (!isRoleAllowed(rbacUser.role)) {
             return res.status(403).json({
               success: false,
@@ -230,7 +241,7 @@ exports.unifiedLogin = async (req, res) => {
     // Covers faculty, HODs, principals, staff, and previously synced HRMS users
     // -------------------------------------------------------------
     const [rbacRows] = await masterPool.query(
-      `SELECT id, name, username, email, phone, password, role, college_id, course_id, branch_id, college_ids, course_ids, branch_ids, permissions, is_active
+      `SELECT id, name, username, email, phone, password, role, college_id, course_id, branch_id, college_ids, course_ids, branch_ids, permissions, is_active, hrms_id
        FROM rbac_users WHERE username = ? OR email = ? LIMIT 1`,
       [cleanUsername, cleanUsername]
     );
@@ -239,6 +250,22 @@ exports.unifiedLogin = async (req, res) => {
       const rbacUser = rbacRows[0];
       if (rbacUser.password && await bcrypt.compare(password, rbacUser.password)) {
         if (!rbacUser.is_active) return res.status(403).json({ success: false, message: 'Account deactivated' });
+
+        // Auto-check and deactivate if employee is in deactivated state in HRMS
+        if (rbacUser.hrms_id || (rbacUser.role !== 'student' && rbacUser.role !== 'parent')) {
+          const hrmsStatus = await checkEmployeeHrmsStatus(rbacUser);
+          if (hrmsStatus.isDeactivated) {
+            await masterPool.query(
+              'UPDATE rbac_users SET is_active = 0, updated_at = NOW() WHERE id = ?',
+              [rbacUser.id]
+            );
+            return res.status(403).json({
+              success: false,
+              message: 'Account deactivated centrally in HRMS. Access to SDMS is disabled.'
+            });
+          }
+        }
+
         if (!isRoleAllowed(rbacUser.role)) {
           return res.status(403).json({
             success: false,
@@ -362,6 +389,17 @@ exports.unifiedLogin = async (req, res) => {
       const staffUser = staffRows[0];
       if (await bcrypt.compare(password, staffUser.password_hash)) {
         if (!staffUser.is_active) return res.status(403).json({ success: false, message: 'Account deactivated' });
+
+        // Auto-check and deactivate if legacy staff employee is deactivated in HRMS
+        const hrmsStatus = await checkEmployeeHrmsStatus(staffUser);
+        if (hrmsStatus.isDeactivated) {
+          await masterPool.query('UPDATE staff_users SET is_active = 0, updated_at = NOW() WHERE id = ?', [staffUser.id]);
+          return res.status(403).json({
+            success: false,
+            message: 'Account deactivated centrally in HRMS. Access to SDMS is disabled.'
+          });
+        }
+
         if (!isRoleAllowed('staff')) {
           return res.status(403).json({
             success: false,
@@ -403,6 +441,19 @@ exports.unifiedLogin = async (req, res) => {
           ]
         }).select('+password').maxTimeMS(2500).lean().exec();
 
+        // If employee is deactivated in HRMS, automatically deactivate in SDMS and block login
+        if (empDoc && isHrmsDeactivated(empDoc)) {
+          const empHrmsId = empDoc._id ? empDoc._id.toString() : null;
+          await masterPool.query(
+            'UPDATE rbac_users SET is_active = 0, updated_at = NOW() WHERE hrms_id = ? OR email = ? OR username = ?',
+            [empHrmsId, empDoc.email || cleanUsername, empDoc.emp_no || cleanUsername]
+          );
+          return res.status(403).json({
+            success: false,
+            message: 'Account deactivated centrally in HRMS. Access to SDMS is disabled.'
+          });
+        }
+
         if (empDoc && empDoc.password) {
           const isEmpPassValid = await bcrypt.compare(password, empDoc.password);
           if (isEmpPassValid) {
@@ -428,6 +479,18 @@ exports.unifiedLogin = async (req, res) => {
           const userDocByEmpLink = await HRMSUser.findOne({ $or: userSearchCriteria })
             .select('+password').maxTimeMS(2500).lean().exec();
 
+          if (userDocByEmpLink && isHrmsDeactivated(userDocByEmpLink)) {
+            const userHrmsId = userDocByEmpLink._id ? userDocByEmpLink._id.toString() : null;
+            await masterPool.query(
+              'UPDATE rbac_users SET is_active = 0, updated_at = NOW() WHERE hrms_id = ? OR email = ? OR username = ?',
+              [userHrmsId, userDocByEmpLink.email || cleanUsername, userDocByEmpLink.employeeId || cleanUsername]
+            );
+            return res.status(403).json({
+              success: false,
+              message: 'Account deactivated centrally in HRMS. Access to SDMS is disabled.'
+            });
+          }
+
           if (userDocByEmpLink && userDocByEmpLink.password) {
             const isUserPassValid = await bcrypt.compare(password, userDocByEmpLink.password);
             if (isUserPassValid) {
@@ -449,6 +512,18 @@ exports.unifiedLogin = async (req, res) => {
           const directUserDoc = await HRMSUser.findOne({ email: cleanUsername })
             .select('+password').maxTimeMS(2500).lean().exec();
 
+          if (directUserDoc && isHrmsDeactivated(directUserDoc)) {
+            const directHrmsId = directUserDoc._id ? directUserDoc._id.toString() : null;
+            await masterPool.query(
+              'UPDATE rbac_users SET is_active = 0, updated_at = NOW() WHERE hrms_id = ? OR email = ? OR username = ?',
+              [directHrmsId, directUserDoc.email || cleanUsername, directUserDoc.employeeId || cleanUsername]
+            );
+            return res.status(403).json({
+              success: false,
+              message: 'Account deactivated centrally in HRMS. Access to SDMS is disabled.'
+            });
+          }
+
           if (directUserDoc && directUserDoc.password) {
             const isDirectUserPassValid = await bcrypt.compare(password, directUserDoc.password);
             if (isDirectUserPassValid) {
@@ -467,8 +542,15 @@ exports.unifiedLogin = async (req, res) => {
         if (isHRMSLogin && hrmsMatchedObj) {
           const hrmsIdStr = hrmsMatchedObj._id.toString();
 
-          if (hrmsMatchedObj.isActive === false || hrmsMatchedObj.is_active === false) {
-            return res.status(403).json({ success: false, message: 'Account deactivated centrally' });
+          if (isHrmsDeactivated(hrmsMatchedObj)) {
+            await masterPool.query(
+              'UPDATE rbac_users SET is_active = 0, updated_at = NOW() WHERE hrms_id = ? OR email = ? OR username = ?',
+              [hrmsIdStr, mappedEmail, cleanUsername]
+            );
+            return res.status(403).json({
+              success: false,
+              message: 'Account deactivated centrally in HRMS. Access to SDMS is disabled.'
+            });
           }
 
           let [existingLocal] = await masterPool.query(
@@ -731,7 +813,7 @@ exports.createSSOSession = async (req, res) => {
     // 2b) RBAC SSO: userId = rbac_users.id
     const [rows] = await masterPool.query(
       `SELECT id, name, username, email, phone, role, college_id, course_id, branch_id,
-              college_ids, course_ids, branch_ids, permissions, is_active
+              college_ids, course_ids, branch_ids, permissions, is_active, hrms_id
        FROM rbac_users
        WHERE id = ? AND is_active = 1
        LIMIT 1`,
@@ -746,6 +828,18 @@ exports.createSSOSession = async (req, res) => {
     }
 
     const rbacUser = rows[0];
+
+    // Check HRMS status for SSO
+    if (rbacUser.hrms_id || (rbacUser.role !== 'student' && rbacUser.role !== 'parent')) {
+      const hrmsStatus = await checkEmployeeHrmsStatus(rbacUser);
+      if (hrmsStatus.isDeactivated) {
+        await masterPool.query('UPDATE rbac_users SET is_active = 0, updated_at = NOW() WHERE id = ?', [rbacUser.id]);
+        return res.status(403).json({
+          success: false,
+          message: 'Account deactivated centrally in HRMS. Access to SDMS is disabled.'
+        });
+      }
+    }
     const user = await addClubRolesToUserResponse(rbacUser, buildRBACUserResponse(rbacUser));
 
     const token = jwt.sign(

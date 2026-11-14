@@ -13,6 +13,7 @@ const { getNonWorkingDayInfo } = require('./nonWorkingDayService');
 const { getAllNotificationUsers, filterAttendanceByUserScope } = require('./getUserScopeAttendance');
 const { appendSemesterCalendarFilter } = require('./semesterCalendarService');
 const { appendAttendanceJoinDateClause } = require('../utils/studentAttendanceEligibility');
+const { syncHrmsEmployeeStatus } = require('./hrmsSyncService');
 
 
 
@@ -498,7 +499,30 @@ const initScheduledJobs = () => {
 
     console.log('✅ 12 AM IST Birthday Check (push + SMS) scheduled.');
 
+    // Schedule HRMS Employee Status Sync every day night at 12:00 AM IST (midnight) to auto-deactivate in SDMS if deactivated in HRMS
+    cron.schedule('0 0 * * *', async () => {
+        console.log('⏰ Triggering 12:00 AM IST Nightly HRMS Employee Status Sync...');
+        try {
+            await syncHrmsEmployeeStatus();
+        } catch (err) {
+            console.error("❌ Scheduled nightly HRMS employee status sync failed:", err.message);
+        }
+    }, {
+        scheduled: true,
+        timezone: "Asia/Kolkata"
+    });
 
+    console.log('✅ Nightly HRMS Employee Deactivation Sync scheduled (every day night at 12:00 AM IST).');
+
+    // Run initial HRMS employee sync 15 seconds after server start
+    setTimeout(async () => {
+        try {
+            console.log('🔄 Running initial startup sync of HRMS employee statuses...');
+            await syncHrmsEmployeeStatus();
+        } catch (err) {
+            console.warn('⚠️ Initial startup HRMS sync warning:', err.message);
+        }
+    }, 15000);
 };
 
 module.exports = {

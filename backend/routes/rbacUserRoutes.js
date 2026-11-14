@@ -149,6 +149,13 @@ router.get(
   rbacUserController.searchHRMSEmployee
 );
 
+// Sync HRMS employee status (auto-deactivate SDMS users if deactivated in HRMS)
+router.post(
+  '/sync-hrms-status',
+  verifyCurrentUserManagementPermission('control'),
+  rbacUserController.syncHrmsStatus
+);
+
 // Get single user
 router.get(
   '/:id',

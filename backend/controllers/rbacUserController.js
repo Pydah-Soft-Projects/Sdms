@@ -1705,6 +1705,17 @@ exports.updateUser = async (req, res) => {
     }
 
     if (isActive !== undefined) {
+      if (isActive) {
+        // If activating a user, ensure they are not in a deactivated state in HRMS
+        const { checkEmployeeHrmsStatus } = require('../services/hrmsSyncService');
+        const hrmsCheck = await checkEmployeeHrmsStatus(existingUser);
+        if (hrmsCheck.isDeactivated) {
+          return res.status(400).json({
+            success: false,
+            message: 'Cannot activate user: Employee is in a deactivated state in HRMS. Please reactivate them in HRMS first.'
+          });
+        }
+      }
       updates.push('is_active = ?');
       params.push(isActive ? 1 : 0);
     }
@@ -2530,6 +2541,24 @@ exports.getStudentStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error fetching stats: ' + error.message
+    });
+  }
+};
+
+/**
+ * POST /api/rbac/users/sync-hrms-status
+ * Manually trigger HRMS status synchronization to deactivate employees in SDMS who are deactivated in HRMS
+ */
+exports.syncHrmsStatus = async (req, res) => {
+  try {
+    const { syncHrmsEmployeeStatus } = require('../services/hrmsSyncService');
+    const result = await syncHrmsEmployeeStatus();
+    return res.json(result);
+  } catch (error) {
+    console.error('HRMS Sync Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to sync HRMS employee status: ' + error.message
     });
   }
 };

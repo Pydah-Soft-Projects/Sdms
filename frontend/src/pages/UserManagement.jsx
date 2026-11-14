@@ -777,6 +777,7 @@ const UserManagement = () => {
   const [hrmsSearchResults, setHrmsSearchResults] = useState([]);
   const [searchingHrms, setSearchingHrms] = useState(false);
   const [showHrmsSearch, setShowHrmsSearch] = useState(false);
+  const [syncingHrms, setSyncingHrms] = useState(false);
 
   // Selection modal states
   const [showCollegeModal, setShowCollegeModal] = useState(false);
@@ -1832,6 +1833,28 @@ const UserManagement = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to activate user');
+    }
+  };
+
+  const handleSyncHrmsStatus = async () => {
+    try {
+      setSyncingHrms(true);
+      const res = await api.post('/rbac/users/sync-hrms-status');
+      if (res.data?.success) {
+        if (res.data.deactivatedCount > 0) {
+          toast.success(`HRMS Sync: ${res.data.deactivatedCount} deactivated employee(s) automatically deactivated in SDMS`);
+        } else {
+          toast.success('HRMS Sync: All employee statuses are in sync with HRMS');
+        }
+        await loadUsers();
+      } else {
+        toast.error(res.data?.message || 'Failed to sync HRMS status');
+      }
+    } catch (err) {
+      console.error('HRMS sync error:', err);
+      toast.error(err.response?.data?.message || 'Failed to sync HRMS status');
+    } finally {
+      setSyncingHrms(false);
     }
   };
 
@@ -2943,9 +2966,24 @@ const UserManagement = () => {
                     className="w-full sm:w-56 pl-10 pr-4 py-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white placeholder-white/60 text-sm focus:outline-none focus:bg-[var(--surface)]/30 transition-all touch-manipulation min-h-[44px]"
                   />
                 </div>
-                <button onClick={loadUsers} className="p-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0">
+                <button 
+                  onClick={loadUsers} 
+                  title="Reload users"
+                  className="p-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
+                >
                   <RefreshCw size={18} />
                 </button>
+                {canManageUsers && (
+                  <button
+                    onClick={handleSyncHrmsStatus}
+                    disabled={syncingHrms}
+                    title="Check HRMS status and auto-deactivate deactivated employees"
+                    className="px-3 py-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-h-[44px] flex items-center gap-1.5 text-xs font-semibold flex-shrink-0 disabled:opacity-50"
+                  >
+                    <RefreshCw size={14} className={syncingHrms ? "animate-spin" : ""} />
+                    <span className="hidden sm:inline">Sync HRMS</span>
+                  </button>
+                )}
               </div>
             </div>
 

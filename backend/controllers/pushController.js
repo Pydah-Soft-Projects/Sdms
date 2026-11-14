@@ -273,6 +273,7 @@ exports.sendNotificationToUser = async (userId, payload) => {
                 data: payload.data || {},
                 priority: 'high',
                 channelId: 'default',
+                _displayInForeground: true,
             }));
 
             const expoRes = await sendExpoPushNotification(expoMessages);
@@ -344,6 +345,7 @@ exports.broadcastNotification = async (req, res) => {
                 data: payload.data || {},
                 priority: 'high',
                 channelId: 'default',
+                _displayInForeground: true,
             }));
 
             const expoRes = await sendExpoPushNotification(expoMessages);
@@ -420,6 +422,7 @@ exports.sendBatchNotification = async (userIds, payload) => {
                 data: payload.data || {},
                 priority: 'high',
                 channelId: 'default',
+                _displayInForeground: true,
             }));
 
             const expoRes = await sendExpoPushNotification(expoMessages);

@@ -314,10 +314,14 @@ const StudentLayout = ({ children }) => {
     };
 
     const isPending = isRegistrationRestricted();
-    const allowedPaths = ['/student/dashboard', '/student/semester-registration'];
+    const allowedPaths = ['/student/dashboard', '/student/semester-registration', '/student/feedback'];
+    const isAllowedPath = (pathname) => {
+        if (!pathname) return false;
+        return allowedPaths.some(allowed => pathname === allowed || pathname.startsWith(`${allowed}/`));
+    };
 
     useEffect(() => {
-        if (isPending && !allowedPaths.includes(location.pathname)) {
+        if (isPending && !isAllowedPath(location.pathname)) {
             setShowRestrictionModal(true);
         } else if (!isPending) {
             setShowRestrictionModal(false);
@@ -337,7 +341,7 @@ const StudentLayout = ({ children }) => {
     }, [location.pathname, layoutSettings, navigate]);
 
     const handleNavigation = (e, path) => {
-        if (isPending && !allowedPaths.includes(path)) {
+        if (isPending && !isAllowedPath(path)) {
             e.preventDefault();
             setShowRestrictionModal(true);
         }
@@ -346,7 +350,7 @@ const StudentLayout = ({ children }) => {
 
     const handleModalClose = () => {
         setShowRestrictionModal(false);
-        if (isPending && !allowedPaths.includes(location.pathname)) {
+        if (isPending && !isAllowedPath(location.pathname)) {
             navigate('/student/dashboard');
         }
     };

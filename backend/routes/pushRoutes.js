@@ -13,6 +13,12 @@ router.post('/subscribe', verifyToken, pushController.subscribe);
 // Register Mobile Push Token (Expo Android / iOS)
 router.post('/register-mobile', verifyToken, pushController.registerMobile);
 
+// Unregister Mobile Push Token on Logout
+router.post('/unregister-mobile', verifyToken, pushController.unregisterMobile);
+
+// Test Device Push Notification
+router.post('/test-device', verifyToken, pushController.testDevicePush);
+
 // Broadcast (Admin only)
 router.post('/broadcast', verifyToken, requireAdmin, pushController.broadcastNotification);
 

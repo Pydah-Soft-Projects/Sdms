@@ -226,6 +226,133 @@ exports.registerMobile = async (req, res) => {
     }
 };
 
+// Smart notification channel resolver for Android 8.0+
+const resolveChannelId = (category, explicitChannel) => {
+    if (explicitChannel) return explicitChannel;
+    const cat = String(category || '').toLowerCase();
+    if (cat.includes('urgent') || cat.includes('alert') || cat.includes('critical') || cat.includes('emergency')) return 'urgent';
+    if (cat.includes('attend')) return 'attendance';
+    if (cat.includes('fee') || cat.includes('payment') || cat.includes('due') || cat.includes('scholarship')) return 'fees';
+    if (cat.includes('exam') || cat.includes('result') || cat.includes('hall ticket')) return 'exams';
+    if (cat.includes('assign') || cat.includes('homework') || cat.includes('academic') || cat.includes('syllabus')) return 'assignments';
+    if (cat.includes('event') || cat.includes('workshop') || cat.includes('fest') || cat.includes('hackathon')) return 'events';
+    if (cat.includes('announc') || cat.includes('circular') || cat.includes('notice')) return 'announcements';
+    return 'default';
+};
+
+// Smart mobile route resolver for cold-start and tap navigation
+const resolveMobileRoute = (payload) => {
+    if (payload.data?.url && (String(payload.data.url).startsWith('/(tabs)') || String(payload.data.url).startsWith('/operation') || String(payload.data.url).startsWith('/student-module'))) {
+        return payload.data.url;
+    }
+    const channel = resolveChannelId(payload.category || payload.data?.category, payload.channelId);
+    switch (channel) {
+        case 'attendance':
+            return '/(tabs)/attendance';
+        case 'fees':
+            return '/(tabs)/fees';
+        case 'exams':
+            return '/student-module/examinations';
+        case 'assignments':
+            return '/student-module/assignments';
+        case 'urgent':
+        case 'announcements':
+        case 'events':
+        default:
+            return '/(tabs)/announcements';
+    }
+};
+
+// Formatter for Expo Push Service payload
+const formatExpoMessage = (token, payload) => {
+    const channelId = resolveChannelId(payload.category || payload.data?.category, payload.channelId);
+    const targetUrl = resolveMobileRoute(payload);
+
+    return {
+        to: token,
+        sound: 'default',
+        title: payload.title || 'Campo Portal Notification',
+        body: payload.body || payload.message || '',
+        data: {
+            ...(payload.data || {}),
+            url: targetUrl,
+            category: payload.category || 'General',
+            channelId,
+            timestamp: Date.now(),
+        },
+        priority: 'high',
+        channelId,
+        _displayInForeground: true,
+        badge: 1,
+    };
+};
+
+// Unregister Mobile Push Token on User Logout
+exports.unregisterMobile = async (req, res) => {
+    const { token } = req.body;
+    const userId = (req.user && req.user.id) || req.body.userId || null;
+
+    if (!token && !userId) {
+        return res.status(400).json({ success: false, message: 'Token or userId is required' });
+    }
+
+    try {
+        await ensureMobilePushTable();
+        if (token && userId) {
+            await masterPool.query('DELETE FROM mobile_push_tokens WHERE token = ? AND user_id = ?', [token, userId]);
+        } else if (token) {
+            await masterPool.query('DELETE FROM mobile_push_tokens WHERE token = ?', [token]);
+        } else if (userId) {
+            await masterPool.query('DELETE FROM mobile_push_tokens WHERE user_id = ?', [userId]);
+        }
+
+        console.log(`📱 Unregistered mobile push token for user ${userId || 'any'}`);
+        res.status(200).json({ success: true, message: 'Push token unregistered successfully' });
+    } catch (err) {
+        console.error('Error unregistering mobile push token:', err);
+        res.status(500).json({ success: false, message: 'Failed to unregister push token' });
+    }
+};
+
+// Test Push to Authenticated Device with Full Delivery Verification
+exports.testDevicePush = async (req, res) => {
+    const userId = (req.user && req.user.id) || null;
+    const { token, title = 'Campo Test Notification', body = 'Your Expo push notifications are connected and working!', category = 'announcements' } = req.body;
+
+    try {
+        await ensureMobilePushTable();
+        let tokensToSend = [];
+        if (token) {
+            tokensToSend = [token];
+        } else if (userId) {
+            const [rows] = await masterPool.query('SELECT token FROM mobile_push_tokens WHERE user_id = ?', [userId]);
+            tokensToSend = rows.map(r => r.token);
+        }
+
+        if (tokensToSend.length === 0) {
+            return res.status(404).json({ success: false, message: 'No registered push tokens found for this user/device. Log in on mobile first.' });
+        }
+
+        const messages = tokensToSend.map(t => formatExpoMessage(t, {
+            title,
+            body,
+            category,
+            data: { test: true, url: '/(tabs)/announcements' }
+        }));
+
+        const result = await sendExpoPushNotification(messages);
+        res.json({
+            success: true,
+            message: `Dispatched test push to ${tokensToSend.length} device(s)`,
+            tokens: tokensToSend.map(t => t.substring(0, 30) + '...'),
+            result
+        });
+    } catch (err) {
+        console.error('Error sending test push:', err);
+        res.status(500).json({ success: false, error: err.message || err });
+    }
+};
+
 // Send Notification to specific user (Web + Mobile)
 exports.sendNotificationToUser = async (userId, payload) => {
     try {
@@ -262,24 +389,14 @@ exports.sendNotificationToUser = async (userId, payload) => {
             );
         }
 
-        // 2. Mobile Push (Expo)
+        // 2. Mobile Push (Expo Push Service)
         const [mobileTokens] = await masterPool.query(
             'SELECT token FROM mobile_push_tokens WHERE user_id = ?',
             [userId]
         );
 
         if (mobileTokens.length > 0) {
-            const expoMessages = mobileTokens.map((item) => ({
-                to: item.token,
-                sound: 'default',
-                title: payload.title || 'Campo Portal Notification',
-                body: payload.body || '',
-                data: payload.data || {},
-                priority: 'high',
-                channelId: 'default',
-                _displayInForeground: true,
-            }));
-
+            const expoMessages = mobileTokens.map((item) => formatExpoMessage(item.token, payload));
             const expoRes = await sendExpoPushNotification(expoMessages);
             sentMobileCount = expoRes.sent || 0;
         }
@@ -338,20 +455,10 @@ exports.broadcastNotification = async (req, res) => {
             }
         }
 
-        // 2. Mobile Broadcast
+        // 2. Mobile Broadcast (Expo Push Service)
         const [mobileTokens] = await masterPool.query('SELECT token FROM mobile_push_tokens');
         if (mobileTokens.length > 0) {
-            const expoMessages = mobileTokens.map((item) => ({
-                to: item.token,
-                sound: 'default',
-                title: payload.title || 'Campo Notification',
-                body: payload.body || '',
-                data: payload.data || {},
-                priority: 'high',
-                channelId: 'default',
-                _displayInForeground: true,
-            }));
-
+            const expoMessages = mobileTokens.map((item) => formatExpoMessage(item.token, payload));
             const expoRes = await sendExpoPushNotification(expoMessages);
             sentMobileCount = expoRes.sent || 0;
         }
@@ -411,24 +518,14 @@ exports.sendBatchNotification = async (userIds, payload) => {
             }
         }
 
-        // 2. Send Mobile Push (Expo Push Notifications)
+        // 2. Send Mobile Push (Expo Push Service)
         const [mobileTokens] = await masterPool.query(
             'SELECT token FROM mobile_push_tokens WHERE user_id IN (?)',
             [userIds]
         );
 
         if (mobileTokens.length > 0) {
-            const expoMessages = mobileTokens.map((item) => ({
-                to: item.token,
-                sound: 'default',
-                title: payload.title || 'Campo Portal Notification',
-                body: payload.body || '',
-                data: payload.data || {},
-                priority: 'high',
-                channelId: 'default',
-                _displayInForeground: true,
-            }));
-
+            const expoMessages = mobileTokens.map((item) => formatExpoMessage(item.token, payload));
             const expoRes = await sendExpoPushNotification(expoMessages);
             sentMobileCount = expoRes.sent || 0;
         }

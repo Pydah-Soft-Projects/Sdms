@@ -275,11 +275,18 @@ exports.createAnnouncement = async (req, res) => {
                 const userIds = students.map(s => s.id);
 
                 if (userIds.length > 0) {
+                    const isUrgent = String(title || '').toLowerCase().includes('urgent') || String(title || '').toLowerCase().includes('important');
                     await pushController.sendBatchNotification(userIds, {
-                        title: `New Announcement: ${title}`,
-                        body: String(content || '').substring(0, 100) + (String(content || '').length > 100 ? '...' : ''),
-                        icon: '/icon-192x192.png',
-                        data: { url: '/student/announcements' }
+                        title: isUrgent ? `🚨 URGENT: ${title}` : `New Announcement: ${title}`,
+                        body: String(content || '').substring(0, 120) + (String(content || '').length > 120 ? '...' : ''),
+                        category: isUrgent ? 'urgent' : 'announcements',
+                        channelId: isUrgent ? 'urgent' : 'announcements',
+                        data: {
+                            url: '/(tabs)/announcements',
+                            webUrl: '/student/announcements',
+                            type: 'announcement',
+                            id: result.insertId
+                        }
                     });
                 }
             } catch (err) {

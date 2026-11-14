@@ -1377,14 +1377,32 @@ const generateTemplatedCertificate = async (
           ? template.middle_alignment.toLowerCase()
           : "left";
 
+      // 4. Robust Alignment Match: check for [right], [center], [justify], [left] anywhere in the line
       let lineAlignment = defaultAlign;
       let cleanLine = sanitized;
 
-      // 4. Match alignment tags [left]...[/left], [center]...[/center], [right]...[/right], [justify]...[/justify]
-      const tagMatch = sanitized.match(/^\s*\[(left|center|right|justify)\]([\s\S]*?)\[\/\1\]\s*$/i);
-      if (tagMatch) {
-        lineAlignment = tagMatch[1].toLowerCase();
-        cleanLine = tagMatch[2];
+      // Extract plain text without BBCode tags for accurate alignment and date detection
+      const plainText = cleanLine
+        .replace(/\[\/?(?:b|bold|size(?::\d+)?|color(?::[^\]]+)?|font(?::[^\]]+)?|highlight(?::[^\]]+)?|u|underline|i|italic|s|strike|sub|sup)\]/gi, "")
+        .trim();
+
+      if (
+        /\[right\]/i.test(cleanLine) ||
+        /^(?:Date\s*:?\s*)?(?:\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4}|@(?:current_date|date))\s*$/i.test(plainText) ||
+        /^Date\s*:\s*.*$/i.test(plainText) ||
+        /@date\b/i.test(plainText)
+      ) {
+        lineAlignment = "right";
+        cleanLine = cleanLine.replace(/\[\/?right\]/gi, "");
+      } else if (/\[center\]/i.test(cleanLine)) {
+        lineAlignment = "center";
+        cleanLine = cleanLine.replace(/\[\/?center\]/gi, "");
+      } else if (/\[justify\]/i.test(cleanLine)) {
+        lineAlignment = "justify";
+        cleanLine = cleanLine.replace(/\[\/?justify\]/gi, "");
+      } else if (/\[left\]/i.test(cleanLine)) {
+        lineAlignment = "left";
+        cleanLine = cleanLine.replace(/\[\/?left\]/gi, "");
       }
 
       // 5. Clean cleanLine: decode entities and trim edges appropriately based on alignment
@@ -1407,8 +1425,8 @@ const generateTemplatedCertificate = async (
         return;
       }
 
-      // 5.5 Support horizontal divider rules (---, ===, ___)
-      if (/^[-=_*]{3,}$/.test(cleanLine.trim())) {
+      // 5.5 Support horizontal divider rules (---, ===)
+      if (/^[-=*]{3,}$/.test(cleanLine.trim())) {
         doc.save()
           .strokeColor("#1e3a8a")
           .lineWidth(1.2)
@@ -1422,6 +1440,11 @@ const generateTemplatedCertificate = async (
           .stroke()
           .restore();
         y += 14;
+        return;
+      }
+
+      if (!cleanLine || cleanLine.trim() === "") {
+        y += emptyLineHeight;
         return;
       }
 
@@ -1460,6 +1483,76 @@ const generateTemplatedCertificate = async (
         cleanLine = colorMatch[2];
       }
 
+      // Helper function to render text containing blanks (underscores) as invisible gaps without collapsing spacing
+      const renderFormattedText = (textToRender, posX, posY, textWidth, textAlign) => {
+        if (/_{2,}/.test(textToRender)) {
+          const parts = textToRender.split(/(_{2,})/g).filter(Boolean);
+          for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            const isBlank = /^_{2,}$/.test(part);
+            const isLast = (i === parts.length - 1);
+
+            doc
+              .font(lineFont)
+              .fontSize(lineFontSize)
+              .fillColor(isBlank ? "#ffffff" : lineColor);
+
+            if (i === 0) {
+              doc.text(part, posX, posY, {
+                width: textWidth,
+                align: textAlign,
+                lineGap: lineGap,
+                continued: !isLast,
+              });
+            } else {
+              doc.text(part, {
+                lineGap: lineGap,
+                continued: !isLast,
+              });
+            }
+          }
+        } else {
+          doc
+            .font(lineFont)
+            .fontSize(lineFontSize)
+            .fillColor(lineColor)
+            .text(textToRender, posX, posY, {
+              width: textWidth,
+              align: textAlign,
+              lineGap: lineGap,
+            });
+        }
+      };
+
+      // 5.8 Dual-alignment support: text on left, date on right on the same line
+      const dualMatch = cleanLine.match(
+        /^(.*?)(?:[\s\t]+)(Date\s*:?\s*.*|\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4}|@(?:current_date|date))$/i,
+      );
+      if (
+        dualMatch &&
+        dualMatch[1].trim() &&
+        !/^Date\s*:?$/i.test(dualMatch[1].trim()) &&
+        dualMatch[2].trim()
+      ) {
+        const leftPart = dualMatch[1].trim();
+        const rightPart = dualMatch[2].trim();
+        const lh = Math.max(
+          doc.font(lineFont).fontSize(lineFontSize).heightOfString(leftPart, { width: contentWidth / 2 }),
+          doc.font(lineFont).fontSize(lineFontSize).heightOfString(rightPart, { width: contentWidth / 2 }),
+        );
+        if (y + lh > maxContentY) {
+          doc.addPage({
+            size: [pageWidth, pageHeight],
+            margins: { top: paddingTop, bottom: paddingBottom, left: paddingLeft, right: paddingRight },
+          });
+          y = paddingTop + 10;
+        }
+        renderFormattedText(leftPart, paddingLeft, y, contentWidth, "left");
+        renderFormattedText(rightPart, paddingLeft, y, contentWidth, "right");
+        y += lh;
+        return;
+      }
+
       // 6. Check space to prevent overflow / truncation
       const lineHeight =
         doc.font(lineFont).fontSize(lineFontSize).heightOfString(cleanLine, {
@@ -1474,15 +1567,7 @@ const generateTemplatedCertificate = async (
       }
 
       // 7. Render clean, perfectly aligned text
-      doc
-        .font(lineFont)
-        .fontSize(lineFontSize)
-        .fillColor(lineColor)
-        .text(cleanLine, paddingLeft, y, {
-          width: contentWidth,
-          align: lineAlignment,
-          lineGap: lineGap,
-        });
+      renderFormattedText(cleanLine, paddingLeft, y, contentWidth, lineAlignment);
 
       y += lineHeight;
     });

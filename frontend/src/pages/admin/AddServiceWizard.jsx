@@ -129,6 +129,7 @@ const AddServiceWizard = () => {
   const lastValidSelectionRef = React.useRef({ start: 0, end: 0, field: "middle_content", section: "body" });
   const [currentAlign, setCurrentAlign] = useState("left");
   const savedRangeRef = React.useRef(null);
+  const isRestoringSelectionRef = React.useRef(false);
   const [activeFontFamily, setActiveFontFamily] = useState("Calibri");
   const [activeFontSize, setActiveFontSize] = useState(12);
   const [activeBold, setActiveBold] = useState(false);
@@ -138,6 +139,7 @@ const AddServiceWizard = () => {
   const [isInsideTable, setIsInsideTable] = useState(false);
 
   const saveCurrentRange = () => {
+    if (isRestoringSelectionRef.current) return;
     try {
       const sel = window.getSelection();
       if (
@@ -410,19 +412,55 @@ const AddServiceWizard = () => {
     }
 
     const ed = contentEditableRef.current;
-    if (ed) {
+    if (!ed) return;
+
+    const targetRange = savedRangeRef.current;
+    isRestoringSelectionRef.current = true;
+    try {
       ed.focus();
-      if (textToInsert.includes("\n")) {
-        const html = textToInsert
-          .split("\n")
-          .map((l) => (l ? `<div>${l.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>` : "<div><br></div>"))
-          .join("");
-        document.execCommand("insertHTML", false, html);
-      } else {
-        document.execCommand("insertText", false, textToInsert);
+      const sel = window.getSelection();
+      let rangeToUse = null;
+
+      if (targetRange) {
+        try {
+          if (ed.contains(targetRange.commonAncestorContainer) || ed === targetRange.commonAncestorContainer) {
+            sel?.removeAllRanges();
+            sel?.addRange(targetRange);
+            rangeToUse = targetRange;
+          }
+        } catch (e) {
+          // Ignore
+        }
       }
+
+      if (!rangeToUse) {
+        try {
+          const range = document.createRange();
+          range.selectNodeContents(ed);
+          range.collapse(false);
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+          rangeToUse = range;
+        } catch (e) {
+          // Ignore
+        }
+      }
+
+      if (rangeToUse) {
+        rangeToUse.deleteContents();
+        const node = document.createTextNode(textToInsert);
+        rangeToUse.insertNode(node);
+        rangeToUse.setStartAfter(node);
+        rangeToUse.setEndAfter(node);
+        sel?.removeAllRanges();
+        sel?.addRange(rangeToUse);
+        savedRangeRef.current = rangeToUse.cloneRange();
+      }
+
       const bbcode = htmlToBbcode(ed.innerHTML);
       setTemplateData((prev) => ({ ...prev, middle_content: bbcode }));
+    } finally {
+      isRestoringSelectionRef.current = false;
     }
   };
 
@@ -715,13 +753,13 @@ const AddServiceWizard = () => {
         return `\n[list=1]${items}\n[/list]\n`;
       });
 
-    // Paragraph / Div / Center Alignments
+    // Paragraph / Div / Span / Alignments
     out = out
       .replace(/<center[^>]*>([\s\S]*?)<\/center>/gi, "\n[center]$1[/center]")
-      .replace(/<(?:div|p)[^>]*?(?:style=['"][^'"]*text-align:\s*center[^'"]*['"]|align=['"]?center['"]?)[^>]*>([\s\S]*?)<\/(?:div|p)>/gi, "\n[center]$1[/center]")
-      .replace(/<(?:div|p)[^>]*?(?:style=['"][^'"]*text-align:\s*right[^'"]*['"]|align=['"]?right['"]?)[^>]*>([\s\S]*?)<\/(?:div|p)>/gi, "\n[right]$1[/right]")
-      .replace(/<(?:div|p)[^>]*?(?:style=['"][^'"]*text-align:\s*justify[^'"]*['"]|align=['"]?justify['"]?)[^>]*>([\s\S]*?)<\/(?:div|p)>/gi, "\n[justify]$1[/justify]")
-      .replace(/<(?:div|p)[^>]*?(?:style=['"][^'"]*text-align:\s*left[^'"]*['"]|align=['"]?left['"]?)[^>]*>([\s\S]*?)<\/(?:div|p)>/gi, "\n[left]$1[/left]");
+      .replace(/<(div|p|h[1-6]|span)[^>]*?(?:style=['"][^'"]*text-align:\s*center[^'"]*['"]|align=['"]?center['"]?)[^>]*>([\s\S]*?)<\/\1>/gi, "\n[center]$2[/center]")
+      .replace(/<(div|p|h[1-6]|span)[^>]*?(?:style=['"][^'"]*text-align:\s*right[^'"]*['"]|align=['"]?right['"]?|style=['"][^'"]*float:\s*right[^'"]*['"])[^>]*>([\s\S]*?)<\/\1>/gi, "\n[right]$2[/right]")
+      .replace(/<(div|p|h[1-6]|span)[^>]*?(?:style=['"][^'"]*text-align:\s*justify[^'"]*['"]|align=['"]?justify['"]?)[^>]*>([\s\S]*?)<\/\1>/gi, "\n[justify]$2[/justify]")
+      .replace(/<(div|p|h[1-6]|span)[^>]*?(?:style=['"][^'"]*text-align:\s*left[^'"]*['"]|align=['"]?left['"]?)[^>]*>([\s\S]*?)<\/\1>/gi, "\n[left]$2[/left]");
 
     // Formatting tags
     out = out
@@ -938,10 +976,18 @@ const AddServiceWizard = () => {
 
         // Extract alignment
         let alignTag = "";
-        const alignMatch = l.match(/^\[(left|center|right|justify)\]([\s\S]*?)\[\/\1\]$/i);
-        if (alignMatch) {
-          alignTag = alignMatch[1].toLowerCase();
-          l = alignMatch[2]; // preserve indentation and non-breaking spaces
+        if (/\[right\]/i.test(l)) {
+          alignTag = "right";
+          l = l.replace(/\[\/?right\]/gi, "");
+        } else if (/\[center\]/i.test(l)) {
+          alignTag = "center";
+          l = l.replace(/\[\/?center\]/gi, "");
+        } else if (/\[justify\]/i.test(l)) {
+          alignTag = "justify";
+          l = l.replace(/\[\/?justify\]/gi, "");
+        } else if (/\[left\]/i.test(l)) {
+          alignTag = "left";
+          l = l.replace(/\[\/?left\]/gi, "");
         }
 
         // Check if bold, size, color wrap the entire line
@@ -1026,6 +1072,14 @@ const AddServiceWizard = () => {
     };
   };
 
+  const handleSwitchViewMode = (mode) => {
+    if (contentEditableRef.current) {
+      const bbcode = htmlToBbcode(contentEditableRef.current.innerHTML);
+      setTemplateData((prev) => ({ ...prev, middle_content: bbcode }));
+    }
+    setViewMode(mode);
+  };
+
 
   // Formatting handler: executes direct WYSIWYG commands without displaying code tags
   const applyFormatToSelection = (formatType, value = null) => {
@@ -1051,99 +1105,123 @@ const AddServiceWizard = () => {
     // Word Canvas direct WYSIWYG editing
     const ed = contentEditableRef.current;
     if (!ed) return;
-    ed.focus();
 
-    const sel = window.getSelection();
-    const hasSelection = sel && !sel.isCollapsed && sel.rangeCount > 0 && ed.contains(sel.anchorNode);
+    const targetRange = savedRangeRef.current;
+    isRestoringSelectionRef.current = true;
+    let sel = window.getSelection();
 
-    if (!hasSelection) {
+    try {
+      ed.focus();
+      if (targetRange) {
+        try {
+          if (ed.contains(targetRange.commonAncestorContainer) || ed === targetRange.commonAncestorContainer) {
+            sel?.removeAllRanges();
+            sel?.addRange(targetRange);
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+
+      sel = window.getSelection();
+      const hasSelection = sel && !sel.isCollapsed && sel.rangeCount > 0 && ed.contains(sel.anchorNode);
+
+      if (!hasSelection) {
+        if (formatType === "bold") {
+          setActiveBold((prev) => !prev);
+        } else if (formatType === "italic") {
+          setActiveItalic((prev) => !prev);
+        } else if (formatType === "underline") {
+          setActiveUnderline((prev) => !prev);
+        } else if (formatType === "strike") {
+          setActiveStrike((prev) => !prev);
+        } else if (formatType === "size") {
+          setActiveFontSize(value);
+        } else if (formatType === "size_step") {
+          const curSize = activeFontSize || 12;
+          const newSize = Math.min(Math.max(curSize + value, 8), 36);
+          setActiveFontSize(newSize);
+        } else if (formatType === "font") {
+          setActiveFontFamily(normalizeFamily(value));
+        } else if (formatType === "color") {
+          setTemplateData((prev) => ({ ...prev, font_color: value }));
+        } else if (formatType === "highlight") {
+          setTemplateData((prev) => ({ ...prev, font_highlight: value }));
+        }
+        return;
+      }
+
+      // Native WYSIWYG formatting without code tags - applies ONLY to the selected text
       if (formatType === "bold") {
-        setTemplateData((prev) => ({ ...prev, font_bold: !prev.font_bold }));
-        setActiveBold((prev) => !prev);
+        document.execCommand("bold", false, null);
+        setActiveBold(document.queryCommandState("bold"));
       } else if (formatType === "italic") {
-        setTemplateData((prev) => ({ ...prev, font_italic: !prev.font_italic }));
-        setActiveItalic((prev) => !prev);
+        document.execCommand("italic", false, null);
+        setActiveItalic(document.queryCommandState("italic"));
       } else if (formatType === "underline") {
-        setTemplateData((prev) => ({ ...prev, font_underline: !prev.font_underline }));
-        setActiveUnderline((prev) => !prev);
+        document.execCommand("underline", false, null);
+        setActiveUnderline(document.queryCommandState("underline"));
       } else if (formatType === "strike") {
-        setTemplateData((prev) => ({ ...prev, font_strikethrough: !prev.font_strikethrough }));
-        setActiveStrike((prev) => !prev);
-      } else if (formatType === "size") {
-        setTemplateData((prev) => ({ ...prev, font_size: value }));
-        setActiveFontSize(value);
-      } else if (formatType === "size_step") {
-        const curSize = activeFontSize || templateData.font_size || 12;
-        const newSize = Math.min(Math.max(curSize + value, 8), 36);
-        setTemplateData((prev) => ({
-          ...prev,
-          font_size: newSize,
-        }));
-        setActiveFontSize(newSize);
+        document.execCommand("strikeThrough", false, null);
+        setActiveStrike(document.queryCommandState("strikeThrough"));
+      } else if (formatType === "sub") {
+        document.execCommand("subscript", false, null);
+      } else if (formatType === "sup") {
+        document.execCommand("superscript", false, null);
       } else if (formatType === "font") {
-        setTemplateData((prev) => ({ ...prev, font_family: value }));
+        document.execCommand("fontName", false, value);
         setActiveFontFamily(normalizeFamily(value));
       } else if (formatType === "color") {
-        setTemplateData((prev) => ({ ...prev, font_color: value }));
+        document.execCommand("foreColor", false, value);
       } else if (formatType === "highlight") {
-        setTemplateData((prev) => ({ ...prev, font_highlight: value }));
+        document.execCommand("hiliteColor", false, value === "transparent" ? "inherit" : value);
+      } else if (formatType === "size") {
+        const range = sel.getRangeAt(0);
+        const span = document.createElement("span");
+        span.style.fontSize = `${value}px`;
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        sel.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        sel.addRange(newRange);
+        savedRangeRef.current = newRange.cloneRange();
+        setActiveFontSize(value);
+      } else if (formatType === "size_step") {
+        const range = sel.getRangeAt(0);
+        let curSize = activeFontSize || 12;
+        if (range.commonAncestorContainer) {
+          const el = range.commonAncestorContainer.nodeType === 1
+            ? range.commonAncestorContainer
+            : range.commonAncestorContainer.parentElement;
+          if (el) {
+            const comp = window.getComputedStyle(el);
+            const parsed = parseInt(comp.fontSize, 10);
+            if (parsed) curSize = parsed;
+          }
+        }
+        const newSize = Math.min(Math.max(curSize + value, 8), 36);
+        const span = document.createElement("span");
+        span.style.fontSize = `${newSize}px`;
+        span.appendChild(range.extractContents());
+        range.insertNode(span);
+        sel.removeAllRanges();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(span);
+        sel.addRange(newRange);
+        savedRangeRef.current = newRange.cloneRange();
+        setActiveFontSize(newSize);
       }
-      return;
-    }
 
-    // Native WYSIWYG formatting without code tags - applies ONLY to the selected text
-    if (formatType === "bold") {
-      document.execCommand("bold", false, null);
-      setActiveBold(document.queryCommandState("bold"));
-    } else if (formatType === "italic") {
-      document.execCommand("italic", false, null);
-      setActiveItalic(document.queryCommandState("italic"));
-    } else if (formatType === "underline") {
-      document.execCommand("underline", false, null);
-      setActiveUnderline(document.queryCommandState("underline"));
-    } else if (formatType === "strike") {
-      document.execCommand("strikeThrough", false, null);
-      setActiveStrike(document.queryCommandState("strikeThrough"));
-    } else if (formatType === "sub") {
-      document.execCommand("subscript", false, null);
-    } else if (formatType === "sup") {
-      document.execCommand("superscript", false, null);
-    } else if (formatType === "font") {
-      document.execCommand("fontName", false, value);
-      setActiveFontFamily(normalizeFamily(value));
-    } else if (formatType === "color") {
-      document.execCommand("foreColor", false, value);
-    } else if (formatType === "highlight") {
-      document.execCommand("hiliteColor", false, value === "transparent" ? "inherit" : value);
-    } else if (formatType === "size") {
-      const range = sel.getRangeAt(0);
-      const span = document.createElement("span");
-      span.style.fontSize = `${value}px`;
-      span.appendChild(range.extractContents());
-      range.insertNode(span);
-      sel.removeAllRanges();
-      const newRange = document.createRange();
-      newRange.selectNodeContents(span);
-      sel.addRange(newRange);
-      setActiveFontSize(value);
-    } else if (formatType === "size_step") {
-      const range = sel.getRangeAt(0);
-      const span = document.createElement("span");
-      const curSize = activeFontSize || templateData.font_size || 12;
-      const newSize = Math.min(Math.max(curSize + value, 8), 36);
-      span.style.fontSize = `${newSize}px`;
-      span.appendChild(range.extractContents());
-      range.insertNode(span);
-      sel.removeAllRanges();
-      const newRange = document.createRange();
-      newRange.selectNodeContents(span);
-      sel.addRange(newRange);
-      setActiveFontSize(newSize);
-    }
+      if (sel && sel.rangeCount > 0) {
+        savedRangeRef.current = sel.getRangeAt(0).cloneRange();
+      }
 
-    saveCurrentRange();
-    const bbcode = htmlToBbcode(ed.innerHTML);
-    setTemplateData((prev) => ({ ...prev, middle_content: bbcode }));
+      const bbcode = htmlToBbcode(ed.innerHTML);
+      setTemplateData((prev) => ({ ...prev, middle_content: bbcode }));
+    } finally {
+      isRestoringSelectionRef.current = false;
+    }
   };
 
   const applyTextWrapTag = (openTag, closeTag, placeholder = "") => {
@@ -1709,9 +1787,9 @@ const AddServiceWizard = () => {
     input_field_size: 10,
   });
 
-  // Keep contentEditable in sync with templateData.middle_content
+  // Keep contentEditable in sync with templateData.middle_content, viewMode, and currentStep
   useEffect(() => {
-    if (contentEditableRef.current) {
+    if (currentStep === 2 && contentEditableRef.current && (viewMode === "word-canvas" || viewMode === "split")) {
       if (
         document.activeElement === contentEditableRef.current ||
         contentEditableRef.current.contains(document.activeElement)
@@ -1720,11 +1798,11 @@ const AddServiceWizard = () => {
       }
       const currentBbcode = htmlToBbcode(contentEditableRef.current.innerHTML);
       const incoming = templateData.middle_content || "";
-      if (currentBbcode !== incoming) {
+      if (currentBbcode !== incoming || !contentEditableRef.current.innerHTML) {
         contentEditableRef.current.innerHTML = bbcodeToHtml(incoming);
       }
     }
-  }, [templateData.middle_content]);
+  }, [templateData.middle_content, viewMode, currentStep]);
 
   // Automatically strip any raw formatting tags or reset formatting to constant default when cleared
   useEffect(() => {
@@ -1933,22 +2011,36 @@ const AddServiceWizard = () => {
   };
 
   const handleStep2Submit = () => {
+    let currentMiddle = templateData.middle_content;
+    if (contentEditableRef.current) {
+      currentMiddle = htmlToBbcode(contentEditableRef.current.innerHTML);
+      setTemplateData((prev) => ({ ...prev, middle_content: currentMiddle }));
+    }
     // Validation for Step 2
-    if (!templateData.middle_content) {
+    if (!currentMiddle || currentMiddle.trim() === "") {
       toast.error("Middle section content is required");
       return;
     }
     // Skip to step 3 (final review) directly
     setCurrentStep(3);
-    generatePreview();
+    generatePreview({ middle_content: currentMiddle });
   };
 
-  const generatePreview = async () => {
+  const generatePreview = async (overrideData) => {
     // Logic to prepare preview URL for final review
     try {
-      const selectedCollegeId = serviceData.college_id || templateData.college_id;
-      const cleanConfig = prepareConfigForBackend({
+      let currentMiddle = templateData.middle_content;
+      if (contentEditableRef.current) {
+        currentMiddle = htmlToBbcode(contentEditableRef.current.innerHTML);
+      }
+      const dataToUse = {
         ...templateData,
+        middle_content: currentMiddle,
+        ...(overrideData || {}),
+      };
+      const selectedCollegeId = serviceData.college_id || dataToUse.college_id;
+      const cleanConfig = prepareConfigForBackend({
+        ...dataToUse,
         college_id: selectedCollegeId,
       });
       const blob = await serviceService.previewTemplate({
@@ -2641,7 +2733,7 @@ const renderStep2 = () => {
               .replace(/\[color:([^\]]+)\]([\s\S]*?)\[\/color\]/gi, "<span style=\"color: $1;\">$2</span>")
               .replace(/\[highlight:([^\]]+)\]([\s\S]*?)\[\/highlight\]/gi, "<span style=\"background-color: $1; padding: 0 2px; border-radius: 2px;\">$2</span>");
 
-            // Represent all @ variables with specific fixed length for each field
+            // Represent all @ variables with clean tags without underlines
             const replaceVariableWithSpec = (varKey, rawMatch) => {
               const cleanKey = varKey.replace(/^@/, "").trim();
               const spec = VARIABLE_SPECS[cleanKey] || {
@@ -2649,9 +2741,13 @@ const renderStep2 = () => {
                 minWidth: 80,
               };
               if (cleanKey === "principal_signature") {
-                return `<span class="inline-block border-b-2 border-border-strong text-center font-semibold text-main mx-1 px-2" style="min-width: 140px;">[Principal Signature]</span>`;
+                return `<span class="inline-block text-center font-semibold text-main mx-1 px-2 border-b border-border-strong" style="min-width: 140px;">[Principal Signature]</span>`;
               }
-              return `<span class="inline-block border-b-2 border-primary font-bold text-primary mx-0.5 px-1 bg-[var(--primary-light)] text-center underline underline-offset-4 decoration-primary decoration-2" style="min-width: ${spec.minWidth}px;" title="Variable: @${cleanKey} (${spec.fixedChars} chars)">@${cleanKey}</span>`;
+              if (cleanKey === "current_date" || cleanKey === "date") {
+                const todayFormatted = new Date().toLocaleDateString("en-GB").replace(/\//g, ".");
+                return `<span class="inline-block font-semibold text-main mx-0.5 px-1 bg-[var(--primary-light)] rounded-sm text-center" style="min-width: ${spec.minWidth}px;" title="Current Date: ${todayFormatted}">${todayFormatted}</span>`;
+              }
+              return `<span class="inline-block font-semibold text-primary mx-0.5 px-1 bg-[var(--primary-light)] rounded-sm text-center" style="min-width: ${spec.minWidth}px;" title="Variable: @${cleanKey} (${spec.fixedChars} chars)">@${cleanKey}</span>`;
             };
 
             // 1. Handle react-mentions syntax: @[@display](id) or @[display](id)
@@ -2819,7 +2915,7 @@ const renderStep2 = () => {
           <div className="flex items-center bg-[var(--primary-light)] p-0.5 rounded-lg border border-primary text-xs">
             <button
               type="button"
-              onClick={() => setViewMode("word-canvas")}
+              onClick={() => handleSwitchViewMode("word-canvas")}
               className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
                 viewMode === "word-canvas"
                   ? "bg-surface text-[var(--primary)] shadow-xs"
@@ -2831,7 +2927,7 @@ const renderStep2 = () => {
             </button>
             <button
               type="button"
-              onClick={() => setViewMode("split")}
+              onClick={() => handleSwitchViewMode("split")}
               className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
                 viewMode === "split"
                   ? "bg-surface text-[var(--primary)] shadow-xs"
@@ -2843,7 +2939,7 @@ const renderStep2 = () => {
             </button>
             <button
               type="button"
-              onClick={() => setViewMode("preview")}
+              onClick={() => handleSwitchViewMode("preview")}
               className={`px-3 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
                 viewMode === "preview"
                   ? "bg-surface text-[var(--primary)] shadow-xs"
@@ -2982,6 +3078,7 @@ const renderStep2 = () => {
                   <div className="flex items-center gap-1">
                     <select
                       value={normalizeFamily(activeFontFamily || templateData.font_family)}
+                      onMouseDown={() => saveCurrentRange()}
                       onChange={(e) => {
                         const newFamily = e.target.value;
                         applyFormatToSelection("font", newFamily);
@@ -3004,6 +3101,7 @@ const renderStep2 = () => {
                         min="8"
                         max="36"
                         value={activeFontSize || templateData.font_size || 12}
+                        onMouseDown={() => saveCurrentRange()}
                         onChange={(e) => {
                           const newSize = parseInt(e.target.value) || 12;
                           applyFormatToSelection("size", newSize);
@@ -3015,19 +3113,12 @@ const renderStep2 = () => {
 
                     <button
                       type="button"
-                      onMouseDown={(e) => e.preventDefault()}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        saveCurrentRange();
+                      }}
                       onClick={() => {
-                        const { start, end } = getActiveTarget();
-                        if (start !== end) {
-                          applyFormatToSelection("size_step", 1);
-                        } else {
-                          const newSize = Math.min((activeFontSize || templateData.font_size || 12) + 1, 36);
-                          setTemplateData((prev) => ({
-                            ...prev,
-                            font_size: newSize,
-                          }));
-                          setActiveFontSize(newSize);
-                        }
+                        applyFormatToSelection("size_step", 1);
                       }}
                       className="w-6 h-6 flex items-center justify-center bg-background hover:bg-background border border-border-strong rounded text-sub font-bold text-xs"
                       title="Increase Font Size (A+)"
@@ -3037,19 +3128,12 @@ const renderStep2 = () => {
 
                     <button
                       type="button"
-                      onMouseDown={(e) => e.preventDefault()}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        saveCurrentRange();
+                      }}
                       onClick={() => {
-                        const { start, end } = getActiveTarget();
-                        if (start !== end) {
-                          applyFormatToSelection("size_step", -1);
-                        } else {
-                          const newSize = Math.max((activeFontSize || templateData.font_size || 12) - 1, 8);
-                          setTemplateData((prev) => ({
-                            ...prev,
-                            font_size: newSize,
-                          }));
-                          setActiveFontSize(newSize);
-                        }
+                        applyFormatToSelection("size_step", -1);
                       }}
                       className="w-6 h-6 flex items-center justify-center bg-background hover:bg-background border border-border-strong rounded text-sub font-bold text-[10px]"
                       title="Decrease Font Size (A-)"
@@ -3254,7 +3338,7 @@ const renderStep2 = () => {
                               { name: "Blue", color: "var(--primary-light)" },
                             ].map((swatch) => (
                               <button
-                                key={swatch.color}
+                                key={swatch.name || swatch.color}
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => {
@@ -3331,7 +3415,7 @@ const renderStep2 = () => {
                               { name: "Teal", color: "var(--info)" },
                             ].map((swatch) => (
                               <button
-                                key={swatch.color}
+                                key={swatch.name || swatch.color}
                                 type="button"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => {
@@ -3757,7 +3841,10 @@ const renderStep2 = () => {
                       <div className="relative">
                         <button
                           type="button"
-                          onMouseDown={(e) => e.preventDefault()}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            saveCurrentRange();
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowVariableDropdown(!showVariableDropdown);
@@ -3773,7 +3860,7 @@ const renderStep2 = () => {
 
                         {showVariableDropdown && (
                           <div
-                            className="absolute left-0 top-8 w-72 bg-surface rounded-lg shadow-xl border border-[var(--primary-light)] z-[9999] p-2 space-y-2"
+                            className="absolute left-0 top-8 w-[380px] sm:w-[420px] max-w-[95vw] bg-surface rounded-lg shadow-xl border border-[var(--primary-light)] z-[9999] p-3 space-y-2.5"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="relative">
@@ -3782,18 +3869,17 @@ const renderStep2 = () => {
                                 value={variableSearchQuery}
                                 onChange={(e) => setVariableSearchQuery(e.target.value)}
                                 placeholder="Search student variables..."
-                                className="w-full px-2.5 py-1 text-xs border border-border-strong rounded outline-none focus:border-primary"
-                                autoFocus
+                                className="w-full px-2.5 py-1.5 text-xs border border-border-strong rounded outline-none focus:border-primary"
                               />
                             </div>
 
-                            <div className="max-h-56 overflow-y-auto space-y-2 text-xs">
+                            <div className="max-h-60 overflow-y-auto space-y-2.5 text-xs">
                               {studentVars.length > 0 && (
                                 <div>
                                   <div className="text-[10px] font-bold text-muted-text uppercase tracking-wider mb-1">
                                     🎓 Student Identity
                                   </div>
-                                  <div className="grid grid-cols-2 gap-1">
+                                  <div className="grid grid-cols-2 gap-1.5">
                                     {studentVars.map((v) => (
                                       <button
                                         key={v.name}
@@ -3803,7 +3889,7 @@ const renderStep2 = () => {
                                           insertTextAtCursor(`@${v.name} `);
                                           setShowVariableDropdown(false);
                                         }}
-                                        className="text-left px-2 py-1 rounded bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary font-medium truncate"
+                                        className="text-left px-2.5 py-1.5 rounded bg-[var(--primary-light)] hover:bg-[var(--primary-light)] text-primary font-medium text-xs truncate"
                                         title={v.label}
                                       >
                                         @{v.name}
@@ -3818,7 +3904,7 @@ const renderStep2 = () => {
                                   <div className="text-[10px] font-bold text-muted-text uppercase tracking-wider mb-1">
                                     📚 Academic Details
                                   </div>
-                                  <div className="grid grid-cols-2 gap-1">
+                                  <div className="grid grid-cols-2 gap-1.5">
                                     {academicVars.map((v) => (
                                       <button
                                         key={v.name}
@@ -3828,7 +3914,7 @@ const renderStep2 = () => {
                                           insertTextAtCursor(`@${v.name} `);
                                           setShowVariableDropdown(false);
                                         }}
-                                        className="text-left px-2 py-1 rounded bg-[var(--success-light)] hover:bg-[var(--success-light)] text-success font-medium truncate"
+                                        className="text-left px-2.5 py-1.5 rounded bg-[var(--success-light)] hover:bg-[var(--success-light)] text-success font-medium text-xs truncate"
                                         title={v.label}
                                       >
                                         @{v.name}
@@ -3843,7 +3929,7 @@ const renderStep2 = () => {
                                   <div className="text-[10px] font-bold text-muted-text uppercase tracking-wider mb-1">
                                     👤 Personal Info
                                   </div>
-                                  <div className="grid grid-cols-2 gap-1">
+                                  <div className="grid grid-cols-2 gap-1.5">
                                     {personalVars.map((v) => (
                                       <button
                                         key={v.name}
@@ -3853,7 +3939,7 @@ const renderStep2 = () => {
                                           insertTextAtCursor(`@${v.name} `);
                                           setShowVariableDropdown(false);
                                         }}
-                                        className="text-left px-2 py-1 rounded bg-[var(--warning-light)] hover:bg-[var(--warning-light)] text-warning font-medium truncate"
+                                        className="text-left px-2.5 py-1.5 rounded bg-[var(--warning-light)] hover:bg-[var(--warning-light)] text-warning font-medium text-xs truncate"
                                         title={v.label}
                                       >
                                         @{v.name}
@@ -3868,7 +3954,7 @@ const renderStep2 = () => {
                                   <div className="text-[10px] font-bold text-muted-text uppercase tracking-wider mb-1">
                                     🏛️ Institutional / Signatures
                                   </div>
-                                  <div className="grid grid-cols-1 gap-1">
+                                  <div className="grid grid-cols-2 gap-1.5">
                                     {institutionalVars.map((v) => (
                                       <button
                                         key={v.name}
@@ -4365,7 +4451,7 @@ const renderStep2 = () => {
               <div className="flex items-center gap-1.5 bg-background border border-border-strong rounded p-1">
                 <button
                   type="button"
-                  onClick={() => setViewMode("word-canvas")}
+                  onClick={() => handleSwitchViewMode("word-canvas")}
                   className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 ${
                     viewMode === "word-canvas"
                       ? "bg-primary text-white shadow-xs"
@@ -4376,7 +4462,7 @@ const renderStep2 = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setViewMode("split")}
+                  onClick={() => handleSwitchViewMode("split")}
                   className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 ${
                     viewMode === "split"
                       ? "bg-primary text-white shadow-xs"
@@ -4387,7 +4473,7 @@ const renderStep2 = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setViewMode("preview")}
+                  onClick={() => handleSwitchViewMode("preview")}
                   className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 ${
                     viewMode === "preview"
                       ? "bg-primary text-white shadow-xs"
@@ -4828,6 +4914,11 @@ const renderStep2 = () => {
                       suppressContentEditableWarning
                       onFocus={() => {
                         if (editingSection !== "body") setEditingSection("body");
+                      }}
+                      onBlur={() => {
+                        saveCurrentRange();
+                      }}
+                      onClick={() => {
                         saveCurrentRange();
                       }}
                       onSelect={() => {
@@ -5232,7 +5323,7 @@ const renderStep2 = () => {
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => setViewMode("word-canvas")}
+                onClick={() => handleSwitchViewMode("word-canvas")}
                 className={`p-0.5 rounded ${viewMode === "word-canvas" ? "bg-[var(--surface)]/20 text-white" : "text-primary hover:text-white"}`}
                 title="Word Canvas"
               >
@@ -5240,7 +5331,7 @@ const renderStep2 = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode("split")}
+                onClick={() => handleSwitchViewMode("split")}
                 className={`p-0.5 rounded ${viewMode === "split" ? "bg-[var(--surface)]/20 text-white" : "text-primary hover:text-white"}`}
                 title="Split View"
               >
@@ -5248,7 +5339,7 @@ const renderStep2 = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setViewMode("preview")}
+                onClick={() => handleSwitchViewMode("preview")}
                 className={`p-0.5 rounded ${viewMode === "preview" ? "bg-[var(--surface)]/20 text-white" : "text-primary hover:text-white"}`}
                 title="Print Preview"
               >

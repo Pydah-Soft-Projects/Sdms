@@ -842,11 +842,17 @@ exports.downloadCertificate = async (req, res) => {
         config.bottom_content
       ) {
         // Process variables for the three sections
+        const todayDateStr = new Date().toLocaleDateString("en-GB").replace(/\//g, ".");
         const studentData = {
+          current_date: todayDateStr,
+          date: todayDateStr,
           ...request,
           ...request.request_data,
           ...collegeDetails,
         };
+        if (!studentData.current_date) studentData.current_date = todayDateStr;
+        if (!studentData.date) studentData.date = todayDateStr;
+
         const replaceVariables = (text) => {
           if (!text) return "";
           const inputSize = Math.min(Math.max(parseInt(config.input_field_size) || 10, 4), 30);
@@ -860,33 +866,34 @@ exports.downloadCertificate = async (req, res) => {
             return `[${tag}]${inner.trim()}[/${tag}]`;
           });
 
-          // 3. Handle ___ with input validation size, fill values if provided or collapse consecutive ___ into a single fitting blank
+          // 3. Normalize multiple consecutive spaces in text first
+          processed = processed.replace(/ {2,}/g, " ");
+
+          // 4. Handle blanks: replace fill values if provided, or represent with free space (no drawn lines)
           let blankIdx = 0;
-          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{3,}/g, (match, customLen) => {
+          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{2,}|\.{3,}|[—–―]{2,}/g, (match, customLen) => {
             blankIdx++;
             const val = studentData[`field_${blankIdx}`] || studentData[`input_field_${blankIdx}`] || studentData[`blank_${blankIdx}`];
             if (val !== undefined && val !== null && String(val).trim() !== "") {
               return String(val);
             }
-            const len = customLen ? Math.min(Math.max(parseInt(customLen), 4), 40) : inputSize;
-            return "_".repeat(len);
+            return "        ";
           });
-
-          // 4. Normalize long runs of spaces (4 or more spaces) into clean blank underline
-          processed = processed.replace(/ {4,}/g, ` ${defaultBlank} `);
-          processed = processed.replace(/  +/g, " ");
 
           // 5. Handle {{variable}} syntax
           processed = processed.replace(/{{(.*?)}}/g, (match, p1) => {
             const key = p1.trim();
-            return studentData[key] !== undefined ? studentData[key] : match;
+            if (key === "current_date" || key === "date") return todayDateStr;
+            return studentData[key] !== undefined && studentData[key] !== null ? String(studentData[key]) : "";
           });
           // 6. Handle @[label](variable) or @variable syntax
           processed = processed.replace(/@\[.*?\]\((.*?)\)/g, (match, p1) => {
-            return studentData[p1] !== undefined ? studentData[p1] : match;
+            if (p1 === "current_date" || p1 === "date") return todayDateStr;
+            return studentData[p1] !== undefined && studentData[p1] !== null ? String(studentData[p1]) : "";
           });
           processed = processed.replace(/@(\w+)/g, (match, p1) => {
-            return studentData[p1] !== undefined ? studentData[p1] : match;
+            if (p1 === "current_date" || p1 === "date") return todayDateStr;
+            return studentData[p1] !== undefined && studentData[p1] !== null ? String(studentData[p1]) : "";
           });
           return processed;
         };
@@ -999,56 +1006,7 @@ exports.previewTemplate = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
-    // Blank Student Data (for template structure preview)
-    const blankStudent = {
-      student_name: "_".repeat(VARIABLE_FIXED_CHARS.student_name),
-      admission_number: "_".repeat(VARIABLE_FIXED_CHARS.admission_number),
-      father_name: "_".repeat(VARIABLE_FIXED_CHARS.father_name),
-      mother_name: "_".repeat(VARIABLE_FIXED_CHARS.mother_name),
-      current_year: "_".repeat(VARIABLE_FIXED_CHARS.current_year),
-      current_semester: "_".repeat(VARIABLE_FIXED_CHARS.current_semester),
-      course: "_".repeat(VARIABLE_FIXED_CHARS.course),
-      branch: "_".repeat(VARIABLE_FIXED_CHARS.branch),
-      student_mobile: "_".repeat(10),
-      parent_mobile1: "_".repeat(10),
-      academic_year: "_".repeat(VARIABLE_FIXED_CHARS.academic_year),
-      pin_no: "_".repeat(VARIABLE_FIXED_CHARS.pin_no),
-      dob: "_".repeat(VARIABLE_FIXED_CHARS.dob),
-      email: "{{email}}",
-      religion: "Hindu",
-      caste: "OC",
-      gender: "Male",
-      admission_date: "_".repeat(VARIABLE_FIXED_CHARS.admission_date),
-      serial_no: "{{serial_no}}",
-      mole_1: "{{mole_1}}",
-      mole_2: "{{mole_2}}",
-      conduct: "Good",
-      date_of_leaving: "{{date_of_leaving}}",
-      promoted: "Promoted",
-      date: new Date().toLocaleDateString(),
-      college_name: "Pydah College of Engineering",
-      principal_signature: "Principal Signature",
-    };
-
-    // Blank Request Data
-    const blankRequest = {
-      request_data: JSON.stringify({
-        purpose: "Passport Verification",
-        reason: "Personal",
-        excess_amount: "5000",
-        amount_in_words: "Five Thousand",
-        payment_mode: "Cash",
-        custody_list: "S.S.C Certificate, Diploma Certificate",
-      }),
-      admission_number: "",
-    };
-
-    // Fetch Actual College Details
-    let collegeDetails = {
-      name: "",
-      phone: "",
-      website: "",
-    };
+    const todayDateStr = new Date().toLocaleDateString("en-GB").replace(/\//g, ".");
 
     let config = req.body.template_config || {};
     if (typeof config === "string") {
@@ -1059,9 +1017,17 @@ exports.previewTemplate = async (req, res) => {
       }
     }
 
+    // Fetch Actual College Details
+    let collegeDetails = {
+      name: "",
+      phone: "",
+      website: "",
+    };
+
+    const targetCollegeId = config.college_id || req.body.college_id;
+
     try {
       let target;
-      const targetCollegeId = config.college_id || req.body.college_id;
       if (targetCollegeId) {
         const [specCollege] = await masterPool.execute(
           "SELECT * FROM colleges WHERE id = ? LIMIT 1",
@@ -1078,8 +1044,8 @@ exports.previewTemplate = async (req, res) => {
       }
 
       if (target) {
-        collegeDetails.name = target.name;
-        collegeDetails.college_name = target.name;
+        collegeDetails.name = target.name || "";
+        collegeDetails.college_name = target.name || "";
         if (target.address) {
           collegeDetails.address = target.address;
         }
@@ -1112,6 +1078,52 @@ exports.previewTemplate = async (req, res) => {
       console.warn("Could not fetch college details for preview", e);
     }
 
+    // Blank Student Data (for template structure preview)
+    const blankStudent = {
+      student_name: "_".repeat(VARIABLE_FIXED_CHARS.student_name || 24),
+      name: "_".repeat(VARIABLE_FIXED_CHARS.student_name || 24),
+      admission_number: "_".repeat(VARIABLE_FIXED_CHARS.admission_number || 12),
+      father_name: "_".repeat(VARIABLE_FIXED_CHARS.father_name || 20),
+      mother_name: "_".repeat(VARIABLE_FIXED_CHARS.mother_name || 20),
+      current_year: "_".repeat(VARIABLE_FIXED_CHARS.current_year || 4),
+      year: "_".repeat(VARIABLE_FIXED_CHARS.year || 4),
+      current_semester: "_".repeat(VARIABLE_FIXED_CHARS.current_semester || 4),
+      semester: "_".repeat(VARIABLE_FIXED_CHARS.semester || 4),
+      course: "_".repeat(VARIABLE_FIXED_CHARS.course || 10),
+      branch: "_".repeat(VARIABLE_FIXED_CHARS.branch || 22),
+      student_mobile: "_".repeat(10),
+      parent_mobile1: "_".repeat(10),
+      academic_year: "_".repeat(VARIABLE_FIXED_CHARS.academic_year || 11),
+      pin_no: "_".repeat(VARIABLE_FIXED_CHARS.pin_no || 10),
+      ht_no: "_".repeat(VARIABLE_FIXED_CHARS.pin_no || 10),
+      dob: "_".repeat(VARIABLE_FIXED_CHARS.dob || 10),
+      date_of_birth: "_".repeat(VARIABLE_FIXED_CHARS.dob || 10),
+      email: "{{email}}",
+      religion: "_".repeat(VARIABLE_FIXED_CHARS.religion || 8),
+      caste: "_".repeat(VARIABLE_FIXED_CHARS.caste || 6),
+      gender: "_".repeat(VARIABLE_FIXED_CHARS.gender || 6),
+      admission_date: "_".repeat(VARIABLE_FIXED_CHARS.admission_date || 10),
+      serial_no: "{{serial_no}}",
+      mole_1: "{{mole_1}}",
+      mole_2: "{{mole_2}}",
+      conduct: "Good",
+      date_of_leaving: "{{date_of_leaving}}",
+      promoted: "Promoted",
+      date: todayDateStr,
+      current_date: todayDateStr,
+      college_name: collegeDetails.name || "",
+      principal_signature: "_".repeat(VARIABLE_FIXED_CHARS.principal_signature || 20),
+    };
+
+    // Blank Request Data (dynamic from request body, zero hardcoded values)
+    const blankRequest = {
+      request_data:
+        typeof req.body.request_data === "string"
+          ? req.body.request_data
+          : JSON.stringify(req.body.request_data || {}),
+      admission_number: "",
+    };
+
     let filePath;
     const type = template_type || "";
     const name = service_name || "";
@@ -1125,11 +1137,17 @@ exports.previewTemplate = async (req, res) => {
         config.bottom_content
       ) {
         // Process variables
+        const todayDateStr = new Date().toLocaleDateString("en-GB").replace(/\//g, ".");
         const data = {
+          current_date: todayDateStr,
+          date: todayDateStr,
           ...blankStudent,
           ...JSON.parse(blankRequest.request_data),
           ...collegeDetails,
         };
+        if (!data.current_date) data.current_date = todayDateStr;
+        if (!data.date) data.date = todayDateStr;
+
         const replaceVariables = (text) => {
           if (!text) return "";
           const inputSize = Math.min(Math.max(parseInt(config.input_field_size) || 10, 4), 30);
@@ -1143,28 +1161,34 @@ exports.previewTemplate = async (req, res) => {
             return `[${tag}]${inner.trim()}[/${tag}]`;
           });
 
-          // 3. Handle ___ with input validation size, collapse consecutive ___ into a single fitting blank
-          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{3,}/g, (match, customLen) => {
+          // 4. Handle blanks: replace fill values if provided, or render fillable blank
+          let blankIdx = 0;
+          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{2,}/g, (match, customLen) => {
+            blankIdx++;
+            const val = data[`field_${blankIdx}`] || data[`input_field_${blankIdx}`] || data[`blank_${blankIdx}`];
+            if (val !== undefined && val !== null && String(val).trim() !== "") {
+              return String(val);
+            }
             const len = customLen ? Math.min(Math.max(parseInt(customLen), 4), 40) : inputSize;
             return "_".repeat(len);
           });
 
-          // 4. Normalize long runs of spaces (4 or more spaces) into clean blank underline
-          processed = processed.replace(/ {4,}/g, ` ${defaultBlank} `);
-          processed = processed.replace(/  +/g, " ");
-
           // 5. Handle {{variable}} syntax
           processed = processed.replace(/{{(.*?)}}/g, (match, p1) => {
             const key = p1.trim();
-            return data[key] !== undefined ? data[key] : match;
+            if (key === "current_date" || key === "date") return todayDateStr;
+            return data[key] !== undefined && data[key] !== null ? String(data[key]) : defaultBlank;
           });
           // 6. Handle @[label](variable) or @variable syntax
           processed = processed.replace(/@\[.*?\]\((.*?)\)/g, (match, p1) => {
-            return data[p1] !== undefined ? data[p1] : match;
+            if (p1 === "current_date" || p1 === "date") return todayDateStr;
+            return data[p1] !== undefined && data[p1] !== null ? String(data[p1]) : defaultBlank;
           });
           processed = processed.replace(/@(\w+)/g, (match, p1) => {
-            return data[p1] !== undefined ? data[p1] : match;
+            if (p1 === "current_date" || p1 === "date") return todayDateStr;
+            return data[p1] !== undefined && data[p1] !== null ? String(data[p1]) : defaultBlank;
           });
+
           return processed;
         };
 

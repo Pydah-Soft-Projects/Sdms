@@ -23,7 +23,8 @@ import {
     RiServiceLine,
     RiSparklingLine,
     RiTicketLine,
-    RiBook2Line
+    RiBook2Line,
+    RiBuilding4Line
 } from 'react-icons/ri';
 
 const Dashboard = () => {
@@ -53,6 +54,8 @@ const Dashboard = () => {
     const [internalMarksCount, setInternalMarksCount] = useState(0);
     const [todayTimetable, setTodayTimetable] = useState([]);
     const [hasInternship, setHasInternship] = useState(false);
+    const [hasTransportPass, setHasTransportPass] = useState(false);
+    const [hasHostelAccount, setHasHostelAccount] = useState(false);
 
     // UI States
     const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -282,6 +285,32 @@ const Dashboard = () => {
                         }
                     })
                     .catch(() => {});
+
+                // Check Transport Status (Active Pass)
+                api.get('/transport/my-details')
+                    .then(res => {
+                        if (res.data?.success && res.data?.hasActivePass) {
+                            setHasTransportPass(true);
+                        } else {
+                            setHasTransportPass(false);
+                        }
+                    })
+                    .catch(() => {
+                        setHasTransportPass(false);
+                    });
+
+                // Check Hostel Status (Registered Account)
+                api.get('/hostel/my-details')
+                    .then(res => {
+                        if (res.data?.success && res.data?.hasHostelAccount) {
+                            setHasHostelAccount(true);
+                        } else {
+                            setHasHostelAccount(false);
+                        }
+                    })
+                    .catch(() => {
+                        setHasHostelAccount(false);
+                    });
 
 
 
@@ -853,7 +882,16 @@ const Dashboard = () => {
                 icon: RiBusLine,
                 iconBg: 'bg-[var(--warning-light)]',
                 iconColor: 'text-[var(--warning)]',
-                enabled: isEnabled('transport')
+                enabled: hasTransportPass && isEnabled('transport')
+            },
+            {
+                key: 'hostel',
+                label: 'Hostel',
+                path: '/student/hostel',
+                icon: RiBuilding4Line,
+                iconBg: 'bg-[var(--warning-light)]',
+                iconColor: 'text-[var(--warning)]',
+                enabled: hasHostelAccount && isEnabled('hostel')
             },
             {
                 key: 'scholarship',
@@ -883,7 +921,7 @@ const Dashboard = () => {
                 enabled: isEnabled('my-documents')
             }
         ].filter(item => item.enabled);
-    }, [layoutSettings, hasInternship]);
+    }, [layoutSettings, hasInternship, hasTransportPass, hasHostelAccount]);
 
     // Helper function to truncate content to 1-2 lines
     const truncateContent = (text, maxLength = 150) => {

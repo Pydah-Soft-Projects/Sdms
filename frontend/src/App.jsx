@@ -96,6 +96,7 @@ const InternshipStudent = lazy(() => import('./internship/InternshipStudent'));
 const MyProfileRequests = lazy(() => import('./pages/student/MyProfileRequests'));
 const MyDocuments = lazy(() => import('./pages/student/MyDocuments'));
 const StudentLibrary = lazy(() => import('./pages/student/Library'));
+const StudentHostel = lazy(() => import('./pages/student/Hostel'));
 
 // Faculty Pages (v2.0, Lazy Loaded)
 const FacultyLayout = lazy(() => import('./components/Layout/FacultyLayout'));
@@ -396,6 +397,7 @@ React.useEffect(() => {
             <Route path="academic-content" element={<StudentAcademicContent />} />
             <Route path="internal-marks" element={<StudentInternalMarks />} />
             <Route path="library" element={<StudentLibrary />} />
+            <Route path="hostel" element={<StudentHostel />} />
           </Route>
 
           {/* Protected Parent Routes */}

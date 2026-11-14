@@ -223,6 +223,7 @@ app.use("/api/profile-changes", require("./routes/profileChangeRoutes"));
 app.use("/api/certificate-borrow", require("./routes/certificateBorrowRoutes"));
 app.use("/api/qr", require("./routes/qrRoutes")); // Public QR verify endpoint
 app.use("/api/library", require("./routes/libraryRoutes"));
+app.use("/api/hostel", require("./routes/hostelRoutes"));
 
 // AI Integration Routes for Central pydah-ai Engine
 const aiIntegrationRoutes = require("./ai_integration/routes");
@@ -296,6 +297,7 @@ app.use("/profile-changes", require("./routes/profileChangeRoutes"));
 app.use("/certificate-borrow", require("./routes/certificateBorrowRoutes"));
 app.use("/qr", require("./routes/qrRoutes"));
 app.use("/library", require("./routes/libraryRoutes"));
+app.use("/hostel", require("./routes/hostelRoutes"));
 
 // Root API endpoint
 app.get("/api", (req, res) => {
@@ -436,9 +438,10 @@ const startServer = async () => {
     console.log("🔄 Starting server...");
 
     // Connect to MongoDB
-    const { connectDB, getHRMSConnection } = require("./config/mongoConfig");
+    const { connectDB, getHRMSConnection, getHostelConnection } = require("./config/mongoConfig");
     await connectDB();
     getHRMSConnection();
+    getHostelConnection();
 
     // Bind IPv4 explicitly so deploy health checks to 127.0.0.1:PORT succeed
     const server = app.listen(PORT, "0.0.0.0", () => {

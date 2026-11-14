@@ -46,7 +46,11 @@ import {
     RiSparklingLine,
     RiSparklingFill,
     RiBook2Line,
-    RiBook2Fill
+    RiBook2Fill,
+    RiHotelBedLine,
+    RiHotelBedFill,
+    RiBuilding4Line,
+    RiBuilding4Fill
 } from 'react-icons/ri';
 import useAuthStore from '../../store/authStore';
 import api from '../../config/api';
@@ -74,6 +78,7 @@ const StudentLayout = ({ children }) => {
     const [moreMenuOpen, setMoreMenuOpen] = useState(false); // New: For mobile "More" menu
     const [hasInternship, setHasInternship] = useState(false);
     const [hasTransportPass, setHasTransportPass] = useState(false);
+    const [hasHostelAccount, setHasHostelAccount] = useState(false);
     const [layoutSettings, setLayoutSettings] = useState(null);
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
@@ -198,6 +203,24 @@ const StudentLayout = ({ children }) => {
             }
         };
         checkTransportStatus();
+    }, [user?.admission_number]);
+
+    // Check Hostel Account State (from Hostel DB directly)
+    useEffect(() => {
+        const checkHostelStatus = async () => {
+            if (!user?.admission_number) return;
+            try {
+                const res = await api.get('/hostel/my-details');
+                if (res.data?.success && res.data?.hasHostelAccount) {
+                    setHasHostelAccount(true);
+                } else {
+                    setHasHostelAccount(false);
+                }
+            } catch (error) {
+                setHasHostelAccount(false);
+            }
+        };
+        checkHostelStatus();
     }, [user?.admission_number]);
 
     // Fetch Layout Settings
@@ -337,6 +360,9 @@ const StudentLayout = ({ children }) => {
             if (layoutSettings.library === false && location.pathname === '/student/library') {
                 navigate('/student/dashboard', { replace: true });
             }
+            if (layoutSettings.hostel === false && location.pathname === '/student/hostel') {
+                navigate('/student/dashboard', { replace: true });
+            }
         }
     }, [location.pathname, layoutSettings, navigate]);
 
@@ -404,6 +430,7 @@ const StudentLayout = ({ children }) => {
         { icon: RiServiceLine, activeIcon: RiServiceFill, label: 'Services', path: '/student/services' },
         { icon: RiBook2Line, activeIcon: RiBook2Fill, label: 'Library', path: '/student/library' },
         { icon: RiTicketLine, activeIcon: RiTicketFill, label: 'Maintenance', path: '/student/my-tickets' },
+        { icon: RiBuilding4Line, activeIcon: RiBuilding4Fill, label: 'Hostel', path: '/student/hostel' },
         { icon: RiBusLine, activeIcon: RiBusFill, label: 'Transport', path: '/student/transport' },
         { icon: RiWallet3Line, activeIcon: RiWallet3Fill, label: 'Fee Management', path: '/student/fees' },
         { icon: RiAwardLine, activeIcon: RiAwardFill, label: 'Scholarship', path: '/student/scholarship' },
@@ -412,6 +439,7 @@ const StudentLayout = ({ children }) => {
     ].filter(item => {
         if (item.label === 'Internship' && !hasInternship) return false;
         if (item.label === 'Transport' && !hasTransportPass) return false;
+        if (item.label === 'Hostel' && !hasHostelAccount) return false;
 
         if (layoutSettings) {
             const key = item.path.replace('/student/', '');

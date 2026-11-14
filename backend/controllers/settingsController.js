@@ -404,7 +404,8 @@ exports.getStudentLayoutSettings = async (req, res) => {
       transport: false,
       fees: false,
       scholarship: true,
-      library: true
+      library: true,
+      hostel: true
     };
 
     if (settings && settings.length > 0) {

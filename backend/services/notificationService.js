@@ -449,10 +449,10 @@ exports.createNotification = async ({ studentId, title, message, category = 'Gen
             pushController.sendNotificationToUser(studentId, {
                 title,
                 body: message,
+                category,
                 data: {
                     ...(data || {}),
                     category,
-                    url: '/(tabs)/announcements',
                 }
             }).catch(pushErr => console.warn('Mobile push trigger error in createNotification:', pushErr?.message));
         } catch (e) {}

@@ -1,5 +1,5 @@
 const { masterPool } = require('../config/database');
-const { sendNotificationToUser } = require('./pushController');
+const { sendNotificationToUser, sendBatchNotification } = require('./pushController');
 const { createBroadcastNotification } = require('../services/notificationService');
 const { parseTargetsFromRow, matchesStudent } = require('../services/targetingService');
 
@@ -745,7 +745,8 @@ const notifyTargetedStudents = async (event) => {
         body: `${event.description ? event.description.substring(0, 50) + '...' : 'Check event calendar for details.'}`,
         icon: '/icon-192x192.png',
         data: {
-            url: 'https://pydahgroup.com/student/events'
+            url: '/(tabs)/announcements',
+            webUrl: 'https://pydahgroup.com/student/events'
         }
     };
 
@@ -772,8 +773,7 @@ const notifyTargetedStudents = async (event) => {
         category: 'Event'
     });
 
-    // Send in batches to avoid overwhelming (basic batching is handled by Node event loop naturally here for simple map)
-    const promises = students.map(student => sendNotificationToUser(student.id, payload));
-    await Promise.allSettled(promises);
-    console.log('Event notifications sent.');
+    // Send mobile push notifications in batch
+    await sendBatchNotification(studentIds, payload);
+    console.log(`Event notifications sent to ${studentIds.length} students.`);
 };

@@ -131,9 +131,13 @@ const sendExpoPushNotification = async (messages) => {
                 tickets.forEach((ticket, idx) => {
                     if (ticket.status === 'ok') {
                         sentCount++;
-                    } else if (ticket.details?.error === 'DeviceNotRegistered') {
-                        const invalidToken = chunk[idx]?.to;
-                        if (invalidToken) removeExpiredMobileToken(invalidToken);
+                    } else {
+                        const tokenStr = chunk[idx]?.to ? String(chunk[idx].to).substring(0, 30) : 'unknown';
+                        console.error(`⚠️ Expo push ticket error [${tokenStr}...]:`, ticket.message, ticket.details);
+                        if (ticket.details?.error === 'DeviceNotRegistered') {
+                            const invalidToken = chunk[idx]?.to;
+                            if (invalidToken) removeExpiredMobileToken(invalidToken);
+                        }
                     }
                 });
                 if (tickets.length === 0) {

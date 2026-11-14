@@ -17,8 +17,8 @@ const verifyScholarshipReadPermission = (req, res, next) => {
     return next();
   }
 
-  // Students can view their own scholarship history
-  if (user.role === 'student') {
+  // Students and parents can view their own child's scholarship history
+  if (user.role === 'student' || user.role === 'parent') {
     const admissionNumber = req.params.admissionNumber
       || req.params.admission_number
       || req.params.id

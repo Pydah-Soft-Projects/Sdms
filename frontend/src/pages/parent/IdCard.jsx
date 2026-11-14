@@ -54,12 +54,12 @@ const ParentIdCard = () => {
   };
 
   return (
-    <div className="w-full min-h-full flex flex-col sm:max-w-lg sm:mx-auto">
-      <div className="w-full px-3 py-3 sm:px-0 sm:mb-6 bg-surface border-b border-border sm:bg-transparent sm:border-0">
-        <h1 className="text-lg sm:text-xl font-black text-main">Digital ID Card</h1>
+    <div className="w-full max-w-7xl mx-auto min-h-full flex flex-col p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="w-full pb-3 border-b border-border">
+        <h1 className="text-xl sm:text-2xl font-black text-main tracking-tight">Digital ID Card</h1>
         <p className="text-xs sm:text-sm text-muted-text mt-1">Official student identification card (view only)</p>
       </div>
-      <div className="flex-1 w-full flex flex-col items-center gap-6 px-2 sm:px-0 pb-6">
+      <div className="flex-1 w-full flex flex-col items-center gap-6 pb-6">
         <div className="w-full">
           <p className="text-[10px] font-bold uppercase tracking-wider text-muted-text mb-2 text-center">Front Side</p>
           <div className="id-card-preview-scaler-box">

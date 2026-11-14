@@ -126,6 +126,11 @@ const ParentDashboard = lazy(() => import('./pages/parent/Dashboard'));
 const ParentProfile = lazy(() => import('./pages/parent/Profile'));
 const ParentAttendance = lazy(() => import('./pages/parent/Attendance'));
 const ParentIdCard = lazy(() => import('./pages/parent/IdCard'));
+const ParentFees = lazy(() => import('./pages/parent/Fees'));
+const ParentTimetable = lazy(() => import('./pages/parent/Timetable'));
+const ParentCalendar = lazy(() => import('./pages/parent/Calendar'));
+const ParentAnnouncements = lazy(() => import('./pages/parent/Announcements'));
+const ParentTransport = lazy(() => import('./pages/parent/Transport'));
 
 // Protected Route Component for Admin
 const ProtectedRoute = ({ children }) => {
@@ -406,6 +411,11 @@ React.useEffect(() => {
             <Route path="dashboard" element={<ParentDashboard />} />
             <Route path="profile" element={<ParentProfile />} />
             <Route path="attendance" element={<ParentAttendance />} />
+            <Route path="fees" element={<ParentFees />} />
+            <Route path="timetable" element={<ParentTimetable />} />
+            <Route path="calendar" element={<ParentCalendar />} />
+            <Route path="announcements" element={<ParentAnnouncements />} />
+            <Route path="transport" element={<ParentTransport />} />
             <Route path="id-card" element={<ParentIdCard />} />
             <Route path="ai-assistant" element={<Navigate to="/student/dashboard" replace />} />
           </Route>

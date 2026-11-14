@@ -9,7 +9,10 @@ const certificateBorrowController = {
    */
   getSubmittedCertificates: async (req, res) => {
     try {
-      const { admissionNumber } = req.params;
+      let { admissionNumber } = req.params;
+      if (req.user && (req.user.role === 'student' || req.user.role === 'parent')) {
+        admissionNumber = req.user.admission_number || admissionNumber;
+      }
       
       // Fetch student data and certificate configuration in parallel
       const [studentResult, configResult] = await Promise.all([
@@ -164,7 +167,10 @@ const certificateBorrowController = {
    */
   getStudentHistory: async (req, res) => {
     try {
-      const { admissionNumber } = req.params;
+      let { admissionNumber } = req.params;
+      if (req.user && (req.user.role === 'student' || req.user.role === 'parent')) {
+        admissionNumber = req.user.admission_number || admissionNumber;
+      }
       const [rows] = await masterPool.execute(
         'SELECT * FROM certificate_borrow_requests WHERE admission_number = ? ORDER BY request_date DESC',
         [admissionNumber]

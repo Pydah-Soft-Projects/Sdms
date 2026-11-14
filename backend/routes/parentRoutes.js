@@ -8,6 +8,11 @@ const { MODULES } = require('../constants/rbac');
 router.use(authMiddleware);
 router.get('/profile', parentController.getProfile);
 router.get('/attendance', parentController.getAttendance);
+router.get('/children', parentController.getChildren);
+router.post('/switch-child', parentController.switchChild);
+router.get('/dashboard-summary', parentController.getDashboardSummary);
+router.get('/fees', parentController.getFeeDetails);
+router.get('/timetable', parentController.getTimetable);
 router.post('/view-log', parentController.logView);
 
 router.get(

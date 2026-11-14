@@ -49,20 +49,43 @@ exports.getBuses = async (req, res) => {
  * Fetch resolved admission number from req.user or database
  */
 async function resolveAdmissionNumber(req) {
+    if (req.user && req.user.role === 'parent') {
+        if (req.user.admission_number) {
+            return String(req.user.admission_number).trim();
+        }
+        if (req.user.admissionNumber) {
+            return String(req.user.admissionNumber).trim();
+        }
+        const sid = req.user.studentId || req.user.id;
+        if (sid) {
+            try {
+                const [rows] = await masterPool.query('SELECT admission_number FROM students WHERE id = ? LIMIT 1', [sid]);
+                if (rows.length > 0 && rows[0].admission_number) {
+                    return String(rows[0].admission_number).trim();
+                }
+            } catch (e) {}
+        }
+        if (req.query && req.query.admission_number) {
+            return String(req.query.admission_number).trim();
+        }
+        return null;
+    }
     if (req.query && req.query.admission_number) {
         return String(req.query.admission_number).trim();
     }
-    if (req.user && req.user.admission_number) {
-        return String(req.user.admission_number).trim();
+    if (req.user && (req.user.admission_number || req.user.admissionNumber)) {
+        return String(req.user.admission_number || req.user.admissionNumber).trim();
     }
     if (req.user && req.user.id) {
-        const [students] = await masterPool.execute(
-            'SELECT admission_number FROM students WHERE id = ? LIMIT 1',
-            [req.user.id]
-        );
-        if (students.length > 0 && students[0].admission_number) {
-            return String(students[0].admission_number).trim();
-        }
+        try {
+            const [students] = await masterPool.query(
+                'SELECT admission_number FROM students WHERE id = ? LIMIT 1',
+                [req.user.id]
+            );
+            if (students.length > 0 && students[0].admission_number) {
+                return String(students[0].admission_number).trim();
+            }
+        } catch (e) {}
     }
     return null;
 }
@@ -225,6 +248,11 @@ async function enrichTransportRequests(rawRequests) {
  */
 exports.getMyTransportDetails = async (req, res) => {
     try {
+        if (transportConnection.readyState !== 1) {
+            try {
+                await transportConnection.asPromise();
+            } catch (e) {}
+        }
         const admissionNumber = await resolveAdmissionNumber(req);
 
         if (!admissionNumber || transportConnection.readyState !== 1) {
@@ -306,6 +334,11 @@ exports.getBusLiveLocation = async (req, res) => {
 
         // Fallback to active pass for authenticated student if no specific vehicle/route query requested
         if (!busNumber && !routeId && req.user && req.query.fleet !== 'true') {
+            if (transportConnection.readyState !== 1) {
+                try {
+                    await transportConnection.asPromise();
+                } catch (e) {}
+            }
             const admissionNumber = await resolveAdmissionNumber(req);
             if (admissionNumber && transportConnection.readyState === 1) {
                 const latestReq = await TransportRequest.findOne({

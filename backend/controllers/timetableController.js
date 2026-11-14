@@ -316,8 +316,8 @@ exports.getMyTimetable = async (req, res) => {
         let studentRecord = null;
         let facultyId = null;
 
-        // If user is student or role is undefined, lookup student profile
-        if (role === 'student' || (!branchId && !year && !['admin', 'super_admin'].includes(role))) {
+        // If user is student, parent, or role is undefined, lookup student profile
+        if (role === 'student' || role === 'parent' || (!branchId && !year && !['admin', 'super_admin'].includes(role))) {
             const lookupVal = user.id || user.pinNo || user.pin_no || user.admissionNumber || user.admission_number || user.username;
             if (lookupVal) {
                 const [students] = await masterPool.query(

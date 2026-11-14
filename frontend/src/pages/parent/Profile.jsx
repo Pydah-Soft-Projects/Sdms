@@ -42,15 +42,15 @@ const ParentProfile = () => {
 
   if (loading) {
     return (
-      <div className="w-full min-h-full space-y-3 sm:max-w-6xl sm:mx-auto">
-        <SkeletonBox className="h-36 w-full rounded-none sm:rounded-2xl" />
-        <SkeletonBox className="h-96 w-full rounded-none sm:rounded-2xl" />
+      <div className="w-full max-w-7xl mx-auto min-h-full space-y-4 p-4 sm:p-6 lg:p-8">
+        <SkeletonBox className="h-36 w-full rounded-2xl" />
+        <SkeletonBox className="h-96 w-full rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <div className="w-full min-h-full flex flex-col space-y-4 sm:space-y-6 sm:max-w-6xl sm:mx-auto">
+    <div className="w-full max-w-7xl mx-auto min-h-full flex flex-col space-y-6 p-4 sm:p-6 lg:p-8">
       <div className="w-full bg-surface border-y border-border shadow-sm overflow-hidden sm:rounded-2xl sm:border">
         <div className="bg-gradient-to-r from-primary to-primary-dark px-3 pt-4 pb-14 sm:px-8 sm:py-7 text-white relative overflow-hidden">
           <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">Student Profile</p>

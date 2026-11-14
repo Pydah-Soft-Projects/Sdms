@@ -527,7 +527,7 @@ const Transport = () => {
     }
 
     return (
-        <div className="max-w-7xl mx-auto flex flex-col h-[calc(100vh-100px)] lg:h-[calc(100vh-60px)] space-y-2.5 animate-fade-in pb-0">
+        <div className="w-full max-w-7xl mx-auto flex flex-col h-[calc(100vh-100px)] lg:h-[calc(100vh-60px)] space-y-2.5 animate-fade-in pb-0">
             <style>{customMapStyles}</style>
 
             {hasActivePass ? (

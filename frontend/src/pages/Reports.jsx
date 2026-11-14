@@ -339,7 +339,9 @@ const Reports = () => {
     if (reportType !== 'registration') return;
     const available = displayColleges;
     if (filters.college === undefined && available.length > 0) {
-      const userCollegeId = user?.college_id ? String(user.college_id) : null;
+      const userCollegeId = (user?.college_id || user?.collegeId)
+        ? String(user?.college_id || user?.collegeId)
+        : (Array.isArray(user?.collegeIds) && user.collegeIds.length > 0 ? String(user.collegeIds[0]) : null);
       const userCollegeName = user?.college || null;
       let matched = null;
       if (userCollegeId) {
@@ -1781,9 +1783,20 @@ const Reports = () => {
       filteredCourses = filteredCourses.filter(course => course.level === filters.level);
     }
 
+    // Filter by permitted courses in filterOptions (RBAC scope) if available
+    if (filterOptions.courses && filterOptions.courses.length > 0) {
+      const allowedNames = new Set(filterOptions.courses.map(c => (c.name || c).toString().toLowerCase()));
+      const allowedIds = new Set(filterOptions.courses.map(c => c.id).filter(Boolean));
+      filteredCourses = filteredCourses.filter(c => {
+        const nameMatch = c.name && allowedNames.has(c.name.toLowerCase());
+        const idMatch = c.id && allowedIds.has(c.id);
+        return nameMatch || idMatch;
+      });
+    }
+
     // Extract course names, remove duplicates, filter out empty values, and sort
     return [...new Set(filteredCourses.map(c => c.name).filter(Boolean))].sort();
-  }, [coursesWithLevels, collegesList, filters.college, filters.level]);
+  }, [coursesWithLevels, collegesList, filters.college, filters.level, filterOptions.courses, selectedCollegeValues, displayColleges]);
 
   const hasActiveFilters = activeFilterEntries.length > 0;
 

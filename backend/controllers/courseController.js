@@ -417,6 +417,10 @@ exports.getCourses = async (req, res) => {
       if (req.userScope.collegeIds && req.userScope.collegeIds.length > 0) {
         const scopedCollegeIds = new Set(req.userScope.collegeIds.map(Number));
         courses = courses.filter((course) => scopedCollegeIds.has(Number(course.collegeId)));
+      } else if (!req.userScope.allCourses && req.userScope.courseIds && req.userScope.courseIds.length > 0) {
+        // Scoped to specific courses without explicit collegeIds - keep those courses
+      } else if (!req.userScope.allBranches && req.userScope.branchIds && req.userScope.branchIds.length > 0) {
+        // Scoped to specific branches without explicit collegeIds - keep courses containing those branches
       } else {
         courses = [];
       }
@@ -432,6 +436,10 @@ exports.getCourses = async (req, res) => {
         ...course,
         branches: filterBranchesByScope(course.branches || [], req.userScope)
       }));
+      // Filter out courses that have no branches remaining if user is restricted to specific branches
+      if (req.userScope.branchIds && req.userScope.branchIds.length > 0) {
+        courses = courses.filter(c => (c.branches || []).length > 0);
+      }
     }
 
     // No caching to ensure fresh data after updates

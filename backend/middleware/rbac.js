@@ -257,6 +257,35 @@ const attachUserScope = async (req, res, next) => {
       .filter(id => id != null && !isNaN(Number(id)))
       .map(id => Number(id));
 
+    // If collegeIds is empty but user has courseIds or branchIds, resolve parent collegeIds
+    if (collegeIds.length === 0 && courseIds.length > 0) {
+      try {
+        const [cCols] = await masterPool.query(
+          `SELECT DISTINCT college_id FROM courses WHERE id IN (${courseIds.map(() => '?').join(',')}) AND college_id IS NOT NULL`,
+          courseIds
+        );
+        cCols.forEach(r => { if (r.college_id && !collegeIds.includes(Number(r.college_id))) collegeIds.push(Number(r.college_id)); });
+      } catch (_) {}
+    }
+    if (collegeIds.length === 0 && branchIds.length > 0) {
+      try {
+        const [bCols] = await masterPool.query(
+          `SELECT DISTINCT c.college_id FROM course_branches cb JOIN courses c ON cb.course_id = c.id WHERE cb.id IN (${branchIds.map(() => '?').join(',')}) AND c.college_id IS NOT NULL`,
+          branchIds
+        );
+        bCols.forEach(r => { if (r.college_id && !collegeIds.includes(Number(r.college_id))) collegeIds.push(Number(r.college_id)); });
+      } catch (_) {}
+    }
+    if (courseIds.length === 0 && branchIds.length > 0) {
+      try {
+        const [bCourses] = await masterPool.query(
+          `SELECT DISTINCT course_id FROM course_branches WHERE id IN (${branchIds.map(() => '?').join(',')}) AND course_id IS NOT NULL`,
+          branchIds
+        );
+        bCourses.forEach(r => { if (r.course_id && !courseIds.includes(Number(r.course_id))) courseIds.push(Number(r.course_id)); });
+      } catch (_) {}
+    }
+
     // Fetch college names for filtering
     let collegeNames = [];
     if (collegeIds.length > 0) {

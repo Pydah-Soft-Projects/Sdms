@@ -42,6 +42,20 @@ const buildStaffResponse = (staffRow) => {
   };
 };
 
+const parseScopeArray = (data) => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (typeof data === 'string') {
+    try {
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  }
+  return [];
+};
+
 const buildRBACUserResponse = (rbacUser) => {
   const permissions = parsePermissions(rbacUser.permissions);
   return {
@@ -51,11 +65,16 @@ const buildRBACUserResponse = (rbacUser) => {
     email: rbacUser.email,
     phone: rbacUser.phone,
     role: rbacUser.role,
-    collegeId: rbacUser.college_id,
-    courseId: rbacUser.course_id,
-    branchId: rbacUser.branch_id,
+    collegeId: rbacUser.college_id ?? rbacUser.collegeId,
+    courseId: rbacUser.course_id ?? rbacUser.courseId,
+    branchId: rbacUser.branch_id ?? rbacUser.branchId,
+    collegeIds: parseScopeArray(rbacUser.college_ids ?? rbacUser.collegeIds),
+    courseIds: parseScopeArray(rbacUser.course_ids ?? rbacUser.courseIds),
+    branchIds: parseScopeArray(rbacUser.branch_ids ?? rbacUser.branchIds),
+    allCourses: !!(rbacUser.all_courses ?? rbacUser.allCourses),
+    allBranches: !!(rbacUser.all_branches ?? rbacUser.allBranches),
     permissions: permissions,
-    isActive: rbacUser.is_active
+    isActive: rbacUser.is_active ?? rbacUser.isActive
   };
 };
 
@@ -777,7 +796,9 @@ exports.verifyToken = async (req, res) => {
     if (Object.values(USER_ROLES).includes(authUser.role)) {
       const [rows] = await masterPool.query(
         `
-          SELECT id, name, username, email, phone, role, college_id, course_id, branch_id, permissions, is_active
+          SELECT id, name, username, email, phone, role, college_id, course_id, branch_id,
+                 college_ids, course_ids, branch_ids, all_courses, all_branches,
+                 permissions, is_active
           FROM rbac_users
           WHERE id = ?
           LIMIT 1

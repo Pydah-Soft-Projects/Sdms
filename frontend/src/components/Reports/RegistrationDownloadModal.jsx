@@ -5,11 +5,43 @@ import toast from 'react-hot-toast';
 
 const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filterOptions = {} }) => {
     const [localFilters, setLocalFilters] = useState(initialFilters);
+    const [options, setOptions] = useState(filterOptions);
     const [previewData, setPreviewData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [downloading, setDownloading] = useState(false);
     const [downloadFormat, setDownloadFormat] = useState(null);
     const [previewReady, setPreviewReady] = useState(false);
+
+    useEffect(() => {
+        setOptions(filterOptions);
+    }, [filterOptions]);
+
+    // Cascade dropdown options when college, course, or batch changes in modal
+    useEffect(() => {
+        if (!isOpen) return;
+        const fetchCascadedOptions = async () => {
+            try {
+                const params = new URLSearchParams();
+                if (localFilters.college) params.append('college', localFilters.college);
+                if (localFilters.batch) params.append('batch', localFilters.batch);
+                if (localFilters.course) params.append('course', localFilters.course);
+                params.append('applyExclusions', 'true');
+                const response = await api.get(`/students/quick-filters?${params.toString()}`);
+                if (response.data?.success) {
+                    const data = response.data.data || {};
+                    setOptions(prev => ({
+                        ...prev,
+                        courses: data.courses || prev.courses || [],
+                        branches: data.branches || prev.branches || [],
+                        batches: data.batches || prev.batches || []
+                    }));
+                }
+            } catch (err) {
+                console.warn('Failed to cascade filter options in modal:', err);
+            }
+        };
+        fetchCascadedOptions();
+    }, [isOpen, localFilters.college, localFilters.course, localFilters.batch]);
 
     const loadPreview = async (filtersToUse, { silent = false } = {}) => {
         setLoading(true);
@@ -179,7 +211,7 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                                     onChange={(e) => handleFilterChange('college', e.target.value)}
                                 >
                                     <option value="">All Colleges</option>
-                                    {[...new Set(filterOptions.colleges || [])].map((opt) => <option key={`reg-col-${opt}`} value={opt.id || opt}>{opt.name || opt}</option>)}
+                                    {[...new Set(options.colleges || [])].map((opt) => <option key={`reg-col-${opt.id || opt.name || opt}`} value={opt.id || opt}>{opt.name || opt}</option>)}
                                 </select>
                             </div>
                             {/* Batch */}
@@ -191,7 +223,7 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                                     onChange={(e) => handleFilterChange('batch', e.target.value)}
                                 >
                                     <option value="">All Batches</option>
-                                    {[...new Set(filterOptions.batches || [])].map((opt) => <option key={`reg-batch-${opt}`} value={opt.id || opt}>{opt.name || opt}</option>)}
+                                    {[...new Set(options.batches || [])].map((opt) => <option key={`reg-batch-${opt.id || opt.name || opt}`} value={opt.id || opt}>{opt.name || opt}</option>)}
                                 </select>
                             </div>
                             {/* Program */}
@@ -203,7 +235,7 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                                     onChange={(e) => handleFilterChange('course', e.target.value)}
                                 >
                                     <option value="">All Programs</option>
-                                    {[...new Set(filterOptions.courses || [])].map((opt) => <option key={`reg-course-${opt}`} value={opt.id || opt}>{opt.name || opt}</option>)}
+                                    {[...new Set(options.courses || [])].map((opt) => <option key={`reg-course-${opt.id || opt.name || opt}`} value={opt.id || opt}>{opt.name || opt}</option>)}
                                 </select>
                             </div>
                             {/* Branch */}
@@ -215,7 +247,7 @@ const RegistrationDownloadModal = ({ isOpen, onClose, initialFilters = {}, filte
                                     onChange={(e) => handleFilterChange('branch', e.target.value)}
                                 >
                                     <option value="">All Branches</option>
-                                    {[...new Set(filterOptions.branches || [])].map((opt) => <option key={`reg-branch-${opt}`} value={opt.id || opt}>{opt.name || opt}</option>)}
+                                    {[...new Set(options.branches || [])].map((opt) => <option key={`reg-branch-${opt.id || opt.name || opt}`} value={opt.id || opt}>{opt.name || opt}</option>)}
                                 </select>
                             </div>
                             {/* Year */}

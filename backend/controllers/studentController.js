@@ -192,23 +192,28 @@ const loadRegistrationAbstractFilters = async (req, tableAlias = 'base') => {
 
   if (normalizedFilterCollege) { 
     if (isNumeric(normalizedFilterCollege)) {
-      whereParts.push(`${tableAlias}.college_id = ?`); params.push(parseInt(normalizedFilterCollege, 10));
+      whereParts.push(`(${tableAlias}.college_id = ? OR ${tableAlias}.college = (SELECT name COLLATE utf8mb4_0900_ai_ci FROM colleges WHERE id = ? LIMIT 1))`);
+      params.push(parseInt(normalizedFilterCollege, 10), parseInt(normalizedFilterCollege, 10));
     } else {
       appendCollegeNameFilter(whereParts, params, normalizedFilterCollege, tableAlias); 
     }
   }
   if (normalizedFilterCourse) { 
     if (isNumeric(normalizedFilterCourse)) {
-      whereParts.push(`${tableAlias}.course_id = ?`); params.push(parseInt(normalizedFilterCourse, 10));
+      whereParts.push(`(${tableAlias}.course_id = ? OR ${tableAlias}.course = (SELECT name FROM courses WHERE id = ? LIMIT 1))`);
+      params.push(parseInt(normalizedFilterCourse, 10), parseInt(normalizedFilterCourse, 10));
     } else {
-      whereParts.push(`${tableAlias}.course = ?`); params.push(normalizedFilterCourse); 
+      whereParts.push(`(${tableAlias}.course = ? OR ${tableAlias}.course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))`);
+      params.push(normalizedFilterCourse, normalizedFilterCourse); 
     }
   }
   if (normalizedFilterBranch) { 
     if (isNumeric(normalizedFilterBranch)) {
-      whereParts.push(`${tableAlias}.branch_id = ?`); params.push(parseInt(normalizedFilterBranch, 10));
+      whereParts.push(`(${tableAlias}.branch_id = ? OR ${tableAlias}.branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))`);
+      params.push(parseInt(normalizedFilterBranch, 10), parseInt(normalizedFilterBranch, 10));
     } else {
-      whereParts.push(`${tableAlias}.branch = ?`); params.push(normalizedFilterBranch); 
+      whereParts.push(`(${tableAlias}.branch = ? OR ${tableAlias}.branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))`);
+      params.push(normalizedFilterBranch, normalizedFilterBranch); 
     }
   }
   if (parsedFilterYear) { whereParts.push(`${tableAlias}.current_year = ?`); params.push(parsedFilterYear); }
@@ -555,7 +560,12 @@ const {
   isPinInRange
 } = require('../services/sectionFilterService');
 const { buildStudentSearchCondition } = require('../services/rollNumberService');
-const { getScopeConditionString } = require('../utils/scoping');
+const {
+  getScopeConditionString,
+  filterCollegesByScope,
+  filterCoursesByScope,
+  filterBranchesByScope
+} = require('../utils/scoping');
 const { buildCollegeNameFilter, appendCollegeNameFilter, getCanonicalCollegeName } = require('../utils/collegeAliases');
 const { otpCache } = require('../services/cache'); // Import otpCache
 const smsService = require('../services/smsService'); // Import smsService
@@ -7139,6 +7149,27 @@ exports.getQuickFilterOptions = async (req, res) => {
       }
     }
 
+    // Apply user scope filtering to colleges
+    if (req.userScope && !req.userScope.unrestricted) {
+      if (req.userScope.collegeIds && req.userScope.collegeIds.length > 0) {
+        collegeRows = collegeRows.filter(c => req.userScope.collegeIds.includes(c.id));
+      } else if (!req.userScope.allCourses && req.userScope.courseIds && req.userScope.courseIds.length > 0) {
+        const [cCols] = await masterPool.query(
+          `SELECT DISTINCT college_id FROM courses WHERE id IN (${req.userScope.courseIds.map(() => '?').join(',')}) AND college_id IS NOT NULL`,
+          req.userScope.courseIds
+        );
+        const validColIds = cCols.map(r => r.college_id).filter(Boolean);
+        collegeRows = collegeRows.filter(c => validColIds.includes(c.id));
+      } else if (!req.userScope.allBranches && req.userScope.branchIds && req.userScope.branchIds.length > 0) {
+        const [bCols] = await masterPool.query(
+          `SELECT DISTINCT c.college_id FROM course_branches cb JOIN courses c ON cb.course_id = c.id WHERE cb.id IN (${req.userScope.branchIds.map(() => '?').join(',')}) AND c.college_id IS NOT NULL`,
+          req.userScope.branchIds
+        );
+        const validColIds = bCols.map(r => r.college_id).filter(Boolean);
+        collegeRows = collegeRows.filter(c => validColIds.includes(c.id));
+      }
+    }
+
     // For batches, if level is selected, filter batches that have students with courses of that level
     let batchRows;
     if (level) {
@@ -7261,7 +7292,7 @@ exports.getQuickFilterOptions = async (req, res) => {
       }
 
       if (collegeId !== null) {
-        let courseQuery = 'SELECT id, name, code, level FROM courses WHERE college_id = ? AND is_active = 1';
+        let courseQuery = 'SELECT id, name, code, level, college_id FROM courses WHERE college_id = ? AND is_active = 1';
         const courseParams = [collegeId];
         if (level) {
           courseQuery += ' AND level = ?';
@@ -7269,22 +7300,46 @@ exports.getQuickFilterOptions = async (req, res) => {
         }
         courseQuery += ' ORDER BY name ASC';
         const [collegeCourses] = await masterPool.query(courseQuery, courseParams);
-        courseRows = collegeCourses.map(c => ({ id: c.id, name: c.name, code: c.code, level: c.level }));
+        courseRows = collegeCourses.map(c => ({ id: c.id, name: c.name, code: c.code, level: c.level, college_id: c.college_id }));
       } else {
         courseRows = [];
       }
     } else {
+      let courseQuery = 'SELECT id, name, code, level, college_id FROM courses WHERE is_active = 1';
+      const courseParams = [];
       if (level) {
-        const [levelCourses] = await masterPool.query(
-          'SELECT id, name, code, level FROM courses WHERE level = ? AND is_active = 1 ORDER BY name ASC',
-          [level]
+        courseQuery += ' AND level = ?';
+        courseParams.push(level);
+      }
+      courseQuery += ' ORDER BY name ASC';
+      const [allCourses] = await masterPool.query(courseQuery, courseParams);
+      courseRows = allCourses.map(c => ({ id: c.id, name: c.name, code: c.code, level: c.level, college_id: c.college_id }));
+    }
+
+    // Apply user scope filtering to courses
+    if (req.userScope && !req.userScope.unrestricted) {
+      if (!college && req.userScope.collegeIds && req.userScope.collegeIds.length > 0) {
+        const allowedColIds = new Set(req.userScope.collegeIds.map(Number));
+        courseRows = courseRows.filter(c => allowedColIds.has(Number(c.college_id)));
+      }
+      if (!req.userScope.allCourses) {
+        if (req.userScope.courseIds && req.userScope.courseIds.length > 0) {
+          const allowedCourseIds = new Set(req.userScope.courseIds.map(Number));
+          courseRows = courseRows.filter(c => allowedCourseIds.has(Number(c.id)));
+        } else if (req.userScope.courseNames && req.userScope.courseNames.length > 0) {
+          const allowedNames = new Set(req.userScope.courseNames);
+          courseRows = courseRows.filter(c => allowedNames.has(c.name));
+        } else {
+          courseRows = [];
+        }
+      }
+      if (!req.userScope.allBranches && req.userScope.branchIds && req.userScope.branchIds.length > 0) {
+        const [branchCourses] = await masterPool.query(
+          `SELECT DISTINCT course_id FROM course_branches WHERE id IN (${req.userScope.branchIds.map(() => '?').join(',')}) AND is_active = 1`,
+          req.userScope.branchIds
         );
-        courseRows = levelCourses.map(c => ({ id: c.id, name: c.name, code: c.code, level: c.level }));
-      } else {
-        const [allCourses] = await masterPool.query(
-          'SELECT id, name, code, level FROM courses WHERE is_active = 1 ORDER BY name ASC'
-        );
-        courseRows = allCourses.map(c => ({ id: c.id, name: c.name, code: c.code, level: c.level }));
+        const allowedBranchCourseIds = new Set(branchCourses.map(r => Number(r.course_id)));
+        courseRows = courseRows.filter(c => allowedBranchCourseIds.has(Number(c.id)));
       }
     }
 
@@ -7364,6 +7419,25 @@ exports.getQuickFilterOptions = async (req, res) => {
           'SELECT id, name, code, course_id FROM course_branches WHERE is_active = 1 ORDER BY name ASC'
         );
         branchRows = allBranches.map(b => ({ id: b.id, name: b.name, branch: b.name, code: b.code, course_id: b.course_id }));
+      }
+    }
+
+    // Apply user scope filtering to branches
+    if (req.userScope && !req.userScope.unrestricted) {
+      if (!college && req.userScope.collegeIds && req.userScope.collegeIds.length > 0) {
+        const [colCourseIds] = await masterPool.query(
+          `SELECT id FROM courses WHERE college_id IN (${req.userScope.collegeIds.map(() => '?').join(',')}) AND is_active = 1`,
+          req.userScope.collegeIds
+        );
+        const allowedCrsIds = new Set(colCourseIds.map(r => r.id));
+        branchRows = branchRows.filter(b => allowedCrsIds.has(b.course_id));
+      }
+      if (!course && !req.userScope.allCourses && req.userScope.courseIds && req.userScope.courseIds.length > 0) {
+        const allowedCrsIds = new Set(req.userScope.courseIds.map(Number));
+        branchRows = branchRows.filter(b => allowedCrsIds.has(Number(b.course_id)));
+      }
+      if (!req.userScope.allBranches) {
+        branchRows = filterBranchesByScope(branchRows, req.userScope);
       }
     }
 
@@ -9205,24 +9279,31 @@ exports.getRegistrationStats = async (req, res) => {
 
     if (normalizedFilterCollege) {
       if (isNumeric(normalizedFilterCollege)) {
-        baseQuery += ` AND college_id = ?`; params.push(parseInt(normalizedFilterCollege, 10));
+        baseQuery += ` AND (college_id = ? OR college = (SELECT name COLLATE utf8mb4_0900_ai_ci FROM colleges WHERE id = ? LIMIT 1))`;
+        params.push(parseInt(normalizedFilterCollege, 10), parseInt(normalizedFilterCollege, 10));
       } else {
         const { clause, params: cp } = buildCollegeNameFilter(normalizedFilterCollege);
-        baseQuery += ` AND ${clause}`; params.push(...cp);
+        if (clause) {
+          baseQuery += ` AND ${clause}`; params.push(...cp);
+        }
       }
     }
     if (normalizedFilterCourse) {
       if (isNumeric(normalizedFilterCourse)) {
-        baseQuery += ` AND course_id = ?`; params.push(parseInt(normalizedFilterCourse, 10));
+        baseQuery += ` AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))`;
+        params.push(parseInt(normalizedFilterCourse, 10), parseInt(normalizedFilterCourse, 10));
       } else {
-        baseQuery += ' AND course = ?'; params.push(normalizedFilterCourse);
+        baseQuery += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        params.push(normalizedFilterCourse, normalizedFilterCourse);
       }
     }
     if (normalizedFilterBranch) {
       if (isNumeric(normalizedFilterBranch)) {
-        baseQuery += ` AND branch_id = ?`; params.push(parseInt(normalizedFilterBranch, 10));
+        baseQuery += ` AND (branch_id = ? OR branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))`;
+        params.push(parseInt(normalizedFilterBranch, 10), parseInt(normalizedFilterBranch, 10));
       } else {
-        baseQuery += ' AND branch = ?'; params.push(normalizedFilterBranch);
+        baseQuery += ' AND (branch = ? OR branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+        params.push(normalizedFilterBranch, normalizedFilterBranch);
       }
     }
     if (parsedFilterYear) { baseQuery += ' AND current_year = ?'; params.push(parsedFilterYear); }
@@ -9739,8 +9820,8 @@ exports.getRegistrationAcademicYears = async (req, res) => {
     if (filter_college) {
       const normalizedCollege = filter_college.trim();
       if (isNumeric(normalizedCollege)) {
-        whereClause += ` AND college_id = ?`;
-        params.push(parseInt(normalizedCollege, 10));
+        whereClause += ` AND (college_id = ? OR college = (SELECT name COLLATE utf8mb4_0900_ai_ci FROM colleges WHERE id = ? LIMIT 1))`;
+        params.push(parseInt(normalizedCollege, 10), parseInt(normalizedCollege, 10));
       } else {
         const { clause, params: collegeParams } = buildCollegeNameFilter(normalizedCollege);
         whereClause += ` AND ${clause}`;
@@ -9750,21 +9831,21 @@ exports.getRegistrationAcademicYears = async (req, res) => {
     if (filter_course) {
       const normalizedCourse = filter_course.trim();
       if (isNumeric(normalizedCourse)) {
-        whereClause += ` AND course_id = ?`;
-        params.push(parseInt(normalizedCourse, 10));
+        whereClause += ` AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))`;
+        params.push(parseInt(normalizedCourse, 10), parseInt(normalizedCourse, 10));
       } else {
-        whereClause += ' AND course = ?';
-        params.push(normalizedCourse);
+        whereClause += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        params.push(normalizedCourse, normalizedCourse);
       }
     }
     if (filter_branch) {
       const normalizedBranch = filter_branch.trim();
       if (isNumeric(normalizedBranch)) {
-        whereClause += ` AND branch_id = ?`;
-        params.push(parseInt(normalizedBranch, 10));
+        whereClause += ` AND (branch_id = ? OR branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))`;
+        params.push(parseInt(normalizedBranch, 10), parseInt(normalizedBranch, 10));
       } else {
-        whereClause += ' AND branch = ?';
-        params.push(normalizedBranch);
+        whereClause += ' AND (branch = ? OR branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+        params.push(normalizedBranch, normalizedBranch);
       }
     }
     if (filter_level) {
@@ -10095,14 +10176,37 @@ exports.exportRegistrationReport = async (req, res) => {
       params.push(...excludedStudents);
     }
 
+    const isNumeric = (val) => /^\d+$/.test(val);
+
     if (normalizedFilterBatch) { baseQuery += ' AND batch = ?'; params.push(normalizedFilterBatch); }
     if (normalizedFilterCollege) {
-      const { clause, params: collegeParams } = buildCollegeNameFilter(normalizedFilterCollege);
-      baseQuery += ` AND ${clause}`;
-      params.push(...collegeParams);
+      if (isNumeric(normalizedFilterCollege)) {
+        baseQuery += ' AND (college_id = ? OR college = (SELECT name COLLATE utf8mb4_0900_ai_ci FROM colleges WHERE id = ? LIMIT 1))';
+        params.push(parseInt(normalizedFilterCollege, 10), parseInt(normalizedFilterCollege, 10));
+      } else {
+        const { clause, params: collegeParams } = buildCollegeNameFilter(normalizedFilterCollege);
+        baseQuery += ` AND ${clause}`;
+        params.push(...collegeParams);
+      }
     }
-    if (normalizedFilterCourse) { baseQuery += ' AND course = ?'; params.push(normalizedFilterCourse); }
-    if (normalizedFilterBranch) { baseQuery += ' AND branch = ?'; params.push(normalizedFilterBranch); }
+    if (normalizedFilterCourse) {
+      if (isNumeric(normalizedFilterCourse)) {
+        baseQuery += ' AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))';
+        params.push(parseInt(normalizedFilterCourse, 10), parseInt(normalizedFilterCourse, 10));
+      } else {
+        baseQuery += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        params.push(normalizedFilterCourse, normalizedFilterCourse);
+      }
+    }
+    if (normalizedFilterBranch) {
+      if (isNumeric(normalizedFilterBranch)) {
+        baseQuery += ' AND (branch_id = ? OR branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))';
+        params.push(parseInt(normalizedFilterBranch, 10), parseInt(normalizedFilterBranch, 10));
+      } else {
+        baseQuery += ' AND (branch = ? OR branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+        params.push(normalizedFilterBranch, normalizedFilterBranch);
+      }
+    }
     if (parsedFilterYear) { baseQuery += ' AND current_year = ?'; params.push(parsedFilterYear); }
     if (parsedFilterSemester) { baseQuery += ' AND current_semester = ?'; params.push(parsedFilterSemester); }
 
@@ -10256,12 +10360,11 @@ exports.exportRegistrationReport = async (req, res) => {
       const XLSX = require('xlsx');
       const wb = XLSX.utils.book_new();
 
-      const hasAllFourFilters = Boolean(
-        normalizedFilterCollege &&
-        normalizedFilterBatch &&
-        normalizedFilterCourse &&
-        normalizedFilterBranch
-      );
+      const defaultDetailedHeaders = [
+        'Pin No', 'Student Name', 'Admission No', 'Batch', 'College', 'Course',
+        'Branch', 'Year', 'Semester', 'Verification', 'Certificates', 'Fees',
+        'Promotion', 'Scholarship', 'Overall Status'
+      ];
 
       // Process processedData for Excel
       const excelRows = processedData.map(d => {
@@ -10281,64 +10384,64 @@ exports.exportRegistrationReport = async (req, res) => {
         return row;
       });
 
-      const ws = XLSX.utils.json_to_sheet(excelRows);
-      const wscols = Object.keys(excelRows[0] || {}).map(() => ({ wch: 20 }));
-      ws['!cols'] = wscols;
+      const ws = excelRows.length > 0
+        ? XLSX.utils.json_to_sheet(excelRows)
+        : XLSX.utils.aoa_to_sheet([defaultDetailedHeaders]);
 
-      if (hasAllFourFilters) {
-        // When four filters (College, Batch, Program/Course, Branch) are selected,
-        // output the entire student list in a SINGLE sheet instead of multiple sheets
-        XLSX.utils.book_append_sheet(wb, ws, 'Student Data');
-      } else {
-        // -- Summary Sheet --
-        const summaryData = [
-          ['Registration Abstract Report'],
-          ['Generated On', new Date().toLocaleString()],
-          [''],
-          ['Filters'],
-          ['Batch', normalizedFilterBatch || 'All'],
-          ['College', normalizedFilterCollege || 'All'],
-          ['Course', normalizedFilterCourse || 'All'],
-          ['Branch', normalizedFilterBranch || 'All'],
-          [''],
-          ['Statistics'],
-          ['Total Students', statistics.total],
-          ['Overall Completed', statistics.overall.completed],
-          ['Overall Temporary', statistics.overall.temporary],
-          ['Registration Pending', statistics.overall.pending],
-          ['Mobile Verified', statistics.verification.completed],
-          ['Fees Cleared', statistics.fees.cleared]
-        ];
-        const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+      const detailedCols = (excelRows.length > 0 ? Object.keys(excelRows[0]) : defaultDetailedHeaders).map(() => ({ wch: 20 }));
+      ws['!cols'] = detailedCols;
 
-        // Abstract sheet — same SQL aggregation as preview UI (not client-side regrouping)
-        const abstractRows = await fetchRegistrationAbstractRows(req);
-        const abstractSheetData = abstractRows.map(mapRegistrationAbstractRowToExcel);
+      // -- Summary Sheet --
+      const summaryData = [
+        ['Registration Abstract Report'],
+        ['Generated On', new Date().toLocaleString()],
+        [''],
+        ['Filters'],
+        ['Batch', normalizedFilterBatch || 'All'],
+        ['College', normalizedFilterCollege || 'All'],
+        ['Course', normalizedFilterCourse || 'All'],
+        ['Branch', normalizedFilterBranch || 'All'],
+        [''],
+        ['Statistics'],
+        ['Total Students', statistics.total],
+        ['Overall Completed', statistics.overall.completed],
+        ['Overall Temporary', statistics.overall.temporary],
+        ['Registration Pending', statistics.overall.pending],
+        ['Mobile Verified', statistics.verification.completed],
+        ['Certificates Verified', statistics.certificates.verified],
+        ['Fees Cleared', statistics.fees.cleared]
+      ];
+      const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
 
-        const totals = abstractRows.reduce((acc, row) => {
-          const total = parseInt(row.total || 0, 10);
-          acc.total += total;
-          acc.overall_completed += parseInt(row.overall_completed || 0, 10);
-          acc.overall_temporary += parseInt(row.overall_temporary || 0, 10);
-          acc.verification_completed += parseInt(row.verification_completed || 0, 10);
-          acc.certificates_verified += parseInt(row.certificates_verified || 0, 10);
-          acc.fee_cleared += parseInt(row.fee_cleared || 0, 10);
-          acc.promotion_completed += parseInt(row.promotion_completed || 0, 10);
-          acc.scholarship_assigned += parseInt(row.scholarship_assigned || 0, 10);
-          acc.scholarship_pending += parseInt(row.scholarship_pending ?? (total - parseInt(row.scholarship_assigned || 0, 10)), 10);
-          return acc;
-        }, {
-          total: 0,
-          overall_completed: 0,
-          overall_temporary: 0,
-          verification_completed: 0,
-          certificates_verified: 0,
-          fee_cleared: 0,
-          promotion_completed: 0,
-          scholarship_assigned: 0,
-          scholarship_pending: 0
-        });
+      // Abstract sheet — same SQL aggregation as preview UI (not client-side regrouping)
+      const abstractRows = await fetchRegistrationAbstractRows(req);
+      const abstractSheetData = abstractRows.map(mapRegistrationAbstractRowToExcel);
 
+      const totals = abstractRows.reduce((acc, row) => {
+        const total = parseInt(row.total || 0, 10);
+        acc.total += total;
+        acc.overall_completed += parseInt(row.overall_completed || 0, 10);
+        acc.overall_temporary += parseInt(row.overall_temporary || 0, 10);
+        acc.verification_completed += parseInt(row.verification_completed || 0, 10);
+        acc.certificates_verified += parseInt(row.certificates_verified || 0, 10);
+        acc.fee_cleared += parseInt(row.fee_cleared || 0, 10);
+        acc.promotion_completed += parseInt(row.promotion_completed || 0, 10);
+        acc.scholarship_assigned += parseInt(row.scholarship_assigned || 0, 10);
+        acc.scholarship_pending += parseInt(row.scholarship_pending ?? (total - parseInt(row.scholarship_assigned || 0, 10)), 10);
+        return acc;
+      }, {
+        total: 0,
+        overall_completed: 0,
+        overall_temporary: 0,
+        verification_completed: 0,
+        certificates_verified: 0,
+        fee_cleared: 0,
+        promotion_completed: 0,
+        scholarship_assigned: 0,
+        scholarship_pending: 0
+      });
+
+      if (abstractSheetData.length > 0) {
         abstractSheetData.push({
           College: 'TOTAL',
           Batch: '',
@@ -10356,18 +10459,25 @@ exports.exportRegistrationReport = async (req, res) => {
           Promotion: `${totals.promotion_completed}/${Math.max(0, totals.total - totals.promotion_completed)}`,
           Scholarship: `${totals.scholarship_assigned}/${totals.scholarship_pending}`
         });
-
-        const abstractWs = XLSX.utils.json_to_sheet(abstractSheetData);
-
-        // Add Abstract Sheet FIRST (Primary)
-        XLSX.utils.book_append_sheet(wb, abstractWs, 'Abstract Report');
-
-        // Add Summary stats sheet
-        XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary Stats');
-
-        // Add detailed sheet
-        XLSX.utils.book_append_sheet(wb, ws, 'Detailed Data');
       }
+
+      const defaultAbstractHeaders = [
+        'College', 'Batch', 'Course', 'Branch', 'Year', 'Sem', 'Total Students',
+        'Overall Completed', 'Temporary', 'Pending', 'Verification', 'Certificates',
+        'Fees', 'Promotion', 'Scholarship'
+      ];
+      const abstractWs = abstractSheetData.length > 0
+        ? XLSX.utils.json_to_sheet(abstractSheetData)
+        : XLSX.utils.aoa_to_sheet([defaultAbstractHeaders]);
+
+      // Add Abstract Sheet FIRST (Primary - Sheet 1)
+      XLSX.utils.book_append_sheet(wb, abstractWs, 'Abstract Report');
+
+      // Add Summary stats sheet (Sheet 2)
+      XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary Stats');
+
+      // Add detailed sheet (Sheet 3)
+      XLSX.utils.book_append_sheet(wb, ws, 'Detailed Data');
 
       const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 

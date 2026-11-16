@@ -2944,41 +2944,53 @@ const UserManagement = () => {
                 All Users
               </h2>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                <select
-                  value={userRoleFilter}
-                  onChange={(e) => setUserRoleFilter(e.target.value)}
-                  className="min-w-[140px] sm:w-44 pl-3 pr-8 py-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white text-sm focus:outline-none focus:bg-[var(--surface)]/30 border border-surface touch-manipulation min-h-[44px] [&>option]:text-main"
-                >
-                  <option value="">All roles ({users.length})</option>
-                  {roleListForFilter.map((r) => (
-                    <option key={r.value} value={r.value}>
-                      {r.label} ({r.count})
-                    </option>
-                  ))}
-                </select>
-                <div className="relative flex-1 sm:flex-none sm:w-56">
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60" />
+                <div className="relative">
+                  <select
+                    value={userRoleFilter}
+                    onChange={(e) => setUserRoleFilter(e.target.value)}
+                    className="min-w-[150px] sm:w-48 pl-3 pr-8 py-2 rounded-xl bg-white text-gray-800 text-xs sm:text-sm font-medium border border-white/30 shadow-sm focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white transition-all cursor-pointer min-h-[40px]"
+                  >
+                    <option value="" className="text-gray-900 bg-white">All roles ({users.length})</option>
+                    {roleListForFilter.map((r) => (
+                      <option key={r.value} value={r.value} className="text-gray-900 bg-white">
+                        {r.label} ({r.count})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="relative flex-1 sm:flex-none sm:w-60">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                   <input
                     type="text"
                     placeholder="Search users..."
                     value={userSearchTerm}
                     onChange={(e) => setUserSearchTerm(e.target.value)}
-                    className="w-full sm:w-56 pl-10 pr-4 py-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white placeholder-white/60 text-sm focus:outline-none focus:bg-[var(--surface)]/30 transition-all touch-manipulation min-h-[44px]"
+                    className="w-full sm:w-60 pl-9 pr-8 py-2 rounded-xl bg-white text-gray-800 placeholder:text-gray-400 text-xs sm:text-sm border border-white/30 shadow-sm focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white transition-all min-h-[40px]"
                   />
+                  {userSearchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => setUserSearchTerm('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 rounded-full"
+                      title="Clear search"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
                 </div>
                 <button 
                   onClick={loadUsers} 
                   title="Reload users"
-                  className="p-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0"
+                  className="p-2 sm:px-3 sm:py-2 rounded-xl bg-white/15 text-white hover:bg-white/25 active:bg-white/30 border border-white/25 shadow-sm transition-all min-h-[40px] min-w-[40px] flex items-center justify-center flex-shrink-0"
                 >
-                  <RefreshCw size={18} />
+                  <RefreshCw size={16} />
                 </button>
                 {canManageUsers && (
                   <button
                     onClick={handleSyncHrmsStatus}
                     disabled={syncingHrms}
                     title="Check HRMS status and auto-deactivate deactivated employees"
-                    className="px-3 py-2.5 rounded-lg sm:rounded-xl bg-[var(--surface)]/20 text-white hover:bg-[var(--surface)]/30 active:bg-[var(--surface)]/40 transition-colors touch-manipulation min-h-[44px] flex items-center gap-1.5 text-xs font-semibold flex-shrink-0 disabled:opacity-50"
+                    className="px-3.5 py-2 rounded-xl bg-white text-primary hover:bg-white/90 active:scale-95 border border-white shadow-sm transition-all min-h-[40px] flex items-center gap-1.5 text-xs font-bold flex-shrink-0 disabled:opacity-60"
                   >
                     <RefreshCw size={14} className={syncingHrms ? "animate-spin" : ""} />
                     <span className="hidden sm:inline">Sync HRMS</span>
@@ -3014,11 +3026,11 @@ const UserManagement = () => {
                             <select
                               value={userRoleFilter}
                               onChange={(e) => setUserRoleFilter(e.target.value)}
-                              className="w-full min-w-[130px] max-w-[160px] px-2 py-1.5 rounded-lg border border-border bg-surface text-[11px] font-medium text-sub shadow-sm focus:ring-2 focus:ring-[var(--primary-light)] focus:outline-none focus:border-primary transition-shadow"
+                              className="w-full min-w-[130px] max-w-[160px] px-2 py-1.5 rounded-lg border border-border bg-surface text-[11px] font-medium text-sub shadow-sm focus:ring-2 focus:ring-[var(--primary-light)] focus:outline-none focus:border-primary transition-shadow cursor-pointer"
                             >
-                              <option value="">All roles ({users.length})</option>
+                              <option value="" className="text-gray-900 bg-white">All roles ({users.length})</option>
                               {roleListForFilter.map((r) => (
-                                <option key={r.value} value={r.value}>
+                                <option key={r.value} value={r.value} className="text-gray-900 bg-white">
                                   {r.label} ({r.count})
                                 </option>
                               ))}
@@ -3043,16 +3055,29 @@ const UserManagement = () => {
                       {filteredUsers.map((userData) => {
                         const permStatus = countPermissions(userData);
                         const hasModuleAccess = hasPermissions(userData);
+                        const isInactive = !userData.isActive;
                         return (
-                          <tr key={userData.id} className="hover:bg-[var(--background)]/50 transition-colors">
+                          <tr 
+                            key={userData.id} 
+                            className={`transition-colors ${
+                              isInactive 
+                                ? 'bg-red-50/80 hover:bg-red-100/90 border-l-4 border-l-danger' 
+                                : 'hover:bg-[var(--background)]/50'
+                            }`}
+                          >
                             <td className="px-2 py-1.5">
                               <div className="flex items-center gap-2">
-                                <div className={`w-8 h-8 rounded-lg flex-shrink-0 bg-gradient-to-br ${ROLE_AVATAR_COLORS[userData.role] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center text-white font-bold text-[13px] shadow-sm`}>
+                                <div className={`w-8 h-8 rounded-lg flex-shrink-0 bg-gradient-to-br ${ROLE_AVATAR_COLORS[userData.role] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center text-white font-bold text-[13px] shadow-sm ${isInactive ? 'grayscale opacity-75' : ''}`}>
                                   {userData.name?.charAt(0)?.toUpperCase()}
                                 </div>
                                 <div className="min-w-0">
                                   <div className="flex items-center gap-1.5">
-                                    <div className="font-semibold text-main text-xs truncate max-w-[150px]">{userData.name}</div>
+                                    <div className={`font-semibold text-xs truncate max-w-[150px] ${isInactive ? 'text-red-900 font-bold' : 'text-main'}`}>{userData.name}</div>
+                                    {isInactive && (
+                                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-red-100 text-danger border border-red-200 uppercase tracking-tighter" title="Account Deactivated">
+                                        Inactive
+                                      </span>
+                                    )}
                                     {userData.hrms_id ? (
                                       <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-[var(--success-light)] text-success border border-[var(--success-light)] uppercase tracking-tighter" title="Linked to HRMS">
                                         Linked
@@ -3185,7 +3210,7 @@ const UserManagement = () => {
                                   Active
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-background text-muted-text rounded-md text-[10px] font-semibold">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 text-danger border border-red-200 rounded-md text-[10px] font-bold shadow-xs">
                                   <XCircle size={11} />
                                   Inactive
                                 </span>
@@ -3269,17 +3294,30 @@ const UserManagement = () => {
                   {filteredUsers.map((userData) => {
                     const permStatus = countPermissions(userData);
                     const hasModuleAccess = hasPermissions(userData);
+                    const isInactive = !userData.isActive;
                     return (
-                      <div key={userData.id} className="bg-surface border border-border rounded-lg shadow-sm overflow-hidden">
+                      <div 
+                        key={userData.id} 
+                        className={`rounded-xl shadow-sm overflow-hidden transition-all ${
+                          isInactive 
+                            ? 'bg-red-50/70 border-2 border-red-300 shadow-red-100' 
+                            : 'bg-surface border border-border'
+                        }`}
+                      >
                         <div className="p-4 space-y-3">
                           {/* User Info Header */}
-                          <div className="flex items-start gap-3 pb-3 border-b border-border">
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${ROLE_AVATAR_COLORS[userData.role] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center text-white font-bold text-base shadow-sm flex-shrink-0`}>
+                          <div className={`flex items-start gap-3 pb-3 border-b ${isInactive ? 'border-red-200' : 'border-border'}`}>
+                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${ROLE_AVATAR_COLORS[userData.role] || 'from-[var(--text-muted)] to-[var(--text-muted)]'} flex items-center justify-center text-white font-bold text-base shadow-sm flex-shrink-0 ${isInactive ? 'grayscale opacity-75' : ''}`}>
                               {userData.name?.charAt(0)?.toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <div className="font-semibold text-main text-base">{userData.name}</div>
+                                <div className={`font-semibold text-base ${isInactive ? 'text-red-900 font-bold' : 'text-main'}`}>{userData.name}</div>
+                                {isInactive && (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-extrabold bg-red-100 text-danger border border-red-200 uppercase tracking-tighter">
+                                    Inactive
+                                  </span>
+                                )}
                                 {userData.hrms_id ? (
                                   <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold bg-[var(--success-light)] text-success border border-[var(--success-light)] uppercase tracking-tighter">
                                     Linked
@@ -3411,7 +3449,7 @@ const UserManagement = () => {
                                   Active
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-background text-muted-text rounded-lg text-xs font-semibold">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-red-100 text-danger border border-red-200 rounded-lg text-xs font-bold shadow-xs">
                                   <XCircle size={12} />
                                   Inactive
                                 </span>

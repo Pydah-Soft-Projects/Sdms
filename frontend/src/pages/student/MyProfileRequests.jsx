@@ -123,7 +123,7 @@ const MyProfileRequests = () => {
                                     <div className="mt-4 p-4 bg-background rounded-xl border border-border">
                                         <h4 className="text-xs font-bold text-muted-text uppercase tracking-wider mb-2">Admin Comments</h4>
                                         <p className="text-sm text-sub">{req.comments}</p>
-                                        <p className="text-xs text-muted-text mt-2 italic">- Reviewed by {req.reviewed_by}</p>
+                                        <p className="text-xs text-muted-text mt-2 italic">- Reviewed by {String(req.reviewed_by || '').replace(/\s*\([^)]*(?:emp|hrms)[^)]*\)/gi, '').trim() || req.reviewed_by || 'Admin'}</p>
                                     </div>
                                 )}
                             </div>

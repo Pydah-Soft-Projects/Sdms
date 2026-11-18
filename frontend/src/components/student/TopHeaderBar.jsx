@@ -58,10 +58,10 @@ const TopHeaderBar = () => {
                     <span className="text-xs sm:text-base font-extrabold text-main tracking-tight flex items-center gap-1.5 truncate leading-none">
                         <span>{timeGreeting}</span>
                         <span
-                            className="text-[var(--warning)] font-bold tracking-normal text-sm sm:text-lg ml-0.5 inline-block"
+                            className="text-[#1E3A8A] font-bold tracking-normal text-sm sm:text-lg ml-0.5 inline-block"
                             style={{ fontFamily: "'Dancing Script', 'Brush Script MT', 'Caveat', 'Segoe Script', cursive" }}
                         >
-                            Pydian
+                            buddy
                         </span>
                     </span>
                 </div>

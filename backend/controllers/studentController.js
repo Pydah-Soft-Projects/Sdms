@@ -222,13 +222,16 @@ const loadRegistrationAbstractFilters = async (req, tableAlias = 'base') => {
   if (filter_level) {
     try {
       const [levelCourses] = await masterPool.query(
-        'SELECT name FROM courses WHERE level = ? AND is_active = 1',
+        'SELECT id, name FROM courses WHERE level = ? AND is_active = 1',
         [filter_level]
       );
       const validCourseNames = levelCourses.map((c) => c.name);
+      const validCourseIds = levelCourses.map((c) => c.id);
       if (validCourseNames.length > 0) {
-        whereParts.push(`${tableAlias}.course IN (${validCourseNames.map(() => '?').join(',')})`);
-        params.push(...validCourseNames);
+        const placeholders = validCourseNames.map(() => '?').join(',');
+        const idPlaceholders = validCourseIds.map(() => '?').join(',');
+        whereParts.push(`(${tableAlias}.course IN (${placeholders}) OR ${tableAlias}.course_id IN (${idPlaceholders}))`);
+        params.push(...validCourseNames, ...validCourseIds);
       } else {
         whereParts.push('1=0');
       }
@@ -3349,7 +3352,7 @@ exports.getAllStudents = async (req, res) => {
         query += ' AND (s.course_id = ? OR s.course = (SELECT name FROM courses WHERE id = ? LIMIT 1))';
         params.push(crsId, crsId);
       } else {
-        query += ' AND (s.course = ? OR s.course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        query += ' AND (s.course = ? OR s.course_id IN (SELECT id FROM courses WHERE name = ?))';
         params.push(normalizedFilterCourse, normalizedFilterCourse);
       }
     }
@@ -3360,7 +3363,7 @@ exports.getAllStudents = async (req, res) => {
         query += ' AND (s.branch_id = ? OR s.branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))';
         params.push(brId, brId);
       } else {
-        query += ' AND (s.branch = ? OR s.branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+        query += ' AND (s.branch = ? OR s.branch_id IN (SELECT id FROM course_branches WHERE name = ?))';
         params.push(normalizedFilterBranch, normalizedFilterBranch);
       }
     }
@@ -3372,17 +3375,20 @@ exports.getAllStudents = async (req, res) => {
 
     // Level filter - filter by courses with the specified level
     let validLevelCourseNames = [];
+    let validLevelCourseIds = [];
     if (normalizedOtherFilters.filter_level) {
       const level = normalizedOtherFilters.filter_level;
       const [levelCourses] = await masterPool.query(
-        'SELECT name FROM courses WHERE level = ? AND is_active = 1',
+        'SELECT id, name FROM courses WHERE level = ? AND is_active = 1',
         [level]
       );
       validLevelCourseNames = levelCourses.map(c => c.name);
+      validLevelCourseIds = levelCourses.map(c => c.id);
       if (validLevelCourseNames.length > 0) {
         const placeholders = validLevelCourseNames.map(() => '?').join(',');
-        query += ` AND s.course IN (${placeholders})`;
-        params.push(...validLevelCourseNames);
+        const idPlaceholders = validLevelCourseIds.map(() => '?').join(',');
+        query += ` AND (s.course IN (${placeholders}) OR s.course_id IN (${idPlaceholders}))`;
+        params.push(...validLevelCourseNames, ...validLevelCourseIds);
       } else {
         // No courses with this level, return empty result
         query += ' AND 1=0';
@@ -3589,7 +3595,7 @@ exports.getAllStudents = async (req, res) => {
         countQuery += ' AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))';
         countParams.push(crsId, crsId);
       } else {
-        countQuery += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        countQuery += ' AND (course = ? OR course_id IN (SELECT id FROM courses WHERE name = ?))';
         countParams.push(normalizedFilterCourse, normalizedFilterCourse);
       }
     }
@@ -3600,7 +3606,7 @@ exports.getAllStudents = async (req, res) => {
         countQuery += ' AND (branch_id = ? OR branch = (SELECT name FROM course_branches WHERE id = ? LIMIT 1))';
         countParams.push(brId, brId);
       } else {
-        countQuery += ' AND (branch = ? OR branch_id = (SELECT id FROM course_branches WHERE name = ? LIMIT 1))';
+        countQuery += ' AND (branch = ? OR branch_id IN (SELECT id FROM course_branches WHERE name = ?))';
         countParams.push(normalizedFilterBranch, normalizedFilterBranch);
       }
     }
@@ -3614,8 +3620,9 @@ exports.getAllStudents = async (req, res) => {
     if (normalizedOtherFilters.filter_level) {
       if (validLevelCourseNames.length > 0) {
         const placeholders = validLevelCourseNames.map(() => '?').join(',');
-        countQuery += ` AND course IN (${placeholders})`;
-        countParams.push(...validLevelCourseNames);
+        const idPlaceholders = validLevelCourseIds.map(() => '?').join(',');
+        countQuery += ` AND (course IN (${placeholders}) OR course_id IN (${idPlaceholders}))`;
+        countParams.push(...validLevelCourseNames, ...validLevelCourseIds);
       } else {
         // No courses with this level, return empty result
         countQuery += ' AND 1=0';
@@ -6956,7 +6963,7 @@ exports.getFilterOptions = async (req, res) => {
         whereClause += ` AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))`;
         params.push(crsId, crsId);
       } else {
-        whereClause += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        whereClause += ' AND (course = ? OR course_id IN (SELECT id FROM courses WHERE name = ?))';
         params.push(course, course);
       }
     }
@@ -7100,7 +7107,7 @@ exports.getQuickFilterOptions = async (req, res) => {
         whereClause += ` AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))`;
         params.push(crsId, crsId);
       } else {
-        whereClause += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        whereClause += ' AND (course = ? OR course_id IN (SELECT id FROM courses WHERE name = ?))';
         params.push(course, course);
       }
     }
@@ -7175,14 +7182,16 @@ exports.getQuickFilterOptions = async (req, res) => {
     if (level) {
       // Get courses with the specified level
       const [levelCourses] = await masterPool.query(
-        'SELECT name FROM courses WHERE level = ? AND is_active = 1',
+        'SELECT id, name FROM courses WHERE level = ? AND is_active = 1',
         [level]
       );
       const validCourseNames = levelCourses.map(c => c.name);
+      const validCourseIds = levelCourses.map(c => c.id);
       if (validCourseNames.length > 0) {
         const placeholders = validCourseNames.map(() => '?').join(',');
-        const batchWhereClause = `${whereClause} AND course IN (${placeholders})`;
-        const batchParams = [...params, ...validCourseNames];
+        const idPlaceholders = validCourseIds.map(() => '?').join(',');
+        const batchWhereClause = `${whereClause} AND (course IN (${placeholders}) OR course_id IN (${idPlaceholders}))`;
+        const batchParams = [...params, ...validCourseNames, ...validCourseIds];
         [batchRows] = await masterPool.query(
           `SELECT DISTINCT batch FROM students ${batchWhereClause} AND batch IS NOT NULL AND batch <> '' ORDER BY batch ASC`,
           batchParams
@@ -7225,14 +7234,16 @@ exports.getQuickFilterOptions = async (req, res) => {
     if (level) {
       // Filter by level - get courses with that level
       const [levelCourses] = await masterPool.query(
-        'SELECT name FROM courses WHERE level = ? AND is_active = 1',
+        'SELECT id, name FROM courses WHERE level = ? AND is_active = 1',
         [level]
       );
       const validCourseNames = levelCourses.map(c => c.name);
+      const validCourseIds = levelCourses.map(c => c.id);
       if (validCourseNames.length > 0) {
         const placeholders = validCourseNames.map(() => '?').join(',');
-        yearWhereClause += ` AND course IN (${placeholders})`;
-        yearParams.push(...validCourseNames);
+        const idPlaceholders = validCourseIds.map(() => '?').join(',');
+        yearWhereClause += ` AND (course IN (${placeholders}) OR course_id IN (${idPlaceholders}))`;
+        yearParams.push(...validCourseNames, ...validCourseIds);
       } else {
         // No courses with this level, return empty
         yearWhereClause += ' AND 1=0';
@@ -7244,7 +7255,7 @@ exports.getQuickFilterOptions = async (req, res) => {
         yearWhereClause += ` AND (course_id = ? OR course = (SELECT name FROM courses WHERE id = ? LIMIT 1))`;
         yearParams.push(crsId, crsId);
       } else {
-        yearWhereClause += ' AND (course = ? OR course_id = (SELECT id FROM courses WHERE name = ? LIMIT 1))';
+        yearWhereClause += ' AND (course = ? OR course_id IN (SELECT id FROM courses WHERE name = ?))';
         yearParams.push(course, course);
       }
     }

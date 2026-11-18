@@ -189,6 +189,7 @@ const CertificatesReport = () => {
       try {
         const params = new URLSearchParams();
         if (filters.college) params.append('college', filters.college);
+        if (filters.level) params.append('level', filters.level.toLowerCase());
         if (filters.batch) params.append('batch', filters.batch);
         if (filters.course) params.append('course', filters.course);
         if (filters.branch) params.append('branch', filters.branch);
@@ -199,9 +200,10 @@ const CertificatesReport = () => {
           const d = res.data.data || {};
           setFilterOptions(prev => ({
             ...prev,
-            batches: filters.batch ? prev.batches : (d.batches || prev.batches),
-            courses: filters.course ? prev.courses : (d.courses || prev.courses),
-            branches: d.branches || prev.branches
+            colleges: d.colleges || prev.colleges,
+            batches: d.batches || prev.batches,
+            courses: d.courses || [],
+            branches: d.branches || []
           }));
         }
       } catch (err) {
@@ -209,7 +211,7 @@ const CertificatesReport = () => {
       }
     };
     updateOptions();
-  }, [filters.college, filters.batch, filters.course, filters.branch]);
+  }, [filters.college, filters.level, filters.batch, filters.course, filters.branch]);
 
   // Use student query (Only runs when hasFetched is true and level is selected)
   const { data: studentData, isLoading, isError, refetch } = useStudents({
@@ -225,7 +227,22 @@ const CertificatesReport = () => {
   const totalPages = studentData?.pagination?.totalPages || 1;
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    setFilters(prev => {
+      const next = { ...prev, [key]: value };
+      if (key === 'college') {
+        next.course = '';
+        next.branch = '';
+        next.section = '';
+      } else if (key === 'level') {
+        next.course = '';
+        next.branch = '';
+        next.section = '';
+      } else if (key === 'course') {
+        next.branch = '';
+        next.section = '';
+      }
+      return next;
+    });
     setPage(1);
     if (key === 'level' && !value) {
       setHasFetched(false);
@@ -528,15 +545,21 @@ const CertificatesReport = () => {
           <div>
             <label className="block text-xs font-semibold text-sub mb-1">College</label>
             <select
-              value={filters.college}
+              value={(() => {
+                if (!filters.college) return '';
+                const match = (filterOptions.colleges || []).find(c => 
+                  String(c.id) === String(filters.college) || c.name === filters.college
+                );
+                return match ? String(match.id !== undefined && match.id !== null ? match.id : match.name) : String(filters.college);
+              })()}
               onChange={(e) => handleFilterChange('college', e.target.value)}
               className="w-full text-xs border border-border-strong rounded-lg p-2 bg-surface focus:ring-2 focus:ring-primary outline-none"
             >
               <option value="">All Colleges</option>
-              {filterOptions.colleges.map((c, idx) => {
-                const val = getOptionValue(c);
-                const label = getOptionLabel(c);
-                return <option key={val || idx} value={val}>{label}</option>;
+              {(filterOptions.colleges || []).map((c, idx) => {
+                const val = c.id !== undefined && c.id !== null ? String(c.id) : (c.name || getOptionValue(c));
+                const label = c.name || getOptionLabel(c);
+                return <option key={c.id || val || idx} value={val}>{label}</option>;
               })}
             </select>
           </div>
@@ -562,16 +585,42 @@ const CertificatesReport = () => {
           <div>
             <label className="block text-xs font-semibold text-sub mb-1">Program</label>
             <select
-              value={filters.course}
+              value={(() => {
+                if (!filters.course) return '';
+                const match = (filterOptions.courses || []).find(c => 
+                  String(c.id) === String(filters.course) || c.name === filters.course
+                );
+                return match ? (!filters.college ? (match.name || filters.course) : String(match.id || match.name)) : String(filters.course);
+              })()}
               onChange={(e) => handleFilterChange('course', e.target.value)}
               className="w-full text-xs border border-border-strong rounded-lg p-2 bg-surface focus:ring-2 focus:ring-primary outline-none"
             >
               <option value="">All Programs</option>
-              {filterOptions.courses.map((cr, idx) => {
-                const val = getOptionValue(cr);
-                const label = getOptionLabel(cr);
-                return <option key={val || idx} value={val}>{label}</option>;
-              })}
+              {(() => {
+                const seenNames = new Set();
+                return (filterOptions.courses || [])
+                  .filter(course => {
+                    const name = (course?.name || course || '').trim();
+                    if (!name) return false;
+                    if (filters.level && course.level) {
+                      if (course.level.toLowerCase() !== filters.level.toLowerCase()) return false;
+                    }
+                    if (!filters.college) {
+                      if (seenNames.has(name.toLowerCase())) return false;
+                      seenNames.add(name.toLowerCase());
+                    }
+                    return true;
+                  })
+                  .map((cr, idx) => {
+                    const courseName = cr.name || cr;
+                    const courseVal = !filters.college ? courseName : (cr.id ? String(cr.id) : courseName);
+                    return (
+                      <option key={cr.id || courseName || idx} value={courseVal}>
+                        {courseName}
+                      </option>
+                    );
+                  });
+              })()}
             </select>
           </div>
 
@@ -579,15 +628,21 @@ const CertificatesReport = () => {
           <div>
             <label className="block text-xs font-semibold text-sub mb-1">Branch</label>
             <select
-              value={filters.branch}
+              value={(() => {
+                if (!filters.branch) return '';
+                const match = (filterOptions.branches || []).find(br => 
+                  String(br.id) === String(filters.branch) || br.name === filters.branch
+                );
+                return match ? String(match.id || match.name || filters.branch) : String(filters.branch);
+              })()}
               onChange={(e) => handleFilterChange('branch', e.target.value)}
               className="w-full text-xs border border-border-strong rounded-lg p-2 bg-surface focus:ring-2 focus:ring-primary outline-none"
             >
               <option value="">All Branches</option>
-              {filterOptions.branches.map((br, idx) => {
-                const val = getOptionValue(br);
-                const label = getOptionLabel(br);
-                return <option key={val || idx} value={val}>{label}</option>;
+              {(filterOptions.branches || []).map((br, idx) => {
+                const val = br.id !== undefined && br.id !== null ? String(br.id) : (br.name || getOptionValue(br));
+                const label = br.name || getOptionLabel(br);
+                return <option key={br.id || val || idx} value={val}>{label}</option>;
               })}
             </select>
           </div>

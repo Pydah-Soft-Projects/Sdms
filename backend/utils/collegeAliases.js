@@ -71,9 +71,16 @@ const buildMultiCollegeFilter = (collegeVal, tableAlias = 'students') => {
     const nameList = [...allNames];
     if (nameList.length === 0) return { clause: '', params: [] };
     if (nameList.length === 1) {
-      return { clause: `${tableAlias}.college = ?`, params: [nameList[0]] };
+      return {
+        clause: `(${tableAlias}.college = ? OR ${tableAlias}.college_id = (SELECT id FROM colleges WHERE name = ? LIMIT 1))`,
+        params: [nameList[0], nameList[0]]
+      };
     }
-    return { clause: `${tableAlias}.college IN (${nameList.map(() => '?').join(',')})`, params: nameList };
+    const placeholders = nameList.map(() => '?').join(',');
+    return {
+      clause: `(${tableAlias}.college IN (${placeholders}) OR ${tableAlias}.college_id IN (SELECT id FROM colleges WHERE name IN (${placeholders})))`,
+      params: [...nameList, ...nameList]
+    };
   }
 };
 

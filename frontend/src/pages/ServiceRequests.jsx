@@ -109,7 +109,7 @@ const ServiceRequests = () => {
     // Helper to determine dynamic fields based on service type and template content
     const getTemplateFields = (serviceId) => {
         if (!serviceId) return [];
-        const service = services.find(s => s.id == serviceId);
+        const service = services.find(s => s.id == serviceId) || (selectedRequest?.service_id == serviceId ? selectedRequest : null);
         if (!service) return TEMPLATE_SCHEMAS.default;
 
         // 1. Check for admin_fields from DB if explicitly configured
@@ -117,7 +117,7 @@ const ServiceRequests = () => {
             return [{
                 section: 'Details',
                 fields: [
-                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true },
+                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, disabled: true },
                     { name: 'student_name', label: 'Student Name', type: 'text', required: true },
                     ...service.admin_fields
                 ]
@@ -125,7 +125,7 @@ const ServiceRequests = () => {
         }
 
         // 2. Predefined static template types
-        const name = (service.name || '').toLowerCase();
+        const name = (service.name || service.service_name || '').toLowerCase();
         const type = service.template_type || '';
 
         if (type === 'study_certificate' || name.includes('study')) return TEMPLATE_SCHEMAS.study_certificate;
@@ -141,84 +141,181 @@ const ServiceRequests = () => {
         const content = ((config.top_content || '') + '\n' + (config.middle_content || '') + '\n' + (config.bottom_content || '')).trim();
 
         if (content) {
+            // Find all variables matching @variable, {{variable}}, or @[label](variable)
+            const detectedVars = new Set();
+            const varRegex = /(?:@|{{)\s*([a-zA-Z0-9_]+)\s*(?:}})?/g;
+            let m;
+            while ((m = varRegex.exec(content)) !== null) {
+                detectedVars.add(m[1].toLowerCase());
+            }
+            const bracketRegex = /@\[(.*?)\]\(([a-zA-Z0-9_]+)\)/g;
+            while ((m = bracketRegex.exec(content)) !== null) {
+                detectedVars.add(m[2].toLowerCase());
+            }
+
+            const ignoredVars = new Set(['principal_signature', 'current_date', 'date']);
             const sections = [];
 
-            // Section 1: Student Details (always present)
+            // Group 1: Student Details
             const studentFields = [
-                { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true, placeholder: 'Enter Admission Number' },
-                { name: 'student_name', label: 'Student Name', type: 'text', required: true, placeholder: 'Enter Student Name' },
-                { name: 'father_name', label: "Father's Name", type: 'text', placeholder: "Enter Father's Name" },
+                { name: 'admission_number', label: 'Admission Number', type: 'text', disabled: true, placeholder: 'Admission Number' }
             ];
 
-            if (/@mother_name|mother_name|mother/i.test(content)) {
-                studentFields.push({ name: 'mother_name', label: "Mother's Name", type: 'text', placeholder: "Enter Mother's Name" });
+            if (detectedVars.has('student_name') || detectedVars.has('name') || !detectedVars.size) {
+                studentFields.push({ name: 'student_name', label: 'Student Name', type: 'text', required: true, placeholder: 'Student Name' });
             }
-            if (/@dob|@date_of_birth|dob|date_of_birth/i.test(content)) {
-                studentFields.push({ name: 'dob', label: 'Date of Birth', type: 'text', placeholder: 'DD/MM/YYYY' });
+            if (detectedVars.has('father_name') || detectedVars.has('father')) {
+                studentFields.push({ name: 'father_name', label: "Father's Name", type: 'text', placeholder: "Father's Name" });
+            }
+            if (detectedVars.has('mother_name') || detectedVars.has('mother')) {
+                studentFields.push({ name: 'mother_name', label: "Mother's Name", type: 'text', placeholder: "Mother's Name" });
+            }
+            if (detectedVars.has('guardian_name') || detectedVars.has('guardian')) {
+                studentFields.push({ name: 'guardian_name', label: "Guardian's Name", type: 'text', placeholder: "Guardian's Name" });
+            }
+            if (detectedVars.has('pin_no') || detectedVars.has('pin') || detectedVars.has('ht_no') || detectedVars.has('roll_number')) {
+                studentFields.push({ name: 'pin_no', label: 'PIN / Roll Number', type: 'text', placeholder: 'PIN / Roll Number' });
+            }
+            if (detectedVars.has('dob') || detectedVars.has('date_of_birth')) {
+                studentFields.push({ name: 'dob', label: 'Date of Birth', type: 'date' });
+            }
+            if (detectedVars.has('gender') || detectedVars.has('sex')) {
+                studentFields.push({ name: 'gender', label: 'Gender', type: 'select', options: [{ label: 'Male', value: 'M' }, { label: 'Female', value: 'F' }, { label: 'Other', value: 'Other' }] });
+            }
+            if (detectedVars.has('caste') || detectedVars.has('category')) {
+                studentFields.push({ name: 'caste', label: 'Caste', type: 'text', placeholder: 'Caste' });
+            }
+            if (detectedVars.has('student_mobile') || detectedVars.has('mobile') || detectedVars.has('phone_number')) {
+                studentFields.push({ name: 'student_mobile', label: 'Mobile Number', type: 'text', placeholder: 'Mobile Number' });
+            }
+            if (detectedVars.has('student_address') || detectedVars.has('address')) {
+                studentFields.push({ name: 'student_address', label: 'Address', type: 'textarea', placeholder: 'Address' });
+            }
+            if (detectedVars.has('college_name')) {
+                studentFields.push({ name: 'college_name', label: 'College Name', type: 'text', placeholder: 'College Name' });
             }
 
             sections.push({
                 section: 'Student Details',
-                fields: studentFields,
+                fields: studentFields
             });
 
-            // Section 2: Academic Details (if template references course/branch/year/semester)
+            // Group 2: Academic Details
             const academicFields = [];
-            if (/@course|course|b\.tech|programme|degree/i.test(content)) {
-                academicFields.push({ name: 'course', label: 'Course / Program', type: 'text', placeholder: 'e.g. B.Tech' });
+            if (detectedVars.has('course') || detectedVars.has('program') || detectedVars.has('degree')) {
+                academicFields.push({ name: 'course', label: 'Course / Program', type: 'text', placeholder: 'e.g. B.Tech, MBA' });
             }
-            if (/@branch|branch|department/i.test(content)) {
-                academicFields.push({ name: 'branch', label: 'Branch / Department', type: 'text', placeholder: 'e.g. CSE' });
+            if (detectedVars.has('branch') || detectedVars.has('department')) {
+                academicFields.push({ name: 'branch', label: 'Branch / Department', type: 'text', placeholder: 'e.g. CSE, EEE' });
             }
-            if (/@current_year|@year|current_year|year/i.test(content)) {
-                academicFields.push({ name: 'current_year', label: 'Year', type: 'text', className: 'w-1/2', placeholder: 'e.g. IV' });
+            if (detectedVars.has('current_year') || detectedVars.has('year')) {
+                academicFields.push({ name: 'current_year', label: 'Year', type: 'text', placeholder: 'e.g. 1, 2, 3, 4' });
             }
-            if (/@current_semester|@semester|current_semester|semester/i.test(content)) {
-                academicFields.push({ name: 'current_semester', label: 'Semester', type: 'text', className: 'w-1/2', placeholder: 'e.g. I' });
+            if (detectedVars.has('current_semester') || detectedVars.has('semester') || detectedVars.has('sem')) {
+                academicFields.push({ name: 'current_semester', label: 'Semester', type: 'text', placeholder: 'e.g. 1, 2' });
             }
-            if (/@academic_year|academic_year/i.test(content)) {
+            if (detectedVars.has('academic_year')) {
                 academicFields.push({ name: 'academic_year', label: 'Academic Year', type: 'text', placeholder: 'e.g. 2024-2025' });
             }
 
             if (academicFields.length > 0) {
                 sections.push({
                     section: 'Academic Details',
-                    fields: academicFields,
+                    fields: academicFields
                 });
             }
 
-            // Section 3: Certificate Input Fields (blanks in template: ___ or runs of underscores)
-            const blankMatches = content.match(/(?:___(?:\[\d+\])?(?:\s*___)*)+|_{3,}/g) || [];
+            // Group 3: Custom Variables (any other @variable in template)
+            const knownVars = new Set([
+                'admission_number', 'student_name', 'name', 'father_name', 'father',
+                'mother_name', 'mother', 'guardian_name', 'guardian', 'pin_no', 'pin',
+                'ht_no', 'roll_number', 'dob', 'date_of_birth', 'gender', 'sex', 'caste',
+                'category', 'student_mobile', 'mobile', 'phone_number', 'student_address',
+                'address', 'college_name', 'course', 'program', 'degree', 'branch',
+                'department', 'current_year', 'year', 'current_semester', 'semester', 'sem',
+                'academic_year', 'principal_signature', 'current_date', 'date', 'purpose'
+            ]);
+
+            const customFields = [];
+            detectedVars.forEach(v => {
+                if (!knownVars.has(v) && !ignoredVars.has(v)) {
+                    const label = v.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    customFields.push({
+                        name: v,
+                        label: label,
+                        type: 'text',
+                        placeholder: `Enter ${label}`
+                    });
+                }
+            });
+
+            if (customFields.length > 0) {
+                sections.push({
+                    section: 'Custom Variables',
+                    fields: customFields
+                });
+            }
+
+            // Group 4: Input Fields Entry (fillable blanks in template: ___, ....., …………, etc.)
+            const blankRegex = /(?:___(?:\[\d+\])?(?:\s*___)*)+|_{2,}|[.\u2026]{2,}|[—–―-]{2,}/g;
+            const blankMatches = content.match(blankRegex) || [];
             const blankVarCount = Array.isArray(config.blank_variables) ? config.blank_variables.length : 0;
             const totalBlanks = Math.max(blankMatches.length, blankVarCount);
 
             if (totalBlanks > 0) {
-                const inputFields = [];
+                const blankFields = [];
                 for (let i = 1; i <= totalBlanks; i++) {
                     const customName = config.blank_variables && config.blank_variables[i - 1]
                         ? (typeof config.blank_variables[i - 1] === 'string' ? config.blank_variables[i - 1] : config.blank_variables[i - 1].label || config.blank_variables[i - 1].name)
                         : null;
-                    const label = customName || `Input Field ${i}`;
-                    inputFields.push({
+
+                    let inferredLabel = customName;
+                    if (!inferredLabel) {
+                        const matchStr = blankMatches[i - 1];
+                        if (matchStr) {
+                            const matchIndex = content.indexOf(matchStr);
+                            const beforeSnippet = content.substring(Math.max(0, matchIndex - 120), matchIndex).replace(/\[\/?.*?\]/g, '').trim();
+                            if (/conduct/i.test(beforeSnippet)) {
+                                inferredLabel = 'Conduct';
+                            } else if (/reason/i.test(beforeSnippet)) {
+                                inferredLabel = 'Reason';
+                            } else if (/purpose/i.test(beforeSnippet)) {
+                                inferredLabel = 'Purpose';
+                            } else if (/remark/i.test(beforeSnippet)) {
+                                inferredLabel = 'Remarks';
+                            } else if (/amount/i.test(beforeSnippet)) {
+                                inferredLabel = 'Amount';
+                            } else {
+                                inferredLabel = `Input Field ${i}`;
+                            }
+                        } else {
+                            inferredLabel = `Input Field ${i}`;
+                        }
+                    }
+
+                    blankFields.push({
                         name: `field_${i}`,
-                        label: label,
+                        label: inferredLabel,
                         type: 'text',
-                        placeholder: `Enter value for ${label} (e.g. ${i})`,
+                        placeholder: `Enter ${inferredLabel}`,
+                        fullWidth: true
                     });
                 }
                 sections.push({
-                    section: 'Certificate Input Fields',
-                    fields: inputFields,
+                    section: 'Input Fields Entry',
+                    fields: blankFields
                 });
             }
 
-            // Section 4: Additional Details
-            sections.push({
-                section: 'Additional Details',
-                fields: [
-                    { name: 'purpose', label: 'Purpose/Note', type: 'text', placeholder: 'e.g. Higher Studies, Verification' }
-                ]
-            });
+            // Group 5: Purpose / Note if referenced
+            if (detectedVars.has('purpose') || /purpose/i.test(content)) {
+                sections.push({
+                    section: 'Additional Details',
+                    fields: [
+                        { name: 'purpose', label: 'Purpose', type: 'text', placeholder: 'e.g. Higher Studies, Verification' }
+                    ]
+                });
+            }
 
             return sections;
         }
@@ -340,7 +437,7 @@ const ServiceRequests = () => {
         }
     };
 
-    // New Flow: 1. Click Print -> 2. Fetch Student -> 3. Show Edit Modal -> 4. Update -> 5. Generate
+    // New Flow: 1. Click Print -> 2. Fetch Student -> 3. Show Edit Modal -> 4. Update Service Request Data -> 5. Generate
     const handleVerifyAndPrint = async (request) => {
         try {
             const toastId = toast.loading('Fetching details...');
@@ -352,21 +449,41 @@ const ServiceRequests = () => {
             if (response.data && response.data.data) {
                 const student = response.data.data;
                 setEditingStudent(student);
-                // Initialize form with student data 
+
+                // Parse any custom data previously saved on this service request
+                let reqData = {};
+                if (typeof request.request_data === 'string') {
+                    try {
+                        reqData = JSON.parse(request.request_data);
+                    } catch (e) {
+                        reqData = {};
+                    }
+                } else if (typeof request.request_data === 'object' && request.request_data !== null) {
+                    reqData = request.request_data;
+                }
+
+                // Initialize form: prefer request_data (service-specific values), fallback to student record
                 setStudentForm({
-                    student_name: student.student_name || '',
-                    father_name: student.father_name || '',
-                    dob: student.dob ? new Date(student.dob).toISOString().split('T')[0] : '',
-                    gender: student.gender || '',
-                    caste: student.caste || '',
-                    student_mobile: student.student_mobile || '',
-                    course: student.course || '',
-                    branch: student.branch || '',
-                    current_year: student.current_year || '',
-                    current_semester: student.current_semester || '',
-                    student_address: student.student_address || '',
-                    admission_number: student.admission_number,
-                    academic_year: student.academic_year || ''
+                    admission_number: student.admission_number || request.admission_number || '',
+                    student_name: reqData.student_name ?? reqData.name ?? student.student_name ?? '',
+                    name: reqData.name ?? reqData.student_name ?? student.student_name ?? '',
+                    father_name: reqData.father_name ?? student.father_name ?? '',
+                    mother_name: reqData.mother_name ?? student.mother_name ?? '',
+                    guardian_name: reqData.guardian_name ?? student.guardian_name ?? '',
+                    pin_no: reqData.pin_no ?? student.pin_no ?? student.admission_number ?? '',
+                    college_name: reqData.college_name ?? student.college ?? '',
+                    course: reqData.course ?? student.course ?? '',
+                    branch: reqData.branch ?? student.branch ?? '',
+                    current_year: reqData.current_year ?? student.current_year ?? '',
+                    current_semester: reqData.current_semester ?? student.current_semester ?? '',
+                    academic_year: reqData.academic_year ?? student.academic_year ?? '',
+                    dob: reqData.dob ?? (student.dob ? new Date(student.dob).toISOString().split('T')[0] : ''),
+                    gender: reqData.gender ?? student.gender ?? '',
+                    caste: reqData.caste ?? student.caste ?? '',
+                    student_mobile: reqData.student_mobile ?? student.student_mobile ?? '',
+                    student_address: reqData.student_address ?? student.student_address ?? '',
+                    purpose: reqData.purpose ?? request.purpose ?? '',
+                    ...reqData
                 });
                 setSelectedRequest(request);
                 setActionType('edit_student'); // Open the edit modal
@@ -382,20 +499,34 @@ const ServiceRequests = () => {
 
     const handleUpdateStudentAndPrint = async () => {
         try {
-            const toastId = toast.loading('Updating student info...');
+            if (!selectedRequest?.id) {
+                toast.error('No service request selected');
+                return;
+            }
 
-            // Update student
-            await api.put(`/students/${studentForm.admission_number}`, studentForm);
+            const toastId = toast.loading('Saving request details...');
+
+            // Save details ONLY to this service request's request_data (does NOT mutate student master table)
+            await serviceService.updateRequestData(selectedRequest.id, {
+                request_data: studentForm
+            });
 
             toast.dismiss(toastId);
-            toast.success('Student updated');
+            toast.success('Request details updated');
 
             // Close edit modal
             setEditingStudent(null);
             setActionType(null);
 
-            // Proceed to print
-            await generatePreview(selectedRequest);
+            const updatedRequest = {
+                ...selectedRequest,
+                request_data: studentForm
+            };
+            setSelectedRequest(updatedRequest);
+            fetchRequests();
+
+            // Proceed to print / preview
+            await generatePreview(updatedRequest);
 
         } catch (error) {
             console.error(error);
@@ -424,6 +555,8 @@ const ServiceRequests = () => {
 
     // Helper to just print if user skips editing
     const handleDirectPrint = (request) => {
+        setActionType(null);
+        setEditingStudent(null);
         generatePreview(request);
     };
 
@@ -730,132 +863,62 @@ const ServiceRequests = () => {
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label className="block text-sm font-medium text-sub mb-1">Student Name</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                    value={studentForm.student_name}
-                                    onChange={e => setStudentForm({ ...studentForm, student_name: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-sub mb-1">Father's / Guardian's Name</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                    value={studentForm.father_name}
-                                    onChange={e => setStudentForm({ ...studentForm, father_name: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-sub mb-1">Admission Number</label>
-                                <input
-                                    type="text"
-                                    disabled
-                                    className="w-full px-3 py-2 border rounded-lg bg-background text-muted-text"
-                                    value={studentForm.admission_number}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-sub mb-1">Academic Year</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                    value={studentForm.academic_year || ''}
-                                    onChange={e => setStudentForm({ ...studentForm, academic_year: e.target.value })}
-                                    placeholder="2024-2025"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-sub mb-1">Date of Birth</label>
-                                <input
-                                    type="date"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                    value={studentForm.dob}
-                                    onChange={e => setStudentForm({ ...studentForm, dob: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-sub mb-1">Gender</label>
-                                <select
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                    value={studentForm.gender}
-                                    onChange={e => setStudentForm({ ...studentForm, gender: e.target.value })}
-                                >
-                                    <option value="">Select...</option>
-                                    <option value="M">Male</option>
-                                    <option value="F">Female</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-sub mb-1">Caste</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                    value={studentForm.caste}
-                                    onChange={e => setStudentForm({ ...studentForm, caste: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-sub mb-1">Mobile</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                    value={studentForm.student_mobile}
-                                    onChange={e => setStudentForm({ ...studentForm, student_mobile: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-sub mb-1">Course</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                    value={studentForm.course}
-                                    onChange={e => setStudentForm({ ...studentForm, course: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-sub mb-1">Branch</label>
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                    value={studentForm.branch}
-                                    onChange={e => setStudentForm({ ...studentForm, branch: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <div className="flex gap-2">
-                                    <div className="flex-1">
-                                        <label className="block text-sm font-medium text-sub mb-1">Year</label>
-                                        <input
-                                            type="number"
-                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                            value={studentForm.current_year}
-                                            onChange={e => setStudentForm({ ...studentForm, current_year: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <label className="block text-sm font-medium text-sub mb-1">Sem</label>
-                                        <input
-                                            type="number"
-                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                            value={studentForm.current_semester}
-                                            onChange={e => setStudentForm({ ...studentForm, current_semester: e.target.value })}
-                                        />
+                        <div className="space-y-4 mb-6">
+                            {getTemplateFields(selectedRequest.service_id).map((section, secIdx) => (
+                                <div key={secIdx} className="bg-background/40 p-4 rounded-xl border border-border">
+                                    <h3 className="text-sm font-bold text-main mb-3 flex items-center gap-2">
+                                        <span className="bg-[var(--primary-light)] text-primary rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                                            {secIdx + 1}
+                                        </span>
+                                        {section.section}
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {section.fields.map((field) => (
+                                            <div key={field.name} className={field.type === 'textarea' || field.fullWidth ? 'md:col-span-2' : ''}>
+                                                <label className="block text-xs font-semibold text-sub mb-1">
+                                                    {field.label}
+                                                    {field.required && <span className="text-danger ml-0.5">*</span>}
+                                                </label>
+                                                {field.type === 'textarea' ? (
+                                                    <textarea
+                                                        rows="2"
+                                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm bg-surface"
+                                                        value={studentForm[field.name] || ''}
+                                                        onChange={e => setStudentForm({ ...studentForm, [field.name]: e.target.value })}
+                                                        placeholder={field.placeholder || ''}
+                                                    />
+                                                ) : field.type === 'select' ? (
+                                                    <select
+                                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm bg-surface"
+                                                        value={studentForm[field.name] || ''}
+                                                        onChange={e => setStudentForm({ ...studentForm, [field.name]: e.target.value })}
+                                                    >
+                                                        <option value="">Select...</option>
+                                                        {(field.options || []).map(opt => (
+                                                            <option key={opt.value || opt} value={opt.value || opt}>
+                                                                {opt.label || opt}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                ) : (
+                                                    <input
+                                                        type={field.type || 'text'}
+                                                        disabled={field.disabled || field.name === 'admission_number'}
+                                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm bg-surface ${
+                                                            field.disabled || field.name === 'admission_number'
+                                                                ? 'bg-background text-muted-text cursor-not-allowed'
+                                                                : ''
+                                                        }`}
+                                                        value={studentForm[field.name] ?? ''}
+                                                        onChange={e => setStudentForm({ ...studentForm, [field.name]: e.target.value })}
+                                                        placeholder={field.placeholder || ''}
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            </div>
-                            <div className="md:col-span-2">
-                                <label className="block text-sm font-medium text-sub mb-1">Address</label>
-                                <textarea
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                                    rows="2"
-                                    value={studentForm.student_address}
-                                    onChange={e => setStudentForm({ ...studentForm, student_address: e.target.value })}
-                                />
-                            </div>
+                            ))}
                         </div>
 
                         <div className="flex gap-3 pt-2">

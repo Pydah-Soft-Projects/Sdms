@@ -57,6 +57,9 @@ router.get('/requests', (req, res, next) => {
 // Update Request Status (Admin/Staff with permission)
 router.put('/requests/:id/status', verifyPermission(MODULES.SERVICES, 'manage_requests'), serviceController.updateRequestStatus);
 
+// Update Request Data (Admin/Staff with permission)
+router.put('/requests/:id', verifyPermission(MODULES.SERVICES, 'manage_requests'), serviceController.updateServiceRequest);
+
 // Process Payment / Mark Payment (Admin)
 router.post('/pay', verifyPermission(MODULES.SERVICES, 'manage_requests'), serviceController.processPayment);
 

@@ -62,4 +62,9 @@ export const serviceService = {
         const response = await api.put(`/services/requests/${id}/status`, data);
         return response.data;
     },
+
+    updateRequestData: async (id, data) => {
+        const response = await api.put(`/services/requests/${id}`, data);
+        return response.data;
+    },
 };

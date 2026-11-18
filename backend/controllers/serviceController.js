@@ -380,28 +380,7 @@ exports.createRequestByAdmin = async (req, res) => {
 
     if (students.length > 0) {
       student_id = students[0].id;
-      // Update Student Details
-      await masterPool.execute(
-        `UPDATE students SET
-                    student_name = ?, father_name = ?, student_mobile = ?,
-                    course = ?, branch = ?, current_year = ?, current_semester = ?,
-                    dob = ?, gender = ?, caste = ?, student_address = ?
-                WHERE id = ?`,
-        [
-          student_name,
-          father_name || null,
-          student_mobile || null,
-          course || null,
-          branch || null,
-          current_year || null,
-          current_semester || null,
-          dob || null,
-          gender || null,
-          caste || null,
-          student_address || null,
-          student_id,
-        ],
-      );
+      // Do not mutate existing student master data; service request data belongs only to this service request
     } else {
       // Create New Student
       const [insertStudentRes] = await masterPool.execute(
@@ -439,7 +418,25 @@ exports.createRequestByAdmin = async (req, res) => {
         .json({ success: false, message: "Invalid service" });
     }
 
-    const request_data = JSON.stringify({ purpose, ...otherData });
+    const requestDataObj = {
+      purpose,
+      student_name,
+      father_name,
+      student_mobile,
+      course,
+      branch,
+      current_year,
+      current_semester,
+      dob,
+      gender,
+      caste,
+      student_address,
+      ...otherData
+    };
+    Object.keys(requestDataObj).forEach((k) => {
+      if (requestDataObj[k] === undefined) delete requestDataObj[k];
+    });
+    const request_data = JSON.stringify(requestDataObj);
 
     // Create request as PAID immediately
     const [result] = await masterPool.execute(
@@ -471,7 +468,7 @@ exports.getServiceRequests = async (req, res) => {
 
     // Build query
     let query = `
-      SELECT sr.*, s.name as service_name, s.price as service_price, s.admin_fields,
+      SELECT sr.*, s.name as service_name, s.price as service_price, s.admin_fields, s.template_type, s.template_config,
              st.student_name, st.admission_number, st.course, st.branch, st.student_mobile
       FROM service_requests sr
       JOIN services s ON sr.service_id = s.id
@@ -583,6 +580,22 @@ exports.getServiceRequests = async (req, res) => {
     }
     // -----------------------------------------------------------
 
+    // If request_data contains customized details for this service request, apply them to row display
+    rows.forEach((r) => {
+      if (r.request_data) {
+        let rd = r.request_data;
+        if (typeof rd === 'string') {
+          try { rd = JSON.parse(rd); } catch (e) { rd = {}; }
+        }
+        if (rd && typeof rd === 'object') {
+          if (rd.student_name) r.student_name = rd.student_name;
+          if (rd.course) r.course = rd.course;
+          if (rd.branch) r.branch = rd.branch;
+          if (rd.student_mobile) r.student_mobile = rd.student_mobile;
+        }
+      }
+    });
+
     res.json({
       success: true,
       data: rows,
@@ -689,6 +702,84 @@ exports.updateRequestStatus = async (req, res) => {
   }
 };
 
+// Update Service Request Data (Admin/Staff) - Only updates service request data, NEVER affects students master table
+exports.updateServiceRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { request_data, status, collect_date, admin_note, ...rest } = req.body;
+
+    const [existing] = await masterPool.execute(
+      "SELECT id, request_data, status FROM service_requests WHERE id = ?",
+      [id],
+    );
+
+    if (existing.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Request not found" });
+    }
+
+    let currentData = existing[0].request_data;
+    if (typeof currentData === "string") {
+      try {
+        currentData = JSON.parse(currentData);
+      } catch (e) {
+        currentData = {};
+      }
+    } else if (!currentData || typeof currentData !== "object") {
+      currentData = {};
+    }
+
+    const incomingData =
+      request_data && typeof request_data === "object"
+        ? request_data
+        : rest && Object.keys(rest).length > 0
+          ? rest
+          : {};
+
+    const mergedData = {
+      ...currentData,
+      ...incomingData,
+    };
+
+    const updateFields = ["request_data = ?"];
+    const params = [JSON.stringify(mergedData)];
+
+    if (status) {
+      updateFields.push("status = ?");
+      params.push(status);
+    }
+    if (collect_date !== undefined) {
+      updateFields.push("collect_date = ?");
+      params.push(collect_date || null);
+    }
+    if (admin_note !== undefined) {
+      updateFields.push("admin_note = ?");
+      params.push(admin_note || null);
+    }
+
+    params.push(id);
+
+    await masterPool.execute(
+      `UPDATE service_requests SET ${updateFields.join(", ")} WHERE id = ?`,
+      params,
+    );
+
+    res.json({
+      success: true,
+      message: "Service request updated successfully",
+      data: {
+        id,
+        request_data: mergedData,
+        ...(status ? { status } : {}),
+      },
+    });
+  } catch (error) {
+    console.error("Error updating service request:", error);
+    res.status(500).json({ success: false, message: "Failed to update service request" });
+  }
+};
+
 // Mock Payment Process
 // Mark Payment as Received (Admin/Staff)
 exports.processPayment = async (req, res) => {
@@ -777,8 +868,18 @@ exports.downloadCertificate = async (req, res) => {
     if (typeof request.request_data === "string") {
       try {
         request.request_data = JSON.parse(request.request_data);
-      } catch (e) {}
+      } catch (e) {
+        request.request_data = {};
+      }
+    } else if (!request.request_data || typeof request.request_data !== "object") {
+      request.request_data = {};
     }
+
+    // Effective student combines base student record with service-specific overrides from request_data
+    const effectiveStudent = {
+      ...request,
+      ...request.request_data
+    };
 
     // Parse college metadata
     let collegeDetails = {
@@ -806,22 +907,22 @@ exports.downloadCertificate = async (req, res) => {
       request.service_name.toLowerCase().includes("study")
     ) {
       filePath = await pdfService.generateStudyCertificate(
-        request,
+        effectiveStudent,
         request,
         collegeDetails,
-      ); // passing request as student object because it contains joined fields
+      );
     } else if (
       request.template_type === "refund_application" ||
       request.service_name.toLowerCase().includes("refund")
     ) {
       filePath = await pdfService.generateRefundApplication(
-        request,
+        effectiveStudent,
         request,
         collegeDetails,
       );
     } else if (request.template_type === "custodian_certificate") {
       filePath = await pdfService.generateCustodianCertificate(
-        request,
+        effectiveStudent,
         request,
         collegeDetails,
       );
@@ -871,7 +972,7 @@ exports.downloadCertificate = async (req, res) => {
 
           // 4. Handle blanks: replace fill values if provided, or represent with free space (no drawn lines)
           let blankIdx = 0;
-          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{2,}|\.{3,}|[—–―]{2,}/g, (match, customLen) => {
+          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{2,}|[.\u2026]{2,}|[—–―-]{2,}/g, (match, customLen) => {
             blankIdx++;
             const val = studentData[`field_${blankIdx}`] || studentData[`input_field_${blankIdx}`] || studentData[`blank_${blankIdx}`];
             if (val !== undefined && val !== null && String(val).trim() !== "") {
@@ -920,12 +1021,12 @@ exports.downloadCertificate = async (req, res) => {
         filePath = await pdfService.generateTemplatedCertificate(
           enrichedConfig,
           processedContent,
-          request,
+          effectiveStudent,
           sanitizedCollegeDetails,
         );
       } else {
         filePath = await pdfService.generateDynamicCertificate(
-          request,
+          effectiveStudent,
           request,
           collegeDetails,
           config,
@@ -1163,7 +1264,7 @@ exports.previewTemplate = async (req, res) => {
 
           // 4. Handle blanks: replace fill values if provided, or render fillable blank
           let blankIdx = 0;
-          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{2,}/g, (match, customLen) => {
+          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{2,}|[.\u2026]{2,}|[—–―-]{2,}/g, (match, customLen) => {
             blankIdx++;
             const val = data[`field_${blankIdx}`] || data[`input_field_${blankIdx}`] || data[`blank_${blankIdx}`];
             if (val !== undefined && val !== null && String(val).trim() !== "") {

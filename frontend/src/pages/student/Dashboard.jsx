@@ -752,6 +752,7 @@ const Dashboard = () => {
                 key: 'attendance',
                 label: 'Attendance',
                 path: '/student/attendance',
+                image: '/mobile-screen-dashbaord-pngs/attendance.png',
                 icon: RiCheckboxCircleLine,
                 iconBg: 'bg-[var(--success-light)]',
                 iconColor: 'text-[var(--success)]',
@@ -761,6 +762,7 @@ const Dashboard = () => {
                 key: 'academic',
                 label: 'Academic',
                 path: '/student/academic-content',
+                image: '/mobile-screen-dashbaord-pngs/academic.png',
                 icon: BookOpen,
                 iconBg: 'bg-[var(--primary-light)]',
                 iconColor: 'text-[var(--primary)]',
@@ -770,6 +772,7 @@ const Dashboard = () => {
                 key: 'fees',
                 label: 'Fees',
                 path: '/student/fees',
+                image: '/mobile-screen-dashbaord-pngs/fees.png',
                 icon: IndianRupee,
                 iconBg: 'bg-[var(--danger-light)]',
                 iconColor: 'text-[var(--danger)]',
@@ -779,6 +782,7 @@ const Dashboard = () => {
                 key: 'timetable',
                 label: 'Timetable',
                 path: '/student/timetable',
+                image: '/mobile-screen-dashbaord-pngs/timetable.png',
                 icon: Calendar,
                 iconBg: 'bg-[var(--primary-light)]',
                 iconColor: 'text-[var(--primary)]',
@@ -788,10 +792,21 @@ const Dashboard = () => {
                 key: 'internal-marks',
                 label: 'Results',
                 path: '/student/internal-marks',
+                image: '/mobile-screen-dashbaord-pngs/results.png',
                 icon: FileText,
                 iconBg: 'bg-[var(--primary-light)]',
                 iconColor: 'text-[var(--info)]',
                 enabled: true
+            },
+            {
+                key: 'library',
+                label: 'Library',
+                path: '/student/library',
+                image: '/mobile-screen-dashbaord-pngs/resources.png',
+                icon: RiBook2Line,
+                iconBg: 'bg-[var(--success-light)]',
+                iconColor: 'text-[var(--success)]',
+                enabled: isEnabled('library')
             },
             {
                 key: 'semester-registration',
@@ -846,15 +861,6 @@ const Dashboard = () => {
                 iconBg: 'bg-[var(--primary-light)]',
                 iconColor: 'text-[var(--accent)]',
                 enabled: isEnabled('services')
-            },
-            {
-                key: 'library',
-                label: 'Library',
-                path: '/student/library',
-                icon: RiBook2Line,
-                iconBg: 'bg-[var(--success-light)]',
-                iconColor: 'text-[var(--success)]',
-                enabled: isEnabled('library')
             },
             {
                 key: 'my-tickets',
@@ -1431,56 +1437,47 @@ const Dashboard = () => {
             </div>
 
             {/* Quick Action Buttons Side-by-Side Horizontal Row (All Portal Functions from Menu) */}
-            <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0 my-1 scroll-smooth">
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1 -mx-4 px-4 sm:mx-0 sm:px-0 my-1 scroll-smooth">
                 {menuActions.map((action) => {
                     const Icon = action.icon;
+                    const cardContent = (
+                        <div className="flex flex-col items-center justify-center shrink-0 w-[72px] sm:w-[78px] group cursor-pointer">
+                            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full ${action.image ? 'bg-surface border border-border shadow-xs' : `${action.iconBg} ${action.iconColor}`} flex items-center justify-center group-hover:scale-105 group-active:scale-95 transition-all`}>
+                                {action.image ? (
+                                    <img src={action.image} alt={action.label} className="w-11 h-11 sm:w-12 sm:h-12 object-contain drop-shadow-xs" />
+                                ) : (
+                                    <Icon size={22} />
+                                )}
+                            </div>
+                            <span className="text-[11px] font-bold text-sub mt-1.5 text-center leading-tight whitespace-nowrap overflow-hidden text-ellipsis max-w-full">
+                                {action.label}
+                            </span>
+                        </div>
+                    );
+
                     if (action.isCrt) {
                         return (
                             <button
                                 key={action.key}
                                 type="button"
                                 onClick={() => navigateToCrtApp('/student/dashboard')}
-                                className="bg-surface rounded-[18px] p-2.5 border border-border flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95 cursor-pointer"
                             >
-                                <div className={`w-11 h-11 rounded-2xl ${action.iconBg} ${action.iconColor} flex items-center justify-center group-hover:scale-105 transition-transform`}>
-                                    <Icon size={20} />
-                                </div>
-                                <span className="text-[11px] font-bold text-sub mt-1.5 text-center leading-tight whitespace-nowrap">
-                                    {action.label}
-                                </span>
+                                {cardContent}
                             </button>
                         );
                     }
 
                     if (action.isExternal) {
                         return (
-                            <a
-                                key={action.key}
-                                href={action.href}
-                                className="bg-surface rounded-[18px] p-2.5 border border-border flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95 cursor-pointer"
-                            >
-                                <div className={`w-11 h-11 rounded-2xl ${action.iconBg} ${action.iconColor} flex items-center justify-center group-hover:scale-105 transition-transform`}>
-                                    <Icon size={20} />
-                                </div>
-                                <span className="text-[11px] font-bold text-sub mt-1.5 text-center leading-tight whitespace-nowrap">
-                                    {action.label}
-                                </span>
+                            <a key={action.key} href={action.href}>
+                                {cardContent}
                             </a>
                         );
                     }
 
                     return (
-                        <Link
-                            key={action.key}
-                            to={action.path}
-                            className="bg-surface rounded-[18px] p-2.5 border border-border flex flex-col items-center justify-center shadow-xs hover:shadow-md transition-all group shrink-0 min-w-[78px] sm:min-w-[84px] active:scale-95"
-                        >
-                            <div className={`w-11 h-11 rounded-2xl ${action.iconBg} ${action.iconColor} flex items-center justify-center group-hover:scale-105 transition-transform`}>
-                                <Icon size={20} />
-                            </div>
-                            <span className="text-[11px] font-bold text-sub mt-1.5 text-center leading-tight whitespace-nowrap">
-                                {action.label}
-                            </span>
+                        <Link key={action.key} to={action.path}>
+                            {cardContent}
                         </Link>
                     );
                 })}

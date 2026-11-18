@@ -29,12 +29,13 @@ function sampleValue(v) {
 }
 
 (async () => {
-  if (!process.env.MONGODB_URI) {
-    console.error('Set MONGODB_URI in backend/.env');
+  const crtUri = process.env.CRT_MONGO_URI || process.env.MONGODB_URI;
+  if (!crtUri) {
+    console.error('Set CRT_MONGO_URI (or MONGODB_URI) in backend/.env');
     process.exit(1);
   }
 
-  const client = new MongoClient(process.env.MONGODB_URI);
+  const client = new MongoClient(crtUri);
   await client.connect();
   const db = client.db(process.env.MONGODB_DB_NAME || 'crt');
 

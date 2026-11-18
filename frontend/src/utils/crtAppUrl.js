@@ -1,6 +1,6 @@
 import api from '../config/api';
 
-const HOSTED_CRT_APP_URL = 'https://crt.pydahsoft.in';
+const HOSTED_CRT_APP_URL = 'https://crt.pydah.edu.in';
 const LOCAL_CRT_APP_URL = 'http://localhost:5176';
 
 const isLocalhostUrl = (url) =>
@@ -37,7 +37,7 @@ const buildDirectCrtUrl = (path = '/student/dashboard') => {
 
 /**
  * Fetch CRT SSO redirect URL from SDMS backend (student only).
- * CRT contract: https://crt.pydahsoft.in/sso?token=<HS256 jwt with exp + student id>
+ * CRT contract: https://crt.pydah.edu.in/sso?token=<HS256 jwt with exp + student id>
  */
 export const fetchCrtSsoUrl = async () => {
   const { data } = await api.get('/auth/crt-sso');

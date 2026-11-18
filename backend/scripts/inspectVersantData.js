@@ -27,11 +27,12 @@ function walkDates(obj, path, issues) {
 }
 
 (async () => {
-  if (!process.env.MONGODB_URI) {
-    console.error('MONGODB_URI not set');
+  const crtUri = process.env.CRT_MONGO_URI || process.env.MONGODB_URI;
+  if (!crtUri) {
+    console.error('CRT_MONGO_URI not set');
     process.exit(1);
   }
-  const client = new MongoClient(process.env.MONGODB_URI);
+  const client = new MongoClient(crtUri);
   await client.connect();
   const db = client.db(process.env.MONGODB_DB_NAME || 'crt');
 

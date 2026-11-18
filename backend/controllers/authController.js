@@ -1335,7 +1335,7 @@ exports.getStudentLoginStats = async (req, res) => {
 
 /**
  * Issue a short-lived HS256 JWT for CRT workspace SSO.
- * CRT contract: POST https://crt.pydahsoft.in/sso-login?token=<jwt>
+ * CRT contract: POST https://crt.pydah.edu.in/sso-login?token=<jwt>
  * Payload: { sub: <admission_number|pin_no>, exp: now+300 }
  * Signed with SDMS_SSO_SECRET (shared secret agreed with CRT team).
  */
@@ -1389,7 +1389,7 @@ exports.getCrtSsoUrl = async (req, res) => {
       expiresIn: expiresInSeconds
     });
 
-    const crtBaseUrl = (process.env.CRT_APP_URL || 'https://crt.pydahsoft.in').replace(/\/$/, '');
+    const crtBaseUrl = (process.env.CRT_APP_URL || 'https://crt.pydah.edu.in').replace(/\/$/, '');
     // CRT redirect path per their spec: /sso-login?token=<jwt>
     const url = `${crtBaseUrl}/sso-login?token=${encodeURIComponent(token)}`;
 

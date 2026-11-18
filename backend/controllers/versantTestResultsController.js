@@ -28,7 +28,7 @@ exports.getTestResults = async (req, res) => {
     if (!isVersantConfigured()) {
       return res.status(503).json({
         success: false,
-        message: 'MONGODB_URI is not configured. Add the AI-VERSANT connection string to backend/.env',
+        message: 'CRT_MONGO_URI is not configured. Add the AI-VERSANT connection string to backend/.env',
       });
     }
 
@@ -50,7 +50,7 @@ exports.getTestResultById = async (req, res) => {
     if (!isVersantConfigured()) {
       return res.status(503).json({
         success: false,
-        message: 'MONGODB_URI is not configured',
+        message: 'CRT_MONGO_URI is not configured',
       });
     }
 
@@ -75,7 +75,7 @@ exports.getFilterOptions = async (req, res) => {
     if (!isVersantConfigured()) {
       return res.status(503).json({
         success: false,
-        message: 'MONGODB_URI is not configured',
+        message: 'CRT_MONGO_URI is not configured',
       });
     }
 
@@ -95,7 +95,7 @@ exports.exportTestResults = async (req, res) => {
     if (!isVersantConfigured()) {
       return res.status(503).json({
         success: false,
-        message: 'MONGODB_URI is not configured',
+        message: 'CRT_MONGO_URI is not configured',
       });
     }
 
@@ -170,7 +170,7 @@ exports.getMyLinkStatus = async (req, res) => {
     if (!isVersantConfigured()) {
       return res.status(503).json({
         success: false,
-        message: 'MONGODB_URI is not configured',
+        message: 'CRT_MONGO_URI is not configured',
       });
     }
 
@@ -223,7 +223,7 @@ exports.getStudentLinkReport = async (req, res) => {
     if (!isVersantConfigured()) {
       return res.status(503).json({
         success: false,
-        message: 'MONGODB_URI is not configured',
+        message: 'CRT_MONGO_URI is not configured',
       });
     }
 
@@ -260,7 +260,7 @@ exports.getMyTestResults = async (req, res) => {
     if (!isVersantConfigured()) {
       return res.status(503).json({
         success: false,
-        message: 'MONGODB_URI is not configured',
+        message: 'CRT_MONGO_URI is not configured',
       });
     }
 
@@ -283,7 +283,7 @@ exports.getMyTestResultById = async (req, res) => {
     if (!isVersantConfigured()) {
       return res.status(503).json({
         success: false,
-        message: 'MONGODB_URI is not configured',
+        message: 'CRT_MONGO_URI is not configured',
       });
     }
 

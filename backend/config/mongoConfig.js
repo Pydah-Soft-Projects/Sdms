@@ -14,17 +14,18 @@ const MONGO_CLIENT_OPTIONS = {
 };
 
 const connectDB = async () => {
-  if (!process.env.MONGO_URI) {
-    console.warn('⚠️ MONGO_URI is not defined. Skipping default MongoDB connection.');
+  const uri = process.env.FEE_MONGO_URI || process.env.MONGO_URI;
+  if (!uri) {
+    console.warn('⚠️ FEE_MONGO_URI (or MONGO_URI) is not defined. Skipping default Fee MongoDB connection.');
     return null;
   }
 
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, MONGO_CLIENT_OPTIONS);
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    const conn = await mongoose.connect(uri, MONGO_CLIENT_OPTIONS);
+    console.log(`✅ Fee MongoDB Connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
-    console.error(`❌ Error connecting to MongoDB: ${error.message}`);
+    console.error(`❌ Error connecting to Fee MongoDB: ${error.message}`);
     // We don't exit the process here to allow the MySQL server to keep running
     return null;
   }

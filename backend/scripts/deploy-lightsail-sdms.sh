@@ -16,7 +16,7 @@ if ! grep -q 'https://sdms.pydah.edu.in' "${ENV_FILE}"; then
   sed -i 's|^FRONTEND_URL=\(.*\)|FRONTEND_URL=\1,https://sdms.pydah.edu.in|' "${ENV_FILE}"
 fi
 
-grep -q '^CRT_APP_URL=' "${ENV_FILE}" || echo 'CRT_APP_URL=https://crt.pydahsoft.in' >> "${ENV_FILE}"
+grep -q '^CRT_APP_URL=' "${ENV_FILE}" || echo 'CRT_APP_URL=https://crt.pydah.edu.in' >> "${ENV_FILE}"
 grep -q '^SDMS_SSO_SECRET=' "${ENV_FILE}" || echo 'SDMS_SSO_SECRET="pydah@SDMS_CRT_sso_2024#secure"' >> "${ENV_FILE}"
 
 echo "==> Pull latest code"

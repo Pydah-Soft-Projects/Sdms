@@ -26,7 +26,7 @@ async function main() {
   const unlinkedOnly = args.includes('--unlinked-only');
 
   if (!isVersantConfigured()) {
-    console.error('MONGODB_URI is not configured in backend/.env');
+    console.error('CRT_MONGO_URI (or MONGODB_URI) is not configured in backend/.env');
     process.exit(1);
   }
 

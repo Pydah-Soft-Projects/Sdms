@@ -9,12 +9,12 @@ let connectPromise = null;
 
 /**
  * Read-only AI-VERSANT MongoDB (crt database).
- * Set MONGODB_URI in .env (copy from AI-VERSANT project).
+ * Set CRT_MONGO_URI in .env (or legacy MONGODB_URI; copy from AI-VERSANT project).
  */
 async function getVersantDb() {
-  const uri = process.env.MONGODB_URI;
+  const uri = process.env.CRT_MONGO_URI || process.env.MONGODB_URI;
   if (!uri) {
-    throw new Error('MONGODB_URI is not configured');
+    throw new Error('CRT_MONGO_URI is not configured');
   }
 
   if (db) return db;
@@ -27,7 +27,7 @@ async function getVersantDb() {
     });
     await client.connect();
     db = client.db(DB_NAME);
-    console.log(`✅ AI-VERSANT MongoDB connected (database: ${DB_NAME})`);
+    console.log(`✅ AI-VERSANT (CRT) MongoDB connected (database: ${DB_NAME})`);
     return db;
   })();
 
@@ -48,7 +48,7 @@ async function closeVersantDb() {
 }
 
 function isVersantConfigured() {
-  return Boolean(process.env.MONGODB_URI);
+  return Boolean(process.env.CRT_MONGO_URI || process.env.MONGODB_URI);
 }
 
 module.exports = { getVersantDb, closeVersantDb, isVersantConfigured, DB_NAME };

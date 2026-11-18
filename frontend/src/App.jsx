@@ -95,7 +95,6 @@ const StudentScholarship = lazy(() => import('./pages/student/StudentScholarship
 const Transport = lazy(() => import('./pages/student/Transport'));
 const InternshipStudent = lazy(() => import('./internship/InternshipStudent'));
 const MyProfileRequests = lazy(() => import('./pages/student/MyProfileRequests'));
-const MyDocuments = lazy(() => import('./pages/student/MyDocuments'));
 const StudentLibrary = lazy(() => import('./pages/student/Library'));
 const StudentHostel = lazy(() => import('./pages/student/Hostel'));
 
@@ -394,7 +393,7 @@ React.useEffect(() => {
             <Route path="internship" element={<InternshipStudent />} />
             <Route path="feedback" element={<StudentFeedback />} />
             <Route path="profile-requests" element={<MyProfileRequests />} />
-            <Route path="my-documents" element={<MyDocuments />} />
+            <Route path="my-documents" element={<Navigate to="/student/dashboard" replace />} />
             <Route path="ai-assistant" element={<Navigate to="/student/dashboard" replace />} />
             <Route path="academic-content" element={<StudentAcademicContent />} />
             <Route path="internal-marks" element={<StudentInternalMarks />} />

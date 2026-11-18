@@ -79,6 +79,7 @@ const CertificateBorrowManagement = lazy(() => import('./pages/admin/Certificate
 // Student Pages (Lazy Loaded)
 const StudentDashboard = lazy(() => import('./pages/student/Dashboard'));
 const StudentProfile = lazy(() => import('./pages/student/Profile'));
+const StudentIdCard = lazy(() => import('./pages/student/IdCard'));
 const SemesterRegistration = lazy(() => import('./pages/student/SemesterRegistration'));
 const RaiseTicket = lazy(() => import('./pages/student/RaiseTicket'));
 const MyTickets = lazy(() => import('./pages/student/MyTickets'));
@@ -373,6 +374,7 @@ React.useEffect(() => {
             <Route index element={<Navigate to="/student/dashboard" replace />} />
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="profile" element={<StudentProfile />} />
+            <Route path="id-card" element={<StudentIdCard />} />
 
             <Route path="semester-registration" element={<SemesterRegistration />} />
             <Route path="raise-ticket" element={<RaiseTicket />} />

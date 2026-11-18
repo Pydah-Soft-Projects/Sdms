@@ -785,23 +785,43 @@ exports.updateCourse = async (req, res) => {
     );
 
     // If course name was changed, cascade update to students table
+    // Also sync any students whose course_id is this course but have mismatched course name (e.g. legacy abbreviations like DAP-PTV)
+    const effectiveCourseName = newCourseName || oldCourseName;
+    const courseCollegeId = existingCourse[0].college_id;
     let studentsUpdated = 0;
-    if (newCourseName && newCourseName !== oldCourseName) {
-      const [updateResult] = await masterPool.query(
-        `UPDATE students 
-         SET course = ?, 
-             student_data = JSON_SET(
-               IFNULL(student_data, '{}'), 
-               '$.course', ?,
-               '$.Course', ?,
-               '$."Course Name"', ?
-             ),
-             updated_at = CURRENT_TIMESTAMP 
-         WHERE course = ?`,
-        [newCourseName, newCourseName, newCourseName, newCourseName, oldCourseName]
-      );
-      studentsUpdated = updateResult.affectedRows || 0;
-      console.log(`Course rename cascade: Updated ${studentsUpdated} students from "${oldCourseName}" to "${newCourseName}"`);
+
+    const [updateResult] = await masterPool.query(
+      `UPDATE students 
+       SET course = ?, 
+           course_id = ?,
+           student_data = JSON_SET(
+             IFNULL(student_data, '{}'), 
+             '$.course', ?,
+             '$.Course', ?,
+             '$."Course Name"', ?,
+             '$.Program', ?,
+             '$."Program Name"', ?
+           ),
+           updated_at = CURRENT_TIMESTAMP 
+       WHERE (course_id = ? AND (course <> ? OR course IS NULL))
+          OR (course = ? AND (college_id = ? OR college_id IS NULL))`,
+      [
+        effectiveCourseName,
+        courseId,
+        effectiveCourseName,
+        effectiveCourseName,
+        effectiveCourseName,
+        effectiveCourseName,
+        effectiveCourseName,
+        courseId,
+        effectiveCourseName,
+        oldCourseName,
+        courseCollegeId
+      ]
+    );
+    studentsUpdated = updateResult.affectedRows || 0;
+    if (studentsUpdated > 0) {
+      console.log(`Course rename/sync cascade: Updated ${studentsUpdated} students for course ${courseId} ("${oldCourseName}" -> "${effectiveCourseName}")`);
     }
 
     const [courseRows] = await masterPool.query(
@@ -898,8 +918,8 @@ exports.deleteCourse = async (req, res) => {
       // Delete students for each branch
       for (const branch of branches) {
         const [studentResult] = await connection.query(
-          'DELETE FROM students WHERE course = ? AND branch = ?',
-          [courseName, branch.name]
+          'DELETE FROM students WHERE branch_id = ? OR (branch = ? AND (course_id = ? OR course = ?))',
+          [branch.id, branch.name, courseId, courseName]
         );
         deletedStudents += studentResult.affectedRows;
       }
@@ -912,8 +932,8 @@ exports.deleteCourse = async (req, res) => {
 
       // Delete all students by course (in case branch matching didn't catch all)
       const [courseStudentResult] = await connection.query(
-        'DELETE FROM students WHERE course = ?',
-        [courseName]
+        'DELETE FROM students WHERE course_id = ? OR course = ?',
+        [courseId, courseName]
       );
       deletedStudents += courseStudentResult.affectedRows;
 
@@ -957,8 +977,8 @@ exports.deleteCourse = async (req, res) => {
 
       // Check if course has students
       const [studentRows] = await connection.query(
-        'SELECT COUNT(*) as count FROM students WHERE course = ?',
-        [courseName]
+        'SELECT COUNT(*) as count FROM students WHERE course_id = ? OR course = ?',
+        [courseId, courseName]
       );
 
       if (studentRows[0].count > 0 && !hard) {
@@ -1455,24 +1475,38 @@ exports.updateBranch = async (req, res) => {
         }
       }
 
-      // If branch name was changed, cascade update to students table
+      // If branch name was changed or out of sync, cascade update to students table
+      const targetBranchName = newBranchName || oldBranchName;
       let studentsUpdated = 0;
-      if (newBranchName && newBranchName !== oldBranchName) {
-        const [updateResult] = await connection.query(
-          `UPDATE students 
-           SET branch = ?, 
-               student_data = JSON_SET(
-                 IFNULL(student_data, '{}'), 
-                 '$.branch', ?,
-                 '$.Branch', ?,
-                 '$."Branch Name"', ?
-               ),
-               updated_at = CURRENT_TIMESTAMP 
-           WHERE branch = ? AND course = ?`,
-          [newBranchName, newBranchName, newBranchName, newBranchName, oldBranchName, course.name]
-        );
-        studentsUpdated = updateResult.affectedRows || 0;
-        console.log(`Branch rename cascade: Updated ${studentsUpdated} students from "${oldBranchName}" to "${newBranchName}"`);
+      const [updateResult] = await connection.query(
+        `UPDATE students 
+         SET branch = ?, 
+             branch_id = ?,
+             student_data = JSON_SET(
+               IFNULL(student_data, '{}'), 
+               '$.branch', ?,
+               '$.Branch', ?,
+               '$."Branch Name"', ?
+             ),
+             updated_at = CURRENT_TIMESTAMP 
+         WHERE (branch_id = ? AND (branch <> ? OR branch IS NULL))
+            OR (branch = ? AND (course_id = ? OR course = ?))`,
+        [
+          targetBranchName,
+          branchId,
+          targetBranchName,
+          targetBranchName,
+          targetBranchName,
+          branchId,
+          targetBranchName,
+          oldBranchName,
+          courseId,
+          course.name
+        ]
+      );
+      studentsUpdated = updateResult.affectedRows || 0;
+      if (studentsUpdated > 0) {
+        console.log(`Branch rename/sync cascade: Updated ${studentsUpdated} students from "${oldBranchName}" to "${targetBranchName}"`);
       }
 
       // Fetch the updated branch with academic years
@@ -1695,11 +1729,11 @@ exports.deleteBranch = async (req, res) => {
       const deleteStudentParams = [];
 
       if (courseName) {
-        deleteStudentQuery += 'course = ? AND branch = ?';
-        deleteStudentParams.push(courseName, branchName);
+        deleteStudentQuery += 'branch_id = ? OR (branch = ? AND (course_id = ? OR course = ?))';
+        deleteStudentParams.push(branchId, branchName, courseId, courseName);
       } else {
-        deleteStudentQuery += 'branch = ?';
-        deleteStudentParams.push(branchName);
+        deleteStudentQuery += 'branch_id = ? OR branch = ?';
+        deleteStudentParams.push(branchId, branchName);
       }
 
       // If scope is single and we have academic years, restrict deletion to those batches
@@ -1852,16 +1886,16 @@ exports.getAffectedStudentsByCourse = async (req, res) => {
     const [students] = await masterPool.query(
       `SELECT admission_number, student_name, branch, batch, current_year, current_semester 
        FROM students 
-       WHERE course = ?
+       WHERE course_id = ? OR course = ?
        ORDER BY student_name ASC
        LIMIT 100`,
-      [courseName]
+      [courseId, courseName]
     );
 
     // Get total count
     const [countResult] = await masterPool.query(
-      'SELECT COUNT(*) as total FROM students WHERE course = ?',
-      [courseName]
+      'SELECT COUNT(*) as total FROM students WHERE course_id = ? OR course = ?',
+      [courseId, courseName]
     );
 
     res.json({
@@ -1933,8 +1967,8 @@ exports.getAffectedStudentsByBranch = async (req, res) => {
     // Filter by batch (academic year) if available AND scope is single
     let query = `SELECT admission_number, student_name, batch, current_year, current_semester 
                  FROM students 
-                 WHERE course = ? AND branch = ?`;
-    const params = [courseName, branchName];
+                 WHERE branch_id = ? OR (branch = ? AND (course_id = ? OR course = ?))`;
+    const params = [branchId, branchName, courseId, courseName];
 
     // Only apply batch filter if scope is single and we have academic years
     // Since branch can have multiple academic years, 'single' scope doesn't filter by batch anymore

@@ -3449,20 +3449,34 @@ const Students = () => {
                   className="px-2 py-1.5 text-xs border border-border-strong rounded focus:ring-1 focus:ring-primary focus:border-primary outline-none"
                 >
                   <option value="">All</option>
-                  {(quickFilterOptions.courses || [])
-                    .filter(course => {
-                      // Filter by level if level is selected
-                      if (filters.level) {
-                        const courseInfo = (coursesWithLevels || []).find(c => 
-                          c && (String(c.id) === String(course.id || course) || c.name === (course.name || course))
+                  {(() => {
+                    const seenNames = new Set();
+                    return (quickFilterOptions.courses || [])
+                      .filter(course => {
+                        const name = (course?.name || course || '').trim();
+                        if (!name) return false;
+                        // Filter by level if level is selected
+                        if (filters.level) {
+                          const courseInfo = (coursesWithLevels || []).find(c => 
+                            c && (String(c.id) === String(course.id || course) || c.name === name)
+                          );
+                          if (courseInfo?.level !== filters.level) return false;
+                        }
+                        // When no college is selected, deduplicate identical course names across colleges
+                        if (!filters.college) {
+                          if (seenNames.has(name.toLowerCase())) return false;
+                          seenNames.add(name.toLowerCase());
+                        }
+                        return true;
+                      })
+                      .map((course) => {
+                        const courseName = course.name || course;
+                        const courseValue = !filters.college ? courseName : (course.id || courseName);
+                        return (
+                          <option key={course.id || courseName} value={courseValue}>{courseName}</option>
                         );
-                        return courseInfo?.level === filters.level;
-                      }
-                      return true;
-                    })
-                    .map((course) => (
-                      <option key={course.id || course} value={course.id || course}>{course.name || course}</option>
-                    ))}
+                      });
+                  })()}
                 </select>
               </div>
               <div className="flex flex-col">

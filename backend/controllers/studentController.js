@@ -7400,15 +7400,17 @@ exports.getQuickFilterOptions = async (req, res) => {
       }
     } else {
       if (course) {
-        let crsId = isNumeric(course) ? parseInt(course, 10) : null;
-        if (!crsId) {
-          const [found] = await masterPool.query('SELECT id FROM courses WHERE name = ? LIMIT 1', [course]);
-          if (found.length > 0) crsId = found[0].id;
+        let crsIds = [];
+        if (isNumeric(course)) {
+          crsIds = [parseInt(course, 10)];
+        } else {
+          const [found] = await masterPool.query('SELECT id FROM courses WHERE name = ? AND is_active = 1', [course]);
+          crsIds = found.map(f => f.id);
         }
-        if (crsId) {
+        if (crsIds.length > 0) {
           const [courseBranches] = await masterPool.query(
-            'SELECT id, name, code, course_id FROM course_branches WHERE course_id = ? AND is_active = 1 ORDER BY name ASC',
-            [crsId]
+            `SELECT id, name, code, course_id FROM course_branches WHERE course_id IN (${crsIds.map(() => '?').join(',')}) AND is_active = 1 ORDER BY name ASC`,
+            crsIds
           );
           branchRows = courseBranches.map(b => ({ id: b.id, name: b.name, branch: b.name, code: b.code, course_id: b.course_id }));
         } else {
@@ -7441,6 +7443,26 @@ exports.getQuickFilterOptions = async (req, res) => {
       }
     }
 
+    // When no college is selected, deduplicate courses by name so duplicate course entries (e.g. across campuses) do not appear
+    let formattedCourses = [];
+    if (!college) {
+      const seenCourseNames = new Set();
+      for (const row of courseRows) {
+        const normName = (row.name || '').trim().toLowerCase();
+        if (!seenCourseNames.has(normName)) {
+          seenCourseNames.add(normName);
+          formattedCourses.push({
+            id: row.name, // Use course name as value across colleges when College is All
+            name: row.name,
+            code: row.code,
+            level: row.level
+          });
+        }
+      }
+    } else {
+      formattedCourses = courseRows.map((row) => ({ id: row.id, name: row.name, code: row.code, level: row.level }));
+    }
+
     res.json({
       success: true,
       data: {
@@ -7448,7 +7470,7 @@ exports.getQuickFilterOptions = async (req, res) => {
         batches: batchRows.map((row) => row.batch),
         years: yearRows.map((row) => row.currentYear),
         semesters: semesterRows.map((row) => row.currentSemester),
-        courses: courseRows.map((row) => ({ id: row.id, name: row.name, code: row.code, level: row.level })),
+        courses: formattedCourses,
         branches: branchRows.map((row) => ({ id: row.id, name: row.name, branch: row.name, code: row.code, course_id: row.course_id })),
         sections: await fetchStudentTableSectionOptions({ course, branch, batch, year, semester, college })
       }

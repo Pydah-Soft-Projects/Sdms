@@ -606,7 +606,7 @@ exports.getFilterOptions = async (req, res) => {
       }
     } else {
       [courseRowsRes] = await masterPool.query(
-        `SELECT DISTINCT course_id AS id, course AS name FROM students ${level1.clause} AND course IS NOT NULL AND course <> '' ORDER BY course ASC`,
+        `SELECT DISTINCT course AS id, course AS name FROM students ${level1.clause} AND course IS NOT NULL AND course <> '' ORDER BY course ASC`,
         level1.params
       );
     }

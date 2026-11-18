@@ -3291,18 +3291,29 @@ const Attendance = () => {
               className="min-w-[120px] flex-1 sm:flex-none rounded-md border border-border-strong px-1.5 py-1 text-xs focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary touch-manipulation min-h-[36px]"
             >
               <option value="">All Programs</option>
-              {filterOptions.courses
-                .filter(courseOption => {
-                  // Filter by level if level is selected
-                  if (filters.level) {
-                    const courseInfo = coursesWithLevels.find(c => c.name === courseOption);
-                    return courseInfo?.level === filters.level;
-                  }
-                  return true;
-                })
-                .map((courseOption) => (
-                  <option key={courseOption.id || courseOption} value={courseOption.id || courseOption}>{courseOption.name || courseOption}</option>
-                ))}
+              {(() => {
+                const seen = new Set();
+                return filterOptions.courses
+                  .filter(courseOption => {
+                    const name = typeof courseOption === 'object' ? (courseOption.name || courseOption.id) : courseOption;
+                    if (!name) return false;
+                    // Filter by level if level is selected
+                    if (filters.level) {
+                      const courseInfo = coursesWithLevels.find(c => c.name === name || String(c.id) === String(courseOption.id || courseOption));
+                      if (courseInfo?.level !== filters.level) return false;
+                    }
+                    if (seen.has(String(name).toLowerCase())) return false;
+                    seen.add(String(name).toLowerCase());
+                    return true;
+                  })
+                  .map((courseOption) => {
+                    const val = typeof courseOption === 'object' ? (courseOption.id || courseOption.name) : courseOption;
+                    const label = typeof courseOption === 'object' ? (courseOption.name || courseOption.id) : courseOption;
+                    return (
+                      <option key={val} value={val}>{label}</option>
+                    );
+                  });
+              })()}
             </select>
             <select
               value={filters.branch || ''}

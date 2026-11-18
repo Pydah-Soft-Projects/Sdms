@@ -2,7 +2,13 @@ const { masterPool, stagingPool } = require('../config/database');
 const { appendAttendanceJoinDateClause } = require('../utils/studentAttendanceEligibility');
 const { getSemesterCalendarVisibilityClause } = require('../services/semesterCalendarService');
 const { includeForgotPasswordLimit } = require('../middleware/forgotPasswordRateLimit');
-const { triggerAdmissionsSyncAsync, syncStudentToAdmissions, bulkSyncAllStudentsToAdmissions } = require('../services/admissionsSyncService');
+const { 
+  triggerAdmissionsSyncAsync, 
+  syncStudentToAdmissions, 
+  bulkSyncAllStudentsToAdmissions,
+  syncAdmissionsToStudent,
+  bulkSyncAdmissionsToSDMS
+} = require('../services/admissionsSyncService');
 const { fetchActiveQuotaCodes } = require('./quotaController');
 const { resolveCasteIdByName, resolveCategoryIdByName } = require('./casteCategoryController');
 const bcrypt = require('bcryptjs');
@@ -11615,13 +11621,33 @@ exports.getDistinctCastes = async (req, res) => {
 
 exports.syncAdmissionsData = async (req, res) => {
   try {
-    const { admissionNumber } = req.body || {};
+    const { admissionNumber, direction, batch } = req.body || {};
+    const isPull = direction === 'from_admissions' || direction === 'pull';
+
     if (admissionNumber) {
-      const result = await syncStudentToAdmissions(admissionNumber);
+      if (isPull) {
+        const result = await syncAdmissionsToStudent(admissionNumber);
+        return res.json({
+          success: result.success,
+          message: result.success ? `Successfully synced student ${admissionNumber} from Admissions DB` : result.error,
+          details: result
+        });
+      } else {
+        const result = await syncStudentToAdmissions(admissionNumber);
+        return res.json({
+          success: result.success,
+          message: result.success ? `Successfully synced student ${admissionNumber} to Admissions DB` : result.error,
+          details: result
+        });
+      }
+    }
+
+    if (isPull) {
+      const stats = await bulkSyncAdmissionsToSDMS({ batchSize: 50, batch: batch || '2026' });
       return res.json({
-        success: result.success,
-        message: result.success ? `Successfully synced student ${admissionNumber} to Admissions DB` : result.error,
-        details: result
+        success: true,
+        message: `Bulk pull sync completed. Targeted: ${stats.totalTargeted}, Processed: ${stats.totalProcessed}, Updated: ${stats.totalUpdated}, Errors: ${stats.totalErrors}`,
+        stats
       });
     }
 

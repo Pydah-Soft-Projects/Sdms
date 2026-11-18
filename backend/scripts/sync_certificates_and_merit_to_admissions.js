@@ -6,17 +6,21 @@ async function main() {
   const targetAdm = args[0];
 
   try {
-    if (targetAdm && targetAdm !== '--all') {
-      console.log(`[Sync] Resyncing student ${targetAdm} to admissions portal...`);
+    if (targetAdm && targetAdm !== '--all' && !targetAdm.startsWith('--year=')) {
+      console.log(`[Sync SDMS -> Admissions] Resyncing student ${targetAdm} to admissions portal...`);
       const res = await syncStudentToAdmissions(targetAdm);
-      console.log('[Sync] Result:', res);
+      console.log('[Sync SDMS -> Admissions] Result:', res);
     } else {
-      console.log('[Sync] Starting bulk resync of all students to admissions portal...');
-      const stats = await bulkSyncAllStudentsToAdmissions({ batchSize: 50 });
-      console.log('[Sync] Completed bulk sync:', stats);
+      let batch = null;
+      if (targetAdm && targetAdm.startsWith('--year=')) {
+        batch = targetAdm.split('=')[1];
+      }
+      console.log(`[Sync SDMS -> Admissions] Starting bulk resync to admissions portal (batch: ${batch || 'ALL'})...`);
+      const stats = await bulkSyncAllStudentsToAdmissions({ batchSize: 50, batch });
+      console.log('[Sync SDMS -> Admissions] Completed bulk sync:', stats);
     }
   } catch (err) {
-    console.error('[Sync] Fatal error:', err);
+    console.error('[Sync SDMS -> Admissions] Fatal error:', err);
     process.exit(1);
   } finally {
     process.exit(0);

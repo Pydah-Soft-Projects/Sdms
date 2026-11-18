@@ -121,9 +121,9 @@ export const normalizeCertificateValue = (rawVal) => {
   if (!lower || lower === 'no' || lower === 'pending' || lower === 'unverified' || lower === 'false' || lower === '0' || lower === 'none' || lower === 'n/a') {
     return 'No';
   }
-  if (lower === 'memo') return 'Memo';
-  if (lower === 'original') return 'Original';
-  if (lower === 'temporary') return 'Temporary';
+  if (lower === 'memo' || lower.includes('memo')) return 'Memo';
+  if (lower === 'original' || lower.includes('original')) return 'Original';
+  if (lower === 'temporary' || lower.includes('temporary')) return 'Temporary';
   if (lower === 'pc') return 'PC';
   if (lower === 'od') return 'OD';
   if (lower === 'originals returned' || lower === 'original returned' || lower === 'returned') return 'Original Returned';
@@ -269,13 +269,13 @@ export const formatCertificateCell = (val) => {
   if (norm === 'yes' || norm === 'submitted' || norm === 'received' || norm === 'verified' || norm === 'true') {
     return { text: 'Yes', badgeClass: 'bg-green-100 text-green-700 border-green-200' };
   }
-  if (norm === 'memo') {
+  if (norm === 'memo' || norm.includes('memo')) {
     return { text: 'Memo', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300' };
   }
-  if (norm === 'original') {
+  if (norm === 'original' || norm.includes('original')) {
     return { text: 'Original', badgeClass: 'bg-teal-100 text-teal-800 border-teal-300' };
   }
-  if (norm === 'temporary') {
+  if (norm === 'temporary' || norm.includes('temporary')) {
     return { text: 'Temporary', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300' };
   }
   if (norm === 'pc') {

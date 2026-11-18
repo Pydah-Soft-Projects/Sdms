@@ -969,6 +969,53 @@ html.parent-portal #root {
     }
 }
 
+/* Dual Side-by-Side Scaler: compact on mobile, standard full size on tablet/desktop */
+.id-card-scaler-dual-mobile {
+    width: 160px;
+    height: 254px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.id-card-scaler-dual-mobile > .id-card-print-root {
+    transform: scale(0.784);
+    transform-origin: top left;
+    border-radius: 1.5mm !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+}
+
+@media (max-width: 345px) {
+    .id-card-scaler-dual-mobile {
+        width: 146px;
+        height: 232px;
+    }
+    .id-card-scaler-dual-mobile > .id-card-print-root {
+        transform: scale(0.715);
+    }
+}
+
+@media (min-width: 390px) {
+    .id-card-scaler-dual-mobile {
+        width: 174px;
+        height: 276px;
+    }
+    .id-card-scaler-dual-mobile > .id-card-print-root {
+        transform: scale(0.8526);
+    }
+}
+
+@media (min-width: 640px) {
+    .id-card-scaler-dual-mobile {
+        width: 326.5px;
+        height: 518px;
+    }
+    .id-card-scaler-dual-mobile > .id-card-print-root {
+        transform: scale(1.6);
+        border-radius: 2.5mm !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18) !important;
+    }
+}
+
 /* Standard CR80 Card (54 × 85.6 mm) */
 .id-card-print-root {
     display: flex !important;

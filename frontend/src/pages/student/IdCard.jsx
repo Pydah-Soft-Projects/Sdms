@@ -164,37 +164,21 @@ const StudentIdCard = () => {
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black text-main tracking-tight">Digital ID Card</h1>
+              <h1 className="text-xl sm:text-2xl font-black text-main tracking-tight">ID Card</h1>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <ShieldCheck size={12} /> Official
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-muted-text mt-0.5">
-              Standard CR80 (54 × 85.6 mm) student identity document
-            </p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <button
-            type="button"
-            onClick={handleToggleOrientation}
-            aria-label="Toggle Back Side Flip Orientation"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface hover:bg-background border border-border text-sub text-xs font-bold transition-all min-h-[44px]"
-          >
-            <RotateCw size={14} />
-            <span className="hidden sm:inline">Flip:</span>
-            <span>{backOrientation === 'straight' ? 'Straight (0°)' : 'Rotated (180°)'}</span>
-          </button>
         </div>
       </div>
 
-      {/* Cards Display (Side-by-side on wide screens, stacked on small) */}
-      <div className="flex-1 w-full flex flex-col lg:flex-row items-center justify-center gap-8 pb-10">
-        <div className="w-full max-w-[360px] flex flex-col items-center">
-          <p className="text-[11px] font-black uppercase tracking-wider text-muted-text mb-2.5">Front Side</p>
-          <div className="id-card-preview-scaler-box">
-            <div className="id-card-preview-scaler">
+      {/* Cards Display: side-by-side on mobile (compact) as well as desktop */}
+      <div className="flex-1 w-full flex flex-row flex-nowrap items-start justify-center gap-2 sm:gap-6 lg:gap-8 overflow-x-auto sm:overflow-x-visible pb-10">
+        <div className="w-auto max-w-[180px] sm:max-w-[360px] flex flex-col items-center shrink-0">
+          <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-muted-text mb-1.5 sm:mb-2.5 text-center">Front Side</p>
+          <div className="id-card-preview-scaler-box !p-0 sm:!p-2">
+            <div className="id-card-scaler-dual-mobile">
               <DigitalStudentCard
                 className="id-card-print-front"
                 student={displayData}
@@ -207,16 +191,16 @@ const StudentIdCard = () => {
           </div>
         </div>
 
-        <div className="w-full max-w-[360px] flex flex-col items-center">
-          <p className="text-[11px] font-black uppercase tracking-wider text-muted-text mb-2.5">Back Side</p>
-          <div className="id-card-preview-scaler-box">
-            <div className="id-card-preview-scaler">
+        <div className="w-auto max-w-[180px] sm:max-w-[360px] flex flex-col items-center shrink-0">
+          <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-muted-text mb-1.5 sm:mb-2.5 text-center">Back Side</p>
+          <div className="id-card-preview-scaler-box !p-0 sm:!p-2">
+            <div className="id-card-scaler-dual-mobile">
               <DigitalIdCardBack
                 className="id-card-print-back"
                 student={displayData}
                 getStudentData={getSd}
                 college={activeCollege}
-                rotate180={backOrientation === 'rotate180'}
+                rotate180={false}
                 showWatermark={true}
               />
             </div>

@@ -352,13 +352,13 @@ const Profile = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowIdCardModal(true)}
-                                    aria-label="View Digital ID Card"
+                                    aria-label="View ID Card"
                                     aria-haspopup="dialog"
                                     aria-expanded={showIdCardModal}
                                     className={`${profileActionBtn} bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30`}
                                 >
                                     <CreditCard size={13} className="shrink-0 sm:w-4 sm:h-4" aria-hidden="true" />
-                                    <span className="truncate">Digital ID Card</span>
+                                    <span className="truncate">ID Card</span>
                                 </button>
                             )}
                         </div>
@@ -528,35 +528,20 @@ const Profile = () => {
                                 <div className="min-w-0">
                                     <div className="flex items-center gap-2">
                                         <h3 id="digital-id-modal-title" className="text-base sm:text-lg font-black text-main leading-tight truncate">
-                                            Digital ID Card
+                                            ID Card
                                         </h3>
-                                        <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                                             Verified
                                         </span>
                                     </div>
-                                    <p className="text-[11px] text-muted-text truncate">
-                                        Official Student Identification • CR80 (54 × 85.6 mm)
-                                    </p>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        setShowIdCardModal(false);
-                                        navigate('/student/id-card');
-                                    }}
-                                    aria-label="Open Fullscreen Digital ID Card Page"
-                                    title="Open Fullscreen Page"
-                                    className="p-2 rounded-xl text-sub hover:text-main hover:bg-background border border-border transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-                                >
-                                    <ExternalLink size={16} />
-                                </button>
-                                <button
-                                    type="button"
                                     onClick={() => setShowIdCardModal(false)}
-                                    aria-label="Close Digital ID Card dialog"
+                                    aria-label="Close ID Card dialog"
                                     className="p-2 rounded-xl text-muted-text hover:text-main hover:bg-background border border-transparent hover:border-border transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                                 >
                                     <X size={18} />
@@ -565,7 +550,7 @@ const Profile = () => {
                         </div>
 
                         {/* View Switcher Bar */}
-                        <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 bg-background/60 border-b border-border shrink-0 gap-2 flex-wrap">
+                        <div className="flex items-center justify-center sm:justify-start px-4 sm:px-6 py-2.5 bg-background/60 border-b border-border shrink-0">
                             <div className="inline-flex p-1 bg-surface rounded-xl border border-border gap-1">
                                 <button
                                     type="button"
@@ -595,31 +580,26 @@ const Profile = () => {
                                     Back
                                 </button>
                             </div>
-
-                            <button
-                                type="button"
-                                onClick={handleToggleIdCardOrientation}
-                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-sub hover:text-main bg-surface px-2.5 py-1 rounded-lg border border-border transition-colors"
-                                title="Toggle flip orientation of the back side"
-                            >
-                                <RotateCw size={12} />
-                                <span className="hidden sm:inline">Back Side Flip:</span>
-                                <span>{idCardBackOrientation === 'straight' ? 'Straight (0°)' : 'Rotated (180°)'}</span>
-                            </button>
                         </div>
 
                         {/* Card Preview Container */}
-                        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
-                            <div className={`flex items-center justify-center gap-6 sm:gap-8 ${
-                                idCardSide === 'both' ? 'flex-col md:flex-row' : 'flex-col'
+                        <div className="flex-1 overflow-y-auto px-2 py-4 sm:p-6 min-h-0">
+                            <div className={`flex items-start justify-center ${
+                                idCardSide === 'both'
+                                    ? 'flex-row flex-nowrap gap-2 sm:gap-6 md:gap-8 w-full max-w-full overflow-x-auto sm:overflow-x-visible py-2 sm:py-0'
+                                    : 'flex-col gap-6 sm:gap-8'
                             }`}>
                                 {(idCardSide === 'both' || idCardSide === 'front') && (
-                                    <div className="w-full max-w-[360px] flex flex-col items-center">
-                                        <p className="text-[10px] font-black uppercase tracking-wider text-muted-text mb-2 text-center">
+                                    <div className={`flex flex-col items-center ${
+                                        idCardSide === 'both'
+                                            ? 'w-auto max-w-[180px] sm:max-w-[360px] shrink-0'
+                                            : 'w-full max-w-[360px]'
+                                    }`}>
+                                        <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-muted-text mb-1.5 sm:mb-2 text-center">
                                             Front Side
                                         </p>
-                                        <div className="id-card-preview-scaler-box">
-                                            <div className="id-card-preview-scaler">
+                                        <div className={`id-card-preview-scaler-box ${idCardSide === 'both' ? '!p-0 sm:!p-2' : ''}`}>
+                                            <div className={idCardSide === 'both' ? 'id-card-scaler-dual-mobile' : 'id-card-preview-scaler'}>
                                                 <DigitalStudentCard
                                                     className="id-card-print-front"
                                                     student={displayData}
@@ -634,18 +614,22 @@ const Profile = () => {
                                 )}
 
                                 {(idCardSide === 'both' || idCardSide === 'back') && (
-                                    <div className="w-full max-w-[360px] flex flex-col items-center">
-                                        <p className="text-[10px] font-black uppercase tracking-wider text-muted-text mb-2 text-center">
+                                    <div className={`flex flex-col items-center ${
+                                        idCardSide === 'both'
+                                            ? 'w-auto max-w-[180px] sm:max-w-[360px] shrink-0'
+                                            : 'w-full max-w-[360px]'
+                                    }`}>
+                                        <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-muted-text mb-1.5 sm:mb-2 text-center">
                                             Back Side
                                         </p>
-                                        <div className="id-card-preview-scaler-box">
-                                            <div className="id-card-preview-scaler">
+                                        <div className={`id-card-preview-scaler-box ${idCardSide === 'both' ? '!p-0 sm:!p-2' : ''}`}>
+                                            <div className={idCardSide === 'both' ? 'id-card-scaler-dual-mobile' : 'id-card-preview-scaler'}>
                                                 <DigitalIdCardBack
                                                     className="id-card-print-back"
                                                     student={displayData}
                                                     getStudentData={getSd}
                                                     college={activeCollege}
-                                                    rotate180={idCardBackOrientation === 'rotate180'}
+                                                    rotate180={false}
                                                     showWatermark={true}
                                                 />
                                             </div>

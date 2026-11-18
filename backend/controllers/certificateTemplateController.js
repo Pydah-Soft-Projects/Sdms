@@ -177,6 +177,38 @@ exports.getAvailableVariables = async (req, res) => {
         category: "Date",
         example: "03/01/2026",
       },
+
+      // Sequence & Reference Variables
+      {
+        name: "sequence_no",
+        label: "Sequence Number (SR-YYYY-XXXX)",
+        category: "Certificate Details",
+        example: "SR-2026-0001",
+      },
+      {
+        name: "sequence",
+        label: "Sequence (Digits Only)",
+        category: "Certificate Details",
+        example: "0001",
+      },
+      {
+        name: "serial_no",
+        label: "Serial Number",
+        category: "Certificate Details",
+        example: "SR-2026-0001",
+      },
+      {
+        name: "ref_no",
+        label: "Reference Number",
+        category: "Certificate Details",
+        example: "SR-2026-0001",
+      },
+      {
+        name: "certificate_no",
+        label: "Certificate Number",
+        category: "Certificate Details",
+        example: "SR-2026-0001",
+      },
     ];
 
     res.json({

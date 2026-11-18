@@ -796,9 +796,14 @@ const generateDynamicCertificate = async (
     college_phone: collegeDetails.phone || "",
     college_email: collegeDetails.email || "",
 
-    // Dates
+    // Dates & Sequence
     date: new Date().toLocaleDateString("en-IN"),
     current_date: new Date().toLocaleDateString("en-IN"),
+    sequence_no: request?.sequence_no || student?.sequence_no || `SR-${new Date().getFullYear()}-${String(request?.id || student?.id || 1).padStart(4, "0")}`,
+    sequence: (request?.sequence_no || student?.sequence_no || "").includes("-") ? (request?.sequence_no || student?.sequence_no).split("-").pop() : String(request?.id || student?.id || 1).padStart(4, "0"),
+    serial_no: request?.sequence_no || student?.sequence_no || `SR-${new Date().getFullYear()}-${String(request?.id || student?.id || 1).padStart(4, "0")}`,
+    ref_no: request?.sequence_no || student?.sequence_no || `SR-${new Date().getFullYear()}-${String(request?.id || student?.id || 1).padStart(4, "0")}`,
+    certificate_no: request?.sequence_no || student?.sequence_no || `SR-${new Date().getFullYear()}-${String(request?.id || student?.id || 1).padStart(4, "0")}`,
 
     // Request Specific
     ...requestData,

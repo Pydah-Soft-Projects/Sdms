@@ -178,6 +178,30 @@ exports.deleteService = async (req, res) => {
 
 // --- Service Requests (Student & Admin) ---
 
+// Helper to generate next sequential reference number per year, e.g. SR-2026-0001
+const generateServiceRequestSequence = async (pool, targetYear) => {
+  const year = targetYear || new Date().getFullYear();
+  const prefix = `SR-${year}-`;
+  try {
+    const [rows] = await pool.execute(
+      `SELECT sequence_no FROM service_requests WHERE sequence_no LIKE ? ORDER BY id DESC LIMIT 1`,
+      [`${prefix}%`]
+    );
+    let nextNum = 1;
+    if (rows.length > 0 && rows[0].sequence_no) {
+      const parts = rows[0].sequence_no.split("-");
+      const lastNum = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(lastNum)) {
+        nextNum = lastNum + 1;
+      }
+    }
+    return `${prefix}${String(nextNum).padStart(4, "0")}`;
+  } catch (err) {
+    console.error("Error generating service request sequence:", err);
+    return `${prefix}${String(Date.now()).slice(-4)}`;
+  }
+};
+
 // Create Request (Student)
 exports.requestService = async (req, res) => {
   try {
@@ -195,12 +219,15 @@ exports.requestService = async (req, res) => {
         .json({ success: false, message: "Invalid or inactive service" });
     }
 
+    // Generate unique sequence number
+    const sequence_no = await generateServiceRequestSequence(masterPool);
+
     // Store additional request data properly
-    const request_data = JSON.stringify({ purpose, ...otherData });
+    const request_data = JSON.stringify({ purpose, sequence_no, ...otherData });
 
     const [result] = await masterPool.execute(
-      "INSERT INTO service_requests (student_id, service_id, status, payment_status, request_data) VALUES (?, ?, ?, ?, ?)",
-      [student_id, service_id, "pending", "pending", request_data],
+      "INSERT INTO service_requests (student_id, service_id, sequence_no, status, payment_status, request_data) VALUES (?, ?, ?, ?, ?, ?)",
+      [student_id, service_id, sequence_no, "pending", "pending", request_data],
     );
 
     // --- ACTIVE SYNC: Create StudentFee Demand Immediately ---
@@ -262,6 +289,7 @@ exports.requestService = async (req, res) => {
       success: true,
       message: "Service requested successfully. Please complete payment.",
       requestId: result.insertId,
+      sequence_no,
       payment_status: "pending",
     });
   } catch (error) {
@@ -418,7 +446,11 @@ exports.createRequestByAdmin = async (req, res) => {
         .json({ success: false, message: "Invalid service" });
     }
 
+    // Generate unique sequence number
+    const sequence_no = await generateServiceRequestSequence(masterPool);
+
     const requestDataObj = {
+      sequence_no,
       purpose,
       student_name,
       father_name,
@@ -440,14 +472,15 @@ exports.createRequestByAdmin = async (req, res) => {
 
     // Create request as PAID immediately
     const [result] = await masterPool.execute(
-      "INSERT INTO service_requests (student_id, service_id, status, payment_status, request_data, created_at, request_date) VALUES (?, ?, ?, ?, ?, NOW(), NOW())",
-      [student_id, service_id, "pending", "paid", request_data],
+      "INSERT INTO service_requests (student_id, service_id, sequence_no, status, payment_status, request_data, created_at, request_date) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())",
+      [student_id, service_id, sequence_no, "pending", "paid", request_data],
     );
 
     res.status(201).json({
       success: true,
       message: "Service request created and marked as paid.",
       requestId: result.insertId,
+      sequence_no,
       // Return context for frontend
       student_name: student_name,
       service_name: service[0].name,
@@ -580,14 +613,19 @@ exports.getServiceRequests = async (req, res) => {
     }
     // -----------------------------------------------------------
 
-    // If request_data contains customized details for this service request, apply them to row display
+    // Ensure sequence_no is populated and apply request_data overrides to row display
     rows.forEach((r) => {
+      if (!r.sequence_no) {
+        const year = new Date(r.created_at || r.request_date || Date.now()).getFullYear();
+        r.sequence_no = `SR-${year}-${String(r.id).padStart(4, '0')}`;
+      }
       if (r.request_data) {
         let rd = r.request_data;
         if (typeof rd === 'string') {
           try { rd = JSON.parse(rd); } catch (e) { rd = {}; }
         }
         if (rd && typeof rd === 'object') {
+          if (rd.sequence_no) r.sequence_no = rd.sequence_no;
           if (rd.student_name) r.student_name = rd.student_name;
           if (rd.course) r.course = rd.course;
           if (rd.branch) r.branch = rd.branch;
@@ -758,6 +796,11 @@ exports.updateServiceRequest = async (req, res) => {
       params.push(admin_note || null);
     }
 
+    if (req.body.sequence_no || incomingData.sequence_no) {
+      updateFields.push("sequence_no = ?");
+      params.push(req.body.sequence_no || incomingData.sequence_no);
+    }
+
     params.push(id);
 
     await masterPool.execute(
@@ -875,9 +918,19 @@ exports.downloadCertificate = async (req, res) => {
       request.request_data = {};
     }
 
+    // Sequence calculation for reference in certificates
+    const reqYear = new Date(request.created_at || request.request_date || Date.now()).getFullYear();
+    const seqCode = request.sequence_no || `SR-${reqYear}-${String(request.id).padStart(4, "0")}`;
+    const seqDigits = seqCode.includes("-") ? seqCode.split("-").pop() : String(request.id).padStart(4, "0");
+
     // Effective student combines base student record with service-specific overrides from request_data
     const effectiveStudent = {
       ...request,
+      sequence_no: seqCode,
+      sequence: seqDigits,
+      serial_no: seqCode,
+      ref_no: seqCode,
+      certificate_no: seqCode,
       ...request.request_data
     };
 
@@ -947,6 +1000,11 @@ exports.downloadCertificate = async (req, res) => {
         const studentData = {
           current_date: todayDateStr,
           date: todayDateStr,
+          sequence_no: seqCode,
+          sequence: seqDigits,
+          serial_no: seqCode,
+          ref_no: seqCode,
+          certificate_no: seqCode,
           ...request,
           ...request.request_data,
           ...collegeDetails,
@@ -1093,6 +1151,11 @@ const VARIABLE_FIXED_CHARS = {
   gender: 6,
   caste: 6,
   religion: 8,
+  sequence_no: 12,
+  sequence: 6,
+  serial_no: 12,
+  ref_no: 12,
+  certificate_no: 12,
   student_mobile: 10,
   phone_number: 10,
 };
@@ -1204,7 +1267,11 @@ exports.previewTemplate = async (req, res) => {
       caste: "_".repeat(VARIABLE_FIXED_CHARS.caste || 6),
       gender: "_".repeat(VARIABLE_FIXED_CHARS.gender || 6),
       admission_date: "_".repeat(VARIABLE_FIXED_CHARS.admission_date || 10),
-      serial_no: "{{serial_no}}",
+      sequence_no: `SR-${new Date().getFullYear()}-0001`,
+      sequence: "0001",
+      serial_no: `SR-${new Date().getFullYear()}-0001`,
+      ref_no: `SR-${new Date().getFullYear()}-0001`,
+      certificate_no: `SR-${new Date().getFullYear()}-0001`,
       mole_1: "{{mole_1}}",
       mole_2: "{{mole_2}}",
       conduct: "Good",
@@ -1242,6 +1309,11 @@ exports.previewTemplate = async (req, res) => {
         const data = {
           current_date: todayDateStr,
           date: todayDateStr,
+          sequence_no: `SR-${new Date().getFullYear()}-0001`,
+          sequence: "0001",
+          serial_no: `SR-${new Date().getFullYear()}-0001`,
+          ref_no: `SR-${new Date().getFullYear()}-0001`,
+          certificate_no: `SR-${new Date().getFullYear()}-0001`,
           ...blankStudent,
           ...JSON.parse(blankRequest.request_data),
           ...collegeDetails,

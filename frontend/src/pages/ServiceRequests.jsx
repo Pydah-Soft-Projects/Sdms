@@ -225,7 +225,31 @@ const ServiceRequests = () => {
                 });
             }
 
-            // Group 3: Custom Variables (any other @variable in template)
+            // Group 3: Certificate Reference & Sequence
+            const refFields = [];
+            if (detectedVars.has('sequence_no')) {
+                refFields.push({ name: 'sequence_no', label: 'Sequence No', type: 'text', placeholder: 'e.g. SR-2026-0001' });
+            }
+            if (detectedVars.has('sequence')) {
+                refFields.push({ name: 'sequence', label: 'Sequence Number', type: 'text', placeholder: 'e.g. 0001' });
+            }
+            if (detectedVars.has('serial_no')) {
+                refFields.push({ name: 'serial_no', label: 'Serial No', type: 'text', placeholder: 'e.g. SR-2026-0001' });
+            }
+            if (detectedVars.has('ref_no')) {
+                refFields.push({ name: 'ref_no', label: 'Reference No', type: 'text', placeholder: 'e.g. SR-2026-0001' });
+            }
+            if (detectedVars.has('certificate_no')) {
+                refFields.push({ name: 'certificate_no', label: 'Certificate No', type: 'text', placeholder: 'e.g. SR-2026-0001' });
+            }
+            if (refFields.length > 0) {
+                sections.push({
+                    section: 'Certificate Reference & Sequence',
+                    fields: refFields
+                });
+            }
+
+            // Group 4: Custom Variables (any other @variable in template)
             const knownVars = new Set([
                 'admission_number', 'student_name', 'name', 'father_name', 'father',
                 'mother_name', 'mother', 'guardian_name', 'guardian', 'pin_no', 'pin',
@@ -233,7 +257,8 @@ const ServiceRequests = () => {
                 'category', 'student_mobile', 'mobile', 'phone_number', 'student_address',
                 'address', 'college_name', 'course', 'program', 'degree', 'branch',
                 'department', 'current_year', 'year', 'current_semester', 'semester', 'sem',
-                'academic_year', 'principal_signature', 'current_date', 'date', 'purpose'
+                'academic_year', 'principal_signature', 'current_date', 'date', 'purpose',
+                'sequence_no', 'sequence', 'serial_no', 'ref_no', 'certificate_no'
             ]);
 
             const customFields = [];
@@ -463,6 +488,8 @@ const ServiceRequests = () => {
                 }
 
                 // Initialize form: prefer request_data (service-specific values), fallback to student record
+                const reqSeq = request.sequence_no || `SR-${new Date(request.created_at || request.request_date || Date.now()).getFullYear()}-${String(request.id).padStart(4, '0')}`;
+                const seqDigits = reqSeq.includes('-') ? reqSeq.split('-').pop() : String(request.id).padStart(4, '0');
                 setStudentForm({
                     admission_number: student.admission_number || request.admission_number || '',
                     student_name: reqData.student_name ?? reqData.name ?? student.student_name ?? '',
@@ -483,6 +510,11 @@ const ServiceRequests = () => {
                     student_mobile: reqData.student_mobile ?? student.student_mobile ?? '',
                     student_address: reqData.student_address ?? student.student_address ?? '',
                     purpose: reqData.purpose ?? request.purpose ?? '',
+                    sequence_no: reqData.sequence_no ?? reqSeq,
+                    sequence: reqData.sequence ?? seqDigits,
+                    serial_no: reqData.serial_no ?? reqSeq,
+                    ref_no: reqData.ref_no ?? reqSeq,
+                    certificate_no: reqData.certificate_no ?? reqSeq,
                     ...reqData
                 });
                 setSelectedRequest(request);
@@ -672,9 +704,14 @@ const ServiceRequests = () => {
                                 requests.map((req) => (
                                     <tr key={req.id} className="hover:bg-background">
                                         <td className="px-6 py-4">
-                                            <div className="flex flex-col">
+                                            <div className="flex flex-col gap-1">
                                                 <span className="font-semibold text-main">{req.service_name}</span>
-                                                <span className="text-xs text-muted-text">ID: #{req.id}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-primary/10 text-primary border border-primary/20">
+                                                        {req.sequence_no || `SR-${new Date(req.created_at || req.request_date || Date.now()).getFullYear()}-${String(req.id).padStart(4, '0')}`}
+                                                    </span>
+                                                    <span className="text-[11px] text-muted-text">ID: #{req.id}</span>
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

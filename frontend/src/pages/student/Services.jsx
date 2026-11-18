@@ -226,7 +226,14 @@ const Services = () => {
                                 ) : (
                                     requests.map(req => (
                                         <tr key={req.id} className="hover:bg-background">
-                                            <td className="px-6 py-4 font-mono text-sub text-sm">#{req.id}</td>
+                                            <td className="px-6 py-4 font-mono text-sub text-sm">
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-primary">
+                                                        {req.sequence_no || `SR-${new Date(req.request_date || Date.now()).getFullYear()}-${String(req.id).padStart(4, '0')}`}
+                                                    </span>
+                                                    <span className="text-[10px] text-muted-text">#{req.id}</span>
+                                                </div>
+                                            </td>
                                             <td className="px-6 py-4 font-medium text-main">{req.service_name}</td>
                                             <td className="px-6 py-4 text-sm text-muted-text">
                                                 {new Date(req.request_date).toLocaleDateString()}

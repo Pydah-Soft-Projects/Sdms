@@ -92,6 +92,22 @@ function extractDoorStreet(rawAddress, village, mandal, district, state, pincode
   return str.trim();
 }
 
+function isPositiveCertStatus(status) {
+  if (!status) return false;
+  const s = String(status).trim().toLowerCase();
+  return (
+    s === 'verified' ||
+    s === 'completed' ||
+    s === 'yes' ||
+    s === 'temporary' ||
+    (s.includes('verified') && !s.includes('not verified') && !s.includes('unverified'))
+  );
+}
+
+function isPositiveCertValue(val) {
+  return isDocSubmitted(val);
+}
+
 function isDocSubmitted(val) {
   if (val === null || val === undefined) return false;
   if (typeof val === 'boolean') return val;
@@ -221,7 +237,7 @@ async function syncStudentToAdmissions(admissionNumber, studentRecord = null) {
     const isCertCompletedOrVerified = rawCertStatus === 'verified' || rawCertStatus === 'completed' || (rawCertStatus.includes('verified') && !rawCertStatus.includes('not verified') && !rawCertStatus.includes('unverified'));
 
     const sscKeys = ['10th_original', '10th_cert', 'ssc_certificate', 'document_ssc', 'ssc', 'custom_1771671980118', 'custom_1771672088118', 'custom_1771672142110', '10th'];
-    const hasSsc = checkAnyDocSubmitted(student, json, sscKeys) || (isCertCompletedOrVerified && courseType !== 'Diploma');
+    const hasSsc = checkAnyDocSubmitted(student, json, sscKeys) || isCertCompletedOrVerified;
 
     const interKeys = ['inter_diploma_cert', 'inter_diploma_original', 'inter_diploma_study', 'document_inter', 'inter_cert', 'inter', 'diploma_cert', 'diploma', 'custom_1771672108925'];
     const hasInter = checkAnyDocSubmitted(student, json, interKeys) || (isCertCompletedOrVerified && (courseType === 'UG' || courseType === 'PG'));
@@ -441,8 +457,14 @@ async function syncStudentToAdmissions(admissionNumber, studentRecord = null) {
             if (!leadData._joiningRegistrationExtras || typeof leadData._joiningRegistrationExtras !== 'object') {
               leadData._joiningRegistrationExtras = {};
             }
-            const finalCertStatus = student.certificates_status || json.certificates_status || (isCertCompletedOrVerified ? 'Verified' : 'Unverified');
-            const finalCertificationStatus = json.certification_status || (isCertCompletedOrVerified ? 'Yes' : 'Unverified');
+            const existingAdmStatus = String(existingAdm.status || '').trim();
+            const existingAdmCertStatus = String(leadData._joiningRegistrationExtras?.certificates_status || '').trim();
+            const isSdmsVerified = isPositiveCertStatus(student.certificates_status) || isPositiveCertStatus(json.certificates_status) || isCertCompletedOrVerified;
+            const isAdmVerified = isPositiveCertStatus(existingAdmStatus) || isPositiveCertStatus(existingAdmCertStatus);
+
+            // Priority to Verified on both sides
+            const finalCertStatus = (isSdmsVerified || isAdmVerified) ? 'Verified' : (student.certificates_status || existingAdmCertStatus || 'Not Verified');
+            const finalCertificationStatus = (isSdmsVerified || isAdmVerified) ? 'Yes' : (json.certification_status || 'Unverified');
             leadData._joiningRegistrationExtras.certificates_status = finalCertStatus;
             leadData._joiningRegistrationExtras.certification_status = finalCertificationStatus;
 
@@ -450,19 +472,31 @@ async function syncStudentToAdmissions(admissionNumber, studentRecord = null) {
               leadData._joiningRegistrationExtras.certificate_checklist = {};
             }
             const chk = leadData._joiningRegistrationExtras.certificate_checklist;
-            chk['10th_study'] = finalDocStudy;
-            chk['inter_diploma_tc'] = finalDocTc;
-            chk['10th_tc'] = hasTc ? 'received' : (chk['10th_tc'] || 'pending');
-            chk['10th_original'] = finalDocSsc;
-            chk['custom_1771671980118'] = finalDocSsc;
-            chk['custom_1771672088118'] = finalDocSsc;
-            chk['custom_1771672142110'] = finalDocSsc;
-            chk['inter_diploma_cert'] = finalDocInter;
-            chk['custom_1771672108925'] = finalDocInter;
+
+            // Helper to preserve positive/submitted values (Yes/Verified priority)
+            const updateChecklistKey = (key, docVal) => {
+              if (isPositiveCertValue(docVal)) {
+                chk[key] = docVal;
+              } else if (!isPositiveCertValue(chk[key])) {
+                chk[key] = docVal || 'pending';
+              }
+            };
+
+            updateChecklistKey('10th_study', finalDocStudy);
+            updateChecklistKey('inter_diploma_tc', finalDocTc);
+            updateChecklistKey('10th_tc', hasTc ? 'received' : (chk['10th_tc'] || 'pending'));
+            updateChecklistKey('10th_original', finalDocSsc);
+            updateChecklistKey('custom_1771671980118', finalDocSsc);
+            updateChecklistKey('custom_1771672088118', finalDocSsc);
+            updateChecklistKey('custom_1771672142110', finalDocSsc);
+            updateChecklistKey('inter_diploma_cert', finalDocInter);
+            updateChecklistKey('custom_1771672108925', finalDocInter);
             if (chk['inter_diploma_study'] && typeof chk['inter_diploma_study'] === 'object') {
-              chk['inter_diploma_study'].status = finalDocStudy;
+              if (finalDocStudy === 'received') {
+                chk['inter_diploma_study'].status = 'received';
+              }
             } else {
-              chk['inter_diploma_study'] = finalDocStudy;
+              updateChecklistKey('inter_diploma_study', finalDocStudy);
             }
 
             setIfVal('lead_data', JSON.stringify(leadData));
@@ -723,7 +757,7 @@ async function syncStudentToAdmissions(admissionNumber, studentRecord = null) {
  * @param {object} options - Options for sync (limit, batchSize, admissionNumbers)
  */
 async function bulkSyncAllStudentsToAdmissions(options = {}) {
-  const { batchSize = 50, admissionNumbers = null } = options;
+  const { batchSize = 50, admissionNumbers = null, batch = null } = options;
   const stats = { totalProcessed: 0, totalUpdated: 0, totalErrors: 0, errors: [] };
 
   try {
@@ -746,6 +780,10 @@ async function bulkSyncAllStudentsToAdmissions(options = {}) {
       ]);
 
       targetAdmissionNumbers = Array.from(admSet).filter(Boolean);
+
+      if (batch) {
+        targetAdmissionNumbers = targetAdmissionNumbers.filter(a => a.startsWith(String(batch).trim()));
+      }
     }
 
     console.log(`[AdmissionsSync] Found ${targetAdmissionNumbers.length} target admission records in admissions_db. Starting bulk sync...`);
@@ -788,6 +826,212 @@ async function bulkSyncAllStudentsToAdmissions(options = {}) {
 }
 
 /**
+ * Sync Admissions DB certificate, document and registration data INTO SDMS student record
+ * @param {string} admissionNumber - The student admission number or pin number
+ * @returns {Promise<{success: boolean, admissionNumber: string, updated: boolean, error?: string}>}
+ */
+async function syncAdmissionsToStudent(admissionNumber) {
+  const normAdmissionNumber = String(admissionNumber || '').trim();
+  if (!normAdmissionNumber) {
+    return { success: false, error: 'Admission number is required' };
+  }
+
+  try {
+    // 1. Resolve student in SDMS
+    const [studentRows] = await masterPool.query(
+      `SELECT * FROM students 
+       WHERE admission_number = ? OR admission_no = ? OR pin_no = ? LIMIT 1`,
+      [normAdmissionNumber, normAdmissionNumber, normAdmissionNumber]
+    );
+
+    if (studentRows.length === 0) {
+      return { success: false, admissionNumber: normAdmissionNumber, error: 'Student not found in SDMS database' };
+    }
+
+    const student = studentRows[0];
+    const sData = parseJson(student.student_data);
+    const resolvedAdmNum = student.admission_number || student.admission_no || normAdmissionNumber;
+
+    // 2. Fetch record from Admissions DB
+    const [admRows] = await admissionsPool.query(
+      `SELECT * FROM admissions 
+       WHERE admission_number = ? OR admission_number = ? LIMIT 1`,
+      [resolvedAdmNum, normAdmissionNumber]
+    );
+
+    if (admRows.length === 0) {
+      return { success: false, admissionNumber: resolvedAdmNum, error: 'Student not found in admissions database' };
+    }
+
+    const adm = admRows[0];
+    const ld = parseJson(adm.lead_data);
+    const extras = ld._joiningRegistrationExtras || {};
+    const chk = extras.certificate_checklist || {};
+
+    const normalizeChecklistVal = (val) => {
+      if (!val) return 'No';
+      if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+      if (typeof val === 'object') {
+        const status = String(val.status || '').trim().toLowerCase();
+        if (status === 'pending' || status === 'unverified' || status === 'no') return 'No';
+        if (val.option) {
+          const opt = String(val.option).split(/[\u0001\x01]/)[0].trim();
+          return opt || 'Yes';
+        }
+        return 'Yes';
+      }
+      const s = String(val).split(/[\u0001\x01]/)[0].trim().toLowerCase();
+      if (s === 'received' || s === 'yes' || s === 'verified' || s === 'submitted') return 'Yes';
+      if (s === 'pending' || s === 'no' || s === 'unverified') return 'No';
+      if (s === 'memo') return 'Memo';
+      if (s === 'original') return 'Original';
+      return String(val);
+    };
+
+    const certUpdates = {};
+
+    // 3. Process certificate checklist
+    for (const [k, v] of Object.entries(chk)) {
+      certUpdates[k] = normalizeChecklistVal(v);
+    }
+
+    // Map admissions table document columns
+    if (adm.document_transfer_certificate === 'received') {
+      certUpdates['10th_tc'] = certUpdates['10th_tc'] && certUpdates['10th_tc'] !== 'No' ? certUpdates['10th_tc'] : 'Yes';
+      certUpdates['inter_diploma_tc'] = certUpdates['inter_diploma_tc'] && certUpdates['inter_diploma_tc'] !== 'No' ? certUpdates['inter_diploma_tc'] : 'Yes';
+      certUpdates['ug_tc'] = certUpdates['ug_tc'] && certUpdates['ug_tc'] !== 'No' ? certUpdates['ug_tc'] : 'Yes';
+    }
+    if (adm.document_study_certificate === 'received') {
+      certUpdates['10th_study'] = certUpdates['10th_study'] && certUpdates['10th_study'] !== 'No' ? certUpdates['10th_study'] : 'Yes';
+      certUpdates['inter_diploma_study'] = certUpdates['inter_diploma_study'] && certUpdates['inter_diploma_study'] !== 'No' ? certUpdates['inter_diploma_study'] : 'Yes';
+      certUpdates['ug_study'] = certUpdates['ug_study'] && certUpdates['ug_study'] !== 'No' ? certUpdates['ug_study'] : 'Yes';
+    }
+    if (adm.document_ssc === 'received') {
+      certUpdates['10th_original'] = certUpdates['10th_original'] && certUpdates['10th_original'] !== 'No' ? certUpdates['10th_original'] : 'Yes';
+      certUpdates['10th_cert'] = certUpdates['10th_cert'] && certUpdates['10th_cert'] !== 'No' ? certUpdates['10th_cert'] : 'Yes';
+      certUpdates['ssc_certificate'] = certUpdates['ssc_certificate'] && certUpdates['ssc_certificate'] !== 'No' ? certUpdates['ssc_certificate'] : 'Yes';
+    }
+    if (adm.document_inter === 'received') {
+      certUpdates['inter_diploma_cert'] = certUpdates['inter_diploma_cert'] && certUpdates['inter_diploma_cert'] !== 'No' ? certUpdates['inter_diploma_cert'] : 'Yes';
+      certUpdates['inter_diploma_original'] = certUpdates['inter_diploma_original'] && certUpdates['inter_diploma_original'] !== 'No' ? certUpdates['inter_diploma_original'] : 'Yes';
+    }
+    if (adm.document_ug_pg_cmm === 'received') {
+      certUpdates['ug_cmm'] = certUpdates['ug_cmm'] && certUpdates['ug_cmm'] !== 'No' ? certUpdates['ug_cmm'] : 'Yes';
+    }
+
+    // Resolve final certificate status - PRIORITY TO VERIFIED ON BOTH SIDES
+    const isAdmVerified = isPositiveCertStatus(extras.certificates_status) || 
+                          isPositiveCertStatus(adm.status) || 
+                          (adm.document_transfer_certificate === 'received' && adm.document_study_certificate === 'received');
+    const isSdmsVerified = isPositiveCertStatus(student.certificates_status) || isPositiveCertStatus(sData.certificates_status);
+    const finalCertStatus = (isSdmsVerified || isAdmVerified) ? 'Verified' : (extras.certificates_status || student.certificates_status || 'Not Verified');
+
+    certUpdates['certificates_status'] = finalCertStatus;
+    certUpdates['certificates_verified'] = finalCertStatus === 'Verified';
+    certUpdates['certification_status'] = (isSdmsVerified || isAdmVerified) ? 'Yes' : (extras.certification_status || 'Unverified');
+
+    // Priority to positive/submitted certificate values (Yes/Memo/Original ALWAYS takes priority over No/pending)
+    for (const [k, v] of Object.entries(sData)) {
+      if (isPositiveCertValue(v) && !isPositiveCertValue(certUpdates[k])) {
+        certUpdates[k] = v;
+      }
+    }
+    const existingChk = sData.registrationFormData?.certificate_checklist || {};
+    for (const [k, v] of Object.entries(existingChk)) {
+      if (isPositiveCertValue(v) && !isPositiveCertValue(certUpdates[k])) {
+        certUpdates[k] = v;
+      }
+    }
+
+    // 4. Merge into student_data (preserve all existing fields)
+    const updatedStudentData = {
+      ...sData,
+      ...certUpdates,
+      registrationFormData: {
+        ...(sData.registrationFormData || {}),
+        certificate_checklist: {
+          ...((sData.registrationFormData && sData.registrationFormData.certificate_checklist) || {}),
+          ...certUpdates
+        }
+      }
+    };
+
+    // 5. Update SDMS students table
+    await masterPool.query(
+      `UPDATE students 
+       SET student_data = ?, 
+           certificates_status = COALESCE(?, certificates_status),
+           updated_at = CURRENT_TIMESTAMP 
+       WHERE id = ?`,
+      [JSON.stringify(updatedStudentData), finalCertStatus, student.id]
+    );
+
+    return {
+      success: true,
+      admissionNumber: resolvedAdmNum,
+      updated: true,
+      certificates_status: finalCertStatus,
+      updatedCertificates: certUpdates
+    };
+  } catch (error) {
+    console.error(`[AdmissionsSync] Error syncing from Admissions to SDMS for ${normAdmissionNumber}:`, error);
+    return { success: false, admissionNumber: normAdmissionNumber, error: error.message };
+  }
+}
+
+/**
+ * Bulk sync students from Admissions DB into SDMS
+ */
+async function bulkSyncAdmissionsToSDMS({ batchSize = 50, batch = '2026' } = {}) {
+  const stats = {
+    totalTargeted: 0,
+    totalProcessed: 0,
+    totalUpdated: 0,
+    totalErrors: 0,
+    errors: []
+  };
+
+  try {
+    let query = `SELECT DISTINCT admission_number FROM admissions WHERE admission_number IS NOT NULL AND TRIM(admission_number) != ''`;
+    const params = [];
+    if (batch && batch !== '--all') {
+      query += ` AND admission_number LIKE ?`;
+      params.push(`${batch}%`);
+    }
+
+    const [rows] = await admissionsPool.query(query, params);
+    const targetNumbers = rows.map(r => r.admission_number).filter(Boolean);
+    stats.totalTargeted = targetNumbers.length;
+
+    console.log(`[AdmissionsSync] Found ${targetNumbers.length} records in admissions_db for batch ${batch || 'ALL'}. Syncing to SDMS...`);
+
+    for (let i = 0; i < targetNumbers.length; i += batchSize) {
+      const chunk = targetNumbers.slice(i, i + batchSize);
+      await Promise.all(
+        chunk.map(async (admNum) => {
+          stats.totalProcessed++;
+          const res = await syncAdmissionsToStudent(admNum);
+          if (res.success && res.updated) {
+            stats.totalUpdated++;
+          } else if (!res.success) {
+            stats.totalErrors++;
+            if (stats.errors.length < 50) {
+              stats.errors.push({ admissionNumber: admNum, error: res.error });
+            }
+          }
+        })
+      );
+      console.log(`[AdmissionsSync] Processed ${Math.min(i + batchSize, targetNumbers.length)} / ${targetNumbers.length}`);
+    }
+
+    return stats;
+  } catch (err) {
+    console.error('[AdmissionsSync] Bulk sync from Admissions to SDMS error:', err);
+    throw err;
+  }
+}
+
+/**
  * Direct update helper for dual-database edits (synchronous execution)
  */
 async function triggerAdmissionsSyncAsync(admissionNumber, studentData = null) {
@@ -797,6 +1041,8 @@ async function triggerAdmissionsSyncAsync(admissionNumber, studentData = null) {
 module.exports = {
   syncStudentToAdmissions,
   bulkSyncAllStudentsToAdmissions,
+  syncAdmissionsToStudent,
+  bulkSyncAdmissionsToSDMS,
   triggerAdmissionsSyncAsync
 };
 

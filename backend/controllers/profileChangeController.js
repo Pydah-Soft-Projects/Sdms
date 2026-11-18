@@ -613,13 +613,9 @@ const enrichReviewersWithEmployeeId = async (requestsList) => {
         const userMap = new Map();
         (matchedUsers || []).forEach(u => {
             const uName = (u.name || '').trim();
-            const empId = (u.hrms_id || u.username || '').trim();
-            if (uName && empId && uName.toLowerCase() !== empId.toLowerCase()) {
-                const idLabel = /^emp/i.test(empId) ? empId : `Emp ID: ${empId}`;
-                const formatted = `${uName} (${idLabel})`;
-                if (u.username) userMap.set(String(u.username).toLowerCase(), formatted);
-                if (u.id) userMap.set(String(u.id), formatted);
-            }
+            const formatted = uName || 'Admin';
+            if (u.username) userMap.set(String(u.username).toLowerCase(), formatted);
+            if (u.id) userMap.set(String(u.id), formatted);
         });
 
         requestsList.forEach(r => {
@@ -980,14 +976,7 @@ exports.updateRequestStatus = async (req, res) => {
             }
 
             const finalName = (dbName || req.user?.name || req.admin?.name || tokenUsername || 'Admin').trim();
-            const finalEmpId = (dbEmpId || tokenUsername || '').trim();
-
-            if (finalName && finalEmpId && finalName.toLowerCase() !== finalEmpId.toLowerCase()) {
-                const idLabel = /^emp/i.test(finalEmpId) ? finalEmpId : `Emp ID: ${finalEmpId}`;
-                reviewerDetail = `${finalName} (${idLabel})`;
-            } else {
-                reviewerDetail = finalName || 'Admin';
-            }
+            reviewerDetail = finalName || 'Admin';
         }
 
         await connection.query(

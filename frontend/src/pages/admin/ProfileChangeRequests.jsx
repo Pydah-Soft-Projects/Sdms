@@ -358,12 +358,7 @@ export const ProfileChangeRequests = () => {
 
         try {
             const userName = (user?.name || user?.username || 'Admin').trim();
-            const rawEmpId = (user?.hrms_id || user?.employee_id || user?.emp_no || user?.username || '').trim();
-            let reviewerFormatted = userName;
-            if (userName && rawEmpId && userName.toLowerCase() !== rawEmpId.toLowerCase()) {
-                const idLabel = /^emp/i.test(rawEmpId) ? rawEmpId : `Emp ID: ${rawEmpId}`;
-                reviewerFormatted = `${userName} (${idLabel})`;
-            }
+            const reviewerFormatted = userName;
 
             const res = await api.put(`/profile-changes/${selectedRequest.id}/status`, {
                 status,
@@ -399,6 +394,12 @@ export const ProfileChangeRequests = () => {
 
     const formatKey = (key) => {
         return key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    };
+
+    const formatReviewerName = (reviewer) => {
+        if (!reviewer) return 'Admin';
+        const cleaned = String(reviewer).replace(/\s*\([^)]*(?:emp|hrms)[^)]*\)/gi, '').trim();
+        return cleaned || reviewer;
     };
 
         // 🎯 Dynamically computed counts based on active college / course / branch filters
@@ -977,7 +978,7 @@ export const ProfileChangeRequests = () => {
                                                     <td className="px-3.5 py-2 whitespace-nowrap">
                                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--success-light)] text-success border border-[var(--success-light)] text-[10px] font-bold shadow-2xs">
                                                             <UserCheck size={11} className="text-success shrink-0" />
-                                                            <span>{req.reviewed_by || 'Admin'}</span>
+                                                            <span>{formatReviewerName(req.reviewed_by)}</span>
                                                         </span>
                                                     </td>
                                                 </>
@@ -1007,7 +1008,7 @@ export const ProfileChangeRequests = () => {
                                                     <td className="px-3.5 py-2 whitespace-nowrap">
                                                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] text-[10px] font-bold shadow-2xs">
                                                             <UserCheck size={11} className="text-danger shrink-0" />
-                                                            <span>{req.reviewed_by || 'Admin'}</span>
+                                                            <span>{formatReviewerName(req.reviewed_by)}</span>
                                                         </span>
                                                     </td>
                                                 </>
@@ -1029,7 +1030,7 @@ export const ProfileChangeRequests = () => {
                                                             </div>
                                                             <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-[var(--success-light)] text-success border border-[var(--success-light)] text-[10px] font-bold">
                                                                 <UserCheck size={10} className="text-success shrink-0" />
-                                                                <span>{req.reviewed_by || 'Admin'}</span>
+                                                                <span>{formatReviewerName(req.reviewed_by)}</span>
                                                             </div>
                                                         </div>
                                                     ) : req.status === 'rejected' ? (
@@ -1045,7 +1046,7 @@ export const ProfileChangeRequests = () => {
                                                             </div>
                                                             <div className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-[var(--danger-light)] text-danger border border-[var(--danger-light)] text-[10px] font-bold">
                                                                 <UserCheck size={10} className="text-danger shrink-0" />
-                                                                <span>{req.reviewed_by || 'Admin'}</span>
+                                                                <span>{formatReviewerName(req.reviewed_by)}</span>
                                                             </div>
                                                         </div>
                                                     ) : (
@@ -1410,7 +1411,7 @@ export const ProfileChangeRequests = () => {
                                             </span>
                                             <span className="font-bold text-main flex items-center gap-1.5 mt-0.5">
                                                 <UserCheck size={13} className={`${selectedRequest.status === 'approved' ? 'text-success' : 'text-danger'} shrink-0`} />
-                                                <span className="text-xs sm:text-sm font-semibold text-main break-words">{selectedRequest.reviewed_by || 'Admin'}</span>
+                                                <span className="text-xs sm:text-sm font-semibold text-main break-words">{formatReviewerName(selectedRequest.reviewed_by)}</span>
                                             </span>
                                         </div>
                                         <div>

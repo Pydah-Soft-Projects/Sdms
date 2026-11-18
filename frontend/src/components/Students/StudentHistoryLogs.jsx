@@ -404,7 +404,7 @@ const ProfileChangeDetails = ({ entry }) => {
                 </span>
                 {entry.reviewed_by && (
                     <span className="text-xs text-muted-text">
-                        Reviewed by <span className="font-semibold text-sub">{entry.reviewed_by}</span>
+                        Reviewed by <span className="font-semibold text-sub">{String(entry.reviewed_by).replace(/\s*\([^)]*(?:emp|hrms)[^)]*\)/gi, '').trim() || entry.reviewed_by}</span>
                     </span>
                 )}
                 {entry.updated_at && entry.status !== 'pending' && (
@@ -703,7 +703,7 @@ const StudentHistoryLogs = ({ student }) => {
                             const isCreate = log.action_type?.toUpperCase() === 'CREATE';
                             const isProfileChange = log._type === 'profile_change';
                             const performerName = isProfileChange
-                                ? (log.reviewed_by ? `Reviewed by ${log.reviewed_by}` : 'Awaiting review')
+                                ? (log.reviewed_by ? `Reviewed by ${String(log.reviewed_by).replace(/\s*\([^)]*(?:emp|hrms)[^)]*\)/gi, '').trim() || log.reviewed_by}` : 'Awaiting review')
                                 : resolvePerformerDisplay(log);
                             const performerRole = isProfileChange ? null : (log.performed_by_role || log.admin_role);
 

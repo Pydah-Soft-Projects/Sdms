@@ -1,14 +1,28 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api, { getStaticFileUrlDirect } from '../../config/api';
-import { User, Mail, Phone, MapPin, Calendar, Book, Hash, Lock, Shield, Clock, CheckCircle, Building2, GraduationCap, LogOut, Edit3, AlertCircle } from 'lucide-react';
+import {
+    User, Mail, Phone, MapPin, Calendar, Book, Hash, Lock, Shield,
+    Clock, CheckCircle, Building2, GraduationCap, LogOut, Edit3,
+    AlertCircle, CreditCard, Printer, X, RotateCw, ExternalLink
+} from 'lucide-react';
 import { SkeletonBox } from '../../components/SkeletonLoader';
 import useAuthStore from '../../store/authStore';
 import { VerifyProfileDialog } from '../../components/student/VerifyProfileDialog';
 import LogoutConfirmModal from '../../components/LogoutConfirmModal';
+import DigitalStudentCard from '../../components/DigitalStudentCard';
+import DigitalIdCardBack from '../../components/DigitalIdCardBack';
+import { printIdCardFrontAndBack } from '../../utils/printDigitalIdCard';
 import { toast } from 'react-hot-toast';
 
 const Profile = () => {
-    const { user } = useAuthStore();
+    const { user, userType } = useAuthStore();
+    const navigate = useNavigate();
+
+    // Enforce strict student role visibility
+    const userRole = String(user?.role || userType || '').toLowerCase();
+    const isStudent = (userRole === 'student' || userType === 'student') &&
+        !['staff', 'faculty', 'admin', 'super_admin', 'superadmin', 'employee', 'principal'].includes(userRole);
     const [studentData, setStudentData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showVerifyProfile, setShowVerifyProfile] = useState(false);
@@ -18,6 +32,18 @@ const Profile = () => {
     const [showChangePassModal, setShowChangePassModal] = useState(false);
     const [newPassword, setNewPassword] = useState('');
     const [changePassLoading, setChangePassLoading] = useState(false);
+
+    // Digital ID Card State
+    const [showIdCardModal, setShowIdCardModal] = useState(false);
+    const [idCardSide, setIdCardSide] = useState('both');
+    const [idCardBackOrientation, setIdCardBackOrientation] = useState(() => {
+        try {
+            return localStorage.getItem('id_card_back_orientation') || 'straight';
+        } catch {
+            return 'straight';
+        }
+    });
+    const [colleges, setColleges] = useState([]);
 
     // Profile Requests State
     const [pendingRequest, setPendingRequest] = useState(null);
@@ -82,6 +108,30 @@ const Profile = () => {
         }
     }, [user, fetchStudentRequests]);
 
+    useEffect(() => {
+        api.get('/colleges')
+            .then((res) => {
+                if (res.data?.success) setColleges(res.data.data || []);
+            })
+            .catch(() => {});
+    }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                setShowIdCardModal(false);
+            }
+        };
+        if (showIdCardModal) {
+            window.addEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = 'hidden';
+        }
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            document.body.style.overflow = '';
+        };
+    }, [showIdCardModal]);
+
     // Keep these before any early return so hook count is stable every render
     const displayData = studentData || user;
     const getStudentData = useCallback((key, fallback = 'N/A') => {
@@ -91,6 +141,49 @@ const Profile = () => {
         const val = foundKey ? displayData.student_data[foundKey] : undefined;
         return val !== undefined && val !== null && val !== '' ? val : fallback;
     }, [displayData]);
+
+    const getSd = useCallback((key, fallback = '') => {
+        if (!displayData) return fallback;
+        if (displayData[key] !== undefined && displayData[key] !== null && String(displayData[key]).trim() !== '') {
+            return String(displayData[key]);
+        }
+        const sd = displayData.student_data || {};
+        if (sd[key] !== undefined && sd[key] !== null && String(sd[key]).trim() !== '') {
+            return String(sd[key]);
+        }
+        const foundKey = Object.keys(sd).find(k => k.toLowerCase() === String(key).toLowerCase());
+        if (foundKey && sd[foundKey] !== undefined && sd[foundKey] !== null && String(sd[foundKey]).trim() !== '') {
+            return String(sd[foundKey]);
+        }
+        return fallback;
+    }, [displayData]);
+
+    const activeCollege = colleges.find(c => {
+        const cName = String(c.name || c.college_name || '').trim().toLowerCase();
+        const studCol = String(displayData?.college || getStudentData('College') || '').trim().toLowerCase();
+        return cName && studCol && (cName === studCol || studCol.includes(cName) || cName.includes(studCol));
+    }) || displayData?.college || getStudentData('College');
+
+    const principalSignatureUrl = activeCollege?.principal_signature || activeCollege?.signature_url || null;
+
+    const handlePrintIdCard = () => {
+        try {
+            printIdCardFrontAndBack('.id-card-print-front', '.id-card-print-back', {
+                backOrientation: idCardBackOrientation,
+            });
+        } catch (e) {
+            console.error('Print error:', e);
+            window.print();
+        }
+    };
+
+    const handleToggleIdCardOrientation = () => {
+        const next = idCardBackOrientation === 'straight' ? 'rotate180' : 'straight';
+        setIdCardBackOrientation(next);
+        try {
+            localStorage.setItem('id_card_back_orientation', next);
+        } catch {}
+    };
 
 
 
@@ -163,7 +256,7 @@ const Profile = () => {
     };
 
     const profileActionBtn =
-        'inline-flex items-center justify-center gap-1 sm:gap-2 min-w-0 w-full px-2 sm:px-5 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-tight sm:tracking-wider shadow-md sm:shadow-lg transition-all hover:-translate-y-0.5 active:scale-95 text-center whitespace-nowrap';
+        'inline-flex items-center justify-center gap-1 sm:gap-2 flex-1 min-w-0 px-2 sm:px-4 py-2.5 sm:py-3.5 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-tight sm:tracking-wider shadow-md sm:shadow-lg transition-all hover:-translate-y-0.5 active:scale-95 text-center min-h-[44px] cursor-pointer focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2';
 
     return (
         <div className="space-y-4 sm:space-y-6 lg:space-y-8 flex flex-col p-1 sm:p-2 w-full max-w-full overflow-x-hidden scroll-smooth bg-[var(--background)]/80">
@@ -232,24 +325,42 @@ const Profile = () => {
                             </div>
                         </div>
 
-                        {/* Actions — always comfortable and responsive with non-truncating smaller mobile text */}
-                        <div className="grid grid-cols-2 gap-2 sm:gap-3 w-full min-w-0 border-t border-border pt-3.5 sm:pt-5">
+                        {/* Actions — horizontal row with accessible touch targets & labels */}
+                        <div className="flex flex-row items-center gap-1.5 sm:gap-3 w-full min-w-0 border-t border-border pt-3.5 sm:pt-5">
                             <button
                                 type="button"
                                 onClick={() => setShowVerifyProfile(true)}
+                                aria-label={pendingRequest ? 'View Pending Profile Change Request' : 'Edit Profile'}
+                                aria-haspopup="dialog"
                                 className={`${profileActionBtn} ${pendingRequest ? 'bg-warning hover:bg-warning shadow-warning/80' : 'bg-primary hover:bg-primary-hover shadow-primary/80'} text-white`}
                             >
-                                <Edit3 size={13} className="shrink-0 sm:w-4 sm:h-4" />
-                                <span className="whitespace-nowrap">{pendingRequest ? 'Pending Request' : 'Edit Profile'}</span>
+                                <Edit3 size={13} className="shrink-0 sm:w-4 sm:h-4" aria-hidden="true" />
+                                <span className="truncate">{pendingRequest ? 'Pending Request' : 'Edit Profile'}</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setShowChangePassModal(true)}
+                                aria-label="Change Password"
+                                aria-haspopup="dialog"
+                                aria-expanded={showChangePassModal}
                                 className={`${profileActionBtn} bg-sidebar hover:bg-sidebar text-white shadow-border/80`}
                             >
-                                <Lock size={13} className="shrink-0 sm:w-4 sm:h-4" />
-                                <span className="whitespace-nowrap">Change Password</span>
+                                <Lock size={13} className="shrink-0 sm:w-4 sm:h-4" aria-hidden="true" />
+                                <span className="truncate">Change Password</span>
                             </button>
+                            {isStudent && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowIdCardModal(true)}
+                                    aria-label="View Digital ID Card"
+                                    aria-haspopup="dialog"
+                                    aria-expanded={showIdCardModal}
+                                    className={`${profileActionBtn} bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/30`}
+                                >
+                                    <CreditCard size={13} className="shrink-0 sm:w-4 sm:h-4" aria-hidden="true" />
+                                    <span className="truncate">Digital ID Card</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -390,6 +501,162 @@ const Profile = () => {
                 </button>
             </div>
 
+
+            {/* Digital ID Card Modal / Bottom Sheet (Visible only to students) */}
+            {isStudent && showIdCardModal && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-xs sm:backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
+                    onClick={(e) => {
+                        if (e.target === e.currentTarget) setShowIdCardModal(false);
+                    }}
+                >
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="digital-id-modal-title"
+                        className="w-full sm:max-w-4xl max-h-[92vh] sm:max-h-[90vh] bg-surface rounded-t-3xl sm:rounded-3xl shadow-2xl border border-border flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 sm:zoom-in-95 duration-200"
+                    >
+                        {/* Mobile bottom sheet drag handle */}
+                        <div className="w-12 h-1.5 bg-border rounded-full mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
+
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border shrink-0">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0">
+                                    <CreditCard size={18} />
+                                </div>
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <h3 id="digital-id-modal-title" className="text-base sm:text-lg font-black text-main leading-tight truncate">
+                                            Digital ID Card
+                                        </h3>
+                                        <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            Verified
+                                        </span>
+                                    </div>
+                                    <p className="text-[11px] text-muted-text truncate">
+                                        Official Student Identification • CR80 (54 × 85.6 mm)
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowIdCardModal(false);
+                                        navigate('/student/id-card');
+                                    }}
+                                    aria-label="Open Fullscreen Digital ID Card Page"
+                                    title="Open Fullscreen Page"
+                                    className="p-2 rounded-xl text-sub hover:text-main hover:bg-background border border-border transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                                >
+                                    <ExternalLink size={16} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowIdCardModal(false)}
+                                    aria-label="Close Digital ID Card dialog"
+                                    className="p-2 rounded-xl text-muted-text hover:text-main hover:bg-background border border-transparent hover:border-border transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                                >
+                                    <X size={18} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* View Switcher Bar */}
+                        <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 bg-background/60 border-b border-border shrink-0 gap-2 flex-wrap">
+                            <div className="inline-flex p-1 bg-surface rounded-xl border border-border gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setIdCardSide('both')}
+                                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                                        idCardSide === 'both' ? 'bg-primary text-white shadow-xs' : 'text-sub hover:text-main'
+                                    }`}
+                                >
+                                    Both Sides
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIdCardSide('front')}
+                                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                                        idCardSide === 'front' ? 'bg-primary text-white shadow-xs' : 'text-sub hover:text-main'
+                                    }`}
+                                >
+                                    Front
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIdCardSide('back')}
+                                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                                        idCardSide === 'back' ? 'bg-primary text-white shadow-xs' : 'text-sub hover:text-main'
+                                    }`}
+                                >
+                                    Back
+                                </button>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={handleToggleIdCardOrientation}
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-sub hover:text-main bg-surface px-2.5 py-1 rounded-lg border border-border transition-colors"
+                                title="Toggle flip orientation of the back side"
+                            >
+                                <RotateCw size={12} />
+                                <span className="hidden sm:inline">Back Side Flip:</span>
+                                <span>{idCardBackOrientation === 'straight' ? 'Straight (0°)' : 'Rotated (180°)'}</span>
+                            </button>
+                        </div>
+
+                        {/* Card Preview Container */}
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0">
+                            <div className={`flex items-center justify-center gap-6 sm:gap-8 ${
+                                idCardSide === 'both' ? 'flex-col md:flex-row' : 'flex-col'
+                            }`}>
+                                {(idCardSide === 'both' || idCardSide === 'front') && (
+                                    <div className="w-full max-w-[360px] flex flex-col items-center">
+                                        <p className="text-[10px] font-black uppercase tracking-wider text-muted-text mb-2 text-center">
+                                            Front Side
+                                        </p>
+                                        <div className="id-card-preview-scaler-box">
+                                            <div className="id-card-preview-scaler">
+                                                <DigitalStudentCard
+                                                    className="id-card-print-front"
+                                                    student={displayData}
+                                                    getStudentData={getSd}
+                                                    college={activeCollege}
+                                                    principalSignatureUrl={principalSignatureUrl}
+                                                    showWatermark={true}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {(idCardSide === 'both' || idCardSide === 'back') && (
+                                    <div className="w-full max-w-[360px] flex flex-col items-center">
+                                        <p className="text-[10px] font-black uppercase tracking-wider text-muted-text mb-2 text-center">
+                                            Back Side
+                                        </p>
+                                        <div className="id-card-preview-scaler-box">
+                                            <div className="id-card-preview-scaler">
+                                                <DigitalIdCardBack
+                                                    className="id-card-print-back"
+                                                    student={displayData}
+                                                    getStudentData={getSd}
+                                                    college={activeCollege}
+                                                    rotate180={idCardBackOrientation === 'rotate180'}
+                                                    showWatermark={true}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Change Password Modal */}
             {showChangePassModal && (

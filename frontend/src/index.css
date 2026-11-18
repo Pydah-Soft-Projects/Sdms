@@ -1062,6 +1062,12 @@ html.parent-portal #root {
         shape-rendering: crispEdges !important;
     }
 
+    body.printing-id-card #id-card-print-mount .id-card-watermark {
+        opacity: 0.12 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
     /* Multi-page: front then back */
     body.printing-id-card #id-card-print-mount .id-card-print-page {
         display: block !important;

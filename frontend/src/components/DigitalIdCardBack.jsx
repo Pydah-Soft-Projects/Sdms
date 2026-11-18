@@ -1,5 +1,6 @@
 import React from 'react';
 import { DEFAULT_COLLEGE, resolveCollegeDetails } from '../config/collegeConfig';
+import idCardWatermarkDefault from '../assets/id-card-watermark.png';
 
 /**
  * Top Back Layered Red Wave Header SVG matching reference design
@@ -202,6 +203,8 @@ const DigitalIdCardBack = ({
   getStudentData,
   className = '',
   rotate180 = false,
+  showWatermark = false,
+  watermarkUrl = null,
 }) => {
   const studObj = student || {};
 
@@ -300,6 +303,46 @@ const DigitalIdCardBack = ({
     >
       {/* 1. TOP HEADER WAVE WITH DUAL ACCENT RIBBON */}
       <BackTopWaveSVG />
+
+      {/* ===================================================
+          WATERMARK (Subtle institutional emblem centered in background)
+      =================================================== */}
+      {showWatermark && (
+        <div
+          className="id-card-watermark pointer-events-none select-none"
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '36mm',
+            height: '36mm',
+            zIndex: 1,
+            opacity: 0.12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            printColorAdjust: 'exact',
+            WebkitPrintColorAdjust: 'exact',
+          }}
+          aria-hidden="true"
+        >
+          <img
+            src={watermarkUrl || idCardWatermarkDefault || '/id-card-watermark.png'}
+            alt=""
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              pointerEvents: 'none',
+              printColorAdjust: 'exact',
+              WebkitPrintColorAdjust: 'exact',
+            }}
+          />
+        </div>
+      )}
 
       {/* 2. DETAILS CONTENT — fills height between waves */}
       <div

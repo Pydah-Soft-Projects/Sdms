@@ -1106,6 +1106,7 @@ const PrintIdCards = () => {
                       getStudentData={getStudentData(previewStudent)}
                       principalSignatureUrl={resolveCollegeSignature(previewStudent)}
                       coursesWithLevels={coursesWithLevels}
+                      showWatermark={false}
                     />
                   </div>
                 </div>
@@ -1127,6 +1128,7 @@ const PrintIdCards = () => {
                       getStudentData={getStudentData(previewStudent)}
                       college={activeCollege}
                       rotate180={backOrientation === 'rotate180'}
+                      showWatermark={false}
                     />
                   </div>
                 </div>
@@ -1219,6 +1221,7 @@ const PrintIdCards = () => {
                   getStudentData={getStudentData(s)}
                   principalSignatureUrl={resolveCollegeSignature(s)}
                   coursesWithLevels={coursesWithLevels}
+                  showWatermark={false}
                 />
                 <DigitalIdCardBack
                   className="id-card-batch-back"
@@ -1226,6 +1229,7 @@ const PrintIdCards = () => {
                   getStudentData={getStudentData(s)}
                   college={resolveCollegeObj(s)}
                   rotate180={backOrientation === 'rotate180'}
+                  showWatermark={false}
                 />
               </div>
             );

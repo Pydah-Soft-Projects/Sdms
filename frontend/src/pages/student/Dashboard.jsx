@@ -19,7 +19,6 @@ import {
     RiMapPinLine,
     RiAwardLine,
     RiQuestionAnswerLine,
-    RiFolderLine,
     RiServiceLine,
     RiSparklingLine,
     RiTicketLine,
@@ -910,15 +909,6 @@ const Dashboard = () => {
                 iconBg: 'bg-[var(--background)]',
                 iconColor: 'text-[var(--text-secondary)]',
                 enabled: isEnabled('feedback')
-            },
-            {
-                key: 'my-documents',
-                label: 'Documents',
-                path: '/student/my-documents',
-                icon: RiFolderLine,
-                iconBg: 'bg-[var(--warning-light)]',
-                iconColor: 'text-[var(--warning)]',
-                enabled: isEnabled('my-documents')
             }
         ].filter(item => item.enabled);
     }, [layoutSettings, hasInternship, hasTransportPass, hasHostelAccount]);

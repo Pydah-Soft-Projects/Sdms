@@ -31,8 +31,6 @@ import {
     RiTicketFill,
     RiBusLine,
     RiBusFill,
-    RiFolderLine,
-    RiFolderFill,
     RiQuestionAnswerLine,
     RiQuestionAnswerFill,
     RiCalendar2Line,
@@ -434,8 +432,7 @@ const StudentLayout = ({ children }) => {
         { icon: RiBusLine, activeIcon: RiBusFill, label: 'Transport', path: '/student/transport' },
         { icon: RiWallet3Line, activeIcon: RiWallet3Fill, label: 'Fee Management', path: '/student/fees' },
         { icon: RiAwardLine, activeIcon: RiAwardFill, label: 'Scholarship', path: '/student/scholarship' },
-        { icon: RiQuestionAnswerLine, activeIcon: RiQuestionAnswerFill, label: 'Feed Back', path: '/student/feedback' },
-        { icon: RiFolderLine, activeIcon: RiFolderFill, label: 'My Documents', path: '/student/my-documents' }
+        { icon: RiQuestionAnswerLine, activeIcon: RiQuestionAnswerFill, label: 'Feed Back', path: '/student/feedback' }
     ].filter(item => {
         if (item.label === 'Internship' && !hasInternship) return false;
         if (item.label === 'Transport' && !hasTransportPass) return false;

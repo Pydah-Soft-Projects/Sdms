@@ -1,5 +1,9 @@
-# SSH keys — never commit
+# SSH keys & Keystores — never commit
 *.pem
+*.jks
+*.keystore
+*.p12
+*-adminsdk-*.json
 LightsailDefaultKey*
 
 # Environment and configuration files

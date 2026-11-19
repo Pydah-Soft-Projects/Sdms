@@ -1536,11 +1536,6 @@ const Dashboard = () => {
                                                         }}
                                                     />
                                                 )}
-                                                <span className={`absolute top-2 left-2 rounded-md px-2 py-1 text-[9px] font-black uppercase tracking-wider text-white shadow-sm ${
-                                                    isEvent ? 'bg-[var(--primary-light)]' : isPoll ? 'bg-[var(--warning-light)]' : 'bg-[var(--primary-light)]'
-                                                }`}>
-                                                    {isEvent ? 'Event' : isPoll ? 'Poll' : 'Announcement'}
-                                                </span>
                                             </div>
 
                                             {/* Card Content */}
@@ -1548,9 +1543,20 @@ const Dashboard = () => {
                                                 <h4 className="text-sm font-bold text-main line-clamp-2 group-hover:text-[var(--primary)] transition-colors leading-snug">
                                                     {title}
                                                 </h4>
-                                                <div className="flex items-center gap-1 text-[11px] font-medium text-muted-text mt-1.5">
-                                                    <Clock size={12} className="text-muted-text shrink-0" />
-                                                    <span>{dateStr || 'Recent'}</span>
+                                                <div className="flex items-center justify-between gap-1.5 mt-2">
+                                                    <div className="flex items-center gap-1 text-[11px] font-medium text-muted-text">
+                                                        <Clock size={12} className="text-muted-text shrink-0" />
+                                                        <span>{dateStr || 'Recent'}</span>
+                                                    </div>
+                                                    <span className={`rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider shrink-0 ${
+                                                        isEvent
+                                                            ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+                                                            : isPoll
+                                                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                                                            : 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300'
+                                                    }`}>
+                                                        {isEvent ? 'Event' : isPoll ? 'Poll' : (data.category || 'Notice')}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -1572,30 +1578,21 @@ const Dashboard = () => {
                 </div>
             )}
 
-            {/* Explore Learn Build Banner (Image 1 Style) */}
+            {/* Explore Learn Build Banner (Full Card Background) */}
             <div
                 onClick={() => navigate('/student/clubs')}
-                className="rounded-[22px] p-4 sm:p-5 bg-gradient-to-r from-[var(--primary)] via-[var(--primary)] to-[var(--primary)] text-white shadow-lg relative overflow-hidden cursor-pointer group flex items-center justify-between"
+                className="rounded-[22px] p-5 sm:p-6 text-white shadow-lg relative overflow-hidden cursor-pointer group flex items-center justify-between min-h-[125px] bg-cover bg-right sm:bg-center transition-all hover:scale-[1.008]"
+                style={{
+                    backgroundImage: `linear-gradient(to right, rgba(2, 10, 35, 0.85) 0%, rgba(2, 10, 35, 0.48) 50%, rgba(2, 10, 35, 0.1) 100%), url('/images/explore-learn-build.webp')`
+                }}
             >
                 <div className="relative z-10">
-                    <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
+                    <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight drop-shadow-sm">
                         Explore<br />Learn<br />Build
                     </h3>
-                    <p className="text-xs font-normal text-muted-text mt-1">
+                    <p className="text-xs font-normal text-white/90 mt-1 drop-shadow-sm">
                         Join Clubs, Workshops<br />and Maker Space
                     </p>
-                </div>
-
-                {/* Right-side 3D transparent image settled smoothly into dark background */}
-                <div className="absolute right-0 top-0 bottom-0 w-7/12 sm:w-1/2 h-full pointer-events-none overflow-hidden flex items-center justify-end pr-1 sm:pr-2">
-                    <img
-                        src="/images/explore-learn-build.webp"
-                        alt="Explore Learn Build"
-                        loading="eager"
-                        fetchpriority="high"
-                        decoding="sync"
-                        className="h-full w-auto object-contain object-right opacity-95 group-hover:scale-105 transition-transform duration-500"
-                    />
                 </div>
             </div>
 

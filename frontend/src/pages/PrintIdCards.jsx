@@ -168,10 +168,10 @@ const PrintIdCards = () => {
     try {
       const params = new URLSearchParams();
       params.append('student_status', 'Regular');
-      // Pass college, level, batch, year for cascading, but do NOT pass course
-      // so available courses are not filtered down to just the selected single course
+      // Pass college, level, course, batch, year for cascading
       if (current.college) params.append('college', current.college);
       if (current.level) params.append('level', current.level);
+      if (current.course) params.append('course', current.course);
       if (current.batch) params.append('batch', current.batch);
       if (current.year) params.append('year', current.year);
 
@@ -180,7 +180,8 @@ const PrintIdCards = () => {
         const d = res.data.data || {};
         setQuickFilters((prev) => ({
           levels: d.levels || prev.levels || [],
-          courses: Array.isArray(d.courses) && d.courses.length > 0 ? d.courses : prev.courses,
+          // Keep previous courses when course is selected so the dropdown doesn't collapse to one option
+          courses: Array.isArray(d.courses) && d.courses.length > 0 ? (current.course ? prev.courses : d.courses) : prev.courses,
           branches: Array.isArray(d.branches) && d.branches.length > 0 ? d.branches : prev.branches,
           batches: d.batches || prev.batches || [],
           years: d.years || prev.years || [],
@@ -202,10 +203,35 @@ const PrintIdCards = () => {
   }, [
     filters.college,
     filters.level,
+    filters.course,
     filters.batch,
     filters.year,
     fetchQuickFilters,
   ]);
+
+  const activeFilters = useMemo(() => {
+    const f = { student_status: 'Regular' };
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v) f[k] = v;
+    });
+    f.student_status = 'Regular'; // ID cards are strictly for Regular active students
+    return f;
+  }, [filters]);
+
+  const { data, isLoading, isFetching, refetch } = useStudents({
+    page,
+    pageSize,
+    filters: activeFilters,
+    search: debouncedSearch,
+    enabled: true,
+  });
+
+  const students = data?.students || [];
+  const total = data?.pagination?.total || 0;
+  const totalPages =
+    pageSize === 'all'
+      ? 1
+      : Math.max(1, Math.ceil(total / (Number(pageSize) || 25)));
 
   // Derived available courses based on selected College and Level
   const availableCourses = useMemo(() => {
@@ -244,8 +270,8 @@ const PrintIdCards = () => {
 
     // Filter by level if selected
     if (filters.level) {
-      const lvl = filters.level.trim().toLowerCase();
-      list = list.filter((c) => !c.level || c.level.toLowerCase() === lvl);
+      const lvl = String(filters.level).trim().toLowerCase();
+      list = list.filter((c) => !c.level || String(c.level).toLowerCase() === lvl);
     }
 
     return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -253,6 +279,19 @@ const PrintIdCards = () => {
 
   // Derived available branches based on selected Course
   const availableBranches = useMemo(() => {
+    const branchMap = new Map();
+
+    const addBranch = (b) => {
+      if (!b) return;
+      const rawName = typeof b === 'string' ? b : (b.name ?? b.label ?? b.id ?? '');
+      const rawId = typeof b === 'string' ? b : (b.id ?? b.name ?? '');
+      const name = String(rawName).trim();
+      const id = String(rawId).trim();
+      if (name && !branchMap.has(name.toLowerCase())) {
+        branchMap.set(name.toLowerCase(), { id: id || name, name });
+      }
+    };
+
     if (filters.course) {
       const courseObj = coursesWithLevels.find(
         (c) =>
@@ -260,42 +299,34 @@ const PrintIdCards = () => {
           String(c.id) === String(filters.course)
       );
       if (courseObj && Array.isArray(courseObj.branches) && courseObj.branches.length > 0) {
-        return courseObj.branches.map((b) => ({
-          id: typeof b === 'string' ? b : (b.name || b.id),
-          name: typeof b === 'string' ? b : (b.name || b.id),
-        }));
+        courseObj.branches.forEach(addBranch);
       }
     }
 
-    return (quickFilters.branches || []).map((b) => ({
-      id: typeof b === 'string' ? b : (b.name || b.id),
-      name: typeof b === 'string' ? b : (b.name || b.id),
-    }));
-  }, [filters.course, coursesWithLevels, quickFilters.branches]);
-
-  const activeFilters = useMemo(() => {
-    const f = { student_status: 'Regular' };
-    Object.entries(filters).forEach(([k, v]) => {
-      if (v) f[k] = v;
+    // Include branches from quickFilters (filter by course_id if available)
+    (quickFilters.branches || []).forEach((b) => {
+      if (typeof b === 'object' && b !== null && filters.course && b.course_id) {
+        const courseObj = coursesWithLevels.find(
+          (c) => c.name?.toLowerCase() === filters.course.toLowerCase() || String(c.id) === String(filters.course)
+        );
+        if (courseObj && String(b.course_id) !== String(courseObj.id)) return;
+      }
+      addBranch(b);
     });
-    f.student_status = 'Regular'; // ID cards are strictly for Regular active students
-    return f;
-  }, [filters]);
 
-  const { data, isLoading, isFetching, refetch } = useStudents({
-    page,
-    pageSize,
-    filters: activeFilters,
-    search: debouncedSearch,
-    enabled: true,
-  });
+    // Fallback: Also discover distinct branches from currently loaded students matching the selected course
+    if (Array.isArray(students) && students.length > 0) {
+      students.forEach((s) => {
+        if (s.branch) {
+          if (!filters.course || (s.course && s.course.toLowerCase() === filters.course.toLowerCase())) {
+            addBranch(s.branch);
+          }
+        }
+      });
+    }
 
-  const students = data?.students || [];
-  const total = data?.pagination?.total || 0;
-  const totalPages =
-    pageSize === 'all'
-      ? 1
-      : Math.max(1, Math.ceil(total / (Number(pageSize) || 25)));
+    return Array.from(branchMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [filters.course, coursesWithLevels, quickFilters.branches, students]);
 
   const selectedStudents = useMemo(
     () => Object.values(selectedMap),

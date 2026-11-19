@@ -150,7 +150,7 @@ function canAccessCourse(userScope, courseName) {
 function canAccessBranch(userScope, branchName) {
   if (userScope.unrestricted) return true;
   if (userScope.allBranches) return true;
-  if (!userScope.branchNames || userScope.branchNames.length === 0) return false;
+  if (!userScope.branchNames || userScope.branchNames.length === 0) return true;
   return userScope.branchNames.includes(branchName);
 }
 
@@ -279,10 +279,10 @@ function filterBranchesByScope(branches, userScope) {
   if (userScope.unrestricted) return branches;
   if (userScope.allBranches) return branches;
   
-  // If no branch restrictions, return empty array
+  // If user has no specific branch restrictions, allow all branches in their permitted scope
   if ((!userScope.branchIds || userScope.branchIds.length === 0) && 
       (!userScope.branchNames || userScope.branchNames.length === 0)) {
-    return [];
+    return branches;
   }
   
   // Filter branches by ID or by name

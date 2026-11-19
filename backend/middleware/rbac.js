@@ -356,7 +356,7 @@ const attachUserScope = async (req, res, next) => {
       courseNames,
       branchNames,
       allCourses: !!userData.all_courses,
-      allBranches: !!userData.all_branches,
+      allBranches: !!userData.all_branches || branchIds.length === 0,
       unrestricted: false,
       hodYears: hodYears.length > 0 ? hodYears : null
     };

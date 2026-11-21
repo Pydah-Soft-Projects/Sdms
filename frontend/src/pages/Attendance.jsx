@@ -1451,7 +1451,7 @@ const Attendance = () => {
         if (totalSent > 0) {
           toast.success(`Reports sent successfully to ${totalSent} recipient(s)`);
         } else {
-          toast.info('No reports were sent. Please check if there are any recipients configured.');
+          toast('No reports were sent. Please check if there are any recipients configured.', { icon: 'ℹ️' });
         }
         if (totalFailed > 0) {
           toast.error(`${totalFailed} report(s) failed to send`);

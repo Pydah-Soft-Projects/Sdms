@@ -71,7 +71,7 @@ const Submissions = () => {
 
   const toggleGlobalAutoAssign = async () => {
     // Auto-assign is always enabled, cannot be toggled
-    toast.info('Auto-assign is always enabled and cannot be disabled');
+    toast('Auto-assign is always enabled and cannot be disabled', { icon: 'ℹ️' });
   };
 
   const fetchSubmissions = async () => {
@@ -1433,7 +1433,7 @@ const Submissions = () => {
                 onClick={() => {
                   setDeletingProgress(prev => ({ ...prev, isDeleting: false }));
                   setShowDeleteProgressModal(false);
-                  toast.info('Deletion cancelled');
+                  toast('Deletion cancelled', { icon: 'ℹ️' });
                 }}
                 className="flex-1 px-4 py-2 border border-border-strong text-sub rounded-lg hover:bg-background transition-colors"
               >

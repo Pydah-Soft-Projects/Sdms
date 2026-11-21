@@ -118,6 +118,7 @@ const allowStudentOwnProfileOrPermission = (module, operation = 'read') => {
         const normalizedParam = String(admissionNumber).trim().toLowerCase();
         if (
           (studentAdmissionNumber && normalizedParam === String(studentAdmissionNumber).trim().toLowerCase()) ||
+          (user.pin_no && normalizedParam === String(user.pin_no).trim().toLowerCase()) ||
           (studentId && normalizedParam === String(studentId).trim().toLowerCase())
         ) {
           return next();

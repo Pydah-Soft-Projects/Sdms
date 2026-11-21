@@ -1,12 +1,29 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
-const { verifyPermission, attachUserScope } = require('../middleware/rbac');
+const { verifyPermission, attachUserScope, isSuperAdmin } = require('../middleware/rbac');
 const { MODULES } = require('../constants/rbac');
 const serviceController = require('../controllers/serviceController');
 
 // All routes require authentication
 router.use(authMiddleware);
+
+// Middleware: restrict strictly to Super Admins
+const requireSuperAdmin = (req, res, next) => {
+    const user = req.user || req.admin;
+    if (!user || !isSuperAdmin(user)) {
+        return res.status(403).json({
+            success: false,
+            message: 'Access denied. Super Admin privileges required.'
+        });
+    }
+    next();
+};
+
+// --- Service Settings (Super Admin Only) ---
+router.get('/settings', requireSuperAdmin, serviceController.getServiceSettings);
+router.put('/settings', requireSuperAdmin, serviceController.updateServiceSettings);
+router.get('/fee-heads', requireSuperAdmin, serviceController.getAvailableFeeHeads);
 
 // --- Services Configuration (Admin) ---
 // View all services: permission 'view'
@@ -35,6 +52,9 @@ router.delete('/:id', verifyPermission(MODULES.SERVICES, 'manage_config'), servi
 // Student Request (Student Role Only)
 router.post('/requests', serviceController.requestService);
 
+// Fast Student Lookup (by PIN or Admission Number) for Service Requests
+router.get('/student-lookup/:identifier', serviceController.studentLookup);
+
 // Delete Request (Student Role Only)
 router.delete('/requests/:id', serviceController.deleteServiceRequest);
 
@@ -62,6 +82,14 @@ router.put('/requests/:id', verifyPermission(MODULES.SERVICES, 'manage_requests'
 
 // Process Payment / Mark Payment (Admin)
 router.post('/pay', verifyPermission(MODULES.SERVICES, 'manage_requests'), serviceController.processPayment);
+
+// Sync Fee Payment Status with Fee Portal (Students can sync their own, Admins can sync any/all)
+router.post('/sync-fee-status', (req, res, next) => {
+    if (req.user && (req.user.role === 'student' || (!req.user.isAdmin && !req.user.role))) {
+        return next();
+    }
+    return verifyPermission(MODULES.SERVICES, 'manage_requests')(req, res, next);
+}, serviceController.syncFeeStatus);
 
 // Download Certificate (Student/Admin)
 router.get('/requests/:id/download', serviceController.downloadCertificate);

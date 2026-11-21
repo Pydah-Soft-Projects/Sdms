@@ -13,7 +13,11 @@
 const { MongoClient } = require('mongodb');
 require('dotenv').config({ path: __dirname + '/../.env' });
 
-const MONGO_URI = process.env.TRANSPORT_MONGO_URI || 'mongodb+srv://durgaprasad:durga2144@cluster0.i5iew6d.mongodb.net/pydah_transport?retryWrites=true&w=majority&appName=Cluster0';
+const MONGO_URI = process.env.TRANSPORT_MONGO_URI;
+if (!MONGO_URI) {
+    console.error('ERROR: TRANSPORT_MONGO_URI is not defined in .env');
+    process.exit(1);
+}
 const TARGET_ADMISSION_NUMBER = process.argv[2] || '20230353';
 
 async function inspectTransportReadOnly() {

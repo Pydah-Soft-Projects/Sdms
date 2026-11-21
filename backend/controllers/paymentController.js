@@ -7,6 +7,7 @@ const StudentFee = require('../MongoDb-Models/StudentFee');
 const { masterPool } = require('../config/database');
 const mongoose = require('mongoose');
 const { allocateReceiptNumber } = require('../services/receiptService');
+const { getDynamicServiceFeeHead } = require('../services/serviceFeeConfig');
 
 // PPG Gateway Settings
 const getPpgConfig = () => ({
@@ -659,7 +660,7 @@ exports.verifyPayment = async (req, res) => {
 
     if (activeServiceReqId || (remarks && remarks.toLowerCase().includes('service request'))) {
       try {
-        const ssFeeHead = await FeeHead.findOne({ code: 'SSF' });
+        const ssFeeHead = await getDynamicServiceFeeHead();
         if (ssFeeHead) {
           finalFeeHeadId = ssFeeHead._id;
         }
@@ -667,7 +668,7 @@ exports.verifyPayment = async (req, res) => {
           finalRemarks += ` (Ref: ${activeServiceReqId})`;
         }
       } catch (e) {
-        console.error('[PAYMENT] Failed to link SSF fee head:', e);
+        console.error('[PAYMENT] Failed to link dynamic service fee head:', e);
       }
     }
 

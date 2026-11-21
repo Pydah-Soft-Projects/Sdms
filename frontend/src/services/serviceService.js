@@ -53,6 +53,11 @@ export const serviceService = {
         return response.data;
     },
 
+    syncFeeStatus: async (requestId = null) => {
+        const response = await api.post('/services/sync-fee-status', { requestId });
+        return response.data;
+    },
+
     getDownloadUrl: (requestId) => {
         const baseUrl = api.defaults.baseURL || 'http://localhost:5000/api';
         return `${baseUrl}/services/requests/${requestId}/download`;
@@ -65,6 +70,22 @@ export const serviceService = {
 
     updateRequestData: async (id, data) => {
         const response = await api.put(`/services/requests/${id}`, data);
+        return response.data;
+    },
+
+    // Settings (Super Admin Only)
+    getServiceSettings: async () => {
+        const response = await api.get('/services/settings');
+        return response.data;
+    },
+
+    updateServiceSettings: async (data) => {
+        const response = await api.put('/services/settings', data);
+        return response.data;
+    },
+
+    getFeeHeads: async () => {
+        const response = await api.get('/services/fee-heads');
         return response.data;
     },
 };

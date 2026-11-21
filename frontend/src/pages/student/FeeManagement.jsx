@@ -27,6 +27,17 @@ const isClubFeeInvoice = (invoice) => {
         /^club\s*fee\s*[:\-–]/i.test(remarks);
 };
 
+const isServiceFeeInvoice = (invoice) => {
+    const feeHeadName = String(typeof invoice?.feeHead === 'object' ? invoice.feeHead?.name || '' : '').trim().toLowerCase();
+    const code = String(invoice?.feeHead?.code || '').toUpperCase();
+    const remarks = String(invoice?.remarks || '').trim();
+    return code === 'SSF' ||
+        feeHeadName.includes('service') ||
+        /^service\s*request/i.test(remarks) ||
+        /\(Ref:\s*\d+\)/i.test(remarks) ||
+        /SR-\d+/i.test(remarks);
+};
+
 const getClubNameFromRemarks = (remarks) => String(remarks || '')
     .replace(/^\s*(?:club\s*fee\s*[:\-–]\s*)+/i, '')
     .trim();
@@ -39,7 +50,7 @@ const calculateInvoicePaid = (invoice, transactions = [], allInvoices = []) => {
     if (isClubFeeInvoice(invoice) && invoice.status === 'cancelled') return 0;
 
     let paid = 0;
-    const isServiceFee = invoice.feeHead?.code === 'SSF' || invoice.feeHead?.name === 'Student Services FEE';
+    const isServiceFee = isServiceFeeInvoice(invoice);
     const isClubFee = isClubFeeInvoice(invoice);
     const clubName = isClubFee ? getClubNameFromRemarks(invoice.remarks) : '';
 
@@ -327,11 +338,11 @@ const FeeManagement = () => {
             if (isClubFeeInvoice(inv)) {
                 const clubName = getClubNameFromInvoice(inv);
                 headTitle = `Club Fee - ${clubName}`;
-            } else if (inv.feeHead?.code === 'SSF' || inv.feeHead?.name === 'Student Services FEE') {
+            } else if (isServiceFeeInvoice(inv)) {
                 if (inv.remarks) {
-                    headTitle = `Student Services FEE - ${inv.remarks.replace(/^Service Request:\s*/i, '')}`;
+                    headTitle = `${inv.feeHead?.name || 'Service Request Fee'} - ${inv.remarks.replace(/^Service Request:\s*/i, '')}`;
                 } else {
-                    headTitle = 'Student Services FEE';
+                    headTitle = inv.feeHead?.name || 'Service Request Fee';
                 }
             }
 
@@ -387,7 +398,7 @@ const FeeManagement = () => {
 
     // Open Payment Modal for a single invoice row
     const openPaymentModal = (row) => {
-        const parsedServiceId = (row.feeHead?.code === 'SSF' && row.remarks)
+        const parsedServiceId = (isServiceFeeInvoice(row) && row.remarks)
             ? (row.remarks.match(/\(Ref:\s*(\d+)\)/)?.[1] || row.remarks.match(/SR-(\d+)/)?.[1] || null)
             : null;
 

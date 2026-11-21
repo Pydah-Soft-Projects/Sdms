@@ -5,8 +5,14 @@ const { createNotification } = require("../services/notificationService");
 const pdfService = require("../services/pdfService");
 const fs = require("fs");
 const FeeHead = require('../MongoDb-Models/FeeHead');
-const StudentFee = require('../MongoDb-Models/StudentFee');
-const Transaction = require('../MongoDb-Models/Transaction');
+const {
+  getDynamicServiceFeeHead,
+  getAllAvailableFeeHeads,
+  getServiceSettingsFromDb,
+  saveServiceSettingsToDb,
+  createServiceFeeDemand,
+  checkFeePaymentStatus
+} = require("../services/serviceFeeConfig");
 
 // Helper to check admin/staff privilege (supports admin, super_admin, subadmin, etc.)
 const isAuthorizedStaffOrAdmin = (user) => {
@@ -222,75 +228,40 @@ exports.requestService = async (req, res) => {
     // Generate unique sequence number
     const sequence_no = await generateServiceRequestSequence(masterPool);
 
+    // Determine initial payment status based on price
+    const servicePrice = Number(service[0].price || 0);
+    const initialPaymentStatus = servicePrice > 0 ? "pending" : "paid";
+
     // Store additional request data properly
     const request_data = JSON.stringify({ purpose, sequence_no, ...otherData });
 
     const [result] = await masterPool.execute(
       "INSERT INTO service_requests (student_id, service_id, sequence_no, status, payment_status, request_data) VALUES (?, ?, ?, ?, ?, ?)",
-      [student_id, service_id, sequence_no, "pending", "pending", request_data],
+      [student_id, service_id, sequence_no, "pending", initialPaymentStatus, request_data],
     );
 
-    // --- ACTIVE SYNC: Create StudentFee Demand Immediately ---
-    try {
-        // 1. Fetch Student Details needed for Fee Record
-        const [stRows] = await masterPool.execute(
-            'SELECT admission_number, student_name, course, branch, current_year, current_semester, student_data FROM students WHERE id = ?',
-            [student_id]
-        );
-        
-        if (stRows.length > 0) {
-            const student = stRows[0];
-            let collegeName = 'Pydah Group';
-            // Try to extract college from student_data if available
-            if (student.student_data) {
-                try {
-                    const sd = typeof student.student_data === 'string' ? JSON.parse(student.student_data) : student.student_data;
-                    if (sd.college || sd.College) collegeName = sd.college || sd.College;
-                } catch(e) {}
-            }
-
-            // 2. Find/Create Fee Head
-            let ssFeeHead = await FeeHead.findOne({ code: 'SSF' });
-            if (!ssFeeHead) {
-                ssFeeHead = await FeeHead.create({
-                     name: 'Student Services FEE',
-                     code: 'SSF',
-                     description: 'Fees For the Student Services',
-                     type: 'Individual',
-                     frequency: 'Adhoc',
-                     isActive: true
-                });
-            }
-
-            // 3. Create Fee Demand
-            const expectedRemarks = `Service Request: ${service[0].name} (Ref: ${result.insertId})`;
-            await StudentFee.create({
-                 studentId: student.admission_number, // Use Admission Number for Mongo
-                 studentName: student.student_name,
-                 feeHead: ssFeeHead._id,
-                 college: collegeName,
-                 course: student.course || 'NA',
-                 branch: student.branch || 'NA',
-                 academicYear: '2024-2025', 
-                 studentYear: student.current_year || 1,
-                 semester: student.current_semester || 1,
-                 amount: Number(service[0].price),
-                 remarks: expectedRemarks
-            });
-            console.log(`[ACTIVE SYNC] Created Service Fee Demand for ${student.admission_number}: ${service[0].name}`);
-        }
-    } catch (syncError) {
-        console.error('[ACTIVE SYNC WARNING] Failed to create fee demand:', syncError);
-        // Don't fail the request, JIT sync will catch it later
+    // If payment required, create unpaid demand in Fee Portal (MongoDB)
+    if (servicePrice > 0) {
+      try {
+        await createServiceFeeDemand({
+          requestId: result.insertId,
+          studentId,
+          serviceId: service_id,
+          sequence_no,
+        });
+      } catch (feeErr) {
+        console.error("[SERVICE FEE DEMAND ERROR]:", feeErr);
+      }
     }
-    // -------------------------------------------------------
 
     res.status(201).json({
       success: true,
-      message: "Service requested successfully. Please complete payment.",
+      message: servicePrice > 0
+        ? "Service requested successfully. Unpaid due registered in Fee Portal."
+        : "Service requested successfully.",
       requestId: result.insertId,
       sequence_no,
-      payment_status: "pending",
+      payment_status: initialPaymentStatus,
     });
   } catch (error) {
     console.error("Error requesting service:", error);
@@ -332,41 +303,116 @@ exports.deleteServiceRequest = async (req, res) => {
         // 4. Delete from MySQL
         await masterPool.execute('DELETE FROM service_requests WHERE id = ?', [id]);
 
-        // --- ACTIVE SYNC: Remove StudentFee Demand ---
-        try {
-             // We need to find the fee with remarks containing "Ref: {id}"
-             // And ensuring it's for this student (though Ref ID is unique enough globally or contextually)
-             // Getting admission number from user object (assuming req.user populated with it or we need to fetch)
-             // But student_id is internal ID. We need admission number for mongo.
-             
-             // Fetch admission number first? Or we can search loosely if we are confident?
-             // Safest is to fetch student admission number using student_id
-             const [sRows] = await masterPool.execute('SELECT admission_number FROM students WHERE id = ?', [student_id]);
-             if (sRows.length > 0) {
-                 const admissionNumber = sRows[0].admission_number;
-                 
-                 // Find SSF Head
-                 const ssFeeHead = await FeeHead.findOne({ code: 'SSF' });
-                 if (ssFeeHead) {
-                     await StudentFee.findOneAndDelete({
-                         studentId: admissionNumber,
-                         feeHead: ssFeeHead._id,
-                         remarks: { $regex: `Ref: ${id}\\)` } // Matches "(Ref: 123)"
-                     });
-                     console.log(`[ACTIVE SYNC] Deleted Service Fee Demand for Ref: ${id}`);
-                 }
-             }
-        } catch (syncError) {
-             console.error('[ACTIVE SYNC WARNING] Failed to delete fee demand:', syncError);
-        }
-        // ---------------------------------------------
-
         res.json({ success: true, message: 'Request deleted successfully' });
 
     } catch (error) {
         console.error('Error deleting service request:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }
+};
+
+// Fast Student Lookup for Service Requests (supports PIN or Admission Number)
+exports.studentLookup = async (req, res) => {
+  try {
+    const { identifier } = req.params;
+    if (!identifier || !identifier.trim()) {
+      return res.status(400).json({ success: false, message: "Identifier is required" });
+    }
+    const key = identifier.trim();
+
+    const [rows] = await masterPool.query(
+      `SELECT s.id, s.admission_number, s.admission_no, s.pin_no, s.student_name, s.father_name,
+              s.student_mobile, s.parent_mobile1, s.student_address, s.dob, s.adhar_no, s.gender, s.caste,
+              s.current_year, s.current_semester, s.batch, s.section,
+              COALESCE(colleges.name, s.college) as college_name,
+              COALESCE(colleges.name, s.college) as college,
+              COALESCE(courses.name, s.course) as course,
+              COALESCE(course_branches.name, s.branch) as branch,
+              s.student_data
+       FROM students s
+       LEFT JOIN colleges ON s.college_id = colleges.id
+       LEFT JOIN courses ON s.course_id = courses.id
+       LEFT JOIN course_branches ON s.branch_id = course_branches.id
+       WHERE s.admission_number = ? OR s.admission_no = ? OR s.pin_no = ?
+       LIMIT 1`,
+      [key, key, key]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    const student = rows[0];
+    let extra = {};
+    if (student.student_data) {
+      try {
+        extra = typeof student.student_data === 'string' ? JSON.parse(student.student_data) : student.student_data;
+      } catch (e) {
+        extra = {};
+      }
+    }
+    delete student.student_data;
+
+    const admissionNum = student.admission_number || extra.admission_number || key;
+    const pinNum = student.pin_no || extra.pin_no || (key !== admissionNum ? key : "");
+    const collegeName = student.college_name || extra.college || extra.college_name || student.college || "";
+    const courseName = student.course || extra.course || extra.Course || "";
+    const branchName = student.branch || extra.branch || extra.Branch || "";
+    const currentYear = student.current_year || extra.current_year || "";
+    const currentSem = student.current_semester || extra.current_semester || extra['Current Semester'] || "";
+    const acadYear = student.batch ? `${student.batch}-${parseInt(student.batch) + 1}` : (extra.academic_year || "");
+
+    const merged = {
+      ...extra,
+      ...student,
+      admission_number: admissionNum,
+      admission_no: admissionNum,
+      pin_no: pinNum,
+      pin: pinNum,
+      roll_number: pinNum,
+      ht_no: pinNum,
+      college_name: collegeName,
+      college: collegeName,
+      course: courseName,
+      program: courseName,
+      degree: courseName,
+      branch: branchName,
+      department: branchName,
+      current_year: currentYear,
+      year: currentYear,
+      current_semester: currentSem,
+      semester: currentSem,
+      sem: currentSem,
+      academic_year: acadYear,
+      student_name: student.student_name || extra.student_name || "",
+      name: student.student_name || extra.student_name || "",
+      father_name: student.father_name || extra.father_name || "",
+      father: student.father_name || extra.father_name || "",
+      mother_name: extra.mother_name || "",
+      mother: extra.mother_name || "",
+      guardian_name: extra.guardian_name || "",
+      guardian: extra.guardian_name || "",
+      caste: student.caste || extra.caste || "",
+      category: student.caste || extra.caste || "",
+      dob: student.dob || extra.dob || "",
+      date_of_birth: student.dob || extra.dob || "",
+      gender: student.gender || extra.gender || "",
+      sex: student.gender || extra.gender || "",
+      student_mobile: student.student_mobile || extra.student_mobile || student.parent_mobile1 || "",
+      mobile: student.student_mobile || extra.student_mobile || student.parent_mobile1 || "",
+      phone_number: student.student_mobile || extra.student_mobile || student.parent_mobile1 || "",
+      student_address: student.student_address || extra.student_address || "",
+      address: student.student_address || extra.student_address || "",
+    };
+
+    return res.json({
+      success: true,
+      data: merged
+    });
+  } catch (error) {
+    console.error("Student lookup error:", error);
+    res.status(500).json({ success: false, message: "Lookup failed" });
+  }
 };
 
 // Create Request (Admin on behalf of Student)
@@ -392,44 +438,52 @@ exports.createRequestByAdmin = async (req, res) => {
     } = req.body;
 
     // Validation
-    if (!service_id || !admission_number || !student_name) {
+    const lookupKey = String(admission_number || otherData.pin_no || "").trim();
+    if (!service_id || !lookupKey || !student_name) {
       return res.status(400).json({
         success: false,
-        message: "Service, Admission Number, and Student Name are required",
+        message: "Service, Admission / PIN Number, and Student Name are required",
       });
     }
 
-    // Check if student exists
+    // Check if student exists by admission_number or pin_no
     const [students] = await masterPool.execute(
-      "SELECT id FROM students WHERE admission_number = ?",
-      [admission_number],
+      "SELECT * FROM students WHERE admission_number = ? OR admission_no = ? OR pin_no = ?",
+      [lookupKey, lookupKey, lookupKey],
     );
     let student_id;
+    let resolvedAdmission = lookupKey;
+    let resolvedPin = otherData.pin_no || "";
 
     if (students.length > 0) {
       student_id = students[0].id;
+      resolvedAdmission = students[0].admission_number || lookupKey;
+      resolvedPin = otherData.pin_no || students[0].pin_no || (lookupKey !== resolvedAdmission ? lookupKey : "");
       // Do not mutate existing student master data; service request data belongs only to this service request
     } else {
       // Create New Student
+      resolvedAdmission = (admission_number || otherData.pin_no || "").toUpperCase().trim();
+      resolvedPin = (otherData.pin_no || (admission_number !== resolvedAdmission ? admission_number : "") || "").toUpperCase().trim();
       const [insertStudentRes] = await masterPool.execute(
         `INSERT INTO students (
-                    admission_number, student_name, father_name, student_mobile,
+                    admission_number, pin_no, student_name, father_name, student_mobile,
                     course, branch, current_year, current_semester,
                     dob, gender, caste, student_address, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
         [
-          admission_number,
-          student_name,
-          father_name || null,
+          resolvedAdmission,
+          resolvedPin || null,
+          student_name ? String(student_name).toUpperCase() : null,
+          father_name ? String(father_name).toUpperCase() : null,
           student_mobile || null,
-          course || null,
-          branch || null,
+          course ? String(course).toUpperCase() : null,
+          branch ? String(branch).toUpperCase() : null,
           current_year || null,
           current_semester || null,
           dob || null,
-          gender || null,
-          caste || null,
-          student_address || null,
+          gender ? String(gender).toUpperCase() : null,
+          caste ? String(caste).toUpperCase() : null,
+          student_address ? String(student_address).toUpperCase() : null,
         ],
       );
       student_id = insertStudentRes.insertId;
@@ -454,6 +508,8 @@ exports.createRequestByAdmin = async (req, res) => {
       purpose,
       student_name,
       father_name,
+      admission_number: resolvedAdmission,
+      pin_no: resolvedPin || undefined,
       student_mobile,
       course,
       branch,
@@ -466,25 +522,50 @@ exports.createRequestByAdmin = async (req, res) => {
       ...otherData
     };
     Object.keys(requestDataObj).forEach((k) => {
-      if (requestDataObj[k] === undefined) delete requestDataObj[k];
+      if (requestDataObj[k] === undefined) {
+        delete requestDataObj[k];
+      } else if (typeof requestDataObj[k] === 'string' && k !== 'dob' && !k.includes('date') && !k.includes('email') && !k.includes('image')) {
+        requestDataObj[k] = requestDataObj[k].toUpperCase();
+      }
     });
     const request_data = JSON.stringify(requestDataObj);
 
-    // Create request as PAID immediately
+    // Determine initial payment status based on price
+    const servicePrice = Number(service[0].price || 0);
+    const initialPaymentStatus = servicePrice > 0 ? "pending" : "paid";
+
+    // Create request with payment_status based on price
     const [result] = await masterPool.execute(
       "INSERT INTO service_requests (student_id, service_id, sequence_no, status, payment_status, request_data, created_at, request_date) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())",
-      [student_id, service_id, sequence_no, "pending", "paid", request_data],
+      [student_id, service_id, sequence_no, "pending", initialPaymentStatus, request_data],
     );
+
+    // If payment required, create unpaid demand in Fee Portal (MongoDB)
+    if (servicePrice > 0) {
+      try {
+        await createServiceFeeDemand({
+          requestId: result.insertId,
+          studentId: student_id,
+          serviceId: service_id,
+          sequence_no,
+        });
+      } catch (feeErr) {
+        console.error("[SERVICE FEE DEMAND ERROR]:", feeErr);
+      }
+    }
 
     res.status(201).json({
       success: true,
-      message: "Service request created and marked as paid.",
+      message: servicePrice > 0
+        ? "Service request created. Unpaid due registered in Fee Portal."
+        : "Service request created.",
       requestId: result.insertId,
       sequence_no,
+      payment_status: initialPaymentStatus,
       // Return context for frontend
       student_name: student_name,
       service_name: service[0].name,
-      service_price: service[0].price,
+      service_price: servicePrice,
     });
   } catch (error) {
     console.error("Error creating admin request:", error);
@@ -502,7 +583,7 @@ exports.getServiceRequests = async (req, res) => {
     // Build query
     let query = `
       SELECT sr.*, s.name as service_name, s.price as service_price, s.admin_fields, s.template_type, s.template_config,
-             st.student_name, st.admission_number, st.course, st.branch, st.student_mobile
+             st.student_name, st.admission_number, st.pin_no, st.course, st.branch, st.student_mobile
       FROM service_requests sr
       JOIN services s ON sr.service_id = s.id
       JOIN students st ON sr.student_id = st.id
@@ -546,73 +627,6 @@ exports.getServiceRequests = async (req, res) => {
 
     const [rows] = await masterPool.execute(query, params);
 
-    // --- SMART SYNC: Check Payment Status against Fee Ledger ---
-    // This allows external/manual payments to auto-update the request status
-    try {
-        const pendingRequests = rows.filter(r => r.payment_status === 'pending');
-        
-        if (pendingRequests.length > 0) {
-            const ssFeeHead = await FeeHead.findOne({ code: 'SSF' });
-            
-            if (ssFeeHead) {
-                // We'll check each pending request
-                const updates = pendingRequests.map(async (req) => {
-                    // Find the fee demand for this specific request
-                    // We need strict matching on Ref ID
-                    const feeRecord = await StudentFee.findOne({
-                        studentId: req.admission_number, // Ensure admission_number is fetched in the query
-                        feeHead: ssFeeHead._id,
-                        remarks: { $regex: `Ref: ${req.id}` } // Matches "...(Ref: 123)..."
-                    });
-
-                    if (feeRecord) {
-                        // Calculate total paid for this fee
-                        // We need transactions for this specific fee record
-                        // Or if we trust the feeRecord.paidAmount if you have an aggregated field (assuming NO aggregated field in schema based on previous files)
-                        // We must sum transactions.
-                        const transactions = await Transaction.find({
-                            studentId: req.admission_number,
-                            feeHead: ssFeeHead._id,
-                            studentYear: feeRecord.studentYear,
-                            // Strict match on remarks for this transaction to avoid club/other mixups? 
-                            // Actually, feeController usually links tx to fee details. 
-                            // But simplify: If existing logic worked, we just sum credits.
-                            // BUT wait, `StudentFee` doesn't track paid amount directly usually? 
-                            // Let's assume we need to sum transactions.
-                        });
-
-                        // Filter transactions that strictly match THIS service request Ref ID
-                        // This prevents cross-paying other service requests
-                        const relevantTxs = transactions.filter(tx => 
-                            tx.remarks && (tx.remarks.includes(`Ref: ${req.id}`) || tx.remarks.includes(`SR-${req.id}`))
-                        );
-                        
-                        const totalPaid = relevantTxs.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
-                        const due = feeRecord.amount - totalPaid;
-
-                        if (due <= 0) {
-                           // It's PAID!
-                           // 1. Update MySQL
-                           await masterPool.execute(
-                               'UPDATE service_requests SET payment_status = ? WHERE id = ?',
-                               ['paid', req.id]
-                           );
-                           // 2. Update Local Object so Admin sees it immediately
-                           req.payment_status = 'paid';
-                           console.log(`[AUTO-SYNC] Marked Service Request #${req.id} as PAID based on Fee Ledger.`);
-                        }
-                    }
-                });
-
-                await Promise.all(updates);
-            }
-        }
-    } catch (syncError) {
-        console.error('[AUTO-SYNC WARNING] Failed to sync payments:', syncError);
-        // Fail gracefully, return rows as is
-    }
-    // -----------------------------------------------------------
-
     // Ensure sequence_no is populated and apply request_data overrides to row display
     rows.forEach((r) => {
       if (!r.sequence_no) {
@@ -652,7 +666,7 @@ exports.updateRequestStatus = async (req, res) => {
 
     // Fetch current request data to merge JSON, and get student/service info for notification
     const [existing] = await masterPool.execute(
-      "SELECT sr.request_data, sr.student_id, s.name as service_name FROM service_requests sr LEFT JOIN services s ON sr.service_id = s.id WHERE sr.id = ?",
+      "SELECT sr.request_data, sr.student_id, sr.payment_status, s.name as service_name, s.price as service_price FROM service_requests sr LEFT JOIN services s ON sr.service_id = s.id WHERE sr.id = ?",
       [id],
     );
 
@@ -660,6 +674,15 @@ exports.updateRequestStatus = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Request not found" });
+    }
+
+    // Block all status updates if fee is pending
+    const serviceFee = Number(existing[0].service_price || 0);
+    if (existing[0].payment_status !== 'paid' && serviceFee > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot process or update request status: Payment is pending in the Fee Portal.'
+      });
     }
 
     let currentData = existing[0].request_data;
@@ -780,6 +803,12 @@ exports.updateServiceRequest = async (req, res) => {
       ...incomingData,
     };
 
+    Object.keys(mergedData).forEach((k) => {
+      if (typeof mergedData[k] === 'string' && k !== 'dob' && k !== 'collect_date' && !k.includes('date') && !k.includes('email') && !k.includes('image')) {
+        mergedData[k] = mergedData[k].toUpperCase();
+      }
+    });
+
     const updateFields = ["request_data = ?"];
     const params = [JSON.stringify(mergedData)];
 
@@ -876,7 +905,7 @@ exports.downloadCertificate = async (req, res) => {
 
     // Fetch request with service and student details
     const query = `
-            SELECT sr.*, s.name as service_name, s.template_type, s.template_config, st.*,
+            SELECT sr.*, s.name as service_name, s.price as service_price, s.template_type, s.template_config, st.*,
             c.name as college_name, c.metadata as college_metadata, c.address as college_address
             FROM service_requests sr
             JOIN services s ON sr.service_id = s.id
@@ -900,11 +929,12 @@ exports.downloadCertificate = async (req, res) => {
       return res.status(403).json({ success: false, message: "Unauthorized" });
     }
 
-    // Payment Check
-    if (request.payment_status !== "paid" && !isAdmin) {
+    // Payment Check: Cannot issue or download certificate if fee is pending
+    const reqPrice = Number(request.service_price || request.price || 0);
+    if (reqPrice > 0 && request.payment_status !== "paid") {
       return res
         .status(400)
-        .json({ success: false, message: "Payment not completed" });
+        .json({ success: false, message: "Payment not completed in Fee Portal. Please pay and sync fee status before issuing certificate." });
     }
 
     // Parse request_data safely
@@ -1034,7 +1064,7 @@ exports.downloadCertificate = async (req, res) => {
             blankIdx++;
             const val = studentData[`field_${blankIdx}`] || studentData[`input_field_${blankIdx}`] || studentData[`blank_${blankIdx}`];
             if (val !== undefined && val !== null && String(val).trim() !== "") {
-              return String(val);
+              return String(val).toUpperCase();
             }
             return "        ";
           });
@@ -1043,16 +1073,16 @@ exports.downloadCertificate = async (req, res) => {
           processed = processed.replace(/{{(.*?)}}/g, (match, p1) => {
             const key = p1.trim();
             if (key === "current_date" || key === "date") return todayDateStr;
-            return studentData[key] !== undefined && studentData[key] !== null ? String(studentData[key]) : "";
+            return studentData[key] !== undefined && studentData[key] !== null ? String(studentData[key]).toUpperCase() : "";
           });
           // 6. Handle @[label](variable) or @variable syntax
           processed = processed.replace(/@\[.*?\]\((.*?)\)/g, (match, p1) => {
             if (p1 === "current_date" || p1 === "date") return todayDateStr;
-            return studentData[p1] !== undefined && studentData[p1] !== null ? String(studentData[p1]) : "";
+            return studentData[p1] !== undefined && studentData[p1] !== null ? String(studentData[p1]).toUpperCase() : "";
           });
           processed = processed.replace(/@(\w+)/g, (match, p1) => {
             if (p1 === "current_date" || p1 === "date") return todayDateStr;
-            return studentData[p1] !== undefined && studentData[p1] !== null ? String(studentData[p1]) : "";
+            return studentData[p1] !== undefined && studentData[p1] !== null ? String(studentData[p1]).toUpperCase() : "";
           });
           return processed;
         };
@@ -1462,3 +1492,185 @@ exports.previewTemplate = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+/**
+ * GET /api/services/settings
+ * Super Admin Only: Fetch Service Requests Fee Head settings & dynamic options
+ */
+exports.getServiceSettings = async (req, res) => {
+  try {
+    const settings = await getServiceSettingsFromDb();
+    const currentFeeHead = await getDynamicServiceFeeHead();
+    const availableFeeHeads = await getAllAvailableFeeHeads();
+
+    res.json({
+      success: true,
+      settings: settings || {
+        feeHeadId: currentFeeHead ? String(currentFeeHead._id) : null,
+        feeHeadCode: currentFeeHead?.code || '',
+        feeHeadName: currentFeeHead?.name || '',
+        description: currentFeeHead?.description || '',
+        autoSync: true
+      },
+      currentFeeHead,
+      availableFeeHeads
+    });
+  } catch (error) {
+    console.error("Error fetching service settings:", error);
+    res.status(500).json({ success: false, message: "Server error while fetching service settings" });
+  }
+};
+
+/**
+ * PUT /api/services/settings
+ * Super Admin Only: Save Service Requests Fee Head configuration
+ */
+exports.updateServiceSettings = async (req, res) => {
+  try {
+    const { feeHeadId, feeHeadCode, feeHeadName, description, autoSync } = req.body;
+
+    let resolvedHead = null;
+    if (feeHeadId) {
+      resolvedHead = await FeeHead.findById(feeHeadId);
+    } else if (feeHeadCode) {
+      resolvedHead = await FeeHead.findOne({ code: feeHeadCode });
+    } else if (feeHeadName) {
+      resolvedHead = await FeeHead.findOne({ name: feeHeadName });
+    }
+
+    const settingsObj = {
+      feeHeadId: resolvedHead ? String(resolvedHead._id) : (feeHeadId || null),
+      feeHeadCode: resolvedHead?.code || feeHeadCode || '',
+      feeHeadName: resolvedHead?.name || feeHeadName || '',
+      description: description !== undefined ? description : (resolvedHead?.description || ''),
+      autoSync: autoSync !== undefined ? Boolean(autoSync) : true,
+      updatedAt: new Date().toISOString(),
+      updatedBy: req.user?.id || req.user?.username || 'super_admin'
+    };
+
+    await saveServiceSettingsToDb(settingsObj);
+
+    res.json({
+      success: true,
+      message: "Service requests settings saved successfully",
+      settings: settingsObj,
+      currentFeeHead: resolvedHead
+    });
+  } catch (error) {
+    console.error("Error updating service settings:", error);
+    res.status(500).json({ success: false, message: "Server error while saving service settings" });
+  }
+};
+
+/**
+ * GET /api/services/fee-heads
+ * Super Admin Only: Dynamically list all available Fee Heads from the Fee Portal
+ */
+exports.getAvailableFeeHeads = async (req, res) => {
+  try {
+    const heads = await getAllAvailableFeeHeads();
+    res.json({ success: true, feeHeads: heads });
+  } catch (error) {
+    console.error("Error fetching available fee heads:", error);
+    res.status(500).json({ success: false, message: "Failed to fetch fee heads from fee portal" });
+  }
+};
+
+/**
+ * POST /api/services/sync-fee-status
+ * Sync Fee Payment Status with Fee Portal (MongoDB)
+ * Checks pending service requests against Fee Portal MongoDB transactions,
+ * updates payment_status to 'paid' when verified.
+ */
+exports.syncFeeStatus = async (req, res) => {
+  try {
+    const { requestId } = req.body;
+    const isStudent = req.user && (req.user.role === 'student' || (!req.user.isAdmin && !req.user.role));
+
+    let query = `
+      SELECT sr.id, sr.student_id, sr.service_id, sr.sequence_no, sr.status, sr.payment_status, sr.created_at,
+             s.name as service_name, s.price as service_price,
+             st.admission_number, st.pin_no, st.student_name
+      FROM service_requests sr
+      JOIN services s ON sr.service_id = s.id
+      JOIN students st ON sr.student_id = st.id
+      WHERE sr.payment_status = 'pending'
+    `;
+    const params = [];
+
+    if (isStudent) {
+      query += " AND sr.student_id = ?";
+      params.push(req.user.id);
+    }
+
+    if (requestId) {
+      query += " AND sr.id = ?";
+      params.push(requestId);
+    }
+
+    const [pendingRequests] = await masterPool.execute(query, params);
+
+    if (pendingRequests.length === 0) {
+      return res.json({
+        success: true,
+        message: requestId
+          ? "Request is already marked as paid or not found."
+          : "No pending payment requests found to sync.",
+        syncedCount: 0,
+        syncedRequests: [],
+      });
+    }
+
+    const updated = [];
+
+    for (const reqItem of pendingRequests) {
+      // Ensure demand exists in Mongo if missing
+      if (Number(reqItem.service_price) > 0) {
+        await createServiceFeeDemand({
+          requestId: reqItem.id,
+          studentId: reqItem.student_id,
+          serviceId: reqItem.service_id,
+          sequence_no: reqItem.sequence_no,
+        });
+      }
+
+      const check = await checkFeePaymentStatus({
+        requestId: reqItem.id,
+        studentAdmission: reqItem.admission_number,
+        pinNo: reqItem.pin_no,
+        servicePrice: reqItem.service_price,
+        sequenceNo: reqItem.sequence_no,
+        createdAt: reqItem.created_at,
+      });
+
+      if (check.isPaid) {
+        await masterPool.execute(
+          "UPDATE service_requests SET payment_status = 'paid' WHERE id = ?",
+          [reqItem.id],
+        );
+        updated.push({
+          id: reqItem.id,
+          sequence_no: reqItem.sequence_no,
+          student_name: reqItem.student_name,
+          service_name: reqItem.service_name,
+          reason: check.reason,
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message:
+        updated.length > 0
+          ? `Successfully synced! ${updated.length} request(s) verified as paid.`
+          : "Payment check completed. No new payments verified in Fee Portal.",
+      syncedCount: updated.length,
+      syncedRequests: updated,
+    });
+  } catch (error) {
+    console.error("Error syncing fee status:", error);
+    res.status(500).json({ success: false, message: "Server error while syncing fee status" });
+  }
+};
+
+

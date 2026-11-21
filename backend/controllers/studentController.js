@@ -3938,8 +3938,8 @@ exports.getStudentByAdmission = async (req, res) => {
         ${registrationStatusComputedSql} AS registration_status_computed
       FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id
       LEFT JOIN student_roll_numbers srn ON srn.student_id = s.id
-      WHERE s.admission_number = ? OR s.admission_no = ?`,
-      [admissionNumber, admissionNumber]
+      WHERE s.admission_number = ? OR s.admission_no = ? OR s.pin_no = ?`,
+      [admissionNumber, admissionNumber, admissionNumber]
     );
 
     if (students.length === 0) {
@@ -7853,8 +7853,8 @@ exports.getStudentByAdmission = async (req, res) => {
        FROM students s LEFT JOIN colleges ON s.college_id = colleges.id LEFT JOIN courses ON s.course_id = courses.id LEFT JOIN course_branches ON s.branch_id = course_branches.id
        LEFT JOIN student_credentials sc ON s.id = sc.student_id
        LEFT JOIN student_roll_numbers srn ON srn.student_id = s.id
-       WHERE s.admission_number = ? OR s.admission_no = ?`,
-      [admissionNumber, admissionNumber]
+       WHERE s.admission_number = ? OR s.admission_no = ? OR s.pin_no = ?`,
+      [admissionNumber, admissionNumber, admissionNumber]
     );
 
     if (students.length === 0) {

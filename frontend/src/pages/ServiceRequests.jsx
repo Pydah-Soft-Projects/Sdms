@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { serviceService } from '../services/serviceService';
 import { toast } from 'react-hot-toast';
-import { Clock, CheckCircle, AlertCircle, Calendar, Filter, MessageSquare, ArrowRight, Download, CreditCard, Printer, X, Plus } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, Calendar, Filter, MessageSquare, ArrowRight, Download, CreditCard, Printer, X, Plus, Search, Settings, ShieldCheck, RefreshCw } from 'lucide-react';
 import api from '../config/api';
+import useAuthStore from '../store/authStore';
 
 const ServiceRequests = () => {
+    const { user } = useAuthStore();
+    const isSuperAdmin = ['super_admin', 'superadmin', 'admin'].includes(String(user?.role || '').toLowerCase()) || Boolean(user?.isSuperAdmin);
+
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('');
+
+    // Service Requests Settings State (Super Admin Only)
+    const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+    const [feeHeadsList, setFeeHeadsList] = useState([]);
+    const [selectedFeeHeadId, setSelectedFeeHeadId] = useState('');
+    const [settingsNotes, setSettingsNotes] = useState('');
+    const [savingSettings, setSavingSettings] = useState(false);
+    const [loadingSettings, setLoadingSettings] = useState(false);
 
     // Action State
     const [selectedRequest, setSelectedRequest] = useState(null);
@@ -20,6 +32,9 @@ const ServiceRequests = () => {
     // Create Request State
     const [services, setServices] = useState([]);
     const [createForm, setCreateForm] = useState({});
+    const [searchingStudent, setSearchingStudent] = useState(false);
+    const [syncingFees, setSyncingFees] = useState(false);
+    const [syncingRowId, setSyncingRowId] = useState(null);
 
     // Define Schemas for each Template Type
     // This defines EXACTLY what blanks are shown to the user based on the backend templates
@@ -27,9 +42,11 @@ const ServiceRequests = () => {
         study_certificate: [
             {
                 section: 'Student Details', fields: [
-                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true, placeholder: 'Enter & Tab' },
-                    { name: 'student_name', label: 'Student Name', type: 'text', required: true },
-                    { name: 'father_name', label: 'Father\'s Name', type: 'text', required: true }, // Used as S/o, D/o
+                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true, placeholder: 'Enter Admission No & Tab' },
+                    { name: 'pin_no', label: 'PIN / Roll Number', type: 'text', placeholder: 'Enter PIN & Tab' },
+                    { name: 'student_name', label: 'Student Name', type: 'text', required: true, placeholder: 'Student Name' },
+                    { name: 'father_name', label: 'Father\'s Name', type: 'text', required: true, placeholder: "Father's Name" }, // Used as S/o, D/o
+                    { name: 'college_name', label: 'College Name', type: 'text', placeholder: 'College Name' },
                 ]
             },
             {
@@ -50,9 +67,11 @@ const ServiceRequests = () => {
         custodian_certificate: [
             {
                 section: 'Student Details', fields: [
-                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true, placeholder: 'Enter & Tab' },
-                    { name: 'student_name', label: 'Student Name', type: 'text', required: true },
-                    { name: 'father_name', label: 'Father\'s Name', type: 'text', required: true }, // Used as S/o
+                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true, placeholder: 'Enter Admission No & Tab' },
+                    { name: 'pin_no', label: 'PIN / Roll Number', type: 'text', placeholder: 'Enter PIN & Tab' },
+                    { name: 'student_name', label: 'Student Name', type: 'text', required: true, placeholder: 'Student Name' },
+                    { name: 'father_name', label: 'Father\'s Name', type: 'text', required: true, placeholder: "Father's Name" }, // Used as S/o
+                    { name: 'college_name', label: 'College Name', type: 'text', placeholder: 'College Name' },
                 ]
             },
             {
@@ -71,10 +90,12 @@ const ServiceRequests = () => {
         refund_application: [
             {
                 section: 'Student Details', fields: [
-                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true, placeholder: 'Enter & Tab' },
-                    { name: 'student_name', label: 'Student Name', type: 'text', required: true },
+                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true, placeholder: 'Enter Admission No & Tab' },
+                    { name: 'pin_no', label: 'PIN / Roll Number', type: 'text', placeholder: 'Enter PIN & Tab' },
+                    { name: 'student_name', label: 'Student Name', type: 'text', required: true, placeholder: 'Student Name' },
                     // Father name not explicitly used in Refund App top block, but good for record.
-                    { name: 'father_name', label: 'Father\'s Name', type: 'text' },
+                    { name: 'father_name', label: 'Father\'s Name', type: 'text', placeholder: "Father's Name" },
+                    { name: 'college_name', label: 'College Name', type: 'text', placeholder: 'College Name' },
                 ]
             },
             {
@@ -97,10 +118,12 @@ const ServiceRequests = () => {
         default: [
             {
                 section: 'Request Details', fields: [
-                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true },
-                    { name: 'student_name', label: 'Student Name', type: 'text', required: true },
-                    { name: 'father_name', label: 'Father\'s Name', type: 'text' },
-                    { name: 'purpose', label: 'Purpose/Note', type: 'text' }
+                    { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, autoFocus: true, placeholder: 'Enter Admission No & Tab' },
+                    { name: 'pin_no', label: 'PIN / Roll Number', type: 'text', placeholder: 'Enter PIN & Tab' },
+                    { name: 'student_name', label: 'Student Name', type: 'text', required: true, placeholder: 'Student Name' },
+                    { name: 'father_name', label: 'Father\'s Name', type: 'text', placeholder: "Father's Name" },
+                    { name: 'college_name', label: 'College Name', type: 'text', placeholder: 'College Name' },
+                    { name: 'purpose', label: 'Purpose/Note', type: 'text', placeholder: 'Purpose/Note' }
                 ]
             }
         ]
@@ -118,7 +141,9 @@ const ServiceRequests = () => {
                 section: 'Details',
                 fields: [
                     { name: 'admission_number', label: 'Admission Number', type: 'text', required: true, disabled: true },
+                    { name: 'pin_no', label: 'PIN / Roll Number', type: 'text' },
                     { name: 'student_name', label: 'Student Name', type: 'text', required: true },
+                    { name: 'college_name', label: 'College Name', type: 'text' },
                     ...service.admin_fields
                 ]
             }];
@@ -158,12 +183,11 @@ const ServiceRequests = () => {
 
             // Group 1: Student Details
             const studentFields = [
-                { name: 'admission_number', label: 'Admission Number', type: 'text', disabled: true, placeholder: 'Admission Number' }
+                { name: 'admission_number', label: 'Admission Number', type: 'text', placeholder: 'Enter Admission No & Tab' },
+                { name: 'pin_no', label: 'PIN / Roll Number', type: 'text', placeholder: 'Enter PIN & Tab' },
+                { name: 'student_name', label: 'Student Name', type: 'text', required: true, placeholder: 'Student Name' }
             ];
 
-            if (detectedVars.has('student_name') || detectedVars.has('name') || !detectedVars.size) {
-                studentFields.push({ name: 'student_name', label: 'Student Name', type: 'text', required: true, placeholder: 'Student Name' });
-            }
             if (detectedVars.has('father_name') || detectedVars.has('father')) {
                 studentFields.push({ name: 'father_name', label: "Father's Name", type: 'text', placeholder: "Father's Name" });
             }
@@ -173,7 +197,10 @@ const ServiceRequests = () => {
             if (detectedVars.has('guardian_name') || detectedVars.has('guardian')) {
                 studentFields.push({ name: 'guardian_name', label: "Guardian's Name", type: 'text', placeholder: "Guardian's Name" });
             }
-            if (detectedVars.has('pin_no') || detectedVars.has('pin') || detectedVars.has('ht_no') || detectedVars.has('roll_number')) {
+            if (detectedVars.has('college_name') || detectedVars.has('college')) {
+                studentFields.push({ name: 'college_name', label: 'College Name', type: 'text', placeholder: 'College Name' });
+            }
+            if ((detectedVars.has('pin_no') || detectedVars.has('pin') || detectedVars.has('ht_no') || detectedVars.has('roll_number')) && !studentFields.some(f => f.name === 'pin_no')) {
                 studentFields.push({ name: 'pin_no', label: 'PIN / Roll Number', type: 'text', placeholder: 'PIN / Roll Number' });
             }
             if (detectedVars.has('dob') || detectedVars.has('date_of_birth')) {
@@ -348,33 +375,107 @@ const ServiceRequests = () => {
         return TEMPLATE_SCHEMAS.default;
     };
 
-    // Auto-fill helper (optional, non-blocking)
-    const handleAdmissionBlur = async () => {
-        if (!createForm.admission_number) return;
+    // Auto-fill helper (supports admission number or PIN number)
+    const handleStudentLookup = async (identifier) => {
+        const query = (identifier || createForm.admission_number || createForm.pin_no || '').trim();
+        if (!query) return;
         try {
-            const response = await api.get(`/students/${createForm.admission_number}`);
-            if (response.data && response.data.data) {
-                const s = response.data.data;
-                // Merge found data into form, preserving existing inputs if user typed them
-                setCreateForm(prev => ({
-                    ...prev,
-                    student_name: s.student_name || prev.student_name || '',
-                    father_name: s.father_name || prev.father_name || '',
-                    mother_name: s.mother_name || prev.mother_name || '',
-                    dob: s.dob || prev.dob || '',
-                    course: s.course || prev.course || '',
-                    branch: s.branch || prev.branch || '',
-                    current_year: s.current_year || prev.current_year || '',
-                    current_semester: s.current_semester || prev.current_semester || '',
-                    academic_year: s.academic_year || prev.academic_year || '',
-                    gender: s.gender || prev.gender || '',
-                }));
-                console.log('Student loaded:', s);
+            setSearchingStudent(true);
+            let s = null;
+            try {
+                const fastRes = await api.get(`/services/student-lookup/${encodeURIComponent(query)}`);
+                if (fastRes.data && fastRes.data.data) {
+                    s = fastRes.data.data;
+                }
+            } catch (fastErr) {
+                // Fallback to standard endpoint if needed
+                const fallbackRes = await api.get(`/students/${encodeURIComponent(query)}`);
+                if (fallbackRes.data && fallbackRes.data.data) {
+                    s = fallbackRes.data.data;
+                }
+            }
+
+            if (s) {
+                const toUpper = (val) => (typeof val === 'string' ? val.toUpperCase() : (val ?? ''));
+                setCreateForm(prev => {
+                    const next = { ...prev };
+                    // Populate all properties from student object
+                    Object.keys(s).forEach(k => {
+                        const val = s[k];
+                        if (val !== undefined && val !== null && val !== '') {
+                            if (k === 'dob' || (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}$/))) {
+                                next[k] = val.includes('T') ? val.split('T')[0] : val;
+                            } else if (typeof val === 'string') {
+                                next[k] = val.toUpperCase();
+                            } else {
+                                next[k] = val;
+                            }
+                        }
+                    });
+
+                    // Ensure all standard aliases are explicitly set
+                    const admissionNum = toUpper(s.admission_number || prev.admission_number || query);
+                    const pinNum = toUpper(s.pin_no || prev.pin_no || (query !== s.admission_number ? query : ''));
+                    const studentName = toUpper(s.student_name || prev.student_name || '');
+                    const collegeName = toUpper(s.college_name || s.college || prev.college_name || '');
+                    const fatherName = toUpper(s.father_name || prev.father_name || '');
+                    const motherName = toUpper(s.mother_name || prev.mother_name || '');
+                    const guardianName = toUpper(s.guardian_name || prev.guardian_name || '');
+                    const courseName = toUpper(s.course || s.program || s.degree || prev.course || '');
+                    const branchName = toUpper(s.branch || s.department || prev.branch || '');
+                    const yearVal = s.current_year ?? s.year ?? prev.current_year ?? '';
+                    const semVal = s.current_semester ?? s.semester ?? prev.current_semester ?? '';
+                    const acadYear = toUpper(s.academic_year || (s.batch ? `${s.batch}-${parseInt(s.batch)+1}` : '') || prev.academic_year || '');
+                    const mobileVal = s.student_mobile || s.mobile || s.parent_mobile1 || prev.student_mobile || '';
+                    const addrVal = toUpper(s.student_address || s.address || prev.student_address || '');
+
+                    next.admission_number = admissionNum;
+                    next.admission_no = admissionNum;
+                    next.pin_no = pinNum;
+                    next.pin = pinNum;
+                    next.roll_number = pinNum;
+                    next.ht_no = pinNum;
+                    next.student_name = studentName;
+                    next.name = studentName;
+                    next.college_name = collegeName;
+                    next.college = collegeName;
+                    next.father_name = fatherName;
+                    next.father = fatherName;
+                    next.mother_name = motherName;
+                    next.guardian_name = guardianName;
+                    next.course = courseName;
+                    next.program = courseName;
+                    next.degree = courseName;
+                    next.branch = branchName;
+                    next.department = branchName;
+                    next.current_year = yearVal;
+                    next.year = yearVal;
+                    next.current_semester = semVal;
+                    next.semester = semVal;
+                    next.sem = semVal;
+                    next.academic_year = acadYear;
+                    next.gender = s.gender || prev.gender || '';
+                    next.caste = toUpper(s.caste || prev.caste || '');
+                    next.student_mobile = mobileVal;
+                    next.mobile = mobileVal;
+                    next.phone_number = mobileVal;
+                    next.student_address = addrVal;
+                    next.address = addrVal;
+
+                    return next;
+                });
+                toast.success(`Found: ${s.student_name || query}`);
+            } else {
+                toast.error('Student not found with this identifier');
             }
         } catch (e) {
-            // No error if not found, just let them type
+            console.warn('Student lookup failed:', e);
+        } finally {
+            setSearchingStudent(false);
         }
     };
+
+    const handleAdmissionBlur = () => handleStudentLookup(createForm.admission_number || createForm.pin_no);
 
     const fetchRequests = async () => {
         try {
@@ -449,74 +550,94 @@ const ServiceRequests = () => {
         }
     };
 
-    const handlePayment = async (request) => {
-        if (!window.confirm(`Mark payment of ₹${request.service_price} as received?`)) return;
-
-        try {
-            await serviceService.processPayment(request.id);
-            toast.success('Payment marked as received');
-            fetchRequests();
-        } catch (error) {
-            console.error(error);
-            toast.error('Payment update failed');
-        }
-    };
-
     // New Flow: 1. Click Print -> 2. Fetch Student -> 3. Show Edit Modal -> 4. Update Service Request Data -> 5. Generate
     const handleVerifyAndPrint = async (request) => {
+        const price = Number(request.service_price || 0);
+        if (price > 0 && request.payment_status !== 'paid') {
+            toast.error('Cannot issue certificate: Payment is pending in Fee Portal. Please verify or sync payment first.');
+            return;
+        }
+
         try {
             const toastId = toast.loading('Fetching details...');
-            // Fetch student based on admission number key in the request or student_id
-            const response = await api.get(`/students/${request.admission_number}`);
+            // Parse any custom data previously saved on this service request
+            let reqData = {};
+            if (typeof request.request_data === 'string') {
+                try {
+                    reqData = JSON.parse(request.request_data);
+                } catch (e) {
+                    reqData = {};
+                }
+            } else if (typeof request.request_data === 'object' && request.request_data !== null) {
+                reqData = request.request_data;
+            }
+
+            // Fetch student based on admission number, pin_no, or student_id
+            const identifier = (request.admission_number || request.pin_no || reqData.admission_number || reqData.pin_no || request.student_id || '').trim();
+            let student = null;
+            try {
+                const fastRes = await api.get(`/services/student-lookup/${encodeURIComponent(identifier)}`);
+                if (fastRes.data && fastRes.data.data) {
+                    student = fastRes.data.data;
+                }
+            } catch (fastErr) {
+                const response = await api.get(`/students/${encodeURIComponent(identifier)}`);
+                if (response.data && response.data.data) {
+                    student = response.data.data;
+                }
+            }
 
             toast.dismiss(toastId);
 
-            if (response.data && response.data.data) {
-                const student = response.data.data;
+            if (student) {
                 setEditingStudent(student);
-
-                // Parse any custom data previously saved on this service request
-                let reqData = {};
-                if (typeof request.request_data === 'string') {
-                    try {
-                        reqData = JSON.parse(request.request_data);
-                    } catch (e) {
-                        reqData = {};
-                    }
-                } else if (typeof request.request_data === 'object' && request.request_data !== null) {
-                    reqData = request.request_data;
-                }
 
                 // Initialize form: prefer request_data (service-specific values), fallback to student record
                 const reqSeq = request.sequence_no || `SR-${new Date(request.created_at || request.request_date || Date.now()).getFullYear()}-${String(request.id).padStart(4, '0')}`;
                 const seqDigits = reqSeq.includes('-') ? reqSeq.split('-').pop() : String(request.id).padStart(4, '0');
-                setStudentForm({
-                    admission_number: student.admission_number || request.admission_number || '',
-                    student_name: reqData.student_name ?? reqData.name ?? student.student_name ?? '',
-                    name: reqData.name ?? reqData.student_name ?? student.student_name ?? '',
-                    father_name: reqData.father_name ?? student.father_name ?? '',
-                    mother_name: reqData.mother_name ?? student.mother_name ?? '',
-                    guardian_name: reqData.guardian_name ?? student.guardian_name ?? '',
-                    pin_no: reqData.pin_no ?? student.pin_no ?? student.admission_number ?? '',
-                    college_name: reqData.college_name ?? student.college ?? '',
-                    course: reqData.course ?? student.course ?? '',
-                    branch: reqData.branch ?? student.branch ?? '',
+
+                const toUpper = (val) => (typeof val === 'string' ? val.toUpperCase() : (val ?? ''));
+
+                const initialForm = {
+                    admission_number: toUpper(student.admission_number || request.admission_number || reqData.admission_number || ''),
+                    student_name: toUpper(reqData.student_name ?? reqData.name ?? student.student_name ?? ''),
+                    name: toUpper(reqData.name ?? reqData.student_name ?? student.student_name ?? ''),
+                    father_name: toUpper(reqData.father_name ?? student.father_name ?? ''),
+                    mother_name: toUpper(reqData.mother_name ?? student.mother_name ?? ''),
+                    guardian_name: toUpper(reqData.guardian_name ?? student.guardian_name ?? ''),
+                    pin_no: toUpper(reqData.pin_no ?? student.pin_no ?? student.admission_number ?? ''),
+                    college_name: toUpper(reqData.college_name ?? student.college_name ?? student.college ?? ''),
+                    college: toUpper(reqData.college ?? reqData.college_name ?? student.college_name ?? student.college ?? ''),
+                    course: toUpper(reqData.course ?? student.course ?? ''),
+                    branch: toUpper(reqData.branch ?? student.branch ?? ''),
                     current_year: reqData.current_year ?? student.current_year ?? '',
                     current_semester: reqData.current_semester ?? student.current_semester ?? '',
-                    academic_year: reqData.academic_year ?? student.academic_year ?? '',
+                    academic_year: toUpper(reqData.academic_year ?? student.academic_year ?? ''),
                     dob: reqData.dob ?? (student.dob ? new Date(student.dob).toISOString().split('T')[0] : ''),
                     gender: reqData.gender ?? student.gender ?? '',
-                    caste: reqData.caste ?? student.caste ?? '',
+                    caste: toUpper(reqData.caste ?? student.caste ?? ''),
                     student_mobile: reqData.student_mobile ?? student.student_mobile ?? '',
-                    student_address: reqData.student_address ?? student.student_address ?? '',
-                    purpose: reqData.purpose ?? request.purpose ?? '',
+                    student_address: toUpper(reqData.student_address ?? student.student_address ?? ''),
+                    purpose: toUpper(reqData.purpose ?? request.purpose ?? ''),
                     sequence_no: reqData.sequence_no ?? reqSeq,
                     sequence: reqData.sequence ?? seqDigits,
                     serial_no: reqData.serial_no ?? reqSeq,
                     ref_no: reqData.ref_no ?? reqSeq,
                     certificate_no: reqData.certificate_no ?? reqSeq,
-                    ...reqData
+                };
+
+                // Uppercase all other custom fields from reqData (except dates)
+                Object.keys(reqData).forEach(k => {
+                    if (k === 'dob' || k.includes('date')) {
+                        initialForm[k] = reqData[k];
+                    } else if (typeof reqData[k] === 'string') {
+                        initialForm[k] = reqData[k].toUpperCase();
+                    } else if (initialForm[k] === undefined) {
+                        initialForm[k] = reqData[k];
+                    }
                 });
+
+                setStudentForm(initialForm);
                 setSelectedRequest(request);
                 setActionType('edit_student'); // Open the edit modal
             } else {
@@ -538,9 +659,22 @@ const ServiceRequests = () => {
 
             const toastId = toast.loading('Saving request details...');
 
+            // Convert all text fields to UPPERCASE before saving
+            const upperForm = {};
+            Object.keys(studentForm).forEach(k => {
+                const val = studentForm[k];
+                if (k === 'dob' || (typeof val === 'string' && val.match(/^\d{4}-\d{2}-\d{2}$/))) {
+                    upperForm[k] = val;
+                } else if (typeof val === 'string') {
+                    upperForm[k] = val.trim().toUpperCase();
+                } else {
+                    upperForm[k] = val;
+                }
+            });
+
             // Save details ONLY to this service request's request_data (does NOT mutate student master table)
             await serviceService.updateRequestData(selectedRequest.id, {
-                request_data: studentForm
+                request_data: upperForm
             });
 
             toast.dismiss(toastId);
@@ -552,7 +686,7 @@ const ServiceRequests = () => {
 
             const updatedRequest = {
                 ...selectedRequest,
-                request_data: studentForm
+                request_data: upperForm
             };
             setSelectedRequest(updatedRequest);
             fetchRequests();
@@ -594,44 +728,172 @@ const ServiceRequests = () => {
 
     const handleCreateRequest = async (e) => {
         e.preventDefault();
-        // Basic validation: Service ID, Admission No, and Student Name are bare minimum
-        if (!createForm.service_id || !createForm.admission_number || !createForm.student_name) {
-            toast.error('Service, Admission Number and Student Name are required');
+        const adm = (createForm.admission_number || createForm.pin_no || '').trim();
+        // Validation: Service ID, Admission / PIN No, and Student Name are bare minimum
+        if (!createForm.service_id || !adm || !createForm.student_name) {
+            toast.error('Service, Admission / PIN Number and Student Name are required');
             return;
+        }
+
+        // Convert all text values to UPPERCASE
+        const upperCreateForm = {};
+        Object.keys(createForm).forEach(k => {
+            const v = createForm[k];
+            if (k === 'dob' || (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}$/))) {
+                upperCreateForm[k] = v;
+            } else if (typeof v === 'string') {
+                upperCreateForm[k] = v.trim().toUpperCase();
+            } else {
+                upperCreateForm[k] = v;
+            }
+        });
+
+        if (!upperCreateForm.admission_number && upperCreateForm.pin_no) {
+            upperCreateForm.admission_number = upperCreateForm.pin_no;
         }
 
         try {
             const res = await serviceService.createRequestByAdmin({
-                ...createForm
+                ...upperCreateForm
             });
 
-            toast.success('Service Created & Paid');
+            const isPaid = res.payment_status === 'paid';
+            if (isPaid) {
+                toast.success('Service Request Created & Marked Paid');
+            } else {
+                toast.success('Service Request Created (Unpaid due registered in Fee Portal)');
+            }
 
             setCreateForm({});
-
             setActionType(null);
             fetchRequests();
 
-            // Immediately trigger verify & print
-            const mockRequest = {
-                id: res.requestId,
-                admission_number: res.student?.admission_number || createForm.admission_number,
-                student_name: res.student_name,
-                service_id: createForm.service_id,
-                service_name: res.service_name || 'Service',
-                status: 'pending',
-                payment_status: 'paid',
-                request_data: {} // Data is already in DB, verify fetch will pull student data
-            };
+            if (isPaid) {
+                // Immediately trigger verify & print for free/paid requests
+                const mockRequest = {
+                    id: res.requestId,
+                    admission_number: res.student?.admission_number || upperCreateForm.admission_number,
+                    pin_no: res.student?.pin_no || upperCreateForm.pin_no,
+                    student_name: res.student_name || upperCreateForm.student_name,
+                    service_id: upperCreateForm.service_id,
+                    service_name: res.service_name || 'Service',
+                    service_price: res.service_price || 0,
+                    status: 'pending',
+                    payment_status: 'paid',
+                    request_data: upperCreateForm
+                };
 
-            // Small delay to allow DB commit
-            setTimeout(() => handleVerifyAndPrint(mockRequest), 500);
+                setTimeout(() => handleVerifyAndPrint(mockRequest), 500);
+            } else {
+                toast('Payment is pending in the Fee Portal. Once paid, click "Sync Fee Status" to issue the certificate.', { icon: 'ℹ️', duration: 6000 });
+            }
 
         } catch (error) {
             console.error(error);
             toast.error('Failed to create request');
         }
-    }
+    };
+
+    // --- Fee Status Sync Handlers ---
+    const handleSyncAllFeeStatus = async () => {
+        try {
+            setSyncingFees(true);
+            const res = await serviceService.syncFeeStatus();
+            if (res.success) {
+                if (res.syncedCount > 0) {
+                    toast.success(res.message);
+                } else {
+                    toast(res.message, { icon: 'ℹ️' });
+                }
+                fetchRequests();
+            } else {
+                toast.error(res.message || 'Failed to sync fee status');
+            }
+        } catch (err) {
+            console.error('Error syncing fee status:', err);
+            toast.error('Failed to sync fee status from Fee Portal');
+        } finally {
+            setSyncingFees(false);
+        }
+    };
+
+    const handleSyncSingleFeeStatus = async (requestId) => {
+        try {
+            setSyncingRowId(requestId);
+            const res = await serviceService.syncFeeStatus(requestId);
+            if (res.success) {
+                if (res.syncedCount > 0) {
+                    toast.success(res.message);
+                } else {
+                    toast(res.message, { icon: 'ℹ️' });
+                }
+                fetchRequests();
+            } else {
+                toast.error(res.message || 'Failed to sync fee status');
+            }
+        } catch (err) {
+            console.error('Error syncing fee status for request:', err);
+            toast.error('Failed to sync fee status');
+        } finally {
+            setSyncingRowId(null);
+        }
+    };
+
+    // --- Super Admin Settings Handlers ---
+    const fetchServiceSettings = async () => {
+        if (!isSuperAdmin) return;
+        try {
+            setLoadingSettings(true);
+            const res = await serviceService.getServiceSettings();
+            if (res.success) {
+                setFeeHeadsList(res.availableFeeHeads || []);
+                setSelectedFeeHeadId(res.settings?.feeHeadId || (res.currentFeeHead ? String(res.currentFeeHead._id) : ''));
+                setSettingsNotes(res.settings?.description || '');
+                setAutoSyncEnabled(res.settings?.autoSync !== false);
+            }
+        } catch (err) {
+            console.error('Failed to fetch service settings:', err);
+            toast.error('Failed to load settings from fee portal');
+        } finally {
+            setLoadingSettings(false);
+        }
+    };
+
+    const handleSaveSettings = async (e) => {
+        e.preventDefault();
+        if (!isSuperAdmin) {
+            toast.error('Only Super Admins can update service settings');
+            return;
+        }
+        if (!selectedFeeHeadId) {
+            toast.error('Please select a fee head from the fee portal');
+            return;
+        }
+
+        const chosenHead = feeHeadsList.find(h => String(h._id) === String(selectedFeeHeadId));
+
+        try {
+            setSavingSettings(true);
+            const res = await serviceService.updateServiceSettings({
+                feeHeadId: selectedFeeHeadId,
+                feeHeadCode: chosenHead?.code || '',
+                feeHeadName: chosenHead?.name || '',
+                description: settingsNotes
+            });
+
+            if (res.success) {
+                toast.success('Service Request Fee Head settings saved successfully');
+                setSettingsModalOpen(false);
+            } else {
+                toast.error(res.message || 'Failed to save settings');
+            }
+        } catch (err) {
+            console.error('Failed to save service settings:', err);
+            toast.error(err.response?.data?.message || 'Failed to save service settings');
+        } finally {
+            setSavingSettings(false);
+        }
+    };
 
     const getStatusBadge = (status) => {
         const styles = {
@@ -656,7 +918,30 @@ const ServiceRequests = () => {
                     <p className="text-muted-text">Manage student service requests</p>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleSyncAllFeeStatus}
+                        disabled={syncingFees}
+                        className="px-4 py-2 bg-surface text-main border border-border rounded-lg hover:bg-background flex items-center gap-2 font-medium shadow-sm transition-all"
+                        title="Sync pending service requests with Fee Portal payments"
+                    >
+                        <RefreshCw size={18} className={`text-primary ${syncingFees ? 'animate-spin' : ''}`} />
+                        {syncingFees ? 'Syncing...' : 'Sync Fee Status'}
+                    </button>
+
+                    {isSuperAdmin && (
+                        <button
+                            onClick={() => {
+                                fetchServiceSettings();
+                                setSettingsModalOpen(true);
+                            }}
+                            className="px-4 py-2 bg-surface text-main border border-border rounded-lg hover:bg-background flex items-center gap-2 font-medium shadow-sm transition-all"
+                            title="Configure Fee Head for Service Requests (Super Admin Only)"
+                        >
+                            <Settings size={18} className="text-primary" /> Fee Settings
+                        </button>
+                    )}
+
                     <button
                         onClick={() => setActionType('create_request')}
                         className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover flex items-center gap-2 font-medium shadow-sm"
@@ -717,7 +1002,7 @@ const ServiceRequests = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
                                                 <span className="font-medium text-main">{req.student_name}</span>
-                                                <span className="text-xs text-muted-text">{req.admission_number} | {req.course}-{req.branch}</span>
+                                                <span className="text-xs text-muted-text">{req.pin_no ? `${req.pin_no} (${req.admission_number})` : req.admission_number} | {req.course}-{req.branch}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-muted-text">
@@ -739,46 +1024,50 @@ const ServiceRequests = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-2">
-                                                {req.payment_status === 'pending' && (
+                                                {req.payment_status !== 'paid' ? (
                                                     <button
-                                                        onClick={() => handlePayment(req)}
-                                                        className="px-3 py-1.5 bg-[var(--success-light)] text-success text-xs font-semibold rounded hover:bg-[var(--success-light)] flex items-center gap-1"
+                                                        onClick={() => handleSyncSingleFeeStatus(req.id)}
+                                                        disabled={syncingRowId === req.id}
+                                                        className="px-3 py-1.5 bg-surface text-primary border border-border text-xs font-semibold rounded hover:bg-background flex items-center gap-1 transition-all"
+                                                        title="Check & sync payment status from Fee Portal"
                                                     >
-                                                        <CreditCard size={12} /> Mark Paid
+                                                        <RefreshCw size={12} className={syncingRowId === req.id ? 'animate-spin' : ''} />
+                                                        Sync
                                                     </button>
-                                                )}
-                                                {req.payment_status === 'paid' && (
-                                                    <button
-                                                        onClick={() => handleVerifyAndPrint(req)}
-                                                        className="px-3 py-1.5 bg-background text-sub text-xs font-semibold rounded hover:bg-background flex items-center gap-1"
-                                                        title="Verify details & Print"
-                                                    >
-                                                        <Printer size={12} /> Verify & Print
-                                                    </button>
-                                                )}
-                                                {req.status === 'pending' && (
-                                                    <button
-                                                        onClick={() => { setSelectedRequest(req); setActionType('processing'); handleUpdateStatus(); }}
-                                                        className="px-3 py-1.5 bg-[var(--primary-light)] text-primary text-xs font-semibold rounded hover:bg-[var(--primary-light)]"
-                                                    >
-                                                        Process
-                                                    </button>
-                                                )}
-                                                {(req.status === 'pending' || req.status === 'processing') && (
-                                                    <button
-                                                        onClick={() => openActionModal(req, 'ready')}
-                                                        className="px-3 py-1.5 bg-[var(--primary-light)] text-secondary text-xs font-semibold rounded hover:bg-[var(--primary-light)] flex items-center gap-1"
-                                                    >
-                                                        Mark Ready
-                                                    </button>
-                                                )}
-                                                {req.status === 'ready_to_collect' && (
-                                                    <button
-                                                        onClick={() => { setSelectedRequest(req); setActionType('close'); }}
-                                                        className="px-3 py-1.5 bg-[var(--success-light)] text-success text-xs font-semibold rounded hover:bg-[var(--success-light)] flex items-center gap-1"
-                                                    >
-                                                        Close
-                                                    </button>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleVerifyAndPrint(req)}
+                                                            className="px-3 py-1.5 bg-background text-sub text-xs font-semibold rounded hover:bg-background flex items-center gap-1"
+                                                            title="Verify details & Print"
+                                                        >
+                                                            <Printer size={12} /> Verify & Print
+                                                        </button>
+                                                        {req.status === 'pending' && (
+                                                            <button
+                                                                onClick={() => { setSelectedRequest(req); setActionType('processing'); handleUpdateStatus(); }}
+                                                                className="px-3 py-1.5 bg-[var(--primary-light)] text-primary text-xs font-semibold rounded hover:bg-[var(--primary-light)]"
+                                                            >
+                                                                Process
+                                                            </button>
+                                                        )}
+                                                        {(req.status === 'pending' || req.status === 'processing') && (
+                                                            <button
+                                                                onClick={() => openActionModal(req, 'ready')}
+                                                                className="px-3 py-1.5 bg-[var(--primary-light)] text-secondary text-xs font-semibold rounded hover:bg-[var(--primary-light)] flex items-center gap-1"
+                                                            >
+                                                                Mark Ready
+                                                            </button>
+                                                        )}
+                                                        {req.status === 'ready_to_collect' && (
+                                                            <button
+                                                                onClick={() => { setSelectedRequest(req); setActionType('close'); }}
+                                                                className="px-3 py-1.5 bg-[var(--success-light)] text-success text-xs font-semibold rounded hover:bg-[var(--success-light)] flex items-center gap-1"
+                                                            >
+                                                                Close
+                                                            </button>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                         </td>
@@ -843,21 +1132,62 @@ const ServiceRequests = () => {
                                                             <textarea
                                                                 required={field.required}
                                                                 rows="3"
-                                                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none uppercase"
+                                                                style={{ textTransform: 'uppercase' }}
                                                                 placeholder={field.placeholder || ''}
                                                                 value={createForm[field.name] || ''}
-                                                                onChange={e => setCreateForm({ ...createForm, [field.name]: e.target.value })}
+                                                                onChange={e => setCreateForm({ ...createForm, [field.name]: e.target.value.toUpperCase() })}
                                                             />
+                                                        ) : (field.name === 'admission_number' || field.name === 'pin_no') ? (
+                                                            <div className="relative flex items-center">
+                                                                <input
+                                                                    type={field.type || 'text'}
+                                                                    required={field.required}
+                                                                    autoFocus={field.autoFocus}
+                                                                    className="w-full px-3 py-2 pr-16 border rounded-lg focus:ring-2 focus:ring-primary outline-none uppercase bg-[var(--warning-light)] font-medium"
+                                                                    style={{ textTransform: 'uppercase' }}
+                                                                    placeholder={field.placeholder || ''}
+                                                                    value={createForm[field.name] || ''}
+                                                                    onChange={e => {
+                                                                        const val = e.target.value.toUpperCase();
+                                                                        setCreateForm({ ...createForm, [field.name]: val });
+                                                                    }}
+                                                                    onKeyDown={e => {
+                                                                        if (e.key === 'Enter') {
+                                                                            e.preventDefault();
+                                                                            handleStudentLookup(createForm[field.name]);
+                                                                        }
+                                                                    }}
+                                                                    onBlur={() => handleStudentLookup(createForm[field.name])}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    disabled={searchingStudent || !createForm[field.name]}
+                                                                    onClick={() => handleStudentLookup(createForm[field.name])}
+                                                                    className="absolute right-1 px-2.5 py-1 text-xs font-bold rounded bg-primary text-white hover:bg-primary-hover disabled:opacity-40 transition flex items-center gap-1 shadow-sm"
+                                                                    title="Fetch student details by Admission No or PIN"
+                                                                >
+                                                                    {searchingStudent ? (
+                                                                        <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                                                    ) : (
+                                                                        <Search size={12} />
+                                                                    )}
+                                                                    Fetch
+                                                                </button>
+                                                            </div>
                                                         ) : (
                                                             <input
                                                                 type={field.type || 'text'}
                                                                 required={field.required}
                                                                 autoFocus={field.autoFocus}
-                                                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none ${field.name === 'admission_number' ? 'bg-[var(--warning-light)] font-medium uppercase' : ''}`}
+                                                                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none uppercase"
+                                                                style={{ textTransform: field.type === 'date' || field.type === 'number' ? 'none' : 'uppercase' }}
                                                                 placeholder={field.placeholder || ''}
                                                                 value={createForm[field.name] || ''}
-                                                                onChange={e => setCreateForm({ ...createForm, [field.name]: e.target.value })}
-                                                                onBlur={field.name === 'admission_number' ? handleAdmissionBlur : undefined}
+                                                                onChange={e => {
+                                                                    const val = field.type === 'date' || field.type === 'number' ? e.target.value : e.target.value.toUpperCase();
+                                                                    setCreateForm({ ...createForm, [field.name]: val });
+                                                                }}
                                                             />
                                                         )}
                                                     </div>
@@ -866,12 +1196,26 @@ const ServiceRequests = () => {
                                         </div>
                                     ))}
 
-                                    <button
-                                        type="submit"
-                                        className="w-full py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover mt-4 shadow-lg text-lg flex items-center justify-center gap-2"
-                                    >
-                                        <Printer size={20} /> Issue & Generate
-                                    </button>
+                                    {(() => {
+                                        const selectedServiceObj = services.find(s => String(s.id) === String(createForm.service_id));
+                                        const price = Number(selectedServiceObj?.price || 0);
+                                        return (
+                                            <button
+                                                type="submit"
+                                                className="w-full py-3 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover mt-4 shadow-lg text-lg flex items-center justify-center gap-2"
+                                            >
+                                                {price > 0 ? (
+                                                    <>
+                                                        <Plus size={20} /> Raise Service Request (Unpaid - ₹{price})
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Printer size={20} /> Issue & Generate Free Certificate
+                                                    </>
+                                                )}
+                                            </button>
+                                        );
+                                    })()}
                                 </div>
                             )}
 
@@ -919,14 +1263,16 @@ const ServiceRequests = () => {
                                                 {field.type === 'textarea' ? (
                                                     <textarea
                                                         rows="2"
-                                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm bg-surface"
+                                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm bg-surface uppercase"
+                                                        style={{ textTransform: 'uppercase' }}
                                                         value={studentForm[field.name] || ''}
-                                                        onChange={e => setStudentForm({ ...studentForm, [field.name]: e.target.value })}
+                                                        onChange={e => setStudentForm({ ...studentForm, [field.name]: e.target.value.toUpperCase() })}
                                                         placeholder={field.placeholder || ''}
                                                     />
                                                 ) : field.type === 'select' ? (
                                                     <select
-                                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm bg-surface"
+                                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm bg-surface uppercase"
+                                                        style={{ textTransform: 'uppercase' }}
                                                         value={studentForm[field.name] || ''}
                                                         onChange={e => setStudentForm({ ...studentForm, [field.name]: e.target.value })}
                                                     >
@@ -941,13 +1287,17 @@ const ServiceRequests = () => {
                                                     <input
                                                         type={field.type || 'text'}
                                                         disabled={field.disabled || field.name === 'admission_number'}
-                                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm bg-surface ${
+                                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none text-sm bg-surface uppercase ${
                                                             field.disabled || field.name === 'admission_number'
                                                                 ? 'bg-background text-muted-text cursor-not-allowed'
                                                                 : ''
                                                         }`}
+                                                        style={{ textTransform: field.type === 'date' || field.type === 'number' ? 'none' : 'uppercase' }}
                                                         value={studentForm[field.name] ?? ''}
-                                                        onChange={e => setStudentForm({ ...studentForm, [field.name]: e.target.value })}
+                                                        onChange={e => {
+                                                            const val = field.type === 'date' || field.type === 'number' ? e.target.value : (e.target.value ?? '').toUpperCase();
+                                                            setStudentForm({ ...studentForm, [field.name]: val });
+                                                        }}
                                                         placeholder={field.placeholder || ''}
                                                     />
                                                 )}
@@ -1106,6 +1456,150 @@ const ServiceRequests = () => {
                                 title="Certificate Preview"
                             />
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Service Requests Settings Modal (Super Admin Only) */}
+            {isSuperAdmin && settingsModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-surface rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl border border-border animate-scale-in">
+                        {/* Modal Header */}
+                        <div className="flex justify-between items-center px-6 py-4 border-b border-border bg-background/50">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                                    <Settings size={20} />
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h2 className="text-lg font-bold text-main">Service Requests Settings</h2>
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                                            <ShieldCheck size={12} /> Super Admin Only
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-muted-text">Configure fee heads and ledger synchronization</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setSettingsModalOpen(false)}
+                                className="p-2 text-muted-text hover:text-main hover:bg-background rounded-full transition"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Modal Content */}
+                        <form onSubmit={handleSaveSettings}>
+                            <div className="p-6 space-y-5">
+                                {/* Informational Callout */}
+                                <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                                    <strong>Fee Portal Integration:</strong> Select the fee head from your Fee Portal where service request demands and receipts should be booked. All headers are dynamically fetched from the fee portal database without hardcoded values.
+                                </div>
+
+                                {loadingSettings ? (
+                                    <div className="py-12 flex flex-col items-center justify-center gap-3 text-muted-text">
+                                        <RefreshCw size={28} className="animate-spin text-primary" />
+                                        <span className="text-sm font-medium">Fetching fee heads from fee portal...</span>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {/* Dynamic Fee Head Dropdown */}
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs font-bold uppercase tracking-wider text-muted-text">
+                                                    Select Fee Head *
+                                                </label>
+                                                <button
+                                                    type="button"
+                                                    onClick={fetchServiceSettings}
+                                                    className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
+                                                >
+                                                    <RefreshCw size={12} /> Refresh Heads
+                                                </button>
+                                            </div>
+                                            <select
+                                                value={selectedFeeHeadId}
+                                                onChange={(e) => setSelectedFeeHeadId(e.target.value)}
+                                                className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface text-main text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+                                                required
+                                            >
+                                                <option value="">-- Choose a Fee Head from Fee Portal --</option>
+                                                {feeHeadsList.map((head) => (
+                                                    <option key={head._id} value={head._id}>
+                                                        {head.code ? `[${head.code}] ` : ''}{head.name} {head.description ? `— ${head.description}` : ''}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Selected Fee Head Details Card */}
+                                        {selectedFeeHeadId && (() => {
+                                            const selectedHead = feeHeadsList.find(h => String(h._id) === String(selectedFeeHeadId));
+                                            if (!selectedHead) return null;
+                                            return (
+                                                <div className="p-4 rounded-xl bg-background border border-border space-y-2">
+                                                    <div className="text-xs font-semibold text-muted-text uppercase tracking-wider">
+                                                        Active Fee Head Summary
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-3 text-xs">
+                                                        <div>
+                                                            <span className="text-muted-text">Head Name:</span>{' '}
+                                                            <span className="font-bold text-main">{selectedHead.name}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-muted-text">Code:</span>{' '}
+                                                            <span className="font-mono font-bold text-primary">{selectedHead.code || 'None'}</span>
+                                                        </div>
+                                                        {selectedHead.description && (
+                                                            <div className="col-span-2">
+                                                                <span className="text-muted-text">Description:</span>{' '}
+                                                                <span className="text-main">{selectedHead.description}</span>
+                                                            </div>
+                                                        )}
+                                                        <div className="col-span-2 text-[11px] font-mono text-muted-text">
+                                                            ID: {selectedHead._id}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+
+                                        {/* Remarks / Notes */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold uppercase tracking-wider text-muted-text">
+                                                Admin Remarks / Notes
+                                            </label>
+                                            <textarea
+                                                rows="2"
+                                                value={settingsNotes}
+                                                onChange={(e) => setSettingsNotes(e.target.value)}
+                                                placeholder="Internal notes regarding this fee head allocation..."
+                                                className="w-full px-4 py-2.5 rounded-xl border border-border bg-surface text-main text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="flex justify-end items-center gap-3 px-6 py-4 border-t border-border bg-background/50">
+                                <button
+                                    type="button"
+                                    onClick={() => setSettingsModalOpen(false)}
+                                    className="px-4 py-2 text-sm font-medium text-sub hover:bg-background rounded-lg transition"
+                                    disabled={savingSettings}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={savingSettings || loadingSettings || !selectedFeeHeadId}
+                                    className="px-5 py-2 text-sm font-bold bg-primary text-white hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed rounded-lg shadow-sm transition flex items-center gap-2"
+                                >
+                                    {savingSettings && <RefreshCw size={14} className="animate-spin" />}
+                                    {savingSettings ? 'Saving Settings...' : 'Save Settings'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

@@ -550,7 +550,7 @@ const AddServiceWizard = () => {
       setIsInsideTable(false);
       toast.success("Table deleted successfully");
     } else {
-      toast.info("No table found to delete");
+      toast("No table found to delete", { icon: 'ℹ️' });
     }
   };
 

@@ -48,7 +48,7 @@ exports.getFeeHeaders = async (req, res) => {
 exports.createFeeHeader = async (req, res) => {
   try {
     const { name, code, description } = req.body;
-    
+
     const existing = await FeeHead.findOne({ $or: [{ name }, { code }] });
     if (existing) {
       return res.status(400).json({ success: false, message: 'Fee Head with this name or code already exists' });
@@ -91,7 +91,7 @@ exports.updateFeeHeader = async (req, res) => {
 exports.deleteFeeHeader = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Check if used in StudentFee
     const usageCount = await StudentFee.countDocuments({ feeHead: id });
     if (usageCount > 0) {
@@ -238,19 +238,19 @@ exports.getStudentFeeDetails = async (req, res) => {
     }
 
     const student = students[0];
-    
+
     // Try to determine college from student_data
     let collegeName = 'Pydah Group'; // Default fallback
-    
+
     // Check key fields directly if columns exist (not in schema but just in case) or look into student_data
     if (student.student_data) {
-        try {
-            const sd = typeof student.student_data === 'string' ? JSON.parse(student.student_data) : student.student_data;
-            if (sd.college) collegeName = sd.college;
-            else if (sd.College) collegeName = sd.College;
-        } catch (e) {
-            console.error('Error parsing student_data:', e);
-        }
+      try {
+        const sd = typeof student.student_data === 'string' ? JSON.parse(student.student_data) : student.student_data;
+        if (sd.college) collegeName = sd.college;
+        else if (sd.College) collegeName = sd.College;
+      } catch (e) {
+        console.error('Error parsing student_data:', e);
+      }
     }
 
     // 2. Fetch Applicable Fee Structures
@@ -259,319 +259,174 @@ exports.getStudentFeeDetails = async (req, res) => {
     // Usually, we want ALL fees applicable to the student for their current year + past yeaars?
     // Or just the current year's fees?
     // "Fetch the fees correctly" -> implies current total liability.
-    
+
     // Let's fetch ALL applicable fee structures for this batch, course, branch up to the current year.
     // --- JIT CLUB FEE SYNC ---
     try {
-        // A. Get approved memberships for this student
-        // We know admission_number (studentId), but club_members uses internal ID.
-        // We actually fetched 'student' record from SQL above, which has 'id'? No, we selected specific columns.
-        // Let's fetch internal ID if we didn't get it.
-        // The previous query was: SELECT s.student_name ... FROM students ...
-        // Let's rely on a separate query to be safe or modify the top one. 
-        // For minimal impact, separate lightweight query:
-        const [sRow] = await masterPool.query('SELECT id FROM students WHERE admission_number = ?', [studentId]);
-        
-        if (sRow.length > 0) {
-            const internalStudentId = sRow[0].id;
-            
-            // B. Fetch Approved or Pending Clubs with Fee > 0
-            const [approvedClubs] = await masterPool.query(`
+      // A. Get approved memberships for this student
+      // We know admission_number (studentId), but club_members uses internal ID.
+      // We actually fetched 'student' record from SQL above, which has 'id'? No, we selected specific columns.
+      // Let's fetch internal ID if we didn't get it.
+      // The previous query was: SELECT s.student_name ... FROM students ...
+      // Let's rely on a separate query to be safe or modify the top one. 
+      // For minimal impact, separate lightweight query:
+      const [sRow] = await masterPool.query('SELECT id FROM students WHERE admission_number = ?', [studentId]);
+
+      if (sRow.length > 0) {
+        const internalStudentId = sRow[0].id;
+
+        // B. Fetch Approved or Pending Clubs with Fee > 0
+        const [approvedClubs] = await masterPool.query(`
                 SELECT c.name, c.membership_fee 
                 FROM club_members cm
                 JOIN clubs c ON cm.club_id = c.id
                 WHERE cm.student_id = ? AND (cm.status = 'approved' OR cm.status = 'pending') AND c.membership_fee > 0
             `, [internalStudentId]);
 
-            if (approvedClubs.length > 0) {
-                 // C. Find "Club Fee" Head
-                 let feeHead = await FeeHead.findOne({ name: 'Club Fee' });
-                 if (!feeHead) {
-                     // Auto-create if missing (Self-healing)
-                     feeHead = await FeeHead.create({
-                         name: 'Club Fee',
-                         code: 'CF',
-                       description: 'Club Fee',
-                         type: 'Individual',
-                         frequency: 'One-time',
-                         isActive: true
-                     });
-                   } else if (feeHead.description !== 'Club Fee') {
-                     feeHead.description = 'Club Fee';
-                     await feeHead.save();
-                 }
+        if (approvedClubs.length > 0) {
+          // C. Find "Club Fee" Head
+          let feeHead = await FeeHead.findOne({ name: 'Club Fee' });
+          if (!feeHead) {
+            // Auto-create if missing (Self-healing)
+            feeHead = await FeeHead.create({
+              name: 'Club Fee',
+              code: 'CF',
+              description: 'Club Fee',
+              type: 'Individual',
+              frequency: 'One-time',
+              isActive: true
+            });
+          } else if (feeHead.description !== 'Club Fee') {
+            feeHead.description = 'Club Fee';
+            await feeHead.save();
+          }
 
-                 // D. Sync Check
-                 for (const club of approvedClubs) {
-                     const expectedRemarks = club.name;
-                     
-                     const existingFee = await StudentFee.findOne({
-                         studentId: studentId, // Admission Number
-                         feeHead: feeHead._id,
-                       remarks: { $in: [expectedRemarks, `Club Fee: ${club.name}`] }
-                     });
+          // D. Sync Check
+          for (const club of approvedClubs) {
+            const expectedRemarks = club.name;
 
-                     if (existingFee && existingFee.remarks !== expectedRemarks) {
-                       existingFee.remarks = expectedRemarks;
-                       await existingFee.save();
-                     } else if (!existingFee) {
-                         await StudentFee.create({
-                             studentId: studentId,
-                             studentName: student.student_name || 'Student',
-                             feeHead: feeHead._id,
-                             college: collegeName || 'NA',
-                             course: student.course || 'NA',
-                             branch: student.branch || 'NA',
-                             academicYear: '2024-2025', // Should ideally come from somewhere constant
-                             studentYear: student.current_year || 1,
-                             semester: student.current_semester || 1,
-                             amount: Number(club.membership_fee),
-                             remarks: expectedRemarks
-                         });
-                         console.log(`[JIT SYNC] Created Club Fee for ${studentId}: ${club.name}`);
-                     }
-                 }
+            const existingFee = await StudentFee.findOne({
+              studentId: studentId, // Admission Number
+              feeHead: feeHead._id,
+              remarks: { $in: [expectedRemarks, `Club Fee: ${club.name}`] }
+            });
+
+            if (existingFee && existingFee.remarks !== expectedRemarks) {
+              existingFee.remarks = expectedRemarks;
+              await existingFee.save();
+            } else if (!existingFee) {
+              await StudentFee.create({
+                studentId: studentId,
+                studentName: student.student_name || 'Student',
+                feeHead: feeHead._id,
+                college: collegeName || 'NA',
+                course: student.course || 'NA',
+                branch: student.branch || 'NA',
+                academicYear: '2024-2025', // Should ideally come from somewhere constant
+                studentYear: student.current_year || 1,
+                semester: student.current_semester || 1,
+                amount: Number(club.membership_fee),
+                remarks: expectedRemarks
+              });
+              console.log(`[JIT SYNC] Created Club Fee for ${studentId}: ${club.name}`);
             }
+          }
         }
+      }
     } catch (jitError) {
-        console.error('[JIT Error] Failed to sync club fees:', jitError);
-        // Continue execution - do not fail the whole request
+      console.error('[JIT Error] Failed to sync club fees:', jitError);
+      // Continue execution - do not fail the whole request
     }
-    // -------------------------
-    // --- JIT SERVICE REQUEST SYNC (Refined) ---
-    // Rule: Request = Due (Demand). Payment = Transaction. Request Deleted = Due Deleted.
-    try {
-        // A. Fetch ALL Active Service Requests for this student
-        let internalStudentId = null;
-        if (typeof sRow !== 'undefined' && sRow.length > 0) {
-            internalStudentId = sRow[0].id;
-        } else {
-             const [sRowNow] = await masterPool.query('SELECT id FROM students WHERE admission_number = ?', [studentId]);
-             if (sRowNow.length > 0) internalStudentId = sRowNow[0].id;
-        }
-
-        if (internalStudentId) {
-             const [allRequests] = await masterPool.query(`
-                SELECT sr.id, sr.service_id, sr.payment_status, sr.status, s.name, s.price 
-                FROM service_requests sr
-                JOIN services s ON sr.service_id = s.id
-                WHERE sr.student_id = ? 
-            `, [internalStudentId]);
-
-             // B. Find "Student Services FEE" Head
-             let ssFeeHead = await FeeHead.findOne({ code: 'SSF' });
-             if (!ssFeeHead) {
-                 ssFeeHead = await FeeHead.create({
-                     name: 'Student Services FEE',
-                     code: 'SSF',
-                     description: 'Fees For the Student Services',
-                     type: 'Individual',
-                     frequency: 'Adhoc',
-                     isActive: true
-                 });
-             }
-
-             const activeRequestIds = new Set();
-
-             // C. Sync Each Request (Create Demand & Transaction if needed)
-             for (const req of allRequests) {
-                 activeRequestIds.add(req.id);
-                 const expectedRemarks = `Service Request: ${req.name} (Ref: ${req.id})`;
-                 
-                 // 1. Check/Create Demand (Due)
-                 // We simply check if it exists.
-                 const feeExists = await StudentFee.exists({
-                     studentId: studentId,
-                     feeHead: ssFeeHead._id,
-                     remarks: expectedRemarks
-                 });
-
-                 if (!feeExists) {
-                     await StudentFee.create({
-                         studentId: studentId,
-                         studentName: student.student_name || 'Student',
-                         feeHead: ssFeeHead._id,
-                         college: collegeName || 'NA',
-                         course: student.course || 'NA',
-                         branch: student.branch || 'NA',
-                         academicYear: '2024-2025', 
-                         studentYear: student.current_year || 1,
-                         semester: student.current_semester || 1,
-                         amount: Number(req.price),
-                         remarks: expectedRemarks
-                     });
-                     console.log(`[JIT SYNC] Created Service Fee Demand for ${studentId}: ${req.name}`);
-                 }
-
-                 // 2. Check/Create Transaction (Payment) ONLY if paid
-                 // 2. CHECK & SYNC TRANSACTIONS (Robust Deduplication)
-                 if (req.payment_status === 'paid') {
-                     // Robust Search: Find ANY transaction related to this Request ID
-                     // Matches: referenceNo "SR-123" OR remarks containing "Ref: 123"
-                     // We use a regex for the remarks to cover various formats
-                     const relatedTxs = await Transaction.find({
-                        studentId: studentId,
-                        feeHead: ssFeeHead._id,
-                        $or: [
-                            { referenceNo: `SR-${req.id}` },
-                            { remarks: { $regex: new RegExp(`Ref:\\s*${req.id}`, 'i') } }
-                        ]
-                     });
-
-                     let realPayment = null;
-                     let syncedPayment = null;
-
-                     relatedTxs.forEach(tx => {
-                         if (tx.collectedBy === 'system_sync' || (tx.remarks && tx.remarks.includes('- Synced'))) {
-                             syncedPayment = tx;
-                         } else {
-                             realPayment = tx;
-                         }
-                     });
-
-                     if (realPayment && syncedPayment) {
-                         // DUPLICATE DETECTED: We have a real payment (Razorpay/Cash) AND a Synced one.
-                         // Delete the Synced one to fix the "Double Count / Adjustment" issue.
-                         await Transaction.findByIdAndDelete(syncedPayment._id);
-                         console.log(`[JIT SYNC] Removed duplicate 'Synced' transaction for Ref: ${req.id} (Real payment exists)`);
-                     } else if (!realPayment && !syncedPayment) {
-                         // MISSING: Payment is marked 'paid' in SQL but no Transaction in Mongo.
-                         // Create 'Synced' transaction.
-                         // NOTE: Use 'Net Banking' to avoid Frontend treating it as 'Adjustment' (Credit/+).
-                         await Transaction.create({
-                             studentId: studentId,
-                             studentName: student.student_name,
-                             amount: Number(req.price),
-                             transactionType: 'DEBIT',
-                             paymentMode: 'Net Banking', // Avoid 'Adjustment'
-                             referenceNo: `SR-${req.id}`,
-                             remarks: `Service Request Payment: ${req.name} (Ref: ${req.id}) - Synced`,
-                             feeHead: ssFeeHead._id,
-                             studentYear: (student.current_year || 1).toString(),
-                             semester: (student.current_semester || 1).toString(),
-                             paymentDate: new Date(),
-                             collectedBy: 'system_sync',
-                             collectedByName: 'System JIT Sync'
-                         });
-                         console.log(`[JIT SYNC] Created Payment Transaction for ${studentId}: ${req.name}`);
-                     }
-                 }
-             }
-
-             // D. Cleanup Orphaned Fees (Request Deleted -> Due Deleted)
-             // Fetch all SSF fees for this student
-             const existingServiceFees = await StudentFee.find({
-                 studentId: studentId,
-                 feeHead: ssFeeHead._id
-             });
-
-             for (const fee of existingServiceFees) {
-                 // Extract Request ID from remarks "Service Request: ... (Ref: 123)"
-                 const match = fee.remarks.match(/\(Ref: (\d+)\)/);
-                 if (match && match[1]) {
-                     const refId = parseInt(match[1]);
-                     if (!activeRequestIds.has(refId)) {
-                         // This fee corresponds to a request that no longer exists in MySQL
-                         await StudentFee.findByIdAndDelete(fee._id);
-                         console.log(`[JIT SYNC] Deleted Orphaned Service Fee for ${studentId} (Ref: ${refId})`);
-                     }
-                 }
-             }
-        }
-    } catch (jitError) {
-        console.error('[JIT Error] Failed to sync service fees:', jitError);
-    }
-    // -------------------------
 
     const query = {
-      course: student.course,
-      branch: student.branch,
-      batch: student.batch,
-      studentYear: { $lte: student.current_year } // Fees for current and past years
-    };
-    
-    // If college is available in student table, add it.
-    // query.college = collegeName; // Uncomment if strictly filtering by college
+        course: student.course,
+        branch: student.branch,
+        batch: student.batch,
+        studentYear: { $lte: student.current_year } // Fees for current and past years
+      };
 
-    const feeStructures = await FeeStructure.find(query).populate('feeHead');
+      // If college is available in student table, add it.
+      // query.college = collegeName; // Uncomment if strictly filtering by college
 
-    // 3. Fetch Transactions
-    // 3. Fetch Transactions
-    // Use regex to be case-insensitive with studentId
-    const transactions = await Transaction.find({ 
-      studentId: { $regex: new RegExp(`^${studentId}$`, 'i') } 
-    }).sort({ paymentDate: -1 }).populate('feeHead');
+      const feeStructures = await FeeStructure.find(query).populate('feeHead');
 
-    // 4. Calculate Totals
-    // 4. Calculate Totals
-    let totalFee = 0;
-    const feesList = [];
+      // 3. Fetch Transactions
+      // 3. Fetch Transactions
+      // Use regex to be case-insensitive with studentId
+      const transactions = await Transaction.find({
+        studentId: { $regex: new RegExp(`^${studentId}$`, 'i') }
+      }).sort({ paymentDate: -1 }).populate('feeHead');
 
-    // Fetch individual fees first to check for overrides
-    // Use regex for case-insensitive match
-    const individualFees = await StudentFee.find({ 
-        studentId: { $regex: new RegExp(`^${studentId}$`, 'i') } 
-    }).populate('feeHead');
+      // 4. Calculate Totals
+      // 4. Calculate Totals
+      let totalFee = 0;
+      const feesList = [];
 
-    // Create a set of keys for existing individual fees to avoid duplicates
-    // Key format: feeHeadId-studentYear-semester
-    const individualFeeKeys = new Set();
-    individualFees.forEach(f => {
+      // Fetch individual fees first to check for overrides
+      // Use regex for case-insensitive match
+      const individualFees = await StudentFee.find({
+        studentId: { $regex: new RegExp(`^${studentId}$`, 'i') }
+      }).populate('feeHead');
+
+      // Create a set of keys for existing individual fees to avoid duplicates
+      // Key format: feeHeadId-studentYear-semester
+      const individualFeeKeys = new Set();
+      individualFees.forEach(f => {
         if (f.feeHead && f.feeHead._id) {
-            // Normalize semester: treat null/undefined as '0' or 'none'
-            const sem = f.semester ? f.semester.toString() : '0';
-            const key = `${f.feeHead._id.toString()}-${f.studentYear}-${sem}`;
-            individualFeeKeys.add(key);
+          // Normalize semester: treat null/undefined as '0' or 'none'
+          const sem = f.semester ? f.semester.toString() : '0';
+          const key = `${f.feeHead._id.toString()}-${f.studentYear}-${sem}`;
+          individualFeeKeys.add(key);
         }
-    });
+      });
 
-    // Add Fee Structures ONLY if not overridden by an individual fee
-    feeStructures.forEach(fs => {
+      // Add Fee Structures ONLY if not overridden by an individual fee
+      feeStructures.forEach(fs => {
         if (fs.feeHead && fs.feeHead._id) {
-             const sem = fs.semester ? fs.semester.toString() : '0';
-             const key = `${fs.feeHead._id.toString()}-${fs.studentYear}-${sem}`;
-             
-             // Check if this specific fee structure is already "covered" by an individual fee
-             if (!individualFeeKeys.has(key)) {
-                totalFee += fs.amount;
-                feesList.push({
-                    _id: fs._id,
-                    feeHead: fs.feeHead,
-                    amount: fs.amount,
-                    studentYear: fs.studentYear,
-                    semester: fs.semester,
-                    remarks: fs.description || 'Fee Structure',
-                    isStructure: true
-                });
-             }
-        }
-    });
+          const sem = fs.semester ? fs.semester.toString() : '0';
+          const key = `${fs.feeHead._id.toString()}-${fs.studentYear}-${sem}`;
 
-    // Add Individual Fees
-    individualFees.forEach(f => {
+          // Check if this specific fee structure is already "covered" by an individual fee
+          if (!individualFeeKeys.has(key)) {
+            totalFee += fs.amount;
+            feesList.push({
+              _id: fs._id,
+              feeHead: fs.feeHead,
+              amount: fs.amount,
+              studentYear: fs.studentYear,
+              semester: fs.semester,
+              remarks: fs.description || 'Fee Structure',
+              isStructure: true
+            });
+          }
+        }
+      });
+
+      // Add Individual Fees
+      individualFees.forEach(f => {
         totalFee += f.amount;
         feesList.push(f);
-    });
+      });
 
-    let totalPaid = 0;
-    transactions.forEach(t => {
-      if (t.status && t.status !== 'active') return;
-      // Ensure amount is a number
-      const amount = Number(t.amount) || 0;
-      // Inverted Logic: DEBIT is used for Payments made by student
-      if (t.transactionType === 'DEBIT') {
-        totalPaid += amount;
-      } else if (t.transactionType === 'CREDIT') {
-        totalPaid -= amount;
-      }
-    });
+      let totalPaid = 0;
+      transactions.forEach(t => {
+        if (t.status && t.status !== 'active') return;
+        // Ensure amount is a number
+        const amount = Number(t.amount) || 0;
+        // Inverted Logic: DEBIT is used for Payments made by student
+        if (t.transactionType === 'DEBIT') {
+          totalPaid += amount;
+        } else if (t.transactionType === 'CREDIT') {
+          totalPaid -= amount;
+        }
+      });
 
-    const dueAmount = totalFee - totalPaid;
+      const dueAmount = totalFee - totalPaid;
 
-    res.json({
-      success: true,
-      studentId,
-      studentDetails: {
+      res.json({
+        success: true,
+        studentId,
+        studentDetails: {
           name: student.student_name,
           course: student.course,
           branch: student.branch,
@@ -581,55 +436,55 @@ exports.getStudentFeeDetails = async (req, res) => {
           collegeCode: student.college_code || student.resolved_college_id,
           courseCode: student.course_code || student.resolved_course_id,
           collegeName: student.college_name || collegeName,
-      },
-      summary: {
-        totalFee,
-        totalPaid,
-        dueAmount
-      },
-      fees: feesList, // Now contains both Structure fees and Individual fees
-      transactions
-    });
-
-  } catch (error) {
-    console.error('Error fetching student fee details:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch student fee details' });
-  }
-};
-
-// Update Student Fees (Manual Add/Edit)
-exports.updateStudentFees = async (req, res) => {
-    try {
-        const { studentId } = req.params;
-        const { feeHeadId, amount, academicYear, studentYear, semester, remarks } = req.body;
-
-        // Validation...
-        
-        const feeHead = await FeeHead.findById(feeHeadId);
-        if(!feeHead) return res.status(404).json({success: false, message: 'Fee Head not found'});
-
-        // We need college/course/etc for the student. Assuming it's passed or we fetch it.
-        const { college, course, branch, studentName } = req.body; 
-
-        const newFee = new StudentFee({
-            studentId,
-            studentName,
-            feeHead: feeHeadId,
-            college,
-            course,
-            branch,
-            academicYear,
-            studentYear,
-            semester,
-            amount,
-            remarks
-        });
-
-        await newFee.save();
-        res.json({success: true, message: 'Fee added successfully', fee: newFee});
+        },
+        summary: {
+          totalFee,
+          totalPaid,
+          dueAmount
+        },
+        fees: feesList, // Now contains both Structure fees and Individual fees
+        transactions
+      });
 
     } catch (error) {
-        console.error('Error updating student fees:', error);
-        res.status(500).json({ success: false, message: 'Failed to update student fees' });
+      console.error('Error fetching student fee details:', error);
+      res.status(500).json({ success: false, message: 'Failed to fetch student fee details' });
     }
-};
+  };
+
+  // Update Student Fees (Manual Add/Edit)
+  exports.updateStudentFees = async (req, res) => {
+    try {
+      const { studentId } = req.params;
+      const { feeHeadId, amount, academicYear, studentYear, semester, remarks } = req.body;
+
+      // Validation...
+
+      const feeHead = await FeeHead.findById(feeHeadId);
+      if (!feeHead) return res.status(404).json({ success: false, message: 'Fee Head not found' });
+
+      // We need college/course/etc for the student. Assuming it's passed or we fetch it.
+      const { college, course, branch, studentName } = req.body;
+
+      const newFee = new StudentFee({
+        studentId,
+        studentName,
+        feeHead: feeHeadId,
+        college,
+        course,
+        branch,
+        academicYear,
+        studentYear,
+        semester,
+        amount,
+        remarks
+      });
+
+      await newFee.save();
+      res.json({ success: true, message: 'Fee added successfully', fee: newFee });
+
+    } catch (error) {
+      console.error('Error updating student fees:', error);
+      res.status(500).json({ success: false, message: 'Failed to update student fees' });
+    }
+  };

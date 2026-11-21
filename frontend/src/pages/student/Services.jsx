@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { serviceService } from '../../services/serviceService';
 import { toast } from 'react-hot-toast';
-import { FileText, Clock, CheckCircle, AlertCircle, Download, X, Plus, Trash2 } from 'lucide-react';
+import { FileText, Clock, CheckCircle, AlertCircle, Download, X, Plus, Trash2, RefreshCw } from 'lucide-react';
 import { SkeletonBox } from '../../components/SkeletonLoader';
 import api from '../../config/api';
 import useAuthStore from '../../store/authStore';
@@ -263,7 +263,27 @@ const Services = () => {
                                             <td className="px-6 py-4 text-right">
                                                 {/* Actions handled by Admin now. Student just views status */}
                                                 {req.payment_status === 'pending' ? (
-                                                    <div className="flex justify-end gap-2">
+                                                    <div className="flex justify-end gap-2 items-center">
+                                                        <button
+                                                            onClick={async () => {
+                                                                const toastId = toast.loading('Checking payment status...');
+                                                                try {
+                                                                    const res = await serviceService.syncFeeStatus(req.id);
+                                                                    if (res.syncedCount > 0) {
+                                                                        toast.success(res.message, { id: toastId });
+                                                                        fetchData();
+                                                                    } else {
+                                                                        toast(res.message, { id: toastId, icon: 'ℹ️' });
+                                                                    }
+                                                                } catch (e) {
+                                                                    toast.error('Failed to sync fee status', { id: toastId });
+                                                                }
+                                                            }}
+                                                            className="px-2.5 py-1 text-xs font-semibold bg-surface border border-border text-primary rounded hover:bg-background flex items-center gap-1 transition"
+                                                            title="Check if payment was received in Fee Portal"
+                                                        >
+                                                            <RefreshCw size={12} /> Sync Fee
+                                                        </button>
                                                         <button
                                                             onClick={() => handleDelete(req)}
                                                             className="p-1.5 text-danger hover:text-danger hover:bg-[var(--danger-light)] rounded transition"
@@ -271,7 +291,6 @@ const Services = () => {
                                                         >
                                                             <Trash2 size={16} />
                                                         </button>
-                                                        
                                                     </div>
                                                 ) : req.status === 'ready_to_collect' ? (
                                                     <span className="text-xs text-secondary font-medium">Ready for Collection</span>
@@ -389,9 +408,10 @@ const Services = () => {
                                         <textarea
                                             required
                                             placeholder="e.g. Paid twice, Scholarship received, etc."
-                                            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none min-h-[80px]"
+                                            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none min-h-[80px] uppercase"
+                                            style={{ textTransform: 'uppercase' }}
                                             value={requestForm.purpose}
-                                            onChange={e => setRequestForm({ ...requestForm, purpose: e.target.value, reason: e.target.value })}
+                                            onChange={e => setRequestForm({ ...requestForm, purpose: e.target.value.toUpperCase(), reason: e.target.value.toUpperCase() })}
                                         />
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
@@ -401,9 +421,10 @@ const Services = () => {
                                                 type="text"
                                                 required
                                                 placeholder="e.g. 5000"
-                                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none uppercase"
+                                                style={{ textTransform: 'uppercase' }}
                                                 value={requestForm.excess_amount || ''}
-                                                onChange={e => setRequestForm({ ...requestForm, excess_amount: e.target.value })}
+                                                onChange={e => setRequestForm({ ...requestForm, excess_amount: e.target.value.toUpperCase() })}
                                             />
                                         </div>
                                         <div>
@@ -412,9 +433,10 @@ const Services = () => {
                                                 type="text"
                                                 required
                                                 placeholder="e.g. Five Thousand Only"
-                                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none"
+                                                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none uppercase"
+                                                style={{ textTransform: 'uppercase' }}
                                                 value={requestForm.amount_in_words || ''}
-                                                onChange={e => setRequestForm({ ...requestForm, amount_in_words: e.target.value })}
+                                                onChange={e => setRequestForm({ ...requestForm, amount_in_words: e.target.value.toUpperCase() })}
                                             />
                                         </div>
                                     </div>
@@ -425,9 +447,10 @@ const Services = () => {
                                     <textarea
                                         required
                                         placeholder="e.g. For Scholarship Application, Visa, etc."
-                                        className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none min-h-[100px]"
+                                        className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary outline-none min-h-[100px] uppercase"
+                                        style={{ textTransform: 'uppercase' }}
                                         value={requestForm.purpose}
-                                        onChange={e => setRequestForm({ ...requestForm, purpose: e.target.value })}
+                                        onChange={e => setRequestForm({ ...requestForm, purpose: e.target.value.toUpperCase() })}
                                     />
                                 </div>
                             )}

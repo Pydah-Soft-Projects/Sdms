@@ -206,8 +206,8 @@ const generateStudyCertificate = async (student, request, collegeDetails) => {
     student.guardian_name ||
     "________________"
   ).toUpperCase();
-  // Ensure admission number is used for PIN
-  const pinNo = (student.admission_number || "________________").toUpperCase();
+  // Prefer PIN number if available, fallback to admission number
+  const pinNo = (student.pin_no || student.admission_number || "________________").toUpperCase();
   const year = student.current_year ? student.current_year.toString() : "__";
   const sem = student.current_semester
     ? student.current_semester.toString()
@@ -262,12 +262,12 @@ const generateStudyCertificate = async (student, request, collegeDetails) => {
       },
       { text: " (PIN No. ", font: "Helvetica", color: baseColor },
       {
-        text: student.admission_number
-          ? pad(student.admission_number)
+        text: (student.pin_no || student.admission_number)
+          ? pad(String(student.pin_no || student.admission_number).toUpperCase())
           : "__________",
         font: dataFont,
         color: dataColor,
-        underline: !!student.admission_number,
+        underline: !!(student.pin_no || student.admission_number),
       },
       { text: ")", font: "Helvetica", color: baseColor },
     ],
@@ -463,7 +463,7 @@ const generateRefundApplication = async (student, request, collegeDetails) => {
 
   // Student Details
   const studentName = (student.student_name || "").toUpperCase();
-  const pinNo = (student.admission_number || "").toUpperCase();
+  const pinNo = (student.pin_no || student.admission_number || "").toUpperCase();
   const course = (student.course || "").toUpperCase();
   const branch = (student.branch || "").toUpperCase();
   const year = student.current_year ? student.current_year.toString() : "";
@@ -778,8 +778,8 @@ const generateDynamicCertificate = async (
   const data = {
     // Basic Fields
     student_name: (student.student_name || "").toUpperCase(),
-    admission_number: (student.admission_number || "").toUpperCase(),
-    pin_no: (student.pin_no || "").toUpperCase(),
+    admission_number: (student.admission_number || student.pin_no || "").toUpperCase(),
+    pin_no: (student.pin_no || student.admission_number || "").toUpperCase(),
     course: (student.course || "").toUpperCase(),
     branch: (student.branch || "").toUpperCase(),
     current_year: student.current_year ? student.current_year.toString() : "",
@@ -1029,7 +1029,7 @@ const generateCustodianCertificate = async (
     student.guardian_name ||
     "________________"
   ).toUpperCase();
-  const rollNo = (student.admission_number || "________________").toUpperCase();
+  const rollNo = (student.pin_no || student.admission_number || "________________").toUpperCase();
   const course = student.course || "________"; // e.g. B.Tech
   const branch = student.branch || "________"; // e.g. Computer Science & Engineering
 

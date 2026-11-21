@@ -12,7 +12,27 @@ const ServiceRequests = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('');
+    const [filterCourse, setFilterCourse] = useState('');
+    const [filterBranch, setFilterBranch] = useState('');
+    const [filterYear, setFilterYear] = useState('');
+    const [filterSemester, setFilterSemester] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const [coursesList, setCoursesList] = useState([]);
+
+    // Fetch official courses and branch hierarchies from backend
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const res = await api.get('/courses?includeInactive=false');
+                if (res.data?.success) {
+                    setCoursesList(res.data.data || []);
+                }
+            } catch (err) {
+                console.error('Failed to load courses:', err);
+            }
+        };
+        fetchCourses();
+    }, []);
 
     // Summary statistics for dashboard widgets
     const adminStats = useMemo(() => {
@@ -24,11 +44,69 @@ const ServiceRequests = () => {
         return { total, pendingPayment, processing, ready, closed };
     }, [requests]);
 
-    // Search & Filter
+    // Available courses list (merged from coursesList API + active requests)
+    const availableCourses = useMemo(() => {
+        const set = new Set();
+        coursesList.forEach(c => { if (c.name) set.add(c.name); });
+        requests.forEach(r => { if (r.course) set.add(r.course); });
+        return Array.from(set).sort();
+    }, [coursesList, requests]);
+
+    // Available branches (filtered by selected course if selected, or all available)
+    const availableBranches = useMemo(() => {
+        if (!filterCourse) {
+            const branchesSet = new Set();
+            coursesList.forEach(c => {
+                if (Array.isArray(c.branches)) {
+                    c.branches.forEach(b => {
+                        const bName = typeof b === 'string' ? b : b.name;
+                        if (bName) branchesSet.add(bName);
+                    });
+                }
+            });
+            requests.forEach(r => {
+                if (r.branch) branchesSet.add(r.branch);
+            });
+            return Array.from(branchesSet).sort();
+        }
+
+        const courseObj = coursesList.find(c => (c.name || '').toUpperCase() === filterCourse.toUpperCase() || String(c.id) === String(filterCourse));
+        if (courseObj && Array.isArray(courseObj.branches)) {
+            return courseObj.branches.map(b => (typeof b === 'string' ? b : b.name)).filter(Boolean).sort();
+        }
+
+        const branchesSet = new Set();
+        requests.forEach(r => {
+            if ((r.course || '').toUpperCase() === filterCourse.toUpperCase() && r.branch) {
+                branchesSet.add(r.branch);
+            }
+        });
+        return Array.from(branchesSet).sort();
+    }, [coursesList, filterCourse, requests]);
+
+    // Available years: 1, 2, 3, 4
+    const availableYears = useMemo(() => [1, 2, 3, 4], []);
+
+    // Available semesters: 1, 2
+    const availableSemesters = useMemo(() => [1, 2], []);
+
+    // Comprehensive Search & Multi-Filter Logic
     const filteredRequests = useMemo(() => {
         let list = requests;
         if (filterStatus) {
             list = list.filter(r => r.status === filterStatus);
+        }
+        if (filterCourse) {
+            list = list.filter(r => (r.course || '').toUpperCase() === filterCourse.toUpperCase());
+        }
+        if (filterBranch) {
+            list = list.filter(r => (r.branch || '').toUpperCase() === filterBranch.toUpperCase());
+        }
+        if (filterYear) {
+            list = list.filter(r => String(r.current_year || '') === String(filterYear));
+        }
+        if (filterSemester) {
+            list = list.filter(r => String(r.current_semester || '') === String(filterSemester));
         }
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase().trim();
@@ -38,11 +116,13 @@ const ServiceRequests = () => {
                 const pin = (r.pin_no || '').toLowerCase();
                 const seq = (r.sequence_no || '').toLowerCase();
                 const sName = (r.service_name || '').toLowerCase();
-                return name.includes(q) || adm.includes(q) || pin.includes(q) || seq.includes(q) || sName.includes(q);
+                const cName = (r.course || '').toLowerCase();
+                const bName = (r.branch || '').toLowerCase();
+                return name.includes(q) || adm.includes(q) || pin.includes(q) || seq.includes(q) || sName.includes(q) || cName.includes(q) || bName.includes(q);
             });
         }
         return list;
-    }, [requests, filterStatus, searchQuery]);
+    }, [requests, filterStatus, filterCourse, filterBranch, filterYear, filterSemester, searchQuery]);
 
     // Service Requests Settings State (Super Admin Only)
     const [settingsModalOpen, setSettingsModalOpen] = useState(false);
@@ -1123,43 +1203,130 @@ const ServiceRequests = () => {
                 </div>
             </div>
 
-            {/* Search & Filter Toolbar */}
-            <div className="bg-surface border border-border rounded-2xl p-3 sm:p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div className="relative w-full sm:w-96">
-                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-text" />
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search student, admission, roll no, sequence..."
-                        className="w-full pl-9 pr-8 py-2 bg-background border border-border rounded-xl text-xs sm:text-sm text-main placeholder-muted-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
-                    />
-                    {searchQuery && (
-                        <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-text hover:text-main">
-                            <X size={14} />
-                        </button>
-                    )}
+            {/* Search & Multi-Filter Toolbar (Course, Branch, Year, Sem, Status) */}
+            <div className="bg-surface border border-border rounded-2xl p-3.5 sm:p-4 shadow-sm flex flex-col gap-3">
+                <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                    {/* Search Input */}
+                    <div className="relative flex-1 max-w-lg">
+                        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-text" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search student, admission, roll no, sequence, course..."
+                            className="w-full pl-9 pr-8 py-2 bg-background border border-border rounded-xl text-xs sm:text-sm text-main placeholder-muted-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+                        />
+                        {searchQuery && (
+                            <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-text hover:text-main">
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Filter Dropdowns Row */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {/* Course Filter */}
+                        <div className="flex items-center gap-1.5 bg-background px-2.5 py-1.5 rounded-xl border border-border">
+                            <span className="text-[11px] font-bold text-muted-text uppercase">Course:</span>
+                            <select
+                                value={filterCourse}
+                                onChange={(e) => {
+                                    setFilterCourse(e.target.value);
+                                    setFilterBranch('');
+                                }}
+                                className="bg-transparent border-none text-xs font-semibold focus:ring-0 text-main py-0 cursor-pointer outline-none"
+                            >
+                                <option value="">All Courses</option>
+                                {availableCourses.map((c) => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Branch Filter */}
+                        <div className="flex items-center gap-1.5 bg-background px-2.5 py-1.5 rounded-xl border border-border">
+                            <span className="text-[11px] font-bold text-muted-text uppercase">Branch:</span>
+                            <select
+                                value={filterBranch}
+                                onChange={(e) => setFilterBranch(e.target.value)}
+                                className="bg-transparent border-none text-xs font-semibold focus:ring-0 text-main py-0 cursor-pointer outline-none"
+                            >
+                                <option value="">All Branches</option>
+                                {availableBranches.map((b) => (
+                                    <option key={b} value={b}>{b}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Year Filter */}
+                        <div className="flex items-center gap-1.5 bg-background px-2.5 py-1.5 rounded-xl border border-border">
+                            <span className="text-[11px] font-bold text-muted-text uppercase">Year:</span>
+                            <select
+                                value={filterYear}
+                                onChange={(e) => setFilterYear(e.target.value)}
+                                className="bg-transparent border-none text-xs font-semibold focus:ring-0 text-main py-0 cursor-pointer outline-none"
+                            >
+                                <option value="">All Years</option>
+                                {availableYears.map((y) => (
+                                    <option key={y} value={y}>{y} Year</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Semester Filter */}
+                        <div className="flex items-center gap-1.5 bg-background px-2.5 py-1.5 rounded-xl border border-border">
+                            <span className="text-[11px] font-bold text-muted-text uppercase">Sem:</span>
+                            <select
+                                value={filterSemester}
+                                onChange={(e) => setFilterSemester(e.target.value)}
+                                className="bg-transparent border-none text-xs font-semibold focus:ring-0 text-main py-0 cursor-pointer outline-none"
+                            >
+                                <option value="">All Sems</option>
+                                {availableSemesters.map((s) => (
+                                    <option key={s} value={s}>Sem {s}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Status Filter */}
+                        <div className="flex items-center gap-1.5 bg-background px-2.5 py-1.5 rounded-xl border border-border">
+                            <Filter size={13} className="text-muted-text" />
+                            <select
+                                value={filterStatus}
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                className="bg-transparent border-none text-xs font-semibold focus:ring-0 text-main py-0 cursor-pointer outline-none"
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="ready_to_collect">Ready to Collect</option>
+                                <option value="closed">Closed / Delivered</option>
+                            </select>
+                        </div>
+
+                        {/* Reset Filters button if any active */}
+                        {(filterCourse || filterBranch || filterYear || filterSemester || filterStatus || searchQuery) && (
+                            <button
+                                onClick={() => {
+                                    setFilterCourse('');
+                                    setFilterBranch('');
+                                    setFilterYear('');
+                                    setFilterSemester('');
+                                    setFilterStatus('');
+                                    setSearchQuery('');
+                                }}
+                                className="px-2.5 py-1.5 bg-background text-danger hover:bg-danger/10 text-xs font-semibold rounded-xl border border-border transition flex items-center gap-1"
+                                title="Clear all filters"
+                            >
+                                <X size={13} /> Reset
+                            </button>
+                        )}
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                    <div className="flex items-center gap-2 bg-background px-3 py-1.5 rounded-xl border border-border">
-                        <Filter size={15} className="text-muted-text" />
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className="bg-transparent border-none text-xs sm:text-sm font-semibold focus:ring-0 text-main py-0 cursor-pointer outline-none"
-                        >
-                            <option value="">All Statuses</option>
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="ready_to_collect">Ready to Collect</option>
-                            <option value="closed">Closed / Delivered</option>
-                        </select>
-                    </div>
-
-                    <div className="text-xs text-muted-text font-medium whitespace-nowrap">
-                        Showing {filteredRequests.length} request(s)
-                    </div>
+                <div className="text-[11px] text-muted-text font-medium flex items-center justify-between border-t border-border/50 pt-2">
+                    <span>Active Filters: {filterCourse ? `Course: ${filterCourse}` : 'All Courses'} {filterBranch ? `• Branch: ${filterBranch}` : ''} {filterYear ? `• Year ${filterYear}` : ''} {filterSemester ? `• Sem ${filterSemester}` : ''} {filterStatus ? `• Status: ${filterStatus}` : ''}</span>
+                    <span>Showing {filteredRequests.length} of {requests.length} request(s)</span>
                 </div>
             </div>
 
@@ -1169,7 +1336,7 @@ const ServiceRequests = () => {
                         <thead className="bg-background/70 text-muted-text text-xs font-semibold uppercase tracking-wider border-b border-border">
                             <tr>
                                 <th className="px-5 py-3.5">Request Info</th>
-                                <th className="px-5 py-3.5">Student</th>
+                                <th className="px-5 py-3.5">Student Details</th>
                                 <th className="px-5 py-3.5">Mobile</th>
                                 <th className="px-5 py-3.5">Status</th>
                                 <th className="px-5 py-3.5">Payment</th>
@@ -1185,7 +1352,7 @@ const ServiceRequests = () => {
                                     <td colSpan="7" className="p-16 text-center text-muted-text">
                                         <FileText size={36} className="mx-auto text-muted-text/50 mb-3" />
                                         <h3 className="font-bold text-main text-base mb-1">No service requests found</h3>
-                                        <p className="text-xs text-muted-text">Try adjusting your status filter or search query.</p>
+                                        <p className="text-xs text-muted-text">Try adjusting your filters or search query.</p>
                                     </td>
                                 </tr>
                             ) : (
@@ -1204,8 +1371,22 @@ const ServiceRequests = () => {
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="flex flex-col">
-                                                <span className="font-medium text-main">{req.student_name}</span>
-                                                <span className="text-xs text-muted-text">{req.pin_no ? `${req.pin_no} (${req.admission_number})` : req.admission_number} | {req.course}-{req.branch}</span>
+                                                <span className="font-semibold text-main">{req.student_name}</span>
+                                                <span className="text-xs text-muted-text mt-0.5">
+                                                    {req.pin_no ? `${req.pin_no} (${req.admission_number})` : req.admission_number}
+                                                </span>
+                                                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-primary/10 text-primary border border-primary/20">
+                                                        {req.course || 'B.TECH'} - {req.branch || 'CSE'}
+                                                    </span>
+                                                    {(req.current_year || req.current_semester) && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-background text-sub border border-border">
+                                                            {req.current_year ? `Year ${req.current_year}` : ''}
+                                                            {req.current_year && req.current_semester ? ' • ' : ''}
+                                                            {req.current_semester ? `Sem ${req.current_semester}` : ''}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-5 py-4 text-xs text-muted-text font-mono">

@@ -635,14 +635,14 @@ exports.createRequestByAdmin = async (req, res) => {
 // Get Requests
 exports.getServiceRequests = async (req, res) => {
   try {
-    const { status, student_id } = req.query;
+    const { status, student_id, course, branch, current_year, current_semester } = req.query;
     const isStudent =
       req.user.role === "student" || (!req.user.isAdmin && !req.user.role); // Assuming simplified role check
 
     // Build query
     let query = `
       SELECT sr.*, s.name as service_name, s.price as service_price, s.admin_fields, s.template_type, s.template_config,
-             st.student_name, st.admission_number, st.pin_no, st.course, st.branch, st.student_mobile
+             st.student_name, st.admission_number, st.pin_no, st.course, st.branch, st.current_year, st.current_semester, st.student_mobile
       FROM service_requests sr
       JOIN services s ON sr.service_id = s.id
       JOIN students st ON sr.student_id = st.id
@@ -663,6 +663,26 @@ exports.getServiceRequests = async (req, res) => {
     if (status) {
       conditions.push("sr.status = ?");
       params.push(status);
+    }
+
+    if (course) {
+      conditions.push("(st.course = ? OR JSON_UNQUOTE(JSON_EXTRACT(sr.request_data, '$.course')) = ?)");
+      params.push(course, course);
+    }
+
+    if (branch) {
+      conditions.push("(st.branch = ? OR JSON_UNQUOTE(JSON_EXTRACT(sr.request_data, '$.branch')) = ?)");
+      params.push(branch, branch);
+    }
+
+    if (current_year) {
+      conditions.push("(st.current_year = ? OR JSON_UNQUOTE(JSON_EXTRACT(sr.request_data, '$.current_year')) = ?)");
+      params.push(current_year, current_year);
+    }
+
+    if (current_semester) {
+      conditions.push("(st.current_semester = ? OR JSON_UNQUOTE(JSON_EXTRACT(sr.request_data, '$.current_semester')) = ?)");
+      params.push(current_semester, current_semester);
     }
 
     if (conditions.length > 0) {
@@ -703,6 +723,8 @@ exports.getServiceRequests = async (req, res) => {
           if (rd.course) r.course = rd.course;
           if (rd.branch) r.branch = rd.branch;
           if (rd.student_mobile) r.student_mobile = rd.student_mobile;
+          if (rd.current_year) r.current_year = rd.current_year;
+          if (rd.current_semester) r.current_semester = rd.current_semester;
         }
       }
       // History normalization: parse string or generate sensible timeline for legacy records

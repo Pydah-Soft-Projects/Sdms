@@ -20,7 +20,10 @@ import {
   Eye,
   XCircle,
   X,
-  Lock
+  Lock,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../config/api';
@@ -119,6 +122,8 @@ const CertificatesReport = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
+  const [sortBy, setSortBy] = useState('');
+  const [sortOrder, setSortOrder] = useState('asc');
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -219,12 +224,52 @@ const CertificatesReport = () => {
     pageSize,
     filters,
     search: searchTerm,
+    sortBy,
+    sortOrder,
     enabled: hasAccess && hasFetched && !!filters.level
   });
 
   const students = studentData?.students || [];
   const totalStudents = studentData?.pagination?.total || 0;
   const totalPages = studentData?.pagination?.totalPages || 1;
+
+  // Toggle Roll Number sort order (Ascending <-> Descending)
+  const handleToggleRollSort = () => {
+    if (sortBy !== 'roll_number') {
+      setSortBy('roll_number');
+      setSortOrder('asc');
+    } else {
+      setSortOrder(prev => (prev === 'asc' ? 'desc' : 'asc'));
+    }
+    setPage(1);
+  };
+
+  const getStudentRollNumber = (student) => {
+    if (!student) return '';
+    const val = typeof (student.pin || student.pin_no || student.roll_number) === 'object'
+      ? (student.pin?.name || student.pin_no?.name || '')
+      : (student.pin || student.pin_no || student.roll_number || '');
+    if (val && val !== '—') return String(val).trim();
+    const sd = student.student_data || {};
+    const sdVal = sd['Roll Number'] || sd['roll_number'] || sd['PIN Number'] || sd['pin_no'] || sd['Pin Number'] || sd['Temporary Roll Number'] || '';
+    return String(sdVal).trim();
+  };
+
+  // Sort displayed students by Roll Number when roll_number sort is active
+  const displayedStudents = useMemo(() => {
+    if (!students || students.length === 0) return [];
+    if (sortBy !== 'roll_number') return students;
+
+    return [...students].sort((a, b) => {
+      const rollA = getStudentRollNumber(a);
+      const rollB = getStudentRollNumber(b);
+      if (!rollA && !rollB) return 0;
+      if (!rollA) return 1;
+      if (!rollB) return -1;
+      const cmp = rollA.localeCompare(rollB, undefined, { numeric: true, sensitivity: 'base' });
+      return sortOrder === 'desc' ? -cmp : cmp;
+    });
+  }, [students, sortBy, sortOrder]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => {
@@ -273,6 +318,8 @@ const CertificatesReport = () => {
       certificates_status: []
     });
     setSearchTerm('');
+    setSortBy('');
+    setSortOrder('asc');
     setPage(1);
     setHasFetched(false);
   };
@@ -338,6 +385,10 @@ const CertificatesReport = () => {
       });
       if (searchTerm && searchTerm.trim()) {
         queryParams.append('search', searchTerm.trim());
+      }
+      if (sortBy && sortBy.trim()) {
+        queryParams.append('sort_by', sortBy.trim());
+        queryParams.append('sort_order', sortOrder === 'desc' ? 'desc' : 'asc');
       }
       queryParams.append('limit', 'all');
 
@@ -731,7 +782,36 @@ const CertificatesReport = () => {
             <thead className="bg-[var(--background)]/70 text-sub text-xs uppercase font-semibold border-b border-border">
               <tr>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Student Name</th>
-                <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Roll Number</th>
+                <th
+                  rowSpan={2}
+                  onClick={handleToggleRollSort}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleToggleRollSort();
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-sort={sortBy === 'roll_number' ? (sortOrder === 'asc' ? 'ascending' : 'descending') : 'none'}
+                  title={`Click to sort by Roll Number (${sortBy === 'roll_number' && sortOrder === 'asc' ? 'currently Ascending — click for Descending' : sortBy === 'roll_number' && sortOrder === 'desc' ? 'currently Descending — click for Ascending' : 'click for Ascending'})`}
+                  className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background cursor-pointer select-none hover:bg-[var(--primary-light)]/40 transition-colors group"
+                >
+                  <div className="inline-flex items-center gap-1.5 font-semibold text-main group-hover:text-primary transition-colors">
+                    <span>Roll Number</span>
+                    <span className="shrink-0">
+                      {sortBy === 'roll_number' ? (
+                        sortOrder === 'asc' ? (
+                          <ArrowUp size={14} className="text-primary font-bold animate-in fade-in duration-150" />
+                        ) : (
+                          <ArrowDown size={14} className="text-primary font-bold animate-in fade-in duration-150" />
+                        )
+                      ) : (
+                        <ArrowUpDown size={13} className="text-muted-text opacity-40 group-hover:opacity-100 transition-opacity" />
+                      )}
+                    </span>
+                  </div>
+                </th>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Adm No</th>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Student Mobile</th>
                 <th rowSpan={2} className="py-3 px-4 whitespace-nowrap align-middle border-r border-border bg-background">Batch</th>
@@ -765,14 +845,14 @@ const CertificatesReport = () => {
                     Failed to fetch student data. Please select Level and click Refresh to try again.
                   </td>
                 </tr>
-              ) : students.length === 0 ? (
+              ) : displayedStudents.length === 0 ? (
                 <tr>
                   <td colSpan={8 + (allCertColumns.length || 1)} className="text-center py-12 text-muted-text">
                     No student certificate records found matching the criteria.
                   </td>
                 </tr>
               ) : (
-                students.map((student, idx) => {
+                displayedStudents.map((student, idx) => {
                   const studentName = typeof (student.student_name || student.name) === 'object'
                     ? (student.student_name?.name || student.name?.name || '—')
                     : (student.student_name || student.name || '—');

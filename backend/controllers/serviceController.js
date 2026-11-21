@@ -208,6 +208,41 @@ const generateServiceRequestSequence = async (pool, targetYear) => {
   }
 };
 
+// Helper to append a lifecycle event to request history
+const appendRequestHistory = async (pool, requestId, event) => {
+  try {
+    const [rows] = await pool.execute("SELECT history FROM service_requests WHERE id = ?", [requestId]);
+    if (rows.length === 0) return;
+    let history = [];
+    if (rows[0].history) {
+      try {
+        history = typeof rows[0].history === 'string' ? JSON.parse(rows[0].history) : rows[0].history;
+        if (!Array.isArray(history)) history = [];
+      } catch (e) {
+        history = [];
+      }
+    }
+    const historyItem = {
+      action: event.action || 'STATUS_UPDATE',
+      title: event.title || 'Request Updated',
+      details: event.details || '',
+      performed_by: {
+        id: event.performed_by?.id || null,
+        name: event.performed_by?.name || 'Staff/Admin',
+        role: event.performed_by?.role || 'admin',
+      },
+      timestamp: new Date().toISOString(),
+    };
+    history.push(historyItem);
+    await pool.execute("UPDATE service_requests SET history = ? WHERE id = ?", [
+      JSON.stringify(history),
+      requestId,
+    ]);
+  } catch (err) {
+    console.error(`[HISTORY AUDIT ERROR] Failed to append history for request ${requestId}:`, err);
+  }
+};
+
 // Create Request (Student)
 exports.requestService = async (req, res) => {
   try {
@@ -235,9 +270,21 @@ exports.requestService = async (req, res) => {
     // Store additional request data properly
     const request_data = JSON.stringify({ purpose, sequence_no, ...otherData });
 
+    const initialHistory = [{
+      action: 'CREATED',
+      title: 'Request Submitted by Student',
+      details: `Service requested: ${service[0].name}. Price: ₹${servicePrice}. Purpose: ${purpose || 'Not specified'}`,
+      performed_by: {
+        id: student_id,
+        name: req.user.name || req.user.student_name || 'Student',
+        role: 'student'
+      },
+      timestamp: new Date().toISOString()
+    }];
+
     const [result] = await masterPool.execute(
-      "INSERT INTO service_requests (student_id, service_id, sequence_no, status, payment_status, request_data) VALUES (?, ?, ?, ?, ?, ?)",
-      [student_id, service_id, sequence_no, "pending", initialPaymentStatus, request_data],
+      "INSERT INTO service_requests (student_id, service_id, sequence_no, status, payment_status, request_data, history, created_at, request_date) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+      [student_id, service_id, sequence_no, "pending", initialPaymentStatus, request_data, JSON.stringify(initialHistory)],
     );
 
     // If payment required, create unpaid demand in Fee Portal (MongoDB)
@@ -245,7 +292,7 @@ exports.requestService = async (req, res) => {
       try {
         await createServiceFeeDemand({
           requestId: result.insertId,
-          studentId,
+          studentId: student_id,
           serviceId: service_id,
           sequence_no,
         });
@@ -534,10 +581,22 @@ exports.createRequestByAdmin = async (req, res) => {
     const servicePrice = Number(service[0].price || 0);
     const initialPaymentStatus = servicePrice > 0 ? "pending" : "paid";
 
+    const initialHistory = [{
+      action: 'CREATED_BY_ADMIN',
+      title: 'Request Created by Staff/Admin',
+      details: `Created on behalf of student ${student_name} (${resolvedAdmission}). Service: ${service[0].name}, Price: ₹${servicePrice}. Payment status: ${initialPaymentStatus}.`,
+      performed_by: {
+        id: req.user?.id || null,
+        name: req.user?.name || req.user?.username || 'Staff/Admin',
+        role: req.user?.role || 'admin',
+      },
+      timestamp: new Date().toISOString(),
+    }];
+
     // Create request with payment_status based on price
     const [result] = await masterPool.execute(
-      "INSERT INTO service_requests (student_id, service_id, sequence_no, status, payment_status, request_data, created_at, request_date) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())",
-      [student_id, service_id, sequence_no, "pending", initialPaymentStatus, request_data],
+      "INSERT INTO service_requests (student_id, service_id, sequence_no, status, payment_status, request_data, history, created_at, request_date) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+      [student_id, service_id, sequence_no, "pending", initialPaymentStatus, request_data, JSON.stringify(initialHistory)],
     );
 
     // If payment required, create unpaid demand in Fee Portal (MongoDB)
@@ -646,6 +705,59 @@ exports.getServiceRequests = async (req, res) => {
           if (rd.student_mobile) r.student_mobile = rd.student_mobile;
         }
       }
+      // History normalization: parse string or generate sensible timeline for legacy records
+      let hist = r.history;
+      if (typeof hist === 'string') {
+        try { hist = JSON.parse(hist); } catch (e) { hist = []; }
+      }
+      if (!Array.isArray(hist) || hist.length === 0) {
+        hist = [{
+          action: 'CREATED',
+          title: 'Request Initiated',
+          details: `Request created for ${r.service_name || 'Service'}. Initial fee status: ${r.payment_status || 'pending'}.`,
+          performed_by: {
+            id: r.student_id,
+            name: r.student_name || 'Student',
+            role: 'student'
+          },
+          timestamp: r.created_at || r.request_date || new Date().toISOString()
+        }];
+        if (r.payment_status === 'paid') {
+          hist.push({
+            action: 'PAYMENT_VERIFIED',
+            title: 'Payment Completed',
+            details: `Fee payment verified.`,
+            performed_by: { name: 'Fee System', role: 'system' },
+            timestamp: r.request_date || new Date().toISOString()
+          });
+        }
+        if (r.status === 'processing') {
+          hist.push({
+            action: 'STATUS_CHANGED',
+            title: 'Request Marked as In Processing',
+            details: 'Request is currently being processed by staff.',
+            performed_by: { name: 'Staff/Admin', role: 'admin' },
+            timestamp: r.request_date || new Date().toISOString()
+          });
+        } else if (r.status === 'ready_to_collect') {
+          hist.push({
+            action: 'READY_TO_COLLECT',
+            title: 'Ready for Collection',
+            details: `Collection scheduled: ${r.collect_date ? new Date(r.collect_date).toLocaleDateString() : 'Ready'}. Note: ${r.admin_note || 'Available at office.'}`,
+            performed_by: { name: 'Staff/Admin', role: 'admin' },
+            timestamp: r.collect_date || r.request_date || new Date().toISOString()
+          });
+        } else if (r.status === 'closed') {
+          hist.push({
+            action: 'CLOSED',
+            title: 'Request Closed & Delivered',
+            details: 'Certificate issued and delivered to student.',
+            performed_by: { name: 'Staff/Admin', role: 'admin' },
+            timestamp: r.request_date || new Date().toISOString()
+          });
+        }
+      }
+      r.history = hist;
     });
 
     res.json({
@@ -730,6 +842,29 @@ exports.updateRequestStatus = async (req, res) => {
     params.push(id);
 
     const [result] = await masterPool.execute(query, params);
+
+    // Append to audit history
+    const statusLabels = {
+      pending: 'Pending',
+      processing: 'In Processing',
+      ready_to_collect: 'Ready to Collect',
+      closed: 'Closed / Completed',
+      rejected: 'Rejected',
+    };
+    let detailsStr = `Status updated to ${statusLabels[status] || status}.`;
+    if (collect_date) detailsStr += ` Scheduled collection date: ${collect_date}.`;
+    if (admin_note) detailsStr += ` Note: ${admin_note}`;
+
+    await appendRequestHistory(masterPool, id, {
+      action: status === 'ready_to_collect' ? 'READY_TO_COLLECT' : status === 'closed' ? 'CLOSED' : 'STATUS_CHANGED',
+      title: `Status: ${statusLabels[status] || status}`,
+      details: detailsStr,
+      performed_by: {
+        id: req.user?.id || null,
+        name: req.user?.name || req.user?.username || 'Staff/Admin',
+        role: req.user?.role || 'admin',
+      },
+    });
 
     // Send Push Notification
     if (existing[0] && existing[0].student_id) {
@@ -836,6 +971,17 @@ exports.updateServiceRequest = async (req, res) => {
       `UPDATE service_requests SET ${updateFields.join(", ")} WHERE id = ?`,
       params,
     );
+
+    await appendRequestHistory(masterPool, id, {
+      action: 'DATA_UPDATED',
+      title: 'Certificate Data Verified / Updated',
+      details: 'Staff/Admin verified and updated student & certificate issuance fields before printing.',
+      performed_by: {
+        id: req.user?.id || null,
+        name: req.user?.name || req.user?.username || 'Staff/Admin',
+        role: req.user?.role || 'admin',
+      },
+    });
 
     res.json({
       success: true,
@@ -1128,6 +1274,18 @@ exports.downloadCertificate = async (req, res) => {
           "Certificate template not implemented or config missing for this service",
       });
     }
+
+    // Record certificate generation in audit history
+    appendRequestHistory(masterPool, id, {
+      action: 'CERTIFICATE_GENERATED',
+      title: 'Certificate Generated & Printed',
+      details: `Generated official document for ${request.service_name || 'Service'}. Ready for delivery to student.`,
+      performed_by: {
+        id: req.user?.id || null,
+        name: req.user?.name || req.user?.username || (isAdmin ? 'Admin' : 'Student'),
+        role: req.user?.role || (isAdmin ? 'admin' : 'student'),
+      },
+    }).catch(err => console.error("Failed to append download history:", err));
 
     // Send file as inline preview (for printing)
     res.sendFile(
@@ -1648,6 +1806,16 @@ exports.syncFeeStatus = async (req, res) => {
           "UPDATE service_requests SET payment_status = 'paid' WHERE id = ?",
           [reqItem.id],
         );
+        await appendRequestHistory(masterPool, reqItem.id, {
+          action: 'PAYMENT_VERIFIED',
+          title: 'Payment Verified from Fee Portal',
+          details: `Fee payment verified for ₹${reqItem.service_price}. Reference: ${check.reason || 'Paid in Fee Management'}`,
+          performed_by: {
+            id: req.user?.id || null,
+            name: req.user?.name || req.user?.username || (isStudent ? reqItem.student_name : 'Staff/Admin'),
+            role: isStudent ? 'student' : (req.user?.role || 'admin'),
+          },
+        });
         updated.push({
           id: reqItem.id,
           sequence_no: reqItem.sequence_no,

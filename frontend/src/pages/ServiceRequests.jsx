@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { serviceService } from '../services/serviceService';
 import { toast } from 'react-hot-toast';
-import { Clock, CheckCircle, AlertCircle, Calendar, Filter, MessageSquare, ArrowRight, Download, CreditCard, Printer, X, Plus, Search, Settings, ShieldCheck, RefreshCw } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, Calendar, Filter, MessageSquare, ArrowRight, Download, CreditCard, Printer, X, Plus, Search, Settings, ShieldCheck, RefreshCw, History, User, FileText, CheckCircle2, Sparkles } from 'lucide-react';
 import api from '../config/api';
 import useAuthStore from '../store/authStore';
 
@@ -12,6 +12,37 @@ const ServiceRequests = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Summary statistics for dashboard widgets
+    const adminStats = useMemo(() => {
+        const total = requests.length;
+        const pendingPayment = requests.filter(r => r.payment_status === 'pending').length;
+        const processing = requests.filter(r => r.status === 'processing').length;
+        const ready = requests.filter(r => r.status === 'ready_to_collect').length;
+        const closed = requests.filter(r => r.status === 'closed').length;
+        return { total, pendingPayment, processing, ready, closed };
+    }, [requests]);
+
+    // Search & Filter
+    const filteredRequests = useMemo(() => {
+        let list = requests;
+        if (filterStatus) {
+            list = list.filter(r => r.status === filterStatus);
+        }
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase().trim();
+            list = list.filter(r => {
+                const name = (r.student_name || '').toLowerCase();
+                const adm = (r.admission_number || '').toLowerCase();
+                const pin = (r.pin_no || '').toLowerCase();
+                const seq = (r.sequence_no || '').toLowerCase();
+                const sName = (r.service_name || '').toLowerCase();
+                return name.includes(q) || adm.includes(q) || pin.includes(q) || seq.includes(q) || sName.includes(q);
+            });
+        }
+        return list;
+    }, [requests, filterStatus, searchQuery]);
 
     // Service Requests Settings State (Super Admin Only)
     const [settingsModalOpen, setSettingsModalOpen] = useState(false);
@@ -35,6 +66,66 @@ const ServiceRequests = () => {
     const [searchingStudent, setSearchingStudent] = useState(false);
     const [syncingFees, setSyncingFees] = useState(false);
     const [syncingRowId, setSyncingRowId] = useState(null);
+
+    // Lifecycle Audit History Modal State
+    const [historyModalOpen, setHistoryModalOpen] = useState(false);
+    const [historyRequest, setHistoryRequest] = useState(null);
+
+    const getRequestTimeline = (req) => {
+        if (!req) return [];
+        let history = req.history;
+        if (typeof history === 'string') {
+            try { history = JSON.parse(history); } catch (e) { history = []; }
+        }
+        if (!Array.isArray(history) || history.length === 0) {
+            history = [{
+                action: 'CREATED',
+                title: 'Request Initiated',
+                details: `Request created for ${req.service_name || 'Service'}. Initial fee status: ${req.payment_status || 'pending'}.`,
+                performed_by: {
+                    id: req.student_id,
+                    name: req.student_name || 'Student',
+                    role: 'student'
+                },
+                timestamp: req.created_at || req.request_date || new Date().toISOString()
+            }];
+            if (req.payment_status === 'paid') {
+                history.push({
+                    action: 'PAYMENT_VERIFIED',
+                    title: 'Payment Completed',
+                    details: 'Fee payment verified in Fee Management.',
+                    performed_by: { name: 'Fee System', role: 'system' },
+                    timestamp: req.request_date || new Date().toISOString()
+                });
+            }
+            if (req.status === 'processing') {
+                history.push({
+                    action: 'STATUS_CHANGED',
+                    title: 'In Processing',
+                    details: 'Request is currently being processed by staff.',
+                    performed_by: { name: 'Staff/Admin', role: 'admin' },
+                    timestamp: req.request_date || new Date().toISOString()
+                });
+            } else if (req.status === 'ready_to_collect') {
+                history.push({
+                    action: 'READY_TO_COLLECT',
+                    title: 'Ready for Collection',
+                    details: `Scheduled collection date: ${req.collect_date ? new Date(req.collect_date).toLocaleDateString() : 'Ready'}. Note: ${req.admin_note || 'Available at office.'}`,
+                    performed_by: { name: 'Staff/Admin', role: 'admin' },
+                    timestamp: req.collect_date || req.request_date || new Date().toISOString()
+                });
+            } else if (req.status === 'closed') {
+                history.push({
+                    action: 'CLOSED',
+                    title: 'Request Closed & Delivered',
+                    details: 'Certificate issued and delivered to student.',
+                    performed_by: { name: 'Staff/Admin', role: 'admin' },
+                    timestamp: req.request_date || new Date().toISOString()
+                });
+            }
+        }
+        return history;
+    };
 
     // Define Schemas for each Template Type
     // This defines EXACTLY what blanks are shown to the user based on the backend templates
@@ -504,15 +595,39 @@ const ServiceRequests = () => {
         fetchServices();
     }, [filterStatus]);
 
+    const handleDirectStatusUpdate = async (req, newStatus) => {
+        try {
+            await serviceService.updateRequestStatus(req.id, {
+                status: newStatus
+            });
+            const labels = {
+                processing: 'Processing',
+                ready_to_collect: 'Ready to Collect',
+                closed: 'Closed'
+            };
+            toast.success(`Request marked as ${labels[newStatus] || newStatus}`);
+            fetchRequests();
+        } catch (error) {
+            console.error('Status update failed:', error);
+            toast.error(error.response?.data?.message || 'Failed to update request status');
+        }
+    };
+
     const handleUpdateStatus = async () => {
+        if (!selectedRequest?.id) {
+            toast.error('No request selected');
+            return;
+        }
+
         try {
             if (actionType === 'ready') {
-                if (!actionData.collect_date || !actionData.admin_note) {
-                    toast.error('Please provide collect date and notification note');
-                    return;
-                }
+                const collectDate = actionData.collect_date || new Date().toISOString().split('T')[0];
+                const adminNote = (actionData.admin_note || '').trim() || `Your ${selectedRequest.service_name || 'certificate'} is ready for collection.`;
+
                 await serviceService.updateRequestStatus(selectedRequest.id, {
                     status: 'ready_to_collect',
+                    collect_date: collectDate,
+                    admin_note: adminNote,
                     ...actionData
                 });
                 toast.success('Request marked as Ready to Collect');
@@ -534,7 +649,7 @@ const ServiceRequests = () => {
             fetchRequests();
         } catch (error) {
             console.error(error);
-            toast.error('Update failed');
+            toast.error(error.response?.data?.message || 'Update failed');
         }
     };
 
@@ -911,21 +1026,25 @@ const ServiceRequests = () => {
     };
 
     return (
-        <div className="p-6 space-y-6 animate-fade-in relative">
+        <div className="p-4 sm:p-6 space-y-5 sm:space-y-6 animate-fade-in relative pb-12">
+            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-main">Service Requests</h1>
-                    <p className="text-muted-text">Manage student service requests</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-main tracking-tight">Service Requests</h1>
+                    <p className="text-xs sm:text-sm text-muted-text mt-1 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                        <span>Track, verify payments, process, and issue student certificates</span>
+                    </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
                     <button
                         onClick={handleSyncAllFeeStatus}
                         disabled={syncingFees}
-                        className="px-4 py-2 bg-surface text-main border border-border rounded-lg hover:bg-background flex items-center gap-2 font-medium shadow-sm transition-all"
+                        className="px-3.5 py-2 bg-surface text-main border border-border rounded-xl hover:bg-background flex items-center gap-2 text-xs sm:text-sm font-semibold shadow-sm transition-all"
                         title="Sync pending service requests with Fee Portal payments"
                     >
-                        <RefreshCw size={18} className={`text-primary ${syncingFees ? 'animate-spin' : ''}`} />
+                        <RefreshCw size={15} className={`text-primary ${syncingFees ? 'animate-spin' : ''}`} />
                         {syncingFees ? 'Syncing...' : 'Sync Fee Status'}
                     </button>
 
@@ -935,60 +1054,144 @@ const ServiceRequests = () => {
                                 fetchServiceSettings();
                                 setSettingsModalOpen(true);
                             }}
-                            className="px-4 py-2 bg-surface text-main border border-border rounded-lg hover:bg-background flex items-center gap-2 font-medium shadow-sm transition-all"
+                            className="px-3.5 py-2 bg-surface text-main border border-border rounded-xl hover:bg-background flex items-center gap-2 text-xs sm:text-sm font-semibold shadow-sm transition-all"
                             title="Configure Fee Head for Service Requests (Super Admin Only)"
                         >
-                            <Settings size={18} className="text-primary" /> Fee Settings
+                            <Settings size={15} className="text-primary" /> Fee Settings
                         </button>
                     )}
 
                     <button
                         onClick={() => setActionType('create_request')}
-                        className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover flex items-center gap-2 font-medium shadow-sm"
+                        className="px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-hover flex items-center gap-2 text-xs sm:text-sm font-semibold shadow-sm transition-all active:scale-98"
                     >
-                        <Plus size={18} /> Issue Service
+                        <Plus size={16} /> Issue Service
                     </button>
+                </div>
+            </div>
 
-                    <div className="flex items-center gap-2 bg-surface p-1 rounded-lg border border-border">
-                        <Filter size={16} className="text-muted-text ml-2" />
-                        <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className="bg-transparent border-none text-sm font-medium focus:ring-0 text-sub py-1"
-                        >
-                            <option value="">All Status</option>
-                            <option value="pending">Pending</option>
-                            <option value="processing">Processing</option>
-                            <option value="ready_to_collect">Ready to Collect</option>
-                            <option value="closed">Closed</option>
-                        </select>
+            {/* Dashboard Overview Stat Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                    <p className="text-xs font-medium text-muted-text uppercase tracking-wider">Total Requests</p>
+                    <div className="flex items-center justify-between mt-1">
+                        <h3 className="text-xl sm:text-2xl font-bold text-main font-mono">{adminStats.total}</h3>
+                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
+                            <FileText size={18} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                    <p className="text-xs font-medium text-muted-text uppercase tracking-wider">Pending Fee</p>
+                    <div className="flex items-center justify-between mt-1">
+                        <h3 className="text-xl sm:text-2xl font-bold text-danger font-mono">{adminStats.pendingPayment}</h3>
+                        <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-danger flex items-center justify-center font-bold">
+                            <CreditCard size={18} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                    <p className="text-xs font-medium text-muted-text uppercase tracking-wider">In Processing</p>
+                    <div className="flex items-center justify-between mt-1">
+                        <h3 className="text-xl sm:text-2xl font-bold text-primary font-mono">{adminStats.processing}</h3>
+                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-primary flex items-center justify-center font-bold">
+                            <Clock size={18} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                    <p className="text-xs font-medium text-muted-text uppercase tracking-wider">Ready to Collect</p>
+                    <div className="flex items-center justify-between mt-1">
+                        <h3 className="text-xl sm:text-2xl font-bold text-purple-600 font-mono">{adminStats.ready}</h3>
+                        <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center font-bold">
+                            <Calendar size={18} />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all col-span-2 sm:col-span-1">
+                    <p className="text-xs font-medium text-muted-text uppercase tracking-wider">Completed / Closed</p>
+                    <div className="flex items-center justify-between mt-1">
+                        <h3 className="text-xl sm:text-2xl font-bold text-success font-mono">{adminStats.closed}</h3>
+                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
+                            <CheckCircle2 size={18} />
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-surface rounded-xl shadow-sm border border-border overflow-hidden">
+            {/* Search & Filter Toolbar */}
+            <div className="bg-surface border border-border rounded-2xl p-3 sm:p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="relative w-full sm:w-96">
+                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-text" />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search student, admission, roll no, sequence..."
+                        className="w-full pl-9 pr-8 py-2 bg-background border border-border rounded-xl text-xs sm:text-sm text-main placeholder-muted-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
+                    />
+                    {searchQuery && (
+                        <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-text hover:text-main">
+                            <X size={14} />
+                        </button>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                    <div className="flex items-center gap-2 bg-background px-3 py-1.5 rounded-xl border border-border">
+                        <Filter size={15} className="text-muted-text" />
+                        <select
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value)}
+                            className="bg-transparent border-none text-xs sm:text-sm font-semibold focus:ring-0 text-main py-0 cursor-pointer outline-none"
+                        >
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="ready_to_collect">Ready to Collect</option>
+                            <option value="closed">Closed / Delivered</option>
+                        </select>
+                    </div>
+
+                    <div className="text-xs text-muted-text font-medium whitespace-nowrap">
+                        Showing {filteredRequests.length} request(s)
+                    </div>
+                </div>
+            </div>
+
+            <div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left whitespace-nowrap">
-                        <thead className="bg-background text-muted-text text-xs uppercase tracking-wider">
+                        <thead className="bg-background/70 text-muted-text text-xs font-semibold uppercase tracking-wider border-b border-border">
                             <tr>
-                                <th className="px-6 py-4">Request Info</th>
-                                <th className="px-6 py-4">Student</th>
-                                <th className="px-6 py-4">Mobile</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4">Payment</th>
-                                <th className="px-6 py-4">Dates</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
+                                <th className="px-5 py-3.5">Request Info</th>
+                                <th className="px-5 py-3.5">Student</th>
+                                <th className="px-5 py-3.5">Mobile</th>
+                                <th className="px-5 py-3.5">Status</th>
+                                <th className="px-5 py-3.5">Payment</th>
+                                <th className="px-5 py-3.5">Dates</th>
+                                <th className="px-5 py-3.5 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-border">
+                        <tbody className="divide-y divide-border/60 text-sm">
                             {loading ? (
-                                <tr><td colSpan="5" className="p-8 text-center">Loading...</td></tr>
-                            ) : requests.length === 0 ? (
-                                <tr><td colSpan="5" className="p-8 text-center text-muted-text">No requests found</td></tr>
+                                <tr><td colSpan="7" className="p-12 text-center text-muted-text">Loading requests...</td></tr>
+                            ) : filteredRequests.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="p-16 text-center text-muted-text">
+                                        <FileText size={36} className="mx-auto text-muted-text/50 mb-3" />
+                                        <h3 className="font-bold text-main text-base mb-1">No service requests found</h3>
+                                        <p className="text-xs text-muted-text">Try adjusting your status filter or search query.</p>
+                                    </td>
+                                </tr>
                             ) : (
-                                requests.map((req) => (
-                                    <tr key={req.id} className="hover:bg-background">
-                                        <td className="px-6 py-4">
+                                filteredRequests.map((req) => (
+                                    <tr key={req.id} className="hover:bg-background/50 transition-colors">
+                                        <td className="px-5 py-4">
                                             <div className="flex flex-col gap-1">
                                                 <span className="font-semibold text-main">{req.service_name}</span>
                                                 <div className="flex items-center gap-2">
@@ -999,20 +1202,20 @@ const ServiceRequests = () => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-5 py-4">
                                             <div className="flex flex-col">
                                                 <span className="font-medium text-main">{req.student_name}</span>
                                                 <span className="text-xs text-muted-text">{req.pin_no ? `${req.pin_no} (${req.admission_number})` : req.admission_number} | {req.course}-{req.branch}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-sm text-muted-text">
+                                        <td className="px-5 py-4 text-xs text-muted-text font-mono">
                                             {req.student_mobile || '-'}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-5 py-4">
                                             {getStatusBadge(req.status)}
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${req.payment_status === 'paid' ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--danger-light)] text-danger'}`}>
+                                        <td className="px-5 py-4">
+                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${req.payment_status === 'paid' ? 'bg-[var(--success-light)] text-success border border-success/20' : 'bg-[var(--danger-light)] text-danger border border-danger/20'}`}>
                                                 {req.payment_status || 'pending'}
                                             </span>
                                         </td>
@@ -1024,6 +1227,17 @@ const ServiceRequests = () => {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setHistoryRequest(req);
+                                                        setHistoryModalOpen(true);
+                                                    }}
+                                                    className="px-2.5 py-1.5 bg-surface text-sub border border-border text-xs font-semibold rounded hover:bg-background flex items-center gap-1 transition-all"
+                                                    title="View lifecycle history & audit log"
+                                                >
+                                                    <History size={12} />
+                                                    History
+                                                </button>
                                                 {req.payment_status !== 'paid' ? (
                                                     <button
                                                         onClick={() => handleSyncSingleFeeStatus(req.id)}
@@ -1045,8 +1259,9 @@ const ServiceRequests = () => {
                                                         </button>
                                                         {req.status === 'pending' && (
                                                             <button
-                                                                onClick={() => { setSelectedRequest(req); setActionType('processing'); handleUpdateStatus(); }}
-                                                                className="px-3 py-1.5 bg-[var(--primary-light)] text-primary text-xs font-semibold rounded hover:bg-[var(--primary-light)]"
+                                                                onClick={() => handleDirectStatusUpdate(req, 'processing')}
+                                                                className="px-3 py-1.5 bg-[var(--primary-light)] text-primary text-xs font-semibold rounded hover:bg-[var(--primary-light)] flex items-center gap-1"
+                                                                title="Mark request as Processing"
                                                             >
                                                                 Process
                                                             </button>
@@ -1055,14 +1270,16 @@ const ServiceRequests = () => {
                                                             <button
                                                                 onClick={() => openActionModal(req, 'ready')}
                                                                 className="px-3 py-1.5 bg-[var(--primary-light)] text-secondary text-xs font-semibold rounded hover:bg-[var(--primary-light)] flex items-center gap-1"
+                                                                title="Mark certificate as Ready to Collect"
                                                             >
                                                                 Mark Ready
                                                             </button>
                                                         )}
-                                                        {req.status === 'ready_to_collect' && (
+                                                        {(req.status === 'ready_to_collect' || req.status === 'processing') && (
                                                             <button
                                                                 onClick={() => { setSelectedRequest(req); setActionType('close'); }}
                                                                 className="px-3 py-1.5 bg-[var(--success-light)] text-success text-xs font-semibold rounded hover:bg-[var(--success-light)] flex items-center gap-1"
+                                                                title="Mark request as Closed / Completed"
                                                             >
                                                                 Close
                                                             </button>
@@ -1600,6 +1817,144 @@ const ServiceRequests = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Request Lifecycle & Audit History Modal */}
+            {historyModalOpen && historyRequest && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-surface rounded-2xl w-full max-w-2xl p-0 shadow-2xl border border-border overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
+                        {/* Modal Header */}
+                        <div className="p-6 border-b border-border bg-background/60 flex items-center justify-between">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                    <span className="font-mono text-sm font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
+                                        {historyRequest.sequence_no || `SR-${new Date(historyRequest.created_at || historyRequest.request_date || Date.now()).getFullYear()}-${String(historyRequest.id).padStart(4, '0')}`}
+                                    </span>
+                                    <span className="text-xs text-muted-text">#{historyRequest.id}</span>
+                                    {getStatusBadge(historyRequest.status)}
+                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${historyRequest.payment_status === 'paid' ? 'bg-[var(--success-light)] text-success' : 'bg-[var(--danger-light)] text-danger'}`}>
+                                        Fee: {historyRequest.payment_status || 'pending'}
+                                    </span>
+                                </div>
+                                <h2 className="text-xl font-bold text-main flex items-center gap-2">
+                                    <History className="text-primary" size={20} />
+                                    Lifecycle & Audit History
+                                </h2>
+                                <p className="text-xs text-muted-text mt-1">
+                                    Service: <strong className="text-main">{historyRequest.service_name}</strong> • Student: <strong className="text-main">{historyRequest.student_name}</strong> ({historyRequest.admission_number || historyRequest.pin_no || 'N/A'})
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => { setHistoryModalOpen(false); setHistoryRequest(null); }}
+                                className="p-2 text-muted-text hover:text-main hover:bg-background rounded-lg transition"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Modal Body / Timeline */}
+                        <div className="p-6 overflow-y-auto space-y-6 flex-1">
+                            {(() => {
+                                const timeline = getRequestTimeline(historyRequest);
+                                if (timeline.length === 0) {
+                                    return (
+                                        <div className="py-12 text-center text-muted-text">
+                                            No history recorded for this request.
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <div className="relative pl-6 space-y-6 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
+                                        {timeline.map((event, idx) => {
+                                            const action = event.action || '';
+                                            let icon = <Clock size={14} className="text-amber-500" />;
+                                            let badgeColor = 'bg-amber-500/10 border-amber-500/30 text-amber-500';
+
+                                            if (action.includes('CREATED')) {
+                                                icon = <Plus size={14} className="text-blue-500" />;
+                                                badgeColor = 'bg-blue-500/10 border-blue-500/30 text-blue-500';
+                                            } else if (action === 'PAYMENT_VERIFIED') {
+                                                icon = <CreditCard size={14} className="text-emerald-500" />;
+                                                badgeColor = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500';
+                                            } else if (action === 'READY_TO_COLLECT') {
+                                                icon = <Calendar size={14} className="text-purple-500" />;
+                                                badgeColor = 'bg-purple-500/10 border-purple-500/30 text-purple-500';
+                                            } else if (action === 'DATA_UPDATED') {
+                                                icon = <FileText size={14} className="text-cyan-500" />;
+                                                badgeColor = 'bg-cyan-500/10 border-cyan-500/30 text-cyan-500';
+                                            } else if (action === 'CERTIFICATE_GENERATED') {
+                                                icon = <Printer size={14} className="text-indigo-500" />;
+                                                badgeColor = 'bg-indigo-500/10 border-indigo-500/30 text-indigo-500';
+                                            } else if (action === 'CLOSED') {
+                                                icon = <CheckCircle size={14} className="text-emerald-500" />;
+                                                badgeColor = 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500';
+                                            }
+
+                                            const dateStr = event.timestamp
+                                                ? new Date(event.timestamp).toLocaleString(undefined, {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                    second: '2-digit',
+                                                })
+                                                : 'Recent';
+
+                                            return (
+                                                <div key={idx} className="relative group">
+                                                    {/* Dot / Icon */}
+                                                    <div className={`absolute -left-[30px] top-1.5 w-6 h-6 rounded-full border flex items-center justify-center bg-surface shadow-sm ${badgeColor}`}>
+                                                        {icon}
+                                                    </div>
+
+                                                    {/* Content Box */}
+                                                    <div className="bg-background/80 p-4 rounded-xl border border-border hover:border-primary/40 transition">
+                                                        <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                                                            <h4 className="font-bold text-main text-sm flex items-center gap-1.5">
+                                                                {event.title || 'Event Logged'}
+                                                            </h4>
+                                                            <span className="text-[11px] font-mono text-muted-text">
+                                                                {dateStr}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-2 mb-2 text-xs text-muted-text">
+                                                            <User size={12} className="text-sub" />
+                                                            <span>By:</span>
+                                                            <strong className="text-main font-semibold">
+                                                                {event.performed_by?.name || 'Staff/Admin'}
+                                                            </strong>
+                                                            <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-muted-text/10 text-sub">
+                                                                {event.performed_by?.role || 'admin'}
+                                                            </span>
+                                                        </div>
+
+                                                        {event.details && (
+                                                            <div className="text-xs text-sub bg-surface p-2.5 rounded-lg border border-border/60">
+                                                                {event.details}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-4 border-t border-border bg-background/50 flex justify-end">
+                            <button
+                                onClick={() => { setHistoryModalOpen(false); setHistoryRequest(null); }}
+                                className="px-5 py-2 bg-surface text-main border border-border hover:bg-background rounded-lg text-sm font-semibold transition"
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

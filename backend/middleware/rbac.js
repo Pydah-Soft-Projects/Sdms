@@ -402,12 +402,13 @@ const verifyCanCreateRole = (req, res, next) => {
     return next();
   }
 
-  const canCreateFacultyFromClubRole = req.clubRoleUserCreationAccess &&
-    String(targetRole).trim().toLowerCase() === USER_ROLES.FACULTY;
+  const CLUB_ADMIN_CREATABLE_ROLES = [USER_ROLES.FACULTY, 'club_admin', 'faculty', 'head_student_clubs'];
+  const canCreateClubRole = req.clubRoleUserCreationAccess &&
+    CLUB_ADMIN_CREATABLE_ROLES.includes(String(targetRole).trim().toLowerCase());
   const isInvalidClubRoleCreation = req.clubRoleUserCreationAccess &&
     !req.userManagementControl &&
-    !canCreateFacultyFromClubRole;
-  if (isInvalidClubRoleCreation || (!canCreateRole(effectiveRole, targetRole) && !canCreateFacultyFromClubRole)) {
+    !canCreateClubRole;
+  if (isInvalidClubRoleCreation || (!canCreateRole(effectiveRole, targetRole) && !canCreateClubRole)) {
     return res.status(403).json({
       success: false,
       message: `You do not have permission to create users with role: ${targetRole}`

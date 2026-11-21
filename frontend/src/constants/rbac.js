@@ -474,11 +474,15 @@ export const ROLE_LABELS = {
   course_hod: 'Course HOD',
   branch_clerk: 'Branch Clerk',
   branch_counselor: 'Branch Counselor',
-  support_staff: 'Support Staff'
+  support_staff: 'Support Staff',
+  club_admin: 'Club Admin',
+  head_student_clubs: 'Head Student Clubs'
 };
 
 // Role Colors for UI
 export const ROLE_COLORS = {
+  club_admin: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  head_student_clubs: 'bg-amber-50 text-amber-700 border-amber-200',
   [USER_ROLES.SUPER_ADMIN]: 'bg-rose-50 text-rose-700 border-rose-200',
   [USER_ROLES.ADMIN]: 'bg-rose-50 text-rose-700 border-rose-200',
   [USER_ROLES.COLLEGE_PRINCIPAL]: 'bg-indigo-50 text-indigo-700 border-indigo-200',

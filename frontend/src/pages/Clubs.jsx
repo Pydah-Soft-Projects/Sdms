@@ -36,20 +36,9 @@ const getPagePermissions = (assignment = {}) => {
 const pagesFromPermissions = permissions => CLUB_ADMIN_PAGES
     .map(page => page.key)
     .filter(key => permissions[key]?.read || permissions[key]?.write);
-const DEFAULT_USER_ROLE_OPTIONS = [
-    { value: 'college_principal', label: 'College Principal' },
-    { value: 'college_ao', label: 'College AO' },
-    { value: 'college_attender', label: 'College Attender' },
-    { value: 'branch_hod', label: 'Branch HOD' },
-    { value: 'office_assistant', label: 'Office Assistant' },
-    { value: 'cashier', label: 'Cashier' },
-    { value: 'faculty', label: 'Faculty' },
-    { value: 'course_principal', label: 'Course Principal' },
-    { value: 'course_hod', label: 'Course HOD' },
-    { value: 'branch_clerk', label: 'Branch Clerk' },
-    { value: 'branch_counselor', label: 'Branch Counselor' },
-    { value: 'branch_faculty', label: 'Branch Faculty' },
-    { value: 'support_staff', label: 'Support Staff' }
+const CLUB_ADMIN_USER_ROLE_OPTIONS = [
+    { value: 'club_admin', label: 'Club Admin' },
+    { value: 'faculty', label: 'Faculty' }
 ];
 const formatMembershipFee = (amount) => new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -661,10 +650,12 @@ const Clubs = ({ initialSubPage }) => {
     // Inline Create User Form Data (for HRMS employee without SDMS user account)
     // Uses HRMS credentials — no manual password needed
     const [collegesList, setCollegesList] = useState([]);
-    const [createUserRoleOptions, setCreateUserRoleOptions] = useState(DEFAULT_USER_ROLE_OPTIONS);
-    const effectiveCreateUserRoleOptions = hasUserManagementControl
-        ? createUserRoleOptions
-        : (canCreateUserAccounts ? [{ value: 'faculty', label: 'Faculty' }] : []);
+    const [createUserRoleOptions, setCreateUserRoleOptions] = useState(CLUB_ADMIN_USER_ROLE_OPTIONS);
+    const effectiveCreateUserRoleOptions = createUserRoleOptions.filter(role =>
+        ['club_admin', 'faculty', 'head_student_clubs'].includes(role.value || role.role_key)
+    ).length > 0
+        ? createUserRoleOptions.filter(role => ['club_admin', 'faculty', 'head_student_clubs'].includes(role.value || role.role_key))
+        : CLUB_ADMIN_USER_ROLE_OPTIONS;
     const [createUserCourses, setCreateUserCourses] = useState([]);
     const [createUserBranches, setCreateUserBranches] = useState([]);
     const [loadingCreateUserCourses, setLoadingCreateUserCourses] = useState(false);
@@ -673,7 +664,7 @@ const Clubs = ({ initialSubPage }) => {
         name: '',
         email: '',
         phone: '',
-        role: 'faculty',
+        role: 'club_admin',
         college_id: '',
         collegeIds: [],
         courseIds: [],
@@ -708,7 +699,12 @@ const Clubs = ({ initialSubPage }) => {
         api.get('/rbac/users/roles/available')
             .then(r => {
                 if (r.data?.success && Array.isArray(r.data?.data) && r.data.data.length > 0) {
-                    setCreateUserRoleOptions(r.data.data);
+                    const clubRolesOnly = r.data.data.filter(role =>
+                        ['club_admin', 'faculty', 'head_student_clubs'].includes(role.value || role.role_key)
+                    );
+                    if (clubRolesOnly.length > 0) {
+                        setCreateUserRoleOptions(clubRolesOnly);
+                    }
                 }
             })
             .catch(() => {});
@@ -893,11 +889,12 @@ const Clubs = ({ initialSubPage }) => {
         }
         if (!selectedHrmsEmployee) return;
         const defaultCol = collegesList.length > 0 ? collegesList[0].id : '';
+        const defaultRole = effectiveCreateUserRoleOptions[0]?.value || 'club_admin';
         setCreateUserForm({
             name: selectedHrmsEmployee.name || '',
             email: selectedHrmsEmployee.email && !selectedHrmsEmployee.email.includes('@hrms') ? selectedHrmsEmployee.email : `${selectedHrmsEmployee.emp_no}@pydah.edu.in`,
             phone: selectedHrmsEmployee.phone || '',
-            role: 'faculty',
+            role: defaultRole,
             college_id: defaultCol,
             collegeIds: defaultCol ? [String(defaultCol)] : [],
             courseIds: [],
@@ -3498,7 +3495,7 @@ const Clubs = ({ initialSubPage }) => {
                             className="mt-0.5 rounded border-border-strong text-primary focus:ring-primary"
                         />
                         <span>
-                            <span className="block font-semibold text-main">Allow assigned club admins to create Faculty user accounts</span>
+                            <span className="block font-semibold text-main">Allow assigned club admins to create Club Admin / Faculty user accounts</span>
                             <span className="mt-0.5 block text-[11px] text-muted-text">This grants access to the SDMS account creation popup for HRMS employees.</span>
                         </span>
                     </label>
@@ -3566,7 +3563,7 @@ const Clubs = ({ initialSubPage }) => {
                             <label className="font-bold text-sub">System Role *</label>
                             <select
                                 value={createUserForm.role}
-                                disabled={!hasUserManagementControl}
+                                disabled={!canCreateUserAccounts}
                                 onChange={(e) => setCreateUserForm(prev => ({
                                     ...prev,
                                     role: e.target.value,

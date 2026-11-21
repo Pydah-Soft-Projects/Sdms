@@ -926,16 +926,17 @@ exports.createUser = async (req, res) => {
     // Check if creator can create this role (super_admin may also create custom roles from role config)
     const normalizedCreatorRole = String(creator.role || '').trim().toLowerCase();
     const effectiveCreatorRole = normalizedCreatorRole === 'admin' ? USER_ROLES.SUPER_ADMIN : normalizedCreatorRole;
-    const canCreateFacultyFromClubRole = req.clubRoleUserCreationAccess &&
-      String(role).trim().toLowerCase() === USER_ROLES.FACULTY;
-    if (req.clubRoleUserCreationAccess && !req.userManagementControl && !canCreateFacultyFromClubRole) {
+    const CLUB_ADMIN_CREATABLE_ROLES = [USER_ROLES.FACULTY, 'club_admin', 'faculty', 'head_student_clubs'];
+    const canCreateClubRole = req.clubRoleUserCreationAccess &&
+      CLUB_ADMIN_CREATABLE_ROLES.includes(String(role).trim().toLowerCase());
+    if (req.clubRoleUserCreationAccess && !req.userManagementControl && !canCreateClubRole) {
       return res.status(403).json({
         success: false,
-        message: 'Club role user creation access can only create Faculty accounts'
+        message: 'Club role user creation access can only create Club Admin and Faculty accounts'
       });
     }
     const canCreate = canCreateRole(effectiveCreatorRole, role) ||
-      canCreateFacultyFromClubRole ||
+      canCreateClubRole ||
       (isSuperAdmin(creator) && (await roleExistsInConfig(role)));
     if (!canCreate) {
       return res.status(403).json({

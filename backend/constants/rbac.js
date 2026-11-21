@@ -38,7 +38,17 @@ const ROLE_HIERARCHY = {
     USER_ROLES.BRANCH_CLERK,
     USER_ROLES.BRANCH_COUNSELOR,
     USER_ROLES.BRANCH_FACULTY,
-    USER_ROLES.SUPPORT_STAFF
+    USER_ROLES.SUPPORT_STAFF,
+    'club_admin',
+    'head_student_clubs'
+  ],
+  head_student_clubs: [
+    'club_admin',
+    USER_ROLES.FACULTY
+  ],
+  club_admin: [
+    'club_admin',
+    USER_ROLES.FACULTY
   ],
   [USER_ROLES.COLLEGE_PRINCIPAL]: [
     USER_ROLES.COLLEGE_AO,
@@ -705,7 +715,9 @@ const ROLE_LABELS = {
   branch_clerk: 'Branch Clerk',
   branch_counselor: 'Branch Counselor',
   branch_faculty: 'Branch Faculty',
-  support_staff: 'Support Staff'
+  support_staff: 'Support Staff',
+  club_admin: 'Club Admin',
+  head_student_clubs: 'Head Student Clubs'
 };
 
 module.exports = {

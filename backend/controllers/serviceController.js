@@ -11,7 +11,8 @@ const {
   getServiceSettingsFromDb,
   saveServiceSettingsToDb,
   createServiceFeeDemand,
-  checkFeePaymentStatus
+  checkFeePaymentStatus,
+  cancelServiceFeeDemand
 } = require("../services/serviceFeeConfig");
 
 // Helper to check admin/staff privilege (supports admin, super_admin, subadmin, etc.)
@@ -347,7 +348,14 @@ exports.deleteServiceRequest = async (req, res) => {
             });
         }
 
-        // 4. Delete from MySQL
+        // 4. Deactivate fee demand in MongoDB Fee Portal if any
+        await cancelServiceFeeDemand({
+            requestId: id,
+            sequenceNo: request.sequence_no,
+            reason: req.body?.reason || 'Cancelled/Deleted by student'
+        });
+
+        // 5. Delete from MySQL
         await masterPool.execute('DELETE FROM service_requests WHERE id = ?', [id]);
 
         res.json({ success: true, message: 'Request deleted successfully' });
@@ -777,6 +785,14 @@ exports.getServiceRequests = async (req, res) => {
             performed_by: { name: 'Staff/Admin', role: 'admin' },
             timestamp: r.request_date || new Date().toISOString()
           });
+        } else if (r.status === 'cancelled') {
+          hist.push({
+            action: 'CANCELLED',
+            title: 'Request Cancelled',
+            details: `Request cancelled. Reason: ${r.admin_note || 'Cancelled before payment.'}`,
+            performed_by: { name: 'Staff/Admin', role: 'admin' },
+            timestamp: r.updated_at || r.request_date || new Date().toISOString()
+          });
         }
       }
       r.history = hist;
@@ -796,11 +812,11 @@ exports.getServiceRequests = async (req, res) => {
 exports.updateRequestStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, collect_date, admin_note, ...otherUpdates } = req.body;
+    const { status, collect_date, admin_note, reason, ...otherUpdates } = req.body;
 
     // Fetch current request data to merge JSON, and get student/service info for notification
     const [existing] = await masterPool.execute(
-      "SELECT sr.request_data, sr.student_id, sr.payment_status, s.name as service_name, s.price as service_price FROM service_requests sr LEFT JOIN services s ON sr.service_id = s.id WHERE sr.id = ?",
+      "SELECT sr.request_data, sr.student_id, sr.payment_status, sr.sequence_no, s.name as service_name, s.price as service_price FROM service_requests sr LEFT JOIN services s ON sr.service_id = s.id WHERE sr.id = ?",
       [id],
     );
 
@@ -810,7 +826,66 @@ exports.updateRequestStatus = async (req, res) => {
         .json({ success: false, message: "Request not found" });
     }
 
-    // Block all status updates if fee is pending
+    const cancellationReason = (admin_note || reason || req.body?.cancellation_reason || '').trim();
+
+    // Cancellation Handling
+    if (status === 'cancelled') {
+      if (!cancellationReason) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cancellation reason is mandatory when cancelling a request.'
+        });
+      }
+
+      if (existing[0].payment_status === 'paid') {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot cancel request: Fee payment has already been received.'
+        });
+      }
+
+      // 1. Update status to cancelled in MySQL
+      await masterPool.execute(
+        "UPDATE service_requests SET status = 'cancelled', admin_note = ? WHERE id = ?",
+        [cancellationReason, id]
+      );
+
+      // 2. Mark fee demand in MongoDB Fee Portal as inactive
+      await cancelServiceFeeDemand({
+        requestId: id,
+        sequenceNo: existing[0].sequence_no,
+        reason: cancellationReason
+      });
+
+      // 3. Append to Audit Log History
+      await appendRequestHistory(masterPool, id, {
+        action: 'CANCELLED',
+        title: 'Request Cancelled',
+        details: `Request cancelled. Reason: ${cancellationReason}`,
+        performed_by: {
+          id: req.user?.id || null,
+          name: req.user?.name || req.user?.username || 'Staff/Admin',
+          role: req.user?.role || 'admin',
+        },
+      });
+
+      // 4. Send Push Notification to Student
+      if (existing[0] && existing[0].student_id) {
+        sendNotificationToUser(existing[0].student_id, {
+          title: "Service Request Cancelled",
+          body: `Your request for ${existing[0].service_name || 'Service'} has been cancelled. Reason: ${cancellationReason}`,
+          icon: "/icon-192x192.png",
+          data: { url: "/student/services" }
+        }).catch(err => console.error("Notification send error:", err));
+      }
+
+      return res.json({
+        success: true,
+        message: 'Request cancelled successfully and fee demand marked inactive in Fee Portal.'
+      });
+    }
+
+    // Block all other status updates (processing, ready_to_collect, closed) if fee is pending
     const serviceFee = Number(existing[0].service_price || 0);
     if (existing[0].payment_status !== 'paid' && serviceFee > 0) {
       return res.status(400).json({
@@ -1767,6 +1842,19 @@ exports.syncFeeStatus = async (req, res) => {
     const { requestId } = req.body;
     const isStudent = req.user && (req.user.role === 'student' || (!req.user.isAdmin && !req.user.role));
 
+    if (requestId) {
+      const [targetReq] = await masterPool.execute(
+        "SELECT status FROM service_requests WHERE id = ?",
+        [requestId]
+      );
+      if (targetReq.length > 0 && targetReq[0].status === 'cancelled') {
+        return res.status(400).json({
+          success: false,
+          message: "Cancelled requests cannot be synced with the Fee Portal."
+        });
+      }
+    }
+
     let query = `
       SELECT sr.id, sr.student_id, sr.service_id, sr.sequence_no, sr.status, sr.payment_status, sr.created_at,
              s.name as service_name, s.price as service_price,
@@ -1774,7 +1862,7 @@ exports.syncFeeStatus = async (req, res) => {
       FROM service_requests sr
       JOIN services s ON sr.service_id = s.id
       JOIN students st ON sr.student_id = st.id
-      WHERE sr.payment_status = 'pending'
+      WHERE sr.payment_status = 'pending' AND sr.status NOT IN ('cancelled', 'rejected')
     `;
     const params = [];
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { serviceService } from '../services/serviceService';
 import { toast } from 'react-hot-toast';
-import { Clock, CheckCircle, AlertCircle, Calendar, Filter, MessageSquare, ArrowRight, Download, CreditCard, Printer, X, Plus, Search, Settings, ShieldCheck, RefreshCw, History, User, FileText, CheckCircle2, Sparkles } from 'lucide-react';
+import { Clock, CheckCircle, AlertCircle, Calendar, Filter, MessageSquare, ArrowRight, Download, CreditCard, Printer, X, Plus, Search, Settings, ShieldCheck, RefreshCw, History, User, FileText, CheckCircle2, Sparkles, XCircle } from 'lucide-react';
 import api from '../config/api';
 import useAuthStore from '../store/authStore';
 
@@ -11,6 +11,7 @@ const ServiceRequests = () => {
 
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [viewTab, setViewTab] = useState('active'); // 'active' | 'cancelled' | 'all'
     const [filterStatus, setFilterStatus] = useState('');
     const [filterCourse, setFilterCourse] = useState('');
     const [filterBranch, setFilterBranch] = useState('');
@@ -37,11 +38,13 @@ const ServiceRequests = () => {
     // Summary statistics for dashboard widgets
     const adminStats = useMemo(() => {
         const total = requests.length;
-        const pendingPayment = requests.filter(r => r.payment_status === 'pending').length;
+        const active = requests.filter(r => r.status !== 'cancelled').length;
+        const pendingPayment = requests.filter(r => r.payment_status === 'pending' && r.status !== 'cancelled').length;
         const processing = requests.filter(r => r.status === 'processing').length;
         const ready = requests.filter(r => r.status === 'ready_to_collect').length;
         const closed = requests.filter(r => r.status === 'closed').length;
-        return { total, pendingPayment, processing, ready, closed };
+        const cancelled = requests.filter(r => r.status === 'cancelled').length;
+        return { total, active, pendingPayment, processing, ready, closed, cancelled };
     }, [requests]);
 
     // Available courses list (merged from coursesList API + active requests)
@@ -93,6 +96,11 @@ const ServiceRequests = () => {
     // Comprehensive Search & Multi-Filter Logic
     const filteredRequests = useMemo(() => {
         let list = requests;
+        if (viewTab === 'active') {
+            list = list.filter(r => r.status !== 'cancelled');
+        } else if (viewTab === 'cancelled') {
+            list = list.filter(r => r.status === 'cancelled');
+        }
         if (filterStatus) {
             list = list.filter(r => r.status === filterStatus);
         }
@@ -122,7 +130,7 @@ const ServiceRequests = () => {
             });
         }
         return list;
-    }, [requests, filterStatus, filterCourse, filterBranch, filterYear, filterSemester, searchQuery]);
+    }, [requests, viewTab, filterStatus, filterCourse, filterBranch, filterYear, filterSemester, searchQuery]);
 
     // Service Requests Settings State (Super Admin Only)
     const [settingsModalOpen, setSettingsModalOpen] = useState(false);
@@ -150,6 +158,7 @@ const ServiceRequests = () => {
     // Lifecycle Audit History Modal State
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
     const [historyRequest, setHistoryRequest] = useState(null);
+    const [cancelReason, setCancelReason] = useState('');
 
     const getRequestTimeline = (req) => {
         if (!req) return [];
@@ -201,6 +210,14 @@ const ServiceRequests = () => {
                     details: 'Certificate issued and delivered to student.',
                     performed_by: { name: 'Staff/Admin', role: 'admin' },
                     timestamp: req.request_date || new Date().toISOString()
+                });
+            } else if (req.status === 'cancelled') {
+                history.push({
+                    action: 'CANCELLED',
+                    title: 'Request Cancelled',
+                    details: `Request cancelled. Reason: ${req.admin_note || 'Cancelled before payment.'}`,
+                    performed_by: { name: 'Staff/Admin', role: 'admin' },
+                    timestamp: req.updated_at || req.request_date || new Date().toISOString()
                 });
             }
         }
@@ -721,11 +738,23 @@ const ServiceRequests = () => {
                     status: 'processing'
                 });
                 toast.success('Request marked as Processing');
+            } else if (actionType === 'cancel') {
+                if (!cancelReason || !cancelReason.trim()) {
+                    toast.error('Please enter a cancellation reason (mandatory)');
+                    return;
+                }
+                await serviceService.updateRequestStatus(selectedRequest.id, {
+                    status: 'cancelled',
+                    reason: cancelReason.trim(),
+                    admin_note: cancelReason.trim()
+                });
+                toast.success('Request cancelled and fee demand marked inactive in Fee Portal');
             }
 
             setSelectedRequest(null);
             setActionType(null);
             setActionData({ collect_date: '', admin_note: '' });
+            setCancelReason('');
             fetchRequests();
         } catch (error) {
             console.error(error);
@@ -1096,11 +1125,12 @@ const ServiceRequests = () => {
             processing: 'bg-[var(--primary-light)] text-primary',
             ready_to_collect: 'bg-[var(--primary-light)] text-secondary',
             closed: 'bg-[var(--success-light)] text-success',
-            rejected: 'bg-[var(--danger-light)] text-danger'
+            rejected: 'bg-[var(--danger-light)] text-danger',
+            cancelled: 'bg-[var(--danger-light)] text-danger',
         };
         return (
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase ${styles[status] || 'bg-background'}`}>
-                {status.replace(/_/g, ' ')}
+                {status ? status.replace(/_/g, ' ') : 'Unknown'}
             </span>
         );
     };
@@ -1151,8 +1181,12 @@ const ServiceRequests = () => {
             </div>
 
             {/* Dashboard Overview Stat Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+                <div
+                    onClick={() => { setViewTab('all'); setFilterStatus(''); }}
+                    className={`bg-surface border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${viewTab === 'all' && !filterStatus ? 'ring-2 ring-primary border-primary' : 'border-border'}`}
+                    title="View all requests"
+                >
                     <p className="text-xs font-medium text-muted-text uppercase tracking-wider">Total Requests</p>
                     <div className="flex items-center justify-between mt-1">
                         <h3 className="text-xl sm:text-2xl font-bold text-main font-mono">{adminStats.total}</h3>
@@ -1162,7 +1196,25 @@ const ServiceRequests = () => {
                     </div>
                 </div>
 
-                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                <div
+                    onClick={() => { setViewTab('active'); setFilterStatus(''); }}
+                    className={`bg-surface border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${viewTab === 'active' && !filterStatus ? 'ring-2 ring-primary border-primary' : 'border-border'}`}
+                    title="View all active requests"
+                >
+                    <p className="text-xs font-medium text-muted-text uppercase tracking-wider">Active Requests</p>
+                    <div className="flex items-center justify-between mt-1">
+                        <h3 className="text-xl sm:text-2xl font-bold text-primary font-mono">{adminStats.active}</h3>
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                            <CheckCircle2 size={18} />
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    onClick={() => { setViewTab('active'); setFilterStatus('pending'); }}
+                    className={`bg-surface border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${filterStatus === 'pending' ? 'ring-2 ring-danger border-danger' : 'border-border'}`}
+                    title="View pending payment requests"
+                >
                     <p className="text-xs font-medium text-muted-text uppercase tracking-wider">Pending Fee</p>
                     <div className="flex items-center justify-between mt-1">
                         <h3 className="text-xl sm:text-2xl font-bold text-danger font-mono">{adminStats.pendingPayment}</h3>
@@ -1172,7 +1224,11 @@ const ServiceRequests = () => {
                     </div>
                 </div>
 
-                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                <div
+                    onClick={() => { setViewTab('active'); setFilterStatus('processing'); }}
+                    className={`bg-surface border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${filterStatus === 'processing' ? 'ring-2 ring-primary border-primary' : 'border-border'}`}
+                    title="View processing requests"
+                >
                     <p className="text-xs font-medium text-muted-text uppercase tracking-wider">In Processing</p>
                     <div className="flex items-center justify-between mt-1">
                         <h3 className="text-xl sm:text-2xl font-bold text-primary font-mono">{adminStats.processing}</h3>
@@ -1182,7 +1238,11 @@ const ServiceRequests = () => {
                     </div>
                 </div>
 
-                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+                <div
+                    onClick={() => { setViewTab('active'); setFilterStatus('ready_to_collect'); }}
+                    className={`bg-surface border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${filterStatus === 'ready_to_collect' ? 'ring-2 ring-purple-600 border-purple-600' : 'border-border'}`}
+                    title="View ready to collect certificates"
+                >
                     <p className="text-xs font-medium text-muted-text uppercase tracking-wider">Ready to Collect</p>
                     <div className="flex items-center justify-between mt-1">
                         <h3 className="text-xl sm:text-2xl font-bold text-purple-600 font-mono">{adminStats.ready}</h3>
@@ -1192,14 +1252,74 @@ const ServiceRequests = () => {
                     </div>
                 </div>
 
-                <div className="bg-surface border border-border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all col-span-2 sm:col-span-1">
-                    <p className="text-xs font-medium text-muted-text uppercase tracking-wider">Completed / Closed</p>
+                <div
+                    onClick={() => { setViewTab('cancelled'); setFilterStatus(''); }}
+                    className={`bg-surface border rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer ${viewTab === 'cancelled' ? 'ring-2 ring-rose-500 border-rose-500' : 'border-border'}`}
+                    title="View cancelled requests"
+                >
+                    <p className="text-xs font-medium text-muted-text uppercase tracking-wider">Cancelled</p>
                     <div className="flex items-center justify-between mt-1">
-                        <h3 className="text-xl sm:text-2xl font-bold text-success font-mono">{adminStats.closed}</h3>
-                        <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
-                            <CheckCircle2 size={18} />
+                        <h3 className="text-xl sm:text-2xl font-bold text-rose-600 font-mono">{adminStats.cancelled}</h3>
+                        <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold">
+                            <XCircle size={18} />
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* View Filter Segmented Tabs */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="bg-surface p-1 rounded-xl border border-border inline-flex items-center gap-1 shadow-sm">
+                    <button
+                        onClick={() => { setViewTab('active'); setFilterStatus(''); }}
+                        className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
+                            viewTab === 'active'
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'text-muted-text hover:text-main hover:bg-background'
+                        }`}
+                    >
+                        <span>Active Requests</span>
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            viewTab === 'active' ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'
+                        }`}>
+                            {adminStats.active}
+                        </span>
+                    </button>
+                    <button
+                        onClick={() => { setViewTab('cancelled'); setFilterStatus(''); }}
+                        className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
+                            viewTab === 'cancelled'
+                                ? 'bg-rose-600 text-white shadow-sm'
+                                : 'text-muted-text hover:text-main hover:bg-background'
+                        }`}
+                    >
+                        <XCircle size={14} />
+                        <span>Cancelled Requests</span>
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            viewTab === 'cancelled' ? 'bg-white/20 text-white' : 'bg-rose-500/10 text-rose-600'
+                        }`}>
+                            {adminStats.cancelled}
+                        </span>
+                    </button>
+                    <button
+                        onClick={() => { setViewTab('all'); setFilterStatus(''); }}
+                        className={`px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
+                            viewTab === 'all'
+                                ? 'bg-sub text-white shadow-sm'
+                                : 'text-muted-text hover:text-main hover:bg-background'
+                        }`}
+                    >
+                        <span>All Requests</span>
+                        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                            viewTab === 'all' ? 'bg-white/20 text-white' : 'bg-sub/10 text-sub'
+                        }`}>
+                            {adminStats.total}
+                        </span>
+                    </button>
+                </div>
+
+                <div className="text-xs text-muted-text font-medium">
+                    Showing <span className="font-bold text-main">{filteredRequests.length}</span> {viewTab === 'cancelled' ? 'cancelled' : viewTab === 'active' ? 'active' : 'total'} request(s)
                 </div>
             </div>
 
@@ -1301,6 +1421,7 @@ const ServiceRequests = () => {
                                 <option value="processing">Processing</option>
                                 <option value="ready_to_collect">Ready to Collect</option>
                                 <option value="closed">Closed / Delivered</option>
+                                <option value="cancelled">Cancelled</option>
                             </select>
                         </div>
 
@@ -1338,7 +1459,11 @@ const ServiceRequests = () => {
                                 <th className="px-5 py-3.5">Request Info</th>
                                 <th className="px-5 py-3.5">Student Details</th>
                                 <th className="px-5 py-3.5">Mobile</th>
-                                <th className="px-5 py-3.5">Status</th>
+                                {viewTab === 'cancelled' ? (
+                                    <th className="px-5 py-3.5 text-danger font-bold">Cancellation Reason</th>
+                                ) : (
+                                    <th className="px-5 py-3.5">Status</th>
+                                )}
                                 <th className="px-5 py-3.5">Payment</th>
                                 <th className="px-5 py-3.5">Dates</th>
                                 <th className="px-5 py-3.5 text-right">Actions</th>
@@ -1392,9 +1517,18 @@ const ServiceRequests = () => {
                                         <td className="px-5 py-4 text-xs text-muted-text font-mono">
                                             {req.student_mobile || '-'}
                                         </td>
-                                        <td className="px-5 py-4">
-                                            {getStatusBadge(req.status)}
-                                        </td>
+                                        {viewTab === 'cancelled' ? (
+                                            <td className="px-5 py-4">
+                                                <div className="bg-rose-500/10 border border-rose-500/20 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-medium max-w-sm whitespace-normal">
+                                                    <span className="font-bold text-[10px] uppercase tracking-wider block text-rose-500 mb-0.5">Reason:</span>
+                                                    {req.admin_note || 'Cancelled before payment'}
+                                                </div>
+                                            </td>
+                                        ) : (
+                                            <td className="px-5 py-4">
+                                                {getStatusBadge(req.status)}
+                                            </td>
+                                        )}
                                         <td className="px-5 py-4">
                                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${req.payment_status === 'paid' ? 'bg-[var(--success-light)] text-success border border-success/20' : 'bg-[var(--danger-light)] text-danger border border-danger/20'}`}>
                                                 {req.payment_status || 'pending'}
@@ -1419,16 +1553,30 @@ const ServiceRequests = () => {
                                                     <History size={12} />
                                                     History
                                                 </button>
-                                                {req.payment_status !== 'paid' ? (
-                                                    <button
-                                                        onClick={() => handleSyncSingleFeeStatus(req.id)}
-                                                        disabled={syncingRowId === req.id}
-                                                        className="px-3 py-1.5 bg-surface text-primary border border-border text-xs font-semibold rounded hover:bg-background flex items-center gap-1 transition-all"
-                                                        title="Check & sync payment status from Fee Portal"
-                                                    >
-                                                        <RefreshCw size={12} className={syncingRowId === req.id ? 'animate-spin' : ''} />
-                                                        Sync
-                                                    </button>
+                                                {req.status === 'cancelled' ? null : req.payment_status !== 'paid' ? (
+                                                    <div className="flex items-center gap-1.5 justify-end">
+                                                        <button
+                                                            onClick={() => handleSyncSingleFeeStatus(req.id)}
+                                                            disabled={syncingRowId === req.id}
+                                                            className="px-3 py-1.5 bg-surface text-primary border border-border text-xs font-semibold rounded hover:bg-background flex items-center gap-1 transition-all"
+                                                            title="Check & sync payment status from Fee Portal"
+                                                        >
+                                                            <RefreshCw size={12} className={syncingRowId === req.id ? 'animate-spin' : ''} />
+                                                            Sync
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedRequest(req);
+                                                                setActionType('cancel');
+                                                                setCancelReason('');
+                                                            }}
+                                                            className="px-2.5 py-1.5 bg-rose-50 text-rose-600 border border-rose-200 text-xs font-semibold rounded hover:bg-rose-100 flex items-center gap-1 transition-all"
+                                                            title="Cancel request and deactivate fee demand in Fee Portal"
+                                                        >
+                                                            <XCircle size={12} />
+                                                            Cancel
+                                                        </button>
+                                                    </div>
                                                 ) : (
                                                     <>
                                                         <button
@@ -1816,6 +1964,79 @@ const ServiceRequests = () => {
                         <div className="flex gap-3">
                             <button onClick={() => setSelectedRequest(null)} className="flex-1 py-2.5 bg-background rounded-lg font-medium text-sub">Cancel</button>
                             <button onClick={handleUpdateStatus} className="flex-1 py-2.5 bg-success text-white rounded-lg font-medium">Yes, Close it</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancel Request Confirmation Modal */}
+            {selectedRequest && actionType === 'cancel' && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-surface rounded-2xl w-full max-w-md p-6 shadow-xl animate-scale-in">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 bg-[var(--danger-light)] text-danger rounded-full flex items-center justify-center flex-shrink-0">
+                                <XCircle size={22} />
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-main">Cancel Service Request</h2>
+                                <p className="text-xs text-muted-text">This will cancel the request and mark the fee demand inactive in the Fee Portal.</p>
+                            </div>
+                        </div>
+
+                        <div className="mb-4 bg-background p-3.5 rounded-xl border border-border text-xs text-sub space-y-1.5">
+                            <div className="flex justify-between">
+                                <span className="text-muted-text font-medium">Student:</span>
+                                <span className="font-semibold text-main">{selectedRequest.student_name}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-text font-medium">ID / PIN:</span>
+                                <span className="font-mono text-main">{selectedRequest.admission_number || selectedRequest.pin_no}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-text font-medium">Service:</span>
+                                <span className="font-semibold text-main">{selectedRequest.service_name}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-text font-medium">Fee Status:</span>
+                                <span className="font-bold text-danger uppercase">{selectedRequest.payment_status || 'Pending'}</span>
+                            </div>
+                        </div>
+
+                        <div className="mb-5">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-text mb-2">
+                                Cancellation Reason <span className="text-danger">* (Mandatory)</span>
+                            </label>
+                            <textarea
+                                required
+                                rows="3"
+                                className="w-full px-3.5 py-2.5 border border-border-strong rounded-xl focus:ring-2 focus:ring-danger/20 focus:border-danger outline-none bg-surface text-sm text-main"
+                                placeholder="Enter reason for cancelling this request..."
+                                value={cancelReason}
+                                onChange={(e) => setCancelReason(e.target.value)}
+                                autoFocus
+                            />
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSelectedRequest(null);
+                                    setActionType(null);
+                                    setCancelReason('');
+                                }}
+                                className="flex-1 py-2.5 bg-background border border-border rounded-xl font-medium text-sub text-sm hover:bg-surface transition"
+                            >
+                                Keep Request
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleUpdateStatus}
+                                disabled={!cancelReason.trim()}
+                                className="flex-1 py-2.5 bg-danger text-white rounded-xl font-medium text-sm hover:opacity-90 disabled:opacity-50 transition shadow-sm"
+                            >
+                                Confirm Cancellation
+                            </button>
                         </div>
                     </div>
                 </div>

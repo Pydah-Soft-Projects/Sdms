@@ -41,7 +41,7 @@ export const serviceService = {
         return response.data;
     },
 
-    deleteRequest: (id) => api.delete(`/services/requests/${id}`),
+    deleteRequest: (id, data) => api.delete(`/services/requests/${id}`, { data }),
 
     createRequestByAdmin: async (data) => {
         const response = await api.post('/services/requests/admin', data);

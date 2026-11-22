@@ -148,6 +148,18 @@ async function isServiceFeeRecord(feeHeadIdOrObj, remarks = '') {
  */
 async function createServiceFeeDemand({ requestId, studentId, serviceId, sequence_no }) {
   try {
+    // 0. Check if request is already cancelled/rejected in MySQL
+    if (requestId) {
+      const [reqRows] = await masterPool.execute(
+        'SELECT status FROM service_requests WHERE id = ?',
+        [requestId]
+      );
+      if (reqRows.length > 0 && (reqRows[0].status === 'cancelled' || reqRows[0].status === 'rejected')) {
+        console.log(`[SERVICE FEE] Skipping fee demand creation: service request ${requestId} is already ${reqRows[0].status}`);
+        return null;
+      }
+    }
+
     // 1. Get service details
     const [services] = await masterPool.execute(
       'SELECT id, name, price FROM services WHERE id = ?',
@@ -186,14 +198,22 @@ async function createServiceFeeDemand({ requestId, studentId, serviceId, sequenc
 
     const remarks = `Service Request: ${service.name} (Ref: ${requestId})`;
 
-    // Check if demand already exists
+    // Check if demand already exists (check both exact remarks and Ref regex)
     const existingDemand = await StudentFee.findOne({
       studentId: studentAdmission,
-      feeHead: feeHead._id,
-      remarks: remarks
+      $or: [
+        { remarks: { $regex: new RegExp(`Ref:\\s*${requestId}\\b`, 'i') } },
+        ...(sequence_no ? [{ remarks: { $regex: new RegExp(sequence_no, 'i') } }] : []),
+        { remarks: remarks }
+      ]
     });
 
     if (existingDemand) {
+      // If the request or demand was marked inactive/cancelled, NEVER resurrect it to active!
+      if (existingDemand.status === 'inactive' || existingDemand.status === 'cancelled') {
+        console.log(`[SERVICE FEE] Demand for request ${requestId} is already ${existingDemand.status}, skipping reactivation.`);
+        return existingDemand;
+      }
       if (existingDemand.amount !== amount || existingDemand.status !== 'active') {
         existingDemand.amount = amount;
         existingDemand.status = 'active';
@@ -215,6 +235,7 @@ async function createServiceFeeDemand({ requestId, studentId, serviceId, sequenc
       semester: Number(student.current_semester) || 1,
       amount,
       status: 'active',
+      isActive: true,
       remarks
     });
 
@@ -309,6 +330,51 @@ async function checkFeePaymentStatus({ requestId, studentAdmission, pinNo, servi
   }
 }
 
+/**
+ * Deactivates (marks inactive) the service fee demand in MongoDB Fee Portal when a request is cancelled.
+ */
+async function cancelServiceFeeDemand({ requestId, sequenceNo, reason }) {
+  try {
+    const conditions = [];
+    if (requestId) {
+      conditions.push({ remarks: { $regex: new RegExp(`Ref:\\s*${requestId}\\b`, 'i') } });
+    }
+    if (sequenceNo) {
+      conditions.push({ remarks: { $regex: new RegExp(sequenceNo, 'i') } });
+    }
+
+    if (conditions.length === 0) {
+      return { success: true, count: 0 };
+    }
+
+    // 1. Direct bulk update to set status = 'inactive' and isActive = false
+    const updateResult = await StudentFee.updateMany(
+      { $or: conditions },
+      { $set: { status: 'inactive', isActive: false } }
+    );
+
+    // 2. Also append cancellation reason to remarks and enforce isActive = false
+    const fees = await StudentFee.find({ $or: conditions });
+    if (fees && fees.length > 0) {
+      for (const fee of fees) {
+        fee.status = 'inactive';
+        fee.isActive = false;
+        if (reason && (!fee.remarks || !fee.remarks.includes('[Cancelled:'))) {
+          fee.remarks = `${fee.remarks || ''} [Cancelled: ${reason}]`.trim();
+        }
+        await fee.save();
+      }
+    }
+
+    const totalModified = updateResult.modifiedCount || (fees ? fees.length : 0);
+    console.log(`[SERVICE FEE] Marked ${totalModified} fee demand(s) as inactive (isActive: false) in MongoDB for requestId: ${requestId}`);
+    return { success: true, count: totalModified };
+  } catch (err) {
+    console.error('[SERVICE FEE] Error deactivating service fee demand:', err);
+    return { success: false, error: err.message };
+  }
+}
+
 module.exports = {
   SETTINGS_KEY,
   getServiceSettingsFromDb,
@@ -317,5 +383,6 @@ module.exports = {
   getDynamicServiceFeeHead,
   isServiceFeeRecord,
   createServiceFeeDemand,
-  checkFeePaymentStatus
+  checkFeePaymentStatus,
+  cancelServiceFeeDemand
 };

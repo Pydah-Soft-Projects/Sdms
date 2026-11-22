@@ -118,8 +118,10 @@ exports.getStudentsWithFees = async (req, res) => {
 
     const pipeline = [];
 
-    // Match filters
-    const matchStage = {};
+    // Match filters (exclude inactive or cancelled fees)
+    const matchStage = {
+      status: { $nin: ['inactive', 'cancelled'] }
+    };
     if (college) matchStage.college = college;
     if (course) matchStage.course = course;
     if (branch) matchStage.branch = branch;
@@ -362,10 +364,11 @@ exports.getStudentFeeDetails = async (req, res) => {
       let totalFee = 0;
       const feesList = [];
 
-      // Fetch individual fees first to check for overrides
+      // Fetch individual fees first to check for overrides (exclude inactive / cancelled fees)
       // Use regex for case-insensitive match
       const individualFees = await StudentFee.find({
-        studentId: { $regex: new RegExp(`^${studentId}$`, 'i') }
+        studentId: { $regex: new RegExp(`^${studentId}$`, 'i') },
+        status: { $nin: ['inactive', 'cancelled'] }
       }).populate('feeHead');
 
       // Create a set of keys for existing individual fees to avoid duplicates

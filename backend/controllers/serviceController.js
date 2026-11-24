@@ -1149,7 +1149,8 @@ exports.downloadCertificate = async (req, res) => {
     // Fetch request with service and student details
     const query = `
             SELECT sr.*, s.name as service_name, s.price as service_price, s.template_type, s.template_config, st.*,
-            c.name as college_name, c.metadata as college_metadata, c.address as college_address
+            c.id as college_id, c.name as college_name, c.metadata as college_metadata, c.address as college_address,
+            c.header_image as college_header_image, c.header_image_type as college_header_image_type
             FROM service_requests sr
             JOIN services s ON sr.service_id = s.id
             JOIN students st ON sr.student_id = st.id
@@ -1220,12 +1221,22 @@ exports.downloadCertificate = async (req, res) => {
           typeof request.college_metadata === "string"
             ? JSON.parse(request.college_metadata)
             : request.college_metadata;
-        collegeDetails = { ...collegeDetails, ...meta };
+        collegeDetails = { ...collegeDetails, ...meta, metadata: meta };
+        if (meta.contact && !collegeDetails.phone) collegeDetails.phone = meta.contact;
+        if (meta.website && !collegeDetails.website) collegeDetails.website = meta.website;
       } catch (e) {}
     }
     if (request.college_address && !collegeDetails.address) {
       collegeDetails.address = request.college_address;
     }
+    if (request.college_header_image) {
+      collegeDetails.header_image = request.college_header_image;
+      collegeDetails.header_image_type = request.college_header_image_type;
+    }
+
+    // Header Option: whether to include headers or print only content (for pre-printed letterheads)
+    const includeHeader = req.query.include_header !== "false" && req.query.include_header !== "0" && req.query.with_header !== "false";
+    const genOptions = { includeHeader };
 
     // Generate PDF based on template type
     if (
@@ -1236,6 +1247,7 @@ exports.downloadCertificate = async (req, res) => {
         effectiveStudent,
         request,
         collegeDetails,
+        genOptions,
       );
     } else if (
       request.template_type === "refund_application" ||
@@ -1245,12 +1257,14 @@ exports.downloadCertificate = async (req, res) => {
         effectiveStudent,
         request,
         collegeDetails,
+        genOptions,
       );
     } else if (request.template_type === "custodian_certificate") {
       filePath = await pdfService.generateCustodianCertificate(
         effectiveStudent,
         request,
         collegeDetails,
+        genOptions,
       );
     } else if (request.template_type === "dynamic" && request.template_config) {
       let config = request.template_config;
@@ -1287,8 +1301,6 @@ exports.downloadCertificate = async (req, res) => {
 
         const replaceVariables = (text) => {
           if (!text) return "";
-          const inputSize = Math.min(Math.max(parseInt(config.input_field_size) || 10, 4), 30);
-          const defaultBlank = "_".repeat(inputSize);
 
           // 1. Sanitize tabs and carriage returns
           let processed = text.replace(/[\t\r]/g, " ");
@@ -1298,47 +1310,71 @@ exports.downloadCertificate = async (req, res) => {
             return `[${tag}]${inner.trim()}[/${tag}]`;
           });
 
-          // 3. Normalize multiple consecutive spaces in text first
-          processed = processed.replace(/ {2,}/g, " ");
-
-          // 4. Handle blanks: replace fill values if provided, or represent with free space (no drawn lines)
+          // 3. Process line-by-line: preserve standalone horizontal divider lines (---, ===, ___, etc.)
           let blankIdx = 0;
-          processed = processed.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{2,}|[.\u2026]{2,}|[—–―-]{2,}/g, (match, customLen) => {
-            blankIdx++;
-            const val = studentData[`field_${blankIdx}`] || studentData[`input_field_${blankIdx}`] || studentData[`blank_${blankIdx}`];
-            if (val !== undefined && val !== null && String(val).trim() !== "") {
-              return String(val).toUpperCase();
+          const rawLines = processed.split("\n");
+          const replacedLines = rawLines.map((line) => {
+            const trimmed = line.trim();
+            // Protect standalone horizontal rules
+            if (/^[-=*~_]{3,}$/.test(trimmed)) {
+              return line;
             }
-            return "        ";
+
+            let processedLine = line.replace(/ {2,}/g, " ");
+
+            // Replace blanks within text
+            processedLine = processedLine.replace(/(?:___(?:\[(\d+)\])?(?:\s*___)*)+|_{2,}|[.\u2026]{2,}/g, (match, customLen) => {
+              blankIdx++;
+              const val = studentData[`field_${blankIdx}`] || studentData[`input_field_${blankIdx}`] || studentData[`blank_${blankIdx}`];
+              if (val !== undefined && val !== null && String(val).trim() !== "") {
+                return String(val).toUpperCase();
+              }
+              return "        ";
+            });
+
+            // Handle {{variable}} syntax
+            processedLine = processedLine.replace(/{{(.*?)}}/g, (match, p1) => {
+              const key = p1.trim();
+              if (key === "current_date" || key === "date") return todayDateStr;
+              return studentData[key] !== undefined && studentData[key] !== null ? String(studentData[key]).toUpperCase() : "";
+            });
+            // Handle @[label](variable) or @variable syntax
+            processedLine = processedLine.replace(/@\[.*?\]\((.*?)\)/g, (match, p1) => {
+              if (p1 === "current_date" || p1 === "date") return todayDateStr;
+              return studentData[p1] !== undefined && studentData[p1] !== null ? String(studentData[p1]).toUpperCase() : "";
+            });
+            processedLine = processedLine.replace(/@(\w+)/g, (match, p1) => {
+              if (p1 === "current_date" || p1 === "date") return todayDateStr;
+              return studentData[p1] !== undefined && studentData[p1] !== null ? String(studentData[p1]).toUpperCase() : "";
+            });
+
+            return processedLine;
           });
 
-          // 5. Handle {{variable}} syntax
-          processed = processed.replace(/{{(.*?)}}/g, (match, p1) => {
-            const key = p1.trim();
-            if (key === "current_date" || key === "date") return todayDateStr;
-            return studentData[key] !== undefined && studentData[key] !== null ? String(studentData[key]).toUpperCase() : "";
-          });
-          // 6. Handle @[label](variable) or @variable syntax
-          processed = processed.replace(/@\[.*?\]\((.*?)\)/g, (match, p1) => {
-            if (p1 === "current_date" || p1 === "date") return todayDateStr;
-            return studentData[p1] !== undefined && studentData[p1] !== null ? String(studentData[p1]).toUpperCase() : "";
-          });
-          processed = processed.replace(/@(\w+)/g, (match, p1) => {
-            if (p1 === "current_date" || p1 === "date") return todayDateStr;
-            return studentData[p1] !== undefined && studentData[p1] !== null ? String(studentData[p1]).toUpperCase() : "";
-          });
-          return processed;
+          return replacedLines.join("\n");
         };
 
-        const topSource = config.top_content || collegeDetails?.metadata?.header_content || "";
+        const savedHeader = (config.top_content && config.top_content.trim())
+          || collegeDetails?.header_content
+          || collegeDetails?.metadata?.header_content;
+
+        const defaultHeader = `[center][b][size:16]${(collegeDetails.name || 'PYDAH COLLEGE OF ENGINEERING').toUpperCase()}[/size][/b][/center]\n[center][size:10](Approved by AICTE, Affiliated to Andhra University, Accredited by NAAC 'A+' Grade)[/size][/center]\n[center][size:9]${collegeDetails.address || 'Yanam Road, Tallarevu, Patavala, Andhra Pradesh 533461'} | Phone: ${collegeDetails.phone || collegeDetails.contact || '8331040530'} | Website: ${collegeDetails.website || 'www.pydah.edu.in'}[/size][/center]\n------------------------------------------------------------------------------------------------------------------------`;
+
+        const topSource = savedHeader && savedHeader.trim() ? savedHeader : defaultHeader;
         const processedContent = {
           topContent: replaceVariables(topSource),
           middleContent: replaceVariables(config.middle_content),
           bottomContent: replaceVariables(config.bottom_content),
         };
 
+        const headerHeightVal = collegeDetails?.header_config?.header_height
+          || collegeDetails?.metadata?.header_config?.header_height
+          || config?.header_height
+          || 85;
+
         const enrichedConfig = {
           ...config,
+          header_height: headerHeightVal,
           header_image_url: collegeDetails.header_image_url,
           footer_image_url: null,
           footer_height: 0,
@@ -1354,6 +1390,7 @@ exports.downloadCertificate = async (req, res) => {
           processedContent,
           effectiveStudent,
           sanitizedCollegeDetails,
+          genOptions,
         );
       } else {
         filePath = await pdfService.generateDynamicCertificate(
@@ -1361,6 +1398,7 @@ exports.downloadCertificate = async (req, res) => {
           request,
           collegeDetails,
           config,
+          genOptions,
         );
       }
     } else {
@@ -1376,7 +1414,7 @@ exports.downloadCertificate = async (req, res) => {
     appendRequestHistory(masterPool, id, {
       action: 'CERTIFICATE_GENERATED',
       title: 'Certificate Generated & Printed',
-      details: `Generated official document for ${request.service_name || 'Service'}. Ready for delivery to student.`,
+      details: `Generated official document for ${request.service_name || 'Service'} (${includeHeader ? 'With Header' : 'Only Content / Without Header'}). Ready for delivery to student.`,
       performed_by: {
         id: req.user?.id || null,
         name: req.user?.name || req.user?.username || (isAdmin ? 'Admin' : 'Student'),

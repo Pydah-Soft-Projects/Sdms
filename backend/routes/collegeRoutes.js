@@ -22,6 +22,7 @@ router.post('/:id/upload-header', upload.single('header'), collegeController.upl
 router.post('/:id/upload-footer', upload.single('footer'), collegeController.uploadFooterImage);
 router.post('/:id/upload-principal-signature', upload.single('signature'), collegeController.uploadPrincipalSignature);
 router.delete('/:id/principal-signature', collegeController.deletePrincipalSignature);
+router.delete('/:id/header-image', collegeController.deleteHeaderImage);
 
 // Super admin dashboard stats (college-wise) — must be before /:collegeId
 router.get('/dashboard-stats', attachUserScope, collegeController.getCollegeDashboardStats);

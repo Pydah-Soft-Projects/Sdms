@@ -34,6 +34,11 @@ const CollegeConfiguration = () => {
   const [fontFamily, setFontFamily] = useState('Calibri');
   const [activePreset, setActivePreset] = useState('standard');
 
+  // Header Image / Photo Upload
+  const [headerImageFile, setHeaderImageFile] = useState(null);
+  const [headerImagePreview, setHeaderImagePreview] = useState(null);
+  const [removeHeaderImage, setRemoveHeaderImage] = useState(false);
+
   // Principal Signature
   const [signatureImage, setSignatureImage] = useState(null);
   const [signaturePreview, setSignaturePreview] = useState(null);
@@ -120,8 +125,17 @@ const CollegeConfiguration = () => {
       setActivePreset('standard');
     }
 
-    // Signature
+    // Header Image
     const baseURL = (api.defaults.baseURL || 'http://localhost:5000/api').replace('/api', '');
+    if (college.header_image_url) {
+      setHeaderImagePreview(`${baseURL}${college.header_image_url}`);
+    } else {
+      setHeaderImagePreview(null);
+    }
+    setHeaderImageFile(null);
+    setRemoveHeaderImage(false);
+
+    // Signature
     if (college.principal_signature_url) {
       setSignaturePreview(`${baseURL}${college.principal_signature_url}`);
     } else {
@@ -129,6 +143,13 @@ const CollegeConfiguration = () => {
     }
     setSignatureImage(null);
     setRemoveSignature(false);
+  };
+
+  const handleHeaderImageUpload = (file) => {
+    if (!file) return;
+    setHeaderImageFile(file);
+    setHeaderImagePreview(URL.createObjectURL(file));
+    setRemoveHeaderImage(false);
   };
 
   const applyPreset = (presetKey) => {
@@ -177,7 +198,18 @@ const CollegeConfiguration = () => {
         metadata: updatedMetadata,
       });
 
-      // 3. Upload or remove signature if changed
+      // 3. Upload or remove header image if changed
+      if (headerImageFile) {
+        const formData = new FormData();
+        formData.append('header', headerImageFile);
+        await api.post(`/colleges/${selectedCollege.id}/upload-header`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      } else if (removeHeaderImage) {
+        await api.delete(`/colleges/${selectedCollege.id}/header-image`);
+      }
+
+      // 4. Upload or remove signature if changed
       if (signatureImage) {
         const formData = new FormData();
         formData.append('signature', signatureImage);
@@ -320,6 +352,64 @@ const CollegeConfiguration = () => {
 
       {selectedCollege && (
         <div className="space-y-6">
+          {/* Official College Header Photo Banner Card */}
+          <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-main flex items-center gap-2">
+                  <Upload size={18} className="text-[var(--primary)]" />
+                  Official Header Photo Banner (Letterhead Image)
+                </h3>
+                <p className="text-xs text-muted-text">
+                  Upload an official graphic header image (e.g. letterhead banner with logos). If uploaded, this photo banner will be printed at the top of certificates.
+                </p>
+              </div>
+              {headerImagePreview && (
+                <span className="text-xs text-success font-semibold bg-[var(--success-light)] px-2.5 py-1 rounded-full border border-[var(--success-light)]">
+                  ✓ Photo Active
+                </span>
+              )}
+            </div>
+
+            {headerImagePreview ? (
+              <div className="relative flex items-center justify-center p-4 bg-background rounded-xl border border-border overflow-hidden">
+                <img
+                  src={headerImagePreview}
+                  alt="College Header Banner"
+                  className="max-h-36 w-full object-contain rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHeaderImageFile(null);
+                    setHeaderImagePreview(null);
+                    setRemoveHeaderImage(true);
+                  }}
+                  className="absolute top-2 right-2 p-1.5 bg-danger text-white rounded-full hover:bg-danger shadow-md transition"
+                  title="Remove header image"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border-strong rounded-xl cursor-pointer hover:border-primary transition bg-background">
+                <Upload className="text-muted-text mb-1.5" size={28} />
+                <span className="text-xs text-sub font-bold">
+                  Click to upload College Header Photo / Letterhead Banner
+                </span>
+                <span className="text-[10px] text-muted-text mt-0.5">
+                  PNG, JPG, WEBP (Recommended: 800x120px to 1200x200px)
+                </span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleHeaderImageUpload(e.target.files[0])}
+                />
+              </label>
+            )}
+          </div>
+
           {/* Dynamic College Header Designer Card */}
           <div className="bg-surface rounded-2xl shadow-sm border border-border overflow-hidden">
             {/* Card Header with Word Branding */}
@@ -333,12 +423,12 @@ const CollegeConfiguration = () => {
                     Dynamic College Header Designer
                   </h2>
                   <p className="text-[11px] text-primary">
-                    Microsoft Word Replica • Pure vector typography & formatting
+                    Pure vector typography formatting (Used when no photo banner is uploaded)
                   </p>
                 </div>
               </div>
               <span className="px-2.5 py-0.5 bg-[var(--primary-light)] rounded-full text-xs text-primary font-medium">
-                Photo Upload Free
+                Vector Typography
               </span>
             </div>
 

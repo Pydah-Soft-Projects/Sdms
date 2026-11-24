@@ -264,6 +264,39 @@ exports.uploadHeaderImage = async (req, res) => {
 };
 
 /**
+ * DELETE /api/colleges/:id/header-image
+ * Remove header image for college
+ */
+exports.deleteHeaderImage = async (req, res) => {
+  try {
+    const collegeId = parseInt(req.params.id, 10);
+
+    if (!collegeId || Number.isNaN(collegeId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid college ID'
+      });
+    }
+
+    await masterPool.execute(
+      'UPDATE colleges SET header_image = NULL, header_image_type = NULL WHERE id = ?',
+      [collegeId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Header image removed successfully'
+    });
+  } catch (error) {
+    console.error('deleteHeaderImage error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove header image'
+    });
+  }
+};
+
+/**
  * POST /api/colleges/:id/upload-footer
  * Upload footer image for college (stores in database)
  */

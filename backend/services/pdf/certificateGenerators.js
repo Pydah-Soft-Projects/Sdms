@@ -73,7 +73,7 @@ const drawCenteredLine = (doc, y, segments, pageWidth) => {
 /**
  * Generate Study Certificate PDF
  */
-const generateStudyCertificate = async (student, request, collegeDetails) => {
+const generateStudyCertificate = async (student, request, collegeDetails, options = {}) => {
   const tempDir = os.tmpdir();
   const fileName = `study_certificate_${student.admission_number}_${Date.now()}.pdf`;
   const filePath = path.join(tempDir, fileName);
@@ -90,62 +90,65 @@ const generateStudyCertificate = async (student, request, collegeDetails) => {
   // --- Header ---
   const pageWidth = doc.page.width;
   const contentWidth = pageWidth - 80;
+  const includeHeader = options?.includeHeader !== false;
 
-  // LOGO
-  const logoPath = path.join(__dirname, "../../../frontend/public/logo.png");
-  const logoWidth = 90;
-  const logoX = pageWidth - 130; // Right side
+  if (includeHeader) {
+    // LOGO
+    const logoPath = path.join(__dirname, "../../../frontend/public/logo.png");
+    const logoWidth = 90;
+    const logoX = pageWidth - 130; // Right side
 
-  // Moved logo down to 50 to avoid overlap with College Name
-  if (fs.existsSync(logoPath)) {
-    doc.image(logoPath, logoX, 50, { width: logoWidth });
-  }
+    // Moved logo down to 50 to avoid overlap with College Name
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, logoX, 50, { width: logoWidth });
+    }
 
-  // Address logo overlap by adjusting text wrapping or width if needed, but moving logo is safer.
+    // Address logo overlap by adjusting text wrapping or width if needed, but moving logo is safer.
 
-  // College Name
-  doc.font("Helvetica-Bold").fontSize(22).fillColor("#1E40AF"); // Royal Blue
-  // Center roughly, accounting for logo push if needed, but header is usually centered on page
-  doc.text(
-    (collegeDetails.name || "PYDAH COLLEGE OF ENGINEERING").toUpperCase(),
-    40,
-    30,
-    { align: "center", width: contentWidth },
-  );
-
-  // Subtitle/Address
-  doc.font("Helvetica").fontSize(10).fillColor("#1E40AF"); // Keeping it Blue as per photo
-  doc.text(
-    "(Approved by AICTE & Affiliated to JNT University, Kakinada)",
-    40,
-    58,
-    { align: "center", width: contentWidth },
-  );
-  doc.text("Yanam Road, Patavala, KAKINADA-533 461, E.G.DT.", 40, 72, {
-    align: "center",
-    width: contentWidth,
-  });
-
-  // Phone/Website
-  const contactParts = [];
-  if (collegeDetails.phone) contactParts.push(`Ph: ${collegeDetails.phone}`);
-  if (collegeDetails.website) contactParts.push(`Website : ${collegeDetails.website}`);
-  if (contactParts.length > 0) {
+    // College Name
+    doc.font("Helvetica-Bold").fontSize(22).fillColor("#1E40AF"); // Royal Blue
+    // Center roughly, accounting for logo push if needed, but header is usually centered on page
     doc.text(
-      contactParts.join('   '),
+      (collegeDetails.name || "PYDAH COLLEGE OF ENGINEERING").toUpperCase(),
       40,
-      86,
+      30,
       { align: "center", width: contentWidth },
     );
-  }
 
-  // Line separator
-  doc
-    .moveTo(30, 105)
-    .lineTo(pageWidth - 30, 105)
-    .strokeColor("#1E40AF")
-    .lineWidth(1.5)
-    .stroke();
+    // Subtitle/Address
+    doc.font("Helvetica").fontSize(10).fillColor("#1E40AF"); // Keeping it Blue as per photo
+    doc.text(
+      "(Approved by AICTE & Affiliated to JNT University, Kakinada)",
+      40,
+      58,
+      { align: "center", width: contentWidth },
+    );
+    doc.text("Yanam Road, Patavala, KAKINADA-533 461, E.G.DT.", 40, 72, {
+      align: "center",
+      width: contentWidth,
+    });
+
+    // Phone/Website
+    const contactParts = [];
+    if (collegeDetails.phone) contactParts.push(`Ph: ${collegeDetails.phone}`);
+    if (collegeDetails.website) contactParts.push(`Website : ${collegeDetails.website}`);
+    if (contactParts.length > 0) {
+      doc.text(
+        contactParts.join('   '),
+        40,
+        86,
+        { align: "center", width: contentWidth },
+      );
+    }
+
+    // Line separator
+    doc
+      .moveTo(30, 105)
+      .lineTo(pageWidth - 30, 105)
+      .strokeColor("#1E40AF")
+      .lineWidth(1.5)
+      .stroke();
+  }
 
   // Date
   const today = new Date().toLocaleDateString("en-GB"); // DD/MM/YYYY
@@ -386,7 +389,7 @@ const generateStudyCertificate = async (student, request, collegeDetails) => {
 /**
  * Generate Refund Application PDF
  */
-const generateRefundApplication = async (student, request, collegeDetails) => {
+const generateRefundApplication = async (student, request, collegeDetails, options = {}) => {
   const tempDir = os.tmpdir();
   const fileName = `refund_application_${student.admission_number}_${Date.now()}.pdf`;
   const filePath = path.join(tempDir, fileName);
@@ -403,33 +406,36 @@ const generateRefundApplication = async (student, request, collegeDetails) => {
   const contentWidth = pageWidth - 80;
   const leftMargin = 40;
   const rightMargin = pageWidth - 40;
+  const includeHeader = options?.includeHeader !== false;
 
   // --- Header ---
-  // Logo
-  const logoPath = path.join(__dirname, "../../../frontend/public/logo.png");
-  const logoWidth = 80;
-  const logoHeight = 60; // Approx aspect ratio
+  if (includeHeader) {
+    // Logo
+    const logoPath = path.join(__dirname, "../../../frontend/public/logo.png");
+    const logoWidth = 80;
+    const logoHeight = 60; // Approx aspect ratio
 
-  if (fs.existsSync(logoPath)) {
-    doc.image(logoPath, leftMargin, 40, {
-      width: logoWidth,
-      height: logoHeight,
-      fit: [logoWidth, logoHeight],
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, leftMargin, 40, {
+        width: logoWidth,
+        height: logoHeight,
+        fit: [logoWidth, logoHeight],
+      });
+    }
+
+    // College Name & Address
+    const headerTextLeft = leftMargin + logoWidth + 20;
+    const headerTextWidth = contentWidth - logoWidth - 20;
+
+    doc.font("Helvetica-Bold").fontSize(24).fillColor("#000000");
+    doc.text("Pydah Group of Institutions", headerTextLeft, 45, {
+      align: "center",
+      width: headerTextWidth,
     });
+
+    // S3 Label (Top Right)
+    doc.fontSize(16).text("S3", rightMargin - 40, 45);
   }
-
-  // College Name & Address
-  const headerTextLeft = leftMargin + logoWidth + 20;
-  const headerTextWidth = contentWidth - logoWidth - 20;
-
-  doc.font("Helvetica-Bold").fontSize(24).fillColor("#000000");
-  doc.text("Pydah Group of Institutions", headerTextLeft, 45, {
-    align: "center",
-    width: headerTextWidth,
-  });
-
-  // S3 Label (Top Right)
-  doc.fontSize(16).text("S3", rightMargin - 40, 45);
 
   // Gray Title Bar
   const titleBarY = 110;
@@ -749,10 +755,12 @@ const generateDynamicCertificate = async (
   request,
   collegeDetails,
   config,
+  options = {},
 ) => {
   const tempDir = os.tmpdir();
   const fileName = `dynamic_cert_${Date.now()}.pdf`;
   const filePath = path.join(tempDir, fileName);
+  const includeHeader = options?.includeHeader !== false;
 
   const doc = new PDFDocument({
     size: config.size || "A4",
@@ -822,6 +830,9 @@ const generateDynamicCertificate = async (
   // Render Elements
   if (config.elements && Array.isArray(config.elements)) {
     for (const el of config.elements) {
+      if (!includeHeader && (el.content === "logo" || el.isHeader || el.header)) {
+        continue;
+      }
       if (el.type === "text") {
         let fontName = el.font || "Helvetica";
         if (fontName === "Bold" || fontName === "Helvetica-Bold")
@@ -927,6 +938,7 @@ const generateCustodianCertificate = async (
   student,
   request,
   collegeDetails,
+  options = {},
 ) => {
   const tempDir = os.tmpdir();
   const fileName = `custodian_certificate_${student.admission_number}_${Date.now()}.pdf`;
@@ -943,48 +955,51 @@ const generateCustodianCertificate = async (
   const pageWidth = doc.page.width;
   const contentWidth = pageWidth - 80;
   const centerX = pageWidth / 2;
+  const includeHeader = options?.includeHeader !== false;
 
   // --- Header ---
-  // LOGO
-  const logoPath = path.join(__dirname, "../../../frontend/public/logo.png");
-  const logoWidth = 90;
-  const logoX = pageWidth - 130;
+  if (includeHeader) {
+    // LOGO
+    const logoPath = path.join(__dirname, "../../../frontend/public/logo.png");
+    const logoWidth = 90;
+    const logoX = pageWidth - 130;
 
-  if (fs.existsSync(logoPath)) {
-    doc.image(logoPath, logoX, 40, { width: logoWidth });
+    if (fs.existsSync(logoPath)) {
+      doc.image(logoPath, logoX, 40, { width: logoWidth });
+    }
+
+    // College Name
+    doc.font("Helvetica-Bold").fontSize(22).fillColor("#000000"); // Black as per image
+    doc.text(
+      (collegeDetails.name || "PYDAH COLLEGE OF ENGINEERING").toUpperCase(),
+      40,
+      45,
+      { align: "center", width: contentWidth },
+    );
+
+    // Subtitle/Address
+    doc.font("Helvetica").fontSize(10);
+    doc.text(
+      "(Approved by AICTE and Affiliated to JNT University, Kakinada)",
+      40,
+      75,
+      { align: "center", width: contentWidth },
+    );
+    // Need to bold specific parts of address like "PATAVALA" as per image
+    // Doing simple text for now to match layout roughly
+    doc.text("Yanam Road, PATAVALA, KAKINADA-533461, E.G.Dt.", 40, 90, {
+      align: "center",
+      width: contentWidth,
+    });
+
+    // Line separator
+    doc
+      .moveTo(40, 110)
+      .lineTo(pageWidth - 40, 110)
+      .strokeColor("#000000")
+      .lineWidth(1)
+      .stroke();
   }
-
-  // College Name
-  doc.font("Helvetica-Bold").fontSize(22).fillColor("#000000"); // Black as per image
-  doc.text(
-    (collegeDetails.name || "PYDAH COLLEGE OF ENGINEERING").toUpperCase(),
-    40,
-    45,
-    { align: "center", width: contentWidth },
-  );
-
-  // Subtitle/Address
-  doc.font("Helvetica").fontSize(10);
-  doc.text(
-    "(Approved by AICTE and Affiliated to JNT University, Kakinada)",
-    40,
-    75,
-    { align: "center", width: contentWidth },
-  );
-  // Need to bold specific parts of address like "PATAVALA" as per image
-  // Doing simple text for now to match layout roughly
-  doc.text("Yanam Road, PATAVALA, KAKINADA-533461, E.G.Dt.", 40, 90, {
-    align: "center",
-    width: contentWidth,
-  });
-
-  // Line separator
-  doc
-    .moveTo(40, 110)
-    .lineTo(pageWidth - 40, 110)
-    .strokeColor("#000000")
-    .lineWidth(1)
-    .stroke();
 
   // Date
   // Date: 28-06-2025 (Right aligned)
@@ -1138,10 +1153,12 @@ const generateTemplatedCertificate = async (
   processedContent,
   student,
   collegeDetails,
+  options = {},
 ) => {
   const tempDir = os.tmpdir();
   const fileName = `certificate_${Date.now()}.pdf`;
   const filePath = path.join(tempDir, fileName);
+  const includeHeader = options?.includeHeader !== false;
 
   // Determine page size
   let pageSize = "A4";
@@ -1193,43 +1210,51 @@ const generateTemplatedCertificate = async (
   // Set initial Y position (will be adjusted after header is rendered)
   let currentY = paddingTop;
   let headerRendered = false;
-  if (collegeDetails.header_image) {
-    try {
-      doc.image(collegeDetails.header_image, 0, 0, {
-        width: pageWidth,
-        height: headerHeight,
-      });
-      currentY = headerHeight + 15; // Small spacing after header
-      headerRendered = true;
-    } catch (error) {
-      console.error("Error rendering header image from buffer:", error);
-    }
-  } else if (template.header_image_url) {
-    try {
-      const headerPath = path.join(
-        process.cwd(),
-        template.header_image_url.startsWith("/")
-          ? template.header_image_url.substring(1)
-          : template.header_image_url,
-      );
-      if (fs.existsSync(headerPath)) {
-        doc.image(headerPath, 0, 0, { width: pageWidth, height: headerHeight });
+
+  if (includeHeader) {
+    if (collegeDetails.header_image) {
+      try {
+        doc.image(collegeDetails.header_image, 0, 0, {
+          width: pageWidth,
+          height: headerHeight,
+        });
         currentY = headerHeight + 15; // Small spacing after header
         headerRendered = true;
+      } catch (error) {
+        console.error("Error rendering header image from buffer:", error);
       }
-    } catch (error) {
-      console.error("Error loading header image from path:", error);
+    } else if (template.header_image_url) {
+      try {
+        const headerPath = path.join(
+          process.cwd(),
+          template.header_image_url.startsWith("/")
+            ? template.header_image_url.substring(1)
+            : template.header_image_url,
+        );
+        if (fs.existsSync(headerPath)) {
+          doc.image(headerPath, 0, 0, { width: pageWidth, height: headerHeight });
+          currentY = headerHeight + 15; // Small spacing after header
+          headerRendered = true;
+        }
+      } catch (error) {
+        console.error("Error loading header image from path:", error);
+      }
     }
-  }
 
-  // Fallback: If no header image is present, check dynamic college header from metadata
-  if (!headerRendered) {
-    if (!processedContent.topContent && collegeDetails?.metadata?.header_content) {
-      processedContent.topContent = collegeDetails.metadata.header_content;
-    } else if (!processedContent.topContent && collegeDetails?.name) {
-      processedContent.topContent = `[center][b][size:16]${collegeDetails.name.toUpperCase()}[/size][/b][/center]\n----------------------------------------`;
+    // Fallback: If no header image is present, check dynamic college header from metadata
+    if (!headerRendered) {
+      const savedHeader = collegeDetails?.header_content || collegeDetails?.metadata?.header_content;
+      if (!processedContent.topContent && savedHeader && savedHeader.trim()) {
+        processedContent.topContent = savedHeader;
+      } else if (!processedContent.topContent) {
+        processedContent.topContent = `[center][b][size:16]${(collegeDetails?.name || 'PYDAH COLLEGE OF ENGINEERING').toUpperCase()}[/size][/b][/center]\n[center][size:10](Approved by AICTE, Affiliated to Andhra University, Accredited by NAAC 'A+' Grade)[/size][/center]\n[center][size:9]${collegeDetails?.address || 'Yanam Road, Tallarevu, Patavala, Andhra Pradesh 533461'} | Phone: ${collegeDetails?.phone || collegeDetails?.contact || '8331040530'} | Website: ${collegeDetails?.website || 'www.pydah.edu.in'}[/size][/center]\n------------------------------------------------------------------------------------------------------------------------`;
+      }
+      currentY = paddingTop + 10;
     }
-    currentY = paddingTop + 10;
+  } else {
+    // When printing ONLY CONTENT (no digital header) for pre-printed letterhead stationary:
+    // Preserve header offset space so certificate body starts nicely below physical letterhead
+    currentY = Math.max(headerHeight + 15, paddingTop + 20);
   }
 
   // Calculate maximum Y position (footer removed; maximize space up to bottom padding)
@@ -1594,8 +1619,8 @@ const generateTemplatedCertificate = async (
     50,
   );
 
-  // Render top section (only if no graphic header image was already rendered)
-  if (!headerRendered && processedContent.topContent) {
+  // Render top section (only if header is enabled and no graphic header image was already rendered)
+  if (includeHeader && !headerRendered && processedContent.topContent) {
     currentY = renderSection(processedContent.topContent, currentY, topSpacing);
   }
 

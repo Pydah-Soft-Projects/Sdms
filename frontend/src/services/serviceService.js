@@ -58,9 +58,9 @@ export const serviceService = {
         return response.data;
     },
 
-    getDownloadUrl: (requestId) => {
+    getDownloadUrl: (requestId, withHeader = true) => {
         const baseUrl = api.defaults.baseURL || 'http://localhost:5000/api';
-        return `${baseUrl}/services/requests/${requestId}/download`;
+        return `${baseUrl}/services/requests/${requestId}/download?include_header=${withHeader !== false}`;
     },
 
     updateRequestStatus: async (id, data) => {

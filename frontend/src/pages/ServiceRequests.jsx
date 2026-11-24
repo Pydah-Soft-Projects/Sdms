@@ -145,6 +145,7 @@ const ServiceRequests = () => {
     const [actionType, setActionType] = useState(null); // 'ready', 'close', 'edit_student', 'create_request'
     const [actionData, setActionData] = useState({ collect_date: '', admin_note: '' });
     const [previewUrl, setPreviewUrl] = useState(null);
+    const [printWithHeader, setPrintWithHeader] = useState(true);
     const [editingStudent, setEditingStudent] = useState(null);
     const [studentForm, setStudentForm] = useState({});
 
@@ -916,7 +917,7 @@ const ServiceRequests = () => {
             fetchRequests();
 
             // Proceed to print / preview
-            await generatePreview(updatedRequest);
+            await generatePreview(updatedRequest, printWithHeader);
 
         } catch (error) {
             console.error(error);
@@ -925,10 +926,13 @@ const ServiceRequests = () => {
         }
     };
 
-    const generatePreview = async (request) => {
+    const generatePreview = async (request, withHeader = printWithHeader) => {
         try {
-            const toastId = toast.loading('Generating preview...');
+            setSelectedRequest(request);
+            setPrintWithHeader(withHeader);
+            const toastId = toast.loading(withHeader ? 'Generating preview (with header)...' : 'Generating preview (only content)...');
             const response = await api.get(`/services/requests/${request.id}/download`, {
+                params: { include_header: withHeader },
                 responseType: 'blob'
             });
 
@@ -947,7 +951,7 @@ const ServiceRequests = () => {
     const handleDirectPrint = (request) => {
         setActionType(null);
         setEditingStudent(null);
-        generatePreview(request);
+        generatePreview(request, printWithHeader);
     };
 
     const handleCreateRequest = async (e) => {
@@ -1854,6 +1858,39 @@ const ServiceRequests = () => {
                             ))}
                         </div>
 
+                        {/* Print Header Option */}
+                        <div className="bg-background border border-border p-3.5 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-1">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                    <Printer size={18} />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold text-main">Print Header Style</div>
+                                    <div className="text-[11px] text-muted-text">
+                                        Choose whether to print with official college header & logo or only content for pre-printed letterhead.
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="inline-flex p-1 bg-surface border border-border rounded-xl text-xs font-semibold self-stretch sm:self-auto justify-center gap-1 shadow-xs">
+                                <button
+                                    type="button"
+                                    onClick={() => setPrintWithHeader(true)}
+                                    className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${printWithHeader ? 'bg-primary text-white shadow-sm' : 'text-sub hover:text-main'}`}
+                                >
+                                    <Sparkles size={13} />
+                                    With Header
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPrintWithHeader(false)}
+                                    className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${!printWithHeader ? 'bg-primary text-white shadow-sm' : 'text-sub hover:text-main'}`}
+                                >
+                                    <FileText size={13} />
+                                    Only Content (No Header)
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="flex gap-3 pt-2">
                             <button
                                 onClick={() => handleDirectPrint(selectedRequest)}
@@ -2045,17 +2082,50 @@ const ServiceRequests = () => {
             {previewUrl && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
                     <div className="bg-surface rounded-xl w-full max-w-5xl h-[90vh] flex flex-col shadow-2xl animate-scale-in">
-                        <div className="flex justify-between items-center p-4 border-b">
-                            <h2 className="text-xl font-bold text-main flex items-center gap-2">
-                                <Printer className="text-primary" /> Certificate Preview
-                            </h2>
+                        <div className="flex flex-wrap justify-between items-center p-4 border-b gap-3">
+                            <div className="flex items-center gap-3">
+                                <h2 className="text-xl font-bold text-main flex items-center gap-2">
+                                    <Printer className="text-primary" /> Certificate Preview
+                                </h2>
+
+                                {/* Header mode toggle directly in preview modal */}
+                                <div className="inline-flex p-1 bg-background border border-border rounded-xl text-xs font-semibold gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (!printWithHeader && selectedRequest) {
+                                                generatePreview(selectedRequest, true);
+                                            }
+                                        }}
+                                        className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${printWithHeader ? 'bg-primary text-white shadow-xs' : 'text-sub hover:text-main'}`}
+                                        title="Print with full college header, logo & letterhead"
+                                    >
+                                        <Sparkles size={13} />
+                                        With Header
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (printWithHeader && selectedRequest) {
+                                                generatePreview(selectedRequest, false);
+                                            }
+                                        }}
+                                        className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${!printWithHeader ? 'bg-primary text-white shadow-xs' : 'text-sub hover:text-main'}`}
+                                        title="Hide header for printing on pre-printed letterhead paper"
+                                    >
+                                        <FileText size={13} />
+                                        Only Content
+                                    </button>
+                                </div>
+                            </div>
+
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => {
                                         const iframe = document.getElementById('pdf-preview-frame');
                                         if (iframe) iframe.contentWindow.print();
                                     }}
-                                    className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover transition flex items-center gap-2"
+                                    className="px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover transition flex items-center gap-2 shadow-sm"
                                 >
                                     <Printer size={18} /> Print Certificate
                                 </button>
